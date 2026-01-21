@@ -28,7 +28,7 @@ VTHERM_API_NAME = "vtherm_api"
 _LOGGER = logging.getLogger(__name__)
 
 
-class VersatileThermostatAPI(dict):
+class VersatileThermostatAPI:
     """The VersatileThermostatAPI"""
 
     _hass: HomeAssistant = None
@@ -55,7 +55,7 @@ class VersatileThermostatAPI(dict):
 
     def __init__(self) -> None:
         _LOGGER.debug("building a VersatileThermostatAPI")
-        super().__init__()
+
         self._expert_params = None
         self._short_ema_params = None
         self._safety_mode = None
@@ -100,9 +100,19 @@ class VersatileThermostatAPI(dict):
         _LOGGER.debug("Remove the entry %s", entry.entry_id)
         VersatileThermostatAPI._hass.data[DOMAIN].pop(entry.entry_id)
         # If not more entries are preset, remove the API
-        if len(self) == 0:
+        if (
+            len(
+                [
+                    val
+                    for val in VersatileThermostatAPI._hass.data[DOMAIN].values()
+                    if isinstance(val, ConfigEntry)
+                ]
+            )
+            == 0
+        ):
             _LOGGER.debug("No more entries-> Remove the API from DOMAIN")
-            VersatileThermostatAPI._hass.data.pop(DOMAIN)
+            if DOMAIN in VersatileThermostatAPI._hass.data:
+                VersatileThermostatAPI._hass.data.pop(DOMAIN)
 
     def set_global_config(self, config):
         """Read the global configuration from configuration.yaml file"""
@@ -218,7 +228,8 @@ class VersatileThermostatAPI(dict):
             return
 
         # Remove the API instance from hass.data
-        VersatileThermostatAPI._hass.data[DOMAIN].pop(VTHERM_API_NAME, None)
+        if DOMAIN in VersatileThermostatAPI._hass.data:
+            VersatileThermostatAPI._hass.data[DOMAIN].pop(VTHERM_API_NAME, None)
         VersatileThermostatAPI._hass = None
 
     @property
