@@ -1461,8 +1461,8 @@ async def test_multi_climate(
     old_regulated_temp = entity.regulated_target_temp
 
     with patch("homeassistant.core.ServiceRegistry.async_call") as mock_service_call:
-        # Change room temperature from 17 to 18 (closer to target, should reduce regulated temp)
-        await send_temperature_change_event(entity, 18, now, True)
+        # Change room temperature from 17 to 19 (closer to target, should reduce regulated temp)
+        await send_temperature_change_event(entity, 19, now, True)
         await hass.async_block_till_done()
 
         # 5. Verify the NEW regulated temperature is sent to ALL 3 underlying climates

@@ -12,8 +12,8 @@ class PITemperatureRegulator:
     - offset = kp * error + ki * accumulated_error
 
     To use it you must:
-    - instanciate the class and gives the algorithm parameters: kp, ki, offset_max, stabilization_threshold, accumulated_error_threshold
-    - call calculate_regulated_temperature with the internal and external temperature
+    - instanciate the class and gives the algorithm parameters: kp, ki, offset_max, accumulated_error_threshold, overheat_protection
+    - call calculate_regulated_temperature with the internal, external temperature and time_delta. Time_delta is 1.0 for a standard regulation cycle.
     - call set_target_temp when the target temperature change.
     """
 
@@ -24,17 +24,17 @@ class PITemperatureRegulator:
         ki: float,
         k_ext: float,
         offset_max: float,
-        stabilization_threshold: float,
         accumulated_error_threshold: float,
+        overheat_protection: bool,
     ):
         self.target_temp: float = target_temp
         self.kp: float = kp  # proportionnel gain
         self.ki: float = ki  # integral gain
         self.k_ext: float = k_ext  # exterior gain
         self.offset_max: float = offset_max
-        self.stabilization_threshold: float = stabilization_threshold
         self.accumulated_error: float = 0
         self.accumulated_error_threshold: float = accumulated_error_threshold
+        self.overheat_protection: bool = overheat_protection
 
     def reset_accumulated_error(self):
         """Reset the accumulated error"""
@@ -52,7 +52,7 @@ class PITemperatureRegulator:
         # if self.accumulated_error < 0:
         #     self.accumulated_error = 0
 
-    def calculate_regulated_temperature(self, room_temp: float | None, external_temp: float | None):  # pylint: disable=unused-argument
+    def calculate_regulated_temperature(self, room_temp: float | None, external_temp: float | None, time_delta: float):  # pylint: disable=unused-argument
         """Calculate a new target_temp given some temperature"""
         if room_temp is None:
             _LOGGER.warning(
@@ -64,6 +64,20 @@ class PITemperatureRegulator:
                 "Temporarily skipping the self-regulation algorithm while the configured sensor for outdoor temperature is unavailable"
             )
             return self.target_temp
+        if time_delta > 2.0:
+            # When the HVAC mode is off (by on/off or manual change), the PI algorithm is not run. time_delta can be
+            # very high and broke the algo.
+            
+            # It should never be higher than 1 on normal run but sometime the asyncio have a small latency on system
+            # with low performance. Allowing a value a little over 1 give a better response.
+
+            # Until 2.0, the resulted offset should be good. Upper it can unbalance the regulation so it is caped to
+            # 1.0.
+            _LOGGER.info(
+                "The time delta (%.2f) is too high for the self-regulation algorithm. Capping to 1.0.",
+                time_delta,
+            )
+            time_delta = 1.0
 
         # Calculate the error factor (P)
         error = self.target_temp - room_temp
@@ -71,10 +85,10 @@ class PITemperatureRegulator:
         # Calculate the sum of error (I)
         # Discussion #384. Finally don't reset the accumulated error but smoothly reset it if the sign is inversed
         # If the error have change its sign, reset smoothly the accumulated error
-        if error * self.accumulated_error < 0:
-            self.accumulated_error = self.accumulated_error / 2.0
+        if self.overheat_protection and error * self.accumulated_error < 0:
+            self.accumulated_error = self.accumulated_error / (2.0 * time_delta)
 
-        self.accumulated_error += error
+        self.accumulated_error += error * time_delta
 
         # Capping of the error
         self.accumulated_error = min(
@@ -95,9 +109,11 @@ class PITemperatureRegulator:
         result = round(self.target_temp + total_offset, 1)
 
         _LOGGER.debug(
-            "PITemperatureRegulator - Error: %.2f accumulated_error: %.2f offset: %.2f offset_ext: %.2f target_tem: %.1f regulatedTemp: %.1f",
+            "PITemperatureRegulator - Error: %.2f accumulated_error: %.2f (overheat protection %s and delta %.2f) offset: %.2f offset_ext: %.2f target_tem: %.1f regulatedTemp: %.1f",
             error,
             self.accumulated_error,
+            self.overheat_protection,
+            time_delta,
             offset,
             offset_ext,
             self.target_temp,
