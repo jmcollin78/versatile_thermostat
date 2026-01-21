@@ -65,6 +65,14 @@ class PITemperatureRegulator:
             )
             return self.target_temp
         if time_delta > 2.0:
+            # When the HVAC mode is off (by on/off or manual change), the PI algorithm is not run. time_delta can be
+            # very high and broke the algo.
+            
+            # It should never be higher than 1 on normal run but sometime the asyncio have a small latency on system
+            # with low performance. Allowing a value a little over 1 give a better response.
+
+            # Until 2.0, the resulted offset should be good. Upper it can unbalance the regulation so it is caped to
+            # 1.0.
             _LOGGER.info(
                 "The time delta (%.2f) is too high for the self-regulation algorithm. Capping to 1.0.",
                 time_delta,
