@@ -390,3 +390,24 @@ cancel_timed_preset:
             integration: versatile_thermostat
             domain:
                 - climate
+
+recalibrate_valves:
+    name: Recalibrate valves
+    description: Recalibrate opening/closing degrees for all valve underlyings of a VTherm (only over_climate_valve).
+    target:
+        entity:
+            integration: versatile_thermostat
+            domain:
+                - climate
+    fields:
+        delay_seconds:
+            name: Delay seconds
+            description: Delay in seconds between open and close step for each valve
+            required: true
+            example: 5
+            default: 60
+            selector:
+                number:
+                    min: 0
+                    max: 300
+                    step: 1

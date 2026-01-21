@@ -2004,6 +2004,16 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
 
         await self._timed_preset_manager.cancel_timed_preset()
 
+    async def service_recalibrate_valves(self, delay_seconds: int):
+        """Stub method for recalibrate_valves service on unsupported thermostat types.
+
+        Raises:
+            ServiceValidationError: Always raised to indicate the service is not available
+        """
+        raise ServiceValidationError(
+            f"{self} - The recalibrate_valves service is only available for ThermostatClimateValve thermostats."
+        )
+
     ##
     ## For testing purpose
     ##
