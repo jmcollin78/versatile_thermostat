@@ -20,7 +20,7 @@
   - [VTherm Automatically Switches to 'Cooling' or 'Heating' Mode](#vtherm-automatically-switches-to-cooling-or-heating-mode)
   - [Open Window Detection Does Not Prevent Preset Changes](#open-window-detection-does-not-prevent-preset-changes)
     - [Example:](#example)
-
+  - [Error stabilization_threshold is an invalid option](#error-stabilization_threshold-is-an-invalid-option)
 
 ## Using a Heatzy
 
@@ -258,3 +258,9 @@ If the action mode is set to _Frost Protection_ or _Eco_, the preset temperature
 2. **Window opens and system waits**: The preset remains on Comfort, **but the setpoint temperature switches to 10°C** (frost protection). This state may seem inconsistent because the displayed preset does not match the applied setpoint temperature.
 3. **Preset change to Boost** (by the user or the Scheduler): The preset switches to Boost, but the setpoint temperature remains at 10°C (frost protection). This state may also appear inconsistent.
 4. **Window closes**: The preset remains on Boost, and the setpoint temperature changes to 21°C (Boost). The inconsistency disappears, and the user's preset change is correctly applied.
+
+## Error stabilization_threshold is an invalid option
+
+This error happend after an upgrade from version 8.6.0 (and below) to version 8.6.1 (or above), for users who use the self regulation feature in expert mode.
+In this mode, they was a setting `stabilization_threshold` to write in your `configuration.yaml`. This setting is not used anymore since many years and was removed.
+You need to remove it from your `configuration.yaml`.
