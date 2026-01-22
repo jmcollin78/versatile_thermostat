@@ -19,6 +19,7 @@
   - [VTherm ne suit pas les changements de consigne faits directement depuis le sous-jacents (`over_climate`)](#vtherm-ne-suit-pas-les-changements-de-consigne-faits-directement-depuis-le-sous-jacents-over_climate)
   - [VTherm passe tout seul en mode 'clim' ou en mode 'chauffage'](#vtherm-passe-tout-seul-en-mode-clim-ou-en-mode-chauffage)
   - [La détection de fenêtre ouverte n'empêche pas le changement de preset](#la-détection-de-fenêtre-ouverte-nempêche-pas-le-changement-de-preset)
+  - [Erreur stabilization_threshold is an invalid option](#erreur-stabilization_threshold-is-an-invalid-option)
 
 
 ## Utilisation d'un Heatzy
@@ -245,3 +246,9 @@ Exemple :
 2. **Ouverture de la fenêtre et attente** : preset reste sur Confort, **la température de consigne passe sur 10°** (hors gel). Cet état peut paraitre incohérent car la température de consigne n'est pas en accord avec le preset affiché,
 3. **Changement de preset en Boost** (par l'utilisateur ou par le Scheduler) : le preset change pour Boost mais la température de consigne reste à 10° (hors gel). Cet état peut aussi paraitre incohérent,
 4. **Fermeture de la fenêtre** : le preset reste sur Boost, la température de consigne passe sur 21° (Boost). L'incohérence a disparue et le changement de preset de l'utilisateur est bien appliqué.
+
+## Erreur stabilization_threshold is an invalid option
+
+Cette erreur apparait lors de la mise à jour de la version 8.6.0 ou précédente vers la version 8.6.1 ou ultérieur, pour les utilisateurs utilisant l'auto regulation
+en mode expert. Dans le mode expert, il y avait un paramètre `stabilization_threshold` à mettre dans le fichier `configuration.yaml`. Ce paramètre n'est plus utilisé
+depuis plusieurs années et a été retiré. Il vous faut le retirer de votre fichier `configuration.yaml`.
