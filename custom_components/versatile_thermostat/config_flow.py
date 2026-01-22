@@ -305,14 +305,10 @@ class VersatileThermostatBaseConfigFlow(FlowHandler):
                 # Validation : Convertir la liste saisie
                 max_opening_degrees_list = [int(x.strip()) for x in raw_list.split(",")]
 
-                # Optionnel : Vérifiez des conditions supplémentaires sur la liste
-                if any(x < 0 for x in max_opening_degrees_list):
-                    raise ValueError
-
-                # Find the max opening degree for each underlying
+                # Check that max opening degrees are <= the underlying valve max opening and > 0
                 valves_entities = data.get(CONF_OPENING_DEGREE_LIST, [])
-                for valve_idx in range(0, len(max_opening_degrees_list)):
-                    if max_opening_degrees_list[valve_idx] > self.hass.states.get(valves_entities[valve_idx]).attributes.get("max", 100):
+                for valve_idx, valve_max in enumerate(max_opening_degrees_list):
+                    if valve_max <= 0 or valve_max > self.hass.states.get(valves_entities[valve_idx]).attributes.get("max", 100):
                         raise ValueError
             except ValueError as exc:
                 raise ValveRegulationMaxOpeningDegreesIncorrect(
