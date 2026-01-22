@@ -1,4 +1,3 @@
-````markdown
 # Valve recalibration (service recalibrate_valves)
 
 - [Valve recalibration (service recalibrate_valves)](#valve-recalibration-service-recalibrate_valves)
