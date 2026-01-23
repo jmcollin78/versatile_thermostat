@@ -1294,6 +1294,51 @@ async def test_user_config_flow_over_climate_valve(
     assert result["step_id"] == "valve_regulation"
     assert result.get("errors") == {"base": "valve_regulation_nb_entities_incorrect"}
 
+    # Test bad values on the min opening degrees
+    result = await hass.config_entries.flow.async_configure(
+        result["flow_id"],
+        user_input={
+            # CONF_OFFSET_CALIBRATION_LIST: [
+            #     "number.offset_calibration1",
+            #     "number.offset_calibration2",
+            # ],
+            CONF_OPENING_DEGREE_LIST: [
+                "number.opening_degree1",
+                "number.opening_degree2",
+            ],
+            CONF_CLOSING_DEGREE_LIST: [],
+            CONF_MIN_OPENING_DEGREES: "10, 20,0",
+            CONF_MAX_CLOSING_DEGREE: "30",
+            CONF_MAX_OPENING_DEGREES: "-90",
+            CONF_OPENING_THRESHOLD_DEGREE: "5",
+        },
+    )
+    assert result["type"] == FlowResultType.FORM
+    assert result["step_id"] == "valve_regulation"
+    assert result.get("errors") == {"max_opening_degrees": "max_opening_degrees_format"}
+
+    result = await hass.config_entries.flow.async_configure(
+        result["flow_id"],
+        user_input={
+            # CONF_OFFSET_CALIBRATION_LIST: [
+            #     "number.offset_calibration1",
+            #     "number.offset_calibration2",
+            # ],
+            CONF_OPENING_DEGREE_LIST: [
+                "number.opening_degree1",
+                "number.opening_degree2",
+            ],
+            CONF_CLOSING_DEGREE_LIST: [],
+            CONF_MIN_OPENING_DEGREES: "10, 20,0",
+            CONF_MAX_CLOSING_DEGREE: "30",
+            CONF_MAX_OPENING_DEGREES: "390",
+            CONF_OPENING_THRESHOLD_DEGREE: "5",
+        },
+    )
+    assert result["type"] == FlowResultType.FORM
+    assert result["step_id"] == "valve_regulation"
+    assert result.get("errors") == {"max_opening_degrees": "max_opening_degrees_format"}
+
     # 10.3 Give two openings and 2 calibration and 0 closing
     result = await hass.config_entries.flow.async_configure(
         result["flow_id"],
