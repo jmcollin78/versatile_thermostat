@@ -419,18 +419,28 @@ class ThermostatOverClimateValve(ThermostatProp[UnderlyingClimate], ThermostatOv
         for under in self._underlyings_valve_regulation:
             opening = under.opening_degree_entity_id
             closing = under.closing_degree_entity_id
-            if not opening or not closing:
+            if not opening:
                 raise ServiceValidationError(f"{self} - Underlying {under} must have opening and closing degree entities configured")
 
             opening_state = self._hass.states.get(opening)
-            closing_state = self._hass.states.get(closing)
-            if opening_state is None or closing_state is None:
-                raise ServiceValidationError(f"{self} - Opening/closing entities {opening}/{closing} not found for underlying {under}")
+
+            if opening_state is None:
+                raise ServiceValidationError(f"{self} - Opening entity {opening} not found for underlying {under}")
 
             opening_min = opening_state.attributes.get("min", 0)
             opening_max = opening_state.attributes.get("max", 100)
-            closing_min = closing_state.attributes.get("min", 0)
-            closing_max = closing_state.attributes.get("max", 100)
+
+            closing_min: int | None = None
+            closing_max: int | None = None
+
+            if closing:
+                closing_state = self._hass.states.get(closing)
+
+                if closing_state is None:
+                    raise ServiceValidationError(f"{self} - Closing entity {closing} not found for underlying {under}")
+
+                closing_min = closing_state.attributes.get("min", 0)
+                closing_max = closing_state.attributes.get("max", 100)
 
             valves_config.append(
                 {
@@ -439,8 +449,8 @@ class ThermostatOverClimateValve(ThermostatProp[UnderlyingClimate], ThermostatOv
                     "closing": closing,
                     "opening_min": opening_min,
                     "opening_max": opening_max,
-                    "closing_min": closing_min,
-                    "closing_max": closing_max,
+                    "closing_min": closing_min if closing else None,
+                    "closing_max": closing_max if closing else None,
                 }
             )
 
@@ -477,7 +487,8 @@ class ThermostatOverClimateValve(ThermostatProp[UnderlyingClimate], ThermostatOv
 
                         _LOGGER.info("%s - Forcing opening=%s to %s and closing=%s to %s", self, opening, open_val, closing, close_val)
                         await under.send_value_to_number(opening, open_val)
-                        await under.send_value_to_number(closing, close_val)
+                        if closing:
+                            await under.send_value_to_number(closing, close_val)
 
                     await asyncio.sleep(delay_seconds)
 
@@ -492,7 +503,8 @@ class ThermostatOverClimateValve(ThermostatProp[UnderlyingClimate], ThermostatOv
 
                         _LOGGER.info("%s - Forcing opening=%s to %s and closing=%s to %s", self, opening, open_val2, closing, close_val2)
                         await under.send_value_to_number(opening, open_val2)
-                        await under.send_value_to_number(closing, close_val2)
+                        if closing:
+                            await under.send_value_to_number(closing, close_val2)
 
                     await asyncio.sleep(delay_seconds)
 
