@@ -52,6 +52,7 @@ class ThermostatOverClimateValve(ThermostatProp[UnderlyingClimate], ThermostatOv
         self._min_opening_degress: list[int] = []
         self._max_closing_degree: int = 100
         self._opening_threshold_degree: int = 0
+        self._recalibrate_lock: asyncio.Lock = asyncio.Lock()
 
         super().__init__(hass, unique_id, name, entry_infos)
 
@@ -112,9 +113,6 @@ class ThermostatOverClimateValve(ThermostatProp[UnderlyingClimate], ThermostatOv
                 opening_threshold=self._opening_threshold_degree,
             )
             self._underlyings_valve_regulation.append(under)
-
-        # Guard to prevent concurrent recalibration tasks per thermostat entity
-        self._recalibrate_lock: asyncio.Lock | None = None
 
     @overrides
     def restore_specific_previous_state(self, old_state: State):
@@ -450,23 +448,12 @@ class ThermostatOverClimateValve(ThermostatProp[UnderlyingClimate], ThermostatOv
         expected_state = self.requested_state.to_dict() if self.requested_state is not None else None
 
         # If a recalibration is already running, return immediately and do not schedule
-        if self._recalibrate_lock is None:
-            self._recalibrate_lock = asyncio.Lock()
-
         if self._recalibrate_lock.locked():
             _LOGGER.warning("Recalibration request refused: already running for %s", self.entity_id)
             return {"message": "recalibrage en cours"}
 
-        def pct_to_entity_value(pct: int, ent_min: float, ent_max: float) -> int:
-            val = round(ent_min + (pct / 100.0) * (ent_max - ent_min))
-            return int(val)
-
         # Define the background coroutine
         async def _recalibrate_task():
-            # Initialize lock if needed
-            if self._recalibrate_lock is None:
-                self._recalibrate_lock = asyncio.Lock()
-
             # If already running, log and exit
             if self._recalibrate_lock.locked():
                 _LOGGER.warning("Recalibration already in progress for %s", self.entity_id)
@@ -485,8 +472,8 @@ class ThermostatOverClimateValve(ThermostatProp[UnderlyingClimate], ThermostatOv
                         opening = cfg["opening"]
                         closing = cfg["closing"]
 
-                        open_val = pct_to_entity_value(100, cfg["opening_min"], cfg["opening_max"])
-                        close_val = pct_to_entity_value(0, cfg["closing_min"], cfg["closing_max"])
+                        open_val = cfg["opening_max"]
+                        close_val = cfg["closing_min"]
 
                         _LOGGER.info("%s - Forcing opening=%s to %s and closing=%s to %s", self, opening, open_val, closing, close_val)
                         await under.send_value_to_number(opening, open_val)
@@ -500,8 +487,8 @@ class ThermostatOverClimateValve(ThermostatProp[UnderlyingClimate], ThermostatOv
                         opening = cfg["opening"]
                         closing = cfg["closing"]
 
-                        open_val2 = pct_to_entity_value(0, cfg["opening_min"], cfg["opening_max"])
-                        close_val2 = pct_to_entity_value(100, cfg["closing_min"], cfg["closing_max"])
+                        open_val2 = cfg["opening_min"]
+                        close_val2 = cfg["closing_max"]
 
                         _LOGGER.info("%s - Forcing opening=%s to %s and closing=%s to %s", self, opening, open_val2, closing, close_val2)
                         await under.send_value_to_number(opening, open_val2)
