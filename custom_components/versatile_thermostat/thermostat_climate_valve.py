@@ -99,6 +99,7 @@ class ThermostatOverClimateValve(ThermostatTPI[UnderlyingClimate], ThermostatOve
             opening = opening_list[idx]
             closing = closing_list[idx] if idx < len(closing_list) else None
             self._opening_threshold_degree = max(self._opening_threshold_degree, regulation_threshold)
+            opening_entity = self._hass.states.get(opening)
 
             under = UnderlyingValveRegulation(
                 hass=self._hass,
@@ -107,7 +108,7 @@ class ThermostatOverClimateValve(ThermostatTPI[UnderlyingClimate], ThermostatOve
                 closing_degree_entity_id=closing,
                 climate_underlying=self._underlyings[idx],
                 min_opening_degree=(min_opening_degrees_list[idx] if idx < len(min_opening_degrees_list) else 0),
-                max_opening_degree=(max_opening_degrees_list[idx] if idx < len(max_opening_degrees_list) else 100),
+                max_opening_degree=(max_opening_degrees_list[idx] if idx < len(max_opening_degrees_list) else opening_entity.attributes.get("max", 100) if opening_entity else 100),
                 max_closing_degree=self._max_closing_degree,
                 opening_threshold=self._opening_threshold_degree,
             )
