@@ -372,7 +372,7 @@
       "valve_regulation_nb_entities_incorrect": "Le nombre d'entités pour la régulation par vanne doit être égal au nombre d'entité sous-jacentes",
       "sync_device_internal_temp_nb_entities_incorrect": "Le nombre d'entités pour la synchronisation de la température interne des appareils sous-jacents doit être égal au nombre d'appareils sous-jacents",
       "min_opening_degrees_format": "Une liste d'entiers positifs séparés par des ',' est attendu. Exemple : 20, 25, 30",
-      "max_opening_degrees_format": "Une liste d'entiers positifs entre 0 et 100 séparés par des ',' est attendu. Exemple : 80, 85, 90",
+      "max_opening_degrees_format": "Une liste d'entiers positifs entre 0 et l'ouverture maximale de la vanne séparés par des ',' est attendu. Exemple : 80, 85, 90",
       "min_max_opening_degrees_inconsistent": "Pour chaque équipement sous-jacent, max_opening_degrees doit être strictement supérieur à min_opening_degrees. Veuillez vérifier votre configuration.",
       "vswitch_configuration_incorrect": "La configuration de la personnalisation des commandes est incorrecte. Elle est obligatoire pour les sous-jacents non switch et le format doit être 'service_name[/attribut:valeur]'. Plus d'informations dans le README."
     },
@@ -753,7 +753,7 @@
       "valve_regulation_nb_entities_incorrect": "Le nombre d'entités pour la régulation par vanne doit être égal au nombre d'entité sous-jacentes",
       "sync_device_internal_temp_nb_entities_incorrect": "Le nombre d'entités pour la synchronisation de la température interne des appareils sous-jacents doit être égal au nombre d'appareils sous-jacents",
       "min_opening_degrees_format": "Une liste d'entiers positifs séparés par des ',' est attendu. Exemple : 20, 25, 30",
-      "max_opening_degrees_format": "Une liste d'entiers positifs entre 0 et 100 séparés par des ',' est attendu. Exemple : 80, 85, 90",
+      "max_opening_degrees_format": "Une liste d'entiers positifs entre 0 et l'ouverture maximale de la vanne séparés par des ',' est attendu. Exemple : 80, 85, 90",
       "min_max_opening_degrees_inconsistent": "Pour chaque équipement sous-jacent, max_opening_degrees doit être strictement supérieur à min_opening_degrees. Veuillez vérifier votre configuration.",
       "vswitch_configuration_incorrect": "La configuration de la personnalisation des commandes est incorrecte. Elle est obligatoire pour les sous-jacents non switch et le format doit être 'service_name[/attribut:valeur]'. Plus d'informations dans le README."
     },
