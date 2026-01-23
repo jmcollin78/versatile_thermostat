@@ -181,6 +181,11 @@ class ThermostatOverClimateValve(ThermostatProp[UnderlyingClimate], ThermostatOv
         """A utility function to force the calculation of a the algo and
         update the custom attributes and write the state
         """
+
+        if self._recalibrate_lock.locked():
+            _LOGGER.info("%s - do not calculate TPI because recalibration is in progress", self)
+            return
+
         _LOGGER.debug("%s - recalculate the open percent", self)
 
         self.stop_recalculate_later()
@@ -392,6 +397,12 @@ class ThermostatOverClimateValve(ThermostatProp[UnderlyingClimate], ThermostatOv
         """Return the type of thermostat"""
         return "over_climate_valve"
 
+    @overrides
+    async def async_set_hvac_mode(self, hvac_mode: VThermHvacMode, ignore_lock: bool = False):
+        """Disable HVAC mode change during recalibration"""
+        if not self._recalibrate_lock.locked() or ignore_lock:
+            await super().async_set_hvac_mode(hvac_mode)
+
     async def service_recalibrate_valves(self, delay_seconds: int):
         """Start recalibration of valve opening/closing degrees for each underlying valve in background.
 
@@ -473,7 +484,7 @@ class ThermostatOverClimateValve(ThermostatProp[UnderlyingClimate], ThermostatOv
                 try:
                     # Turn off vtherm
                     _LOGGER.info("%s - Recalibration - Stopping VTherm and waiting for %s seconds", self, delay_seconds)
-                    await self.async_set_hvac_mode(VThermHvacMode_OFF)
+                    await self.async_set_hvac_mode(VThermHvacMode_OFF, ignore_lock=True)
                     await asyncio.sleep(delay_seconds)
 
                     _LOGGER.info("%s - Recalibration - Full opening of the valves and waiting for %s seconds", self, delay_seconds)
