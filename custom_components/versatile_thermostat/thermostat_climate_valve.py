@@ -5,9 +5,9 @@ import logging
 import asyncio
 from datetime import datetime
 
-from homeassistant.core import HomeAssistant, State
+from homeassistant.core import Event, HomeAssistant, State
 from homeassistant.components.climate import HVACAction
-from homeassistant.helpers.event import async_call_later
+from homeassistant.helpers.event import EventStateChangedData, async_call_later
 
 
 from .underlyings import UnderlyingValveRegulation, UnderlyingClimate
@@ -403,6 +403,27 @@ class ThermostatOverClimateValve(ThermostatProp[UnderlyingClimate], ThermostatOv
         if not self._recalibrate_lock.locked() or ignore_lock:
             await super().async_set_hvac_mode(hvac_mode)
 
+    @overrides
+    async def _async_climate_changed(self, event: Event[EventStateChangedData]):
+        """Handle underlying climate changes only if not in recalibration"""
+        if not self._recalibrate_lock.locked():
+            return await super()._async_climate_changed(event)
+        _LOGGER.info("%s - ignore underlying climate change because recalibration is in progress", self)
+
+    @overrides
+    async def async_set_temperature(self, **kwargs):
+        """Disable temperature change during recalibration"""
+        if not self._recalibrate_lock.locked():
+            return await super().async_set_temperature(**kwargs)
+        _LOGGER.info("%s - ignore temperature change because recalibration is in progress", self)
+        
+    @overrides
+    async def async_set_preset_mode(self, preset_mode: str):
+        """Disable preset mode change during recalibration"""
+        if not self._recalibrate_lock.locked():
+            return await super().async_set_preset_mode(preset_mode)
+        _LOGGER.info("%s - ignore preset mode change because recalibration is in progress", self)
+
     async def service_recalibrate_valves(self, delay_seconds: int):
         """Start recalibration of valve opening/closing degrees for each underlying valve in background.
 
@@ -482,10 +503,11 @@ class ThermostatOverClimateValve(ThermostatProp[UnderlyingClimate], ThermostatOv
 
             async with self._recalibrate_lock:
                 try:
-                    # Turn off vtherm
-                    _LOGGER.info("%s - Recalibration - Stopping VTherm and waiting for %s seconds", self, delay_seconds)
-                    await self.async_set_hvac_mode(VThermHvacMode_OFF, ignore_lock=True)
-                    await asyncio.sleep(delay_seconds)
+                    # Turn on vtherm if not already on
+                    if self.vtherm_hvac_mode != VThermHvacMode_HEAT:
+                        _LOGGER.info("%s - Recalibration - Starting VTherm and waiting for %s seconds", self, delay_seconds)
+                        await self.async_set_hvac_mode(VThermHvacMode_HEAT, ignore_lock=True)
+                        await asyncio.sleep(delay_seconds)
 
                     _LOGGER.info("%s - Recalibration - Full opening of the valves and waiting for %s seconds", self, delay_seconds)
                     for cfg in valves_config:
@@ -519,21 +541,22 @@ class ThermostatOverClimateValve(ThermostatProp[UnderlyingClimate], ThermostatOv
 
                     await asyncio.sleep(delay_seconds)
 
-                    # Restore requested state
-                    _LOGGER.info("%s - Recalibration - Restoring requested state", self)
-                    if expected_state:
-                        try:
-                            self.requested_state.set_state(
-                                hvac_mode=expected_state.get("hvac_mode"),
-                                target_temperature=expected_state.get("target_temperature"),
-                                preset=expected_state.get("preset"),
-                            )
-                            self.requested_state.force_changed()
-                            await self.update_states(force=True)
-                        except Exception as ex:  # pylint: disable=broad-except
-                            _LOGGER.error("%s - Cannot restore requested state after recalibration: %s", self, ex)
                 except Exception as exc:  # pylint: disable=broad-except
                     _LOGGER.error("%s - Error during recalibration: %s", self, exc)
+
+            # Restore requested state
+            _LOGGER.info("%s - Recalibration - Restoring requested state", self)
+            if expected_state:
+                try:
+                    self.requested_state.set_state(
+                        hvac_mode=expected_state.get("hvac_mode"),
+                        target_temperature=expected_state.get("target_temperature"),
+                        preset=expected_state.get("preset"),
+                    )
+                    self.requested_state.force_changed()
+                    await self.update_states(force=True)
+                except Exception as ex:  # pylint: disable=broad-except
+                    _LOGGER.error("%s - Cannot restore requested state after recalibration: %s", self, ex)
 
         # Launch background task and return immediately
         try:
