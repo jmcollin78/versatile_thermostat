@@ -107,3 +107,31 @@ async def test_auto_start_stop_feature_manager_post_init(
             custom_attributes["auto_start_stop_manager"]["auto_start_stop_accumulated_error_threshold"] == auto_start_stop_manager._auto_start_stop_algo.accumulated_error_threshold
         )
         assert custom_attributes["auto_start_stop_manager"]["auto_start_stop_last_switch_date"] == auto_start_stop_manager._auto_start_stop_algo.last_switch_date
+
+
+async def test_auto_start_stop_feature_manager_skips_during_startup(
+    hass: HomeAssistant,
+):
+    """Test that auto start/stop manager skips evaluation during startup"""
+
+    fake_vtherm = MagicMock(spec=BaseThermostat)
+    type(fake_vtherm).name = PropertyMock(return_value="the name")
+    type(fake_vtherm).have_valve_regulation = PropertyMock(return_value=False)
+    type(fake_vtherm).is_startup_complete = PropertyMock(return_value=False)
+
+    auto_start_stop_manager = FeatureAutoStartStopManager(fake_vtherm, hass)
+    auto_start_stop_manager.post_init(
+        {
+            CONF_USE_AUTO_START_STOP_FEATURE: True,
+            CONF_AUTO_START_STOP_LEVEL: AUTO_START_STOP_LEVEL_MEDIUM,
+        }
+    )
+
+    # Enable the feature
+    auto_start_stop_manager._is_auto_start_stop_enabled = True
+
+    assert auto_start_stop_manager.is_configured is True
+
+    # refresh_state should not evaluate during startup and is_auto_stop_detected should remain False
+    result = await auto_start_stop_manager.refresh_state()
+    assert auto_start_stop_manager.is_auto_stopped is False

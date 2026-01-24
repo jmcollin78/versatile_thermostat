@@ -123,6 +123,21 @@ async def test_refresh_state_not_configured(hass: HomeAssistant):
     assert manager.is_failure_detected is False
 
 
+async def test_refresh_state_during_startup(hass: HomeAssistant):
+    """Test that refresh_state skips evaluation during startup"""
+
+    fake_vtherm = MagicMock(spec=BaseThermostat)
+    type(fake_vtherm).name = PropertyMock(return_value="the name")
+    type(fake_vtherm).is_startup_complete = PropertyMock(return_value=False)
+
+    manager = FeatureHeatingFailureDetectionManager(fake_vtherm, hass)
+    manager.post_init({CONF_USE_HEATING_FAILURE_DETECTION_FEATURE: True})
+
+    result = await manager.refresh_state()
+    assert result is False
+    # Manager should not have evaluated heating/cooling states during startup
+
+
 async def test_refresh_state_no_prop(hass: HomeAssistant):
     """Test refresh_state when VTherm has no proportional algorithm"""
 
