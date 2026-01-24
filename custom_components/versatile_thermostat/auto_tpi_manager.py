@@ -2721,7 +2721,10 @@ class AutoTpiManager(CycleManager):
         real_rise = self._current_temp_in - self.state.last_temp_in
         efficiency = self._last_cycle_power_efficiency
         
-        if self._should_learn_capacity():
+        # Check if cycle was flagged as invalid (e.g. gap detected)
+        if self.state.last_learning_status == "cycle_gap_detected":
+            _LOGGER.debug("%s - Auto TPI: Skipping capacity learning due to invalid cycle (gap detected)", self._name)
+        elif self._should_learn_capacity():
             await self._learn_capacity(
                 power=self.state.last_power,
                 delta_t=self._current_temp_in - self._current_temp_out,
