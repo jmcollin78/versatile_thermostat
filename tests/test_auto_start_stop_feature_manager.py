@@ -134,4 +134,5 @@ async def test_auto_start_stop_feature_manager_skips_during_startup(
 
     # refresh_state should not evaluate during startup and is_auto_stop_detected should remain False
     result = await auto_start_stop_manager.refresh_state()
+    assert result is False
     assert auto_start_stop_manager.is_auto_stopped is False
