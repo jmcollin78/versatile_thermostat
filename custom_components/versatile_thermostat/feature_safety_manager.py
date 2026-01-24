@@ -90,6 +90,11 @@ class FeatureSafetyManager(BaseFeatureManager):
             _LOGGER.debug("%s - safety is disabled (or not configured)", self)
             return False
 
+        # Skip evaluation during startup to avoid acting on intermediate states
+        if not self._vtherm.is_startup_complete:
+            _LOGGER.debug("%s - skipping safety evaluation during startup", self)
+            return False
+
         if self._vtherm.requested_state.hvac_mode == VThermHvacMode_OFF:
             self._safety_state = STATE_OFF
             _LOGGER.debug("%s - safety is OFF because requested_state is OFF", self)
