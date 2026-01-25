@@ -38,9 +38,9 @@ Versatile Thermostat UI Card (K dispozici na [Github](https://github.com/jmcolli
 > Tyto anomálie mohou naznačovat otevřené okno, vadný radiátor nebo externí zdroj tepla. Funkce odesílá události, které lze použít ke spuštění automatizací (oznámení, výstrahy atd.). Více informací [zde](documentation/cs/feature-heating-failure-detection.md).
 
 ## Release 8.4
-> 1. added auto TPI (experimental). This new feature allows automatically calculating the best coefficients for the TPI algorithm. More information [here](./auto_tpi_internal_doc.md)
-> 2. added a temperature synchronization function for a device controlled in `over_climate` mode. Depending on your device's capabilities, _VTherm_ can control an offset calibration entity or directly an external temperature entity. More information [here](documentation/en/feature-sync_device_temp.md),
-> 3. added a feature named "timed preset" which aims to select a preset for a certain duration and come back to the previous preset after the expiration of the delay. The new feature is totally described [here](documentation/cs/feature-timed-preset.md).
+> 1. added auto TPI (experimental). This new feature allows automatically calculating the best coefficients for the TPI algorithm. More information [zde](documentation/cs/feature-autotpi.md)
+> 2. added a temperature synchronization function for a device controlled in `over_climate` mode. Depending on your device's capabilities, _VTherm_ can control an offset calibration entity or directly an external temperature entity. More information [zde](documentation/cs/feature-sync_device_temp.md),
+> 3. added a feature named "timed preset" which aims to select a preset for a certain duration and come back to the previous preset after the expiration of the delay. The new feature is totally described [zde](documentation/cs/feature-timed-preset.md).
 
 ## Release 8.3
 1. Addition of a configurable delay before activating the central boiler.
@@ -100,15 +100,17 @@ Dokumentace je nyní rozdělena do několika stránek pro snadnější čtení a
 17. [Pokročilé aspekty, bezpečnostní režim](documentation/cs/feature-advanced.md)
 18. [Samoregulace](documentation/cs/self-regulation.md)
 19. [Lock / Unlock](documentation/en/feature-lock.md)
-20. [Temperature synchronisation](documentation/en/feature-sync_device_temp.md)
-21. [Timed preset](documentation/en/feature-timed-preset.md)
-22. [Příklady ladění](documentation/cs/tuning-examples.md)
-23. [Algoritmy](documentation/cs/algorithms.md)
-24. [Zámek / Odemknutí](documentation/cs/feature-lock.md)
-25. [Referenční dokumentace](documentation/cs/reference.md)
-26. [Řešení problémů](documentation/cs/troubleshooting.md)
-27. [Poznámky k verzím](documentation/cs/releases.md)
-28. [Detekce poruchy vytápění](documentation/cs/feature-heating-failure-detection.md)
+20. [Učení Auto TPI](documentation/cs/feature-autotpi.md)
+21. [Technická dokumentace Auto TPI](documentation/cs/feature-autotpi-technical.md)
+22. [Temperature synchronisation](documentation/en/feature-sync_device_temp.md)
+23. [Timed preset](documentation/en/feature-timed-preset.md)
+24. [Příklady ladění](documentation/cs/tuning-examples.md)
+25. [Algoritmy](documentation/cs/algorithms.md)
+26. [Zámek / Odemknutí](documentation/cs/feature-lock.md)
+27. [Referenční dokumentace](documentation/cs/reference.md)
+28. [Řešení problémů](documentation/cs/troubleshooting.md)
+29. [Poznámky k verzím](documentation/cs/releases.md)
+30. [Detekce poruchy vytápění](documentation/cs/feature-heating-failure-detection.md)
 
 # Některé výsledky
 
