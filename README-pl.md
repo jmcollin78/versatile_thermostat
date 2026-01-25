@@ -38,8 +38,8 @@ Karta integracji VTherm UI (dostępna na [Github](https://github.com/jmcollin78/
 > Anomalie te mogą wskazywać na otwarte okno, uszkodzony grzejnik lub zewnętrzne źródło ciepła. Funkcja wysyła zdarzenia, które mogą być używane do wyzwalania automatyzacji (powiadomienia, alerty itp.). Więcej informacji [tutaj](documentation/pl/feature-heating-failure-detection.md).
 >
 
-## Wydanie 8.4
-> 1. Dodanie eksperymentalnej funkcji automatyzacji algorytmu TPI. Ta nowa funkcja pozwala na automatyczne obliczanie najlepszych współczynników dla algorytmu TPI. Więcej informacji znajdziesz [tutaj _(chwilowo tylko w jęz. francuskim)_](./auto_tpi_internal_doc.md).
+## Wydanie 8.42.
+> 1. Dodanie eksperymentalnej funkcji automatyzacji algorytmu TPI. Ta nowa funkcja pozwala na automatyczne obliczanie najlepszych współczynników dla algorytmu TPI. Więcej informacji znajdziesz [tutaj](documentation/pl/feature-autotpi.md).
 > 2. Dodanie funkcji synchronizacji temperatury dla urządzenia sterowanego w trybie `na_klimacie`. W zależności od możliwości urządzenia, _VTherm_ może sterować jednostką kalibracji offsetu lub bezpośrednio zewnętrzną encją temperatury. Więcej informacji znajduje się [tutaj](documentation/pl/feature-sync_device_temp.md).
 > 3. Dodanie funkcji _**presetu czasowego**_, która umożliwia wybranie presetu na z góry określony czas i powrót do poprzedniego po upływie wkazanego opóźnienia. Nowa funkcja jest szczegółowo opisana [tutaj](documentation/pl/feature-timed-preset.md).
 >
@@ -101,11 +101,13 @@ Dla wygody Użytkownika, a także w celu dostępu do pomocy kontekstowej podczas
 16. [Sterowanie kotłem centralnym](documentation/pl/feature-central-boiler.md)
 17. [Zaawansowane ustawienia, tryb bezpieczny](documentation/pl/feature-advanced.md)
 18. [Samoregulacja](documentation/pl/self-regulation.md)
-19. [Funkcja blokady dostępu kodem PIN](documentation/pl/feature-lock.md)
-20. [Temperature synchronisation](documentation/pl/feature-sync_device_temp.md)
-21. [Timed preset](documentation/pl/feature-timed-preset.md)
-22. [Algorytmy](documentation/pl/algorithms.md)
-23. [Dokumentacja referencyjna](documentation/pl/reference.md)
+19. [Uczenie Auto TPI](documentation/pl/feature-autotpi.md)
+20. [Dokumentacja techniczna Auto TPI](documentation/pl/feature-autotpi-technical.md)
+21. [Algorytmy](documentation/pl/algorithms.md)
+22. [Funkcja blokady](documentation/pl/feature-lock.md)
+23. [Synchronizacja temperatury](documentation/pl/feature-sync_device_temp.md)
+24. [Preset czasowy](documentation/pl/feature-timed-preset.md)
+25. [Dokumentacja referencyjna](documentation/pl/reference.md)
 24. [Przykłady dostrajania układu](documentation/pl/tuning-examples.md)
 25. [Usuwanie problemów](documentation/pl/troubleshooting.md)
 26. [Informacje o wersjach](documentation/pl/releases.md)

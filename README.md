@@ -38,7 +38,7 @@ Versatile Thermostat UI Card (Available on [Github](https://github.com/jmcollin7
 > These anomalies may indicate an open window, a faulty radiator, or an external heat source. The feature sends events that can be used to trigger automations (notifications, alerts, etc.). More information [here](documentation/en/feature-heating-failure-detection.md).
 
 ## Release 8.4
-> 1. added auto TPI (experimental). This new feature allows automatically calculating the best coefficients for the TPI algorithm. More information [here](./auto_tpi_internal_doc.md)
+> 1. added auto TPI (experimental). This new feature allows automatically calculating the best coefficients for the TPI algorithm. More information [here](documentation/en/feature-auto_tpi.md)
 > 2. added a temperature synchronization function for a device controlled in `over_climate` mode. Depending on your device's capabilities, _VTherm_ can control an offset calibration entity or directly an external temperature entity. More information [here](documentation/en/feature-sync_device_temp.md),
 > 3. added a feature named "timed preset" which aims to select a preset for a certain duration and come back to the previous preset after the expiration of the delay. The new feature is totally described [here](documentation/en/feature-timed-preset.md).
 
