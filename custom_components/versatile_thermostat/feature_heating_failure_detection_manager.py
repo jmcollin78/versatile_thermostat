@@ -159,9 +159,9 @@ class FeatureHeatingFailureDetectionManager(BaseFeatureManager):
             _LOGGER.debug("%s - heating failure detection is disabled (or not configured)", self)
             return False
 
-        # Only check for VTherms with TPI
-        if not self._vtherm.has_tpi:
-            _LOGGER.debug("%s - heating failure detection skipped (no TPI)", self)
+        # Only check for VTherms with proportional algorithm
+        if not self._vtherm.has_prop:
+            _LOGGER.debug("%s - heating failure detection skipped (no proportional algorithm)", self)
             return False
 
         if self._vtherm.requested_state.hvac_mode == VThermHvacMode_OFF:

@@ -123,12 +123,12 @@ async def test_refresh_state_not_configured(hass: HomeAssistant):
     assert manager.is_failure_detected is False
 
 
-async def test_refresh_state_no_tpi(hass: HomeAssistant):
-    """Test refresh_state when VTherm has no TPI"""
+async def test_refresh_state_no_prop(hass: HomeAssistant):
+    """Test refresh_state when VTherm has no proportional algorithm"""
 
     fake_vtherm = MagicMock(spec=BaseThermostat)
     type(fake_vtherm).name = PropertyMock(return_value="the name")
-    type(fake_vtherm).has_tpi = PropertyMock(return_value=False)
+    type(fake_vtherm).has_prop = PropertyMock(return_value=False)
 
     manager = FeatureHeatingFailureDetectionManager(fake_vtherm, hass)
     manager.post_init({CONF_USE_HEATING_FAILURE_DETECTION_FEATURE: True})
@@ -142,7 +142,7 @@ async def test_refresh_state_hvac_off(hass: HomeAssistant):
 
     fake_vtherm = MagicMock(spec=BaseThermostat)
     type(fake_vtherm).name = PropertyMock(return_value="the name")
-    type(fake_vtherm).has_tpi = PropertyMock(return_value=True)
+    type(fake_vtherm).has_prop = PropertyMock(return_value=True)
     fake_requested_state = MagicMock()
     fake_requested_state.hvac_mode = VThermHvacMode_OFF
     type(fake_vtherm).requested_state = PropertyMock(return_value=fake_requested_state)
@@ -306,7 +306,7 @@ async def test_refresh_state_full_cycle(hass: HomeAssistant):
     now = datetime.now()
     fake_vtherm = MagicMock(spec=BaseThermostat)
     type(fake_vtherm).name = PropertyMock(return_value="the name")
-    type(fake_vtherm).has_tpi = PropertyMock(return_value=True)
+    type(fake_vtherm).has_prop = PropertyMock(return_value=True)
     type(fake_vtherm).now = PropertyMock(return_value=now)
     type(fake_vtherm).current_temperature = PropertyMock(return_value=20.0)
     type(fake_vtherm).on_percent = PropertyMock(return_value=0.95)

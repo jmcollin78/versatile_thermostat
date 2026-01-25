@@ -14,7 +14,7 @@ from dataclasses import dataclass, asdict, field
 import asyncio
 from typing import Callable
 
-from homeassistant.core import HomeAssistant
+from homeassistant.core import HomeAssistant, callback
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.helpers.event import async_call_later
 from homeassistant.helpers import entity_platform, service, translation
@@ -30,6 +30,8 @@ from .const import (
     CONF_AUTO_TPI_HEATING_POWER,
     CONF_AUTO_TPI_COOLING_POWER,
 )
+from .cycle_manager import CycleManager
+
 _LOGGER = logging.getLogger(__name__)
 
 STORAGE_VERSION = 8
@@ -150,7 +152,7 @@ class AutoTpiState:
         return instance
 
 
-class AutoTpiManager:
+class AutoTpiManager(CycleManager):
     """Auto TPI Manager implementing TPI algorithm."""
 
     def __init__(
@@ -175,7 +177,7 @@ class AutoTpiManager:
         ema_decay_rate: float = 0.08,
         aggressiveness: float = 0.9,
     ):
-        self._hass = hass
+        super().__init__(hass, name, cycle_min, minimal_deactivation_delay)
         self._config_entry = config_entry
         self._enable_update_config = True
         self._enable_notification = True
@@ -228,15 +230,8 @@ class AutoTpiManager:
         self._last_cycle_power_efficiency: float = 1.0
         self._save_lock = asyncio.Lock()
 
-        self._timer_remove_callback: Callable[[], None] | None = None
-        self._timer_capture_remove_callback: Callable[[], None] | None = None
         self._learning_just_completed: bool = False  # Transient flag to suppress 'cycle interrupted' log after learning
-        # data_provider: async function that returns a dict with:
-        # on_time_sec, off_time_sec, on_percent, hvac_mode
-        self._data_provider: Callable[[], dict] | None = None
-        # event_sender: async function that sends events to thermostat
-        self._event_sender: Callable[[dict], None] | None = None
-
+        
         # Interruption management
         self._current_cycle_interrupted: bool = False
         self._central_boiler_off: bool = False
@@ -2530,6 +2525,13 @@ class AutoTpiManager:
             )
             return None
 
+    @callback
+    def _capture_end_of_on_temp(self, _):
+        """Capture the temperature at the end of the ON pulse."""
+        self.state.last_on_temp_in = self._current_temp_in
+        _LOGGER.debug("%s - Auto TPI: Captured end of ON temp: %.1f", self._name, self.state.last_on_temp_in)
+        self._timer_capture_remove_callback = None
+
     async def on_cycle_started(self, on_time_sec: float, off_time_sec: float, on_percent: float, hvac_mode: str):
         """Called when a TPI cycle starts."""
         # Detect if previous cycle was interrupted
@@ -2598,8 +2600,40 @@ class AutoTpiManager:
 
         await self.async_save_data()
 
-    async def on_cycle_completed(self, on_time_sec: float, off_time_sec: float, hvac_mode: str):
+    async def on_cycle_completed(self, new_params: dict, prev_params: dict | None):
         """Called when a TPI cycle completes."""
+        # Validation logic (moved from old _tick)
+        now = dt_util.now()
+        
+        # We look at self.state.cycle_start_date (persisted) rather than CycleManager's transient _cycle_start_date
+        if self.state.cycle_start_date is not None and prev_params is not None:
+             # Ensure cycle_start_date is timezone-aware
+             cycle_start = self.state.cycle_start_date
+             if cycle_start.tzinfo is None:
+                 cycle_start = dt_util.as_local(cycle_start)
+                 
+             elapsed_minutes = (now - cycle_start).total_seconds() / 60
+             expected_duration = self._cycle_min
+             tolerance = max(expected_duration * 0.1, 1.0)
+
+             if abs(elapsed_minutes - expected_duration) > tolerance:
+                _LOGGER.debug(
+                    "%s - Cycle validation failed: duration=%.1fmin (expected=%.1fmin, tolerance=%.1fmin). Skipping learning.",
+                    self._name,
+                    elapsed_minutes,
+                    expected_duration,
+                    tolerance,
+                )
+                self.state.cycle_active = False # Force reset
+                return # Skip learning
+        else:
+            # No start date or params, nothing to do
+            return
+
+        # Extract params for legacy logic
+        on_time_sec = prev_params.get("on_time_sec", 0)
+        off_time_sec = prev_params.get("off_time_sec", 0)
+        
         if not self.state.cycle_active:
             _LOGGER.debug("%s - Auto TPI: Cycle completed but no cycle active. Ignoring.", self._name)
             return
@@ -2845,12 +2879,8 @@ class AutoTpiManager:
                 self.state.capacity_heat_learn_count = 0
                 self.state.bootstrap_failure_count = 0
         else:
-            # Fix for resume with explicit new values
-            # If explicit values are provided (and differ from defaults), we should apply them
-            # This handles the case where start_learning is called with specific targets
-            # that override the current learned state.
-            # We check against _default_coef_int because thermostat_tpi.py passes the default
-            # when it intends to "Resume existing", but an explicit caller might pass a new value.
+            # If start_learning is called with explicit target values that differ from defaults,
+            # apply them as an update to the current state, even without a full reset.
             if coef_int is not None and abs(coef_int - self._default_coef_int) > 0.001:
                 _LOGGER.info("%s - Auto TPI: Updating Kint to %.3f (Manual override in resume)", self._name, target_int)
                 self.state.coeff_indoor_heat = target_int
@@ -2960,152 +2990,4 @@ class AutoTpiManager:
         self.state.max_capacity_cool = 1.0
         await self.async_save_data()
 
-    async def start_cycle_loop(self, data_provider: Callable[[], dict], event_sender: Callable[[dict], None]):
-        """Start the TPI cycle loop."""
-        _LOGGER.debug("%s - Auto TPI: Starting cycle loop", self._name)
-        self._data_provider = data_provider
-        self._event_sender = event_sender
-
-        # Stop existing timer if any
-        if self._timer_remove_callback:
-            self._timer_remove_callback()
-            self._timer_remove_callback = None
-
-        self._current_cycle_interrupted = False
-
-        # Execute immediately
-        await self._tick()
-
-    async def _capture_end_of_on_temp(self, _):
-        """Called when the ON period ends (heater turns off)."""
-        self.state.last_on_temp_in = self._current_temp_in
-        _LOGGER.debug("%s - Auto TPI: Captured last_on_temp_in: %.3f", self._name, self.state.last_on_temp_in)
-        self._timer_capture_remove_callback = None
-
-    def stop_cycle_loop(self):
-        """Stop the TPI cycle loop."""
-        _LOGGER.debug("%s - Auto TPI: Stopping cycle loop", self._name)
-        if self._timer_remove_callback:
-            self._timer_remove_callback()
-            self._timer_remove_callback = None
-        if self._timer_capture_remove_callback:
-            self._timer_capture_remove_callback()
-            self._timer_capture_remove_callback = None
-
-        self._data_provider = None
-        self._event_sender = None
-
-    def _schedule_next_timer(self):
-        """Schedule the next timer."""
-        # Ensure we don't have multiple timers
-        if self._timer_remove_callback:
-            self._timer_remove_callback()
-
-        self._timer_remove_callback = async_call_later(self._hass, self._cycle_min * 60, self._on_timer_fired)
-
-    async def _on_timer_fired(self, _):
-        """Called when timer fires."""
-        await self._tick()
-
-    async def _tick(self):
-        """Perform a tick of the cycle loop."""
-        if not self._data_provider:
-            return
-
-        now = dt_util.now()
-
-        # 1. Get fresh data from thermostat FIRST
-        # This ensures we have current temperatures for "End of Cycle" validation
-        new_params = None
-        try:
-            if asyncio.iscoroutinefunction(self._data_provider):
-                new_params = await self._data_provider()
-            else:
-                new_params = self._data_provider()
-        except Exception as e:
-            _LOGGER.error("%s - Auto TPI: Error getting data from thermostat: %s", self._name, e)
-            # Retry later ?
-            self._schedule_next_timer()
-            return
-
-        # Guard: check if we were stopped during await
-        if not self._data_provider:
-            _LOGGER.debug("%s - Auto TPI: _tick aborted, cycle loop was stopped during data fetch", self._name)
-            return
-
-        if not new_params:
-            _LOGGER.warning("%s - Auto TPI: No data received from thermostat", self._name)
-            self._schedule_next_timer()
-            return
-
-        # 2. Handle previous cycle completion
-        # We use self.state.current_cycle_params which contains the params at the start of the previous cycle
-        # This is persisted so we can validate across reloads
-        if self.state.cycle_start_date is not None and self.state.current_cycle_params is not None:
-            # Ensure cycle_start_date is timezone-aware (handles legacy data)
-            cycle_start = self.state.cycle_start_date
-            if cycle_start.tzinfo is None:
-                cycle_start = dt_util.as_local(cycle_start)
-            elapsed_minutes = (now - cycle_start).total_seconds() / 60
-            expected_duration = self._cycle_min
-            tolerance = max(expected_duration * 0.1, 1.0)
-
-            if abs(elapsed_minutes - expected_duration) <= tolerance:
-                _LOGGER.debug("%s - Cycle validation success: duration=%.1fmin (expected=%.1fmin). Triggering learning.", self._name, elapsed_minutes, expected_duration)
-                # Use stored parameters from the PREVIOUS cycle
-                prev_params = self.state.current_cycle_params
-                await self.on_cycle_completed(
-                    on_time_sec=prev_params.get("on_time_sec", 0), off_time_sec=prev_params.get("off_time_sec", 0), hvac_mode=prev_params.get("hvac_mode", "stop")
-                )
-            else:
-                _LOGGER.debug(
-                    "%s - Cycle validation failed: duration=%.1fmin (expected=%.1fmin, tolerance=%.1fmin). Skipping learning.",
-                    self._name,
-                    elapsed_minutes,
-                    expected_duration,
-                    tolerance,
-                )
-
-            # Reset previous cycle tracking
-            # self.state.current_cycle_params = None # Will be overwritten below
-
-        # Guard: check again after on_cycle_completed
-        if not self._data_provider:
-            _LOGGER.debug("%s - Auto TPI: _tick aborted, cycle loop was stopped during cycle completion", self._name)
-            return
-
-        # 3. Update current params for the NEXT cycle tracking
-        self.state.current_cycle_params = new_params
-        # Save state to persist cycle params (important for reload resilience)
-        await self.async_save_data()
-
-        on_time = new_params.get("on_time_sec", 0)
-        off_time = new_params.get("off_time_sec", 0)
-        on_percent = new_params.get("on_percent", 0)
-        hvac_mode = new_params.get("hvac_mode", "stop")
-
-        # 4. Notify start of cycle
-        await self.on_cycle_started(on_time, off_time, on_percent, hvac_mode)
-
-        # Guard: check again after on_cycle_started
-        if not self._data_provider:
-            _LOGGER.debug("%s - Auto TPI: _tick aborted, cycle loop was stopped during cycle start notification", self._name)
-            return
-
-        # 5. Notify thermostat to apply changes
-        if self._event_sender:
-            try:
-                if asyncio.iscoroutinefunction(self._event_sender):
-                    await self._event_sender(new_params)
-                else:
-                    self._event_sender(new_params)
-            except Exception as e:
-                _LOGGER.error("%s - Auto TPI: Error sending event to thermostat: %s", self._name, e)
-
-        # Guard: final check before scheduling next timer
-        if not self._data_provider:
-            _LOGGER.debug("%s - Auto TPI: _tick aborted, cycle loop was stopped during event sending", self._name)
-            return
-
-        # 6. Schedule next tick
-        self._schedule_next_timer()
+    # Cycle loop methods extracted to CycleManager

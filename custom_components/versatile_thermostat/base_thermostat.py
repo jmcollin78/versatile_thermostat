@@ -807,8 +807,8 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
         return False
 
     @property
-    def has_tpi(self) -> bool:
-        """True if the Thermostat has TPI"""
+    def has_prop(self) -> bool:
+        """True if the Thermostat uses a proportional algorithm (TPI, SmartPI)"""
         return False
 
     @property
