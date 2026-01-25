@@ -5,10 +5,10 @@ import logging
 import asyncio
 from datetime import datetime
 
-from homeassistant.core import HomeAssistant, State
-from homeassistant.components.climate import HVACAction
-from homeassistant.helpers.event import async_call_later
-
+from homeassistant.core import Event, HomeAssistant, State
+from homeassistant.components.climate import HVACAction, HVACMode
+from homeassistant.helpers.event import EventStateChangedData, async_call_later
+from homeassistant.exceptions import ServiceValidationError
 
 from .underlyings import UnderlyingValveRegulation, UnderlyingClimate
 
@@ -19,7 +19,6 @@ from .thermostat_tpi import ThermostatTPI
 from .const import *  # pylint: disable=wildcard-import, unused-wildcard-import
 from .commons import write_event_log
 from .vtherm_hvac_mode import VThermHvacMode, VThermHvacMode_OFF, VThermHvacMode_SLEEP
-from homeassistant.exceptions import ServiceValidationError
 
 # from .vtherm_api import VersatileThermostatAPI
 
@@ -52,6 +51,7 @@ class ThermostatOverClimateValve(ThermostatTPI[UnderlyingClimate], ThermostatOve
         self._min_opening_degress: list[int] = []
         self._max_closing_degree: int = 100
         self._opening_threshold_degree: int = 0
+        self._recalibrate_lock: asyncio.Lock = asyncio.Lock()
 
         super().__init__(hass, unique_id, name, entry_infos)
 
@@ -113,9 +113,6 @@ class ThermostatOverClimateValve(ThermostatTPI[UnderlyingClimate], ThermostatOve
                 opening_threshold=self._opening_threshold_degree,
             )
             self._underlyings_valve_regulation.append(under)
-
-        # Guard to prevent concurrent recalibration tasks per thermostat entity
-        self._recalibrate_lock: asyncio.Lock | None = None
 
     @overrides
     def restore_specific_previous_state(self, old_state: State):
@@ -395,6 +392,33 @@ class ThermostatOverClimateValve(ThermostatTPI[UnderlyingClimate], ThermostatOve
         """Return the type of thermostat"""
         return "over_climate_valve"
 
+    @overrides
+    async def async_set_hvac_mode(self, hvac_mode: VThermHvacMode, ignore_lock: bool = False):
+        """Disable HVAC mode change during recalibration"""
+        if not self._recalibrate_lock.locked() or ignore_lock:
+            await super().async_set_hvac_mode(hvac_mode)
+
+    @overrides
+    async def _async_climate_changed(self, event: Event[EventStateChangedData]):
+        """Handle underlying climate changes only if not in recalibration"""
+        if not self._recalibrate_lock.locked():
+            return await super()._async_climate_changed(event)
+        _LOGGER.info("%s - ignore underlying climate change because recalibration is in progress", self)
+
+    @overrides
+    async def async_set_temperature(self, **kwargs):
+        """Disable temperature change during recalibration"""
+        if not self._recalibrate_lock.locked():
+            return await super().async_set_temperature(**kwargs)
+        _LOGGER.info("%s - ignore temperature change because recalibration is in progress", self)
+
+    @overrides
+    async def async_set_preset_mode(self, preset_mode: str):
+        """Disable preset mode change during recalibration"""
+        if not self._recalibrate_lock.locked():
+            return await super().async_set_preset_mode(preset_mode)
+        _LOGGER.info("%s - ignore preset mode change because recalibration is in progress", self)
+
     async def service_recalibrate_valves(self, delay_seconds: int):
         """Start recalibration of valve opening/closing degrees for each underlying valve in background.
 
@@ -422,18 +446,30 @@ class ThermostatOverClimateValve(ThermostatTPI[UnderlyingClimate], ThermostatOve
         for under in self._underlyings_valve_regulation:
             opening = under.opening_degree_entity_id
             closing = under.closing_degree_entity_id
-            if not opening or not closing:
-                raise ServiceValidationError(f"{self} - Underlying {under} must have opening and closing degree entities configured")
+            if not opening:
+                raise ServiceValidationError(f"{self} - Underlying {under} must have opening degree entities configured")
 
             opening_state = self._hass.states.get(opening)
-            closing_state = self._hass.states.get(closing)
-            if opening_state is None or closing_state is None:
-                raise ServiceValidationError(f"{self} - Opening/closing entities {opening}/{closing} not found for underlying {under}")
+            # closing_state = self._hass.states.get(closing)
+            if opening_state is None:
+                raise ServiceValidationError(f"{self} - Opening entity {opening} not found for underlying {under}")
 
             opening_min = opening_state.attributes.get("min", 0)
             opening_max = opening_state.attributes.get("max", 100)
-            closing_min = closing_state.attributes.get("min", 0)
-            closing_max = closing_state.attributes.get("max", 100)
+            # closing_min = closing_state.attributes.get("min", 0)
+            # closing_max = closing_state.attributes.get("max", 100)
+
+            closing_min: int | None = None
+            closing_max: int | None = None
+
+            if closing:
+                closing_state = self._hass.states.get(closing)
+
+                if closing_state is None:
+                    raise ServiceValidationError(f"{self} - Closing entity {closing} not found for underlying {under}")
+
+                closing_min = closing_state.attributes.get("min", 0)
+                closing_max = closing_state.attributes.get("max", 100)
 
             valves_config.append(
                 {
@@ -442,8 +478,8 @@ class ThermostatOverClimateValve(ThermostatTPI[UnderlyingClimate], ThermostatOve
                     "closing": closing,
                     "opening_min": opening_min,
                     "opening_max": opening_max,
-                    "closing_min": closing_min,
-                    "closing_max": closing_max,
+                    "closing_min": closing_min if closing else None,
+                    "closing_max": closing_max if closing else None,
                 }
             )
 
@@ -451,33 +487,23 @@ class ThermostatOverClimateValve(ThermostatTPI[UnderlyingClimate], ThermostatOve
         expected_state = self.requested_state.to_dict() if self.requested_state is not None else None
 
         # If a recalibration is already running, return immediately and do not schedule
-        if self._recalibrate_lock is None:
-            self._recalibrate_lock = asyncio.Lock()
-
         if self._recalibrate_lock.locked():
             _LOGGER.warning("Recalibration request refused: already running for %s", self.entity_id)
             return {"message": "recalibrage en cours"}
 
-        def pct_to_entity_value(pct: int, ent_min: float, ent_max: float) -> int:
-            val = round(ent_min + (pct / 100.0) * (ent_max - ent_min))
-            return int(val)
-
         # Define the background coroutine
         async def _recalibrate_task():
-            # Initialize lock if needed
-            if self._recalibrate_lock is None:
-                self._recalibrate_lock = asyncio.Lock()
-
-            # If already running, log and exit
-            if self._recalibrate_lock.locked():
-                _LOGGER.warning("Recalibration already in progress for %s", self.entity_id)
-                return
-
             async with self._recalibrate_lock:
                 try:
                     # Turn off vtherm
-                    _LOGGER.info("%s - Recalibration - Stopping VTherm and waiting for %s seconds", self, delay_seconds)
-                    await self.async_set_hvac_mode(VThermHvacMode_OFF)
+                    _LOGGER.info("%s - Recalibration - Stopping VTherm and turn on underlying climates and waiting for %s seconds", self, delay_seconds)
+                    await self.async_set_hvac_mode(VThermHvacMode_OFF, ignore_lock=True)
+                    await asyncio.sleep(5)
+
+                    # Turn on the underlying climate
+                    for under in self._underlyings:
+                        await under.set_hvac_mode(HVACMode.HEAT)
+
                     await asyncio.sleep(delay_seconds)
 
                     _LOGGER.info("%s - Recalibration - Full opening of the valves and waiting for %s seconds", self, delay_seconds)
@@ -486,12 +512,13 @@ class ThermostatOverClimateValve(ThermostatTPI[UnderlyingClimate], ThermostatOve
                         opening = cfg["opening"]
                         closing = cfg["closing"]
 
-                        open_val = pct_to_entity_value(100, cfg["opening_min"], cfg["opening_max"])
-                        close_val = pct_to_entity_value(0, cfg["closing_min"], cfg["closing_max"])
+                        open_val = cfg["opening_max"]
+                        close_val = cfg["closing_min"]
 
                         _LOGGER.info("%s - Forcing opening=%s to %s and closing=%s to %s", self, opening, open_val, closing, close_val)
                         await under.send_value_to_number(opening, open_val)
-                        await under.send_value_to_number(closing, close_val)
+                        if closing:
+                            await under.send_value_to_number(closing, close_val)
 
                     await asyncio.sleep(delay_seconds)
 
@@ -501,35 +528,36 @@ class ThermostatOverClimateValve(ThermostatTPI[UnderlyingClimate], ThermostatOve
                         opening = cfg["opening"]
                         closing = cfg["closing"]
 
-                        open_val2 = pct_to_entity_value(0, cfg["opening_min"], cfg["opening_max"])
-                        close_val2 = pct_to_entity_value(100, cfg["closing_min"], cfg["closing_max"])
+                        open_val2 = cfg["opening_min"]
+                        close_val2 = cfg["closing_max"]
 
                         _LOGGER.info("%s - Forcing opening=%s to %s and closing=%s to %s", self, opening, open_val2, closing, close_val2)
                         await under.send_value_to_number(opening, open_val2)
-                        await under.send_value_to_number(closing, close_val2)
-
+                        if closing:
+                            await under.send_value_to_number(closing, close_val2)
                     await asyncio.sleep(delay_seconds)
 
-                    # Restore requested state
-                    _LOGGER.info("%s - Recalibration - Restoring requested state", self)
-                    if expected_state:
-                        try:
-                            self.requested_state.set_state(
-                                hvac_mode=expected_state.get("hvac_mode"),
-                                target_temperature=expected_state.get("target_temperature"),
-                                preset=expected_state.get("preset"),
-                            )
-                            self.requested_state.force_changed()
-                            await self.update_states(force=True)
-                        except Exception as ex:  # pylint: disable=broad-except
-                            _LOGGER.error("%s - Cannot restore requested state after recalibration: %s", self, ex)
                 except Exception as exc:  # pylint: disable=broad-except
                     _LOGGER.error("%s - Error during recalibration: %s", self, exc)
+
+            # Restore requested state
+            _LOGGER.info("%s - Recalibration - Restoring requested state", self)
+            if expected_state:
+                try:
+                    self.requested_state.set_state(
+                        hvac_mode=expected_state.get("hvac_mode"),
+                        target_temperature=expected_state.get("target_temperature"),
+                        preset=expected_state.get("preset"),
+                    )
+                    self.requested_state.force_changed()
+                    await self.update_states(force=True)
+                except Exception as ex:  # pylint: disable=broad-except
+                    _LOGGER.error("%s - Cannot restore requested state after recalibration: %s", self, ex)
 
         # Launch background task and return immediately
         try:
             self.hass.async_create_task(_recalibrate_task())
-        except Exception:
+        except Exception:  # pylint: disable=broad-except
             # fallback
             self._hass.create_task(_recalibrate_task())
 
