@@ -100,6 +100,7 @@ class ThermostatOverClimateValve(ThermostatProp[UnderlyingClimate], ThermostatOv
             opening = opening_list[idx]
             closing = closing_list[idx] if idx < len(closing_list) else None
             self._opening_threshold_degree = max(self._opening_threshold_degree, regulation_threshold)
+            opening_entity = self._hass.states.get(opening)
 
             under = UnderlyingValveRegulation(
                 hass=self._hass,
@@ -108,11 +109,14 @@ class ThermostatOverClimateValve(ThermostatProp[UnderlyingClimate], ThermostatOv
                 closing_degree_entity_id=closing,
                 climate_underlying=self._underlyings[idx],
                 min_opening_degree=(min_opening_degrees_list[idx] if idx < len(min_opening_degrees_list) else 0),
-                max_opening_degree=(max_opening_degrees_list[idx] if idx < len(max_opening_degrees_list) else 100),
+                max_opening_degree=(max_opening_degrees_list[idx] if idx < len(max_opening_degrees_list) else opening_entity.attributes.get("max", 100) if opening_entity else 100),
                 max_closing_degree=self._max_closing_degree,
                 opening_threshold=self._opening_threshold_degree,
             )
             self._underlyings_valve_regulation.append(under)
+
+        # Guard to prevent concurrent recalibration tasks per thermostat entity
+        self._recalibrate_lock: asyncio.Lock | None = None
 
     @overrides
     def restore_specific_previous_state(self, old_state: State):

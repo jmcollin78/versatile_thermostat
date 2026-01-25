@@ -1042,7 +1042,9 @@
                   "disable_auto_fan_infos": false,
                   "disable_autoStartStop": false,
                   "disable_circle": true,
-                  "autoStartStopEnableEntity": "switch.thermostat_climate_2_enable_auto_start_stop"
+                  "autoStartStopEnableEntity": "switch.thermostat_climate_2_enable_auto_start_stop",
+                  "theme": "gunmalmg",
+                  "name": "Parents bedroom thermostat"
                 },
                 {
                   "type": "thermostat",
@@ -2597,7 +2599,10 @@
                   "disable_cool": true,
                   "disable_auto": true,
                   "disable_sleep": false,
-                  "set_current_as_main": true
+                  "set_current_as_main": true,
+                  "theme": "gunmalmg",
+                  "allow_lock_toggle": true,
+                  "lock_relock_delay": 10
                 },
                 {
                   "type": "vertical-stack",

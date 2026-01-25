@@ -2830,6 +2830,15 @@ class AutoTpiManager(CycleManager):
         target_int = coef_int if coef_int is not None else self._default_coef_int
         target_ext = coef_ext if coef_ext is not None else self._default_coef_ext
 
+        # Force a reset if we are starting a new session (was stopped)
+        # This ensures that we restart with the configured coefficients
+        if not self.state.autolearn_enabled and not reset_data:
+            _LOGGER.info(
+                "%s - Auto TPI: Starting new session (was stopped), forcing reset of data",
+                self._name,
+            )
+            reset_data = True
+
         if reset_data:
             _LOGGER.info("%s - Auto TPI: Starting learning with coef_int=%.3f, coef_ext=%.3f (resetting all data)", self._name, target_int, target_ext)
 
