@@ -24,12 +24,12 @@ from .const import (
 from .commons import write_event_log
 
 from .base_thermostat import BaseThermostat, ConfigData
-from .thermostat_prop import ThermostatProp
+from .thermostat_tpi import ThermostatTPI
 from .underlyings import UnderlyingSwitch
 
 _LOGGER = logging.getLogger(__name__)
 
-class ThermostatOverSwitch(ThermostatProp[UnderlyingSwitch]):
+class ThermostatOverSwitch(ThermostatTPI[UnderlyingSwitch]):
     """Representation of a base class for a Versatile Thermostat over a switch."""
 
     _entity_component_unrecorded_attributes = BaseThermostat._entity_component_unrecorded_attributes.union(  # pylint: disable=protected-access

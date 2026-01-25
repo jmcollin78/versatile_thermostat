@@ -5,8 +5,7 @@ import pytest
 from homeassistant.exceptions import ServiceValidationError
 
 from custom_components.versatile_thermostat.base_thermostat import BaseThermostat
-from custom_components.versatile_thermostat.prop_algo_tpi import TpiAlgorithm
-from custom_components.versatile_thermostat.const import PROPORTIONAL_FUNCTION_TPI
+from custom_components.versatile_thermostat.prop_algorithm import PropAlgorithm, PROPORTIONAL_FUNCTION_TPI
 from .commons import *  # pylint: disable=wildcard-import, unused-wildcard-import
 
 
@@ -51,7 +50,7 @@ async def test_tpi_calculation(
     assert entity
     assert entity._prop_algorithm  # pylint: disable=protected-access
 
-    tpi_algo: TpiAlgorithm = entity._prop_algorithm  # pylint: disable=protected-access
+    tpi_algo: PropAlgorithm = entity._prop_algorithm  # pylint: disable=protected-access
     assert tpi_algo
 
     tpi_algo.calculate(15, 10, 7, 0, VThermHvacMode_HEAT)
@@ -206,7 +205,7 @@ async def test_minimal_deactivation_delay(
     assert entity
     assert entity._prop_algorithm  # pylint: disable=protected-access
 
-    tpi_algo: TpiAlgorithm = entity._prop_algorithm  # pylint: disable=protected-access
+    tpi_algo: PropAlgorithm = entity._prop_algorithm  # pylint: disable=protected-access
     assert tpi_algo
 
     # off_time is less than minimal_deactivation_delay
@@ -263,8 +262,8 @@ async def test_wrong_tpi_parameters(
 
     # Nominal case
     try:
-        algo = TpiAlgorithm(
-
+        algo = PropAlgorithm(
+            PROPORTIONAL_FUNCTION_TPI,
             0.6,
             0.01,
             5,
@@ -278,10 +277,44 @@ async def test_wrong_tpi_parameters(
         # the normal case
         assert False
 
+    # Test TPI function
+    try:
+        algo = PropAlgorithm(
+            "WRONG",
+            1,
+            0,
+            2,
+            3,
+            3,
+            "entity_id",
+        )
+        # We should not be there
+        assert False
+    except TypeError as e:
+        # the normal case
+        pass
+
+    # Test coef_int
+    try:
+        algo = PropAlgorithm(
+            PROPORTIONAL_FUNCTION_TPI,
+            None,
+            0,
+            2,
+            3,
+            3,
+            "entity_id",
+        )
+        # We should not be there
+        assert False
+    except TypeError as e:
+        # the normal case
+        pass
+
     # Test coef_ext
     try:
-        algo = TpiAlgorithm(
-
+        algo = PropAlgorithm(
+            PROPORTIONAL_FUNCTION_TPI,
             0.6,
             None,
             2,
@@ -297,8 +330,8 @@ async def test_wrong_tpi_parameters(
 
     # Test cycle_min
     try:
-        algo = TpiAlgorithm(
-
+        algo = PropAlgorithm(
+            PROPORTIONAL_FUNCTION_TPI,
             0.6,
             0.00001,
             None,
@@ -314,8 +347,8 @@ async def test_wrong_tpi_parameters(
 
     # Test minimal_activation_delay
     try:
-        algo = TpiAlgorithm(
-
+        algo = PropAlgorithm(
+            PROPORTIONAL_FUNCTION_TPI,
             0.6,
             0.00001,
             0,
@@ -330,8 +363,8 @@ async def test_wrong_tpi_parameters(
 
     # Test minimal_activation_delay
     try:
-        algo = TpiAlgorithm(
-
+        algo = PropAlgorithm(
+            PROPORTIONAL_FUNCTION_TPI,
             0.6,
             0.00001,
             0,
@@ -347,8 +380,8 @@ async def test_wrong_tpi_parameters(
 
     # Test vtherm_entity_id
     try:
-        algo = TpiAlgorithm(
-
+        algo = PropAlgorithm(
+            PROPORTIONAL_FUNCTION_TPI,
             0.6,
             0.00001,
             0,
@@ -412,9 +445,9 @@ async def test_prop_algorithm_thresholds(
     hvac_mode,
     expected_on_percent,
 ):
-    """Test TpiAlgorithm on_percent clamping to min/max thresholds."""
-    tpi_algo: TpiAlgorithm = TpiAlgorithm(
-
+    """Test PropAlgorithm on_percent clamping to min/max thresholds."""
+    tpi_algo: PropAlgorithm = PropAlgorithm(
+        PROPORTIONAL_FUNCTION_TPI,
         0.1,
         0.01,
         5,

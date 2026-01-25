@@ -230,12 +230,9 @@ async def test_cycle_lifecycle(manager):
 
     # 2. Complete Cycle
     await manager.on_cycle_completed(
-        new_params={},
-        prev_params={
-            "on_time_sec": 150,
-            "off_time_sec": 150,
-            "hvac_mode": "heat"
-        }
+        on_time_sec=150,
+        off_time_sec=150,
+        hvac_mode="heat"
     )
 
     assert manager.state.cycle_active is False

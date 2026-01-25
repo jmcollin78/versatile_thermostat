@@ -8,7 +8,7 @@ from custom_components.versatile_thermostat.auto_tpi_manager import (
     AutoTpiManager,
     AutoTpiState,
 )
-from custom_components.versatile_thermostat.prop_algo_tpi import TpiAlgorithm
+from custom_components.versatile_thermostat.prop_algorithm import PropAlgorithm
 from custom_components.versatile_thermostat.const import CONF_TPI_COEF_INT, CONF_TPI_COEF_EXT
 
 class ThermalModel:
@@ -88,7 +88,8 @@ async def test_auto_tpi_convergence_simulation(mock_hass, mock_store, mock_confi
     manager.state.autolearn_enabled = True
     manager.state.max_capacity_heat = REAL_CAPACITY 
     
-    prop_algo = TpiAlgorithm(
+    prop_algo = PropAlgorithm(
+        function_type="tpi",
         tpi_coef_int=0.3, 
         tpi_coef_ext=0.01,
         cycle_min=10,
@@ -123,7 +124,7 @@ async def test_auto_tpi_convergence_simulation(mock_hass, mock_store, mock_confi
             
             new_params = await manager.calculate()
             if new_params:
-                # Correctly update TpiAlgorithm with new learned coefficients using CONSTANT keys
+                # Correctly update PropAlgorithm with new learned coefficients using CONSTANT keys
                 kint = new_params.get(CONF_TPI_COEF_INT)
                 kext = new_params.get(CONF_TPI_COEF_EXT)
                 
@@ -194,8 +195,4 @@ async def test_auto_tpi_convergence_simulation(mock_hass, mock_store, mock_confi
         
         # 3. Room temp should be stable near target (within 0.1 deg)
         assert abs(model.room_temp - target_temp) < 0.1, f"Room temp {model.room_temp} should be close to target {target_temp}"
-
-        # Cleanup
-        manager.stop_cycle_loop()
-
 

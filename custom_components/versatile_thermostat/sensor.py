@@ -278,7 +278,7 @@ class OnPercentSensor(VersatileThermostatBaseEntity, SensorEntity):
 
         on_percent = (
             float(self.my_climate.proportional_algorithm.on_percent)
-            if self.my_climate and self.my_climate.has_prop
+            if self.my_climate and self.my_climate.has_tpi and self.my_climate.proportional_algorithm
             else None
         )
         if on_percent is None:
@@ -331,19 +331,19 @@ class AutoTpiSensor(VersatileThermostatBaseEntity, SensorEntity):
     async def async_my_climate_changed(self, event: Event = None):
         """Called when my climate have change"""
 
-        # Verify has_prop and proportional_algorithm
-        # proportional_algorithm can be None during initialization even if has_prop is True
-        if not self.my_climate or not self.my_climate.has_prop:
+        # Verify has_tpi and proportional_algorithm
+        # proportional_algorithm can be None during initialization even if has_tpi is True
+        if not self.my_climate or not self.my_climate.has_tpi or not self.my_climate.proportional_algorithm:
             self._attr_native_value = "disabled"
             self.async_write_ha_state()
             return
 
-        if not hasattr(self.my_climate, "auto_tpi_manager") or not self.my_climate.auto_tpi_manager:
+        if not hasattr(self.my_climate, "_auto_tpi_manager") or not self.my_climate._auto_tpi_manager:
              self._attr_native_value = "disabled"
              self.async_write_ha_state()
              return
 
-        manager = self.my_climate.auto_tpi_manager
+        manager = self.my_climate._auto_tpi_manager
 
         # Determine state
         if manager.learning_active:
@@ -454,7 +454,7 @@ class OnTimeSensor(VersatileThermostatBaseEntity, SensorEntity):
 
         on_time = (
             float(self.my_climate.proportional_algorithm.on_time_sec)
-            if self.my_climate and self.my_climate.has_prop
+            if self.my_climate and self.my_climate.has_tpi and self.my_climate.proportional_algorithm
             else None
         )
 
@@ -503,7 +503,7 @@ class OffTimeSensor(VersatileThermostatBaseEntity, SensorEntity):
 
         off_time = (
             float(self.my_climate.proportional_algorithm.off_time_sec)
-            if self.my_climate and self.my_climate.has_prop
+            if self.my_climate and self.my_climate.has_tpi and self.my_climate.proportional_algorithm
             else None
         )
         if off_time is None:

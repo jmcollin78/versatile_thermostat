@@ -41,10 +41,9 @@ Le système repose sur une intégration étroite entre le manager, le thermostat
     *   Fournit les données temps réel (`_get_tpi_data`) et exécute les ordres de cycle (`_on_tpi_cycle_start`).
     *   **Rôle de Délégation** : Le thermostat délègue toutes les tâches de synchronisation de configuration et de notification de fin d'apprentissage à l'AutoTpiManager. Son rôle se concentre sur l'instanciation, le chargement des données, la fourniture des données temps réel et l'exécution des ordres.
     *   **Démarrage Sécurisé** : Dans `async_startup`, le thermostat vérifie si le mode est `HEAT` ou `COOL` et force le démarrage de la boucle Auto TPI (`start_cycle_loop`). Cela garantit que l'apprentissage reprend après un redémarrage ou un rechargement de configuration, même si le mode HVAC n'a pas changé.
-    
+
 3.  **`AutoTpiSensor` (La Visibilité)** :
     *   Expose l'état de l'apprentissage et les métriques internes (nombre de cycles, confiance, coefficients calculés).
-    *   **Architecture** : Il accède au manager via la propriété publique `auto_tpi_manager` du thermostat (`ThermostatProp`), qui délègue l'accès au `TPIHandler` sous-jacent. Aucun accès direct aux attributs privés n'est permis.
     *   **Création Conditionnelle** : L'entité est créée uniquement si :
         1.  Le thermostat est TPI-capable (type `switch`, `valve`, ou `climate` avec régulation valve).
         2.  L'algorithme TPI est sélectionné (`CONF_PROP_FUNCTION == PROPORTIONAL_FUNCTION_TPI`).
@@ -63,7 +62,7 @@ Contrairement à une approche passive, c'est l'**`AutoTpiManager` qui rythme les
 2.  **Boucle (`_tick`)** :
     Le manager exécute une boucle infinie (via timer `async_call_later`) toutes les `cycle_min` minutes.
     *   **Étape 1 : Récupération des Données** : Il appelle `BaseThermostat._get_tpi_data` pour obtenir les paramètres calculés par l'algorithme proportionnel (temps ON, temps OFF, pourcentage).
-        > **Synchronisation des Coefficients** : Les coefficients appris sont propagés à `TpiAlgorithm` au début de chaque appel à `_get_tpi_data()`, garantissant que le calcul TPI utilise toujours les dernières valeurs apprises.
+        > **Synchronisation des Coefficients** : Les coefficients appris sont propagés à `PropAlgorithm` au début de chaque appel à `_get_tpi_data()`, garantissant que le calcul TPI utilise toujours les dernières valeurs apprises.
     *   **Étape 2 : Snapshot** : Il appelle sa méthode interne `on_cycle_started` pour figer l'état (températures, consigne) au début du cycle. C'est ce snapshot qui servira de référence pour l'apprentissage à la fin du cycle.
     *   **Étape 3 : Exécution** : Il appelle `BaseThermostat._on_tpi_cycle_start`. Le thermostat propage alors l'événement aux entités sous-jacentes (`UnderlyingEntity`) pour qu'elles s'activent (ON) puis se désactivent (OFF) après le délai calculé.
 
@@ -449,7 +448,7 @@ La détection de changement de régime est active pendant l'apprentissage.
 *   **Arrêt de l'apprentissage (`stop_learning`)** : L'appel à `stop_learning()` (ex: via le service `set_auto_tpi_mode` avec `auto_tpi_mode: false`) provoque :
     *   **Désactivation de l'apprentissage** : `autolearn_enabled` est mis à `False`, l'apprentissage s'arrête. `last_learning_status` est mis à `learning_stopped`.
     *   **Préservation de l'état** : Tous les attributs appris (coefficients, compteurs, capacités) sont **conservés** en mémoire et persistés. Cela permet de reprendre l'apprentissage ultérieurement sans perdre les données acquises.
-    *   **Synchronisation TpiAlgorithm** : Les valeurs de configuration (`_tpi_coef_int`, `_tpi_coef_ext`) sont immédiatement appliquées à l'algorithme proportionnel (`TpiAlgorithm.update_parameters()`) pour garantir que la régulation utilise les coefficients de configuration et non les coefficients appris.
+    *   **Synchronisation PropAlgorithm** : Les valeurs de configuration (`_tpi_coef_int`, `_tpi_coef_ext`) sont immédiatement appliquées à l'algorithme proportionnel (`PropAlgorithm.update_parameters()`) pour garantir que la régulation utilise les coefficients de configuration et non les coefficients appris.
 
 ## 9. Flux de Configuration (Config Flow)
     
@@ -474,7 +473,7 @@ La configuration de l'Auto TPI est intégrée dans le flux de configuration des 
     *   Permet d'ajuster finement les hyperparamètres (Poids initial pour Moyenne, Alpha/Decay pour EWMA).
 
 ### B. Simplification et Constantes
-Pour alléger l'interface, plusieurs options techniques ont été retirées de l'interface utilisateur et fixées dans le code (Hardcoded Constants) dans `TPIHandler` et `AutoTpiManager` :
+Pour alléger l'interface, plusieurs options techniques ont été retirées de l'interface utilisateur et fixées dans le code (Hardcoded Constants) dans `ThermostatTPI` et `AutoTpiManager` :
 *   `auto_tpi_max_coef_int` : **1.0** (Défini dans `AutoTpiManager`). Le coefficient interne ne peut dépasser 1.0.
 *   `auto_tpi_enable_update_config` : **True** (La configuration est toujours mise à jour avec les valeurs apprises).
 *   `auto_tpi_enable_notification` : **True** (Les notifications de fin d'apprentissage sont toujours envoyées).

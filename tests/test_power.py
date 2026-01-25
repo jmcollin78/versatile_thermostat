@@ -10,7 +10,7 @@ from custom_components.versatile_thermostat.thermostat_switch import ThermostatO
 from custom_components.versatile_thermostat.thermostat_climate_valve import ThermostatOverClimateValve
 from custom_components.versatile_thermostat.feature_power_manager import FeaturePowerManager
 
-from custom_components.versatile_thermostat.prop_algo_tpi import TpiAlgorithm
+from custom_components.versatile_thermostat.prop_algorithm import PropAlgorithm
 from .const import *  # pylint: disable=wildcard-import, unused-wildcard-import
 from .commons import *  # pylint: disable=wildcard-import, unused-wildcard-import
 
@@ -126,7 +126,7 @@ async def test_power_feature_manager(
     # fmt:on
 
         # Finish the mock configuration
-        tpi_algo = TpiAlgorithm(0.6, 0.01, 5, 0, 0, "climate.vtherm")
+        tpi_algo = PropAlgorithm(PROPORTIONAL_FUNCTION_TPI, 0.6, 0.01, 5, 0, 0, "climate.vtherm")
         tpi_algo._on_percent = 1 # pylint: disable="protected-access"
         type(fake_vtherm).hvac_mode = PropertyMock(return_value=VThermHvacMode_HEAT)
         type(fake_vtherm).is_device_active = PropertyMock(return_value=is_device_active)

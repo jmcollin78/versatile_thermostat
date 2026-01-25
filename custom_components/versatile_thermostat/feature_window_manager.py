@@ -317,7 +317,7 @@ class FeatureWindowManager(BaseFeatureManager):
 
         if self._window_auto_algo.is_window_open_detected() and self._window_auto_state in [STATE_UNKNOWN, STATE_OFF] and self._vtherm.hvac_mode != VThermHvacMode_OFF:
             if (
-                self._vtherm.has_prop
+                self._vtherm.has_tpi
                 and self._vtherm.proportional_algorithm  # Added check to avoid initialization issues
                 and self._vtherm.safe_on_percent <= 0.0
             ):

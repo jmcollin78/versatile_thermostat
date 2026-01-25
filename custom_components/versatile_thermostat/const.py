@@ -15,7 +15,9 @@ from homeassistant.components.climate.const import ClimateEntityFeature  # pylin
 from homeassistant.exceptions import HomeAssistantError
 from homeassistant.util import dt as dt_util
 
-PROPORTIONAL_FUNCTION_TPI = "tpi"
+from .prop_algorithm import (
+    PROPORTIONAL_FUNCTION_TPI,
+)
 
 from .vtherm_preset import VThermPreset, VThermPresetWithAC, VThermPresetWithAway, VThermPresetWithACAway, PRESET_TEMP_SUFFIX, PRESET_AWAY_SUFFIX  # pylint: disable=unused-import
 from .vtherm_hvac_mode import (

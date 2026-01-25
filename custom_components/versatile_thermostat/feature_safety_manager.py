@@ -128,7 +128,7 @@ class FeatureSafetyManager(BaseFeatureManager):
         )
         switch_cond: bool = (
             not self._vtherm.is_over_climate
-            and self._vtherm.has_prop
+            and self._vtherm.has_tpi
             and self._vtherm.proportional_algorithm is not None
             and self._vtherm.proportional_algorithm.calculated_on_percent
             >= self._safety_min_on_percent
@@ -197,7 +197,7 @@ class FeatureSafetyManager(BaseFeatureManager):
             self._safety_state = STATE_ON
             # self._vtherm.save_hvac_mode()
             # self._vtherm.save_preset_mode()
-            if self._vtherm.has_prop:
+            if self._vtherm.has_tpi:
                 self._vtherm.proportional_algorithm.set_safety(self._safety_default_on_percent)
 
             self._vtherm.send_event(
@@ -217,7 +217,7 @@ class FeatureSafetyManager(BaseFeatureManager):
             write_event_log(_LOGGER, self._vtherm, "Ending safety mode")
             _LOGGER.warning("%s - End of safety mode.", self)
             self._safety_state = STATE_OFF
-            if self._vtherm.has_prop:
+            if self._vtherm.has_tpi and self._vtherm.proportional_algorithm:
                 self._vtherm.proportional_algorithm.unset_safety()
             self._vtherm.send_event(
                 EventType.SAFETY_EVENT,

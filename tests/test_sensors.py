@@ -270,8 +270,8 @@ async def test_sensors_over_climate(
     # to add energy we must have HVACAction underlying climate event
     # Send a climate_change event with HVACAction=HEATING
     event_timestamp = now - timedelta(minutes=60)
-    the_mock_underlying._attr_hvac_mode = VThermHvacMode_HEAT
-    the_mock_underlying._attr_hvac_action = HVACAction.HEATING
+    the_mock_underlying.set_hvac_mode(VThermHvacMode_HEAT)
+    the_mock_underlying.set_hvac_action(HVACAction.HEATING)
     await send_climate_change_event(
         entity,
         new_hvac_mode=VThermHvacMode_HEAT,
@@ -283,7 +283,7 @@ async def test_sensors_over_climate(
     )
 
     # Send a climate_change event with HVACAction=IDLE (end of heating)
-    the_mock_underlying._attr_hvac_action = HVACAction.IDLE
+    the_mock_underlying.set_hvac_action(HVACAction.IDLE)
     await send_climate_change_event(
         entity,
         new_hvac_mode=VThermHvacMode_HEAT,

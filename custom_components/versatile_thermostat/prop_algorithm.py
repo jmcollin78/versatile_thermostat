@@ -6,7 +6,13 @@ from .vtherm_hvac_mode import VThermHvacMode, VThermHvacMode_OFF, VThermHvacMode
 
 _LOGGER = logging.getLogger(__name__)
 
+PROPORTIONAL_FUNCTION_ATAN = "atan"
+PROPORTIONAL_FUNCTION_LINEAR = "linear"
+PROPORTIONAL_FUNCTION_TPI = "tpi"
 
+PROPORTIONAL_MIN_DURATION_SEC = 10
+
+FUNCTION_TYPE = [PROPORTIONAL_FUNCTION_ATAN, PROPORTIONAL_FUNCTION_LINEAR]
 
 
 def is_number(value):
@@ -14,12 +20,12 @@ def is_number(value):
     return isinstance(value, (int, float))
 
 
-class TpiAlgorithm:
+class PropAlgorithm:
     """This class aims to do all calculation of the Proportional alogorithm"""
 
     def __init__(
         self,
-
+        function_type: str,
         tpi_coef_int,
         tpi_coef_ext,
         cycle_min: int,
@@ -32,9 +38,9 @@ class TpiAlgorithm:
     ) -> None:
         """Initialisation of the Proportional Algorithm"""
         _LOGGER.debug(
-            "%s - Creation new TpiAlgorithm tpi_coef_int: %s, tpi_coef_ext: %s, cycle_min:%d, minimal_activation_delay:%d, minimal_deactivation_delay:%d, tpi_threshold_low=%s, tpi_threshold_high=%s",  # pylint: disable=line-too-long
+            "%s - Creation new PropAlgorithm function_type: %s, tpi_coef_int: %s, tpi_coef_ext: %s, cycle_min:%d, minimal_activation_delay:%d, minimal_deactivation_delay:%d, tpi_threshold_low=%s, tpi_threshold_high=%s",  # pylint: disable=line-too-long
             vtherm_entity_id,
-
+            function_type,
             tpi_coef_int,
             tpi_coef_ext,
             cycle_min,
@@ -52,11 +58,12 @@ class TpiAlgorithm:
             or not is_number(cycle_min)
             or not is_number(minimal_activation_delay)
             or not is_number(minimal_deactivation_delay)
+            or function_type != PROPORTIONAL_FUNCTION_TPI
         ):
             _LOGGER.error(
-                "%s - configuration is wrong. entity_id is %s, tpi_coef_int is %s, tpi_coef_ext is %s, cycle_min is %s, minimal_activation_delay is %s, minimal_deactivation_delay is %s",
+                "%s - configuration is wrong. function_type=%s, entity_id is %s, tpi_coef_int is %s, tpi_coef_ext is %s, cycle_min is %s, minimal_activation_delay is %s, minimal_deactivation_delay is %s",
                 vtherm_entity_id,
-
+                function_type,
                 vtherm_entity_id,
                 tpi_coef_int,
                 tpi_coef_ext,
@@ -69,7 +76,7 @@ class TpiAlgorithm:
             )
 
         self._vtherm_entity_id = vtherm_entity_id
-
+        self._function = function_type
         self._tpi_coef_int = tpi_coef_int
         self._tpi_coef_ext = tpi_coef_ext
         self._cycle_min = cycle_min
@@ -133,12 +140,13 @@ class TpiAlgorithm:
                 )
                 self._calculated_on_percent = 0
             else:
-                if hvac_mode not in [VThermHvacMode_OFF, VThermHvacMode_SLEEP]:
+                if self._function == PROPORTIONAL_FUNCTION_TPI and hvac_mode not in [VThermHvacMode_OFF, VThermHvacMode_SLEEP]:
                     self._calculated_on_percent = self._tpi_coef_int * delta_temp + self._tpi_coef_ext * delta_ext_temp
                 else:
                     _LOGGER.debug(
-                        "%s - Proportional algorithm: VTherm is off. Heating will be disabled",
+                        "%s - Proportional algorithm: VTherm is off or unknown %s function. Heating will be disabled",
                         self._vtherm_entity_id,
+                        self._function,
                     )
                     self._calculated_on_percent = 0
 
