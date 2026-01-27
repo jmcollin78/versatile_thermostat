@@ -569,6 +569,14 @@ class AutoTpiManager(CycleManager):
                 coeff_indoor_cool=self._default_coef_int,
                 coeff_outdoor_cool=self._default_coef_ext,
             )
+        
+        # Reset last_learning_status on load to avoid stale messages from previous sessions
+        self.state.last_learning_status = "learning_started"
+        
+        # Reset cycle state to discard any cycle interrupted by the reboot
+        # This prevents "cycle_gap_detected" or validation failures on the first cycle after restart
+        self.state.cycle_active = False
+        self.state.cycle_start_date = None
 
         # MIGRATION FIX: If capacity is already known (legacy or manual), mark as learned
         # This prevents re-triggering bootstrap (count=0) for existing users
@@ -2600,7 +2608,7 @@ class AutoTpiManager(CycleManager):
 
         await self.async_save_data()
 
-    async def on_cycle_completed(self, new_params: dict, prev_params: dict | None):
+    async def on_cycle_completed(self, new_params: dict, prev_params: dict | None) -> bool:
         """Called when a TPI cycle completes."""
         # Validation logic (moved from old _tick)
         now = dt_util.now()
@@ -2616,16 +2624,33 @@ class AutoTpiManager(CycleManager):
              expected_duration = self._cycle_min
              tolerance = max(expected_duration * 0.1, 1.0)
 
-             if abs(elapsed_minutes - expected_duration) > tolerance:
+             duration_diff = elapsed_minutes - expected_duration
+             
+             # Case 1: Cycle too short (likely forced restart due to preset/temp change or restart)
+             if duration_diff < -tolerance:
                 _LOGGER.debug(
-                    "%s - Cycle validation failed: duration=%.1fmin (expected=%.1fmin, tolerance=%.1fmin). Skipping learning.",
+                    "%s - Cycle too short: duration=%.1fmin (expected=%.1fmin). Likely forced restart. Skipping learning.",
+                    self._name,
+                    elapsed_minutes,
+                    expected_duration,
+                )
+                self.state.last_learning_status = "cycle_too_short"
+                # We return here because a short cycle shouldn't count towards total_cycles or update stop time 
+                # (it was interrupted actively)
+                self.state.cycle_active = False
+                return
+
+             # Case 2: Cycle too long (Gap/Silence detected)
+             if duration_diff > tolerance:
+                _LOGGER.debug(
+                    "%s - Cycle gap detected: duration=%.1fmin (expected=%.1fmin, tolerance=%.1fmin). Resetting cycle but skipping learning.",
                     self._name,
                     elapsed_minutes,
                     expected_duration,
                     tolerance,
                 )
-                self.state.cycle_active = False # Force reset
-                return # Skip learning
+                # We do NOT return here. We allow update of total_cycles and last_heater_stop_time
+                self.state.last_learning_status = "cycle_gap_detected"
         else:
             # No start date or params, nothing to do
             return
@@ -2696,7 +2721,10 @@ class AutoTpiManager(CycleManager):
         real_rise = self._current_temp_in - self.state.last_temp_in
         efficiency = self._last_cycle_power_efficiency
         
-        if self._should_learn_capacity():
+        # Check if cycle was flagged as invalid (e.g. gap detected)
+        if self.state.last_learning_status == "cycle_gap_detected":
+            _LOGGER.debug("%s - Auto TPI: Skipping capacity learning due to invalid cycle (gap detected)", self._name)
+        elif self._should_learn_capacity():
             await self._learn_capacity(
                 power=self.state.last_power,
                 delta_t=self._current_temp_in - self._current_temp_out,
@@ -2726,13 +2754,20 @@ class AutoTpiManager(CycleManager):
                 reason = "on_time_too_short_vs_heating_time"
 
             _LOGGER.debug("%s - Auto TPI: Not learning Kint/Kext this cycle: %s", self._name, reason)
-            self.state.last_learning_status = reason
+            # Only update status if it wasn't already set to "cycle_gap_detected" or other critical error
+            if self.state.last_learning_status != "cycle_gap_detected":
+                self.state.last_learning_status = reason
 
         # Check for failures
         await self._detect_failures(self._current_temp_in)
 
-        # The Max Capacity detection logic has been removed as capacity is now set by service.
+        # Centralized persistence: Check if learning is finished and persist if needed
+        # (Replacing the need for separate process_learning_completion call in handler)
+        if self.learning_active:
+            await self.process_learning_completion(new_params)
+
         await self.async_save_data()
+        return True
     
 
 

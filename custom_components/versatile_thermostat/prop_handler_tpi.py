@@ -214,21 +214,14 @@ class TPIHandler:
                     _LOGGER.info("%s - Auto TPI learning is active (restored from storage)", t)
 
     async def async_startup(self):
-        """Start cycle loop if needed."""
-        t = self._thermostat
-        # Ensure the cycle loop is started if we are in a mode that needs it
-        if self._auto_tpi_manager and t.vtherm_hvac_mode in [VThermHvacMode_HEAT, VThermHvacMode_COOL]:
-            _LOGGER.info("%s - Startup: Starting Auto TPI cycle loop", t)
-            await self._auto_tpi_manager.start_cycle_loop(
-                self._get_tpi_data,
-                t._on_prop_cycle_start
-            )
+        """Startup actions."""
+        # No more active cycle loop to start, it's now handled passively in control_heating
+        pass
 
     def remove(self):
         """Cleanup on removal."""
         t = self._thermostat
         if self._auto_tpi_manager:
-            self._auto_tpi_manager.stop_cycle_loop()
             t.hass.async_create_task(self._auto_tpi_manager.async_save_data())
 
     def _is_central_boiler_off(self) -> bool:
@@ -285,6 +278,7 @@ class TPIHandler:
 
         # Feed the Auto TPI manager
         if self._auto_tpi_manager:
+            # 1. Update manager's transient state
             await self._auto_tpi_manager.update(
                 room_temp=t._cur_temp,
                 ext_temp=t._cur_ext_temp,
@@ -295,29 +289,30 @@ class TPIHandler:
                 is_heating_failure=t._heating_failure_detection_manager.is_failure_detected,
             )
 
-            # Check if we have new learned parameters
+            # 2. Drive the cycle processing passively
+            if self._auto_tpi_manager.learning_active:
+                await self._auto_tpi_manager.process_cycle(
+                    # Use provided timestamp or current time if missing
+                    timestamp=dt_util.now(),
+                    data_provider=self._get_tpi_data,
+                    event_sender=t._on_prop_cycle_start,
+                    force=force
+                )
+
+            # 3. Synchronize parameters if learning is active
             new_params = await self._auto_tpi_manager.calculate()
             if self._auto_tpi_manager.learning_active and new_params:
                 new_coef_int = new_params.get(CONF_TPI_COEF_INT)
                 new_coef_ext = new_params.get(CONF_TPI_COEF_EXT)
                 if new_coef_int is not None and new_coef_ext is not None:
                     if t._prop_algorithm:
+                        # Update effective algo parameters
                         t._prop_algorithm.update_parameters(tpi_coef_int=new_coef_int, tpi_coef_ext=new_coef_ext)
+                        # Keep thermostat attributes in sync
                         t._tpi_coef_int = new_coef_int
                         t._tpi_coef_ext = new_coef_ext
                         _LOGGER.debug("%s - Synced PropAlgorithm with current Auto TPI coeffs: int=%.3f, ext=%.3f",
                                       t, new_coef_int, new_coef_ext)
-
-                finalized_values = await self._auto_tpi_manager.process_learning_completion(new_params)
-
-                if finalized_values:
-                    t._tpi_coef_int = finalized_values.get(CONF_TPI_COEF_INT, t._tpi_coef_int)
-                    t._tpi_coef_ext = finalized_values.get(CONF_TPI_COEF_EXT, t._tpi_coef_ext)
-
-                    if t._prop_algorithm:
-                        t._prop_algorithm.update_parameters(tpi_coef_int=t._tpi_coef_int, tpi_coef_ext=t._tpi_coef_ext)
-                        _LOGGER.info("%s - Synced PropAlgorithm with final persisted Auto TPI coeffs: int=%.3f, ext=%.3f",
-                                     t, t._tpi_coef_int, t._tpi_coef_ext)
 
         # Stop here if we are off
         if t.vtherm_hvac_mode == VThermHvacMode_OFF:
@@ -335,17 +330,9 @@ class TPIHandler:
                 )
 
     async def on_state_changed(self):
-        """Handle state changes (start/stop cycle loop)."""
-        t = self._thermostat
-        if t._state_manager.current_state.is_hvac_mode_changed:
-            if self._auto_tpi_manager:
-                if t.vtherm_hvac_mode in [VThermHvacMode_HEAT, VThermHvacMode_COOL]:
-                    await self._auto_tpi_manager.start_cycle_loop(
-                        self._get_tpi_data,
-                        t._on_prop_cycle_start
-                    )
-                else:
-                    self._auto_tpi_manager.stop_cycle_loop()
+        """Handle state changes."""
+        # Cycle management is now passive, no need to start/stop loop
+        pass
 
     def update_attributes(self):
         """Add TPI-specific attributes to thermostat."""
@@ -566,15 +553,10 @@ class TPIHandler:
                 _LOGGER.debug("%s - Entity is removed, stop async_set_auto_tpi_mode", t)
                 return
 
-            # Start timer if we are in HEAT or COOL
-            if t.vtherm_hvac_mode in [VThermHvacMode_HEAT, VThermHvacMode_COOL]:
-                await self._auto_tpi_manager.start_cycle_loop(
-                    self._get_tpi_data,
-                    t._on_prop_cycle_start
-                )
+            # Starting learning is sufficient, cycle processing is passive
+            pass
         else:
             await self._auto_tpi_manager.stop_learning()
-            self._auto_tpi_manager.stop_cycle_loop()
 
             # Apply configured coefficients to PropAlgorithm
             if t._prop_algorithm:

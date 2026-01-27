@@ -29,18 +29,18 @@ Le système repose sur une intégration étroite entre le manager, le thermostat
     *   Persiste l'état (`AutoTpiState`) dans `.storage/versatile_thermostat_{unique_id}_auto_tpi_v2.json`.
     *   Gère la persistance de la capacité maximale calibrée (`max_capacity_heat` / `max_capacity_cool`).
     *   Expose les métriques de santé (confiance, constante de temps).
-    *   **Rôle Actif** : Il pilote la boucle de régulation TPI via son propre timer interne (`_tick`).
-    *   **Synchronisation & Persistance Finale** : Il gère la mise à jour des coefficients et capacités dans les entrées de configuration HA (`async_update_coefficients_config`, `async_update_capacity_config`).
+    *   **Rôle Passif** : Contrairement à l'ancienne architecture, il ne possède plus de timer interne. Sa logique de cycle est déclenchée passivement par le Handler via `process_cycle`.
+    *   **Synchronisation & Persistance Finale** : Il gère la mise à jour des coefficients et capacités dans les entrées de configuration HA. La persistance est désormais centralisée dans le hook `on_cycle_completed`.
     *   **Calibration** : Il expose la méthode `service_calibrate_capacity` qui orchestre la récupération d'historique et le calcul de capacité.
-    *   **Notification** : Il gère la notification de fin d'apprentissage (`process_learning_completion`).
+    *   **Notification** : Il gère la notification de fin d'apprentissage (automatiquement à la fin du cycle stabilisé dans `on_cycle_completed`).
 
 2.  **`BaseThermostat` (Le Chef d'Orchestre)** :
-    *   Instancie `AutoTpiManager` dans `post_init` (avec les nouveaux paramètres issus du flux de configuration).
+    *   Instancie `AutoTpiManager` dans `post_init`.
     *   Charge les données persistantes au démarrage.
-    *   Délègue la gestion du cycle TPI au manager via `start_cycle_loop`.
-    *   Fournit les données temps réel (`_get_tpi_data`) et exécute les ordres de cycle (`_on_tpi_cycle_start`).
-    *   **Rôle de Délégation** : Le thermostat délègue toutes les tâches de synchronisation de configuration et de notification de fin d'apprentissage à l'AutoTpiManager. Son rôle se concentre sur l'instanciation, le chargement des données, la fourniture des données temps réel et l'exécution des ordres.
-    *   **Démarrage Sécurisé** : Dans `async_startup`, le thermostat vérifie si le mode est `HEAT` ou `COOL` et force le démarrage de la boucle Auto TPI (`start_cycle_loop`). Cela garantit que l'apprentissage reprend après un redémarrage ou un rechargement de configuration, même si le mode HVAC n'a pas changé.
+    *   Le thermostat délègue la gestion temporelle au `TPIHandler`, qui appelle `process_cycle` à chaque cycle de contrôle (`control_heating`).
+    *   Fournit les données temps réel (`_get_tpi_data`) via le Handler.
+    *   **Rôle de Délégation** : Le thermostat délègue toutes les tâches de synchronisation de configuration et de notification de fin d'apprentissage à l'AutoTpiManager (via les hooks de cycle).
+    *   **Démarrage** : Aucun timer n'est démarré au démarrage. Le premier appel à `control_heating` (déclenché par les capteurs ou le timer de sécurité) initialise le premier cycle dans le manager.
     
 3.  **`AutoTpiSensor` (La Visibilité)** :
     *   Expose l'état de l'apprentissage et les métriques internes (nombre de cycles, confiance, coefficients calculés).
@@ -51,24 +51,26 @@ Le système repose sur une intégration étroite entre le manager, le thermostat
         3.  L'Auto TPI est activé dans la configuration (`CONF_AUTO_TPI_MODE == True`).
     *   **Nettoyage Automatique** : Lorsque l'Auto TPI est désactivé ou que l'algorithme TPI n'est plus utilisé, l'entité orpheline est automatiquement supprimée du registre des entités via `cleanup_orphan_entity()` (dans `commons.py`) lors du rechargement de la config entry. Cette fonction générique peut être réutilisée pour d'autres entités conditionnelles.
 
-### B. Flux de Contrôle (La Boucle TPI)
+### B. Flux de Contrôle (Modèle Passif)
 
-Contrairement à une approche passive, c'est l'**`AutoTpiManager` qui rythme les cycles** lorsque l'apprentissage est actif.
+L'**`AutoTpiManager` est désormais passif**. Son avancement dépend des appels à `control_heating` effectués par le thermostat.
 
-1.  **Démarrage** :
-    La boucle est démarrée (`manager.start_cycle_loop`) dans deux cas :
-    *   **Changement de mode** : Lorsque le thermostat passe en mode `HEAT` (via `BaseThermostat.update_states`).
-    *   **Initialisation** : Au démarrage de l'intégration (`async_startup`), si le mode restauré est déjà `HEAT`.
+1.  **Mécanisme de Déclenchement** :
+    À chaque mise à jour de température ou de consigne (et périodiquement toutes les minutes via un timer de sécurité), le thermostat appelle `async_control_heating`.
+    Le `TPIHandler` appelle ensuite `manager.process_cycle(timestamp, ...)`.
 
-2.  **Boucle (`_tick`)** :
-    Le manager exécute une boucle infinie (via timer `async_call_later`) toutes les `cycle_min` minutes.
-    *   **Étape 1 : Récupération des Données** : Il appelle `BaseThermostat._get_tpi_data` pour obtenir les paramètres calculés par l'algorithme proportionnel (temps ON, temps OFF, pourcentage).
-        > **Synchronisation des Coefficients** : Les coefficients appris sont propagés à `TpiAlgorithm` au début de chaque appel à `_get_tpi_data()`, garantissant que le calcul TPI utilise toujours les dernières valeurs apprises.
-    *   **Étape 2 : Snapshot** : Il appelle sa méthode interne `on_cycle_started` pour figer l'état (températures, consigne) au début du cycle. C'est ce snapshot qui servira de référence pour l'apprentissage à la fin du cycle.
-    *   **Étape 3 : Exécution** : Il appelle `BaseThermostat._on_tpi_cycle_start`. Le thermostat propage alors l'événement aux entités sous-jacentes (`UnderlyingEntity`) pour qu'elles s'activent (ON) puis se désactivent (OFF) après le délai calculé.
+2.  **Gestion des Frontières de Cycle (`process_cycle`)** :
+    *   **Initialisation** : Au premier appel, le manager enregistre le `timestamp` de début et initialise le snapshot.
+    *   **Détection de Fin** : À chaque appel suivant, le manager calcule `elapsed = timestamp - cycle_start`.
+    *   **Transition** : Si `elapsed >= cycle_min`, le manager déclenche automatiquement :
+        1.  `on_cycle_completed` : Exécute toute la logique d'apprentissage (PHASE 1 et 2) et la persistance finale.
+        2.  `on_cycle_started` : Réinitialise les accumulateurs et prend un nouveau snapshot pour le cycle suivant.
+        3.  Propagation : Notifie le thermostat pour appliquer les nouveaux temps ON/OFF via un callback (`event_sender`).
 
-3.  **Fin de Cycle** :
-    Au tick suivant, le manager vérifie la durée écoulée. Si elle correspond à `cycle_min`, il valide la fin du cycle précédent (`on_cycle_completed`), puis déclenche la logique d'apprentissage (si conditions réunies).
+3.  **Avantages de l'Approche Passive** :
+    *   **Synchronisation Parfaite** : L'apprentissage se base exactement sur les donnés utilisées pour la régulation.
+    *   **Robustesse** : Suppression des dérives possibles entre le timer du manager et celui du thermostat.
+    *   **Économie de ressources** : Un seul flux d'exécution au lieu de deux boucles concurrentes.
 
 **Précision sur le Mode de Régulation :** La logique d'apprentissage et le calcul de puissance se basent uniquement sur le `hvac_mode` du thermostat (`HEAT`). Le statut de commande de chauffe/refroidissement (`hvac_action`: `heating`/`idle`) n'est **pas** utilisé pour déterminer si l'apprentissage doit avoir lieu, car un cycle TPI complet inclut naturellement les phases `heating` (ON) et `idle` (OFF).
 
@@ -503,10 +505,8 @@ Une suite de tests unitaires complète a été mise en place pour garantir la ro
         *   Test de la régression linéaire.
         *   Test de l'extraction des cycles à pleine puissance.
         *   Test du calcul de la Capacité (Capacity).
-    *   **Apprentissage (`_perform_learning`)** :
-        *   Apprentissage du coefficient intérieur (`_learn_indoor`).
-        *   Apprentissage du coefficient extérieur (`_learn_outdoor`).
-    *   **Cycle de vie** : Simulation complète d'un cycle (démarrage, fin, mise à jour des états).
+    *   **Cycle de vie** : Simulation complète d'un cycle (démarrage, fin, mise à jour des états) via `process_cycle`.
+    *   **Simulation de Convergence** (`tests/test_auto_tpi_simulation.py`) : Vérifie sur 50 cycles que les coefficients Kint/Kext convergent vers les valeurs physiques théoriques en utilisant le moteur passif.
 
 Pour exécuter les tests :
 ```bash
