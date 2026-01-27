@@ -91,6 +91,9 @@ class FeatureAutoStartStopManager(BaseFeatureManager):
         if not self._is_configured or not self._is_auto_start_stop_enabled:
             _LOGGER.debug("%s - auto start/stop is disabled (or not configured)", self)
             self._is_auto_stop_detected = False
+        # Skip evaluation during startup to avoid acting on intermediate states
+        elif not self._vtherm.is_startup_complete:
+            _LOGGER.debug("%s - skipping auto start/stop evaluation during startup", self)
         else:
             # Do the auto-start-stop calculation
             slope = (self._vtherm.last_temperature_slope or 0) / 60  # to have the slope in °/min
