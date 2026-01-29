@@ -30,6 +30,10 @@ class ThermostatProp(BaseThermostat[T], Generic[T]):
         """Initialize the proportional thermostat."""
         # Handler for algorithm-specific logic (TPI or SmartPI)
         self._algo_handler = None
+        self._on_time_sec: float | None = 0
+        self._off_time_sec: float | None = 0
+        self._safety_state: bool = False
+        self._safety_default_on_percent: float = 0.0
 
         super().__init__(hass, unique_id, name, entry_infos)
 
@@ -43,21 +47,82 @@ class ThermostatProp(BaseThermostat[T], Generic[T]):
         return True
 
     @property
+    def prop_algorithm(self):
+        """Get the proportional algorithm."""
+        return self._prop_algorithm
+
+    @prop_algorithm.setter
+    def prop_algorithm(self, value):
+        """Set the proportional algorithm."""
+        self._prop_algorithm = value
+
+    @property
     def proportional_algorithm(self):
-        """Get the ProportionalAlgorithm."""
+        """Get the proportional algorithm (alias)."""
         return self._prop_algorithm
 
     @property
+    def on_percent(self) -> float:
+        """Returns the percentage the heater must be ON
+        In safety mode this value is overridden with the _default_on_percent
+        """
+        if self._safety_state:
+            val = self._safety_default_on_percent
+        elif self._prop_algorithm:
+             val = self._prop_algorithm.on_percent
+        else:
+             val = 0
+
+        # Clamp with max_on_percent
+         # issue 538 - clamping with max_on_percent should be done here
+        if self._max_on_percent is not None and val > self._max_on_percent:
+            val = self._max_on_percent
+
+        # Notify the algorithm of the realized power (if supported)
+        # Only if the value has been modified by safety or clamping
+        if self._prop_algorithm and hasattr(self._prop_algorithm, "update_realized_power"):
+            # Get what the algorithm proposes
+            algo_percent = self._prop_algorithm.on_percent if self._prop_algorithm else 0
+            if val != algo_percent:
+                self._prop_algorithm.update_realized_power(val)
+
+        return val
+
+    @property
     def safe_on_percent(self) -> float:
-        """Return the on_percent safe value."""
-        if self._prop_algorithm and self._prop_algorithm.on_percent:
-            return self._prop_algorithm.on_percent
-        return 0
+        """Return the on_percent safe value.
+        Deprecated: use on_percent directly as it now handles safety.
+        """
+        return self.on_percent
+
+    def set_safety(self, default_on_percent: float):
+        """Set a default value for on_percent (used for safety mode)"""
+        _LOGGER.info("%s - Set safety to ON with default_on_percent=%s", self, default_on_percent)
+        self._safety_state = True
+        self._safety_default_on_percent = default_on_percent
+
+    def unset_safety(self):
+        """Unset the safety mode"""
+        _LOGGER.info("%s - Set safety to OFF", self)
+        self._safety_state = False
 
     @property
     def auto_tpi_manager(self):
         """Return the Auto TPI manager from handler."""
+    @property
+    def auto_tpi_manager(self):
+        """Return the Auto TPI manager from handler."""
         return self._algo_handler.auto_tpi_manager if self._algo_handler else None
+
+    @property
+    def on_time_sec(self) -> float | None:
+        """Return the on time in seconds"""
+        return self._on_time_sec
+
+    @property
+    def off_time_sec(self) -> float | None:
+        """Return the off time in seconds"""
+        return self._off_time_sec
 
     # =========================================================================
     # LIFECYCLE METHODS - Delegate to handler

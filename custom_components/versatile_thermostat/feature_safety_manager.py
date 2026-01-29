@@ -198,7 +198,7 @@ class FeatureSafetyManager(BaseFeatureManager):
             # self._vtherm.save_hvac_mode()
             # self._vtherm.save_preset_mode()
             if self._vtherm.has_prop:
-                self._vtherm.proportional_algorithm.set_safety(self._safety_default_on_percent)
+                self._vtherm.set_safety(self._safety_default_on_percent)
 
             self._vtherm.send_event(
                 EventType.SAFETY_EVENT,
@@ -218,7 +218,7 @@ class FeatureSafetyManager(BaseFeatureManager):
             _LOGGER.warning("%s - End of safety mode.", self)
             self._safety_state = STATE_OFF
             if self._vtherm.has_prop:
-                self._vtherm.proportional_algorithm.unset_safety()
+                self._vtherm.unset_safety()
             self._vtherm.send_event(
                 EventType.SAFETY_EVENT,
                 {

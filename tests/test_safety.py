@@ -199,7 +199,7 @@ async def test_security_feature(hass: HomeAssistant, skip_hass_states_is_state):
         assert entity.safety_state is STATE_ON
         assert entity.preset_mode == VThermPreset.SAFETY
         # assert entity._saved_preset_mode == VThermPreset.COMFORT
-        assert entity._prop_algorithm.on_percent == 0.1
+        assert entity.on_percent == 0.1
         assert entity._prop_algorithm.calculated_on_percent == 0.9
 
         assert mock_send_event.call_count == 3
@@ -244,8 +244,7 @@ async def test_security_feature(hass: HomeAssistant, skip_hass_states_is_state):
         # 4. check that security is still on
         assert entity.safety_manager.safety_state is STATE_ON
         assert entity.safety_manager.is_safety_detected is True
-
-        assert entity._prop_algorithm.on_percent == 0.1
+        assert entity.on_percent == 0.1
         assert entity._prop_algorithm.calculated_on_percent == 1
         # assert entity._saved_preset_mode == VThermPreset.BOOST
         assert entity.preset_mode is VThermPreset.SAFETY
@@ -269,7 +268,7 @@ async def test_security_feature(hass: HomeAssistant, skip_hass_states_is_state):
 
         assert entity.preset_mode == VThermPreset.BOOST
         assert entity.target_temperature == 19  # Boost
-        assert entity._prop_algorithm.on_percent == 1.0
+        assert entity.on_percent == 1.0
         assert entity._prop_algorithm.calculated_on_percent == 1.0
 
         assert mock_send_event.call_count == 2
@@ -470,7 +469,7 @@ async def test_security_feature_back_on_percent(
 
         assert entity.preset_mode == VThermPreset.COMFORT
         # assert entity._saved_preset_mode == VThermPreset.ECO
-        assert entity._prop_algorithm.on_percent == 0.0
+        assert entity.on_percent == 0.0
         assert entity._prop_algorithm.calculated_on_percent == 0.0
 
         assert mock_send_event.call_count == 2

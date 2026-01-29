@@ -34,6 +34,12 @@ class CycleManager:
         self._cycle_start_date: datetime | None = None
         self._learning_just_completed = False
 
+
+    @property
+    def cycle_min(self) -> int:
+        """Return the cycle duration in minutes."""
+        return self._cycle_min
+
     async def process_cycle(self, timestamp: datetime, data_provider: Callable[[], dict], event_sender: Callable[[dict], None], force: bool = False):
         """Process a cycle tick. Called by Handlers during control_heating."""
         
