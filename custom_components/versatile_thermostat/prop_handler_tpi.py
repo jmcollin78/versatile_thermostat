@@ -40,37 +40,37 @@ class TPIHandler:
     @property
     def tpi_coef_int(self) -> float:
         """Return TPI internal coefficient from thermostat."""
-        return self._thermostat._tpi_coef_int
+        return self._thermostat.tpi_coef_int
 
     @property
     def tpi_coef_ext(self) -> float:
         """Return TPI external coefficient from thermostat."""
-        return self._thermostat._tpi_coef_ext
+        return self._thermostat.tpi_coef_ext
 
     @property
     def tpi_threshold_low(self) -> float:
         """Return TPI low threshold from thermostat."""
-        return self._thermostat._tpi_threshold_low
+        return self._thermostat.tpi_threshold_low
 
     @property
     def tpi_threshold_high(self) -> float:
         """Return TPI high threshold from thermostat."""
-        return self._thermostat._tpi_threshold_high
+        return self._thermostat.tpi_threshold_high
 
     @property
     def minimal_activation_delay(self) -> int:
         """Return minimal activation delay from thermostat."""
-        return self._thermostat._minimal_activation_delay
+        return self._thermostat.minimal_activation_delay
 
     @property
     def minimal_deactivation_delay(self) -> int:
         """Return minimal deactivation delay from thermostat."""
-        return self._thermostat._minimal_deactivation_delay
+        return self._thermostat.minimal_deactivation_delay
 
     @property
     def proportional_function(self) -> str | None:
         """Return proportional function from thermostat."""
-        return self._thermostat._proportional_function
+        return self._thermostat.proportional_function
 
     @property
     def auto_tpi_manager(self) -> AutoTpiManager | None:
@@ -83,64 +83,60 @@ class TPIHandler:
         Updates thermostat attributes directly for backward compatibility.
         """
         t = self._thermostat
-        entry = t._entry_infos
+        entry = t.entry_infos
 
-        # Read and set proportional function on thermostat
-        t._proportional_function = entry.get(CONF_PROP_FUNCTION)
-
-        # Read and set TPI-specific config on thermostat
-        t._tpi_coef_int = entry.get(CONF_TPI_COEF_INT)
-        t._tpi_coef_ext = entry.get(CONF_TPI_COEF_EXT)
-        t._tpi_threshold_low = entry.get(CONF_TPI_THRESHOLD_LOW, 0.0)
-        t._tpi_threshold_high = entry.get(CONF_TPI_THRESHOLD_HIGH, 0.0)
-        t._minimal_activation_delay = entry.get(CONF_MINIMAL_ACTIVATION_DELAY, 0)
-        t._minimal_deactivation_delay = entry.get(CONF_MINIMAL_DEACTIVATION_DELAY, 0)
+        # Read and set TPI-specific config on thermostat using public setters
+        t.tpi_coef_int = entry.get(CONF_TPI_COEF_INT)
+        t.tpi_coef_ext = entry.get(CONF_TPI_COEF_EXT)
+        t.tpi_threshold_low = entry.get(CONF_TPI_THRESHOLD_LOW, 0.0)
+        t.tpi_threshold_high = entry.get(CONF_TPI_THRESHOLD_HIGH, 0.0)
+        t.minimal_activation_delay = entry.get(CONF_MINIMAL_ACTIVATION_DELAY, 0)
+        t.minimal_deactivation_delay = entry.get(CONF_MINIMAL_DEACTIVATION_DELAY, 0)
 
         # Save default values for Auto TPI reset
-        self._default_coef_int = t._tpi_coef_int
-        self._default_coef_ext = t._tpi_coef_ext
+        self._default_coef_int = t.tpi_coef_int
+        self._default_coef_ext = t.tpi_coef_ext
 
         # Validation: thresholds - if one is 0 then both are 0
-        if t._tpi_threshold_low == 0.0 or t._tpi_threshold_high == 0.0:
-            t._tpi_threshold_low = 0.0
-            t._tpi_threshold_high = 0.0
+        if t.tpi_threshold_low == 0.0 or t.tpi_threshold_high == 0.0:
+            t.tpi_threshold_low = 0.0
+            t.tpi_threshold_high = 0.0
 
         # Validation: delays
-        if (t._minimal_activation_delay + t._minimal_deactivation_delay) / 60 > t._cycle_min:
+        if (t.minimal_activation_delay + t.minimal_deactivation_delay) / 60 > t.cycle_min:
             _LOGGER.warning(
                 "%s - The sum of minimal_activation_delay (%s sec) and "
                 "minimal_deactivation_delay (%s sec) is greater than cycle_min (%s). "
                 "This can create some unexpected behavior. Please review your configuration",
                 t,
-                t._minimal_activation_delay,
-                t._minimal_deactivation_delay,
-                t._cycle_min,
+                t.minimal_activation_delay,
+                t.minimal_deactivation_delay,
+                t.cycle_min,
             )
 
         # Validation: external temp sensor for TPI
         if (
-            t._proportional_function == PROPORTIONAL_FUNCTION_TPI
-            and t._ext_temp_sensor_entity_id is None
+            t.proportional_function == PROPORTIONAL_FUNCTION_TPI
+            and t.ext_temp_sensor_entity_id is None
         ):
             _LOGGER.warning(
                 "Using TPI function but not external temperature sensor is set. "
                 "Removing the delta temp ext factor. "
                 "Thermostat will not be fully operational."
             )
-            t._tpi_coef_ext = 0
+            t.tpi_coef_ext = 0
 
         # Create TpiAlgorithm on thermostat
-        t._prop_algorithm = TpiAlgorithm(
-
-            t._tpi_coef_int,
-            t._tpi_coef_ext,
-            t._cycle_min,
-            t._minimal_activation_delay,
-            t._minimal_deactivation_delay,
+        t.prop_algorithm = TpiAlgorithm(
+            t.tpi_coef_int,
+            t.tpi_coef_ext,
+            t.cycle_min,
+            t.minimal_activation_delay,
+            t.minimal_deactivation_delay,
             t.name,
-            max_on_percent=t._max_on_percent,
-            tpi_threshold_low=t._tpi_threshold_low,
-            tpi_threshold_high=t._tpi_threshold_high,
+            max_on_percent=t.max_on_percent,
+            tpi_threshold_low=t.tpi_threshold_low,
+            tpi_threshold_high=t.tpi_threshold_high,
         )
 
         # Initialize Auto TPI Manager from config
@@ -155,19 +151,19 @@ class TPIHandler:
         aggressiveness = entry.get(CONF_AUTO_TPI_AGGRESSIVENESS, 1.0)
 
         _LOGGER.info("%s - DEBUG: TPI coefficients from entry_infos: int=%.3f, ext=%.3f",
-                     t, t._tpi_coef_int, t._tpi_coef_ext)
+                     t, t.tpi_coef_int, t.tpi_coef_ext)
 
         self._auto_tpi_manager = AutoTpiManager(
-            t._hass,
+            t.hass,
             t.config_entry,
             t.unique_id,
             t.name,
-            t._cycle_min,
-            t._tpi_threshold_low,
-            t._tpi_threshold_high,
-            t._minimal_deactivation_delay,
-            coef_int=t._tpi_coef_int,
-            coef_ext=t._tpi_coef_ext,
+            t.cycle_min,
+            t.tpi_threshold_low,
+            t.tpi_threshold_high,
+            t.minimal_deactivation_delay,
+            coef_int=t.tpi_coef_int,
+            coef_ext=t.tpi_coef_ext,
             heater_heating_time=heater_heating_time,
             heater_cooling_time=heater_cooling_time,
             calculation_method=calculation_method,
@@ -177,7 +173,7 @@ class TPIHandler:
             cooling_rate=cooling_rate,
             aggressiveness=aggressiveness,
         )
-        self._auto_tpi_manager.set_is_vtherm_stopping_callback(lambda: t._is_removed)
+        self._auto_tpi_manager.set_is_vtherm_stopping_callback(lambda: t.is_removed)
         _LOGGER.info("%s - DEBUG: AutoTpiManager initialized with defaults: int=%.3f, ext=%.3f",
                      t, self._auto_tpi_manager._default_coef_int, self._auto_tpi_manager._default_coef_ext)
 
@@ -187,7 +183,7 @@ class TPIHandler:
         if self._auto_tpi_manager:
             # Set entity_id for pre-bootstrap calibration sensor lookup
             self._auto_tpi_manager._entity_id = t.entity_id
-            _LOGGER.info("%s - DEBUG: Before load_data - int=%.3f, ext=%.3f", t, t._tpi_coef_int, t._tpi_coef_ext)
+            _LOGGER.info("%s - DEBUG: Before load_data - int=%.3f, ext=%.3f", t, t.tpi_coef_int, t.tpi_coef_ext)
             await self._auto_tpi_manager.async_load_data()
             
             # If we have learned parameters, apply them
@@ -196,18 +192,18 @@ class TPIHandler:
                 _LOGGER.info("%s - DEBUG: Learned params found: %s, learning_active=%s",
                              t, learned_params, self._auto_tpi_manager.learning_active)
                 if self._auto_tpi_manager.learning_active:
-                    t._tpi_coef_int = learned_params.get(CONF_TPI_COEF_INT, t._tpi_coef_int)
-                    t._tpi_coef_ext = learned_params.get(CONF_TPI_COEF_EXT, t._tpi_coef_ext)
+                    t.tpi_coef_int = learned_params.get(CONF_TPI_COEF_INT, t.tpi_coef_int)
+                    t.tpi_coef_ext = learned_params.get(CONF_TPI_COEF_EXT, t.tpi_coef_ext)
                     _LOGGER.info("%s - Restored Auto TPI parameters: %s", t, learned_params)
                 else:
                     _LOGGER.info("%s - Auto TPI parameters found but not applied because learning is disabled", t)
 
             _LOGGER.info("%s - DEBUG: After load_data - int=%.3f, ext=%.3f",
-                         t, t._tpi_coef_int, t._tpi_coef_ext)
+                         t, t.tpi_coef_int, t.tpi_coef_ext)
 
             if self._auto_tpi_manager.learning_active:
                 # Security: if the feature is disabled in config, we must stop learning
-                if not t._entry_infos.get(CONF_AUTO_TPI_MODE, False):
+                if not t.entry_infos.get(CONF_AUTO_TPI_MODE, False):
                     _LOGGER.info("%s - Auto TPI learning was active but feature is disabled in config. Stopping learning.", t)
                     await self._auto_tpi_manager.stop_learning()
                 else:
@@ -241,13 +237,13 @@ class TPIHandler:
         # Feed current temperatures to AutoTpiManager BEFORE getting params
         if self._auto_tpi_manager:
             await self._auto_tpi_manager.update(
-                room_temp=t._cur_temp,
-                ext_temp=t._cur_ext_temp,
+                room_temp=t.current_temperature,
+                ext_temp=t.current_outdoor_temperature,
                 target_temp=t.target_temperature,
                 hvac_mode=str(t.vtherm_hvac_mode),
                 is_overpowering_detected=t.power_manager.is_overpowering_detected,
                 is_central_boiler_off=self._is_central_boiler_off(),
-                is_heating_failure=t._heating_failure_detection_manager.is_failure_detected,
+                is_heating_failure=t.heating_failure_detection_manager.is_failure_detected,
             )
 
         # Sync coefficients from AutoTpiManager before calculating
@@ -256,9 +252,9 @@ class TPIHandler:
             if new_params:
                 new_coef_int = new_params.get(CONF_TPI_COEF_INT)
                 new_coef_ext = new_params.get(CONF_TPI_COEF_EXT)
-                if new_coef_int != t._prop_algorithm.tpi_coef_int or \
-                   new_coef_ext != t._prop_algorithm.tpi_coef_ext:
-                    t._prop_algorithm.update_parameters(tpi_coef_int=new_coef_int, tpi_coef_ext=new_coef_ext)
+                if new_coef_int != t.prop_algorithm.tpi_coef_int or \
+                   new_coef_ext != t.prop_algorithm.tpi_coef_ext:
+                    t.prop_algorithm.update_parameters(tpi_coef_int=new_coef_int, tpi_coef_ext=new_coef_ext)
                     _LOGGER.debug("%s - Synced TPI coeffs before cycle: int=%.3f, ext=%.3f",
                                   t, new_coef_int, new_coef_ext)
 
@@ -266,8 +262,8 @@ class TPIHandler:
         t.recalculate()
 
         return {
-            "on_time_sec": t._prop_algorithm.on_time_sec if t._prop_algorithm else 0,
-            "off_time_sec": t._prop_algorithm.off_time_sec if t._prop_algorithm else 0,
+            "on_time_sec": t.prop_algorithm.on_time_sec if t.prop_algorithm else 0,
+            "off_time_sec": t.prop_algorithm.off_time_sec if t.prop_algorithm else 0,
             "on_percent": t.safe_on_percent,
             "hvac_mode": str(t.vtherm_hvac_mode),
         }
@@ -280,13 +276,13 @@ class TPIHandler:
         if self._auto_tpi_manager:
             # 1. Update manager's transient state
             await self._auto_tpi_manager.update(
-                room_temp=t._cur_temp,
-                ext_temp=t._cur_ext_temp,
+                room_temp=t.current_temperature,
+                ext_temp=t.current_outdoor_temperature,
                 target_temp=t.target_temperature,
                 hvac_mode=str(t.vtherm_hvac_mode),
                 is_overpowering_detected=t.power_manager.is_overpowering_detected,
                 is_central_boiler_off=self._is_central_boiler_off(),
-                is_heating_failure=t._heating_failure_detection_manager.is_failure_detected,
+                is_heating_failure=t.heating_failure_detection_manager.is_failure_detected,
             )
 
             # 2. Drive the cycle processing passively
@@ -305,12 +301,12 @@ class TPIHandler:
                 new_coef_int = new_params.get(CONF_TPI_COEF_INT)
                 new_coef_ext = new_params.get(CONF_TPI_COEF_EXT)
                 if new_coef_int is not None and new_coef_ext is not None:
-                    if t._prop_algorithm:
+                    if t.prop_algorithm:
                         # Update effective algo parameters
-                        t._prop_algorithm.update_parameters(tpi_coef_int=new_coef_int, tpi_coef_ext=new_coef_ext)
+                        t.prop_algorithm.update_parameters(tpi_coef_int=new_coef_int, tpi_coef_ext=new_coef_ext)
                         # Keep thermostat attributes in sync
-                        t._tpi_coef_int = new_coef_int
-                        t._tpi_coef_ext = new_coef_ext
+                        t.tpi_coef_int = new_coef_int
+                        t.tpi_coef_ext = new_coef_ext
                         _LOGGER.debug("%s - Synced PropAlgorithm with current Auto TPI coeffs: int=%.3f, ext=%.3f",
                                       t, new_coef_int, new_coef_ext)
 
@@ -320,12 +316,12 @@ class TPIHandler:
             if t.is_device_active:
                 await t.async_underlying_entity_turn_off()
         else:
-            for under in t._underlyings:
+            for under in t.underlyings:
                 await under.start_cycle(
                     t.vtherm_hvac_mode,
-                    t._prop_algorithm.on_time_sec if t._prop_algorithm else None,
-                    t._prop_algorithm.off_time_sec if t._prop_algorithm else None,
-                    t._prop_algorithm.on_percent if t._prop_algorithm else None,
+                    t.prop_algorithm.on_time_sec if t.prop_algorithm else None,
+                    t.prop_algorithm.off_time_sec if t.prop_algorithm else None,
+                    t.prop_algorithm.on_percent if t.prop_algorithm else None,
                     force,
                 )
 
@@ -347,22 +343,22 @@ class TPIHandler:
         })
 
         t._attr_extra_state_attributes["configuration"].update({
-            "minimal_activation_delay_sec": t._minimal_activation_delay,
-            "minimal_deactivation_delay_sec": t._minimal_deactivation_delay,
+            "minimal_activation_delay_sec": t.minimal_activation_delay,
+            "minimal_deactivation_delay_sec": t.minimal_deactivation_delay,
         })
 
     async def _async_update_tpi_config_entry(self):
         """Update the config entry with current TPI parameters."""
         t = self._thermostat
-        entry = t.hass.config_entries.async_get_entry(t._unique_id)
+        entry = t.hass.config_entries.async_get_entry(t.unique_id)
         if entry:
             new_data = entry.data.copy()
-            new_data[CONF_TPI_COEF_INT] = t._tpi_coef_int
-            new_data[CONF_TPI_COEF_EXT] = t._tpi_coef_ext
-            new_data[CONF_TPI_THRESHOLD_LOW] = t._tpi_threshold_low
-            new_data[CONF_TPI_THRESHOLD_HIGH] = t._tpi_threshold_high
-            new_data[CONF_MINIMAL_ACTIVATION_DELAY] = t._minimal_activation_delay
-            new_data[CONF_MINIMAL_DEACTIVATION_DELAY] = t._minimal_deactivation_delay
+            new_data[CONF_TPI_COEF_INT] = t.tpi_coef_int
+            new_data[CONF_TPI_COEF_EXT] = t.tpi_coef_ext
+            new_data[CONF_TPI_THRESHOLD_LOW] = t.tpi_threshold_low
+            new_data[CONF_TPI_THRESHOLD_HIGH] = t.tpi_threshold_high
+            new_data[CONF_MINIMAL_ACTIVATION_DELAY] = t.minimal_activation_delay
+            new_data[CONF_MINIMAL_DEACTIVATION_DELAY] = t.minimal_deactivation_delay
 
             result = t.hass.config_entries.async_update_entry(entry, data=new_data)
             _LOGGER.debug("%s - Config entry updated with new TPI params: %s", t, result)
@@ -393,17 +389,17 @@ class TPIHandler:
             f"tpi_threshold_high: {tpi_threshold_high}",
         )
 
-        if t._prop_algorithm is None:
+        if t.prop_algorithm is None:
             raise ServiceValidationError(f"{t} - No TPI algorithm configured for this thermostat.")
 
-        entry = t.hass.config_entries.async_get_entry(t._unique_id)
+        entry = t.hass.config_entries.async_get_entry(t.unique_id)
         if not entry:
             raise ServiceValidationError(f"{t} - No config entry has been found for this thermostat.")
 
         if entry.data.get(CONF_USE_TPI_CENTRAL_CONFIG, False):
             raise ServiceValidationError(f"{t} - Impossible to set TPI parameters when using central TPI configuration.")
 
-        t._prop_algorithm.update_parameters(
+        t.prop_algorithm.update_parameters(
             tpi_coef_int,
             tpi_coef_ext,
             minimal_activation_delay,
@@ -411,16 +407,16 @@ class TPIHandler:
             tpi_threshold_low,
             tpi_threshold_high,
         )
-        t._tpi_coef_int = t._prop_algorithm.tpi_coef_int
-        t._tpi_coef_ext = t._prop_algorithm.tpi_coef_ext
-        t._minimal_activation_delay = t._prop_algorithm.minimal_activation_delay
-        t._minimal_deactivation_delay = t._prop_algorithm.minimal_deactivation_delay
-        t._tpi_threshold_low = t._prop_algorithm.tpi_threshold_low
-        t._tpi_threshold_high = t._prop_algorithm.tpi_threshold_high
+        t.tpi_coef_int = t.prop_algorithm.tpi_coef_int
+        t.tpi_coef_ext = t.prop_algorithm.tpi_coef_ext
+        t.minimal_activation_delay = t.prop_algorithm.minimal_activation_delay
+        t.minimal_deactivation_delay = t.prop_algorithm.minimal_deactivation_delay
+        t.tpi_threshold_low = t.prop_algorithm.tpi_threshold_low
+        t.tpi_threshold_high = t.prop_algorithm.tpi_threshold_high
 
         await self._async_update_tpi_config_entry()
 
-        if t._is_removed:
+        if t.is_removed:
             _LOGGER.debug("%s - Entity is removed, stop service_set_tpi_parameters", t)
             return
 
@@ -437,9 +433,9 @@ class TPIHandler:
         """Service handler for set_auto_tpi_mode."""
         t = self._thermostat
 
-        if t._proportional_function != PROPORTIONAL_FUNCTION_TPI:
+        if t.proportional_function != PROPORTIONAL_FUNCTION_TPI:
             raise ServiceValidationError(f"{t} - This service is only available for TPI algorithm.")
-        if not t._entry_infos.get(CONF_AUTO_TPI_MODE, False):
+        if not t.entry_infos.get(CONF_AUTO_TPI_MODE, False):
             raise ServiceValidationError(f"{t} - Auto TPI is not enabled in configuration.")
 
         write_event_log(
@@ -467,9 +463,9 @@ class TPIHandler:
         """Service handler for auto_tpi_calibrate_capacity."""
         t = self._thermostat
 
-        if t._proportional_function != PROPORTIONAL_FUNCTION_TPI:
+        if t.proportional_function != PROPORTIONAL_FUNCTION_TPI:
             raise ServiceValidationError(f"{t} - This service is only available for TPI algorithm.")
-        if not t._entry_infos.get(CONF_AUTO_TPI_MODE, False):
+        if not t.entry_infos.get(CONF_AUTO_TPI_MODE, False):
             raise ServiceValidationError(f"{t} - Auto TPI is not enabled in configuration.")
 
         write_event_log(_LOGGER, t, f"Calling SERVICE_AUTO_TPI_CALIBRATE_CAPACITY, save_to_config: {save_to_config}, start_date: {start_date}, end_date: {end_date}, min_power_threshold: {min_power_threshold}")
@@ -479,7 +475,7 @@ class TPIHandler:
 
         result = await self._auto_tpi_manager.service_calibrate_capacity(
             thermostat_entity_id=t.entity_id,
-            ext_temp_entity_id=t._ext_temp_sensor_entity_id,
+            ext_temp_entity_id=t.ext_temp_sensor_entity_id,
             save_to_config=save_to_config,
             start_date=start_date,
             end_date=end_date,
@@ -517,7 +513,7 @@ class TPIHandler:
             return
 
         # Safety check: Prevent enabling learning if the feature is disabled in config
-        if auto_tpi_mode and not t._entry_infos.get(CONF_AUTO_TPI_MODE, False):
+        if auto_tpi_mode and not t.entry_infos.get(CONF_AUTO_TPI_MODE, False):
             _LOGGER.warning("%s - Cannot start Auto TPI Learning: feature is disabled in configuration", t)
             await self._auto_tpi_manager.stop_learning()
             return
@@ -533,23 +529,24 @@ class TPIHandler:
             )
 
             # Sync PropAlgorithm with the configured coefficients
-            if t._prop_algorithm:
-                t._prop_algorithm.update_parameters(tpi_coef_int=t._tpi_coef_int, tpi_coef_ext=t._tpi_coef_ext)
+            if t.prop_algorithm:
+                t.prop_algorithm.update_parameters(tpi_coef_int=t.tpi_coef_int, tpi_coef_ext=t.tpi_coef_ext)
                 _LOGGER.info("%s - PropAlgorithm synced with config: Kint=%.3f, Kext=%.3f",
-                             t, t._tpi_coef_int, t._tpi_coef_ext)
+                             t, t.tpi_coef_int, t.tpi_coef_ext)
 
             # If we enable auto_tpi, we must disable central config for TPI
+            # Note: _entry_infos is a dict, we can update it directly
             if t._entry_infos:
                 t._entry_infos[CONF_USE_TPI_CENTRAL_CONFIG] = False
 
             # Persist the change to the config entry
-            entry = t.hass.config_entries.async_get_entry(t._unique_id)
+            entry = t.hass.config_entries.async_get_entry(t.unique_id)
             if entry and entry.data.get(CONF_USE_TPI_CENTRAL_CONFIG, True):
                 new_data = entry.data.copy()
                 new_data[CONF_USE_TPI_CENTRAL_CONFIG] = False
                 t.hass.config_entries.async_update_entry(entry, data=new_data)
 
-            if t._is_removed:
+            if t.is_removed:
                 _LOGGER.debug("%s - Entity is removed, stop async_set_auto_tpi_mode", t)
                 return
 
@@ -559,11 +556,11 @@ class TPIHandler:
             await self._auto_tpi_manager.stop_learning()
 
             # Apply configured coefficients to PropAlgorithm
-            if t._prop_algorithm:
-                t._prop_algorithm.update_parameters(tpi_coef_int=t._tpi_coef_int, tpi_coef_ext=t._tpi_coef_ext)
+            if t.prop_algorithm:
+                t.prop_algorithm.update_parameters(tpi_coef_int=t.tpi_coef_int, tpi_coef_ext=t.tpi_coef_ext)
                 _LOGGER.info(
                     "%s - PropAlgorithm reset to config values: Kint=%.3f, Kext=%.3f",
-                    t, t._tpi_coef_int, t._tpi_coef_ext
+                    t, t.tpi_coef_int, t.tpi_coef_ext
                 )
 
         # Fire event to notify listeners
