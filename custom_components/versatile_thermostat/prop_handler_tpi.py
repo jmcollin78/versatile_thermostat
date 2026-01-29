@@ -14,6 +14,7 @@ from .vtherm_hvac_mode import VThermHvacMode_OFF, VThermHvacMode_HEAT, VThermHva
 from .vtherm_api import VersatileThermostatAPI
 from .commons import write_event_log
 from .const import EventType
+from .timing_utils import calculate_cycle_times
 
 if TYPE_CHECKING:
     from .thermostat_prop import ThermostatProp
@@ -130,9 +131,6 @@ class TPIHandler:
         t.prop_algorithm = TpiAlgorithm(
             t.tpi_coef_int,
             t.tpi_coef_ext,
-            t.cycle_min,
-            t.minimal_activation_delay,
-            t.minimal_deactivation_delay,
             t.name,
             max_on_percent=t.max_on_percent,
             tpi_threshold_low=t.tpi_threshold_low,
@@ -261,9 +259,21 @@ class TPIHandler:
         # Force recalculation with potentially updated coefficients
         t.recalculate()
 
+        # Calculate time (in seconds)
+        if t.prop_algorithm:
+            on_time_sec, off_time_sec = calculate_cycle_times(
+                t.prop_algorithm.on_percent,
+                t.cycle_min,
+                t.minimal_activation_delay,
+                t.minimal_deactivation_delay,
+            )
+        else:
+            on_time_sec = 0
+            off_time_sec = 0
+
         return {
-            "on_time_sec": t.prop_algorithm.on_time_sec if t.prop_algorithm else 0,
-            "off_time_sec": t.prop_algorithm.off_time_sec if t.prop_algorithm else 0,
+            "on_time_sec": on_time_sec,
+            "off_time_sec": off_time_sec,
             "on_percent": t.safe_on_percent,
             "hvac_mode": str(t.vtherm_hvac_mode),
         }
@@ -316,12 +326,24 @@ class TPIHandler:
             if t.is_device_active:
                 await t.async_underlying_entity_turn_off()
         else:
+            on_time_sec = 0
+            off_time_sec = 0
+            on_percent = 0
+            if t.prop_algorithm:
+                on_percent = t.prop_algorithm.on_percent
+                on_time_sec, off_time_sec = calculate_cycle_times(
+                    on_percent,
+                    t.cycle_min,
+                    t.minimal_activation_delay,
+                    t.minimal_deactivation_delay,
+                )
+
             for under in t.underlyings:
                 await under.start_cycle(
                     t.vtherm_hvac_mode,
-                    t.prop_algorithm.on_time_sec if t.prop_algorithm else None,
-                    t.prop_algorithm.off_time_sec if t.prop_algorithm else None,
-                    t.prop_algorithm.on_percent if t.prop_algorithm else None,
+                    on_time_sec,
+                    off_time_sec,
+                    on_percent,
                     force,
                 )
 
@@ -346,6 +368,8 @@ class TPIHandler:
             "minimal_activation_delay_sec": t.minimal_activation_delay,
             "minimal_deactivation_delay_sec": t.minimal_deactivation_delay,
         })
+
+
 
     async def _async_update_tpi_config_entry(self):
         """Update the config entry with current TPI parameters."""
@@ -399,20 +423,25 @@ class TPIHandler:
         if entry.data.get(CONF_USE_TPI_CENTRAL_CONFIG, False):
             raise ServiceValidationError(f"{t} - Impossible to set TPI parameters when using central TPI configuration.")
 
+        # Update the algorithm with coefficients and thresholds
         t.prop_algorithm.update_parameters(
             tpi_coef_int,
             tpi_coef_ext,
-            minimal_activation_delay,
-            minimal_deactivation_delay,
             tpi_threshold_low,
             tpi_threshold_high,
         )
+
+        # Update thermostat attributes directly (handler updates them via setters)
         t.tpi_coef_int = t.prop_algorithm.tpi_coef_int
         t.tpi_coef_ext = t.prop_algorithm.tpi_coef_ext
-        t.minimal_activation_delay = t.prop_algorithm.minimal_activation_delay
-        t.minimal_deactivation_delay = t.prop_algorithm.minimal_deactivation_delay
         t.tpi_threshold_low = t.prop_algorithm.tpi_threshold_low
         t.tpi_threshold_high = t.prop_algorithm.tpi_threshold_high
+
+        # Update delays directly on thermostat (not in algo anymore)
+        if minimal_activation_delay is not None:
+            t.minimal_activation_delay = minimal_activation_delay
+        if minimal_deactivation_delay is not None:
+            t.minimal_deactivation_delay = minimal_deactivation_delay
 
         await self._async_update_tpi_config_entry()
 
