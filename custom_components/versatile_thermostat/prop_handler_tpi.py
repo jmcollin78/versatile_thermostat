@@ -261,7 +261,9 @@ class TPIHandler:
 
         # Calculate time (in seconds)
         if t.prop_algorithm:
-            on_time_sec, off_time_sec = calculate_cycle_times(
+            # temporary ignore the forced_by_timing prop
+            # todo: implement handle of forced_by_timing to auto_tpi loop
+            on_time_sec, off_time_sec, _ = calculate_cycle_times(
                 t.prop_algorithm.on_percent,
                 t.cycle_min,
                 t.minimal_activation_delay,
@@ -331,7 +333,7 @@ class TPIHandler:
             on_percent = 0
             if t.prop_algorithm:
                 on_percent = t.prop_algorithm.on_percent
-                on_time_sec, off_time_sec = calculate_cycle_times(
+                on_time_sec, off_time_sec, _ = calculate_cycle_times(
                     on_percent,
                     t.cycle_min,
                     t.minimal_activation_delay,
