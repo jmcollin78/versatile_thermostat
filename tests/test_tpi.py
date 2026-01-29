@@ -59,7 +59,7 @@ async def test_tpi_calculation(
     tpi_algo.calculate(15, 10, 7, 0, VThermHvacMode_HEAT)
     assert tpi_algo.on_percent == 1
     assert tpi_algo.calculated_on_percent == 1
-    on_sec, off_sec = calculate_cycle_times(tpi_algo.on_percent, entity.cycle_min, entity.minimal_activation_delay, entity.minimal_deactivation_delay)
+    on_sec, off_sec, _ = calculate_cycle_times(tpi_algo.on_percent, entity.cycle_min, entity.minimal_activation_delay, entity.minimal_deactivation_delay)
     assert on_sec == 300
     assert off_sec == 0
     assert entity.power_manager.mean_cycle_power is None  # no device power configured
@@ -67,7 +67,7 @@ async def test_tpi_calculation(
     tpi_algo.calculate(15, 14, 5, 0, VThermHvacMode_HEAT)
     assert tpi_algo.on_percent == 0.4
     assert tpi_algo.calculated_on_percent == 0.4
-    on_sec, off_sec = calculate_cycle_times(tpi_algo.on_percent, entity.cycle_min, entity.minimal_activation_delay, entity.minimal_deactivation_delay)
+    on_sec, off_sec, _ = calculate_cycle_times(tpi_algo.on_percent, entity.cycle_min, entity.minimal_activation_delay, entity.minimal_deactivation_delay)
     assert on_sec == 120
     assert off_sec == 180
 
@@ -75,7 +75,7 @@ async def test_tpi_calculation(
     tpi_algo.calculate(15, 14, 5, 0, VThermHvacMode_HEAT)
     assert tpi_algo.on_percent == 0.1
     assert tpi_algo.calculated_on_percent == 0.4
-    on_sec, off_sec = calculate_cycle_times(tpi_algo.on_percent, entity.cycle_min, entity.minimal_activation_delay, entity.minimal_deactivation_delay)
+    on_sec, off_sec, _ = calculate_cycle_times(tpi_algo.on_percent, entity.cycle_min, entity.minimal_activation_delay, entity.minimal_deactivation_delay)
     assert on_sec == 30  # >= minimal_activation_delay (=30)
     assert off_sec == 270
 
@@ -83,7 +83,7 @@ async def test_tpi_calculation(
     tpi_algo.calculate(15, 14, 5, 0, VThermHvacMode_HEAT)
     assert tpi_algo.on_percent == 0.4
     assert tpi_algo.calculated_on_percent == 0.4
-    on_sec, off_sec = calculate_cycle_times(tpi_algo.on_percent, entity.cycle_min, entity.minimal_activation_delay, entity.minimal_deactivation_delay)
+    on_sec, off_sec, _ = calculate_cycle_times(tpi_algo.on_percent, entity.cycle_min, entity.minimal_activation_delay, entity.minimal_deactivation_delay)
     assert on_sec == 120
     assert off_sec == 180
 
@@ -91,7 +91,7 @@ async def test_tpi_calculation(
     tpi_algo.calculate(15, 14.7, 15, 0, VThermHvacMode_HEAT)
     assert tpi_algo.on_percent == 0.09
     assert tpi_algo.calculated_on_percent == 0.09
-    on_sec, off_sec = calculate_cycle_times(tpi_algo.on_percent, entity.cycle_min, entity.minimal_activation_delay, entity.minimal_deactivation_delay)
+    on_sec, off_sec, _ = calculate_cycle_times(tpi_algo.on_percent, entity.cycle_min, entity.minimal_activation_delay, entity.minimal_deactivation_delay)
     assert on_sec == 0
     assert off_sec == 300
 
@@ -99,7 +99,7 @@ async def test_tpi_calculation(
     tpi_algo.calculate(15, 14.7, 15, 0, VThermHvacMode_HEAT)
     assert tpi_algo.on_percent == 0.09
     assert tpi_algo.calculated_on_percent == 0.09
-    on_sec, off_sec = calculate_cycle_times(tpi_algo.on_percent, entity.cycle_min, entity.minimal_activation_delay, entity.minimal_deactivation_delay)
+    on_sec, off_sec, _ = calculate_cycle_times(tpi_algo.on_percent, entity.cycle_min, entity.minimal_activation_delay, entity.minimal_deactivation_delay)
     assert on_sec == 0
     assert off_sec == 300
 
@@ -107,7 +107,7 @@ async def test_tpi_calculation(
     tpi_algo.calculate(25, 30, 35, 0, VThermHvacMode_COOL)
     assert tpi_algo.on_percent == 1
     assert tpi_algo.calculated_on_percent == 1
-    on_sec, off_sec = calculate_cycle_times(tpi_algo.on_percent, entity.cycle_min, entity.minimal_activation_delay, entity.minimal_deactivation_delay)
+    on_sec, off_sec, _ = calculate_cycle_times(tpi_algo.on_percent, entity.cycle_min, entity.minimal_activation_delay, entity.minimal_deactivation_delay)
     assert on_sec == 300
     assert off_sec == 0
     assert entity.power_manager.mean_cycle_power is None  # no device power configured
@@ -116,7 +116,7 @@ async def test_tpi_calculation(
     tpi_algo.calculate(25, 30, 35, 0, VThermHvacMode_COOL)
     assert tpi_algo.on_percent == 0.09
     assert tpi_algo.calculated_on_percent == 1
-    on_sec, off_sec = calculate_cycle_times(tpi_algo.on_percent, entity.cycle_min, entity.minimal_activation_delay, entity.minimal_deactivation_delay)
+    on_sec, off_sec, _ = calculate_cycle_times(tpi_algo.on_percent, entity.cycle_min, entity.minimal_activation_delay, entity.minimal_deactivation_delay)
     assert on_sec == 0
     assert off_sec == 300
     assert entity.power_manager.mean_cycle_power is None  # no device power configured
@@ -126,7 +126,7 @@ async def test_tpi_calculation(
     tpi_algo.calculate(15, 10, 7, 0, VThermHvacMode_OFF)
     assert tpi_algo.on_percent == 0
     assert tpi_algo.calculated_on_percent == 0
-    on_sec, off_sec = calculate_cycle_times(tpi_algo.on_percent, entity.cycle_min, entity.minimal_activation_delay, entity.minimal_deactivation_delay)
+    on_sec, off_sec, _ = calculate_cycle_times(tpi_algo.on_percent, entity.cycle_min, entity.minimal_activation_delay, entity.minimal_deactivation_delay)
     assert on_sec == 0
     assert off_sec == 300
 
@@ -135,7 +135,7 @@ async def test_tpi_calculation(
     tpi_algo.calculate(15, 10, 7, 0, VThermHvacMode_SLEEP)
     assert tpi_algo.on_percent == 0
     assert tpi_algo.calculated_on_percent == 0
-    on_sec, off_sec = calculate_cycle_times(tpi_algo.on_percent, entity.cycle_min, entity.minimal_activation_delay, entity.minimal_deactivation_delay)
+    on_sec, off_sec, _ = calculate_cycle_times(tpi_algo.on_percent, entity.cycle_min, entity.minimal_activation_delay, entity.minimal_deactivation_delay)
     assert on_sec == 0
     assert off_sec == 300
 
@@ -143,7 +143,7 @@ async def test_tpi_calculation(
     tpi_algo.calculate(15, None, 7, 0, VThermHvacMode_OFF)
     assert tpi_algo.on_percent == 0
     assert tpi_algo.calculated_on_percent == 0
-    on_sec, off_sec = calculate_cycle_times(tpi_algo.on_percent, entity.cycle_min, entity.minimal_activation_delay, entity.minimal_deactivation_delay)
+    on_sec, off_sec, _ = calculate_cycle_times(tpi_algo.on_percent, entity.cycle_min, entity.minimal_activation_delay, entity.minimal_deactivation_delay)
     assert on_sec == 0
     assert off_sec == 300
 
@@ -154,7 +154,7 @@ async def test_tpi_calculation(
     tpi_algo.calculate(15, 14.7, 15, 0, VThermHvacMode_HEAT)
     assert tpi_algo.on_percent == 0.09
     assert tpi_algo.calculated_on_percent == 0.09
-    on_sec, off_sec = calculate_cycle_times(tpi_algo.on_percent, entity.cycle_min, entity.minimal_activation_delay, entity.minimal_deactivation_delay)
+    on_sec, off_sec, _ = calculate_cycle_times(tpi_algo.on_percent, entity.cycle_min, entity.minimal_activation_delay, entity.minimal_deactivation_delay)
     assert on_sec == 0
     assert off_sec == 300
 
@@ -162,7 +162,7 @@ async def test_tpi_calculation(
     tpi_algo.calculate(15, 12.5, 11, 0, VThermHvacMode_HEAT)
     assert tpi_algo.on_percent == 0.79
     assert tpi_algo.calculated_on_percent == 0.79
-    on_sec, off_sec = calculate_cycle_times(tpi_algo.on_percent, entity.cycle_min, entity.minimal_activation_delay, entity.minimal_deactivation_delay)
+    on_sec, off_sec, _ = calculate_cycle_times(tpi_algo.on_percent, entity.cycle_min, entity.minimal_activation_delay, entity.minimal_deactivation_delay)
     assert on_sec == 237
     assert off_sec == 63
 
@@ -170,7 +170,7 @@ async def test_tpi_calculation(
     tpi_algo.calculate(15, 10, 7, 0, VThermHvacMode_HEAT)
     assert tpi_algo.on_percent == 0.8 # should be clamped to 80%
     assert tpi_algo.calculated_on_percent == 1 # calculated percentage should not be affected by clamping
-    on_sec, off_sec = calculate_cycle_times(tpi_algo.on_percent, entity.cycle_min, entity.minimal_activation_delay, entity.minimal_deactivation_delay)
+    on_sec, off_sec, _ = calculate_cycle_times(tpi_algo.on_percent, entity.cycle_min, entity.minimal_activation_delay, entity.minimal_deactivation_delay)
     assert on_sec == 240 # capped at 80%
     assert off_sec == 60
 
@@ -178,7 +178,7 @@ async def test_tpi_calculation(
     tpi_algo.calculate(15, 12.5, 9, 0, VThermHvacMode_HEAT)
     assert tpi_algo.on_percent == 0.80 # should be clamped to 80%
     assert tpi_algo.calculated_on_percent == 0.81 # calculated percentage should not be affected by clamping
-    on_sec, off_sec = calculate_cycle_times(tpi_algo.on_percent, entity.cycle_min, entity.minimal_activation_delay, entity.minimal_deactivation_delay)
+    on_sec, off_sec, _ = calculate_cycle_times(tpi_algo.on_percent, entity.cycle_min, entity.minimal_activation_delay, entity.minimal_deactivation_delay)
     assert on_sec == 240 # capped at 80%
     assert off_sec == 60
 
@@ -230,7 +230,7 @@ async def test_minimal_deactivation_delay(
     tpi_algo.calculate(9, 6, 10, 0, VThermHvacMode_HEAT)
     assert tpi_algo.on_percent == 0.89
     assert tpi_algo.calculated_on_percent == 0.89
-    on_sec, off_sec = calculate_cycle_times(tpi_algo.on_percent, entity.cycle_min, entity.minimal_activation_delay, entity.minimal_deactivation_delay)
+    on_sec, off_sec, _ = calculate_cycle_times(tpi_algo.on_percent, entity.cycle_min, entity.minimal_activation_delay, entity.minimal_deactivation_delay)
     assert on_sec == 300
     assert off_sec == 0
 
@@ -238,7 +238,7 @@ async def test_minimal_deactivation_delay(
     tpi_algo.calculate(6, 0, 104, 0, VThermHvacMode_HEAT)
     assert tpi_algo.on_percent == 0.82
     assert tpi_algo.calculated_on_percent == 0.82
-    on_sec, off_sec = calculate_cycle_times(tpi_algo.on_percent, entity.cycle_min, entity.minimal_activation_delay, entity.minimal_deactivation_delay)
+    on_sec, off_sec, _ = calculate_cycle_times(tpi_algo.on_percent, entity.cycle_min, entity.minimal_activation_delay, entity.minimal_deactivation_delay)
     assert on_sec == 300
     assert off_sec == 0
 
@@ -246,7 +246,7 @@ async def test_minimal_deactivation_delay(
     tpi_algo.calculate(10, 8, -10, 0, VThermHvacMode_HEAT)
     assert tpi_algo.on_percent == 0.8
     assert tpi_algo.calculated_on_percent == 0.8
-    on_sec, off_sec = calculate_cycle_times(tpi_algo.on_percent, entity.cycle_min, entity.minimal_activation_delay, entity.minimal_deactivation_delay)
+    on_sec, off_sec, _ = calculate_cycle_times(tpi_algo.on_percent, entity.cycle_min, entity.minimal_activation_delay, entity.minimal_deactivation_delay)
     assert on_sec == 240
     assert off_sec == 60  # Equal to minimal_deactivation_delay
 
@@ -254,7 +254,7 @@ async def test_minimal_deactivation_delay(
     tpi_algo.calculate(10, 9, 0, 0, VThermHvacMode_HEAT)
     assert tpi_algo.on_percent == 0.4
     assert tpi_algo.calculated_on_percent == 0.4
-    on_sec, off_sec = calculate_cycle_times(tpi_algo.on_percent, entity.cycle_min, entity.minimal_activation_delay, entity.minimal_deactivation_delay)
+    on_sec, off_sec, _ = calculate_cycle_times(tpi_algo.on_percent, entity.cycle_min, entity.minimal_activation_delay, entity.minimal_deactivation_delay)
     assert on_sec == 120
     assert off_sec == 180
 
@@ -263,7 +263,7 @@ async def test_minimal_deactivation_delay(
     tpi_algo.calculate(10, 8, -10, 0, VThermHvacMode_HEAT)
     assert tpi_algo.on_percent == 0.2
     assert tpi_algo.calculated_on_percent == 0.8
-    on_sec, off_sec = calculate_cycle_times(tpi_algo.on_percent, entity.cycle_min, entity.minimal_activation_delay, entity.minimal_deactivation_delay)
+    on_sec, off_sec, _ = calculate_cycle_times(tpi_algo.on_percent, entity.cycle_min, entity.minimal_activation_delay, entity.minimal_deactivation_delay)
     assert on_sec == 60
     assert off_sec == 240
     tpi_algo.unset_safety()
@@ -272,7 +272,7 @@ async def test_minimal_deactivation_delay(
     tpi_algo.calculate(10, 10, 90, 0, VThermHvacMode_COOL)
     assert tpi_algo.on_percent == 0.8
     assert tpi_algo.calculated_on_percent == 0.8
-    on_sec, off_sec = calculate_cycle_times(tpi_algo.on_percent, entity.cycle_min, entity.minimal_activation_delay, entity.minimal_deactivation_delay)
+    on_sec, off_sec, _ = calculate_cycle_times(tpi_algo.on_percent, entity.cycle_min, entity.minimal_activation_delay, entity.minimal_deactivation_delay)
     assert on_sec == 240
     assert off_sec == 60
 

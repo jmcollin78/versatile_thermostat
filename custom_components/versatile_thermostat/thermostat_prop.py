@@ -45,8 +45,18 @@ class ThermostatProp(BaseThermostat[T], Generic[T]):
         return True
 
     @property
+    def prop_algorithm(self):
+        """Get the proportional algorithm."""
+        return self._prop_algorithm
+
+    @prop_algorithm.setter
+    def prop_algorithm(self, value):
+        """Set the proportional algorithm."""
+        self._prop_algorithm = value
+
+    @property
     def proportional_algorithm(self):
-        """Get the ProportionalAlgorithm."""
+        """Get the proportional algorithm (alias)."""
         return self._prop_algorithm
 
     @property

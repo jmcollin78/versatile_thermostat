@@ -159,6 +159,15 @@ class ThermostatOverSwitch(ThermostatProp[UnderlyingSwitch]):
             "vswitch_off_commands": self._lst_vswitch_off,
         }
 
+        # Calculate on/off times for attributes (generic for any proportional algo on switch)
+        on_time_sec, off_time_sec, _ = calculate_cycle_times(
+            self.safe_on_percent,
+            self._cycle_min,
+            self._minimal_activation_delay,
+            self._minimal_deactivation_delay
+        )
+        self._on_time_sec = on_time_sec
+        self._off_time_sec = off_time_sec
         # Add TPI attributes if active
         if self._proportional_function == PROPORTIONAL_FUNCTION_TPI:
             vtherm_over_switch_attr.update({
