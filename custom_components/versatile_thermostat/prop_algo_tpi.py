@@ -61,8 +61,7 @@ class TpiAlgorithm:
         self._tpi_coef_ext = tpi_coef_ext
         self._on_percent = 0
         self._calculated_on_percent = 0
-        self._safety = False
-        self._default_on_percent = 0
+        self._total_on_percent = 0
         self._max_on_percent = max_on_percent
         self._tpi_threshold_low = tpi_threshold_low
         self._tpi_threshold_high = tpi_threshold_high
@@ -117,6 +116,14 @@ class TpiAlgorithm:
             else:
                 if hvac_mode not in [VThermHvacMode_OFF, VThermHvacMode_SLEEP]:
                     self._calculated_on_percent = self._tpi_coef_int * delta_temp + self._tpi_coef_ext * delta_ext_temp
+                    # calculated on_time duration in seconds
+                    if self._calculated_on_percent > 1:
+                        self._calculated_on_percent = 1
+                    if self._calculated_on_percent < 0:
+                        self._calculated_on_percent = 0
+                    
+                    if self._max_on_percent is not None and self._calculated_on_percent > self._max_on_percent:
+                        self._calculated_on_percent = self._max_on_percent
                 else:
                     _LOGGER.debug(
                         "%s - Proportional algorithm: VTherm is off. Heating will be disabled",
@@ -124,7 +131,7 @@ class TpiAlgorithm:
                     )
                     self._calculated_on_percent = 0
 
-        self._calculate_internal()
+
 
         _LOGGER.debug(
             "%s - heating percent calculated for current_temp %.1f, ext_current_temp %.1f and target_temp %.1f is %.2f",  # pylint: disable=line-too-long
@@ -135,50 +142,6 @@ class TpiAlgorithm:
             self._calculated_on_percent,
         )
 
-    def _calculate_internal(self):
-        """Finish the calculation to get the on_percent"""
-
-        # calculated on_time duration in seconds
-        if self._calculated_on_percent > 1:
-            self._calculated_on_percent = 1
-        if self._calculated_on_percent < 0:
-            self._calculated_on_percent = 0
-
-        if self._safety:
-            self._on_percent = self._default_on_percent
-            _LOGGER.info(
-                "%s - Security is On using the default_on_percent %f",
-                self._vtherm_entity_id,
-                self._on_percent,
-            )
-        else:
-            _LOGGER.debug(
-                "Safety is Off using the calculated_on_percent %f",
-                self._calculated_on_percent,
-            )
-            self._on_percent = self._calculated_on_percent
-
-        if self._max_on_percent is not None and self._on_percent > self._max_on_percent:
-            _LOGGER.debug(
-                "%s - Heating period clamped to %s (instead of %s) due to max_on_percent setting.",
-                self._vtherm_entity_id,
-                self._max_on_percent,
-                self._on_percent,
-            )
-            self._on_percent = self._max_on_percent
-
-    def set_safety(self, default_on_percent: float):
-        """Set a default value for on_percent (used for safety mode)"""
-        _LOGGER.info("%s - Proportional Algo - set safety to ON", self._vtherm_entity_id)
-        self._safety = True
-        self._default_on_percent = default_on_percent
-        self._calculate_internal()
-
-    def unset_safety(self):
-        """Unset the safety mode"""
-        _LOGGER.info("%s - Proportional Algo - set safety to OFF", self._vtherm_entity_id)
-        self._safety = False
-        self._calculate_internal()
 
     def update_parameters(
         self,
@@ -207,12 +170,28 @@ class TpiAlgorithm:
             self._tpi_threshold_high,
         )
 
+    def update_realized_power(self, power_percent: float):
+        """Update the realized power_percent.
+        This method is called by the VTherm when the power is modified by safety or other features
+        which clamps the value or force it to 0 or 1.
+        """
+        self._total_on_percent = power_percent
+        if self._total_on_percent != self._calculated_on_percent:
+            _LOGGER.debug(
+                "%s - Realized power is different from calculated power. Calculated: %.2f, Realized: %.2f",
+                self._vtherm_entity_id,
+                self._calculated_on_percent,
+                self._total_on_percent,
+            )
+
     @property
     def on_percent(self) -> float:
-        """Returns the percentage the heater must be ON
-        In safety mode this value is overriden with the _default_on_percent
-        (1 means the heater will be always on, 0 never on)"""  # pylint: disable=line-too-long
-        return round(self._on_percent, 2)
+        """Returns the percentage the heater must be ON.
+        Note: This returns the calculated value clamped to [0,1]
+        It DOES NOT reflect safety overrides matching the behavior of calculated_on_percent previously.
+        Use calculated_on_percent for consistency or check ThermostatProp.on_percent for effective value.
+        """
+        return round(self._calculated_on_percent, 2)
 
     @property
     def calculated_on_percent(self) -> float:
