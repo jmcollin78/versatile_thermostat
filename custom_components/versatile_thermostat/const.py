@@ -523,10 +523,13 @@ class RegulationParamSlow:
         1.0 / 25.0
     )  # this will add 1°C to the offset when it's 25°C colder outdoor than indoor
     offset_max: float = 2.0  # limit to a final offset of -2°C to +2°C
+    stabilization_threshold: float = (
+        0.0  # this needs to be disabled as otherwise the long term accumulated error will always be reset when the temp briefly crosses from/to below/above the target
+    )
     accumulated_error_threshold: float = (
         2.0 * 288
     )  # this allows up to 2°C long term offset in both directions
-    overheat_protection: bool = True
+
 
 class RegulationParamLight:
     """Light parameters for regulation"""
@@ -535,8 +538,8 @@ class RegulationParamLight:
     ki: float = 0.05
     k_ext: float = 0.05
     offset_max: float = 1.5
+    stabilization_threshold: float = 0.1
     accumulated_error_threshold: float = 10
-    overheat_protection: bool = True
 
 
 class RegulationParamMedium:
@@ -546,8 +549,8 @@ class RegulationParamMedium:
     ki: float = 0.05
     k_ext: float = 0.1
     offset_max: float = 2
+    stabilization_threshold: float = 0.1
     accumulated_error_threshold: float = 20
-    overheat_protection: bool = True
 
 
 class RegulationParamStrong:
@@ -561,8 +564,8 @@ class RegulationParamStrong:
     ki: float = 0.08
     k_ext: float = 0.0
     offset_max: float = 5
+    stabilization_threshold: float = 0.1
     accumulated_error_threshold: float = 50
-    overheat_protection: bool = True
 
 
 # Not used now
@@ -573,8 +576,8 @@ class RegulationParamVeryStrong:
     ki: float = 0.1
     k_ext: float = 0.2
     offset_max: float = 8
+    stabilization_threshold: float = 0.1
     accumulated_error_threshold: float = 80
-    overheat_protection: bool = True
 
 
 class EventType(Enum):

@@ -39,6 +39,7 @@ versatile_thermostat:
         ki: 0.08
         k_ext: 0.0
         offset_max: 5
+        stabilization_threshold: 0.1
         accumulated_error_threshold: 50
     short_ema_params:
         max_alpha: 0.6
@@ -380,6 +381,7 @@ template:
             default_entity_id: switch.fake_inversed_switch
             name: A fake inversed switch
             state: "{{ is_state('input_boolean.fake_inversed_heater', 'on') }}"
+
 
 frontend:
     extra_module_url:

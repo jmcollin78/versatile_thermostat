@@ -125,8 +125,8 @@ The adjustable parameters are as follows:
 2. `ki`: the factor applied to the accumulated errors,
 3. `k_ext`: the factor applied to the difference between the indoor temperature and the outdoor temperature,
 4. `offset_max`: the maximum correction (offset) that the regulation can apply,
-5. `accumulated_error_threshold`: the maximum for error accumulation.
-6. `overheat_protection`: if enabled, the accumulated error will be divided by 2 in case of sign inversion.
+5. `stabilization_threshold`: a stabilization threshold, which when reached by the error resets the accumulated errors to 0,
+6. `accumulated_error_threshold`: the maximum for error accumulation.
 
 For tuning, the following observations should be considered:
 1. `kp * error` will give the offset related to the gross error. This offset is directly proportional to the error and will be 0 when the target is reached.
@@ -142,8 +142,8 @@ The pre-programmed values are as follows:
     ki: 0.8 / 288.0  # 80% of the current internal regulation offset are caused by the average offset of the past 24 hours
     k_ext: 1.0 / 25.0  # this will add 1°C to the offset when it's 25°C colder outdoor than indoor
     offset_max: 2.0  # limit to a final offset of -2°C to +2°C
+    stabilization_threshold: 0.0  # this needs to be disabled as otherwise the long term accumulated error will always be reset when the temp briefly crosses from/to below/above the target
     accumulated_error_threshold: 2.0 * 288  # this allows up to 2°C long term offset in both directions
-    overheat_protection: true
 
 **Light regulation**:
 
@@ -151,8 +151,8 @@ The pre-programmed values are as follows:
     ki: 0.05
     k_ext: 0.05
     offset_max: 1.5
+    stabilization_threshold: 0.1
     accumulated_error_threshold: 10
-    overheat_protection: true
 
 **Medium regulation**:
 
@@ -160,8 +160,8 @@ The pre-programmed values are as follows:
     ki: 0.05
     k_ext: 0.1
     offset_max: 2
+    stabilization_threshold: 0.1
     accumulated_error_threshold: 20
-    overheat_protection: true
 
 **Strong regulation**:
 
@@ -175,8 +175,8 @@ The pre-programmed values are as follows:
     ki: 0.08
     k_ext: 0.0
     offset_max: 5
+    stabilization_threshold: 0.1
     accumulated_error_threshold: 50
-    overheat_protection: true
 
 To use Expert mode, you must declare the values you wish to use for each of these parameters in your `configuration.yaml` as follows. Example for 'Extreme regulation':
 
@@ -187,8 +187,8 @@ versatile_thermostat:
         ki: 0.1
         k_ext: 0.0
         offset_max: 10
+        stabilization_threshold: 0.1
         accumulated_error_threshold: 80
-        overheat_protection: true
 ```
 and of course, configure the auto-regulation mode of the VTherm to Expert mode. All _VTherms_ in **Expert** mode will use the same parameters, it is not possible to have different expert settings.
 

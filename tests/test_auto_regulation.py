@@ -117,7 +117,7 @@ async def test_over_climate_regulation(
 
             # the regulated temperature should be under
             assert entity.regulated_target_temp < entity.target_temperature
-            assert entity.regulated_target_temp == 18 - 2.0
+            assert entity.regulated_target_temp == 18 - 2.5
 
 
 @pytest.mark.parametrize("expected_lingering_tasks", [True])
@@ -229,7 +229,9 @@ async def test_over_climate_regulation_ac_mode(
 
             # the regulated temperature should be greater
             assert entity.regulated_target_temp > entity.target_temperature
-            assert entity.regulated_target_temp == 25 + 4  # +0.4 without round_to_nearest
+            assert (
+                entity.regulated_target_temp == 25 + 3
+            )  # +0.4 without round_to_nearest
 
 
 @pytest.mark.parametrize("expected_lingering_tasks", [True])
@@ -592,7 +594,7 @@ async def test_over_climate_regulation_dtemp_null(
 
             # the regulated temperature should be greater
             assert entity.regulated_target_temp > entity.target_temperature
-            assert entity.regulated_target_temp == 20 + 1.0
+            assert entity.regulated_target_temp == 20 + 0.9
 
             # change temperature so that the regulated temperature should slow down
         event_timestamp = now - timedelta(minutes=13)
@@ -605,7 +607,7 @@ async def test_over_climate_regulation_dtemp_null(
 
             # the regulated temperature should be greater
             assert entity.regulated_target_temp > entity.target_temperature
-            assert entity.regulated_target_temp == 20 + 0.6
+            assert entity.regulated_target_temp == 20 + 0.5
 
         old_regulated_temp = entity.regulated_target_temp
         # Test if a small temperature change is taken into account : change temperature so that dtemp < 0.5 and time is > period_min (+ 3min)
