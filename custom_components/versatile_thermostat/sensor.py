@@ -458,8 +458,8 @@ class OnTimeSensor(VersatileThermostatBaseEntity, SensorEntity):
         # _LOGGER.debug("%s - climate state change", self._attr_unique_id)
 
         on_time = (
-            float(self.my_climate.proportional_algorithm.on_time_sec)
-            if self.my_climate and self.my_climate.has_prop
+            float(self.my_climate.on_time_sec)
+            if self.my_climate and hasattr(self.my_climate, "on_time_sec")
             else None
         )
 
@@ -507,8 +507,8 @@ class OffTimeSensor(VersatileThermostatBaseEntity, SensorEntity):
         # _LOGGER.debug("%s - climate state change", self._attr_unique_id)
 
         off_time = (
-            float(self.my_climate.proportional_algorithm.off_time_sec)
-            if self.my_climate and self.my_climate.has_prop
+            float(self.my_climate.off_time_sec)
+            if self.my_climate and hasattr(self.my_climate, "off_time_sec")
             else None
         )
         if off_time is None:

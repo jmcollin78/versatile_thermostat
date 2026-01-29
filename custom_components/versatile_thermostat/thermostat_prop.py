@@ -30,6 +30,8 @@ class ThermostatProp(BaseThermostat[T], Generic[T]):
         """Initialize the proportional thermostat."""
         # Handler for algorithm-specific logic (TPI or SmartPI)
         self._algo_handler = None
+        self._on_time_sec: float | None = 0
+        self._off_time_sec: float | None = 0
 
         super().__init__(hass, unique_id, name, entry_infos)
 
@@ -57,7 +59,20 @@ class ThermostatProp(BaseThermostat[T], Generic[T]):
     @property
     def auto_tpi_manager(self):
         """Return the Auto TPI manager from handler."""
+    @property
+    def auto_tpi_manager(self):
+        """Return the Auto TPI manager from handler."""
         return self._algo_handler.auto_tpi_manager if self._algo_handler else None
+
+    @property
+    def on_time_sec(self) -> float | None:
+        """Return the on time in seconds"""
+        return self._on_time_sec
+
+    @property
+    def off_time_sec(self) -> float | None:
+        """Return the off time in seconds"""
+        return self._off_time_sec
 
     # =========================================================================
     # LIFECYCLE METHODS - Delegate to handler

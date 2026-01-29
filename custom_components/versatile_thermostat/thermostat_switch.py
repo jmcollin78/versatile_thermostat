@@ -18,10 +18,12 @@ from .const import (
     CONF_INVERSE_SWITCH,
     CONF_VSWITCH_ON_CMD_LIST,
     CONF_VSWITCH_OFF_CMD_LIST,
+    PROPORTIONAL_FUNCTION_TPI,
     overrides,
 )
 
 from .commons import write_event_log
+from .timing_utils import calculate_cycle_times
 
 from .base_thermostat import BaseThermostat, ConfigData
 from .thermostat_prop import ThermostatProp
@@ -57,6 +59,9 @@ class ThermostatOverSwitch(ThermostatProp[UnderlyingSwitch]):
     def is_inversed(self) -> bool:
         """True if the switch is inversed (for pilot wire and diode)"""
         return self._is_inversed is True
+
+
+
 
     @overrides
     def post_init(self, config_entry: ConfigData):
@@ -123,32 +128,50 @@ class ThermostatOverSwitch(ThermostatProp[UnderlyingSwitch]):
 
         under0: UnderlyingSwitch = self._underlyings[0]
 
-        self._attr_extra_state_attributes.update(
-            {
-                "is_over_switch": self.is_over_switch,
-                "on_percent": self.safe_on_percent,
-                "power_percent": self.power_percent,
-                "vtherm_over_switch": {
-                    "is_inversed": self.is_inversed,
-                    "keep_alive_sec": under0.keep_alive_sec,
-                    "underlying_entities": [underlying.entity_id for underlying in self._underlyings],
-                    "on_percent": self.safe_on_percent,
-                    "power_percent": self.power_percent,
-                    "on_time_sec": self._prop_algorithm.on_time_sec,
-                    "off_time_sec": self._prop_algorithm.off_time_sec,
-                    "function": self._proportional_function,
-                    "tpi_coef_int": self._tpi_coef_int,
-                    "tpi_coef_ext": self._tpi_coef_ext,
-                    "tpi_threshold_low": self._tpi_threshold_low,
-                    "tpi_threshold_high": self._tpi_threshold_high,
-                    "minimal_activation_delay": self._minimal_activation_delay,
-                    "minimal_deactivation_delay": self._minimal_deactivation_delay,
-                    "calculated_on_percent": self._prop_algorithm.calculated_on_percent,
-                    "vswitch_on_commands": self._lst_vswitch_on,
-                    "vswitch_off_commands": self._lst_vswitch_off,
-                },
-            }
+        # Standard attributes
+        attributes = {
+            "is_over_switch": self.is_over_switch,
+            "on_percent": self.safe_on_percent,
+            "power_percent": self.power_percent,
+        }
+
+        # Calculate on/off times for attributes (generic for any proportional algo on switch)
+        on_time_sec, off_time_sec = calculate_cycle_times(
+            self.safe_on_percent,
+            self._cycle_min,
+            self._minimal_activation_delay,
+            self._minimal_deactivation_delay
         )
+        self._on_time_sec = on_time_sec
+        self._off_time_sec = off_time_sec
+        
+        # Underlying specific attributes
+        vtherm_over_switch_attr = {
+            "is_inversed": self.is_inversed,
+            "keep_alive_sec": under0.keep_alive_sec,
+            "underlying_entities": [underlying.entity_id for underlying in self._underlyings],
+            "on_percent": self.safe_on_percent,
+            "power_percent": self.power_percent,
+            "on_time_sec": on_time_sec,
+            "off_time_sec": off_time_sec,
+            "function": self._proportional_function,
+            "vswitch_on_commands": self._lst_vswitch_on,
+            "vswitch_off_commands": self._lst_vswitch_off,
+        }
+
+        # Add TPI attributes if active
+        if self._proportional_function == PROPORTIONAL_FUNCTION_TPI:
+            vtherm_over_switch_attr.update({
+                "tpi_coef_int": self._tpi_coef_int,
+                "tpi_coef_ext": self._tpi_coef_ext,
+                "tpi_threshold_low": self._tpi_threshold_low,
+                "tpi_threshold_high": self._tpi_threshold_high,
+                "minimal_activation_delay": self._minimal_activation_delay,
+                "minimal_deactivation_delay": self._minimal_deactivation_delay,
+            })
+            
+        attributes["vtherm_over_switch"] = vtherm_over_switch_attr
+        self._attr_extra_state_attributes.update(attributes)
 
         _LOGGER.debug("%s - Calling update_custom_attributes: %s", self, self._attr_extra_state_attributes)
 

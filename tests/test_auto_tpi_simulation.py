@@ -91,9 +91,6 @@ async def test_auto_tpi_convergence_simulation(mock_hass, mock_store, mock_confi
     prop_algo = TpiAlgorithm(
         tpi_coef_int=0.3, 
         tpi_coef_ext=0.01,
-        cycle_min=10,
-        minimal_activation_delay=0,
-        minimal_deactivation_delay=0,
         vtherm_entity_id="climate.sim_test"
     )
     
