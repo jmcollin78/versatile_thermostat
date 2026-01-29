@@ -263,12 +263,18 @@ class TPIHandler:
         if t.prop_algorithm:
             # temporary ignore the forced_by_timing prop
             # todo: implement handle of forced_by_timing to auto_tpi loop
-            on_time_sec, off_time_sec, _ = calculate_cycle_times(
-                t.prop_algorithm.on_percent,
+            on_time_sec, off_time_sec, forced_by_timing = calculate_cycle_times(
+                t.on_percent,
                 t.cycle_min,
                 t.minimal_activation_delay,
                 t.minimal_deactivation_delay,
             )
+
+            # if forced_by_timing, update the realized power
+            if forced_by_timing:
+                realized_percent = on_time_sec / (t.cycle_min * 60)
+                if t.prop_algorithm and hasattr(t.prop_algorithm, "update_realized_power"):
+                    t.prop_algorithm.update_realized_power(realized_percent)
         else:
             on_time_sec = 0
             off_time_sec = 0
@@ -332,13 +338,17 @@ class TPIHandler:
             off_time_sec = 0
             on_percent = 0
             if t.prop_algorithm:
-                on_percent = t.prop_algorithm.on_percent
-                on_time_sec, off_time_sec, _ = calculate_cycle_times(
+                on_percent = t.on_percent
+                on_time_sec, off_time_sec, forced_by_timing = calculate_cycle_times(
                     on_percent,
                     t.cycle_min,
                     t.minimal_activation_delay,
                     t.minimal_deactivation_delay,
                 )
+                if forced_by_timing:
+                    realized_percent = on_time_sec / (t.cycle_min * 60)
+                    if t.prop_algorithm and hasattr(t.prop_algorithm, "update_realized_power"):
+                        t.prop_algorithm.update_realized_power(realized_percent)
 
             for under in t.underlyings:
                 await under.start_cycle(
