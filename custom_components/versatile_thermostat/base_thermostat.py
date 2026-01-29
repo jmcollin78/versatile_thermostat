@@ -1041,10 +1041,138 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
         """Get the presence_state"""
         return self._presence_manager.presence_state
 
+    # =========================================================================
+    # PUBLIC PROPERTIES FOR HANDLER ACCESS
+    # These properties expose internal state to handlers without breaking encapsulation
+    # =========================================================================
+
+    @property
+    def cycle_min(self) -> int:
+        """Return the cycle duration in minutes."""
+        return self._cycle_min
+
+    @property
+    def entry_infos(self) -> ConfigData:
+        """Return the configuration entry data."""
+        return self._entry_infos
+
+    @property
+    def hass(self) -> HomeAssistant:
+        """Return the Home Assistant instance.
+        
+        This overrides the Entity.hass property to return our stored _hass
+        reference during initialization (before async_added_to_hass is called).
+        """
+        return self._hass
+
+    @hass.setter
+    def hass(self, value: HomeAssistant):
+        """Set the Home Assistant instance.
+        
+        This is called by the entity platform when adding the entity.
+        """
+        self._hass = value
+
+    @property
+    def is_removed(self) -> bool:
+        """Return True if the thermostat has been removed."""
+        return self._is_removed
+
+    @property
+    def ext_temp_sensor_entity_id(self) -> str | None:
+        """Return the external temperature sensor entity ID."""
+        return self._ext_temp_sensor_entity_id
+
+    @property
+    def max_on_percent(self) -> float | None:
+        """Return the maximum on percentage."""
+        return self._max_on_percent
+
+    @property
+    def tpi_coef_int(self) -> float | None:
+        """Return the TPI internal coefficient."""
+        return self._tpi_coef_int
+
+    @tpi_coef_int.setter
+    def tpi_coef_int(self, value: float):
+        """Set the TPI internal coefficient."""
+        self._tpi_coef_int = value
+
+    @property
+    def tpi_coef_ext(self) -> float | None:
+        """Return the TPI external coefficient."""
+        return self._tpi_coef_ext
+
+    @tpi_coef_ext.setter
+    def tpi_coef_ext(self, value: float):
+        """Set the TPI external coefficient."""
+        self._tpi_coef_ext = value
+
+    @property
+    def tpi_threshold_low(self) -> float:
+        """Return the TPI low threshold."""
+        return self._tpi_threshold_low or 0.0
+
+    @tpi_threshold_low.setter
+    def tpi_threshold_low(self, value: float):
+        """Set the TPI low threshold."""
+        self._tpi_threshold_low = value
+
+    @property
+    def tpi_threshold_high(self) -> float:
+        """Return the TPI high threshold."""
+        return self._tpi_threshold_high or 0.0
+
+    @tpi_threshold_high.setter
+    def tpi_threshold_high(self, value: float):
+        """Set the TPI high threshold."""
+        self._tpi_threshold_high = value
+
+    @property
+    def minimal_activation_delay(self) -> int:
+        """Return the minimal activation delay in seconds."""
+        return self._minimal_activation_delay or 0
+
+    @minimal_activation_delay.setter
+    def minimal_activation_delay(self, value: int):
+        """Set the minimal activation delay in seconds."""
+        self._minimal_activation_delay = value
+
+    @property
+    def minimal_deactivation_delay(self) -> int:
+        """Return the minimal deactivation delay in seconds."""
+        return self._minimal_deactivation_delay or 0
+
+    @minimal_deactivation_delay.setter
+    def minimal_deactivation_delay(self, value: int):
+        """Set the minimal deactivation delay in seconds."""
+        self._minimal_deactivation_delay = value
+
+    @property
+    def proportional_function(self) -> str | None:
+        """Return the proportional function type (TPI, SmartPI)."""
+        return self._proportional_function
+
+    @property
+    def prop_algorithm(self):
+        """Return the proportional algorithm instance."""
+        return self._prop_algorithm
+
+    @prop_algorithm.setter
+    def prop_algorithm(self, value):
+        """Set the proportional algorithm instance."""
+        self._prop_algorithm = value
+
+    @property
+    def underlyings(self) -> list:
+        """Return the list of underlying entities."""
+        return self._underlyings
+
     @property
     def proportional_algorithm(self):
         """Get the eventual ProportionalAlgorithm"""
         return None
+
 
     @property
     def last_temperature_measure(self) -> datetime | None:
