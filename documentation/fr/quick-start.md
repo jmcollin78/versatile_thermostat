@@ -18,7 +18,7 @@ Ce module permet de commander un radiateur avec un fil pilote. Il est visible so
 
 _VTherm_ va réguler la température en changeant de preset via les commandes personnalisées régulièrement jusqu'à ce que la consigne soit atteinte.
 
-Attention à la potentielle confusion, les différents modes de _VTherm_ (hors-gel, eco, confort, etc.) ne correspondent pas directement aux modes de même nom du radiateur contrôlé par fil pilote. _VTherm_ ne va en fait (avec une congfiguration classique) utiliser que 2 des modes disponibles par fil pilote, un pour « chauffer plus » (en général le mode confort), et un pour « chauffer moins » (en général le mode hors gel), avec les commandes indiquées à l'étape 4 ci-après. L'alternance de ces commandes va permettre à _VTherm_ de stabiliser la température effective à celle définie dans ses paramètres, selon le mode choisi.
+Attention à la potentielle confusion, les différents modes de _VTherm_ (hors-gel, eco, confort, etc.) ne correspondent pas directement aux modes de même nom du radiateur contrôlé par fil pilote. _VTherm_ ne va en fait (avec une configuration classique) utiliser que 2 des modes disponibles par fil pilote, un pour « chauffer plus » (en général le mode confort), et un pour « chauffer moins » (en général le mode hors gel), avec les commandes indiquées à l'étape 4 ci-après. L'alternance de ces commandes va permettre à _VTherm_ de stabiliser la température effective à celle définie dans ses paramètres, selon le mode choisi.
 
 Pour que cela fonctionne, il faut que le preset utilisé pour la commande de chauffage soit supérieur à la température maximale que vous aurez besoin (24° est une bonne valeur).
 
