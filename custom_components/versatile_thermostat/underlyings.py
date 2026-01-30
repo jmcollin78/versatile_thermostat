@@ -262,6 +262,7 @@ class UnderlyingSwitch(UnderlyingEntity):
             entity_id=switch_entity_id,
         )
         self._initial_delay_sec = initial_delay_sec
+        self._action_in_progress_count = 0
         self._async_cancel_cycle = None
         self._should_relaunch_control_heating = False
         self._on_time_sec = 0
@@ -438,20 +439,22 @@ class UnderlyingSwitch(UnderlyingEntity):
     ):
         """Starting cycle for switch"""
         _LOGGER.debug(
-            "%s - Starting new cycle hvac_mode=%s on_time_sec=%d off_time_sec=%d force=%s",
+            "%s - Starting new cycle hvac_mode=%s on_time_sec=%d off_time_sec=%d force=%s action_in_progress_count=%d",
             self,
             hvac_mode,
             on_time_sec,
             off_time_sec,
             force,
+            self._action_in_progress_count
         )
 
         self._on_time_sec = on_time_sec
         self._off_time_sec = off_time_sec
+        self._on_percent = on_percent
         self._hvac_mode = hvac_mode
 
         # Cancel eventual previous cycle if any
-        if self._async_cancel_cycle is not None:
+        if self._async_cancel_cycle is not None or self._action_in_progress_count > 0:
             if force:
                 _LOGGER.debug("%s - we force a new cycle", self)
                 self._cancel_cycle()
@@ -460,8 +463,7 @@ class UnderlyingSwitch(UnderlyingEntity):
                     "%s - A previous cycle is alredy running and no force -> waits for its end",
                     self,
                 )
-                # self._should_relaunch_control_heating = True
-                _LOGGER.debug("%s - End of cycle (2)", self)
+                self._should_relaunch_control_heating = True
                 return
 
         # If we should heat, starts the cycle with delay
@@ -480,7 +482,21 @@ class UnderlyingSwitch(UnderlyingEntity):
                 off_time_sec // 60,
                 off_time_sec % 60,
             )
-            await self.turn_off()
+            self._action_in_progress_count += 1
+            try:
+                await self.turn_off()
+            finally:
+                self._action_in_progress_count -= 1
+                if self._should_relaunch_control_heating:
+                    _LOGGER.debug("%s - Relaunching control heating", self)
+                    self._should_relaunch_control_heating = False
+                    await self.start_cycle(
+                        self._hvac_mode,
+                        self._on_time_sec,
+                        self._off_time_sec,
+                        self._on_percent,
+                        force=True,
+                    )
         else:
             _LOGGER.debug("%s - nothing to do", self)
 
@@ -517,46 +533,64 @@ class UnderlyingSwitch(UnderlyingEntity):
 
         # safety mode could have change the on_time percent
         time = self._on_time_sec
+        self._action_in_progress_count += 1
 
-        action_label = "start"
-
-        if time > 0:
-            _LOGGER.info(
-                "%s - %s heating for %d min %d sec",
-                self,
-                action_label,
-                time // 60,
-                time % 60,
-            )
-            if not await self.turn_on():
+        try:
+            if self._should_relaunch_control_heating:
+                _LOGGER.debug("%s - Skipping turn_on because a relaunch is pending", self)
                 return
-        else:
-            _LOGGER.debug("%s - No action on heater cause duration is 0", self)
 
-        # Trigger cycle start callbacks
-        # The cycle really starts now (after the initial delay)
-        # and will end at the next turn_on_later
-        for callback in self._on_cycle_start_callbacks:
-            try:
-                await callback(
-                    on_time_sec=self._on_time_sec,
-                    off_time_sec=self._off_time_sec,
-                    on_percent=self._thermostat.safe_on_percent,
-                    hvac_mode=self._hvac_mode,
-                )
-            except Exception as ex:
-                _LOGGER.warning(
-                    "%s - Error calling cycle start callback %s: %s",
+            action_label = "start"
+
+            if time > 0:
+                _LOGGER.info(
+                    "%s - %s heating for %d min %d sec",
                     self,
-                    callback,
-                    ex,
+                    action_label,
+                    time // 60,
+                    time % 60,
                 )
+                if not await self.turn_on():
+                    return
+            else:
+                _LOGGER.debug("%s - No action on heater cause duration is 0", self)
 
-        self._async_cancel_cycle = self.call_later(
-            self._hass,
-            time,
-            self._turn_off_later,
-        )
+            # Trigger cycle start callbacks
+            # The cycle really starts now (after the initial delay)
+            # and will end at the next turn_on_later
+            for callback in self._on_cycle_start_callbacks:
+                try:
+                    await callback(
+                        on_time_sec=self._on_time_sec,
+                        off_time_sec=self._off_time_sec,
+                        on_percent=self._thermostat.safe_on_percent,
+                        hvac_mode=self._hvac_mode,
+                    )
+                except Exception as ex:
+                    _LOGGER.warning(
+                        "%s - Error calling cycle start callback %s: %s",
+                        self,
+                        callback,
+                        ex,
+                    )
+
+            self._async_cancel_cycle = self.call_later(
+                self._hass,
+                time,
+                self._turn_off_later,
+            )
+        finally:
+            self._action_in_progress_count -= 1
+            if self._should_relaunch_control_heating:
+                _LOGGER.debug("%s - Relaunching control heating", self)
+                self._should_relaunch_control_heating = False
+                await self.start_cycle(
+                    self._hvac_mode,
+                    self._on_time_sec,
+                    self._off_time_sec,
+                    self._on_percent,
+                    force=True,
+                )
 
     async def _turn_off_later(self, _):
         """Turn the heater off and call the next cycle after the delay"""
@@ -580,25 +614,44 @@ class UnderlyingSwitch(UnderlyingEntity):
                 await self.turn_off()
             return
 
-        action_label = "stop"
-        time = self._off_time_sec
 
-        if time > 0:
-            _LOGGER.info(
-                "%s - %s heating for %d min %d sec",
-                self,
-                action_label,
-                time // 60,
-                time % 60,
+        self._action_in_progress_count += 1
+        try:
+            if self._should_relaunch_control_heating:
+                _LOGGER.debug("%s - Skipping turn_off because a relaunch is pending", self)
+                return
+
+            action_label = "stop"
+            time = self._off_time_sec
+
+            if time > 0:
+                _LOGGER.info(
+                    "%s - %s heating for %d min %d sec",
+                    self,
+                    action_label,
+                    time // 60,
+                    time % 60,
+                )
+                await self.turn_off()
+            else:
+                _LOGGER.debug("%s - No action on heater cause duration is 0", self)
+            self._async_cancel_cycle = self.call_later(
+                self._hass,
+                time,
+                self._turn_on_later,
             )
-            await self.turn_off()
-        else:
-            _LOGGER.debug("%s - No action on heater cause duration is 0", self)
-        self._async_cancel_cycle = self.call_later(
-            self._hass,
-            time,
-            self._turn_on_later,
-        )
+        finally:
+            self._action_in_progress_count -= 1
+            if self._should_relaunch_control_heating:
+                _LOGGER.debug("%s - Relaunching control heating", self)
+                self._should_relaunch_control_heating = False
+                await self.start_cycle(
+                    self._hvac_mode,
+                    self._on_time_sec,
+                    self._off_time_sec,
+                    self._on_percent,
+                    force=True,
+                )
 
         # increment energy at the end of the cycle
         self._thermostat.incremente_energy()
@@ -1106,6 +1159,7 @@ class UnderlyingValve(UnderlyingEntity):
         self._valve_entity_id = valve_entity_id
         self._min_open: float | None = None
         self._max_open: float | None = None
+
         self._last_sent_temperature = None
         self._last_sent_opening_value: int | None = None
 
