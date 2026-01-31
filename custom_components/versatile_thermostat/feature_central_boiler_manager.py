@@ -6,6 +6,7 @@ from datetime import timedelta
 from homeassistant.core import (
     HomeAssistant,
     HomeAssistantError,
+    CoreState,
 )
 
 from homeassistant.helpers.entity import Entity
@@ -98,6 +99,16 @@ class FeatureCentralBoilerManager(BaseFeatureManager):
         controls this central boiler"""
 
         _LOGGER.debug("%s - calculating the new central boiler state", self)
+
+        # Skip service calls if HA is not fully running (during startup/restore)
+        # This prevents calling services before underlying entities are available
+        if self._hass.state != CoreState.running:
+            _LOGGER.debug(
+                "%s - HA not fully started yet (state=%s). Skipping central boiler service calls.",
+                self,
+                self._hass.state,
+            )
+            return False
 
         def _send_vtherm_event(data: dict):
             send_vtherm_event(
