@@ -1,4 +1,4 @@
-# pylint: disable=unused-argument, line-too-long, too-many-lines
+# pylint: disable=unused-argument, line-too-long, too-many-lines, broad-exception-caught
 
 """ Underlying entities classes """
 import logging
@@ -9,17 +9,17 @@ from datetime import datetime, timedelta
 
 from enum import StrEnum
 
-from homeassistant.const import ATTR_ENTITY_ID, STATE_ON, STATE_OFF, STATE_UNAVAILABLE
+from homeassistant.const import ATTR_ENTITY_ID, STATE_ON, STATE_OFF, STATE_UNAVAILABLE, STATE_UNKNOWN
 from homeassistant.core import State
 
 from homeassistant.exceptions import ServiceNotFound
 
 from homeassistant.core import HomeAssistant, CALLBACK_TYPE, Context, ServiceResponse
 from homeassistant.components.climate import (
-    ClimateEntity,
     ClimateEntityFeature,
     DOMAIN as CLIMATE_DOMAIN,
     HVACAction,
+    HVACMode,
     SERVICE_SET_HVAC_MODE,
     SERVICE_SET_FAN_MODE,
     SERVICE_SET_HUMIDITY,
@@ -32,21 +32,18 @@ from homeassistant.components.climate import (
 
 from homeassistant.components.number import SERVICE_SET_VALUE
 
-from homeassistant.helpers.entity_component import EntityComponent
 from homeassistant.helpers.event import async_call_later
 from homeassistant.util.unit_conversion import TemperatureConverter
 
 from custom_components.versatile_thermostat.opening_degree_algorithm import OpeningClosingDegreeCalculation
 
+
 from .const import *  # pylint: disable=wildcard-import, unused-wildcard-import
 from .vtherm_hvac_mode import VThermHvacMode, to_legacy_ha_hvac_mode
 from .keep_alive import IntervalCaller
+from .underlying_state_manager import UnderlyingStateManager
 
 _LOGGER = logging.getLogger(__name__)
-
-# remove this
-# _LOGGER.setLevel(logging.DEBUG)
-
 
 class UnderlyingEntityType(StrEnum):
     """All underlying device type"""
@@ -62,7 +59,6 @@ class UnderlyingEntityType(StrEnum):
 
     # a direct valve regulation
     VALVE_REGULATION = "valve_regulation"
-
 
 class UnderlyingEntity:
     """Represent a underlying device which could be a switch or a climate"""
@@ -82,6 +78,9 @@ class UnderlyingEntity:
         self._hvac_mode: VThermHvacMode | None = None
         self._on_cycle_start_callbacks: list[Callable] = []
         self._last_command_sent_datetime: datetime = datetime.fromtimestamp(0)
+        # Use UnderlyingStateManager to track underlying entity state
+        self._state_manager: UnderlyingStateManager = UnderlyingStateManager(self._hass, on_change=self._underlying_changed)
+        self._is_initialized: bool = False
 
     def register_cycle_callback(self, on_start: Callable):
         """Register a callback for cycle start"""
@@ -102,32 +101,36 @@ class UnderlyingEntity:
 
     @property
     def is_initialized(self) -> bool:
-        """True if the underlying is initialized"""
-        return True
+        """True if the underlying is initialized and have received a non None state"""
+        return self._is_initialized
 
     def startup(self):
-        """Startup the Entity"""
-        return
+        """Startup the Entity. Listen to the underlying state changes"""
+        # starts listening and can provide the initial cached state.
+        self._state_manager.add_underlying_entities([self._entity_id])
+
+    async def _underlying_changed(self, entity_id: str, new_state: Optional[State]):
+        """Handle underlying state change notified by UnderlyingStateManager.
+
+        `new_state` may be None when the entity is removed/unavailable.
+        Runs the initial state checks when all underlying entities are initialized.
+        """
+        _LOGGER.debug("%s --------> Underlying state change received: '%s'", self, new_state)
+        # If not yet initialized and we received a valid initial state, run initial checks
+        if not self.is_initialized:
+            # Check if we have a valid state for all underlying entities
+            if self._state_manager.is_all_states_initialized:
+                self._is_initialized = True
+                _LOGGER.debug("%s - All underlying states are now initialized", self)
+                await self.check_initial_state()
+            else:
+                _LOGGER.debug("%s - Underlying state still not yet initialized", self)
+        # Otherwise, nothing to do here: the manager holds the latest state
 
     async def set_hvac_mode(self, hvac_mode: VThermHvacMode):
         """Set the HVACmode"""
         self._hvac_mode = hvac_mode
         return
-
-    @property
-    def hvac_mode(self) -> VThermHvacMode | None:
-        """Return the current hvac_mode"""
-        return self._hvac_mode
-
-    @property
-    def is_device_active(self) -> bool | None:
-        """If the toggleable device is currently active."""
-        return None
-
-    @property
-    def hvac_action(self) -> HVACAction:
-        """Calculate a hvac_action"""
-        return HVACAction.HEATING if self.is_device_active is True else HVACAction.OFF
 
     async def set_temperature(self, temperature, max_temp, min_temp):
         """Set the target temperature"""
@@ -145,32 +148,33 @@ class UnderlyingEntity:
         Need to be overriden"""
         return NotImplementedError
 
-    @property
-    def is_inversed(self):
-        """Tells if the switch command should be inversed"""
-        return False
-
     def remove_entity(self):
         """Remove the underlying entity"""
         self._on_cycle_start_callbacks.clear()
+        # Stop the state manager listener for this entity
+        self._state_manager.stop()
 
-    async def check_initial_state(self, hvac_mode: VThermHvacMode):
+    async def check_initial_state(self):
         """Prevent the underlying to be on but thermostat is off"""
-        if hvac_mode == VThermHvacMode_OFF and self.is_device_active:
-            _LOGGER.info(
-                "%s - The hvac mode is OFF, but the underlying device is ON. Turning off device %s",
-                self,
-                self._entity_id,
-            )
-            await self.set_hvac_mode(hvac_mode)
-        elif hvac_mode != VThermHvacMode_OFF and not self.is_device_active:
-            _LOGGER.info(
-                "%s - The hvac mode is %s, but the underlying device is not ON. Turning on device %s if needed",
-                self,
-                hvac_mode,
-                self._entity_id,
-            )
-            await self.set_hvac_mode(hvac_mode)
+        return NotImplementedError
+        # is_device_active = self.is_device_active
+        # hvac_mode = self._thermostat.vtherm_hvac_mode
+
+        # if hvac_mode == VThermHvacMode_OFF and is_device_active:
+        #     _LOGGER.info(
+        #         "%s - The hvac mode is OFF, but the underlying device is ON. Turning off device %s",
+        #         self,
+        #         self._entity_id,
+        #     )
+        #     await self.set_hvac_mode(hvac_mode)
+        # elif hvac_mode != VThermHvacMode_OFF and not is_device_active:
+        #     _LOGGER.info(
+        #         "%s - The hvac mode is %s, but the underlying device is not ON. Turning on device %s if needed",
+        #         self,
+        #         hvac_mode,
+        #         self._entity_id,
+        #     )
+        #     await self.set_hvac_mode(hvac_mode)
 
     # override to be able to mock the call
     def call_later(
@@ -208,7 +212,7 @@ class UnderlyingEntity:
     def _cancel_cycle(self):
         """Stops an eventual cycle"""
 
-    def cap_sent_value(self, value) -> float:
+    def clamp_sent_value(self, value) -> float:
         """capping of the value send to the underlying eqt"""
         return value
 
@@ -245,6 +249,44 @@ class UnderlyingEntity:
             _LOGGER.error(err)
             # This could happens in unit test if input_number domain is not yet loaded
             # raise err
+
+    @property
+    def hvac_mode(self) -> VThermHvacMode | None:
+        """Return the current hvac_mode"""
+        return self._hvac_mode
+
+    @property
+    def should_device_be_active(self) -> bool | None:
+        """If the underlying device should currently be active.
+        Need to be overriden"""
+        return NotImplementedError
+
+    @property
+    def is_device_active(self) -> bool | None:
+        """If the underlying device is currently active.
+        Need to be overriden"""
+        return NotImplementedError
+
+    @property
+    def hvac_action(self) -> HVACAction:
+        """Calculate a hvac_action"""
+        return HVACAction.HEATING if self.should_device_be_active is True else HVACAction.OFF
+
+    @property
+    def is_inversed(self):
+        """Tells if the switch command should be inversed"""
+        return False
+
+    @property
+    def state_manager(self) -> UnderlyingStateManager:
+        """Return the underlying state manager"""
+        return self._state_manager
+
+    # For testing compatibility
+    @property
+    def _last_known_underlying_state(self) -> Optional[State]:
+        """Return the last known underlying state"""
+        return self._state_manager.get_state(self._entity_id)
 
 
 class UnderlyingSwitch(UnderlyingEntity):
@@ -314,17 +356,35 @@ class UnderlyingSwitch(UnderlyingEntity):
             return False
 
     @property
-    def is_device_active(self):
+    def should_device_be_active(self) -> bool:
         """If the toggleable device is currently active."""
-        # real_state = self._hass.states.is_state(self._entity_id, STATE_ON)
-        # return (self.is_inversed and not real_state) or (
-        #    not self.is_inversed and real_state
-        # )
-        is_on = self._hass.states.is_state(self._entity_id, self._on_command.get("state"))
-        # if self.is_inversed:
-        #     return not is_on
+        return self._on_time_sec > 0 and self.hvac_mode in [VThermHvacMode_HEAT, VThermHvacMode_COOL]
 
+    @property
+    def is_device_active(self) -> bool | None:
+        """If the toggleable device is currently active."""
+        if not self.is_initialized:
+            return None
+        state = self._state_manager.get_state(self._entity_id)
+        if state is None:
+            return None
+
+        is_on = state.state == self._on_command.get("state")
         return is_on
+
+    async def check_initial_state(self):
+        """Prevent the underlying to be on but thermostat is off"""
+        hvac_mode = self._thermostat.vtherm_hvac_mode
+
+        if hvac_mode == VThermHvacMode_OFF and self.is_device_active:
+            _LOGGER.info(
+                "%s - The hvac mode is OFF, but the underlying device is ON. Turning off device %s",
+                self,
+                self._entity_id,
+            )
+            await self.turn_off()
+        # elif hvac_mode != VThermHvacMode_OFF and not is_device_active:
+        # it is normal, the cycle could be started later or in off phase
 
     async def _keep_alive_callback(self):
         """Keep alive: Turn on if already turned on, turn off if already turned off."""
@@ -349,7 +409,7 @@ class UnderlyingSwitch(UnderlyingEntity):
                     self._entity_id,
                     state.state,
                 )
-            await (self.turn_on() if self.is_device_active else self.turn_off())
+            await (self.turn_on() if self.should_device_be_active else self.turn_off())
 
     def build_command(self, use_on: bool) -> Tuple[str, Dict[str, str]]:
         """Build a command and returns a command and a dict as data"""
@@ -465,7 +525,7 @@ class UnderlyingSwitch(UnderlyingEntity):
                 return
 
         # If we should heat, starts the cycle with delay
-        if self._hvac_mode in [VThermHvacMode_HEAT, VThermHvacMode_COOL] and on_time_sec > 0:
+        if self.should_device_be_active:
             # Starts the cycle after the initial delay
             self._async_cancel_cycle = self.call_later(
                 self._hass, self._initial_delay_sec, self._turn_on_later
@@ -511,7 +571,7 @@ class UnderlyingSwitch(UnderlyingEntity):
 
         if self._hvac_mode == VThermHvacMode_OFF:
             _LOGGER.debug("%s - End of cycle (HVAC_MODE_OFF - 2)", self)
-            if self.is_device_active:
+            if self.should_device_be_active:
                 await self.turn_off()
             return
 
@@ -576,7 +636,7 @@ class UnderlyingSwitch(UnderlyingEntity):
 
         if self._hvac_mode == VThermHvacMode_OFF:
             _LOGGER.debug("%s - End of cycle (HVAC_MODE_OFF - 2)", self)
-            if self.is_device_active:
+            if self.should_device_be_active:
                 await self.turn_off()
             return
 
@@ -629,63 +689,31 @@ class UnderlyingClimate(UnderlyingEntity):
             entity_type=UnderlyingEntityType.CLIMATE,
             entity_id=climate_entity_id,
         )
-        self._underlying_climate: Optional[ClimateEntity] = None
         self._last_sent_temperature: Optional[float] = None
         self._cancel_set_fan_mode_later: Optional[Callable[[], None]] = None
         self._min_sync_entity: float = None
         self._max_sync_entity: float = None
         self._step_sync_entity: float = None
 
-    def find_underlying_climate(self) -> ClimateEntity:
-        """Find the underlying climate entity"""
-        component: EntityComponent[ClimateEntity] = self._hass.data[CLIMATE_DOMAIN]
-        for entity in list(component.entities):
-            if self.entity_id == entity.entity_id:
-                return entity
-        return None
-
-    def startup(self):
-        """Startup the Entity"""
-        # Get the underlying climate
-        self._underlying_climate = self.find_underlying_climate()
-        if self._underlying_climate:
-            _LOGGER.info(
-                "%s - The underlying climate entity: %s have been succesfully found",
-                self,
-                self._underlying_climate,
-            )
-        else:
-            _LOGGER.info(
-                "%s - Cannot find the underlying climate entity: %s. Thermostat will not be operational. Will try later.",
-                self,
-                self.entity_id,
-            )
-            # #56 keep the over_climate and try periodically to find the underlying climate
-            # self._is_over_climate = False
-            raise UnknownEntity(f"Underlying entity {self.entity_id} not found")
-        return
-
-    @property
-    def is_initialized(self) -> bool:
-        """True if the underlying climate was found"""
-        return self._underlying_climate is not None
-
     async def set_hvac_mode(self, hvac_mode: VThermHvacMode) -> bool:
         """Set the HVACmode of the underlying climate. Returns true if something have change"""
-        if not self.is_initialized:
+        state = self._state_manager.get_state(self._entity_id)
+        if state is None:
             return False
 
-        if self._underlying_climate.hvac_mode == to_ha_hvac_mode(hvac_mode):
+        if state.state == to_ha_hvac_mode(hvac_mode):
             _LOGGER.debug(
                 "%s - hvac_mode is already is requested state %s. Do not send any command",
                 self,
-                self._underlying_climate.hvac_mode,
+                state.state,
             )
             return False
 
         # When turning on a climate, check that power is available
         if hvac_mode in (VThermHvacMode_HEAT, VThermHvacMode_COOL) and not await self.check_overpowering():
             return False
+
+        await super().set_hvac_mode(hvac_mode)
 
         data = {ATTR_ENTITY_ID: self._entity_id, "hvac_mode": to_legacy_ha_hvac_mode(hvac_mode)}
         await self.hass_services_async_call(
@@ -697,16 +725,46 @@ class UnderlyingClimate(UnderlyingEntity):
         return True
 
     @property
+    def should_device_be_active(self):
+        """If the toggleable device is currently active."""
+        return self.hvac_mode != VThermHvacMode_OFF and self.hvac_action not in [
+            HVACAction.IDLE,
+            HVACAction.OFF,
+            None,
+        ]
+
+    @property
     def is_device_active(self):
         """If the toggleable device is currently active."""
-        if self.is_initialized:
-            return self.hvac_mode != VThermHvacMode_OFF and self.hvac_action not in [
-                HVACAction.IDLE,
-                HVACAction.OFF,
-                None,
-            ]
-        else:
+        state = self._state_manager.get_state(self._entity_id)
+        if state is None:
             return None
+
+        hvac_action = state.attributes.get("hvac_action", None)
+
+        # The device is active if hvac_mode is not OFF/IDLE and hvac_action is not OFF/IDLE. hvac_action could be None because it is not always implemented by all climate entities
+        return state.state != HVACMode.OFF and (hvac_action not in [HVACAction.IDLE, HVACAction.OFF])
+
+    async def check_initial_state(self):
+        """Prevent the underlying to be on but thermostat is off"""
+        is_device_active = self._state_manager.get_state(self._entity_id).state not in [HVACMode.OFF, STATE_UNAVAILABLE, STATE_UNKNOWN]
+        hvac_mode = self._thermostat.vtherm_hvac_mode
+
+        if hvac_mode == VThermHvacMode_OFF and is_device_active:
+            _LOGGER.info(
+                "%s - The hvac mode is OFF, but the underlying device is ON. Turning off device %s",
+                self,
+                self._entity_id,
+            )
+            await self.set_hvac_mode(hvac_mode)
+        elif hvac_mode != VThermHvacMode_OFF and not is_device_active:
+            _LOGGER.info(
+                "%s - The hvac mode is %s, but the underlying device is not ON. Turning on device %s if needed",
+                self,
+                hvac_mode,
+                self._entity_id,
+            )
+            await self.set_hvac_mode(hvac_mode)
 
     async def set_fan_mode(self, fan_mode):
         """Set new target fan mode."""
@@ -800,7 +858,7 @@ class UnderlyingClimate(UnderlyingEntity):
             return
 
         # Issue 508 we have to take care of service set_temperature or set_range
-        target_temp = self.cap_sent_value(temperature)
+        target_temp = self.clamp_sent_value(temperature)
         data = {
             ATTR_ENTITY_ID: self._entity_id,
         }
@@ -808,7 +866,7 @@ class UnderlyingClimate(UnderlyingEntity):
         _LOGGER.info("%s - Set setpoint temperature to: %s", self, target_temp)
 
         # Issue 807 add TARGET_TEMPERATURE only if in the features
-        if ClimateEntityFeature.TARGET_TEMPERATURE_RANGE in self._underlying_climate.supported_features:
+        if ClimateEntityFeature.TARGET_TEMPERATURE_RANGE in self.supported_features:
             data.update(
                 {
                     "target_temp_high": target_temp,
@@ -816,7 +874,7 @@ class UnderlyingClimate(UnderlyingEntity):
                 }
             )
 
-        if ClimateEntityFeature.TARGET_TEMPERATURE in self._underlying_climate.supported_features:
+        if ClimateEntityFeature.TARGET_TEMPERATURE in self.supported_features:
             data["temperature"] = target_temp
 
         await self.hass_services_async_call(
@@ -839,8 +897,9 @@ class UnderlyingClimate(UnderlyingEntity):
         if not self.is_initialized:
             return None
 
-        hvac_action = self._underlying_climate.hvac_action
+        hvac_action = self.underlying_hvac_action
         if hvac_action is None:
+            # simulate hvac action if not provided by underlying climate
             target = (
                 self.underlying_target_temperature
                 or self._thermostat.target_temperature
@@ -874,168 +933,154 @@ class UnderlyingClimate(UnderlyingEntity):
         """Get the hvac mode of the underlying"""
         if not self.is_initialized:
             return None
-        return self._underlying_climate.hvac_mode
+        state = self._state_manager.get_state(self._entity_id)
+        return state.state if state is not None else None
 
     @property
     def fan_mode(self) -> str | None:
         """Get the fan_mode of the underlying"""
-        if not self.is_initialized or self._underlying_climate.supported_features & ClimateEntityFeature.FAN_MODE == 0:
+        if not self.is_initialized or self.supported_features & ClimateEntityFeature.FAN_MODE == 0:
             return None
-        return self._underlying_climate.fan_mode
+        return self.get_underlying_attribute("fan_mode")
 
     @property
     def swing_mode(self) -> str | None:
         """Get the swing_mode of the underlying"""
-        if not self.is_initialized or self._underlying_climate.supported_features & ClimateEntityFeature.SWING_MODE == 0:
+        if not self.is_initialized or self.supported_features & ClimateEntityFeature.SWING_MODE == 0:
             return None
-        return self._underlying_climate.swing_mode
+        return self.get_underlying_attribute("swing_mode")
 
     @property
     def swing_horizontal_mode(self) -> str | None:
         """Get the swing_horizontal_mode of the underlying"""
-        if not self.is_initialized:
-            return None
-        return self._underlying_climate.swing_horizontal_mode
-
+        return self.get_underlying_attribute("swing_horizontal_mode")
     @property
     def supported_features(self) -> ClimateEntityFeature:
         """Get the supported features of the climate"""
-        if not self.is_initialized:
-            return ClimateEntityFeature.TARGET_TEMPERATURE
-        return self._underlying_climate.supported_features
+        return self.get_underlying_attribute("supported_features")
 
     @property
     def hvac_modes(self) -> list[VThermHvacMode]:
         """Get the hvac_modes"""
         if not self.is_initialized:
             return []
-        return self._underlying_climate.hvac_modes
+        return self.get_underlying_attribute("hvac_modes")
 
     @property
     def current_humidity(self) -> float | None:
         """Get the humidity"""
-        if not self.is_initialized or self._underlying_climate.current_humidity is None:
-            return None
-        return self._underlying_climate.current_humidity
+        return self.get_underlying_attribute("current_humidity")
 
     @property
     def fan_modes(self) -> list[str]:
         """Get the fan_modes"""
-        if not self.is_initialized or self._underlying_climate.supported_features & ClimateEntityFeature.FAN_MODE == 0:
+        if not self.is_initialized or self.supported_features & ClimateEntityFeature.FAN_MODE == 0:
             return []
-        return self._underlying_climate.fan_modes
+        return self.get_underlying_attribute("fan_modes")
 
     @property
     def swing_modes(self) -> list[str]:
         """Get the swing_modes"""
-        if not self.is_initialized or self._underlying_climate.supported_features & ClimateEntityFeature.SWING_MODE == 0:
+        if not self.is_initialized or self.supported_features & ClimateEntityFeature.SWING_MODE == 0:
             return []
-        return self._underlying_climate.swing_modes
+        return self.get_underlying_attribute("swing_modes")
 
     @property
     def swing_horizontal_modes(self) -> list[str]:
         """Get the swing_horizontal_modes"""
-        if not self.is_initialized or self._underlying_climate.supported_features & ClimateEntityFeature.SWING_HORIZONTAL_MODE == 0:
+        if not self.is_initialized or self.supported_features & ClimateEntityFeature.SWING_HORIZONTAL_MODE == 0:
             return []
-        return self._underlying_climate.swing_horizontal_modes
+        return self.get_underlying_attribute("swing_horizontal_modes")
 
     @property
     def temperature_unit(self) -> str:
         """Get the temperature_unit"""
-        if not self.is_initialized:
-            return self._hass.config.units.temperature_unit
-        return self._underlying_climate.temperature_unit
+        return self.get_underlying_attribute("temperature_unit")
+
+    @property
+    def min_temp(self) -> str:
+        """Get the min_temp"""
+        return self.get_underlying_attribute("min_temp")
+
+    @property
+    def max_temp(self) -> str:
+        """Get the max_temp"""
+        return self.get_underlying_attribute("max_temp")
 
     @property
     def target_temperature_step(self) -> float:
         """Get the target_temperature_step"""
-        if not self.is_initialized:
-            return 1
-        return self._underlying_climate.target_temperature_step
+        return self.get_underlying_attribute("target_temperature_step")
 
     @property
     def target_temperature_high(self) -> float:
         """Get the target_temperature_high"""
-        if not self.is_initialized:
-            return 30
-        return self._underlying_climate.target_temperature_high
+        return self.get_underlying_attribute("target_temperature_high")
 
     @property
     def target_temperature_low(self) -> float:
         """Get the target_temperature_low"""
-        if not self.is_initialized:
-            return 15
-        return self._underlying_climate.target_temperature_low
+        return self.get_underlying_attribute("target_temperature_low")
 
     @property
     def underlying_target_temperature(self) -> float:
         """Get the target_temperature"""
-        if not self.is_initialized:
-            return None
-
-        if not hasattr(self._underlying_climate, "target_temperature"):
-            return None
-        else:
-            return self._underlying_climate.target_temperature
-
-        # return self._hass.states.get(self._entity_id).attributes.get(
-        #    "target_temperature"
-        # )
+        return self.get_underlying_attribute("target_temperature")
 
     @property
     def underlying_current_temperature(self) -> float | None:
         """Get the underlying current_temperature if it exists
         and if initialized"""
-        if not self.is_initialized:
-            return None
+        return self.get_underlying_attribute("current_temperature")
 
-        if not hasattr(self._underlying_climate, "current_temperature"):
-            return None
-        else:
-            return self._underlying_climate.current_temperature
-
-        # return self._hass.states.get(self._entity_id).attributes.get("current_temperature")
+    @property
+    def underlying_hvac_action(self) -> HVACAction | None:
+        """Get the underlying hvac_action if it exists
+        and if initialized"""
+        return self.get_underlying_attribute("hvac_action")
 
     @property
     def is_aux_heat(self) -> bool:
         """Get the is_aux_heat"""
-        if not self.is_initialized:
-            return False
-        return self._underlying_climate.is_aux_heat
+        return self.get_underlying_attribute("is_aux_heat")
 
-    def turn_aux_heat_on(self) -> None:
-        """Turn auxiliary heater on."""
+    def get_underlying_attribute(self, attribute_name: str) -> Any:
+        """Get an attribute from the underlying climate"""
         if not self.is_initialized:
             return None
-        return self._underlying_climate.turn_aux_heat_on()
-
-    def turn_aux_heat_off(self) -> None:
-        """Turn auxiliary heater on."""
-        if not self.is_initialized:
+        state = self._state_manager.get_state(self._entity_id)
+        if state is None:
             return None
-        return self._underlying_climate.turn_aux_heat_off()
+        return state.attributes.get(attribute_name, None)
+
+    # Not used and there is no action to start. To be removed
+    # def turn_aux_heat_on(self) -> None:
+    #     """Turn auxiliary heater on."""
+    #     if not self.is_initialized:
+    #         return None
+    #     return self._underlying_climate.turn_aux_heat_on()
+    #
+    # def turn_aux_heat_off(self) -> None:
+    #     """Turn auxiliary heater on."""
+    #     if not self.is_initialized:
+    #         return None
+    #     return self._underlying_climate.turn_aux_heat_off()
 
     @overrides
-    def cap_sent_value(self, value) -> float:
+    def clamp_sent_value(self, value) -> float:
         """Try to adapt the target temp value to the min_temp / max_temp found
         in the underlying entity (if any)"""
         min_val = None
         max_val = None
 
         if not self.is_initialized:
-            return value
+            raise RuntimeError(f"{self} - cannot cap sent value because underlying is not initialized")
+            # return value
 
         # Gets the min_temp and max_temp
-        if (
-            self._underlying_climate.min_temp is not None
-            and self._underlying_climate is not None
-        ):
-            min_val = TemperatureConverter.convert(
-                self._underlying_climate.min_temp, self._underlying_climate.temperature_unit, self._hass.config.units.temperature_unit
-            )
-            max_val = TemperatureConverter.convert(
-                self._underlying_climate.max_temp, self._underlying_climate.temperature_unit, self._hass.config.units.temperature_unit
-            )
+        if self.min_temp is not None:
+            min_val = TemperatureConverter.convert(self.min_temp, self.temperature_unit, self._hass.config.units.temperature_unit)
+            max_val = TemperatureConverter.convert(self.max_temp, self.temperature_unit, self._hass.config.units.temperature_unit)
 
             new_value = max(min_val, min(value, max_val))
         else:
@@ -1103,11 +1148,51 @@ class UnderlyingValve(UnderlyingEntity):
         self._should_relaunch_control_heating = False
         self._hvac_mode = None
         self._percent_open: int | None = None  # self._thermostat.valve_open_percent
-        self._valve_entity_id = valve_entity_id
         self._min_open: float | None = None
         self._max_open: float | None = None
         self._last_sent_temperature = None
         self._last_sent_opening_value: int | None = None
+
+    @overrides
+    async def check_initial_state(self):
+        """Handle initial valve state change to get the min and max open percent"""
+        # Initialize percent_open to current state
+        valve_state = self._state_manager.get_state(self.entity_id)
+        valve_open: float = get_safe_float_value(valve_state.state)
+        if valve_open is None:
+            # should not happen
+            raise ValueError(f"{self} - cannot check_initial_state because underlying entity {self._entity_id} value {valve_state.state} is not a valid float")
+
+        self._last_sent_opening_value = valve_open
+
+        if "min" in valve_state.attributes and "max" in valve_state.attributes:
+            self._min_open = valve_state.attributes["min"]
+            self._max_open = valve_state.attributes["max"]
+        else:
+            self._min_open = 0
+            self._max_open = 100
+
+        should_device_be_active = self.should_device_be_active
+        is_device_active = self.is_device_active
+
+        if should_device_be_active and not is_device_active:
+            _LOGGER.info(
+                "%s - The valve should be active (percent_open=%.0f), but the underlying valve is closed (current_valve_opening=%.0f). Opening valve %s",
+                self,
+                self._percent_open or 9999,
+                valve_open or 9999,
+                self._entity_id,
+            )
+            await self.send_percent_open()
+        elif not should_device_be_active and is_device_active:
+            _LOGGER.info(
+                "%s - The valve should not be active (percent_open=%.0f), but the underlying valve is open (current_valve_opening=%.0f). Closing valve %s",
+                self,
+                self._percent_open or 9999,
+                valve_open or 9999,
+                self._entity_id,
+            )
+            await self.send_percent_open(fixed_value=self._min_open)
 
     async def send_percent_open(self, fixed_value: int = None):
         """Send the percent open to the underlying valve"""
@@ -1121,7 +1206,7 @@ class UnderlyingValve(UnderlyingEntity):
         _LOGGER.debug("%s - Stopping underlying valve entity %s", self, self._entity_id)
         # Issue 341
         is_active = self.is_device_active
-        self._percent_open = self.cap_sent_value(0)
+        self._percent_open = self.clamp_sent_value(0)
         if is_active:
             await self.send_percent_open()
 
@@ -1144,49 +1229,21 @@ class UnderlyingValve(UnderlyingEntity):
         else:
             return False
 
-    def init_min_max_open(self, force=False):
-        """Init the min and max open percent value from underlying entity attributes. Returns true if initialized else false"""
-        if not force and self._min_open is not None and self._max_open is not None:
-            return True
-
-        valve_state: State = self._hass.states.get(self._valve_entity_id)
-        if valve_state is None:
-            return False
-
-        # Initialize percent_open to current state
-        try:
-            self._percent_open = self._last_sent_opening_value = float(valve_state.state)
-        except (ValueError, TypeError):
-            _LOGGER.warning(
-                "%s - Cannot initialize percent_open from underlying entity %s state=%s. Maybe normal at startup",
-                self,
-                self._valve_entity_id,
-                valve_state.state,
-            )
-            return False
-
-        if "min" in valve_state.attributes and "max" in valve_state.attributes:
-            self._min_open = valve_state.attributes["min"]
-            self._max_open = valve_state.attributes["max"]
-        else:
-            self._min_open = 0
-            self._max_open = 100
-
-        return True
-
     @property
-    def is_device_active(self):
+    def should_device_be_active(self) -> bool:
         """If the toggleable device is currently active."""
         try:
-            if not self.init_min_max_open():
-                return False
-
             return self._percent_open > (self._min_open or 0) if isinstance(self._percent_open, (int, float)) else False
-            # To test if real device is open but this is causing some side effect
-            # because the activation can be deferred -
-            # or float(self._hass.states.get(self._entity_id).state) > 0
         except Exception:  # pylint: disable=broad-exception-caught
             return False
+
+    @property
+    def is_device_active(self) -> bool | None:
+        """If the toggleable device is currently active."""
+        if (current_opening := self.current_valve_opening) is None:
+            return None
+
+        return current_opening > (self._min_open or 0)
 
     @overrides
     async def start_cycle(
@@ -1202,11 +1259,12 @@ class UnderlyingValve(UnderlyingEntity):
         await self.set_valve_open_percent()
 
     @overrides
-    def cap_sent_value(self, value) -> float:
+    def clamp_sent_value(self, value) -> float:
         """Try to adapt the open_percent value to the min / max found
         in the underlying entity (if any)"""
-        if not self.init_min_max_open():
-            return value
+        if not self.is_initialized:
+            raise RuntimeError(f"{self} - cannot clamp sent value because underlying is not initialized")
+            # return value
 
         # Gets the last number state
         new_value = round(max(self._min_open, min(value / 100 * self._max_open, self._max_open)))
@@ -1225,7 +1283,7 @@ class UnderlyingValve(UnderlyingEntity):
 
     async def set_valve_open_percent(self):
         """Update the valve open percent"""
-        caped_val = self.cap_sent_value(self._thermostat.valve_open_percent)
+        caped_val = self.clamp_sent_value(self._thermostat.valve_open_percent)
         if self._percent_open == caped_val:
             # No changes
             return
@@ -1255,6 +1313,14 @@ class UnderlyingValve(UnderlyingEntity):
         """Return the last sent value to the valve"""
         return self._last_sent_opening_value
 
+    @property
+    def current_valve_opening(self) -> float | None:
+        """Get the current valve opening from the underlying entity"""
+
+        valve_state = self._state_manager.get_state(self.entity_id)
+        valve_open: float = get_safe_float_value(valve_state.state)
+        return valve_open
+
 
 class UnderlyingValveRegulation(UnderlyingValve):
     """A specific underlying class for Valve regulation"""
@@ -1280,6 +1346,7 @@ class UnderlyingValveRegulation(UnderlyingValve):
         )
         self._opening_degree_entity_id: str = opening_degree_entity_id
         self._closing_degree_entity_id: str = closing_degree_entity_id
+        self._has_max_closing_degree: bool = closing_degree_entity_id is not None
         self._climate_underlying = climate_underlying
         self._is_min_max_initialized: bool = False
         self._max_opening_degree: float = max_opening_degree
@@ -1287,39 +1354,62 @@ class UnderlyingValveRegulation(UnderlyingValve):
         self._max_closing_degree: int = max_closing_degree
         self._opening_threshold: int = opening_threshold
 
-    def initialize_min_max(self):
-        """Initialize min and max values for opening and closing degrees"""
-        if not self._is_min_max_initialized:
-            _LOGGER.debug(
-                "%s - initialize min offset_calibration and max open_degree", self
+        if self._min_opening_degree >= self._max_opening_degree:
+            self._min_opening_degree = self._opening_threshold
+            _LOGGER.error(
+                "min_opening_degree must be less than the max value of the opening degree of the entity {self._opening_degree_entity_id}. Value has been defaulted to opening threshold ({self._opening_threshold})"
             )
-            if not super().init_min_max_open(force=False):
-                return False
 
-            max_entity = self._hass.states.get(self._opening_degree_entity_id).attributes.get("max")
-            self._max_opening_degree = min(self._max_opening_degree, max_entity if isinstance(max_entity, (int, float)) else 100)
+    @overrides
+    async def check_initial_state(self):
+        """Handle initial valve state change and hvac_mode"""
 
-            self._is_min_max_initialized = self._max_opening_degree is not None
+        hvac_mode = self._thermostat.vtherm_hvac_mode
+        device_valve_opening = self.current_valve_opening  # the real opening value
 
-            if self._min_opening_degree >= self._max_opening_degree:
-                self._min_opening_degree = self._opening_threshold
-                raise ValueError(
-                    f"min_opening_degree must be less than the max value of the opening degree of the entity {self._opening_degree_entity_id}. Value has been defaulted to opening threshold ({self._opening_threshold})"
-                )
+        cuurent_hvac_mode_is_active = self._state_manager.get_state(self._climate_underlying.entity_id).state not in [HVACMode.OFF, STATE_UNAVAILABLE, STATE_UNKNOWN]
 
-        if not self._is_min_max_initialized:
-            _LOGGER.warning(
-                "%s - impossible to initialize max_opening_degree or min_offset_calibration. Abort sending percent open to the valve. This could be a temporary message at startup."
+        should_be_on = hvac_mode != VThermHvacMode_OFF and not self._thermostat.is_sleeping
+        is_on = cuurent_hvac_mode_is_active or (device_valve_opening is not None and device_valve_opening > self._opening_threshold)
+
+        if should_be_on and not is_on:
+            _LOGGER.info(
+                "%s - The valve should be active (hvac_mode=%s, sleeping=%s, percent_open=%.0f), but the underlying device is off or below threshold (current_valve_opening=%.0f). Opening valve %s",
+                self,
+                hvac_mode,
+                self._thermostat.is_sleeping,
+                self._percent_open or 9999,
+                device_valve_opening or 9999,
+                self._entity_id,
             )
-            return False
+            await self._climate_underlying.set_hvac_mode(hvac_mode)
+            if self._thermostat.is_sleeping:
+                self._percent_open = 100
+            else:
+                self._percent_open = self._thermostat.valve_open_percent or self._opening_threshold
+            await self.send_percent_open()
 
-        return True
+        elif not should_be_on and is_on:
+            _LOGGER.info(
+                "%s - The hvac mode is OFF and not sleeping, but the underlying device is not at off. Setting to %d%% device %s",
+                self,
+                self._opening_threshold,
+                self._entity_id,
+            )
+            self._percent_open = self._opening_threshold
+            await self.send_percent_open()
+            await self._climate_underlying.set_hvac_mode(hvac_mode)
+
+    def startup(self):
+        """Startup the Entity. Listen to the underlying state changes"""
+        # starts listening and can provide the initial cached state.
+        entities = [self._climate_underlying.entity_id, self._opening_degree_entity_id]
+        if self._has_max_closing_degree:
+            entities.append(self._closing_degree_entity_id)
+        self._state_manager.add_underlying_entities(entities)
 
     async def send_percent_open(self, _: float = None):
         """Send the percent open to the underlying valve"""
-        if not self.initialize_min_max():
-            return
-
         # Caclulate percent_open
         opening_degree, closing_degree = OpeningClosingDegreeCalculation.calculate_opening_closing_degree(
             brut_valve_open_percent=self._percent_open,
@@ -1335,28 +1425,6 @@ class UnderlyingValveRegulation(UnderlyingValve):
 
         if self.has_closing_degree_entity:
             await self.send_value_to_number(self._closing_degree_entity_id, closing_degree)
-
-        # Since 8.5.0 the syncrhonization is done upon reception of a new temperature from sensor
-        # send offset_calibration to the difference between target temp and local temp
-        # offset = None
-        # if self.has_offset_calibration_entity:
-        #     if (
-        #         (local_temp := self._climate_underlying.underlying_current_temperature)
-        #         is not None
-        #         and (room_temp := self._thermostat.current_temperature) is not None
-        #         and (
-        #             current_offset := get_safe_float(
-        #                 self._hass, self._offset_calibration_entity_id
-        #             )
-        #         )
-        #         is not None
-        #     ):
-        #         val = round_to_nearest(room_temp - (local_temp - current_offset), self._step_sync_entoty)
-        #         offset = min(self._max_offset_calibration, max(self._min_offset_calibration, val))
-        #
-        #         await self.send_value_to_number(
-        #             self._offset_calibration_entity_id, offset
-        #         )
 
         _LOGGER.debug(
             "%s - valve regulation - I have sent opening_degree=%s closing_degree=%s",
@@ -1408,13 +1476,14 @@ class UnderlyingValveRegulation(UnderlyingValve):
     @property
     def is_device_active(self):
         """If the opening valve is open."""
-        if not self.initialize_min_max():
-            return False
+        val = self.current_valve_opening
+        return val > self._opening_threshold if isinstance(val, (int, float)) else False
 
-        if (value := self.last_sent_opening_value) is None:
-            return False
-
-        return value > (100 - self._max_closing_degree)
+    @property
+    def should_device_be_active(self):
+        """If the opening valve is open."""
+        # return value > (100 - self._max_closing_degree) # TODO why this ?
+        return self.hvac_mode not in [VThermHvacMode_OFF] and self._percent_open > self._opening_threshold if isinstance(self._percent_open, (int, float)) else False
 
     @property
     def hvac_action(self) -> HVACAction:
@@ -1442,33 +1511,11 @@ class UnderlyingValveRegulation(UnderlyingValve):
         return ret
 
     @overrides
-    async def check_initial_state(self, hvac_mode: VThermHvacMode):
-        """Check the initial state of the underlying valve"""
-        if hvac_mode == VThermHvacMode_OFF and self._thermostat.is_sleeping and (self.percent_open is None or self.percent_open < 100):
-            _LOGGER.info(
-                "%s - The hvac mode is OFF (sleep mode), but the underlying device is not fully open. Setting to 100%% device %s",
-                self,
-                self._entity_id,
-            )
-            self._percent_open = 100
-            await self.send_percent_open()
-        elif hvac_mode == VThermHvacMode_OFF and not self._thermostat.is_sleeping and (self.percent_open is None or self.percent_open > 0):
-            _LOGGER.info(
-                "%s - The hvac mode is OFF and not sleeping, but the underlying device is not at off. Setting to %d%% device %s",
-                self,
-                0,
-                self._entity_id,
-            )
-            self._percent_open = 0
-            await self.send_percent_open()
-        else:
-            await super().check_initial_state(hvac_mode)
-
-    @overrides
     async def turn_off(self):
         """Turn valve off. In that context it means set the valve to the minimum opening degree."""
         _LOGGER.debug("%s - Stopping underlying entity %s", self, self._entity_id)
         self._percent_open = 0
         await self.send_percent_open()
+        await self._climate_underlying.set_hvac_mode(VThermHvacMode_OFF)
 
 T = TypeVar("T", bound=UnderlyingEntity)
