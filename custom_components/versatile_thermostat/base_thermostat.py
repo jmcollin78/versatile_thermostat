@@ -112,6 +112,7 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
         # To remove some silly warning event if code is fixed
         self._enable_turn_on_off_backwards_compatibility = False
         self._is_removed = False
+        self._is_startup_complete = False
 
         self._hass = hass
         self._entry_infos = None
@@ -552,6 +553,11 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
                 self,
             )
 
+        # Mark startup as complete BEFORE manager refresh - state is now fully restored
+        # and managers can safely evaluate without seeing intermediate values
+        self._is_startup_complete = True
+        _LOGGER.debug("%s - Startup complete, refreshing managers", self)
+
         # Then we:
         # - refresh all managers states,
         # - calculate the current state of the VTherm (it depends on the managers states and the requested state)
@@ -778,6 +784,13 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
         This is useful only for over_climate in which we
         should have found the underlying climate to be operational"""
         return True
+
+    @property
+    def is_startup_complete(self) -> bool:
+        """Check if the VTherm startup sequence has completed.
+        This is used to prevent managers from acting on intermediate states
+        during initialization."""
+        return self._is_startup_complete
 
     @property
     def vtherm_hvac_modes(self) -> list[VThermHvacMode]:

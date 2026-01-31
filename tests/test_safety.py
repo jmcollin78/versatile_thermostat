@@ -97,6 +97,31 @@ async def test_safety_feature_manager_post_init(
         assert custom_attributes["safety_manager"].get("safety_default_on_percent", None) == safety_default_on_percent or DEFAULT_SAFETY_DEFAULT_ON_PERCENT
 
 
+async def test_safety_feature_manager_skips_during_startup(
+    hass: HomeAssistant,
+):
+    """Test that safety manager skips evaluation during startup"""
+
+    fake_vtherm = MagicMock(spec=BaseThermostat)
+    type(fake_vtherm).name = PropertyMock(return_value="the name")
+    type(fake_vtherm).is_startup_complete = PropertyMock(return_value=False)
+
+    safety_manager = FeatureSafetyManager(fake_vtherm, hass)
+    safety_manager.post_init(
+        {
+            CONF_SAFETY_DELAY_MIN: 10,
+            CONF_SAFETY_MIN_ON_PERCENT: 0.1,
+            CONF_SAFETY_DEFAULT_ON_PERCENT: 0.2,
+        }
+    )
+
+    assert safety_manager.is_configured is True
+
+    # refresh_state should return False and not evaluate during startup
+    result = await safety_manager.refresh_state()
+    assert result is False
+
+
 @pytest.mark.parametrize("expected_lingering_tasks", [True])
 @pytest.mark.parametrize("expected_lingering_timers", [True])
 async def test_security_feature(hass: HomeAssistant, skip_hass_states_is_state):

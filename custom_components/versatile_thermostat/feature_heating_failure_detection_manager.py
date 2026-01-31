@@ -159,6 +159,11 @@ class FeatureHeatingFailureDetectionManager(BaseFeatureManager):
             _LOGGER.debug("%s - heating failure detection is disabled (or not configured)", self)
             return False
 
+        # Skip evaluation during startup to avoid acting on intermediate states
+        if not self._vtherm.is_startup_complete:
+            _LOGGER.debug("%s - skipping heating failure detection during startup", self)
+            return False
+
         # Only check for VTherms with proportional algorithm
         if not self._vtherm.has_prop:
             _LOGGER.debug("%s - heating failure detection skipped (no proportional algorithm)", self)
