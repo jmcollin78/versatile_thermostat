@@ -7,6 +7,7 @@ from datetime import timedelta, datetime
 from homeassistant.core import HomeAssistant
 
 from homeassistant.components.binary_sensor import BinarySensorDeviceClass
+from homeassistant.components.switch import SwitchEntity
 
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
@@ -32,6 +33,9 @@ async def test_safety_binary_sensors(
     skip_send_event,
 ):  # pylint: disable=unused-argument
     """Test the security binary sensors in thermostat type"""
+
+    switch = MockSwitch(hass, "mock_switch", "theSwitch1")
+    await register_mock_entity(hass, switch, SWITCH_DOMAIN)
 
     entry = MockConfigEntry(
         domain=DOMAIN,
@@ -93,6 +97,8 @@ async def test_safety_binary_sensors(
 
     # set temperature now
     await send_temperature_change_event(entity, 15, now)
+    await hass.async_block_till_done()
+
     assert entity.safety_state is not STATE_ON
     # Simulate the event reception
     await safety_binary_sensor.async_my_climate_changed()
@@ -115,6 +121,9 @@ async def test_overpowering_binary_sensors(
         "comfort": 18,
         "boost": 19,
     }
+
+    switch = MockSwitch(hass, "mock_switch", "theSwitch1")
+    await register_mock_entity(hass, switch, SWITCH_DOMAIN)
 
     entry = MockConfigEntry(
         domain=DOMAIN,
@@ -216,6 +225,9 @@ async def test_window_binary_sensors(
 ):
     """Test the window binary sensors in thermostat type"""
 
+    switch = MockSwitch(hass, "mock_switch", "theSwitch1")
+    await register_mock_entity(hass, switch, SWITCH_DOMAIN)
+
     entry = MockConfigEntry(
         domain=DOMAIN,
         title="TheOverSwitchMockName",
@@ -303,6 +315,9 @@ async def test_motion_binary_sensors(
     skip_send_event,
 ):
     """Test the motion binary sensors in thermostat type"""
+
+    switch = MockSwitch(hass, "mock_switch", "theSwitch1")
+    await register_mock_entity(hass, switch, SWITCH_DOMAIN)
 
     entry = MockConfigEntry(
         domain=DOMAIN,
@@ -395,6 +410,9 @@ async def test_presence_binary_sensors(
 ):
     """Test the presence binary sensors in thermostat type"""
 
+    switch = MockSwitch(hass, "mock_switch", "theSwitch1")
+    await register_mock_entity(hass, switch, SWITCH_DOMAIN)
+
     entry = MockConfigEntry(
         domain=DOMAIN,
         title="TheOverSwitchMockName",
@@ -480,43 +498,37 @@ async def test_binary_sensors_over_climate_minimal(
 ):
     """Test the binary sensors with thermostat over climate type"""
 
-    the_mock_underlying = MagicMockClimate()
-    with patch(
-        "custom_components.versatile_thermostat.underlyings.UnderlyingClimate.find_underlying_climate",
-        return_value=the_mock_underlying,
-    ):
-        entry = MockConfigEntry(
-            domain=DOMAIN,
-            title="TheOverClimateMockName",
-            unique_id="uniqueId",
-            data={
-                CONF_NAME: "TheOverClimateMockName",
-                CONF_THERMOSTAT_TYPE: CONF_THERMOSTAT_CLIMATE,
-                CONF_TEMP_SENSOR: "sensor.mock_temp_sensor",
-                CONF_EXTERNAL_TEMP_SENSOR: "sensor.mock_ext_temp_sensor",
-                CONF_CYCLE_MIN: 5,
-                CONF_TEMP_MIN: 15,
-                CONF_TEMP_MAX: 30,
-                "eco_temp": 17,
-                "comfort_temp": 18,
-                "boost_temp": 19,
-                CONF_USE_WINDOW_FEATURE: False,
-                CONF_USE_MOTION_FEATURE: False,
-                CONF_USE_POWER_FEATURE: False,
-                CONF_USE_PRESENCE_FEATURE: False,
-                CONF_UNDERLYING_LIST: ["climate.mock_climate"],
-                CONF_MINIMAL_ACTIVATION_DELAY: 30,
-                CONF_MINIMAL_DEACTIVATION_DELAY: 0,
-                CONF_SAFETY_DELAY_MIN: 5,
-                CONF_SAFETY_MIN_ON_PERCENT: 0.3,
-            },
-        )
+    await create_and_register_mock_climate(hass, "mock_climate", "MockClimateName", {})
+    entry = MockConfigEntry(
+        domain=DOMAIN,
+        title="TheOverClimateMockName",
+        unique_id="uniqueId",
+        data={
+            CONF_NAME: "TheOverClimateMockName",
+            CONF_THERMOSTAT_TYPE: CONF_THERMOSTAT_CLIMATE,
+            CONF_TEMP_SENSOR: "sensor.mock_temp_sensor",
+            CONF_EXTERNAL_TEMP_SENSOR: "sensor.mock_ext_temp_sensor",
+            CONF_CYCLE_MIN: 5,
+            CONF_TEMP_MIN: 15,
+            CONF_TEMP_MAX: 30,
+            "eco_temp": 17,
+            "comfort_temp": 18,
+            "boost_temp": 19,
+            CONF_USE_WINDOW_FEATURE: False,
+            CONF_USE_MOTION_FEATURE: False,
+            CONF_USE_POWER_FEATURE: False,
+            CONF_USE_PRESENCE_FEATURE: False,
+            CONF_UNDERLYING_LIST: ["climate.mock_climate"],
+            CONF_MINIMAL_ACTIVATION_DELAY: 30,
+            CONF_MINIMAL_DEACTIVATION_DELAY: 0,
+            CONF_SAFETY_DELAY_MIN: 5,
+            CONF_SAFETY_MIN_ON_PERCENT: 0.3,
+        },
+    )
 
-        entity: BaseThermostat = await create_thermostat(
-            hass, entry, "climate.theoverclimatemockname"
-        )
-        assert entity
-        assert entity.is_over_climate
+    entity: BaseThermostat = await create_thermostat(hass, entry, "climate.theoverclimatemockname")
+    assert entity
+    assert entity.is_over_climate
 
     safety_binary_sensor: SafetyBinarySensor = search_entity(hass, "binary_sensor.theoverclimatemockname_safety_state", "binary_sensor")
     assert safety_binary_sensor is not None
