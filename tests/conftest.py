@@ -23,6 +23,7 @@ import pytest
 from pytest_socket import socket_allow_hosts
 
 from homeassistant.core import StateMachine, State
+from homeassistant.components.switch import DOMAIN as SWITCH_DOMAIN
 
 from custom_components.versatile_thermostat.config_flow import (
     VersatileThermostatBaseConfigFlow,
@@ -37,11 +38,7 @@ from custom_components.versatile_thermostat.const import (
 from custom_components.versatile_thermostat.vtherm_api import VersatileThermostatAPI
 from custom_components.versatile_thermostat.base_thermostat import BaseThermostat
 
-from .commons import (
-    create_central_config,
-    FULL_CENTRAL_CONFIG,
-    FULL_CENTRAL_CONFIG_WITH_BOILER,
-)
+from .commons import create_central_config, FULL_CENTRAL_CONFIG, FULL_CENTRAL_CONFIG_WITH_BOILER, MockSwitch, register_mock_entity
 
 # ...
 def pytest_runtest_setup():
@@ -198,3 +195,11 @@ async def init_central_power_manager_fixture(
     assert vtherm_api.central_power_manager.is_configured
 
     yield
+
+
+@pytest.fixture(name="with_underlying_switch")
+async def with_underlying_switch_fixture(hass):
+    """Fixture to add an underlying switch named "switch.mock_switch" to a test"""
+    switch = MockSwitch(hass, "mock_switch", "theMockedSwitch")
+    await register_mock_entity(hass, switch, SWITCH_DOMAIN)
+    yield switch

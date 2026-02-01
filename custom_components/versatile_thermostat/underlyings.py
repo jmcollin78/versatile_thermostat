@@ -126,7 +126,11 @@ class UnderlyingEntity:
                 await self._thermostat.init_underlyings_completed(self._entity_id)
             else:
                 _LOGGER.debug("%s - Underlying state still not yet initialized", self)
-        # Otherwise, nothing to do here: the manager holds the latest state
+        # Otherwise, the manager holds the latest state
+        # Update the hvac_action of the parent which could have changed
+        if self._thermostat.hvac_action != self._thermostat.calculate_hvac_action():
+            self._thermostat.update_custom_attributes()
+            self._thermostat.async_write_ha_state()
 
     async def set_hvac_mode(self, hvac_mode: VThermHvacMode):
         """Set the HVACmode"""
