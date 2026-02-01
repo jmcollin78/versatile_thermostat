@@ -28,9 +28,10 @@ async def test_underlying_switch_turn_on_after_remove(
     hass: HomeAssistant,
     skip_hass_states_is_state,
     skip_send_event,
+    fake_underlying_switch: MockSwitch,
 ):
     """Test that _turn_on_later does nothing after remove_entity() is called.
-    
+
     This simulates the race condition where a timer callback fires
     after the entity has been removed during a reload.
     """
@@ -56,7 +57,7 @@ async def test_underlying_switch_turn_on_after_remove(
             CONF_USE_MOTION_FEATURE: False,
             CONF_USE_POWER_FEATURE: False,
             CONF_USE_PRESENCE_FEATURE: False,
-            CONF_HEATER: "switch.mock_switch1",
+            CONF_HEATER: "switch.mock_switch",
             CONF_MINIMAL_ACTIVATION_DELAY: 0,
             CONF_MINIMAL_DEACTIVATION_DELAY: 0,
             CONF_SAFETY_DELAY_MIN: 5,
@@ -123,6 +124,7 @@ async def test_underlying_switch_turn_off_after_remove(
     hass: HomeAssistant,
     skip_hass_states_is_state,
     skip_send_event,
+    fake_underlying_switch: MockSwitch,
 ):
     """Test that _turn_off_later does nothing after remove_entity() is called."""
     tz = get_tz(hass)
@@ -147,7 +149,7 @@ async def test_underlying_switch_turn_off_after_remove(
             CONF_USE_MOTION_FEATURE: False,
             CONF_USE_POWER_FEATURE: False,
             CONF_USE_PRESENCE_FEATURE: False,
-            CONF_HEATER: "switch.mock_switch1",
+            CONF_HEATER: "switch.mock_switch",
             CONF_MINIMAL_ACTIVATION_DELAY: 0,
             CONF_MINIMAL_DEACTIVATION_DELAY: 0,
             CONF_SAFETY_DELAY_MIN: 5,
@@ -207,6 +209,7 @@ async def test_underlying_switch_callbacks_cleared_after_remove(
     hass: HomeAssistant,
     skip_hass_states_is_state,
     skip_send_event,
+    fake_underlying_switch: MockSwitch,
 ):
     """Test that cycle callbacks are cleared after remove_entity()."""
     tz = get_tz(hass)
@@ -231,7 +234,7 @@ async def test_underlying_switch_callbacks_cleared_after_remove(
             CONF_USE_MOTION_FEATURE: False,
             CONF_USE_POWER_FEATURE: False,
             CONF_USE_PRESENCE_FEATURE: False,
-            CONF_HEATER: "switch.mock_switch1",
+            CONF_HEATER: "switch.mock_switch",
             CONF_MINIMAL_ACTIVATION_DELAY: 0,
             CONF_MINIMAL_DEACTIVATION_DELAY: 0,
             CONF_SAFETY_DELAY_MIN: 5,

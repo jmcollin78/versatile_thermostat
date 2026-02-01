@@ -90,14 +90,11 @@ async def test_over_climate_full_start(hass: HomeAssistant, skip_hass_states_is_
         data=PARTIAL_CLIMATE_CONFIG,
     )
 
-    fake_underlying_climate = MockClimate(hass, "mockUniqueId", "MockClimateName", {}, hvac_modes=[VThermHvacMode_HEAT, VThermHvacMode_OFF, VThermHvacMode_HEAT_COOL])
+    fake_underlying_climate = await create_and_register_mock_climate(
+        hass, "mock_climate", "MockClimateName", {}, hvac_modes=[VThermHvacMode_HEAT, VThermHvacMode_OFF, VThermHvacMode_HEAT_COOL]
+    )
 
-    with patch(
-        "custom_components.versatile_thermostat.base_thermostat.BaseThermostat.send_event"
-    ) as mock_send_event, patch(
-        "custom_components.versatile_thermostat.underlyings.UnderlyingClimate.find_underlying_climate",
-        return_value=fake_underlying_climate,
-    ) as mock_find_climate:
+    with patch("custom_components.versatile_thermostat.base_thermostat.BaseThermostat.send_event") as mock_send_event:
         entity = await create_thermostat(hass, entry, "climate.theoverclimatemockname")
 
         assert entity
@@ -137,15 +134,14 @@ async def test_over_climate_full_start(hass: HomeAssistant, skip_hass_states_is_
             ]
         )
 
-        assert mock_find_climate.call_count == 1
-        assert mock_find_climate.mock_calls[0] == call()
-        mock_find_climate.assert_has_calls([call.find_underlying_entity()])
-
-
 @pytest.mark.parametrize("expected_lingering_tasks", [True])
 @pytest.mark.parametrize("expected_lingering_timers", [True])
 async def test_over_4switch_full_start(hass: HomeAssistant, skip_hass_states_is_state):
     """Test the normal full start of a thermostat in thermostat_over_switch with 4 switches type"""
+
+    for switch_id in ["mock_4switch0", "mock_4switch1", "mock_4switch2", "mock_4switch3"]:
+        switch = MockSwitch(hass, switch_id, switch_id + "_name")
+        await register_mock_entity(hass, switch, SWITCH_DOMAIN)
 
     entry = MockConfigEntry(
         domain=DOMAIN,
@@ -207,9 +203,7 @@ async def test_over_4switch_full_start(hass: HomeAssistant, skip_hass_states_is_
 
 @pytest.mark.parametrize("expected_lingering_tasks", [True])
 @pytest.mark.parametrize("expected_lingering_timers", [True])
-async def test_over_switch_deactivate_preset(
-    hass: HomeAssistant, skip_hass_states_is_state
-):
+async def test_over_switch_deactivate_preset(hass: HomeAssistant, skip_hass_states_is_state, fake_underlying_switch: MockSwitch):
     """Test the normal full start of a thermostat in thermostat_over_switch type"""
 
     entry = MockConfigEntry(
@@ -232,7 +226,7 @@ async def test_over_switch_deactivate_preset(
             CONF_USE_MOTION_FEATURE: False,
             CONF_USE_POWER_FEATURE: False,
             CONF_USE_PRESENCE_FEATURE: False,
-            CONF_HEATER: "switch.mock_switch1",
+            CONF_HEATER: "switch.mock_switch",
             CONF_HEATER_2: None,
             CONF_HEATER_3: None,
             CONF_HEATER_4: None,

@@ -1027,7 +1027,7 @@ class UnderlyingClimate(UnderlyingEntity):
     @property
     def supported_features(self) -> ClimateEntityFeature:
         """Get the supported features of the climate"""
-        return self.get_underlying_attribute("supported_features")
+        return self.get_underlying_attribute("supported_features") or ClimateEntityFeature(0)
 
     @property
     def hvac_modes(self) -> list[VThermHvacMode]:

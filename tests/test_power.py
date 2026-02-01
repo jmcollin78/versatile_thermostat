@@ -263,9 +263,7 @@ async def test_power_feature_manager_set_overpowering(
 
 @pytest.mark.parametrize("expected_lingering_tasks", [True])
 @pytest.mark.parametrize("expected_lingering_timers", [True])
-async def test_power_management_hvac_off(
-    hass: HomeAssistant, skip_hass_states_is_state, init_central_power_manager
-):
+async def test_power_management_hvac_off(hass: HomeAssistant, skip_hass_states_is_state, init_central_power_manager, fake_underlying_switch: MockSwitch):
     """Test the Power management"""
 
     temps = {
@@ -371,9 +369,7 @@ async def test_power_management_hvac_off(
 
 @pytest.mark.parametrize("expected_lingering_tasks", [True])
 @pytest.mark.parametrize("expected_lingering_timers", [True])
-async def test_power_management_hvac_on(
-    hass: HomeAssistant, skip_hass_states_is_state, init_central_power_manager
-):
+async def test_power_management_hvac_on(hass: HomeAssistant, skip_hass_states_is_state, init_central_power_manager, fake_underlying_switch: MockSwitch):
     """Test the Power management"""
 
     temps = {
@@ -541,9 +537,7 @@ async def test_power_management_hvac_on(
 
 @pytest.mark.parametrize("expected_lingering_tasks", [True])
 @pytest.mark.parametrize("expected_lingering_timers", [True])
-async def test_power_management_energy_over_switch(
-    hass: HomeAssistant, skip_hass_states_is_state, init_central_power_manager
-):
+async def test_power_management_energy_over_switch(hass: HomeAssistant, skip_hass_states_is_state, init_central_power_manager, fake_underlying_switch: MockSwitch):
     """Test the Power management energy mesurement"""
 
     temps = {
@@ -682,9 +676,7 @@ async def test_power_management_energy_over_switch(
 
 @pytest.mark.parametrize("expected_lingering_tasks", [True])
 @pytest.mark.parametrize("expected_lingering_timers", [True])
-async def test_power_management_energy_over_climate(
-    hass: HomeAssistant, skip_hass_states_is_state
-):
+async def test_power_management_energy_over_climate(hass: HomeAssistant, skip_hass_states_is_state, fake_underlying_climate: MockClimate):
     """Test the Power management for a over_climate thermostat"""
 
     temps = {
@@ -693,42 +685,36 @@ async def test_power_management_energy_over_climate(
         "boost": 19,
     }
 
-    the_mock_underlying = MockClimate(hass=hass, unique_id="mock_climate", name="TheMockClimate")
-    with patch(
-        "custom_components.versatile_thermostat.underlyings.UnderlyingClimate.find_underlying_climate",
-        return_value=the_mock_underlying,
-    ):
-        entry = MockConfigEntry(
-            domain=DOMAIN,
-            title="TheOverClimateMockName",
-            unique_id="uniqueId",
-            data={
-                CONF_NAME: "TheOverClimateMockName",
-                CONF_THERMOSTAT_TYPE: CONF_THERMOSTAT_CLIMATE,
-                CONF_TEMP_SENSOR: "sensor.mock_temp_sensor",
-                CONF_EXTERNAL_TEMP_SENSOR: "sensor.mock_ext_temp_sensor",
-                CONF_CYCLE_MIN: 5,
-                CONF_TEMP_MIN: 15,
-                CONF_TEMP_MAX: 30,
-                CONF_USE_WINDOW_FEATURE: False,
-                CONF_USE_MOTION_FEATURE: False,
-                CONF_USE_POWER_FEATURE: True,
-                CONF_USE_PRESENCE_FEATURE: False,
-                CONF_UNDERLYING_LIST: ["climate.mock_climate"],
-                CONF_MINIMAL_ACTIVATION_DELAY: 30,
-                CONF_MINIMAL_DEACTIVATION_DELAY: 0,
-                CONF_SAFETY_DELAY_MIN: 5,
-                CONF_SAFETY_MIN_ON_PERCENT: 0.3,
-                CONF_DEVICE_POWER: 100,
-                CONF_PRESET_POWER: 12,
-            },
-        )
+    # the_mock_underlying = MockClimate(hass=hass, unique_id="mock_climate", name="TheMockClimate")
+    entry = MockConfigEntry(
+        domain=DOMAIN,
+        title="TheOverClimateMockName",
+        unique_id="uniqueId",
+        data={
+            CONF_NAME: "TheOverClimateMockName",
+            CONF_THERMOSTAT_TYPE: CONF_THERMOSTAT_CLIMATE,
+            CONF_TEMP_SENSOR: "sensor.mock_temp_sensor",
+            CONF_EXTERNAL_TEMP_SENSOR: "sensor.mock_ext_temp_sensor",
+            CONF_CYCLE_MIN: 5,
+            CONF_TEMP_MIN: 15,
+            CONF_TEMP_MAX: 30,
+            CONF_USE_WINDOW_FEATURE: False,
+            CONF_USE_MOTION_FEATURE: False,
+            CONF_USE_POWER_FEATURE: True,
+            CONF_USE_PRESENCE_FEATURE: False,
+            CONF_UNDERLYING_LIST: ["climate.mock_climate"],
+            CONF_MINIMAL_ACTIVATION_DELAY: 30,
+            CONF_MINIMAL_DEACTIVATION_DELAY: 0,
+            CONF_SAFETY_DELAY_MIN: 5,
+            CONF_SAFETY_MIN_ON_PERCENT: 0.3,
+            CONF_DEVICE_POWER: 100,
+            CONF_PRESET_POWER: 12,
+        },
+    )
 
-        entity: ThermostatOverSwitch = await create_thermostat(
-            hass, entry, "climate.theoverclimatemockname", temps
-        )
-        assert entity
-        assert entity.is_over_climate
+    entity: ThermostatOverSwitch = await create_thermostat(hass, entry, "climate.theoverclimatemockname", temps)
+    assert entity
+    assert entity.is_over_climate
 
     now = datetime.now(tz=get_tz(hass))
     entity._set_now(now)
@@ -750,8 +736,8 @@ async def test_power_management_energy_over_climate(
     # 1. Start heating
     now = now + timedelta(minutes=3)
     entity._set_now(now)
-    the_mock_underlying.set_hvac_mode(VThermHvacMode_HEAT)
-    the_mock_underlying.set_hvac_action(HVACAction.HEATING)
+    fake_underlying_climate.set_hvac_mode(VThermHvacMode_HEAT)
+    fake_underlying_climate.set_hvac_action(HVACAction.HEATING)
     await send_climate_change_event(
         entity,
         new_hvac_mode=VThermHvacMode_HEAT,
@@ -776,7 +762,7 @@ async def test_power_management_energy_over_climate(
     # 3. wait a few and send a climate_change event with HVACAction=IDLE (end of heating)
     now = now + timedelta(minutes=10)
     entity._set_now(now)
-    the_mock_underlying.set_hvac_action(HVACAction.IDLE)
+    fake_underlying_climate.set_hvac_action(HVACAction.IDLE)
     await send_climate_change_event(
         entity,
         new_hvac_mode=VThermHvacMode_HEAT,
@@ -802,7 +788,7 @@ async def test_power_management_energy_over_climate(
 
 @pytest.mark.parametrize("expected_lingering_tasks", [True])
 @pytest.mark.parametrize("expected_lingering_timers", [True])
-async def test_power_management_turn_off_while_shedding(hass: HomeAssistant, skip_hass_states_is_state, init_central_power_manager):
+async def test_power_management_turn_off_while_shedding(hass: HomeAssistant, skip_hass_states_is_state, init_central_power_manager, fake_underlying_switch: MockSwitch):
     """Test the Power management and that we can turn off a Vtherm that
     is in overpowering state"""
 
