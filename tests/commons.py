@@ -264,6 +264,8 @@ class MockClimate(ClimateEntity):
         swing_modes: list[str] | None = None,
         swing_horizontal_mode: str | None = None,
         swing_horizontal_modes: list[str] | None = None,
+        min_temp: float = 7.0,
+        max_temp: float = 35.0,
         add_state: bool = True,
     ) -> None:
         """Initialize the thermostat."""
@@ -293,6 +295,8 @@ class MockClimate(ClimateEntity):
         self._attr_fan_mode = None
         self._attr_preset_modes = [PRESET_COMFORT, PRESET_ECO, PRESET_BOOST]
         self._attr_preset_mode = None
+        self._attr_min_temp = min_temp
+        self._attr_max_temp = max_temp
 
         if add_state:
             # add the entity to hass states
@@ -397,6 +401,10 @@ class MockClimate(ClimateEntity):
             attributes["swing_horizontal_modes"] = self.swing_horizontal_modes
         if self.supported_features:
             attributes["supported_features"] = self.supported_features
+        if self._attr_min_temp is not None:
+            attributes["min_temp"] = self._attr_min_temp
+        if self._attr_max_temp is not None:
+            attributes["max_temp"] = self._attr_max_temp
         attributes["temperature_unit"] = self.temperature_unit
 
         return attributes
@@ -734,10 +742,26 @@ async def create_and_register_mock_climate(
     swing_modes: list[str] | None = None,
     swing_horizontal_mode: str | None = None,
     swing_horizontal_modes: list[str] | None = None,
+    min_temp: float = 7.0,
+    max_temp: float = 35.0,
 ):
     """Create and register a mock climate entity"""
     mock_climate = MockClimate(
-        hass, unique_id, name, entry_infos, hvac_mode, hvac_action, fan_modes, hvac_modes, swing_mode, swing_modes, swing_horizontal_mode, swing_horizontal_modes, add_state=False
+        hass,
+        unique_id,
+        name,
+        entry_infos,
+        hvac_mode,
+        hvac_action,
+        fan_modes,
+        hvac_modes,
+        swing_mode,
+        swing_modes,
+        swing_horizontal_mode,
+        swing_horizontal_modes,
+        min_temp=min_temp,
+        max_temp=max_temp,
+        add_state=False,
     )
     await register_mock_entity(hass, mock_climate, CLIMATE_DOMAIN)
     return mock_climate
