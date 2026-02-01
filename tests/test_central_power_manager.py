@@ -711,7 +711,9 @@ async def test_central_power_manager_max_power_event(
         assert mock_calculate_shedding.call_count == nb_call
 
 
-async def test_central_power_manager_start_vtherm_power(hass: HomeAssistant, skip_hass_states_is_state, init_central_power_manager):
+async def test_central_power_manager_start_vtherm_power(
+    hass: HomeAssistant, skip_hass_states_is_state, init_central_power_manager, fake_underlying_switch: MockSwitch, fake_underlying_climate: MockClimate
+):
     """Tests the central power start VTherm power. The objective is to starts VTherm until the power max is exceeded"""
 
     temps = {
@@ -823,16 +825,15 @@ async def test_central_power_manager_start_vtherm_power(hass: HomeAssistant, ski
     entity2: ThermostatOverClimate = await create_thermostat(hass, entry2, "climate.theoverclimatemockname2", temps)
     assert entity2
 
-    fake_underlying_climate = MockClimate(
-        hass=hass,
-        unique_id="mockUniqueId",
-        name="MockClimateName",
-    )
+    # fake_underlying_climate = MockClimate(
+    #     hass=hass,
+    #     unique_id="mockUniqueId",
+    #     name="MockClimateName",
+    # )
 
     # fmt: off
     with patch("homeassistant.core.StateMachine.get", side_effect=side_effects.get_side_effects()), \
-         patch("custom_components.versatile_thermostat.thermostat_switch.ThermostatOverSwitch.is_device_active", new_callable=PropertyMock, return_value=False), \
-         patch("custom_components.versatile_thermostat.underlyings.UnderlyingClimate.find_underlying_climate",return_value=fake_underlying_climate):
+         patch("custom_components.versatile_thermostat.thermostat_switch.ThermostatOverSwitch.is_device_active", new_callable=PropertyMock, return_value=False):
     # fmt: on
         # make the heater heats
         await entity2.async_set_preset_mode(VThermPreset.COMFORT)

@@ -396,7 +396,7 @@ async def test_tracking_info_attributes(hass: HomeAssistant):
 
 @pytest.mark.parametrize("expected_lingering_tasks", [True])
 @pytest.mark.parametrize("expected_lingering_timers", [True])
-async def test_heating_failure_detection_integrated(hass: HomeAssistant, skip_hass_states_is_state):
+async def test_heating_failure_detection_integrated(hass: HomeAssistant, skip_hass_states_is_state, fake_underlying_switch: MockSwitch):
     """Test the heating failure detection with a full VTherm instance
     1. creates a thermostat with heating failure detection enabled
     2. simulate high on_percent with temperature not increasing
@@ -523,7 +523,7 @@ async def test_heating_failure_detection_integrated(hass: HomeAssistant, skip_ha
 
 @pytest.mark.parametrize("expected_lingering_tasks", [True])
 @pytest.mark.parametrize("expected_lingering_timers", [True])
-async def test_cooling_failure_detection_integrated(hass: HomeAssistant, skip_hass_states_is_state):
+async def test_cooling_failure_detection_integrated(hass: HomeAssistant, skip_hass_states_is_state, fake_underlying_switch: MockSwitch):
     """Test the cooling failure detection with a full VTherm instance
     1. creates a thermostat with heating failure detection enabled
     2. simulate on_percent at 0 with temperature increasing
@@ -647,7 +647,7 @@ async def test_cooling_failure_detection_integrated(hass: HomeAssistant, skip_ha
 
 @pytest.mark.parametrize("expected_lingering_tasks", [True])
 @pytest.mark.parametrize("expected_lingering_timers", [True])
-async def test_heating_failure_detection_hvac_off_resets(hass: HomeAssistant, skip_hass_states_is_state):
+async def test_heating_failure_detection_hvac_off_resets(hass: HomeAssistant, skip_hass_states_is_state, fake_underlying_switch: MockSwitch):
     """Test that switching to HVAC OFF resets the failure detection"""
 
     tz = get_tz(hass)
