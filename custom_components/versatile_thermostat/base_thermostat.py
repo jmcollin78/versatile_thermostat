@@ -502,16 +502,11 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
 
         await self.get_my_previous_state()
 
-        # Initialize all UnderlyingEntities
-        self.init_underlyings()
-
         # Register callbacks to new underlyings
         for under in self._underlyings:
-            for callback in self._on_cycle_start_callbacks:
-                under.register_cycle_callback(callback)
-
-        # init presets. Should be after underlyings init because for over_climate it uses the hvac_modes
-        await self.init_presets(central_configuration)
+            under.startup()
+            for cb in self._on_cycle_start_callbacks:
+                under.register_cycle_callback(cb)
 
         temperature_state = self.hass.states.get(self._temp_sensor_entity_id)
         if temperature_state and temperature_state.state not in (
@@ -552,6 +547,16 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
                 self,
             )
 
+    async def init_underlyings_completed(self, under_entity_id: str):
+        """All underlyings have been initialized. Then we can finish our initialization"""
+        if not self.is_initialized:
+            return
+
+        vtherm_api = VersatileThermostatAPI.get_vtherm_api()
+
+        # init presets. Should be after underlyings init because for over_climate it uses the hvac_modes
+        await self.init_presets(vtherm_api.find_central_configuration())
+
         # Then we:
         # - refresh all managers states,
         # - calculate the current state of the VTherm (it depends on the managers states and the requested state)
@@ -568,11 +573,9 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
         self.recalculate()
 
         # check initial state should be done after the current state has been calculated and so after the manager has been updated
-        await self._check_initial_state()
+        # issue 1654 - initial state check should be done after the underlyings has come to life
+        # await self._check_initial_state()
         self.reset_last_change_time_from_vtherm()
-
-    def init_underlyings(self):
-        """Initialize all underlyings. Should be overridden if necessary"""
 
     def restore_specific_previous_state(self, old_state: State):
         """Should be overridden in each specific thermostat
@@ -690,12 +693,12 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
         """Called when the entry have changed in ConfigFlow"""
         _LOGGER.info("%s - Change entry with the values: %s", self, config_entry.data)
 
-    @callback
-    async def _check_initial_state(self):
-        """Prevent the device from keep running if HVAC_MODE_OFF."""
-        _LOGGER.debug("%s - Calling _check_initial_state", self)
-        for under in self._underlyings:
-            await under.check_initial_state(self.vtherm_hvac_mode)
+    # #1654 - no more needed now @callback
+    # async def _check_initial_state(self):
+    #     """Prevent the device from keep running if HVAC_MODE_OFF."""
+    #     _LOGGER.debug("%s - Calling _check_initial_state", self)
+    #     for under in self._underlyings:
+    #         await under.check_initial_state(self.vtherm_hvac_mode)
 
     async def init_presets(self, central_config):
         """Init all presets of the VTherm"""
@@ -889,6 +892,14 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
     def supported_features(self) -> ClimateEntityFeature:
         """Return the list of supported features."""
         return self._support_flags
+
+    @property
+    def should_device_be_active(self) -> bool:
+        """Returns true if one underlying is active"""
+        for under in self._underlyings:
+            if under.should_device_be_active:
+                return True
+        return False
 
     @property
     def is_device_active(self) -> bool:
@@ -1403,10 +1414,10 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
 
         # In over_climate mode, if the underlying climate is not initialized,
         # try to initialize it
-        if not self.is_initialized:
-            if not self.init_underlyings():
-                # still not found, we an stop here
-                return False
+        # if not self.is_initialized:
+        #     if not self.init_underlyings():
+        #         # still not found, we an stop here
+        #         return False
 
         if timestamp and await self._safety_manager.refresh_and_update_if_changed():
             return False
@@ -1603,6 +1614,7 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
                 "ext_current_temperature": self._cur_ext_temp,
                 "last_temperature_datetime": self._last_temperature_measure.astimezone(self._current_tz).isoformat(),
                 "last_ext_temperature_datetime": self._last_ext_temperature_measure.astimezone(self._current_tz).isoformat(),
+                "should_device_be_active": self.should_device_be_active,
                 "is_device_active": self.is_device_active,
                 "device_actives": self.device_actives,
                 "nb_device_actives": self.nb_device_actives,

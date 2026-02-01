@@ -9,7 +9,7 @@ from datetime import datetime, timedelta
 
 from enum import StrEnum
 
-from homeassistant.const import ATTR_ENTITY_ID, STATE_ON, STATE_OFF, STATE_UNAVAILABLE, STATE_UNKNOWN
+from homeassistant.const import ATTR_ENTITY_ID, STATE_ON, STATE_OFF, STATE_UNAVAILABLE, STATE_UNKNOWN, UnitOfTemperature
 from homeassistant.core import State
 
 from homeassistant.exceptions import ServiceNotFound
@@ -1061,7 +1061,7 @@ class UnderlyingClimate(UnderlyingEntity):
     @property
     def temperature_unit(self) -> str:
         """Get the temperature_unit"""
-        return self.get_underlying_attribute("temperature_unit")
+        return self.get_underlying_attribute("temperature_unit") or UnitOfTemperature.CELSIUS
 
     @property
     def min_temp(self) -> str:

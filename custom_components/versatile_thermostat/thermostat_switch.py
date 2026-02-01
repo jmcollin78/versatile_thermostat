@@ -151,8 +151,6 @@ class ThermostatOverSwitch(ThermostatProp[UnderlyingSwitch]):
 
         _LOGGER.debug("%s - Calling update_custom_attributes: %s", self, self._attr_extra_state_attributes)
 
-
-
     @overrides
     def incremente_energy(self):
         """increment the energy counter if device is active"""
@@ -199,8 +197,9 @@ class ThermostatOverSwitch(ThermostatProp[UnderlyingSwitch]):
         write_event_log(_LOGGER, self, f"Underlying switch state changed from {old_state.state if old_state else None} to {new_state.state if new_state else None}")
         if new_state is None:
             return
-        if old_state is None:
-            self.hass.create_task(self._check_initial_state())
+        # #1654 - nno more needed now
+        # if old_state is None:
+        #     self.hass.create_task(self._check_initial_state())
 
         self.calculate_hvac_action()
         self.update_custom_attributes()

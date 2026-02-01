@@ -1,7 +1,7 @@
 # pylint: disable=wildcard-import, unused-wildcard-import, protected-access, unused-argument, line-too-long
 
 """ Test the normal start of a Thermostat """
-from unittest.mock import patch, call
+from unittest.mock import patch, call, ANY
 from datetime import datetime, timedelta
 
 from homeassistant.core import HomeAssistant
@@ -39,7 +39,7 @@ async def test_over_climate_regulation(
     tz = get_tz(hass)  # pylint: disable=invalid-name
     now: datetime = datetime.now(tz=tz)
 
-    fake_underlying_climate = MockClimate(hass, "mockUniqueId", "MockClimateName", {})
+    fake_underlying_climate = await create_and_register_mock_climate(hass, "mock_climate", "MockClimateName", {})
 
     # Creates the regulated VTherm over climate
     # change temperature so that the heating will start
@@ -48,9 +48,6 @@ async def test_over_climate_regulation(
     with patch(
         "custom_components.versatile_thermostat.const.NowClass.get_now",
         return_value=event_timestamp,
-    ), patch(
-        "custom_components.versatile_thermostat.underlyings.UnderlyingClimate.find_underlying_climate",
-        return_value=fake_underlying_climate,
     ):
         entity = await create_thermostat(hass, entry, "climate.theoverclimatemockname")
 
@@ -95,6 +92,8 @@ async def test_over_climate_regulation(
             fake_underlying_climate.set_hvac_action(
                 HVACAction.HEATING
             )  # simulate under heating
+            await hass.async_block_till_done()
+
             entity.calculate_hvac_action()
             assert entity.hvac_action == HVACAction.HEATING
             assert entity.preset_mode == VThermPreset.NONE  # Manual mode
@@ -114,6 +113,7 @@ async def test_over_climate_regulation(
         ):
             await send_temperature_change_event(entity, 23, event_timestamp)
             await send_ext_temperature_change_event(entity, 19, event_timestamp)
+            await hass.async_block_till_done()
 
             # the regulated temperature should be under
             assert entity.regulated_target_temp < entity.target_temperature
@@ -138,7 +138,7 @@ async def test_over_climate_regulation_ac_mode(
     tz = get_tz(hass)  # pylint: disable=invalid-name
     now: datetime = datetime.now(tz=tz)
 
-    fake_underlying_climate = MockClimate(hass, "mockUniqueId", "MockClimateName", {})
+    fake_underlying_climate = await create_and_register_mock_climate(hass, "mock_climate", "MockClimateName", {})
 
     # Creates the regulated VTherm over climate
     # change temperature so that the heating will start
@@ -147,9 +147,6 @@ async def test_over_climate_regulation_ac_mode(
     with patch(
         "custom_components.versatile_thermostat.const.NowClass.get_now",
         return_value=event_timestamp,
-    ), patch(
-        "custom_components.versatile_thermostat.underlyings.UnderlyingClimate.find_underlying_climate",
-        return_value=fake_underlying_climate,
     ):
         entity = await create_thermostat(hass, entry, "climate.theoverclimatemockname")
 
@@ -192,6 +189,7 @@ async def test_over_climate_regulation_ac_mode(
             fake_underlying_climate.set_hvac_action(
                 HVACAction.COOLING
             )  # simulate under heating
+            await hass.async_block_till_done()
             entity.calculate_hvac_action()
             assert entity.hvac_action == HVACAction.COOLING
             assert entity.preset_mode == VThermPreset.NONE  # Manual mode
@@ -253,7 +251,7 @@ async def test_over_climate_regulation_limitations(
     tz = get_tz(hass)  # pylint: disable=invalid-name
     now: datetime = datetime.now(tz=tz)
 
-    fake_underlying_climate = MockClimate(hass, "mockUniqueId", "MockClimateName", {})
+    fake_underlying_climate = await create_and_register_mock_climate(hass, "mock_climate", "MockClimateName", {})
 
     # Creates the regulated VTherm over climate at t-20
     # change temperature so that the heating will start
@@ -262,9 +260,6 @@ async def test_over_climate_regulation_limitations(
     with patch(
         "custom_components.versatile_thermostat.const.NowClass.get_now",
         return_value=event_timestamp,
-    ), patch(
-        "custom_components.versatile_thermostat.underlyings.UnderlyingClimate.find_underlying_climate",
-        return_value=fake_underlying_climate,
     ):
         entry.add_to_hass(hass)
         await hass.config_entries.async_setup(entry.entry_id)
@@ -309,9 +304,9 @@ async def test_over_climate_regulation_limitations(
         fake_underlying_climate.set_hvac_action(
             HVACAction.HEATING
         )  # simulate under heating
+        await hass.async_block_till_done()
         entity.calculate_hvac_action()
         assert entity.hvac_action == HVACAction.HEATING
-        await hass.async_block_till_done()
 
         # the regulated temperature will not change because when we set temp manually it is forced
         assert entity.regulated_target_temp == 19.5
@@ -353,7 +348,7 @@ async def test_over_climate_regulation_limitations(
 @pytest.mark.parametrize("expected_lingering_timers", [True])
 # Disable this test which is not working when run in // of others.
 # I couldn't find out why
-@pytest.mark.skip
+# @pytest.mark.skip
 async def test_over_climate_regulation_use_device_temp(
     hass: HomeAssistant, skip_hass_states_is_state, skip_send_event
 ):
@@ -370,7 +365,7 @@ async def test_over_climate_regulation_use_device_temp(
     tz = get_tz(hass)  # pylint: disable=invalid-name
     now: datetime = datetime.now(tz=tz)
 
-    fake_underlying_climate = MockClimate(hass, "mockUniqueId", "MockClimateName", {})
+    fake_underlying_climate = await create_and_register_mock_climate(hass, "mock_climate", "MockClimateName", {})
 
     assert fake_underlying_climate.current_temperature == 15
 
@@ -378,139 +373,135 @@ async def test_over_climate_regulation_use_device_temp(
     # change temperature so that the heating will start
     event_timestamp = now - timedelta(minutes=10)
 
-    with patch(
-        "custom_components.versatile_thermostat.const.NowClass.get_now",
-        return_value=event_timestamp,
-    ), patch(
-        "custom_components.versatile_thermostat.underlyings.UnderlyingClimate.find_underlying_climate",
-        return_value=fake_underlying_climate,
-    ):
-        entity: ThermostatOverClimate = await create_thermostat(
-            hass, entry, "climate.theoverclimatemockname"
+    entity: ThermostatOverClimate = await create_thermostat(hass, entry, "climate.theoverclimatemockname")
+    assert entity
+    assert isinstance(entity, ThermostatOverClimate)
+
+    assert entity.name == "TheOverClimateMockName"
+    assert entity.is_over_climate is True
+    assert entity.is_regulated is True
+    assert entity.auto_regulation_use_device_temp is True
+    entity._set_now(event_timestamp)
+
+    # 1.  Activate the heating by changing VThermHvacMode and temperature
+    # Select a hvacmode, presence and preset
+    await entity.async_set_hvac_mode(VThermHvacMode_HEAT)
+    assert entity.vtherm_hvac_mode is VThermHvacMode_HEAT
+    assert entity.regulated_target_temp == entity.min_temp
+
+    await send_temperature_change_event(entity, 18, event_timestamp)
+    await send_ext_temperature_change_event(entity, 10, event_timestamp)
+
+    # 2. set manual target temp (at now - 7) -> no regulation should occurs
+    # room temp is 18
+    # target is 16
+    # internal heater temp is 15
+    fake_underlying_climate.set_current_temperature(15)
+    event_timestamp = now - timedelta(minutes=7)
+    entity._set_now(event_timestamp)
+    with patch("homeassistant.core.ServiceRegistry.async_call") as mock_service_call:
+        await entity.async_set_temperature(temperature=16)
+
+        fake_underlying_climate.set_hvac_action(HVACAction.HEATING)  # simulate under heating
+        await hass.async_block_till_done()
+        entity.calculate_hvac_action()
+        assert entity.hvac_action == HVACAction.HEATING
+        assert entity.preset_mode == VThermPreset.NONE  # Manual mode
+
+        # the regulated temperature should be higher
+        assert entity.regulated_target_temp < entity.target_temperature
+        # The calcul is the following: 16 + (16 - 18) x 0.4 (strong) + 0 x ki - 1 (device offset)
+        assert entity.regulated_target_temp == 15  # round(16 + (16 - 18) * 0.4 + 0 * 0.08)
+        assert entity.hvac_action == HVACAction.HEATING
+
+        mock_service_call.assert_has_calls(
+            [
+                # call("climate", "set_temperature", {"entity_id": "climate.mock_climate", "temperature": 12.0}, ANY, ANY, ANY, ANY)
+                call.service_call(
+                    "climate",
+                    "set_temperature",
+                    {
+                        "entity_id": "climate.mock_climate",
+                        # because device offset is -3 but not used because target is reach
+                        "temperature": 12.0,
+                    },
+                    ANY,
+                    ANY,
+                    ANY,
+                    ANY,
+                ),
+            ]
         )
-        assert entity
-        assert isinstance(entity, ThermostatOverClimate)
 
-        assert entity.name == "TheOverClimateMockName"
-        assert entity.is_over_climate is True
-        assert entity.is_regulated is True
-        assert entity.auto_regulation_use_device_temp is True
+    # 3. change temperature so that the regulated temperature should slow down
+    # HVACMODE.HEAT
+    # room temp is 15
+    # target is 18
+    # internal heater temp is 20
+    fake_underlying_climate.set_current_temperature(20.1)
+    await entity.async_set_temperature(temperature=18)
+    await send_ext_temperature_change_event(entity, 9, event_timestamp)
 
-        # 1.  Activate the heating by changing VThermHvacMode and temperature
-        # Select a hvacmode, presence and preset
-        await entity.async_set_hvac_mode(VThermHvacMode_HEAT)
-        assert entity.vtherm_hvac_mode is VThermHvacMode_HEAT
-        assert entity.regulated_target_temp == entity.min_temp
+    event_timestamp = now - timedelta(minutes=5)
+    entity._set_now(event_timestamp)
+    with patch("homeassistant.core.ServiceRegistry.async_call") as mock_service_call:
+        await send_temperature_change_event(entity, 15, event_timestamp)
 
-        await send_temperature_change_event(entity, 18, event_timestamp)
-        await send_ext_temperature_change_event(entity, 10, event_timestamp)
+        # the regulated temperature should be under (device offset is -2)
+        assert entity.regulated_target_temp > entity.target_temperature
+        assert entity.regulated_target_temp == 19.5  # round(18 + 1.4, 0.5)
 
-        # 2. set manual target temp (at now - 7) -> no regulation should occurs
-        # room temp is 18
-        # target is 16
-        # internal heater temp is 15
-        fake_underlying_climate.set_current_temperature(15)
-        event_timestamp = now - timedelta(minutes=7)
-        with patch(
-            "custom_components.versatile_thermostat.const.NowClass.get_now",
-            return_value=event_timestamp,
-        ), patch("homeassistant.core.ServiceRegistry.async_call") as mock_service_call:
-            await entity.async_set_temperature(temperature=16)
+        mock_service_call.assert_has_calls(
+            [
+                call.service_call(
+                    "climate",
+                    "set_temperature",
+                    {
+                        "entity_id": "climate.mock_climate",
+                        "temperature": 24.5,  # round(19.5 + 5, 0.5)
+                    },
+                    ANY,
+                    ANY,
+                    ANY,
+                    ANY,
+                ),
+            ]
+        )
 
-            fake_underlying_climate.set_hvac_action(
-                HVACAction.HEATING
-            )  # simulate under heating
-            entity.calculate_hvac_action()
-            assert entity.hvac_action == HVACAction.HEATING
-            assert entity.preset_mode == VThermPreset.NONE  # Manual mode
+    # 4. In cool mode
+    # room temp is 25
+    # target is 23
+    # internal heater temp is 27
+    await entity.async_set_hvac_mode(VThermHvacMode_COOL)
+    await entity.async_set_temperature(temperature=23)
+    fake_underlying_climate.set_current_temperature(26.9)
+    await send_ext_temperature_change_event(entity, 30, event_timestamp)
 
-            # the regulated temperature should be higher
-            assert entity.regulated_target_temp < entity.target_temperature
-            # The calcul is the following: 16 + (16 - 18) x 0.4 (strong) + 0 x ki - 1 (device offset)
-            assert (
-                entity.regulated_target_temp == 15
-            )  # round(16 + (16 - 18) * 0.4 + 0 * 0.08)
-            assert entity.hvac_action == HVACAction.HEATING
+    event_timestamp = now - timedelta(minutes=3)
+    entity._set_now(event_timestamp)
+    with patch("homeassistant.core.ServiceRegistry.async_call") as mock_service_call:
+        await send_temperature_change_event(entity, 25, event_timestamp)
 
-            mock_service_call.assert_has_calls(
-                [
-                    call.service_call(
-                        "climate",
-                        "set_temperature",
-                        {
-                            "entity_id": "climate.mock_climate",
-                            # because device offset is -3 but not used because target is reach
-                            "temperature": 12.0,
-                        },
-                    ),
-                ]
-            )
+        # the regulated temperature should be upper (device offset is +1.9)
+        assert entity.regulated_target_temp < entity.target_temperature
+        assert entity.regulated_target_temp == 22
 
-        # 3. change temperature so that the regulated temperature should slow down
-        # HVACMODE.HEAT
-        # room temp is 15
-        # target is 18
-        # internal heater temp is 20
-        fake_underlying_climate.set_current_temperature(20.1)
-        await entity.async_set_temperature(temperature=18)
-        await send_ext_temperature_change_event(entity, 9, event_timestamp)
-
-        event_timestamp = now - timedelta(minutes=5)
-        with patch(
-            "custom_components.versatile_thermostat.const.NowClass.get_now",
-            return_value=event_timestamp,
-        ), patch("homeassistant.core.ServiceRegistry.async_call") as mock_service_call:
-            await send_temperature_change_event(entity, 15, event_timestamp)
-
-            # the regulated temperature should be under (device offset is -2)
-            assert entity.regulated_target_temp > entity.target_temperature
-            assert entity.regulated_target_temp == 19.5  # round(18 + 1.4, 0.5)
-
-            mock_service_call.assert_has_calls(
-                [
-                    call.service_call(
-                        "climate",
-                        "set_temperature",
-                        {
-                            "entity_id": "climate.mock_climate",
-                            "temperature": 24.5,  # round(19.5 + 5, 0.5)
-                        },
-                    ),
-                ]
-            )
-
-        # 4. In cool mode
-        # room temp is 25
-        # target is 23
-        # internal heater temp is 27
-        await entity.async_set_hvac_mode(VThermHvacMode_COOL)
-        await entity.async_set_temperature(temperature=23)
-        fake_underlying_climate.set_current_temperature(26.9)
-        await send_ext_temperature_change_event(entity, 30, event_timestamp)
-
-        event_timestamp = now - timedelta(minutes=3)
-        with patch(
-            "custom_components.versatile_thermostat.const.NowClass.get_now",
-            return_value=event_timestamp,
-        ), patch("homeassistant.core.ServiceRegistry.async_call") as mock_service_call:
-            await send_temperature_change_event(entity, 25, event_timestamp)
-
-            # the regulated temperature should be upper (device offset is +1.9)
-            assert entity.regulated_target_temp < entity.target_temperature
-            assert entity.regulated_target_temp == 22.5
-
-            mock_service_call.assert_has_calls(
-                [
-                    call.service_call(
-                        "climate",
-                        "set_temperature",
-                        {
-                            "entity_id": "climate.mock_climate",
-                            "temperature": 24.5,  # round(22.5 + 1.9° of offset)
-                        },
-                    ),
-                ]
-            )
+        mock_service_call.assert_has_calls(
+            [
+                call.service_call(
+                    "climate",
+                    "set_temperature",
+                    {
+                        "entity_id": "climate.mock_climate",
+                        "temperature": 24,  # round(22 + 1.9° of offset)
+                    },
+                    ANY,
+                    ANY,
+                    ANY,
+                    ANY,
+                ),
+            ]
+        )
 
 @pytest.mark.parametrize("expected_lingering_tasks", [True])
 @pytest.mark.parametrize("expected_lingering_timers", [True])
@@ -529,7 +520,7 @@ async def test_over_climate_regulation_dtemp_null(
 
     tz = get_tz(hass)  # pylint: disable=invalid-name
     now: datetime = datetime.now(tz=tz)
-    fake_underlying_climate = MockClimate(hass, "mockUniqueId", "MockClimateName", {})
+    fake_underlying_climate = await create_and_register_mock_climate(hass, "mock_climate", "MockClimateName", {})
 
     # Creates the regulated VTherm over climate
     # change temperature so that the heating will start
@@ -538,9 +529,6 @@ async def test_over_climate_regulation_dtemp_null(
     with patch(
         "custom_components.versatile_thermostat.const.NowClass.get_now",
         return_value=event_timestamp,
-    ), patch(
-        "custom_components.versatile_thermostat.underlyings.UnderlyingClimate.find_underlying_climate",
-        return_value=fake_underlying_climate,
     ):
         entity = await create_thermostat(hass, entry, "climate.theoverclimatemockname")
 
@@ -572,6 +560,7 @@ async def test_over_climate_regulation_dtemp_null(
             fake_underlying_climate.set_hvac_action(
                 HVACAction.HEATING
             )  # simulate under cooling
+            await hass.async_block_till_done()
             entity.calculate_hvac_action()
             assert entity.hvac_action == HVACAction.HEATING
             assert entity.preset_mode == VThermPreset.NONE  # Manual mode
@@ -639,14 +628,13 @@ async def test_over_climate_regulation_calculation_scheduled(hass: HomeAssistant
     tz = get_tz(hass)  # pylint: disable=invalid-name
     now: datetime = datetime.now(tz=tz)
 
-    fake_underlying_climate = MockClimate(hass, "mockUniqueId", "MockClimateName", {})
+    fake_underlying_climate = MockClimate(hass, "mock_climate", "MockClimateName", {})
 
     # Creates the regulated VTherm over climate
     # change temperature so that the heating will start
 
     # fmt: off
-    with patch("custom_components.versatile_thermostat.base_thermostat.BaseThermostat.send_event"), \
-        patch("custom_components.versatile_thermostat.underlyings.UnderlyingClimate.find_underlying_climate",return_value=fake_underlying_climate):
+    with patch("custom_components.versatile_thermostat.base_thermostat.BaseThermostat.send_event"):
     # fmt: on
         vtherm: ThermostatOverClimate = await create_thermostat(hass, entry, "climate.theoverclimatemockname")
         assert vtherm

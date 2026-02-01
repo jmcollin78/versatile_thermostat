@@ -541,12 +541,13 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
         await super().async_added_to_hass()
 
         # Add listener to all underlying entities
-        for climate in self._underlyings:
-            self.async_on_remove(
-                async_track_state_change_event(
-                    self.hass, [climate.entity_id], self._async_climate_changed
-                )
-            )
+        # TODO should be triggered by Underlying class ? -> yes
+        # for climate in self._underlyings:
+        #     self.async_on_remove(
+        #         async_track_state_change_event(
+        #             self.hass, [climate.entity_id], self._async_climate_changed
+        #         )
+        #     )
 
         # Start the control_heating
         # starts a cycle
@@ -668,7 +669,7 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
                 self._total_energy,
             )
 
-        self._underlying_climate_start_hvac_action_date = self.now if self.is_device_active else None
+        self._underlying_climate_start_hvac_action_date = self.now if self.should_device_be_active else None
 
         _LOGGER.debug(
             "%s - added energy is %.3f . Total energy is now: %.3f",
@@ -678,8 +679,126 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
         )
 
     @callback
+    async def underlying_changed(  # pylint: disable=too-many-arguments
+        self,
+        under: UnderlyingClimate,
+        new_hvac_mode: VThermHvacMode | None,
+        new_hvac_action: HVACAction | None,
+        new_target_temp: float | None,
+        new_fan_mode: str | None,
+        new_state: State,
+        old_state: State,
+    ):
+        """Handle underlying changes. This is called by the UnderlyingClimate class when the entity changes. The UnderlyingClimate does some checks to ensure that the change is relevant. When an attribute is not changed, the corresponding parameter is None."""
+
+        write_event_log(_LOGGER, self, f"Underlying climate {under.entity_id}state changed from {old_state} to new_state {new_state}")
+
+        async def end_climate_changed(changes: bool):
+            """To end the event management"""
+            if changes:
+                self.requested_state.force_changed()
+                await self.update_states()
+
+        changes = False
+
+        # A real changes have to be managed
+        _LOGGER.info(
+            "%s - Underlying climate %s have changed. new_hvac_mode is %s (vs %s), new_hvac_action=%s (vs %s), new_target_temp=%s (vs %s), new_fan_mode=%s (vs %s)",
+            self,
+            under.entity_id,
+            new_hvac_mode,
+            self.vtherm_hvac_mode,
+            new_hvac_action,
+            self.hvac_action,
+            new_target_temp,
+            self.target_temperature,
+            new_fan_mode,
+            self.fan_mode,
+        )
+
+        # Interpretation of hvac action
+        if new_hvac_action:
+            if self.hvac_action not in HVAC_ACTION_ON and new_hvac_action in HVAC_ACTION_ON:
+                self._underlying_climate_start_hvac_action_date = self.get_last_updated_date_or_now(new_state)
+                self._underlying_climate_mean_power_cycle = self.power_manager.mean_cycle_power
+                _LOGGER.info(
+                    "%s - underlying just switch ON. Set power and energy start date %s",
+                    self,
+                    self._underlying_climate_start_hvac_action_date.isoformat(),
+                )
+                changes = True
+
+            if self.hvac_action in HVAC_ACTION_ON and new_hvac_action not in HVAC_ACTION_ON:
+                self.incremente_energy()
+                changes = True
+
+        # Filter new state when received just after a change from VTherm
+        # Issue #120 - Some TRV are changing target temperature a very long time (6 sec) after the change.
+        # In that case a loop is possible if a user change multiple times during this 6 sec.
+        new_state_date_updated = new_state.last_updated if new_state.last_updated else None
+        if new_state_date_updated and self._last_change_time_from_vtherm:
+            delta = (new_state_date_updated - self._last_change_time_from_vtherm).total_seconds()
+            if delta < 10:
+                _LOGGER.info(
+                    "%s - underlying event is received less than 10 sec after command. Forget it to avoid loop",
+                    self,
+                )
+                await end_climate_changed(changes)
+                return
+
+        # Update all underlyings hvac_mode state if it has change
+        if new_hvac_mode:
+            # Issue #334 - if all underlyings are not aligned with the same hvac_mode don't change the underlying and wait they are aligned
+            if self.is_over_climate:
+                for under in self._underlyings:
+                    if under.entity_id != new_state.entity_id and under.hvac_mode != self.vtherm_hvac_mode:
+                        _LOGGER.info(
+                            "%s - the underlying's hvac_mode %s is not aligned with VTherm hvac_mode %s. So we don't diffuse the change to all other underlyings to avoid loops",
+                            under,
+                            under.hvac_mode,
+                            self.vtherm_hvac_mode,
+                        )
+                        return
+
+                _LOGGER.debug(
+                    "%s - All underlyings have the same hvac_mode, so VTherm will send the new hvac mode %s",
+                    self,
+                    new_hvac_mode,
+                )
+            changes = True
+            # TODO ici on éteint kle VTherm si un seul sous-jacent passe en off. Est-ce bien ce qu'on veut ? quelque-soit la valeur de follow_underlying_temp_change
+            self.requested_state.set_hvac_mode(new_hvac_mode)
+
+        # A quick win to known if it has change by using the self._attr_fan_mode and not only underlying[0].fan_mode
+        if new_fan_mode:
+            self._attr_fan_mode = new_fan_mode
+            changes = True
+
+        # Manage new target temperature set if state if no other changes have been found
+        # and if a target temperature have already been sent and if the VTherm is on
+        if new_target_temp and self._follow_underlying_temp_change and not changes:
+            if under.last_sent_temperature is not None and self.vtherm_hvac_mode != VThermHvacMode_OFF:
+                _LOGGER.debug(
+                    "%s - Do temperature check. under.last_sent_temperature is %s, new_target_temp is %s",
+                    self,
+                    under.last_sent_temperature,
+                    new_target_temp,
+                )
+                _LOGGER.info(
+                    "%s - Target temp in underlying have change to %s (vs %s)",
+                    self,
+                    new_target_temp,
+                    under.last_sent_temperature,
+                )
+                await self.async_set_temperature(temperature=new_target_temp)
+                changes = True
+
+        await end_climate_changed(changes)
+
+    # TODO no more used. Remove
+    @callback
     async def _async_climate_changed(self, event: Event[EventStateChangedData]):
-        """Handle unerdlying climate state changes.
+        """Handle underlying climate state changes.
         This method takes the underlying values and update the VTherm with them.
         To avoid loops (issues #121 #101 #95 #99), we discard the event if it is received
         less than 10 sec after the last command. What we want here is to take the values
@@ -1191,7 +1310,7 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
     @property
     def supported_features(self):
         """Return the list of supported features."""
-        if self.underlying_entity(0):
+        if self.underlying_entity(0) and self.underlying_entity(0).supported_features:
             return self.underlying_entity(0).supported_features | self._support_flags
 
         return self._support_flags
@@ -1251,27 +1370,14 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
         return self._follow_underlying_temp_change
 
     @overrides
-    def init_underlyings(self):
-        """Init the underlyings if not already done"""
-        changed = False
-        for under in self._underlyings:
-            if not under.is_initialized:
-                _LOGGER.info(
-                    "%s - Underlying %s is not initialized. Try to initialize it",
-                    self,
-                    under.entity_id,
-                )
-                try:
-                    under.startup()
-                    changed = True
-                except UnknownEntity:
-                    # still not found, we an stop here
-                    return False
+    async def init_underlyings_completed(self, under_entity_id: str):
+        """Called when all entities of an underlying are initialized. Then we can complete the startup with the underlying info"""
+        await super().init_underlyings_completed(under_entity_id)
+
         self.choose_auto_fan_mode(self._auto_fan_mode)
 
-        if changed:
-            # Reinitialize the hvac list because we have one underlying at least now
-            self.set_hvac_list()
+        # Reinitialize the hvac list because we have one underlying at least now
+        self.set_hvac_list()
 
     @overrides
     def turn_aux_heat_on(self) -> None:

@@ -397,6 +397,7 @@ class MockClimate(ClimateEntity):
             attributes["swing_horizontal_modes"] = self.swing_horizontal_modes
         if self.supported_features:
             attributes["supported_features"] = self.supported_features
+        attributes["temperature_unit"] = self.temperature_unit
 
         return attributes
 
@@ -718,6 +719,28 @@ class MockNumber(NumberEntity):
         self._attr_native_value = value
         # self.async_write_ha_state generates exception if not on the main loop
         self.schedule_update_ha_state()
+
+
+async def create_and_register_mock_climate(
+    hass: HomeAssistant,
+    unique_id,
+    name,
+    entry_infos={},
+    hvac_mode: HVACMode = HVACMode.OFF,
+    hvac_action: HVACAction = HVACAction.OFF,
+    fan_modes: list[str] | None = None,
+    hvac_modes: list[str] | None = None,
+    swing_mode: str | None = None,
+    swing_modes: list[str] | None = None,
+    swing_horizontal_mode: str | None = None,
+    swing_horizontal_modes: list[str] | None = None,
+):
+    """Create and register a mock climate entity"""
+    mock_climate = MockClimate(
+        hass, unique_id, name, entry_infos, hvac_mode, hvac_action, fan_modes, hvac_modes, swing_mode, swing_modes, swing_horizontal_mode, swing_horizontal_modes, add_state=False
+    )
+    await register_mock_entity(hass, mock_climate, CLIMATE_DOMAIN)
+    return mock_climate
 
 
 async def register_mock_entity(hass, entity: Entity, domain: str):

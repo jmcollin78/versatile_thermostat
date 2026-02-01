@@ -330,13 +330,13 @@ class ThermostatOverClimateValve(ThermostatProp[UnderlyingClimate], ThermostatOv
             super().calculate_hvac_action(self._underlyings_valve_regulation)
 
     @property
-    def is_device_active(self) -> bool:
+    def should_device_be_active(self) -> bool:
         """A hack to overrides the state from underlyings"""
         if self.is_sleeping:
             return False
 
         for under in self._underlyings_valve_regulation:
-            if under.is_device_active:
+            if under.should_device_be_active:
                 return True
         return False
 
@@ -374,12 +374,13 @@ class ThermostatOverClimateValve(ThermostatProp[UnderlyingClimate], ThermostatOv
         write_event_log(_LOGGER, self, "Calling SERVICE_SET_HVAC_MODE_SLEEP")
         await self.async_set_hvac_mode(hvac_mode=VThermHvacMode_SLEEP)
 
-    @overrides
-    async def _check_initial_state(self):
-        """Check the initial state of the thermostat and its underlyings"""
-        await super()._check_initial_state()
-        for under in self._underlyings_valve_regulation:
-            await under.check_initial_state(self.vtherm_hvac_mode)
+    # #1654 no more needed now
+    # @overrides
+    # async def _check_initial_state(self):
+    #    """Check the initial state of the thermostat and its underlyings"""
+    #    await super()._check_initial_state()
+    #    for under in self._underlyings_valve_regulation:
+    #        await under.check_initial_state(self.vtherm_hvac_mode)
 
     @overrides
     def choose_auto_fan_mode(self, auto_fan_mode: str):
@@ -399,10 +400,19 @@ class ThermostatOverClimateValve(ThermostatProp[UnderlyingClimate], ThermostatOv
             await super().async_set_hvac_mode(hvac_mode)
 
     @overrides
-    async def _async_climate_changed(self, event: Event[EventStateChangedData]):
+    async def underlying_changed(  # pylint: disable=too-many-arguments
+        self,
+        under: UnderlyingClimate,
+        new_hvac_mode: VThermHvacMode | None,
+        new_hvac_action: HVACAction | None,
+        new_target_temp: float | None,
+        new_fan_mode: str | None,
+        new_state: State,
+        old_state: State,
+    ):
         """Handle underlying climate changes only if not in recalibration"""
         if not self._recalibrate_lock.locked():
-            return await super()._async_climate_changed(event)
+            return await super().underlying_changed(under, new_hvac_mode, new_hvac_action, new_target_temp, new_fan_mode, new_state, old_state)
         _LOGGER.info("%s - ignore underlying climate change because recalibration is in progress", self)
 
     @overrides
