@@ -31,10 +31,10 @@ async def test_bug_56(
     skip_hass_states_is_state,
     skip_turn_on_off_heater,
     skip_send_event,
+    fake_underlying_climate: MockClimate,
 ):
     """Test that in over_climate mode there is no error when underlying climate is not available"""
 
-    the_mock_underlying = MagicMockClimate()
     with patch(
         "custom_components.versatile_thermostat.underlyings.UnderlyingClimate.find_underlying_climate",
         return_value=None,  # dont find the underlying climate
@@ -86,20 +86,15 @@ async def test_bug_56(
             assert False
 
     # This time the underlying will be found
-    with patch(
-        "custom_components.versatile_thermostat.underlyings.UnderlyingClimate.find_underlying_climate",
-        return_value=the_mock_underlying,  # dont find the underlying climate
-    ):
-        # try to call async_control_heating
-        try:
-            await entity.async_control_heating()
-        except UnknownEntity:
-            assert False
-        except Exception:  # pylint: disable=broad-exception-caught
-            assert False
-
-        # Should not failed
-        entity.update_custom_attributes()
+    # try to call async_control_heating
+    try:
+        await entity.async_control_heating()
+    except UnknownEntity:
+        assert False
+    except Exception:  # pylint: disable=broad-exception-caught
+        assert False
+    # Should not failed
+    entity.update_custom_attributes()
 
 
 @pytest.mark.parametrize("expected_lingering_tasks", [True])

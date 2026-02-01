@@ -25,7 +25,7 @@ logging.getLogger().setLevel(logging.DEBUG)
 @pytest.mark.parametrize("expected_lingering_timers", [True])
 # this test fails if run in // with the next because the underlying_valve_regulation is mixed. Don't know why
 # @pytest.mark.skip
-async def test_over_climate_valve_mono(hass: HomeAssistant, skip_hass_states_get):
+async def test_over_climate_valve_mono(hass: HomeAssistant, skip_hass_states_get, fake_underlying_climate: MockClimate):
     """Test the normal full start of a thermostat in thermostat_over_climate type"""
 
     entry = MockConfigEntry(
@@ -67,7 +67,7 @@ async def test_over_climate_valve_mono(hass: HomeAssistant, skip_hass_states_get
         | MOCK_ADVANCED_CONFIG,
     )
 
-    fake_underlying_climate = MockClimate(hass, "mockUniqueId", "MockClimateName", {})
+    # fake_underlying_climate = MockClimate(hass, "mockUniqueId", "MockClimateName", {})
 
     # mock_get_state will be called for each OPENING/CLOSING/OFFSET_CALIBRATION list
 
@@ -86,7 +86,6 @@ async def test_over_climate_valve_mono(hass: HomeAssistant, skip_hass_states_get
 
     # fmt: off
     with patch("custom_components.versatile_thermostat.base_thermostat.BaseThermostat.send_event") as mock_send_event, \
-        patch("custom_components.versatile_thermostat.underlyings.UnderlyingClimate.find_underlying_climate", return_value=fake_underlying_climate) as mock_find_climate, \
         patch("homeassistant.core.ServiceRegistry.async_call") as mock_service_call,\
         patch("homeassistant.core.StateMachine.get", side_effect=mock_get_state_side_effect.get_side_effects()) as mock_get_state:
     # fmt: on

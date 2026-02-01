@@ -16,7 +16,7 @@ logging.getLogger().setLevel(logging.DEBUG)
 
 @pytest.mark.parametrize("expected_lingering_tasks", [True])
 @pytest.mark.parametrize("expected_lingering_timers", [True])
-async def test_last_seen_feature(hass: HomeAssistant, skip_hass_states_is_state):
+async def test_last_seen_feature(hass: HomeAssistant, skip_hass_states_is_state, fake_underlying_switch: MockSwitch):
     """Test the last_ssen feature
     1. creates a thermostat and check that security is off
     2. activate security feature when date is expired

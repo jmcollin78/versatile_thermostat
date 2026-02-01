@@ -18,9 +18,8 @@ from .const import *
 
 logging.getLogger().setLevel(logging.DEBUG)
 
-async def test_over_climate_valve_multi_sync_calibration(
-    hass: HomeAssistant, skip_hass_states_get
-):
+
+async def test_over_climate_valve_multi_sync_calibration(hass: HomeAssistant, skip_hass_states_get):
     """Test the temperature calibration synchronization of a thermostat in thermostat_over_climate type"""
 
     entry = MockConfigEntry(
@@ -174,6 +173,7 @@ async def test_over_climate_valve_multi_sync_calibration(
 
     vtherm.remove_thermostat()
     await hass.async_block_till_done()
+
 
 async def test_over_climate_valve_multi_sync_temperature(
     hass: HomeAssistant, skip_hass_states_get
