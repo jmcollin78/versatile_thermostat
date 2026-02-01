@@ -99,7 +99,11 @@ async def test_safety_feature_manager_post_init(
 
 @pytest.mark.parametrize("expected_lingering_tasks", [True])
 @pytest.mark.parametrize("expected_lingering_timers", [True])
-async def test_security_feature(hass: HomeAssistant, skip_hass_states_is_state):
+async def test_security_feature(
+    hass: HomeAssistant,
+    skip_hass_states_is_state,
+    fake_underlying_switch: MockSwitch,
+):
     """Test the security feature and https://github.com/jmcollin78/versatile_thermostat/issues/49:
     1. creates a thermostat and check that security is off
     2. activate security feature when date is expired
@@ -297,9 +301,7 @@ async def test_security_feature(hass: HomeAssistant, skip_hass_states_is_state):
 
 @pytest.mark.parametrize("expected_lingering_tasks", [True])
 @pytest.mark.parametrize("expected_lingering_timers", [True])
-async def test_security_feature_back_on_percent(
-    hass: HomeAssistant, skip_hass_states_is_state
-):
+async def test_security_feature_back_on_percent(hass: HomeAssistant, skip_hass_states_is_state, fake_underlying_switch: MockSwitch):
     """Test the security feature and https://github.com/jmcollin78/versatile_thermostat/issues/49:
     1. creates a thermostat and check that security is off, preset Boost
     2. change temperature so that on_percent is high
@@ -516,14 +518,10 @@ async def test_security_over_climate(
         data=PARTIAL_CLIMATE_CONFIG,  # 5 minutes security delay
     )
 
-    fake_underlying_climate = MockClimate(hass, "mockUniqueId", "MockClimateName", {}, VThermHvacMode_HEAT, HVACAction.HEATING)
+    # fake_underlying_climate = MockClimate(hass, "mockUniqueId", "MockClimateName", {}, VThermHvacMode_HEAT, HVACAction.HEATING)
+    fake_underlying_climate = await create_and_register_mock_climate(hass, "mock_climate", "MockClimateName", {}, VThermHvacMode_HEAT, HVACAction.HEATING)
 
-    with patch(
-        "custom_components.versatile_thermostat.base_thermostat.BaseThermostat.send_event"
-    ) as mock_send_event, patch(
-        "custom_components.versatile_thermostat.underlyings.UnderlyingClimate.find_underlying_climate",
-        return_value=fake_underlying_climate,
-    ) as mock_find_climate:
+    with patch("custom_components.versatile_thermostat.base_thermostat.BaseThermostat.send_event") as mock_send_event:
         entry.add_to_hass(hass)
         await hass.config_entries.async_setup(entry.entry_id)
         assert entry.state is ConfigEntryState.LOADED
@@ -569,10 +567,6 @@ async def test_security_over_climate(
                 ),
             ]
         )
-
-        assert mock_find_climate.call_count == 1
-        assert mock_find_climate.mock_calls[0] == call()
-        mock_find_climate.assert_has_calls([call.find_underlying_entity()])
 
         # Force safety mode
         assert entity._last_ext_temperature_measure is not None
