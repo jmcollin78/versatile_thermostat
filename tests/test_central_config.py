@@ -102,7 +102,7 @@ async def test_add_a_central_config(hass: HomeAssistant, skip_hass_states_is_sta
 
 # @pytest.mark.parametrize("expected_lingering_tasks", [True])
 @pytest.mark.parametrize("expected_lingering_timers", [True])
-async def test_minimal_over_switch_wo_central_config(hass: HomeAssistant, skip_hass_states_is_state, init_vtherm_api, with_underlying_switch: MockSwitch):
+async def test_minimal_over_switch_wo_central_config(hass: HomeAssistant, skip_hass_states_is_state, init_vtherm_api, fake_underlying_switch: MockSwitch):
     """Tests that a VTherm without any central_configuration is working with its own attributes"""
     # Add a Switch VTherm
     entry = MockConfigEntry(
@@ -181,7 +181,7 @@ async def test_minimal_over_switch_wo_central_config(hass: HomeAssistant, skip_h
 
 @pytest.mark.parametrize("expected_lingering_tasks", [True])
 @pytest.mark.parametrize("expected_lingering_timers", [True])
-async def test_full_over_switch_wo_central_config(hass: HomeAssistant, skip_hass_states_is_state, init_vtherm_api, with_underlying_switch: MockSwitch):
+async def test_full_over_switch_wo_central_config(hass: HomeAssistant, skip_hass_states_is_state, init_vtherm_api, fake_underlying_switch: MockSwitch):
     """Tests that a VTherm without any central_configuration is working with its own attributes"""
 
     temps = {
@@ -317,7 +317,7 @@ async def test_full_over_switch_wo_central_config(hass: HomeAssistant, skip_hass
 
 @pytest.mark.parametrize("expected_lingering_tasks", [True])
 @pytest.mark.parametrize("expected_lingering_timers", [True])
-async def test_full_over_switch_with_central_config(hass: HomeAssistant, skip_hass_states_is_state, init_central_power_manager, with_underlying_switch: MockSwitch):
+async def test_full_over_switch_with_central_config(hass: HomeAssistant, skip_hass_states_is_state, init_central_power_manager, fake_underlying_switch: MockSwitch):
     """Tests that a VTherm with central_configuration is working with the central_config attributes"""
 
     # Add a Switch VTherm

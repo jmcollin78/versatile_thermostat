@@ -1,5 +1,5 @@
 """Global fixtures for integration_blueprint integration."""
-# pylint: disable=line-too-long
+# pylint: disable=line-too-long, wildcard-import, unused-wildcard-import, redefined-outer-name
 
 # Fixtures allow you to replace functions with a Mock object. You can perform
 # many options via the Mock to reflect a particular behavior from the original
@@ -29,16 +29,12 @@ from custom_components.versatile_thermostat.config_flow import (
     VersatileThermostatBaseConfigFlow,
 )
 
-from custom_components.versatile_thermostat.const import (
-    CONF_POWER_SENSOR,
-    CONF_MAX_POWER_SENSOR,
-    CONF_USE_POWER_FEATURE,
-    CONF_PRESET_POWER,
-)
+from custom_components.versatile_thermostat.const import *
 from custom_components.versatile_thermostat.vtherm_api import VersatileThermostatAPI
 from custom_components.versatile_thermostat.base_thermostat import BaseThermostat
+from custom_components.versatile_thermostat.vtherm_hvac_mode import *
 
-from .commons import create_central_config, FULL_CENTRAL_CONFIG, FULL_CENTRAL_CONFIG_WITH_BOILER, MockSwitch, register_mock_entity
+from .commons import *
 
 # ...
 def pytest_runtest_setup():
@@ -197,9 +193,31 @@ async def init_central_power_manager_fixture(
     yield
 
 
-@pytest.fixture(name="with_underlying_switch")
-async def with_underlying_switch_fixture(hass):
+@pytest.fixture(name="fake_underlying_switch")
+async def fake_underlying_switch_fixture(hass):
     """Fixture to add an underlying switch named "switch.mock_switch" to a test"""
     switch = MockSwitch(hass, "mock_switch", "theMockedSwitch")
     await register_mock_entity(hass, switch, SWITCH_DOMAIN)
     yield switch
+
+
+@pytest.fixture(name="fake_underlying_switch_ac")
+async def fake_underlying_switch_ac_fixture(hass):
+    """Fixture to add an underlying switch named "switch.mock_switch" to a test"""
+    switch = MockSwitch(hass, "mock_switch", "theMockedSwitch", {"ac_mode": True})
+    await register_mock_entity(hass, switch, SWITCH_DOMAIN)
+    yield switch
+
+
+@pytest.fixture(name="fake_underlying_climate")
+async def fake_underlying_climate_fixture(hass):
+    """Fixture to add an underlying switch named "climate.mock_climate" to a test"""
+    fake_underlying_climate = await create_and_register_mock_climate(hass, "mock_climate", "MockClimateName", {})
+    yield fake_underlying_climate
+
+
+@pytest.fixture(name="fake_underlying_climate_off_cool")
+async def fake_underlying_climate_off_cool_fixture(hass):
+    """Fixture to add an underlying switch named "climate.mock_climate" to a test"""
+    fake_underlying_climate = await create_and_register_mock_climate(hass, "mock_climate", "MockClimateName", {}, hvac_modes=[VThermHvacMode_OFF, VThermHvacMode_COOL])
+    yield fake_underlying_climate
