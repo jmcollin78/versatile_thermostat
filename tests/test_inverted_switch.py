@@ -75,6 +75,8 @@ async def test_inverted_switch(hass: HomeAssistant, skip_hass_states_is_state, f
         assert entity.vtherm_hvac_mode is VThermHvacMode_HEAT
         assert entity.preset_mode == VThermPreset.BOOST
         assert entity.target_temperature == 21
+
+        await wait_for_local_condition(lambda: entity.is_device_active is False)
         assert entity.is_device_active is False
 
         assert mock_service_call.call_count == 0
