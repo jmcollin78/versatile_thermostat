@@ -59,32 +59,32 @@ async def test_over_climate_swing_horizontal_mode(
         },  # 5 minutes security delay
     )
 
-    fake_underlying_climate = MockClimate(
-        hass=hass,
-        unique_id="mock_climate",
-        name="mock_climate",
-        swing_horizontal_modes=swing_horizontal_modes,
-        swing_horizontal_mode="1",
+    fake_underlying_climate = await create_and_register_mock_climate(
+        hass, "mock_climate", "MockClimateName", {}, swing_horizontal_modes=swing_horizontal_modes, swing_horizontal_mode="1"
     )
 
+    # fake_underlying_climate = MockClimate(
+    #     hass=hass,
+    #     unique_id="mock_climate",
+    #     name="mock_climate",
+    #     swing_horizontal_modes=swing_horizontal_modes,
+    #     swing_horizontal_mode="1",
+    # )
+
     # 1. Init swing horizontal mode
-    with patch(
-        "custom_components.versatile_thermostat.underlyings.UnderlyingClimate.find_underlying_climate",
-        return_value=fake_underlying_climate,
-    ):
-        entry.add_to_hass(hass)
-        await hass.config_entries.async_setup(entry.entry_id)
-        assert entry.state is ConfigEntryState.LOADED
+    entry.add_to_hass(hass)
+    await hass.config_entries.async_setup(entry.entry_id)
+    assert entry.state is ConfigEntryState.LOADED
 
-        entity: ThermostatOverClimate = search_entity(hass, "climate.theoverclimatemockname", "climate")
+    entity: ThermostatOverClimate = search_entity(hass, "climate.theoverclimatemockname", "climate")
 
-        assert entity
-        assert isinstance(entity, ThermostatOverClimate)
+    assert entity
+    assert isinstance(entity, ThermostatOverClimate)
 
-        assert entity.name == "TheOverClimateMockName"
-        assert entity.is_over_climate is True
-        assert entity.swing_horizontal_modes == swing_horizontal_modes
-        assert entity.swing_horizontal_mode == "1"
+    assert entity.name == "TheOverClimateMockName"
+    assert entity.is_over_climate is True
+    assert entity.swing_horizontal_modes == swing_horizontal_modes
+    assert entity.swing_horizontal_mode == "1"
 
     # 2. Change swing horizontal mode
     with patch("custom_components.versatile_thermostat.underlyings.UnderlyingClimate.set_fan_mode") as mock_send_fan_mode:
@@ -129,32 +129,30 @@ async def test_over_climate_swing_mode(
         },  # 5 minutes security delay
     )
 
-    fake_underlying_climate = MockClimate(
-        hass=hass,
-        unique_id="mock_climate",
-        name="mock_climate",
-        swing_modes=swing_modes,
-        swing_mode="1",
-    )
+    fake_underlying_climate = await create_and_register_mock_climate(hass, "mock_climate", "MockClimateName", {}, swing_modes=swing_modes, swing_mode="1")
+
+    # fake_underlying_climate = MockClimate(
+    #     hass=hass,
+    #     unique_id="mock_climate",
+    #     name="mock_climate",
+    #     swing_modes=swing_modes,
+    #     swing_mode="1",
+    # )
 
     # 1. Init swing mode
-    with patch(
-        "custom_components.versatile_thermostat.underlyings.UnderlyingClimate.find_underlying_climate",
-        return_value=fake_underlying_climate,
-    ):
-        entry.add_to_hass(hass)
-        await hass.config_entries.async_setup(entry.entry_id)
-        assert entry.state is ConfigEntryState.LOADED
+    entry.add_to_hass(hass)
+    await hass.config_entries.async_setup(entry.entry_id)
+    assert entry.state is ConfigEntryState.LOADED
 
-        entity: ThermostatOverClimate = search_entity(hass, "climate.theoverclimatemockname", "climate")
+    entity: ThermostatOverClimate = search_entity(hass, "climate.theoverclimatemockname", "climate")
 
-        assert entity
-        assert isinstance(entity, ThermostatOverClimate)
+    assert entity
+    assert isinstance(entity, ThermostatOverClimate)
 
-        assert entity.name == "TheOverClimateMockName"
-        assert entity.is_over_climate is True
-        assert entity.swing_modes == swing_modes
-        assert entity.swing_mode == "1"
+    assert entity.name == "TheOverClimateMockName"
+    assert entity.is_over_climate is True
+    assert entity.swing_modes == swing_modes
+    assert entity.swing_mode == "1"
 
     # 2. Change swing mode
     with patch("custom_components.versatile_thermostat.underlyings.UnderlyingClimate.set_fan_mode") as mock_send_fan_mode:

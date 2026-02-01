@@ -24,6 +24,7 @@ from pytest_socket import socket_allow_hosts
 
 from homeassistant.core import StateMachine, State
 from homeassistant.components.switch import DOMAIN as SWITCH_DOMAIN
+from homeassistant.components.number import DOMAIN as NUMBER_DOMAIN
 
 from custom_components.versatile_thermostat.config_flow import (
     VersatileThermostatBaseConfigFlow,
@@ -199,6 +200,14 @@ async def fake_underlying_switch_fixture(hass):
     switch = MockSwitch(hass, "mock_switch", "theMockedSwitch")
     await register_mock_entity(hass, switch, SWITCH_DOMAIN)
     yield switch
+
+
+@pytest.fixture(name="fake_underlying_valve")
+async def fake_underlying_valve_fixture(hass):
+    """Fixture to add an underlying valve named "switch.mock_valve" to a test"""
+    valve = MockNumber(hass, "mock_valve", "theMockedValve")
+    await register_mock_entity(hass, valve, NUMBER_DOMAIN)
+    yield valve
 
 
 @pytest.fixture(name="fake_underlying_switch_ac")

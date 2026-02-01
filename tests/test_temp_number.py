@@ -493,9 +493,7 @@ async def test_add_number_for_over_switch_use_central(
 
 
 @pytest.mark.parametrize("expected_lingering_timers", [True])
-async def test_add_number_for_over_switch_use_central_presence(
-    hass: HomeAssistant, skip_hass_states_is_state, init_central_config
-):
+async def test_add_number_for_over_switch_use_central_presence(hass: HomeAssistant, skip_hass_states_is_state, init_central_config, fake_underlying_switch: MockSwitch):
     """Test the construction of a over switch vtherm with
     use central config for PRESET and PRESENCE.
     It also have old temp config value which should be not used.
@@ -537,7 +535,7 @@ async def test_add_number_for_over_switch_use_central_presence(
             CONF_TPI_COEF_INT: 0.5,
             CONF_TPI_COEF_EXT: 0.02,
             CONF_CYCLE_MIN: 5,
-            CONF_UNDERLYING_LIST: ["switch.mock_switch1"],
+            CONF_UNDERLYING_LIST: ["switch.mock_switch"],
             CONF_USE_PRESENCE_FEATURE: True,
             CONF_USE_PRESENCE_CENTRAL_CONFIG: True,
             CONF_USE_ADVANCED_CENTRAL_CONFIG: True,
@@ -622,10 +620,9 @@ async def test_add_number_for_over_switch_use_central_presence(
         VThermPresetWithACAway.BOOST: temps["boost_ac_away"],
     }
 
+
 @pytest.mark.parametrize("expected_lingering_timers", [True])
-async def test_add_number_for_over_switch_use_central_presets_and_restore(
-    hass: HomeAssistant, skip_hass_states_is_state, init_central_config
-):
+async def test_add_number_for_over_switch_use_central_presets_and_restore(hass: HomeAssistant, skip_hass_states_is_state, init_central_config, fake_underlying_switch: MockSwitch):
     """Test the construction of a over switch vtherm with
     use central config for PRESET and PRESENCE.
     It also have old temp config value which should be not used.
@@ -667,7 +664,7 @@ async def test_add_number_for_over_switch_use_central_presets_and_restore(
             CONF_TPI_COEF_EXT: 0.02,
             CONF_PROP_FUNCTION: PROPORTIONAL_FUNCTION_TPI,
             CONF_CYCLE_MIN: 5,
-            CONF_UNDERLYING_LIST: ["switch.mock_switch1"],
+            CONF_UNDERLYING_LIST: ["switch.mock_switch"],
             CONF_USE_PRESENCE_FEATURE: True,
             CONF_USE_PRESENCE_CENTRAL_CONFIG: False,
             CONF_PRESENCE_SENSOR: "person.presence_sensor",
@@ -763,9 +760,7 @@ async def test_add_number_for_over_switch_use_central_presets_and_restore(
 
 
 @pytest.mark.parametrize("expected_lingering_timers", [True])
-async def test_change_central_config_temperature(
-    hass: HomeAssistant, skip_hass_states_is_state, init_central_config
-):
+async def test_change_central_config_temperature(hass: HomeAssistant, skip_hass_states_is_state, init_central_config, fake_underlying_valve: MockNumber):
     """Test the construction of a over valve vtherm with
     use central config for PRESET and PRESENCE.
     When changing the central configuration temperature, the VTherm
@@ -883,9 +878,7 @@ async def test_change_central_config_temperature(
 
 
 @pytest.mark.parametrize("expected_lingering_timers", [True])
-async def test_change_vtherm_temperature(
-    hass: HomeAssistant, skip_hass_states_is_state, init_central_config
-):
+async def test_change_vtherm_temperature(hass: HomeAssistant, skip_hass_states_is_state, init_central_config, fake_underlying_valve: MockNumber):
     """Test the construction of a over valve vtherm with
     use central config for PRESET and PRESENCE.
     When changing the central configuration temperature, the VTherm
@@ -1011,9 +1004,7 @@ async def test_change_vtherm_temperature(
 
 
 @pytest.mark.parametrize("expected_lingering_timers", [True])
-async def test_change_vtherm_temperature_with_presence(
-    hass: HomeAssistant, skip_hass_states_is_state, init_central_config
-):
+async def test_change_vtherm_temperature_with_presence(hass: HomeAssistant, skip_hass_states_is_state, init_central_config, fake_underlying_valve: MockNumber):
     """Test the construction of a over valve vtherm with
     no central config for PRESET and PRESENCE.
     When changing the Vtherm temperature, the VTherm

@@ -435,7 +435,7 @@ async def test_prop_algorithm_thresholds(
 
 @pytest.mark.parametrize("expected_lingering_tasks", [True])
 @pytest.mark.parametrize("expected_lingering_timers", [True])
-async def test_service_set_tpi_parameters(hass: HomeAssistant, skip_hass_states_is_state, skip_turn_on_off_heater):
+async def test_service_set_tpi_parameters(hass: HomeAssistant, skip_hass_states_is_state, skip_turn_on_off_heater, fake_underlying_switch: MockSwitch):
     """Test the set_tpi_parameters service to change TPI coefficients and verify on_percent changes"""
     # Initialize a VTherm over_switch with default TPI parameters
     entry = MockConfigEntry(

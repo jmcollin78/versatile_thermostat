@@ -16,9 +16,7 @@ from .commons import *  # pylint: disable=wildcard-import, unused-wildcard-impor
 
 
 @pytest.mark.parametrize("expected_lingering_timers", [True])
-async def test_over_valve_full_start(
-    hass: HomeAssistant, skip_hass_states_is_state
-):  # pylint: disable=unused-argument
+async def test_over_valve_full_start(hass: HomeAssistant, skip_hass_states_is_state, fake_underlying_valve: MockNumber):  # pylint: disable=unused-argument
     """Test the normal full start of a thermostat in thermostat_over_switch type"""
 
     entry = MockConfigEntry(
@@ -30,7 +28,7 @@ async def test_over_valve_full_start(
             CONF_THERMOSTAT_TYPE: CONF_THERMOSTAT_VALVE,
             CONF_TEMP_SENSOR: "sensor.mock_temp_sensor",
             CONF_EXTERNAL_TEMP_SENSOR: "sensor.mock_ext_temp_sensor",
-            CONF_VALVE: "number.mock_valve",
+            CONF_UNDERLYING_LIST: ["number.mock_valve"],
             CONF_CYCLE_MIN: 5,
             CONF_TEMP_MIN: 15,
             CONF_TEMP_MAX: 30,
@@ -334,9 +332,7 @@ async def test_over_valve_full_start(
 
 
 @pytest.mark.parametrize("expected_lingering_timers", [True])
-async def test_over_valve_regulation(
-    hass: HomeAssistant, skip_hass_states_is_state
-):  # pylint: disable=unused-argument
+async def test_over_valve_regulation(hass: HomeAssistant, skip_hass_states_is_state, fake_underlying_valve: MockNumber):  # pylint: disable=unused-argument
     """Test the normal full start of a thermostat in thermostat_over_switch type"""
 
     entry = MockConfigEntry(
@@ -348,7 +344,7 @@ async def test_over_valve_regulation(
             CONF_THERMOSTAT_TYPE: CONF_THERMOSTAT_VALVE,
             CONF_TEMP_SENSOR: "sensor.mock_temp_sensor",
             CONF_EXTERNAL_TEMP_SENSOR: "sensor.mock_ext_temp_sensor",
-            CONF_VALVE: "number.mock_valve",
+            CONF_UNDERLYING_LIST: ["number.mock_valve"],
             CONF_CYCLE_MIN: 5,
             CONF_TEMP_MIN: 15,
             CONF_TEMP_MAX: 30,
@@ -573,9 +569,7 @@ async def test_over_valve_regulation(
 
 @pytest.mark.parametrize("expected_lingering_tasks", [True])
 @pytest.mark.parametrize("expected_lingering_timers", [True])
-async def test_bug_533(
-    hass: HomeAssistant, skip_hass_states_is_state
-):  # pylint: disable=unused-argument
+async def test_bug_533(hass: HomeAssistant, skip_hass_states_is_state, fake_underlying_valve: MockNumber):  # pylint: disable=unused-argument
     """Test that with an over_valve and _auto_regulation_dpercent is set that the valve could close totally"""
 
     # vtherm_api: VersatileThermostatAPI = VersatileThermostatAPI.get_vtherm_api(hass)
@@ -607,7 +601,7 @@ async def test_bug_533(
             CONF_USE_MOTION_FEATURE: False,
             CONF_USE_POWER_FEATURE: False,
             CONF_USE_PRESENCE_FEATURE: False,
-            CONF_VALVE: "number.mock_valve",
+            CONF_UNDERLYING_LIST: ["number.mock_valve"],
             CONF_AUTO_REGULATION_DTEMP: 10,  # This parameter makes the bug
             CONF_MINIMAL_ACTIVATION_DELAY: 30,
             CONF_MINIMAL_DEACTIVATION_DELAY: 0,
