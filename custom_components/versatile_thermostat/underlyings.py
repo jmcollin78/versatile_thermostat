@@ -109,7 +109,7 @@ class UnderlyingEntity:
         # starts listening and can provide the initial cached state.
         self._state_manager.add_underlying_entities([self._entity_id])
 
-    async def _underlying_changed(self, entity_id: str, new_state: Optional[State]):
+    async def _underlying_changed(self, entity_id: str, new_state: Optional[State], old_state: Optional[State] = None):
         """Handle underlying state change notified by UnderlyingStateManager.
 
         `new_state` may be None when the entity is removed/unavailable.
@@ -118,11 +118,12 @@ class UnderlyingEntity:
         _LOGGER.debug("%s --------> Underlying state change received: '%s'", self, new_state)
         # If not yet initialized and we received a valid initial state, run initial checks
         if not self.is_initialized:
-            # Check if we have a valid state for all underlying entities
+            # Check if we have a valid state for all underlying entities for the first time
             if self._state_manager.is_all_states_initialized:
                 self._is_initialized = True
                 _LOGGER.debug("%s - All underlying states are now initialized", self)
                 await self.check_initial_state()
+                await self._thermostat.init_underlyings_completed(self._entity_id)
             else:
                 _LOGGER.debug("%s - Underlying state still not yet initialized", self)
         # Otherwise, nothing to do here: the manager holds the latest state
@@ -766,6 +767,70 @@ class UnderlyingClimate(UnderlyingEntity):
             )
             await self.set_hvac_mode(hvac_mode)
 
+    async def _underlying_changed(self, entity_id: str, new_state: Optional[State], old_state: Optional[State] = None):
+        """Handle underlying state change notified by UnderlyingStateManager.
+
+        `new_state` may be None when the entity is removed/unavailable.
+        Runs the initial state checks when all underlying entities are initialized.
+        """
+        await super()._underlying_changed(entity_id, new_state, old_state)
+        if not self.is_initialized or new_state is None:
+            return
+
+        # Check if one attributes has changed that could impact the thermostat
+        new_hvac_mode = VThermHvacMode(new_state.state)
+        old_hvac_mode = VThermHvacMode(old_state.state) if old_state else None
+        new_hvac_action = new_state.attributes.get("hvac_action") if new_state.attributes else None
+        old_hvac_action = old_state.attributes.get("hvac_action") if old_state and old_state.attributes else None
+        new_fan_mode = new_state.attributes.get("fan_mode") if new_state.attributes else None
+        new_target_temp = new_state.attributes.get("temperature") if new_state.attributes else None
+
+        # Ignore new target temperature when out of range
+        if (
+            not new_target_temp is None
+            and not self._thermostat.min_temp is None
+            and not self._thermostat.max_temp is None
+            and not (self._thermostat.min_temp <= new_target_temp <= self._thermostat.max_temp)
+        ):
+            _LOGGER.debug(
+                "%s - underlying sent a target temperature (%s) which is out of configured min/max range (%s / %s). The value will be ignored",
+                self,
+                new_target_temp,
+                self._thermostat.min_temp,
+                self._thermostat.max_temp,
+            )
+            new_target_temp = None
+
+        under_temp_diff = 0
+        if new_target_temp is not None:
+            last_sent_temperature = self.last_sent_temperature or 0
+            under_temp_diff = new_target_temp - last_sent_temperature
+
+            # check the dtemp is > step
+            step = self._thermostat.target_temperature_step or 1
+            if -step < under_temp_diff < step:
+                under_temp_diff = 0
+                new_target_temp = None
+
+        # Forget event when the event holds no real changes
+        if new_hvac_mode == self._thermostat.hvac_mode:
+            new_hvac_mode = None
+        if new_hvac_action == old_hvac_action:
+            new_hvac_action = None
+        if new_fan_mode == self._thermostat.fan_mode:
+            new_fan_mode = None
+        if under_temp_diff == 0:
+            new_target_temp = None
+
+        if new_hvac_mode is None and new_hvac_action is None and new_target_temp is None and new_fan_mode is None:
+            _LOGGER.debug(
+                "%s - a underlying state change event is received but no real change have been found. Forget the event",
+                self,
+            )
+            return
+
+        await self._thermostat.underlying_changed(self, new_hvac_mode, new_hvac_action, new_target_temp, new_fan_mode, new_state, old_state)
+
     async def set_fan_mode(self, fan_mode):
         """Set new target fan mode."""
         if not self.is_initialized:
@@ -954,6 +1019,7 @@ class UnderlyingClimate(UnderlyingEntity):
     def swing_horizontal_mode(self) -> str | None:
         """Get the swing_horizontal_mode of the underlying"""
         return self.get_underlying_attribute("swing_horizontal_mode")
+
     @property
     def supported_features(self) -> ClimateEntityFeature:
         """Get the supported features of the climate"""

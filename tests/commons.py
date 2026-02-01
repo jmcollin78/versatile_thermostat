@@ -25,12 +25,14 @@ from homeassistant.const import (
 from homeassistant.config_entries import ConfigEntryState
 from homeassistant.helpers.entity import Entity
 from homeassistant.helpers.event import async_call_later
-from homeassistant.components.climate import ClimateEntity
+from homeassistant.components.climate import ClimateEntity, ClimateEntityFeature
 from homeassistant.components.climate.const import (
     DOMAIN as CLIMATE_DOMAIN,
     HVACAction,
     HVACMode,
-    ClimateEntityFeature,
+    PRESET_BOOST,
+    PRESET_COMFORT,
+    PRESET_ECO,
 )
 
 from homeassistant.components.switch import (
@@ -262,6 +264,7 @@ class MockClimate(ClimateEntity):
         swing_modes: list[str] | None = None,
         swing_horizontal_mode: str | None = None,
         swing_horizontal_modes: list[str] | None = None,
+        add_state: bool = True,
     ) -> None:
         """Initialize the thermostat."""
 
@@ -288,6 +291,12 @@ class MockClimate(ClimateEntity):
         self._attr_target_temperature_step = 0.2
         self._fan_modes = fan_modes if fan_modes else None
         self._attr_fan_mode = None
+        self._attr_preset_modes = [PRESET_COMFORT, PRESET_ECO, PRESET_BOOST]
+        self._attr_preset_mode = None
+
+        if add_state:
+            # add the entity to hass states
+            set_entity_states_from_entity(hass, self)
 
     @property
     def name(self) -> str:
@@ -307,7 +316,8 @@ class MockClimate(ClimateEntity):
     def set_fan_mode(self, fan_mode):
         """Set the fan mode"""
         self._attr_fan_mode = fan_mode
-        self.async_write_ha_state()
+        # self.async_write_ha_state()
+        set_entity_states_from_entity(self.hass, self)
 
     @property
     def supported_features(self) -> int:
@@ -327,7 +337,7 @@ class MockClimate(ClimateEntity):
         self._attr_target_temperature = temperature
         try:
             # To avoid RuntimeError: Cannot call async_write_ha_state when not on main thread
-            self.async_write_ha_state()
+            set_entity_states_from_entity(self.hass, self)
         except RuntimeError:
             pass
 
@@ -339,7 +349,7 @@ class MockClimate(ClimateEntity):
         else:
             self._attr_available = True
             self._attr_hvac_mode = hvac_mode
-        self.async_write_ha_state()
+        set_entity_states_from_entity(self.hass, self)
 
     def set_hvac_mode(self, hvac_mode):
         """The hvac mode"""
@@ -349,35 +359,52 @@ class MockClimate(ClimateEntity):
         else:
             self._attr_available = True
             self._attr_hvac_mode = hvac_mode
-        self.async_write_ha_state()
+        set_entity_states_from_entity(self.hass, self)
 
     def set_hvac_action(self, hvac_action: HVACAction):
         """Set the HVACaction"""
         self._attr_hvac_action = hvac_action
-        self.async_write_ha_state()
+        set_entity_states_from_entity(self.hass, self)
 
     def set_current_temperature(self, current_temperature):
         """Set the current_temperature"""
         self._attr_current_temperature = current_temperature
-        self.async_write_ha_state()
+        set_entity_states_from_entity(self.hass, self)
 
     def set_swing_mode(self, swing_mode):
         """The swing mode"""
         self._attr_swing_mode = swing_mode
-        self.async_write_ha_state()
+        set_entity_states_from_entity(self.hass, self)
 
     def set_swing_horizontal_mode(self, swing_horizontal_mode):
         """The swing horizontal mode"""
         self._attr_swing_horizontal_mode = swing_horizontal_mode
-        self.async_write_ha_state()
+        set_entity_states_from_entity(self.hass, self)
+
+    @property
+    def attributes(self) -> Dict[str, Any]:
+        """Return the state attributes."""
+        attributes = self.state_attributes.copy()
+        if self.hvac_modes:
+            attributes["hvac_modes"] = self.hvac_modes
+        if self.fan_modes:
+            attributes["fan_modes"] = self.fan_modes
+        if self.preset_modes:
+            attributes["preset_modes"] = self.preset_modes
+        if self.swing_modes:
+            attributes["swing_modes"] = self.swing_modes
+        if self.swing_horizontal_modes:
+            attributes["swing_horizontal_modes"] = self.swing_horizontal_modes
+        if self.supported_features:
+            attributes["supported_features"] = self.supported_features
+
+        return attributes
 
 
 class MockUnavailableClimate(ClimateEntity):
     """A Mock Climate class used for Underlying climate mode"""
 
-    def __init__(
-        self, hass: HomeAssistant, unique_id, name, entry_infos
-    ) -> None:  # pylint: disable=unused-argument
+    def __init__(self, hass: HomeAssistant, unique_id, name, entry_infos, add_state: bool = True) -> None:  # pylint: disable=unused-argument
         """Initialize the thermostat."""
 
         super().__init__()
@@ -391,12 +418,34 @@ class MockUnavailableClimate(ClimateEntity):
         self._attr_hvac_modes = [VThermHvacMode_OFF, VThermHvacMode_COOL, VThermHvacMode_HEAT]
         self._attr_temperature_unit = UnitOfTemperature.CELSIUS
         self._attr_fan_mode = None
+        if add_state:
+            # add the entity to hass states
+            set_entity_states_from_entity(hass, self)
 
     @property
     def supported_features(self) -> int:
         """The supported feature of this climate entity"""
         ret = ClimateEntityFeature.TARGET_TEMPERATURE
         return ret
+
+    @property
+    def attributes(self) -> Dict[str, Any]:
+        """Return the state attributes."""
+        attributes = self.state_attributes.copy()
+        if self.hvac_modes:
+            attributes["hvac_modes"] = self.hvac_modes
+        if self.fan_modes:
+            attributes["fan_modes"] = self.fan_modes
+        if self.preset_modes:
+            attributes["preset_modes"] = self.preset_modes
+        if self.swing_modes:
+            attributes["swing_modes"] = self.swing_modes
+        if self.swing_horizontal_modes:
+            attributes["swing_horizontal_modes"] = self.swing_horizontal_modes
+        if self.supported_features:
+            attributes["supported_features"] = self.supported_features
+
+        return attributes
 
 
 class MagicMockClimate(MagicMock):
@@ -1042,11 +1091,15 @@ async def send_climate_change_event(
             ),
         },
     )
-    ret = await entity._async_climate_changed(climate_event)
+    # Find under state manager and send the change
+    under = entity.find_underlying_by_entity_id(underlying_entity_id)
+    await under.state_manager._state_changed(climate_event)
+
+    # ret = await entity._async_climate_changed(climate_event)
     if sleep:
         await entity.hass.async_block_till_done()
-        await asyncio.sleep(0.1)
-    return ret
+        await asyncio.sleep(0.1)  # TODO remove this one day
+    # return ret
 
 
 async def send_climate_change_event_with_temperature(
@@ -1093,11 +1146,13 @@ async def send_climate_change_event_with_temperature(
             ),
         },
     )
-    ret = await entity._async_climate_changed(climate_event)
+    under = entity.find_underlying_by_entity_id(underlying_entity_id)
+    await under.state_manager._state_changed(climate_event)
+    # ret = await entity._async_climate_changed(climate_event)
     if sleep:
         await entity.hass.async_block_till_done()
-        await asyncio.sleep(0.1)
-    return ret
+        await asyncio.sleep(0.1)  # TODO remove this one day
+    # return ret
 
 
 def cancel_switchs_cycles(entity: BaseThermostat):
@@ -1255,3 +1310,28 @@ async def wait_for_local_condition(check_condition: Callable[[], bool], timeout:
 
         # Le minimum pour laisser l'event loop s'exécuter
         await asyncio.sleep(0)
+
+
+default_climate_attributes = {
+    "supported_features": ClimateEntityFeature.TARGET_TEMPERATURE | ClimateEntityFeature.FAN_MODE | ClimateEntityFeature.SWING_MODE | ClimateEntityFeature.SWING_HORIZONTAL_MODE,
+}
+
+
+def set_entity_states(hass, entity_id, state, attributes=None):
+    """Set the states of an entity"""
+
+    hass.states.async_set(
+        entity_id=entity_id,
+        new_state=state,
+        attributes=attributes,
+    )
+
+
+def set_entity_states_from_entity(hass, entity: Entity):
+    """Set the states of an entity from an entity object"""
+
+    hass.states.async_set(
+        entity_id=entity.entity_id,
+        new_state=entity.state,
+        attributes=entity.attributes,
+    )

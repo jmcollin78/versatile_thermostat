@@ -51,6 +51,7 @@ class UnderlyingStateManager:
     async def _state_changed(self, event) -> None:
         """Internal callback invoked on each state change event."""
         new_state: Optional[State] = event.data.get("new_state", None)
+        old_state: Optional[State] = event.data.get("old_state", None)
         # Retrieve the entity_id from the event (sometimes in data or via new_state)
         entity_id = event.data.get("entity_id") if event.data.get("entity_id") else (
             new_state.entity_id if new_state else None
@@ -68,7 +69,7 @@ class UnderlyingStateManager:
 
         if self._on_change:
             try:
-                self._hass.async_create_task(self._on_change(entity_id, new_state))
+                self._hass.async_create_task(self._on_change(entity_id, new_state, old_state))
             except Exception:  # pragma: no cover - defensive
                 _LOGGER.exception("Error scheduling on_change for %s", entity_id)
 
@@ -153,8 +154,8 @@ class UnderlyingStateManager:
                 if st is not None:
                     try:
                         self._hass.async_create_task(self._on_change(eid, st))
-                    except Exception:
-                        _LOGGER.exception("Error scheduling on_change for %s", eid)
+                    except Exception as error:  # pragma: no cover - defensive
+                        _LOGGER.exception("Error scheduling on_change for {eid}. error is {error}", eid=eid, error=error)
 
     def stop(self) -> None:
         """Stop listening to state changes and remove the callback."""
