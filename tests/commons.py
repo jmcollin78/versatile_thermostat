@@ -266,6 +266,7 @@ class MockClimate(ClimateEntity):
         swing_horizontal_modes: list[str] | None = None,
         min_temp: float = 7.0,
         max_temp: float = 35.0,
+        ac_mode: bool = False,
         add_state: bool = True,
     ) -> None:
         """Initialize the thermostat."""
@@ -278,7 +279,7 @@ class MockClimate(ClimateEntity):
         self._attr_extra_state_attributes = {}
         self._unique_id = unique_id
         self._name = name
-        self._attr_hvac_action = HVACAction.OFF if hvac_mode == VThermHvacMode_OFF else HVACAction.HEATING
+        self._ac_mode = ac_mode
         self._attr_hvac_mode = hvac_mode
         self._attr_available = True
         self._attr_hvac_modes = hvac_modes if hvac_modes is not None else [VThermHvacMode_OFF, VThermHvacMode_COOL, VThermHvacMode_HEAT]
@@ -289,7 +290,6 @@ class MockClimate(ClimateEntity):
         self._attr_temperature_unit = UnitOfTemperature.CELSIUS
         self._attr_target_temperature = 20
         self._attr_current_temperature = 15
-        self._attr_hvac_action = hvac_action
         self._attr_target_temperature_step = 0.2
         self._fan_modes = fan_modes if fan_modes else None
         self._attr_fan_mode = None
@@ -297,6 +297,9 @@ class MockClimate(ClimateEntity):
         self._attr_preset_mode = None
         self._attr_min_temp = min_temp
         self._attr_max_temp = max_temp
+
+        # Calculate hvac_action based on current state
+        self._calculate_hvac_action()
 
         if add_state:
             # add the entity to hass states
@@ -335,10 +338,28 @@ class MockClimate(ClimateEntity):
             ret = ret | ClimateEntityFeature.SWING_HORIZONTAL_MODE
         return ret
 
+    def _calculate_hvac_action(self):
+        """Calculate the hvac_action based on hvac_mode, target_temperature and current_temperature"""
+        if self._attr_hvac_mode in [HVACMode.OFF, STATE_UNAVAILABLE, STATE_UNKNOWN]:
+            self._attr_hvac_action = HVACAction.OFF
+        elif self._attr_hvac_mode in [HVACMode.HEAT, HVACMode.HEAT_COOL, HVACMode.AUTO]:
+            if self._attr_target_temperature > self._attr_current_temperature:
+                self._attr_hvac_action = HVACAction.HEATING
+            else:
+                self._attr_hvac_action = HVACAction.IDLE
+        elif self._attr_hvac_mode == HVACMode.COOL:
+            if self._attr_target_temperature < self._attr_current_temperature:
+                self._attr_hvac_action = HVACAction.COOLING
+            else:
+                self._attr_hvac_action = HVACAction.IDLE
+        else:
+            self._attr_hvac_action = HVACAction.IDLE
+
     def set_temperature(self, **kwargs):
         """Set the target temperature"""
         temperature = kwargs.get(ATTR_TEMPERATURE)
         self._attr_target_temperature = temperature
+        self._calculate_hvac_action()
         try:
             # To avoid RuntimeError: Cannot call async_write_ha_state when not on main thread
             set_entity_states_from_entity(self.hass, self)
@@ -353,6 +374,7 @@ class MockClimate(ClimateEntity):
         else:
             self._attr_available = True
             self._attr_hvac_mode = hvac_mode
+        self._calculate_hvac_action()
         set_entity_states_from_entity(self.hass, self)
 
     def set_hvac_mode(self, hvac_mode):
@@ -363,6 +385,7 @@ class MockClimate(ClimateEntity):
         else:
             self._attr_available = True
             self._attr_hvac_mode = hvac_mode
+        self._calculate_hvac_action()
         set_entity_states_from_entity(self.hass, self)
 
     def set_hvac_action(self, hvac_action: HVACAction):
@@ -373,6 +396,7 @@ class MockClimate(ClimateEntity):
     def set_current_temperature(self, current_temperature):
         """Set the current_temperature"""
         self._attr_current_temperature = current_temperature
+        self._calculate_hvac_action()
         set_entity_states_from_entity(self.hass, self)
 
     def set_swing_mode(self, swing_mode):
