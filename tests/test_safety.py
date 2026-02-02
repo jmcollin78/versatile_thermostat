@@ -522,27 +522,32 @@ async def test_security_over_climate(
     fake_underlying_climate = await create_and_register_mock_climate(hass, "mock_climate", "MockClimateName", {}, VThermHvacMode_HEAT, HVACAction.HEATING)
 
     with patch("custom_components.versatile_thermostat.base_thermostat.BaseThermostat.send_event") as mock_send_event:
-        entry.add_to_hass(hass)
-        await hass.config_entries.async_setup(entry.entry_id)
-        assert entry.state is ConfigEntryState.LOADED
+        # entry.add_to_hass(hass)
+        # await hass.config_entries.async_setup(entry.entry_id)
+        # assert entry.state is ConfigEntryState.LOADED
 
-        def find_my_entity(entity_id) -> ClimateEntity:
-            """Find my new entity"""
-            component: EntityComponent[ClimateEntity] = hass.data[CLIMATE_DOMAIN]
-            for entity in list(component.entities):
-                if entity.entity_id == entity_id:
-                    return entity
+        # def find_my_entity(entity_id) -> ClimateEntity:
+        #     """Find my new entity"""
+        #     component: EntityComponent[ClimateEntity] = hass.data[CLIMATE_DOMAIN]
+        #     for entity in list(component.entities):
+        #         if entity.entity_id == entity_id:
+        #             return entity
 
-        entity: ThermostatOverClimate = find_my_entity("climate.theoverclimatemockname")
+        # entity: ThermostatOverClimate = find_my_entity("climate.theoverclimatemockname")
+
+        entity: ThermostatOverClimate = await create_thermostat(hass, entry, "climate.theoverclimatemockname")
 
         assert entity
 
         assert entity.name == "TheOverClimateMockName"
         assert entity.is_over_climate is True
 
-        # Because the underlying is HEATING. In real life the underlying will be shut-off
-        assert entity.hvac_action is HVACAction.HEATING
+        # Even if the underlying is HEATING it will be off at startup
+        assert entity.hvac_action is HVACAction.OFF
         assert entity.vtherm_hvac_mode is VThermHvacMode_OFF
+        assert fake_underlying_climate.hvac_mode == HVACMode.OFF
+        assert fake_underlying_climate.hvac_action == HVACAction.OFF
+
         assert entity.target_temperature == entity.min_temp
         assert entity.preset_modes == [
             VThermPreset.NONE,
