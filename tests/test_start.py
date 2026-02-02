@@ -22,7 +22,7 @@ from .commons import *  # pylint: disable=wildcard-import, unused-wildcard-impor
 
 @pytest.mark.parametrize("expected_lingering_tasks", [True])
 @pytest.mark.parametrize("expected_lingering_timers", [True])
-async def test_over_switch_full_start(hass: HomeAssistant, skip_hass_states_is_state):
+async def test_over_switch_full_start(hass: HomeAssistant, skip_hass_states_is_state, fake_underlying_switch):
     """Test the normal full start of a thermostat in thermostat_over_switch type"""
 
     entry = MockConfigEntry(
@@ -134,6 +134,7 @@ async def test_over_climate_full_start(hass: HomeAssistant, skip_hass_states_is_
             ]
         )
 
+
 @pytest.mark.parametrize("expected_lingering_tasks", [True])
 @pytest.mark.parametrize("expected_lingering_timers", [True])
 async def test_over_4switch_full_start(hass: HomeAssistant, skip_hass_states_is_state):
@@ -226,10 +227,7 @@ async def test_over_switch_deactivate_preset(hass: HomeAssistant, skip_hass_stat
             CONF_USE_MOTION_FEATURE: False,
             CONF_USE_POWER_FEATURE: False,
             CONF_USE_PRESENCE_FEATURE: False,
-            CONF_HEATER: "switch.mock_switch",
-            CONF_HEATER_2: None,
-            CONF_HEATER_3: None,
-            CONF_HEATER_4: None,
+            CONF_UNDERLYING_LIST: ["switch.mock_switch"],
             CONF_HEATER_KEEP_ALIVE: 0,
             CONF_SAFETY_DELAY_MIN: 10,
             CONF_MINIMAL_ACTIVATION_DELAY: 10,
@@ -240,11 +238,83 @@ async def test_over_switch_deactivate_preset(hass: HomeAssistant, skip_hass_stat
         },
     )
 
-    entity: BaseThermostat = await create_thermostat(
-        hass, entry, "climate.theoverswitchmockname"
-    )
+    entity: BaseThermostat = await create_thermostat(hass, entry, "climate.theoverswitchmockname")
     assert entity
     assert isinstance(entity, ThermostatOverSwitch)
+
+    assert entity.preset_modes == [
+        VThermPreset.NONE,
+        # VThermPreset.FROST,
+        VThermPreset.ECO,
+        # VThermPreset.COMFORT,
+        VThermPreset.BOOST,
+    ]
+    assert entity.preset_mode is VThermPreset.NONE
+
+    # try to set the COMFORT Preset which is absent
+    try:
+        await entity.async_set_preset_mode(VThermPreset.COMFORT)
+    except ValueError as err:
+        print(err)
+    else:
+        assert False
+    finally:
+        assert entity.preset_mode is VThermPreset.NONE
+
+
+@pytest.mark.parametrize("expected_lingering_tasks", [True])
+@pytest.mark.parametrize("expected_lingering_timers", [True])
+async def test_over_climate_deactivate_preset(hass: HomeAssistant, skip_hass_states_is_state):
+    """Test the normal full start of a thermostat in thermostat_over_climate type with deactivated presets and COOL only hvac mode"""
+
+    entry = MockConfigEntry(
+        domain=DOMAIN,
+        title="TheOverClimateMockName",
+        unique_id="uniqueId",
+        data={
+            CONF_NAME: "TheOverClimateMockName",
+            CONF_THERMOSTAT_TYPE: CONF_THERMOSTAT_CLIMATE,
+            CONF_TEMP_SENSOR: "sensor.mock_temp_sensor",
+            CONF_EXTERNAL_TEMP_SENSOR: "sensor.mock_ext_temp_sensor",
+            CONF_CYCLE_MIN: 8,
+            CONF_TEMP_MIN: 15,
+            CONF_TEMP_MAX: 30,
+            "frost_temp": 10,
+            "eco_temp": 17,
+            "comfort_temp": 0,
+            "boost_temp": 19,
+            CONF_USE_WINDOW_FEATURE: False,
+            CONF_USE_MOTION_FEATURE: False,
+            CONF_USE_POWER_FEATURE: False,
+            CONF_USE_PRESENCE_FEATURE: False,
+            CONF_UNDERLYING_LIST: ["climate.mock_climate"],
+            CONF_HEATER_KEEP_ALIVE: 0,
+            CONF_SAFETY_DELAY_MIN: 10,
+            CONF_AC_MODE: True,
+        },
+    )
+
+    entity: BaseThermostat = await create_thermostat(hass, entry, "climate.theoverclimatemockname")
+    assert entity
+    assert isinstance(entity, ThermostatOverClimate)
+
+    assert entity.preset_modes == [
+        VThermPreset.NONE,
+        VThermPreset.FROST,
+        VThermPreset.ECO,
+        # VThermPreset.COMFORT,
+        VThermPreset.BOOST,
+    ]
+
+    # create the underlying climate with COOL only hvac mode
+    await create_and_register_mock_climate(
+        hass,
+        "mock_climate",
+        "MockClimateName",
+        {},
+        hvac_modes=[HVACMode.COOL],
+    )
+    await hass.async_block_till_done()
 
     assert entity.preset_modes == [
         VThermPreset.NONE,

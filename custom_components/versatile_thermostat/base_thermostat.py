@@ -508,6 +508,9 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
             for cb in self._on_cycle_start_callbacks:
                 under.register_cycle_callback(cb)
 
+        # init presets. Should be after underlyings init because for over_climate it uses the hvac_modes
+        await self.init_presets(central_configuration)
+
         temperature_state = self.hass.states.get(self._temp_sensor_entity_id)
         if temperature_state and temperature_state.state not in (
             STATE_UNAVAILABLE,
@@ -552,10 +555,16 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
         if not self.is_initialized:
             return
 
-        vtherm_api = VersatileThermostatAPI.get_vtherm_api()
-
-        # init presets. Should be after underlyings init because for over_climate it uses the hvac_modes
-        await self.init_presets(vtherm_api.find_central_configuration())
+        # in over_climate, we have to remove the FROST preset for a COOL only device
+        if self._ac_mode and VThermPreset.FROST in self._vtherm_preset_modes:
+            self._vtherm_preset_modes.remove(VThermPreset.FROST)
+            if VThermPreset.FROST in self._attr_preset_modes:
+                self._attr_preset_modes.remove(VThermPreset.FROST)
+            _LOGGER.debug(
+                "%s - removed FROST preset for COOL only device, new presets: %s",
+                self,
+                self._attr_preset_modes,
+            )
 
         # Then we:
         # - refresh all managers states,
@@ -717,8 +726,9 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
 
             for key, preset_name in items:
                 _LOGGER.debug("looking for key=%s, preset_name=%s", key, preset_name)
-                # removes preset_name frost if heat is not in hvac_modes
-                if key == VThermPreset.FROST and VThermHvacMode_HEAT not in self.vtherm_hvac_modes:
+                # removes preset_name frost if heat is not in hvac_modes. vtherm_hvac_modes is initialized when the underlyings are initialized.
+                # So it may be not be ready yet here. In that case, the FROST is added anyway. So it is possible that FROST preset in a COOL only device
+                if len(self.vtherm_hvac_modes) == 0 and key == VThermPreset.FROST and VThermHvacMode_HEAT not in self.vtherm_hvac_modes:
                     _LOGGER.debug("removing preset_name %s which reserved for HEAT devices", preset_name)
                     continue
                 value = vtherm_api.get_temperature_number_value(config_id=config_id, preset_name=preset_name)
