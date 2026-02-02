@@ -749,8 +749,19 @@ class MockNumber(NumberEntity):
     def set_native_value(self, value: float):
         """Change the value"""
         self._attr_native_value = value
-        # self.async_write_ha_state generates exception if not on the main loop
-        self.schedule_update_ha_state()
+        self.hass.loop.call_soon_threadsafe(self.async_write_ha_state)
+
+    @overrides
+    def set_max_value(self, value: float):
+        """Change the max value"""
+        self._attr_native_max_value = value
+        self.hass.loop.call_soon_threadsafe(self.async_write_ha_state)
+
+    @overrides
+    def set_min_value(self, value: float):
+        """Change the min value"""
+        self._attr_native_min_value = value
+        self.hass.loop.call_soon_threadsafe(self.async_write_ha_state)
 
 
 async def create_and_register_mock_climate(

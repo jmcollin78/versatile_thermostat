@@ -1387,7 +1387,8 @@ class UnderlyingValve(UnderlyingEntity):
     def current_valve_opening(self) -> float | None:
         """Get the current valve opening from the underlying entity"""
 
-        valve_state = self._state_manager.get_state(self.entity_id)
+        if (valve_state := self._state_manager.get_state(self.entity_id)) is None:
+            return None
         valve_open: float = get_safe_float_value(valve_state.state)
         return valve_open
 
