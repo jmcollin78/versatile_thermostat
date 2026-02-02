@@ -493,7 +493,7 @@ async def test_power_management_hvac_on(hass: HomeAssistant, skip_hass_states_is
             any_order=True,
         )
         assert mock_heater_on.call_count == 0
-        assert mock_heater_off.call_count == 1
+        assert mock_heater_off.call_count >= 1 # can be call twice because is_device_active is patched to True
 
     # Send power mesurement low to unset power preset
     side_effects.add_or_update_side_effect("sensor.the_power_sensor", State("sensor.the_power_sensor", 48))
@@ -908,7 +908,7 @@ async def test_power_management_turn_off_while_shedding(hass: HomeAssistant, ski
         assert entity.target_temperature == 19
 
 
-async def test_power_management_over_climate_valve(hass: HomeAssistant, skip_hass_states_get):
+async def test_power_management_over_climate_valve(hass: HomeAssistant, skip_hass_states_get, fake_underlying_climate: MockClimate, fake_opening_degree: MockNumber):
     """Test the power and energy calculation for over_climate_valve thermostat"""
 
     entry = MockConfigEntry(
@@ -950,9 +950,11 @@ async def test_power_management_over_climate_valve(hass: HomeAssistant, skip_has
         | MOCK_ADVANCED_CONFIG,
     )
 
-    fake_underlying_climate = MockClimate(hass, "mockUniqueId", "MockClimateName", {})
-
     # mock_get_state will be called for each OPENING/CLOSING/OFFSET_CALIBRATION list
+    ICI
+    fake_opening_degree.set_state("10")
+    fake_opening_degree.set_min_value("0")
+    fake_opening_degree.set_max_value("100")
 
     mock_get_state_side_effect = SideEffects(
         {
@@ -966,8 +968,7 @@ async def test_power_management_over_climate_valve(hass: HomeAssistant, skip_has
     now: datetime = datetime.now(tz=tz)
 
     # fmt: off
-    with patch("custom_components.versatile_thermostat.underlyings.UnderlyingClimate.find_underlying_climate", return_value=fake_underlying_climate), \
-        patch("homeassistant.core.ServiceRegistry.async_call") as mock_service_call,\
+    with patch("homeassistant.core.ServiceRegistry.async_call") as mock_service_call,\
         patch("homeassistant.core.StateMachine.get", side_effect=mock_get_state_side_effect.get_side_effects()):
     # fmt: on
 

@@ -210,6 +210,14 @@ async def fake_underlying_valve_fixture(hass):
     yield valve
 
 
+@pytest.fixture(name="fake_opening_degree")
+async def fake_opening_degree_fixture(hass):
+    """Fixture to add an underlying number opening degree named "number.mock_opening_degree" to a test"""
+    opening_degree = MockNumber(hass, "mock_opening_degree", "theMockedOpeningDegree")
+    await register_mock_entity(hass, opening_degree, NUMBER_DOMAIN)
+    yield opening_degree
+
+
 @pytest.fixture(name="fake_underlying_switch_ac")
 async def fake_underlying_switch_ac_fixture(hass):
     """Fixture to add an underlying switch named "switch.mock_switch" to a test"""
