@@ -102,7 +102,8 @@ class ThermostatOverSwitch(ThermostatProp[UnderlyingSwitch]):
                     self.hass, [switch.entity_id], self._async_switch_changed
                 )
             )
-            switch.startup()
+            # done in BaseThermostat into async_startup
+            # switch.startup()
 
         # self.hass.create_task(self.async_control_heating())
         # Start the control_heating
