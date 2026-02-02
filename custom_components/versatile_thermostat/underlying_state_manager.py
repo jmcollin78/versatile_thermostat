@@ -70,8 +70,8 @@ class UnderlyingStateManager:
         if self._on_change:
             try:
                 self._hass.async_create_task(self._on_change(entity_id, new_state, old_state))
-            except Exception:  # pragma: no cover - defensive
-                _LOGGER.exception("Error scheduling on_change for %s", entity_id)
+            except Exception as err:  # pragma: no cover - defensive
+                _LOGGER.exception("Error %s scheduling on_change for %s", err, entity_id)
 
     def get_state(self, entity_id: str) -> Optional[State]:
         """Return the last known `State` for `entity_id`, or `None` if unknown."""
@@ -153,7 +153,7 @@ class UnderlyingStateManager:
                 st = self._states[self._entity_ids.index(eid)]
                 if st is not None:
                     try:
-                        self._hass.async_create_task(self._on_change(eid, st))
+                        self._hass.async_create_task(self._on_change(eid, st, None))
                     except Exception as error:  # pragma: no cover - defensive
                         _LOGGER.exception("Error scheduling on_change for {eid}. error is {error}", eid=eid, error=error)
 

@@ -52,7 +52,7 @@ async def test_on_change_callback_and_stop(hass: HomeAssistant):
     """on_change is called for initial cached states, on updates, and stops after stop()."""
     calls: List[tuple] = []
 
-    async def on_change(entity_id: str, state):
+    async def on_change(entity_id: str, state, old_state):
         calls.append((entity_id, state.state if state else None))
 
     # Prepare initial HA state
