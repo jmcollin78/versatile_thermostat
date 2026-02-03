@@ -27,6 +27,8 @@ from homeassistant.core import StateMachine, State
 from homeassistant.components.switch import DOMAIN as SWITCH_DOMAIN
 from homeassistant.components.number import DOMAIN as NUMBER_DOMAIN
 from homeassistant.components.sensor import DOMAIN as SENSOR_DOMAIN
+from homeassistant.components.binary_sensor import DOMAIN as BINARY_SENSOR_DOMAIN
+
 
 from custom_components.versatile_thermostat.config_flow import (
     VersatileThermostatBaseConfigFlow,
@@ -246,4 +248,12 @@ async def fake_ext_temp_sensor_fixture(hass):
     """Fixture to add a sensor named  "sensor.mock_ext_temp_sensor" to a test"""
     sensor = MockTemperatureSensor(hass, "mock_ext_temp_sensor", "theMockedExtTempSensor", value=20, unit_of_measurement=UnitOfTemperature.CELSIUS)
     await register_mock_entity(hass, sensor, SENSOR_DOMAIN)
+    yield sensor
+
+
+@pytest.fixture(name="fake_presence_sensor")
+async def fake_presence_sensor_fixture(hass):
+    """Fixture to add a binary sensor named "binary_sensor.presence_sensor" to a test"""
+    sensor = MockBinarySensor(hass, "fake_presence_sensor", "theMockedPresenceSensor")
+    await register_mock_entity(hass, sensor, BINARY_SENSOR_DOMAIN)
     yield sensor

@@ -1372,6 +1372,8 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
     @overrides
     async def init_underlyings_completed(self, under_entity_id: str):
         """Called when all entities of an underlying are initialized. Then we can complete the startup with the underlying info"""
+        if not self.is_initialized:
+            return
         await super().init_underlyings_completed(under_entity_id)
 
         self.choose_auto_fan_mode(self._auto_fan_mode)

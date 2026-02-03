@@ -33,7 +33,7 @@ class UnderlyingStateManager:
     will be scheduled when a state change is received.
     """
 
-    def __init__(self, hass: HomeAssistant, on_change: Optional[Callable[[str, Optional[State]], Any]] = None) -> None:
+    def __init__(self, hass: HomeAssistant, on_change: Optional[Callable[[str, Optional[State], Optional[State]], Any]] = None) -> None:
         """Create the manager without any monitored entity IDs.
 
         Entities can be added later with `add_underlying_entities`.
@@ -155,7 +155,7 @@ class UnderlyingStateManager:
                     try:
                         self._hass.async_create_task(self._on_change(eid, st, None))
                     except Exception as error:  # pragma: no cover - defensive
-                        _LOGGER.exception("Error scheduling on_change for {eid}. error is {error}", eid=eid, error=error)
+                        _LOGGER.exception("Error scheduling on_change for %s. error is %s", eid, error)
 
     def stop(self) -> None:
         """Stop listening to state changes and remove the callback."""

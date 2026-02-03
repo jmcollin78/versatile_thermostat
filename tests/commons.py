@@ -42,6 +42,7 @@ from homeassistant.components.switch import (
 
 from homeassistant.components.number import NumberEntity, DOMAIN as NUMBER_DOMAIN
 from homeassistant.components.sensor import SensorEntity, DOMAIN as SENSOR_DOMAIN
+from homeassistant.components.binary_sensor import BinarySensorEntity, DOMAIN as BINARY_SENSOR_DOMAIN
 
 from homeassistant.helpers.entity_component import EntityComponent
 
@@ -792,6 +793,40 @@ class MockTemperatureSensor(SensorEntity):
     def set_native_value(self, value: float):
         """Change the value"""
         self._attr_native_value = value
+        self.hass.loop.call_soon_threadsafe(self.async_write_ha_state)
+
+
+class MockBinarySensor(BinarySensorEntity):
+    """A fake binary sensor to be used instead of real binary sensor"""
+
+    def __init__(self, hass: HomeAssistant, unique_id, name, entry_infos={}, is_on=False):  # pylint: disable=unused-argument, dangerous-default-value
+        """Init the binary sensor"""
+        super().__init__()
+
+        self.hass = hass
+        self.platform = BINARY_SENSOR_DOMAIN
+        self.entity_id = self.platform + "." + unique_id
+        self._name = name
+        self._attr_is_on = is_on
+
+    @property
+    def name(self) -> str:
+        """The name"""
+        return self._name
+
+    @property
+    def is_on(self) -> bool:
+        """True if the binary sensor is on"""
+        return self._attr_is_on
+
+    def turn_on(self, **kwargs: Any):
+        """Turns the binary sensor on and notify the state change"""
+        self._attr_is_on = True
+        self.hass.loop.call_soon_threadsafe(self.async_write_ha_state)
+
+    def turn_off(self, **kwargs: Any):
+        """Turns the binary sensor off and notify the state change"""
+        self._attr_is_on = False
         self.hass.loop.call_soon_threadsafe(self.async_write_ha_state)
 
 

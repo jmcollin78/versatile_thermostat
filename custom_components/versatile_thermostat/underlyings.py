@@ -123,7 +123,10 @@ class UnderlyingEntity:
                 self._is_initialized = True
                 _LOGGER.debug("%s - All underlying states are now initialized", self)
                 await self.check_initial_state()
-                await self._thermostat.init_underlyings_completed(self._entity_id)
+                # if all underlying of the vtherm are initialized, notify the parent thermostat
+                if self._thermostat.is_initialized:
+                    await self._thermostat.init_underlyings_completed(self._entity_id)
+                return
             else:
                 _LOGGER.debug("%s - Underlying state still not yet initialized", self)
         # Otherwise, the manager holds the latest state
@@ -1487,11 +1490,11 @@ class UnderlyingValveRegulation(UnderlyingValve):
         """Startup the Entity. Listen to the underlying state changes"""
 
         # Register the valve listener
-        super().startup()
+        # super().startup()
 
         # starts listening and can provide the initial cached state.
         # TODO peut être que écouter self._opening_degree_entity_id ne sert à rien ici puisque c'est super() qui le fait
-        entities = [self._climate_underlying.entity_id, self._opening_degree_entity_id]
+        entities = [self._opening_degree_entity_id]
         if self._has_max_closing_degree:
             entities.append(self._closing_degree_entity_id)
         self._state_manager.add_underlying_entities(entities)
