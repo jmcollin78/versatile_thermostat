@@ -21,12 +21,12 @@ from .const import *
 logging.getLogger().setLevel(logging.DEBUG)
 
 
-@pytest.mark.parametrize("expected_lingering_tasks", [True])
-@pytest.mark.parametrize("expected_lingering_timers", [True])
-# this test fails if run in // with the next because the underlying_valve_regulation is mixed. Don't know why
-# @pytest.mark.skip
-async def test_over_climate_valve_mono(hass: HomeAssistant, skip_hass_states_get, fake_underlying_climate: MockClimate):
+async def test_over_climate_valve_mono(hass: HomeAssistant, fake_temp_sensor, fake_ext_temp_sensor, fake_underlying_climate: MockClimate):
     """Test the normal full start of a thermostat in thermostat_over_climate type"""
+
+    fake_temp_sensor.set_native_value(20)
+    fake_ext_temp_sensor.set_native_value(20)
+    fake_underlying_climate.set_current_temperature(15)
 
     entry = MockConfigEntry(
         domain=DOMAIN,
@@ -68,26 +68,16 @@ async def test_over_climate_valve_mono(hass: HomeAssistant, skip_hass_states_get
     )
 
     # fake_underlying_climate = MockClimate(hass, "mockUniqueId", "MockClimateName", {})
-
-    # mock_get_state will be called for each OPENING/CLOSING/OFFSET_CALIBRATION list
-
-    mock_get_state_side_effect = SideEffects(
-        {
-            "number.mock_opening_degree": State("number.mock_opening_degree", "10", {"min": 0, "max": 100}),
-            "number.mock_closing_degree": State("number.mock_closing_degree", "90", {"min": 0, "max": 100}),
-            "number.mock_offset_calibration": State("number.mock_offset_calibration", "0", {"min": -12, "max": 12}),
-        },
-        State("unknown.entity_id", "unknown"),
-    )
+    fake_opening_degree = await create_and_register_mock_number(hass, "mock_opening_degree", "MockOpeningDegree", value=10, min=0, max=100)
+    fake_closing_degree = await create_and_register_mock_number(hass, "mock_closing_degree", "MockClosingDegree", value=90, min=0, max=100)
+    fake_offset_calibration = await create_and_register_mock_number(hass, "mock_offset_calibration", "MockOffsetCalibration", value=0, min=-12, max=12, step=0.1)
 
     # 1. initialize the VTherm
     tz = get_tz(hass)  # pylint: disable=invalid-name
     now: datetime = datetime.now(tz=tz)
 
     # fmt: off
-    with patch("custom_components.versatile_thermostat.base_thermostat.BaseThermostat.send_event") as mock_send_event, \
-        patch("homeassistant.core.ServiceRegistry.async_call") as mock_service_call,\
-        patch("homeassistant.core.StateMachine.get", side_effect=mock_get_state_side_effect.get_side_effects()) as mock_get_state:
+    with patch("custom_components.versatile_thermostat.base_thermostat.BaseThermostat.send_event") as mock_send_event:
     # fmt: on
 
         vtherm: ThermostatOverClimateValve = await create_thermostat(hass, entry, "climate.theoverclimatemockname")
@@ -133,35 +123,25 @@ async def test_over_climate_valve_mono(hass: HomeAssistant, skip_hass_states_get
             ]
         )
 
-        mock_find_climate.assert_called_once()
-        mock_find_climate.assert_has_calls([call.find_underlying_vtherm()])
+        # the underlying valve should be closed
+        assert fake_opening_degree.native_value == 0
+        assert fake_closing_degree.native_value == 100
 
-        # the underlying set temperature call but no call to valve yet because VTherm is off
-        assert mock_service_call.call_count == 2
-        mock_service_call.assert_has_calls(
-            [
-                call('number', SERVICE_SET_VALUE, {'value': 0}, False, None, {'entity_id': 'number.mock_opening_degree'}, False),
-                call('number', SERVICE_SET_VALUE, {'value': 100}, False, None, {'entity_id': 'number.mock_closing_degree'}, False),
-                # issue #1012 - the set temperature is not called when the VTherm is off
-                # call("climate","set_temperature",{
-                #         "entity_id": "climate.mock_climate",
-                #         "temperature": 15,  # temp-min
-                #     },
-                # ),
-                # we have no current_temperature yet
-                # call(domain='number', service='set_value', service_data={'value': 12}, target={'entity_id': 'number.mock_offset_calibration'}),
-            ]
-        )
+        # room temperature is set to 20
+        assert vtherm.current_temperature == 20
 
-        assert mock_get_state.call_count >= 6  # each temp sensor (2) + each valve (2) + temp synchro (2) + all getState in custom_attributes
+        assert fake_offset_calibration.native_value == 0 # no change because no temperature has been sent yet
+
+        # assert mock_get_state.call_count >= 6  # each temp sensor (2) + each valve (2) + temp synchro (2) + all getState in custom_attributes
         assert vtherm.nb_device_actives == 0
 
-
-        # initialize the temps
+        # initialize the temps with the defaults
         await set_all_climate_preset_temp(hass, vtherm, None, "theoverclimatemockname")
 
         await send_temperature_change_event(vtherm, 18, now, True)
         await send_ext_temperature_change_event(vtherm, 18, now, True)
+
+        await wait_for_local_condition(lambda: fake_offset_calibration.native_value == 3) # 18 - 15 + 0
 
     # 2. Starts heating slowly (18 vs 19)
     now = now + timedelta(minutes=1)
@@ -169,9 +149,7 @@ async def test_over_climate_valve_mono(hass: HomeAssistant, skip_hass_states_get
 
     await vtherm.async_set_hvac_mode(VThermHvacMode_HEAT)
     # fmt: off
-    with patch("custom_components.versatile_thermostat.base_thermostat.BaseThermostat.send_event") as mock_send_event, \
-        patch("homeassistant.core.ServiceRegistry.async_call") as mock_service_call,\
-        patch("homeassistant.core.StateMachine.get", side_effect=mock_get_state_side_effect.get_side_effects()) as mock_get_state:
+    with patch("custom_components.versatile_thermostat.base_thermostat.BaseThermostat.send_event") as mock_send_event:
     # fmt: on
         now = now + timedelta(minutes=3) # avoid temporal filter
         vtherm._set_now(now)
@@ -186,44 +164,20 @@ async def test_over_climate_valve_mono(hass: HomeAssistant, skip_hass_states_get
         assert vtherm.valve_open_percent == 40 # 0.3*1 + 0.1*1
 
 
-        assert mock_service_call.call_count == 3
-        mock_service_call.assert_has_calls(
-            [
-                call('climate', SERVICE_SET_TEMPERATURE, {'entity_id': 'climate.mock_climate', 'temperature': 19.0}, False, None, None, False),
-                call('number', SERVICE_SET_VALUE, {'value': 40}, False, None, {'entity_id': 'number.mock_opening_degree'}, False),
-                call('number', SERVICE_SET_VALUE, {'value': 60}, False, None, {'entity_id': 'number.mock_closing_degree'}, False),
-                # 3 = 18 (room) - 15 (current of underlying) + 0 (current offset)
-                # call(domain='number', service='set_value', service_data={'value': 3.0}, target={'entity_id': 'number.mock_offset_calibration'})
-            ]
-        )
+        assert fake_underlying_climate.target_temperature == 19
+        assert fake_opening_degree.native_value == 40
+        assert fake_closing_degree.native_value == 60
 
-        # set the opening to 40%
-        mock_get_state_side_effect.add_or_update_side_effect(
-            "number.mock_opening_degree",
-            State(
-                "number.mock_opening_degree", "40", {"min": 0, "max": 100}
-            ))
-
-        vtherm.calculate_hvac_action()
         assert vtherm.hvac_action is HVACAction.HEATING
         assert vtherm.is_device_active is True
         assert vtherm.nb_device_actives == 1
 
-    # 2. Starts heating very slowly (18.9 vs 19)
+    # 3. Starts heating very slowly (18.9 vs 19)
     now = now + timedelta(minutes=3)
     vtherm._set_now(now)
     # fmt: off
-    with patch("custom_components.versatile_thermostat.base_thermostat.BaseThermostat.send_event") as mock_send_event, \
-        patch("homeassistant.core.ServiceRegistry.async_call") as mock_service_call,\
-        patch("homeassistant.core.StateMachine.get", side_effect=mock_get_state_side_effect.get_side_effects()) as mock_get_state:
+    with patch("custom_components.versatile_thermostat.base_thermostat.BaseThermostat.send_event") as mock_send_event:
     # fmt: on
-        # set the offset to 3
-        mock_get_state_side_effect.add_or_update_side_effect(
-            "number.mock_offset_calibration",
-            State(
-                "number.mock_offset_calibration", "3", {"min": -12, "max": 12}
-            ))
-
         await send_temperature_change_event(vtherm, 18.9, now, True)
         await hass.async_block_till_done()
 
@@ -234,41 +188,23 @@ async def test_over_climate_valve_mono(hass: HomeAssistant, skip_hass_states_get
         assert vtherm.valve_open_percent == 13 # 0.3*0.1 + 0.1*1
 
 
-        assert mock_service_call.call_count == 3 # opening, closing, offset cause temp changed
-        mock_service_call.assert_has_calls(
-            [
-                call('number', SERVICE_SET_VALUE, {'value': 13}, False, None, {'entity_id': 'number.mock_opening_degree'}, False),
-                call('number', SERVICE_SET_VALUE, {'value': 87}, False, None, {'entity_id': 'number.mock_closing_degree'}, False),
-                # 6 = 18 (room) - 15 (current of underlying) + 3 (current offset)
-                call('number', SERVICE_SET_VALUE, {'value': 6.9}, False, None, {'entity_id': 'number.mock_offset_calibration'}, False)
-            ]
-        )
+        assert fake_opening_degree.native_value == 13
+        assert fake_closing_degree.native_value == 87
+        assert fake_offset_calibration.native_value == 6.9
 
-        # set the opening to 13%
-        mock_get_state_side_effect.add_or_update_side_effect(
-            "number.mock_opening_degree",
-            State(
-                "number.mock_opening_degree", "13", {"min": 0, "max": 100}
-            ))
-        vtherm.calculate_hvac_action()
         assert vtherm.hvac_action is HVACAction.HEATING
         assert vtherm.is_device_active is True
         assert vtherm.nb_device_actives == 1
 
-    # 3. Stop heating 21 > 19
+    # 4. Stop heating 21 > 19
     now = now + timedelta(minutes=3)
     vtherm._set_now(now)
     # fmt: off
-    with patch("custom_components.versatile_thermostat.base_thermostat.BaseThermostat.send_event") as mock_send_event, \
-        patch("homeassistant.core.ServiceRegistry.async_call") as mock_service_call,\
-        patch("homeassistant.core.StateMachine.get", side_effect=mock_get_state_side_effect.get_side_effects()) as mock_get_state:
+    with patch("custom_components.versatile_thermostat.base_thermostat.BaseThermostat.send_event") as mock_send_event:
     # fmt: on
         # set the offset to 3
-        mock_get_state_side_effect.add_or_update_side_effect(
-            "number.mock_offset_calibration",
-            State(
-                "number.mock_offset_calibration", "3", {"min": -12, "max": 12}
-            ))
+        fake_offset_calibration.set_native_value(3)
+        await hass.async_block_till_done()
 
         await send_temperature_change_event(vtherm, 21, now, True)
         await hass.async_block_till_done()
@@ -279,30 +215,16 @@ async def test_over_climate_valve_mono(hass: HomeAssistant, skip_hass_states_get
         assert vtherm.current_temperature == 21
         assert vtherm.valve_open_percent == 0 # 0.3* (-2) + 0.1*1
 
+        assert fake_opening_degree.native_value == 0
+        assert fake_closing_degree.native_value == 100
+        assert fake_offset_calibration.native_value == 9.0 # 6 = 18 (room) - 15 (current of underlying) + 3 (current offset)
 
-        assert mock_service_call.call_count == 3 # opening, closing, offset cause temp changed
-        mock_service_call.assert_has_calls(
-            [
-                call('number', SERVICE_SET_VALUE, {'value': 0}, False, None, {'entity_id': 'number.mock_opening_degree'}, False),
-                call('number', SERVICE_SET_VALUE, {'value': 100}, False, None, {'entity_id': 'number.mock_closing_degree'}, False),
-                # 6 = 18 (room) - 15 (current of underlying) + 3 (current offset)
-                call('number', SERVICE_SET_VALUE, {'value': 9.0}, False, None, {'entity_id': 'number.mock_offset_calibration'}, False)
-            ]
-        )
-
-        # set the opening to 13%
-        mock_get_state_side_effect.add_or_update_side_effect(
-            "number.mock_opening_degree",
-            State(
-                "number.mock_opening_degree", "0", {"min": 0, "max": 100}
-            ))
-
-        vtherm.calculate_hvac_action()
         assert vtherm.hvac_action is HVACAction.OFF
         assert vtherm.is_device_active is False
         assert vtherm.nb_device_actives == 0
 
     await hass.async_block_till_done()
+    vtherm.remove_thermostat()
 
 
 @pytest.mark.parametrize("expected_lingering_timers", [True])

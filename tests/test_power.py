@@ -918,7 +918,7 @@ async def test_power_management_over_climate_valve(hass: HomeAssistant, skip_has
         version=2,
         minor_version=2,
         data={
-            CONF_NAME: "TheOverClimateMockName",
+            CONF_NAME: "TheOverClimateValveMockName",
             CONF_TEMP_SENSOR: "sensor.mock_temp_sensor",
             CONF_CYCLE_MIN: 5,
             CONF_DEVICE_POWER: 1,
@@ -951,39 +951,40 @@ async def test_power_management_over_climate_valve(hass: HomeAssistant, skip_has
     )
 
     # mock_get_state will be called for each OPENING/CLOSING/OFFSET_CALIBRATION list
-    ICI
-    fake_opening_degree.set_state("10")
+    fake_opening_degree.set_native_value("10")
     fake_opening_degree.set_min_value("0")
     fake_opening_degree.set_max_value("100")
 
-    mock_get_state_side_effect = SideEffects(
-        {
-            "number.mock_opening_degree": State("number.mock_opening_degree", "10", {"min": 0, "max": 100}),
-        },
-        State("unknown.entity_id", "unknown"),
-    )
+    # mock_get_state_side_effect = SideEffects(
+    #     {
+    #         "number.mock_opening_degree": State("number.mock_opening_degree", "10", {"min": 0, "max": 100}),
+    #     },
+    #     State("unknown.entity_id", "unknown"),
+    # )
 
     # 1. initialize the VTherm
     tz = get_tz(hass)  # pylint: disable=invalid-name
     now: datetime = datetime.now(tz=tz)
 
     # fmt: off
-    with patch("homeassistant.core.ServiceRegistry.async_call") as mock_service_call,\
-        patch("homeassistant.core.StateMachine.get", side_effect=mock_get_state_side_effect.get_side_effects()):
+    with patch("homeassistant.core.ServiceRegistry.async_call") as mock_service_call: #,\
+        #patch("homeassistant.core.StateMachine.get", side_effect=mock_get_state_side_effect.get_side_effects()):
     # fmt: on
 
-        vtherm: ThermostatOverClimateValve = await create_thermostat(hass, entry, "climate.theoverclimatemockname", temps=default_temperatures)
+        vtherm: ThermostatOverClimateValve = await create_thermostat(hass, entry, "climate.theoverclimatevalvemockname", temps=default_temperatures)
 
         assert vtherm
         vtherm._set_now(now)
         assert isinstance(vtherm, ThermostatOverClimateValve)
 
-        assert vtherm.name == "TheOverClimateMockName"
+        assert vtherm.name == "TheOverClimateValveMockName"
         assert vtherm.is_over_climate is True
         assert vtherm.have_valve_regulation is True
 
         assert vtherm.hvac_action is HVACAction.OFF
         assert vtherm.vtherm_hvac_mode is VThermHvacMode_OFF
+
+        assert vtherm.is_initialized is True
 
         assert vtherm.is_device_active is False
         assert vtherm.valve_open_percent == 0
@@ -1003,9 +1004,8 @@ async def test_power_management_over_climate_valve(hass: HomeAssistant, skip_has
 
     # 2. Turn on the VTherm and make heating
     # fmt: off
-    with patch("custom_components.versatile_thermostat.underlyings.UnderlyingClimate.find_underlying_climate", return_value=fake_underlying_climate), \
-        patch("homeassistant.core.ServiceRegistry.async_call") as mock_service_call,\
-        patch("homeassistant.core.StateMachine.get", side_effect=mock_get_state_side_effect.get_side_effects()):
+    with patch("homeassistant.core.ServiceRegistry.async_call") as mock_service_call: #,\
+        #patch("homeassistant.core.StateMachine.get", side_effect=mock_get_state_side_effect.get_side_effects()):
     # fmt: on
         now = now + timedelta(minutes=1)
         vtherm._set_now(now)

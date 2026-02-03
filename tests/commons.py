@@ -41,6 +41,7 @@ from homeassistant.components.switch import (
 )
 
 from homeassistant.components.number import NumberEntity, DOMAIN as NUMBER_DOMAIN
+from homeassistant.components.sensor import SensorEntity, DOMAIN as SENSOR_DOMAIN
 
 from homeassistant.helpers.entity_component import EntityComponent
 
@@ -266,8 +267,9 @@ class MockClimate(ClimateEntity):
         swing_horizontal_modes: list[str] | None = None,
         min_temp: float = 7.0,
         max_temp: float = 35.0,
+        step: float = 0.1,
         ac_mode: bool = False,
-        add_state: bool = True,
+        add_state: bool = False,
     ) -> None:
         """Initialize the thermostat."""
 
@@ -290,7 +292,7 @@ class MockClimate(ClimateEntity):
         self._attr_temperature_unit = UnitOfTemperature.CELSIUS
         self._attr_target_temperature = 20
         self._attr_current_temperature = 15
-        self._attr_target_temperature_step = 0.2
+        self._attr_target_temperature_step = step
         self._fan_modes = fan_modes if fan_modes else None
         self._attr_fan_mode = None
         self._attr_preset_modes = [PRESET_COMFORT, PRESET_ECO, PRESET_BOOST]
@@ -723,6 +725,7 @@ class MockNumber(NumberEntity):
         hass: HomeAssistant,
         unique_id,
         name,
+        value=0,
         min=0,
         max=100,
         step=1,
@@ -735,10 +738,10 @@ class MockNumber(NumberEntity):
         self.platform = "number"
         self.entity_id = self.platform + "." + unique_id
         self._name = name
-        self._attr_native_value = 0
+        self._attr_native_value = value
         self._attr_native_min_value = min
         self._attr_native_max_value = max
-        self._attr_step = step
+        self._attr_native_step = step
 
     @property
     def name(self) -> str:
@@ -764,6 +767,34 @@ class MockNumber(NumberEntity):
         self.hass.loop.call_soon_threadsafe(self.async_write_ha_state)
 
 
+class MockTemperatureSensor(SensorEntity):
+    """A fake temperature sensor to be used instead real sensor"""
+
+    def __init__(  # pylint: disable=unused-argument, dangerous-default-value
+        self, hass: HomeAssistant, unique_id, name, entry_infos={}, value=20, unit_of_measurement=UnitOfTemperature.CELSIUS
+    ):
+        """Init the temperature sensor"""
+        super().__init__()
+
+        self.hass = hass
+        self.platform = "sensor"
+        self.entity_id = self.platform + "." + unique_id
+        self._name = name
+        self._attr_native_unit_of_measurement = unit_of_measurement
+        self._attr_native_value = value
+
+    @property
+    def name(self) -> str:
+        """The name"""
+        return self._name
+
+    @overrides
+    def set_native_value(self, value: float):
+        """Change the value"""
+        self._attr_native_value = value
+        self.hass.loop.call_soon_threadsafe(self.async_write_ha_state)
+
+
 async def create_and_register_mock_climate(
     hass: HomeAssistant,
     unique_id,
@@ -779,6 +810,7 @@ async def create_and_register_mock_climate(
     swing_horizontal_modes: list[str] | None = None,
     min_temp: float = 7.0,
     max_temp: float = 35.0,
+    step: float = 0.1,
 ):
     """Create and register a mock climate entity"""
     mock_climate = MockClimate(
@@ -796,10 +828,36 @@ async def create_and_register_mock_climate(
         swing_horizontal_modes,
         min_temp=min_temp,
         max_temp=max_temp,
+        step=step,
         add_state=False,
     )
     await register_mock_entity(hass, mock_climate, CLIMATE_DOMAIN)
     return mock_climate
+
+
+async def create_and_register_mock_number(
+    hass: HomeAssistant,
+    unique_id,
+    name,
+    value=0,
+    min=0,
+    max=100,
+    step=1,
+    entry_infos={},
+):
+    """Create and register a mock number entity"""
+    mock_number = MockNumber(
+        hass,
+        unique_id,
+        name,
+        value,
+        min,
+        max,
+        step,
+        entry_infos,
+    )
+    await register_mock_entity(hass, mock_number, NUMBER_DOMAIN)
+    return mock_number
 
 
 async def register_mock_entity(hass, entity: Entity, domain: str):

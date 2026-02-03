@@ -22,9 +22,11 @@ import pytest
 # https://github.com/miketheman/pytest-socket/pull/275
 from pytest_socket import socket_allow_hosts
 
+from homeassistant.const import UnitOfTemperature
 from homeassistant.core import StateMachine, State
 from homeassistant.components.switch import DOMAIN as SWITCH_DOMAIN
 from homeassistant.components.number import DOMAIN as NUMBER_DOMAIN
+from homeassistant.components.sensor import DOMAIN as SENSOR_DOMAIN
 
 from custom_components.versatile_thermostat.config_flow import (
     VersatileThermostatBaseConfigFlow,
@@ -104,15 +106,6 @@ def skip_control_heating_fixture():
     """Skip the control_heating of VersatileThermostat"""
     with patch(
         "custom_components.versatile_thermostat.base_thermostat.BaseThermostat.async_control_heating"
-    ):
-        yield
-
-
-@pytest.fixture(name="skip_find_underlying_climate")
-def skip_find_underlying_climate_fixture():
-    """Skip the find_underlying_climate of VersatileThermostat"""
-    with patch(
-        "custom_components.versatile_thermostat.underlyings.UnderlyingClimate.find_underlying_climate"
     ):
         yield
 
@@ -238,3 +231,19 @@ async def fake_underlying_climate_off_cool_fixture(hass):
     """Fixture to add an underlying switch named "climate.mock_climate" to a test"""
     fake_underlying_climate = await create_and_register_mock_climate(hass, "mock_climate", "MockClimateName", {}, hvac_modes=[VThermHvacMode_OFF, VThermHvacMode_COOL])
     yield fake_underlying_climate
+
+
+@pytest.fixture(name="fake_temp_sensor")
+async def fake_temp_sensor_fixture(hass):
+    """Fixture to add a sensor named  "sensor.mock_temp_sensor" to a test"""
+    sensor = MockTemperatureSensor(hass, "mock_temp_sensor", "theMockedTempSensor", value=20, unit_of_measurement=UnitOfTemperature.CELSIUS)
+    await register_mock_entity(hass, sensor, SENSOR_DOMAIN)
+    yield sensor
+
+
+@pytest.fixture(name="fake_ext_temp_sensor")
+async def fake_ext_temp_sensor_fixture(hass):
+    """Fixture to add a sensor named  "sensor.mock_ext_temp_sensor" to a test"""
+    sensor = MockTemperatureSensor(hass, "mock_ext_temp_sensor", "theMockedExtTempSensor", value=20, unit_of_measurement=UnitOfTemperature.CELSIUS)
+    await register_mock_entity(hass, sensor, SENSOR_DOMAIN)
+    yield sensor

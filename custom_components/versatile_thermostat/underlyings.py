@@ -1223,10 +1223,11 @@ class UnderlyingValve(UnderlyingEntity):
         self._last_sent_temperature = None
         self._last_sent_opening_value: int | None = None
 
-    @overrides
-    async def check_initial_state(self):
-        """Handle initial valve state change to get the min and max open percent"""
-        # Initialize percent_open to current state
+    def init_valve_state_min_max_open(self):
+        """Initialize the min and max open percent"""
+        if not self.is_initialized:
+            raise RuntimeError(f"{self} - cannot init min/max open because underlying is not initialized")
+
         valve_state = self._state_manager.get_state(self.entity_id)
         valve_open: float = get_safe_float_value(valve_state.state)
         if valve_open is None:
@@ -1235,12 +1236,20 @@ class UnderlyingValve(UnderlyingEntity):
 
         self._last_sent_opening_value = valve_open
 
+        valve_state = self._state_manager.get_state(self.entity_id)
         if "min" in valve_state.attributes and "max" in valve_state.attributes:
             self._min_open = valve_state.attributes["min"]
             self._max_open = valve_state.attributes["max"]
         else:
             self._min_open = 0
             self._max_open = 100
+
+    @overrides
+    async def check_initial_state(self):
+        """Handle initial valve state change to get the min and max open percent"""
+        # Initialize percent_open to current state
+
+        self.init_valve_state_min_max_open()
 
         should_device_be_active = self.should_device_be_active
         is_device_active = self.is_device_active
@@ -1250,7 +1259,7 @@ class UnderlyingValve(UnderlyingEntity):
                 "%s - The valve should be active (percent_open=%.0f), but the underlying valve is closed (current_valve_opening=%.0f). Opening valve %s",
                 self,
                 self._percent_open or 9999,
-                valve_open or 9999,
+                self._last_sent_opening_value or 9999,
                 self._entity_id,
             )
             await self.send_percent_open()
@@ -1259,7 +1268,7 @@ class UnderlyingValve(UnderlyingEntity):
                 "%s - The valve should not be active (percent_open=%.0f), but the underlying valve is open (current_valve_opening=%.0f). Closing valve %s",
                 self,
                 self._percent_open or 9999,
-                valve_open or 9999,
+                self._last_sent_opening_value or 9999,
                 self._entity_id,
             )
             await self.send_percent_open(fixed_value=self._min_open)
@@ -1419,7 +1428,6 @@ class UnderlyingValveRegulation(UnderlyingValve):
         self._closing_degree_entity_id: str = closing_degree_entity_id
         self._has_max_closing_degree: bool = closing_degree_entity_id is not None
         self._climate_underlying = climate_underlying
-        self._is_min_max_initialized: bool = False
         self._max_opening_degree: float = max_opening_degree
         self._min_opening_degree: int = min_opening_degree
         self._max_closing_degree: int = max_closing_degree
@@ -1435,13 +1443,17 @@ class UnderlyingValveRegulation(UnderlyingValve):
     async def check_initial_state(self):
         """Handle initial valve state change and hvac_mode"""
 
+        # Initialize valve state and min max opening
+        self.init_valve_state_min_max_open()
+
         hvac_mode = self._thermostat.vtherm_hvac_mode
         device_valve_opening = self.current_valve_opening  # the real opening value
 
-        cuurent_hvac_mode_is_active = self._state_manager.get_state(self._climate_underlying.entity_id).state not in [HVACMode.OFF, STATE_UNAVAILABLE, STATE_UNKNOWN]
+        # cuurent_hvac_mode_is_active = self._state_manager.get_state(self._climate_underlying.entity_id).state not in [HVACMode.OFF, STATE_UNAVAILABLE, STATE_UNKNOWN]
 
         should_be_on = hvac_mode != VThermHvacMode_OFF and not self._thermostat.is_sleeping
-        is_on = cuurent_hvac_mode_is_active or (device_valve_opening is not None and device_valve_opening > self._opening_threshold)
+        # is_on = cuurent_hvac_mode_is_active or (device_valve_opening is not None and device_valve_opening > self._opening_threshold)
+        is_on = device_valve_opening is not None and device_valve_opening > self._opening_threshold
 
         if should_be_on and not is_on:
             _LOGGER.info(
@@ -1453,7 +1465,7 @@ class UnderlyingValveRegulation(UnderlyingValve):
                 device_valve_opening or 9999,
                 self._entity_id,
             )
-            await self._climate_underlying.set_hvac_mode(hvac_mode)
+            # await self._climate_underlying.set_hvac_mode(hvac_mode)
             if self._thermostat.is_sleeping:
                 self._percent_open = 100
             else:
@@ -1469,21 +1481,27 @@ class UnderlyingValveRegulation(UnderlyingValve):
             )
             self._percent_open = self._opening_threshold
             await self.send_percent_open()
-            await self._climate_underlying.set_hvac_mode(hvac_mode)
+            # await self._climate_underlying.set_hvac_mode(hvac_mode)
 
     def startup(self):
         """Startup the Entity. Listen to the underlying state changes"""
+
+        # Register the valve listener
+        super().startup()
+
         # starts listening and can provide the initial cached state.
+        # TODO peut être que écouter self._opening_degree_entity_id ne sert à rien ici puisque c'est super() qui le fait
         entities = [self._climate_underlying.entity_id, self._opening_degree_entity_id]
         if self._has_max_closing_degree:
             entities.append(self._closing_degree_entity_id)
         self._state_manager.add_underlying_entities(entities)
 
-    async def send_percent_open(self, _: float = None):
+    async def send_percent_open(self, fixed_value: int = None):
         """Send the percent open to the underlying valve"""
         # Caclulate percent_open
+        value = self._percent_open if fixed_value is None else fixed_value
         opening_degree, closing_degree = OpeningClosingDegreeCalculation.calculate_opening_closing_degree(
-            brut_valve_open_percent=self._percent_open,
+            brut_valve_open_percent=value,
             min_opening_degree=self._min_opening_degree,
             max_closing_degree=self._max_closing_degree,
             max_opening_degree=self._max_opening_degree,
