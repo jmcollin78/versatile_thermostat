@@ -60,6 +60,9 @@ class UnderlyingEntityType(StrEnum):
     # a direct valve regulation
     VALVE_REGULATION = "valve_regulation"
 
+# ----------------------------------------------------------------
+# UnderlyingEntity
+# ----------------------------------------------------------------
 class UnderlyingEntity:
     """Represent a underlying device which could be a switch or a climate"""
 
@@ -297,6 +300,9 @@ class UnderlyingEntity:
         return self._state_manager.get_state(self._entity_id)
 
 
+# ----------------------------------------------------------------
+# UnderlyingSwitch
+# ----------------------------------------------------------------
 class UnderlyingSwitch(UnderlyingEntity):
     """Represent a underlying switch"""
 
@@ -680,6 +686,9 @@ class UnderlyingSwitch(UnderlyingEntity):
         super().remove_entity()
 
 
+# ----------------------------------------------------------------
+# UnderlyingClimate
+# ----------------------------------------------------------------
 class UnderlyingClimate(UnderlyingEntity):
     """Represent a underlying climate"""
 
@@ -1198,7 +1207,9 @@ class UnderlyingClimate(UnderlyingEntity):
         """Get the step sync entity"""
         return self._step_sync_entity
 
-
+# ----------------------------------------------------------------
+# UnderlyingValve
+# ----------------------------------------------------------------
 class UnderlyingValve(UnderlyingEntity):
     """Represent a underlying switch"""
 
@@ -1404,7 +1415,9 @@ class UnderlyingValve(UnderlyingEntity):
         valve_open: float = get_safe_float_value(valve_state.state)
         return valve_open
 
-
+# ----------------------------------------------------------------
+# UnderlyingValveRegulation
+# ----------------------------------------------------------------
 class UnderlyingValveRegulation(UnderlyingValve):
     """A specific underlying class for Valve regulation"""
 

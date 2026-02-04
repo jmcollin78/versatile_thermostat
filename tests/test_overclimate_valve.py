@@ -698,7 +698,9 @@ async def test_over_climate_valve_vtherm_hvac_mode_sleep(hass: HomeAssistant, fa
     with patch("custom_components.versatile_thermostat.base_thermostat.BaseThermostat.send_event") as mock_send_event:
     # fmt: on
         await vtherm.async_set_hvac_mode(VThermHvacMode_SLEEP)
-        await wait_for_local_condition(lambda: vtherm.hvac_mode == VThermHvacMode_OFF)
+        await hass.async_block_till_done()
+        await wait_for_local_condition(lambda: vtherm._underlyings[0].state_manager.get_state('climate.mock_climate').state == HVACMode.OFF)
+        assert vtherm.hvac_mode == VThermHvacMode_OFF
 
         assert vtherm.vtherm_hvac_mode is VThermHvacMode_SLEEP
         assert vtherm.preset_mode == VThermPreset.COMFORT # no change

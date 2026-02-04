@@ -308,6 +308,8 @@ class MockClimate(ClimateEntity):
             # add the entity to hass states
             set_entity_states_from_entity(hass, self)
 
+        self.hass.loop.call_soon_threadsafe(self.async_write_ha_state)
+
     @property
     def name(self) -> str:
         """The name"""
@@ -363,11 +365,7 @@ class MockClimate(ClimateEntity):
         temperature = kwargs.get(ATTR_TEMPERATURE)
         self._attr_target_temperature = temperature
         self._calculate_hvac_action()
-        try:
-            # To avoid RuntimeError: Cannot call async_write_ha_state when not on main thread
-            set_entity_states_from_entity(self.hass, self)
-        except RuntimeError:
-            pass
+        self.hass.loop.call_soon_threadsafe(self.async_write_ha_state)
 
     async def async_set_hvac_mode(self, hvac_mode):
         """The hvac mode"""
@@ -378,7 +376,7 @@ class MockClimate(ClimateEntity):
             self._attr_available = True
             self._attr_hvac_mode = hvac_mode
         self._calculate_hvac_action()
-        set_entity_states_from_entity(self.hass, self)
+        self.hass.loop.call_soon_threadsafe(self.async_write_ha_state)
 
     def set_hvac_mode(self, hvac_mode):
         """The hvac mode"""
@@ -389,28 +387,28 @@ class MockClimate(ClimateEntity):
             self._attr_available = True
             self._attr_hvac_mode = hvac_mode
         self._calculate_hvac_action()
-        set_entity_states_from_entity(self.hass, self)
+        self.hass.loop.call_soon_threadsafe(self.async_write_ha_state)
 
     def set_hvac_action(self, hvac_action: HVACAction):
         """Set the HVACaction"""
         self._attr_hvac_action = hvac_action
-        set_entity_states_from_entity(self.hass, self)
+        self.hass.loop.call_soon_threadsafe(self.async_write_ha_state)
 
     def set_current_temperature(self, current_temperature):
         """Set the current_temperature"""
         self._attr_current_temperature = current_temperature
         self._calculate_hvac_action()
-        set_entity_states_from_entity(self.hass, self)
+        self.hass.loop.call_soon_threadsafe(self.async_write_ha_state)
 
     def set_swing_mode(self, swing_mode):
         """The swing mode"""
         self._attr_swing_mode = swing_mode
-        set_entity_states_from_entity(self.hass, self)
+        self.hass.loop.call_soon_threadsafe(self.async_write_ha_state)
 
     def set_swing_horizontal_mode(self, swing_horizontal_mode):
         """The swing horizontal mode"""
         self._attr_swing_horizontal_mode = swing_horizontal_mode
-        set_entity_states_from_entity(self.hass, self)
+        self.hass.loop.call_soon_threadsafe(self.async_write_ha_state)
 
     @property
     def attributes(self) -> Dict[str, Any]:
