@@ -448,14 +448,14 @@ async def test_over_climate_valve_multi_min_opening_degrees(hass: HomeAssistant,
     fake_underlying_climate2: MockClimate = await create_and_register_mock_climate(hass, "mock_climate2", "MockClimateName2")
 
     # Create all the number entities needed for the test
-    # Valve 1 is initially open at 10%
-    fake_opening_degree1 = await create_and_register_mock_number(hass, "mock_opening_degree1", "MockOpeningDegree1", value=10, min=0, max=100)
-    fake_closing_degree1 = await create_and_register_mock_number(hass, "mock_closing_degree1", "MockClosingDegree1", value=90, min=0, max=100)
+    # Valve 1 is initially open at 20%
+    fake_opening_degree1 = await create_and_register_mock_number(hass, "mock_opening_degree1", "MockOpeningDegree1", value=20, min=0, max=100)
+    fake_closing_degree1 = await create_and_register_mock_number(hass, "mock_closing_degree1", "MockClosingDegree1", value=80, min=0, max=100)
     fake_offset_calibration1 = await create_and_register_mock_number(hass, "mock_offset_calibration1", "MockOffsetCalibration1", value=0, min=-12, max=12, step=0.1)
 
-    # Valve 2 is initially closed
-    fake_opening_degree2 = await create_and_register_mock_number(hass, "mock_opening_degree2", "MockOpeningDegree2", value=0, min=0, max=100)
-    fake_closing_degree2 = await create_and_register_mock_number(hass, "mock_closing_degree2", "MockClosingDegree2", value=100, min=0, max=100)
+    # Valve 2 is initially open at 20%
+    fake_opening_degree2 = await create_and_register_mock_number(hass, "mock_opening_degree2", "MockOpeningDegree2", value=20, min=0, max=100)
+    fake_closing_degree2 = await create_and_register_mock_number(hass, "mock_closing_degree2", "MockClosingDegree2", value=80, min=0, max=100)
     fake_offset_calibration2 = await create_and_register_mock_number(hass, "mock_offset_calibration2", "MockOffsetCalibration2", value=10, min=-12, max=12, step=0.1)
 
     # 1. initialize the VTherm
@@ -479,40 +479,50 @@ async def test_over_climate_valve_multi_min_opening_degrees(hass: HomeAssistant,
         # initialize the temps
         await set_all_climate_preset_temp(hass, vtherm, default_temperatures, "theoverclimatemockname")
 
-        # await send_temperature_change_event(vtherm, 20, now, True)
-        # await send_ext_temperature_change_event(vtherm, 20, now, True)
+        # the room temperature of the uderlying climates
         fake_underlying_climate1.set_current_temperature(20)
         fake_underlying_climate2.set_current_temperature(20)
 
+        # check initial state of the valve
+        await wait_for_local_condition(lambda: fake_opening_degree1.native_value == 10) # 100 (max) - 90 (max closing)
+        await wait_for_local_condition(lambda: fake_opening_degree2.native_value == 10)  # 100 - 90
+
+        # Starts the VTherm in comfort mode
         await vtherm.async_set_preset_mode(VThermPreset.COMFORT)
         await vtherm.async_set_hvac_mode(VThermHvacMode_HEAT)
 
         await hass.async_block_till_done()
 
+        # because there is no opening_threshold, the valve are considered as active but the cliamte if Idle (room temp=20 and target=19)
         await wait_for_local_condition(lambda: vtherm.is_device_active is False)
 
         assert vtherm.target_temperature == 19
-        assert vtherm.nb_device_actives == 0
+        assert vtherm.nb_device_actives == 2
         assert vtherm.hvac_action == HVACAction.IDLE # max closing=90 so valve is not at 0
 
     # 2: set temperature -> should activate the valve and change target
     now = now + timedelta(minutes=3)
     vtherm._set_now(now)
 
-    await send_temperature_change_event(vtherm, 18, now, True)
-    await hass.async_block_till_done()
+    # await send_temperature_change_event(vtherm, 18, now, True)
+    fake_underlying_climate1.set_current_temperature(17)
+    fake_underlying_climate2.set_current_temperature(15)
+    fake_temp_sensor.set_native_value(18)
+    await wait_for_local_condition(lambda: fake_offset_calibration1.native_value == 18 - 17 + 0)
+    await wait_for_local_condition(lambda: fake_offset_calibration2.native_value == min(12, 18 - 15 + 10))
 
-    assert vtherm.is_device_active is True
+    assert fake_offset_calibration1.native_value == 18 - 17 + 0 # 18 (room) - 17 (current of underlying) + 0 (current offset)
+    assert fake_offset_calibration2.native_value == min(12, 18 - 15 + 10)
+
+    await wait_for_local_condition(lambda: vtherm.is_device_active is True)
     assert vtherm.valve_open_percent == 20
 
     # Check the valve values - min opening is 60 for valve1, 70 for valve2
     # With 20% opening: valve1 = 60 + 20*0.4 = 68, valve2 = 70 + 20*0.3 = 76
-    assert fake_opening_degree1.native_value == 68
+    await wait_for_local_condition(lambda: fake_opening_degree1.native_value == 68)
     assert fake_closing_degree1.native_value == 32
-    assert fake_offset_calibration1.native_value == 3.0
     assert fake_opening_degree2.native_value == 76
     assert fake_closing_degree2.native_value == 24
-    assert fake_offset_calibration2.native_value == 12
 
     assert vtherm.nb_device_actives >= 2 # should be 2 but when run in // with the first test it give 3
 
@@ -520,35 +530,42 @@ async def test_over_climate_valve_multi_min_opening_degrees(hass: HomeAssistant,
     now = now + timedelta(minutes=3)
     vtherm._set_now(now)
 
-    await send_temperature_change_event(vtherm, 22, now, True)
-    await hass.async_block_till_done()
+    # await send_temperature_change_event(vtherm, 22, now, True)
+    fake_temp_sensor.set_native_value(22)
+    await wait_for_local_condition(lambda: fake_offset_calibration1.native_value == 22 - 17 + 1)
+    await wait_for_local_condition(lambda: fake_offset_calibration2.native_value == min(12, 22 - 15 + 12))
 
-    assert vtherm.is_device_active is False
+    await wait_for_local_condition(lambda: fake_opening_degree1.native_value == 10) # 100 (max) - 90 (max closing)
+    await wait_for_local_condition(lambda: fake_opening_degree2.native_value == 10)  # 100 - 90
+    assert vtherm.is_device_active is True # 10 is considered as active
     assert vtherm.valve_open_percent == 0
 
     # The valves should be closed to max_closing_degree=90
     assert fake_opening_degree1.native_value == 10  # 100 - 90
     assert fake_closing_degree1.native_value == 90
-    assert fake_offset_calibration1.native_value == 7.0
+    assert fake_offset_calibration1.native_value == 6.0 #
     assert fake_opening_degree2.native_value == 10  # 100 - 90
     assert fake_closing_degree2.native_value == 90
     assert fake_offset_calibration2.native_value == 12
 
-    assert vtherm.nb_device_actives == 0
+    assert vtherm.nb_device_actives == 2# both valve are open
 
     # 4. restart the VTherm
     now = now + timedelta(minutes=3)
     vtherm._set_now(now)
 
-    await send_temperature_change_event(vtherm, 18, now, True)
-    await hass.async_block_till_done()
+    fake_temp_sensor.set_native_value(18)
+    # fake_ext_temp_sensor.set_native_value(0)
+    await wait_for_local_condition(lambda: fake_offset_calibration1.native_value == 18 - 17 + 6)
+    await wait_for_local_condition(lambda: fake_offset_calibration2.native_value == min(12, 18 - 12 + 12))
+
     assert vtherm.is_device_active is True
-    assert vtherm.valve_open_percent == 20
+    await wait_for_local_condition(lambda: vtherm.valve_open_percent == 20)
 
     # Check the valve values again
     assert fake_opening_degree1.native_value == 68
     assert fake_closing_degree1.native_value == 32
-    assert fake_offset_calibration1.native_value == 3.0
+    assert fake_offset_calibration1.native_value == 7
     assert fake_opening_degree2.native_value == 76
     assert fake_closing_degree2.native_value == 24
     assert fake_offset_calibration2.native_value == 12
@@ -571,7 +588,7 @@ async def test_over_climate_valve_multi_min_opening_degrees(hass: HomeAssistant,
     assert fake_opening_degree2.native_value == 10  # 100 - 90
     assert fake_closing_degree2.native_value == 90
 
-    assert vtherm.nb_device_actives == 0
+    assert vtherm.nb_device_actives == 2
 
     await hass.async_block_till_done()
     vtherm.remove_thermostat()
@@ -688,8 +705,8 @@ async def test_over_climate_valve_vtherm_hvac_mode_sleep(hass: HomeAssistant, fa
         assert vtherm.is_sleeping is False
 
         # Check the valve values
-        assert fake_opening_degree.native_value == 40
-        assert fake_closing_degree.native_value == 60
+        await wait_for_local_condition(lambda: fake_opening_degree.native_value == 40)
+        await wait_for_local_condition(lambda: fake_closing_degree.native_value == 60)
 
     # 3. set hvac_mode to SLEEP -> should turn off the VTherm and set the valve opening to 100%
     now = now + timedelta(minutes=2)
@@ -738,8 +755,8 @@ async def test_over_climate_valve_vtherm_hvac_mode_sleep(hass: HomeAssistant, fa
         assert vtherm.hvac_off_reason is None
 
         # Check the valve values
-        assert fake_opening_degree.native_value == 40
-        assert fake_closing_degree.native_value == 60
+        await wait_for_local_condition(lambda: fake_opening_degree.native_value == 40)
+        await wait_for_local_condition(lambda: fake_closing_degree.native_value == 60)
 
         assert vtherm.hvac_action is HVACAction.HEATING
         assert vtherm.is_device_active is True

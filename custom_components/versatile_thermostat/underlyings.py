@@ -1250,7 +1250,6 @@ class UnderlyingValve(UnderlyingEntity):
 
         self._last_sent_opening_value = valve_open
 
-        valve_state = self._state_manager.get_state(self.entity_id)
         if "min" in valve_state.attributes and "max" in valve_state.attributes:
             self._min_open = valve_state.attributes["min"]
             self._max_open = valve_state.attributes["max"]
@@ -1525,7 +1524,6 @@ class UnderlyingValveRegulation(UnderlyingValve):
         )
 
         # Send opening_degree in UnderlyingValve
-
         await super().send_percent_open(opening_degree)
 
         if self.has_closing_degree_entity:
