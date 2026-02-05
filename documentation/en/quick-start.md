@@ -17,6 +17,8 @@ This module allows controlling a radiator via a pilot wire. It appears in _HA_ a
 
 _VTherm_ will regulate the temperature by periodically changing the preset via customized commands until the setpoint is reached.
 
+Be careful, there may be some confusion, as the different modes of _VTherm_ (frost protection, eco, comfort, etc.) do not directly match the modes of the same name on the radiator controlled by a pilot wire. _VTherm_ with a standard configuration will only use two of the modes available via pilot wire, one for “heating more” (usually comfort mode) and one for “heating less” (usually frost protection mode), with the commands indicated in step 4 below. Alternating between these commands will allow _VTherm_ to stabilize the actual temperature at the temperature defined in its settings, depending on the selected mode.
+
 For this to work, the preset used for heating control must be higher than the maximum temperature you will need (24°C is a good value).
 
 To integrate it into _VTherm_, you must:
