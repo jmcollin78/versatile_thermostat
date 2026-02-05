@@ -1524,7 +1524,7 @@ class UnderlyingValveRegulation(UnderlyingValve):
             opening_threshold=self._opening_threshold,
         )
 
-        # Send opening_degree
+        # Send opening_degree in UnderlyingValve
 
         await super().send_percent_open(opening_degree)
 

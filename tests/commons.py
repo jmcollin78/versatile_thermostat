@@ -304,11 +304,11 @@ class MockClimate(ClimateEntity):
         # Calculate hvac_action based on current state
         self._calculate_hvac_action()
 
-        if add_state:
-            # add the entity to hass states
-            set_entity_states_from_entity(hass, self)
+        # if add_state:
+        # add the entity to hass states
+        #    set_entity_states_from_entity(hass, self)
 
-        self.hass.loop.call_soon_threadsafe(self.async_write_ha_state)
+        # self.hass.loop.call_soon_threadsafe(self.async_write_ha_state)
 
     @property
     def name(self) -> str:
