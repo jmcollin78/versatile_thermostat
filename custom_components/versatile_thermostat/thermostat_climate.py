@@ -702,7 +702,7 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
         changes = False
 
         # A real changes have to be managed
-        _LOGGER.info(
+        _LOGGER.debug(
             "%s - Underlying climate %s have changed. new_hvac_mode is %s (vs %s), new_hvac_action=%s (vs %s), new_target_temp=%s (vs %s), new_fan_mode=%s (vs %s)",
             self,
             under.entity_id,
@@ -715,6 +715,18 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
             new_fan_mode,
             self.fan_mode,
         )
+
+        # Check that the state is defined
+        if new_state.state in [STATE_UNAVAILABLE, STATE_UNKNOWN]:
+            _LOGGER.info(
+                "%s - Underlying climate %s is in state %s. We consider that there is no change to do",
+                self,
+                under.entity_id,
+                new_state.state,
+            )
+            await end_climate_changed(changes)
+            # TODO add a specific attribute to know that the underlying is unavailable and manage it in the error messages
+            return
 
         # Interpretation of hvac action
         if new_hvac_action:
