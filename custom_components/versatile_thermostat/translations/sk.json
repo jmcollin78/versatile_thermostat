@@ -252,7 +252,7 @@
       },
       "sync_device_internal_temp": {
         "title": "Synchronize device internal temperature",
-        "description": "Configuration to synchronize the internal temperature of the underlying devices with selected entities&nbsp;[![?](https://img.icons8.com/color/18/help.png)](https://github.com/jmcollin78/versatile_thermostat/blob/main/documentation/en/feature-sync_device_temp.md)",
+        "description": "Configuration to synchronize the internal temperature of the underlying devices with selected entities",
         "data": {
           "sync_with_calibration": "Apply offset calibration",
           "sync_entity_ids": "Entities id used for synchronization"
@@ -264,7 +264,7 @@
       },
       "valve_regulation": {
         "title": "Samoregulácia s ventilon",
-        "description": "Konfigurácia samoregulácie s priamym ovládaním ventilu&nbsp;[![?](https://img.icons8.com/color/18/help.png)](https://github.com/jmcollin78/versatile_thermostat/blob/main/documentation/sk/self-regulation.md#auto-régulation-par-contrôle-direct-de-la-vanne)",
+        "description": "Konfigurácia samoregulácie s priamym ovládaním ventilu",
         "data": {
           "offset_calibration_entity_ids": "Entity kalibrácie offsetu",
           "opening_degree_entity_ids": "Entity stupňa otvorenia",
@@ -578,7 +578,7 @@
       },
       "sync_device_internal_temp": {
         "title": "Synchronize device internal temperature",
-        "description": "Configuration to synchronize the internal temperature of the underlying devices with selected entities&nbsp;[![?](https://img.icons8.com/color/18/help.png)](https://github.com/jmcollin78/versatile_thermostat/blob/main/documentation/en/feature-sync_device_temp.md)",
+        "description": "Configuration to synchronize the internal temperature of the underlying devices with selected entities",
         "data": {
           "sync_with_calibration": "Apply offset calibration",
           "sync_entity_ids": "Entities id used for synchronization"
@@ -590,7 +590,7 @@
       },
       "valve_regulation": {
         "title": "Samoregulácia s ventilon - {name}",
-        "description": "Konfigurácia samoregulácie s priamym ovládaním ventilu&nbsp;[![?](https://img.icons8.com/color/18/help.png)](https://github.com/jmcollin78/versatile_thermostat/blob/main/documentation/sk/self-regulation.md#auto-régulation-par-contrôle-direct-de-la-vanne)",
+        "description": "Konfigurácia samoregulácie s priamym ovládaním ventilu",
         "data": {
           "offset_calibration_entity_ids": "Entity kalibrácie offsetu",
           "opening_degree_entity_ids": "Entity stupňa otvorenia",

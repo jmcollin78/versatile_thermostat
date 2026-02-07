@@ -190,7 +190,7 @@
       },
       "sync_device_internal_temp": {
         "title": "Synchronize device internal temperature",
-        "description": "Configuration to synchronize the internal temperature of the underlying devices with selected entities&nbsp;[![?](https://img.icons8.com/color/18/help.png)](https://github.com/jmcollin78/versatile_thermostat/blob/main/documentation/en/feature-sync_device_temp.md)",
+        "description": "Configuration to synchronize the internal temperature of the underlying devices with selected entities",
         "data": {
           "sync_with_calibration": "Apply offset calibration",
           "sync_entity_ids": "Entities id used for synchronization"
@@ -202,7 +202,7 @@
       },
       "valve_regulation": {
         "title": "Αυτορύθμιση με βαλβίδα",
-        "description": "Διαμόρφωση για αυτορύθμιση με άμεσο έλεγχο της βαλβίδας&nbsp;[![?](https://img.icons8.com/color/18/help.png)](https://github.com/jmcollin78/versatile_thermostat/blob/main/documentation/en/self-regulation.md#auto-régulation-par-contrôle-direct-de-la-vanne)",
+        "description": "Διαμόρφωση για αυτορύθμιση με άμεσο έλεγχο της βαλβίδας",
         "data": {
           "offset_calibration_entity_ids": "Οντότητες βαθμονόμησης μετατόπισης",
           "opening_degree_entity_ids": "Οντότητες βαθμού ανοίγματος",
@@ -454,7 +454,7 @@
       },
       "sync_device_internal_temp": {
         "title": "Synchronize device internal temperature",
-        "description": "Configuration to synchronize the internal temperature of the underlying devices with selected entities&nbsp;[![?](https://img.icons8.com/color/18/help.png)](https://github.com/jmcollin78/versatile_thermostat/blob/main/documentation/en/feature-sync_device_temp.md)",
+        "description": "Configuration to synchronize the internal temperature of the underlying devices with selected entities",
         "data": {
           "sync_with_calibration": "Apply offset calibration",
           "sync_entity_ids": "Entities id used for synchronization"
@@ -466,7 +466,7 @@
       },
       "valve_regulation": {
         "title": "Αυτορύθμιση με βαλβίδα - {name}",
-        "description": "Διαμόρφωση για αυτορύθμιση με άμεσο έλεγχο της βαλβίδας&nbsp;[![?](https://img.icons8.com/color/18/help.png)](https://github.com/jmcollin78/versatile_thermostat/blob/main/documentation/en/self-regulation.md#auto-régulation-par-contrôle-direct-de-la-vanne)",
+        "description": "Διαμόρφωση για αυτορύθμιση με άμεσο έλεγχο της βαλβίδας",
         "data": {
           "offset_calibration_entity_ids": "Οντότητες βαθμονόμησης μετατόπισης",
           "opening_degree_entity_ids": "Οντότητες βαθμού ανοίγματος",

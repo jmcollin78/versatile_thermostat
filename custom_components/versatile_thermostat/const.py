@@ -8,6 +8,7 @@ from typing import Literal
 from datetime import datetime
 
 from enum import Enum
+from homeassistant.const import STATE_UNKNOWN, STATE_UNAVAILABLE
 from homeassistant.core import HomeAssistant
 from homeassistant.const import CONF_NAME, Platform
 
@@ -506,6 +507,7 @@ MSG_TARGET_TEMP_ACTIVITY_DETECTED = "target_temp_activity_detected"
 MSG_TARGET_TEMP_ACTIVITY_NOT_DETECTED = "target_temp_activity_not_detected"
 MSG_TARGET_TEMP_ABSENCE_DETECTED = "target_temp_absence_detected"
 MSG_TARGET_TEMP_TIMED_PRESET = "target_temp_timed_preset"
+MSG_NOT_INITIALIZED = "not_initialized"
 
 #  A special regulation parameter suggested by @Maia here: https://github.com/jmcollin78/versatile_thermostat/discussions/154
 class RegulationParamSlow:
@@ -603,17 +605,19 @@ def send_vtherm_event(hass, event_type: EventType, entity, data: dict):
 def get_safe_float(hass, entity_id: str):
     """Get a safe float state value for an entity.
     Return None if entity is not available"""
-    if (
-        entity_id is None
-        or not (state := hass.states.get(entity_id))
-        or state.state is None
-        or state.state == "None"
-        or state.state == "unknown"
-        or state.state == "unavailable"
-    ):
+    if entity_id is None or not (state := hass.states.get(entity_id)) or state.state in [None, "None", STATE_UNAVAILABLE, STATE_UNKNOWN]:
         return None
-    float_val = float(state.state)
-    return None if math.isinf(float_val) or not math.isfinite(float_val) else float_val
+    return get_safe_float_value(state.state)
+
+
+def get_safe_float_value(value):
+    """Get a safe float value.
+    Return None if value is not a valid float"""
+    try:
+        float_val = float(value)
+        return None if math.isinf(float_val) or not math.isfinite(float_val) else float_val
+    except (ValueError, TypeError):
+        return None
 
 
 def get_tz(hass: HomeAssistant):

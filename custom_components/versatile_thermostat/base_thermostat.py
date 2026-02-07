@@ -502,13 +502,11 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
 
         await self.get_my_previous_state()
 
-        # Initialize all UnderlyingEntities
-        self.init_underlyings()
-
         # Register callbacks to new underlyings
         for under in self._underlyings:
-            for callback in self._on_cycle_start_callbacks:
-                under.register_cycle_callback(callback)
+            under.startup()
+            for cb in self._on_cycle_start_callbacks:
+                under.register_cycle_callback(cb)
 
         # init presets. Should be after underlyings init because for over_climate it uses the hvac_modes
         await self.init_presets(central_configuration)
@@ -552,6 +550,22 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
                 self,
             )
 
+    async def init_underlyings_completed(self, under_entity_id: str):
+        """All underlyings have been initialized. Then we can finish our initialization"""
+        if not self.is_initialized:
+            return
+
+        # in over_climate, we have to remove the FROST preset for a COOL only device
+        if self._ac_mode and VThermPreset.FROST in self._vtherm_preset_modes:
+            self._vtherm_preset_modes.remove(VThermPreset.FROST)
+            if VThermPreset.FROST in self._attr_preset_modes:
+                self._attr_preset_modes.remove(VThermPreset.FROST)
+            _LOGGER.debug(
+                "%s - removed FROST preset for COOL only device, new presets: %s",
+                self,
+                self._attr_preset_modes,
+            )
+
         # Then we:
         # - refresh all managers states,
         # - calculate the current state of the VTherm (it depends on the managers states and the requested state)
@@ -568,11 +582,9 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
         self.recalculate()
 
         # check initial state should be done after the current state has been calculated and so after the manager has been updated
-        await self._check_initial_state()
+        # issue 1654 - initial state check should be done after the underlyings has come to life
+        # await self._check_initial_state()
         self.reset_last_change_time_from_vtherm()
-
-    def init_underlyings(self):
-        """Initialize all underlyings. Should be overridden if necessary"""
 
     def restore_specific_previous_state(self, old_state: State):
         """Should be overridden in each specific thermostat
@@ -690,12 +702,12 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
         """Called when the entry have changed in ConfigFlow"""
         _LOGGER.info("%s - Change entry with the values: %s", self, config_entry.data)
 
-    @callback
-    async def _check_initial_state(self):
-        """Prevent the device from keep running if HVAC_MODE_OFF."""
-        _LOGGER.debug("%s - Calling _check_initial_state", self)
-        for under in self._underlyings:
-            await under.check_initial_state(self.vtherm_hvac_mode)
+    # #1654 - no more needed now @callback
+    # async def _check_initial_state(self):
+    #     """Prevent the device from keep running if HVAC_MODE_OFF."""
+    #     _LOGGER.debug("%s - Calling _check_initial_state", self)
+    #     for under in self._underlyings:
+    #         await under.check_initial_state(self.vtherm_hvac_mode)
 
     async def init_presets(self, central_config):
         """Init all presets of the VTherm"""
@@ -714,8 +726,9 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
 
             for key, preset_name in items:
                 _LOGGER.debug("looking for key=%s, preset_name=%s", key, preset_name)
-                # removes preset_name frost if heat is not in hvac_modes
-                if key == VThermPreset.FROST and VThermHvacMode_HEAT not in self.vtherm_hvac_modes:
+                # removes preset_name frost if heat is not in hvac_modes. vtherm_hvac_modes is initialized when the underlyings are initialized.
+                # So it may be not be ready yet here. In that case, the FROST is added anyway. So it is possible that FROST preset in a COOL only device
+                if len(self.vtherm_hvac_modes) == 0 and key == VThermPreset.FROST and VThermHvacMode_HEAT not in self.vtherm_hvac_modes:
                     _LOGGER.debug("removing preset_name %s which reserved for HEAT devices", preset_name)
                     continue
                 value = vtherm_api.get_temperature_number_value(config_id=config_id, preset_name=preset_name)
@@ -889,6 +902,14 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
     def supported_features(self) -> ClimateEntityFeature:
         """Return the list of supported features."""
         return self._support_flags
+
+    @property
+    def should_device_be_active(self) -> bool:
+        """Returns true if one underlying is active"""
+        for under in self._underlyings:
+            if under.should_device_be_active:
+                return True
+        return False
 
     @property
     def is_device_active(self) -> bool:
@@ -1398,15 +1419,19 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
             force,
         )
 
+        if not self.is_initialized:
+            _LOGGER.debug("%s - async_control_heating is called but the entity is not initialized yet. Skip the cycle", self)
+            return False
+
         # check auto_window conditions
         await self._window_manager.manage_window_auto(in_cycle=True)
 
         # In over_climate mode, if the underlying climate is not initialized,
         # try to initialize it
-        if not self.is_initialized:
-            if not self.init_underlyings():
-                # still not found, we an stop here
-                return False
+        # if not self.is_initialized:
+        #     if not self.init_underlyings():
+        #         # still not found, we an stop here
+        #         return False
 
         if timestamp and await self._safety_manager.refresh_and_update_if_changed():
             return False
@@ -1590,6 +1615,8 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
             messages.append(self.hvac_off_reason)
         if self.temperature_reason:
             messages.append(self.temperature_reason)
+        if not self.is_initialized:
+            messages.append(MSG_NOT_INITIALIZED)
 
         self._attr_extra_state_attributes: dict[str, Any] = {
             "hvac_action": self.hvac_action,
@@ -1603,6 +1630,7 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
                 "ext_current_temperature": self._cur_ext_temp,
                 "last_temperature_datetime": self._last_temperature_measure.astimezone(self._current_tz).isoformat(),
                 "last_ext_temperature_datetime": self._last_ext_temperature_measure.astimezone(self._current_tz).isoformat(),
+                "should_device_be_active": self.should_device_be_active,
                 "is_device_active": self.is_device_active,
                 "device_actives": self.device_actives,
                 "nb_device_actives": self.nb_device_actives,

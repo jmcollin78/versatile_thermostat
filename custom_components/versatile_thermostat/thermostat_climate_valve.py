@@ -52,6 +52,8 @@ class ThermostatOverClimateValve(ThermostatProp[UnderlyingClimate], ThermostatOv
         self._max_closing_degree: int = 100
         self._opening_threshold_degree: int = 0
         self._recalibrate_lock: asyncio.Lock = asyncio.Lock()
+        self._climate_under_initialized: bool = False
+        self._valve_under_initialized: bool = False
 
         super().__init__(hass, unique_id, name, entry_infos)
 
@@ -99,6 +101,7 @@ class ThermostatOverClimateValve(ThermostatProp[UnderlyingClimate], ThermostatOv
             opening = opening_list[idx]
             closing = closing_list[idx] if idx < len(closing_list) else None
             self._opening_threshold_degree = max(self._opening_threshold_degree, regulation_threshold)
+            # TODO c'est pas possible ici
             opening_entity = self._hass.states.get(opening)
 
             under = UnderlyingValveRegulation(
@@ -108,11 +111,51 @@ class ThermostatOverClimateValve(ThermostatProp[UnderlyingClimate], ThermostatOv
                 closing_degree_entity_id=closing,
                 climate_underlying=self._underlyings[idx],
                 min_opening_degree=(min_opening_degrees_list[idx] if idx < len(min_opening_degrees_list) else 0),
+                # TODO pas bon
                 max_opening_degree=(max_opening_degrees_list[idx] if idx < len(max_opening_degrees_list) else opening_entity.attributes.get("max", 100) if opening_entity else 100),
                 max_closing_degree=self._max_closing_degree,
                 opening_threshold=self._opening_threshold_degree,
             )
             self._underlyings_valve_regulation.append(under)
+
+    async def init_underlyings_completed(self, under_entity_id: str):
+        """Called when an underlying is fully initialized
+        Caution: this method is called for the _underlyings of the ThermostatClimate but also for the underlyings_valve_regulation
+        We have to call the parent method only when the both underlyings are initialized"""
+
+        _LOGGER.debug("%s - init_underlyings_completed called for %s", self, under_entity_id)
+        if not self.is_initialized:
+            return
+        # if under_entity_id in [under.entity_id for under in self._underlyings]:
+        #     self._climate_under_initialized = True
+        # elif under_entity_id in [under.entity_id for under in self._underlyings_valve_regulation]:
+        #     self._valve_under_initialized = True
+        #
+        # if not (self._climate_under_initialized and self._valve_under_initialized):
+        #     return
+
+        _LOGGER.debug("%s - both climate and valve underlyings are initialized", self)
+
+        await super().init_underlyings_completed(under_entity_id)
+
+        # Find the underlying valve regulation corresponding to this underlying climate
+        # for under in self._underlyings_valve_regulation:
+        #     if under.climate_underlying.entity_id == under_entity_id:
+        #         await under.check_initial_state()
+        #         break
+
+    async def async_startup(self, central_configuration):
+        """Startup the Entity. Listen to the underlying state changes"""
+        await super().async_startup(central_configuration)
+
+        # Register the valve listener
+        for under in self._underlyings_valve_regulation:
+            _LOGGER.debug("%s - starting underlying valve regulation %s", self, under)
+            try:
+                under.startup()
+                _LOGGER.debug("%s - underlying valve regulation %s started successfully", self, under)
+            except Exception as ex:  # pylint: disable=broad-except
+                _LOGGER.error("%s - Error starting underlying valve regulation %s: %s", self, under, ex)
 
     @overrides
     def restore_specific_previous_state(self, old_state: State):
@@ -121,6 +164,17 @@ class ThermostatOverClimateValve(ThermostatProp[UnderlyingClimate], ThermostatOv
 
         if self.is_sleeping:
             self.set_hvac_off_reason(HVAC_OFF_REASON_SLEEP_MODE)
+
+    @property
+    def is_initialized(self) -> bool:
+        """Check if all underlyings and valve underlyings are initialized"""
+        for under in self._underlyings:
+            if not under.is_initialized:
+                return False
+        for under in self._underlyings_valve_regulation:
+            if not under.is_initialized:
+                return False
+        return True
 
     @overrides
     def update_custom_attributes(self):
@@ -330,13 +384,13 @@ class ThermostatOverClimateValve(ThermostatProp[UnderlyingClimate], ThermostatOv
             super().calculate_hvac_action(self._underlyings_valve_regulation)
 
     @property
-    def is_device_active(self) -> bool:
+    def should_device_be_active(self) -> bool:
         """A hack to overrides the state from underlyings"""
         if self.is_sleeping:
             return False
 
         for under in self._underlyings_valve_regulation:
-            if under.is_device_active:
+            if under.should_device_be_active:
                 return True
         return False
 
@@ -347,6 +401,16 @@ class ThermostatOverClimateValve(ThermostatProp[UnderlyingClimate], ThermostatOv
             return []
 
         return [under.opening_degree_entity_id for under in self._underlyings_valve_regulation if under.is_device_active]
+
+    @property
+    def is_device_active(self) -> bool:
+        """Returns true if one underlying is active"""
+        if ThermostatOverClimate.is_device_active.fget(self) is not True:
+            return False
+        for under in self._underlyings_valve_regulation:
+            if under.is_device_active:
+                return True
+        return False
 
     @property
     def activable_underlying_entities(self) -> list | None:
@@ -374,12 +438,13 @@ class ThermostatOverClimateValve(ThermostatProp[UnderlyingClimate], ThermostatOv
         write_event_log(_LOGGER, self, "Calling SERVICE_SET_HVAC_MODE_SLEEP")
         await self.async_set_hvac_mode(hvac_mode=VThermHvacMode_SLEEP)
 
-    @overrides
-    async def _check_initial_state(self):
-        """Check the initial state of the thermostat and its underlyings"""
-        await super()._check_initial_state()
-        for under in self._underlyings_valve_regulation:
-            await under.check_initial_state(self.vtherm_hvac_mode)
+    # #1654 no more needed now
+    # @overrides
+    # async def _check_initial_state(self):
+    #    """Check the initial state of the thermostat and its underlyings"""
+    #    await super()._check_initial_state()
+    #    for under in self._underlyings_valve_regulation:
+    #        await under.check_initial_state(self.vtherm_hvac_mode)
 
     @overrides
     def choose_auto_fan_mode(self, auto_fan_mode: str):
@@ -399,10 +464,19 @@ class ThermostatOverClimateValve(ThermostatProp[UnderlyingClimate], ThermostatOv
             await super().async_set_hvac_mode(hvac_mode)
 
     @overrides
-    async def _async_climate_changed(self, event: Event[EventStateChangedData]):
+    async def underlying_changed(  # pylint: disable=too-many-arguments
+        self,
+        under: UnderlyingClimate,
+        new_hvac_mode: VThermHvacMode | None,
+        new_hvac_action: HVACAction | None,
+        new_target_temp: float | None,
+        new_fan_mode: str | None,
+        new_state: State,
+        old_state: State,
+    ):
         """Handle underlying climate changes only if not in recalibration"""
         if not self._recalibrate_lock.locked():
-            return await super()._async_climate_changed(event)
+            return await super().underlying_changed(under, new_hvac_mode, new_hvac_action, new_target_temp, new_fan_mode, new_state, old_state)
         _LOGGER.info("%s - ignore underlying climate change because recalibration is in progress", self)
 
     @overrides

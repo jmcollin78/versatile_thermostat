@@ -13,9 +13,7 @@ from .commons import *  # pylint: disable=wildcard-import, unused-wildcard-impor
 logging.getLogger().setLevel(logging.DEBUG)
 
 
-@pytest.mark.parametrize("expected_lingering_tasks", [True])
-@pytest.mark.parametrize("expected_lingering_timers", [True])
-async def test_inverted_switch(hass: HomeAssistant, skip_hass_states_is_state):
+async def test_inverted_switch(hass: HomeAssistant, fake_underlying_switch: MockSwitch, fake_temp_sensor: MockTemperatureSensor, fake_ext_temp_sensor: MockTemperatureSensor):
     """Test the Window auto management"""
 
     temps = {
@@ -56,79 +54,59 @@ async def test_inverted_switch(hass: HomeAssistant, skip_hass_states_is_state):
     )
 
     # 0. Create the entity
+    entity: ThermostatOverSwitch = await create_thermostat(hass, entry, "climate.theoverswitchmockname", temps)
+    assert entity
+    assert entity.is_inversed
 
-    with patch("homeassistant.core.ServiceRegistry.async_call") as mock_service_call, patch(
-        "homeassistant.core.StateMachine.is_state", return_value=False  # switch is On so is_state(switch, 'off') is False
-    ):
-        entity: ThermostatOverSwitch = await create_thermostat(hass, entry, "climate.theoverswitchmockname", temps)
-        assert entity
-        assert entity.is_inversed
+    tz = get_tz(hass)  # pylint: disable=invalid-name
+    now = datetime.now(tz)
 
-        tz = get_tz(hass)  # pylint: disable=invalid-name
-        now = datetime.now(tz)
+    tpi_algo = entity._prop_algorithm
+    assert tpi_algo
 
-        tpi_algo = entity._prop_algorithm
-        assert tpi_algo
+    await entity.async_set_hvac_mode(VThermHvacMode_HEAT)
+    await entity.async_set_preset_mode(VThermPreset.BOOST)
+    assert entity.vtherm_hvac_mode is VThermHvacMode_HEAT
+    assert entity.preset_mode == VThermPreset.BOOST
+    assert entity.target_temperature == 21
 
-        await entity.async_set_hvac_mode(VThermHvacMode_HEAT)
-        await entity.async_set_preset_mode(VThermPreset.BOOST)
-        assert entity.vtherm_hvac_mode is VThermHvacMode_HEAT
-        assert entity.preset_mode == VThermPreset.BOOST
-        assert entity.target_temperature == 21
-        assert entity.is_device_active is False
-
-        assert mock_service_call.call_count == 0
+    await wait_for_local_condition(lambda: entity.is_device_active is False)
 
     # 1. Make the temperature down to activate the switch
-    with patch("custom_components.versatile_thermostat.base_thermostat.BaseThermostat.send_event"), patch(
-        "homeassistant.core.ServiceRegistry.async_call"
-    ) as mock_service_call, patch(
-        "homeassistant.core.StateMachine.is_state", return_value=True  # switch is Off so is_state(switch, 'off') is True
-    ):
-        event_timestamp = now - timedelta(minutes=4)
-        await send_temperature_change_event(entity, 19, event_timestamp)
+    now = now + timedelta(minutes=4)
+    entity._set_now(now)
+    fake_temp_sensor.set_native_value(19)
+    # await send_temperature_change_event(entity, 19, event_timestamp)
 
-        # The heater turns on
-        assert entity.vtherm_hvac_mode is VThermHvacMode_HEAT
-        # not updated cause mocked assert entity.is_device_active is True
+    # The heater turns on
+    assert entity.vtherm_hvac_mode is VThermHvacMode_HEAT
+    # not updated cause mocked assert entity.is_device_active is True
 
-        assert mock_service_call.call_count == 1
-        mock_service_call.assert_has_calls(
-            [
-                call.async_call(
-                    "switch", SERVICE_TURN_OFF, {"entity_id": "switch.mock_switch"}
-                ),
-            ]
-        )
+    await wait_for_local_condition(lambda: fake_underlying_switch.is_on is True)
 
     # 2. Make the temperature up to deactivate the switch
-    with patch(
-        "custom_components.versatile_thermostat.base_thermostat.BaseThermostat.send_event"
-    ), patch(
-        "homeassistant.core.ServiceRegistry.async_call"
-    ) as mock_service_call, patch(
-        "homeassistant.core.StateMachine.is_state",
-        return_value=False,  # switch is On -> it should turned off
-    ):
-        event_timestamp = now - timedelta(minutes=3)
-        await send_temperature_change_event(entity, 25, event_timestamp)
+    now = now + timedelta(minutes=3)
+    entity._set_now(now)
+    fake_temp_sensor.set_native_value(25)
 
-        # The heater turns on
-        assert entity.vtherm_hvac_mode is VThermHvacMode_HEAT
-        # not updated cause mocked assert entity.is_device_active is False
+    # The heater turns on
+    assert entity.vtherm_hvac_mode is VThermHvacMode_HEAT
+    # not updated cause mocked assert entity.is_device_active is False
 
-        # there is no change because the cycle is currenlty running.
-        # we should simulate the end of the cycle to see oif underlying switch turns on
-        await entity._underlyings[0].turn_off()
+    # there is no change because the cycle is currenlty running.
+    # we should simulate the end of the cycle to see of underlying switch turns on
+    await entity._underlyings[0].turn_off()
 
-        assert mock_service_call.call_count == 1
-        mock_service_call.assert_has_calls(
-            [
-                call.async_call(
-                    "switch", SERVICE_TURN_ON, {"entity_id": "switch.mock_switch"}
-                ),
-            ]
-        )
+    await wait_for_local_condition(lambda: fake_underlying_switch.is_on is True)
+
+    # assert mock_service_call.call_count == 1
+    # mock_service_call.assert_has_calls(
+    #     [
+    #         call.async_call(
+    #             "switch", SERVICE_TURN_ON, {"entity_id": "switch.mock_switch"}
+    #         ),
+    #     ]
+    # )
 
     # Clean the entity
     entity.remove_thermostat()

@@ -213,9 +213,7 @@ async def test_motion_feature_manager_event(
 
 @pytest.mark.parametrize("expected_lingering_tasks", [True])
 @pytest.mark.parametrize("expected_lingering_timers", [True])
-async def test_motion_management_time_not_enough(
-    hass: HomeAssistant, skip_hass_states_is_state
-):
+async def test_motion_management_time_not_enough(hass: HomeAssistant, skip_hass_states_is_state, fake_underlying_switch: MockSwitch):
     """Test the Presence management when time is not enough"""
     temps = {
         "frost": 10,
@@ -419,9 +417,7 @@ async def test_motion_management_time_not_enough(
 
 @pytest.mark.parametrize("expected_lingering_tasks", [True])
 @pytest.mark.parametrize("expected_lingering_timers", [True])
-async def test_motion_management_time_enough_and_presence(
-    hass: HomeAssistant, skip_hass_states_is_state
-):
+async def test_motion_management_time_enough_and_presence(hass: HomeAssistant, skip_hass_states_is_state, fake_underlying_switch: MockSwitch):
     """Test the Motion management when time is not enough"""
 
     entry = MockConfigEntry(
@@ -545,9 +541,7 @@ async def test_motion_management_time_enough_and_presence(
 
 @pytest.mark.parametrize("expected_lingering_tasks", [True])
 @pytest.mark.parametrize("expected_lingering_timers", [True])
-async def test_motion_management_time_enough_and_not_presence(
-    hass: HomeAssistant, skip_hass_states_is_state
-):
+async def test_motion_management_time_enough_and_not_presence(hass: HomeAssistant, skip_hass_states_is_state, fake_underlying_switch: MockSwitch):
     """Test the Presence management when time is not enough"""
 
     entry = MockConfigEntry(
@@ -672,9 +666,7 @@ async def test_motion_management_time_enough_and_not_presence(
 
 @pytest.mark.parametrize("expected_lingering_tasks", [True])
 @pytest.mark.parametrize("expected_lingering_timers", [True])
-async def test_motion_management_with_stop_during_condition(
-    hass: HomeAssistant, skip_hass_states_is_state
-):
+async def test_motion_management_with_stop_during_condition(hass: HomeAssistant, skip_hass_states_is_state, fake_underlying_switch: MockSwitch):
     """Test the Motion management when the movement sensor switch to off and then to on during the test condition"""
 
     entry = MockConfigEntry(
@@ -806,9 +798,7 @@ async def test_motion_management_with_stop_during_condition(
 
 @pytest.mark.parametrize("expected_lingering_tasks", [True])
 @pytest.mark.parametrize("expected_lingering_timers", [True])
-async def test_motion_management_with_stop_during_condition_last_state_on(
-    hass: HomeAssistant, skip_hass_states_is_state
-):
+async def test_motion_management_with_stop_during_condition_last_state_on(hass: HomeAssistant, skip_hass_states_is_state, fake_underlying_switch: MockSwitch):
     """Test the Motion management when the movement sensor switch to off and then to on during the test condition"""
 
     entry = MockConfigEntry(

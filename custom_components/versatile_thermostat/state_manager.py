@@ -145,8 +145,9 @@ class StateManager:
                 self._current_state.set_hvac_mode(VThermHvacMode_OFF)
 
         elif vtherm.last_central_mode == CENTRAL_MODE_FROST_PROTECTION and self._requested_state.hvac_mode != VThermHvacMode_OFF:
-            if VThermPreset.FROST not in vtherm.vtherm_preset_modes:
+            if VThermPreset.FROST not in vtherm.vtherm_preset_modes or VThermHvacMode_HEAT not in vtherm.vtherm_hvac_modes:
                 self._current_state.set_hvac_mode(VThermHvacMode_OFF)
+                vtherm.set_hvac_off_reason(HVAC_OFF_REASON_CENTRAL_MODE)
             elif vtherm.vtherm_hvac_mode != VThermHvacMode_HEAT and VThermHvacMode_HEAT in vtherm.vtherm_hvac_modes:
                 self._current_state.set_hvac_mode(VThermHvacMode_HEAT)
 

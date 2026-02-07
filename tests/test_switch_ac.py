@@ -22,9 +22,7 @@ from .commons import *  # pylint: disable=wildcard-import, unused-wildcard-impor
 
 @pytest.mark.parametrize("expected_lingering_tasks", [True])
 @pytest.mark.parametrize("expected_lingering_timers", [True])
-async def test_over_switch_ac_full_start(
-    hass: HomeAssistant, skip_hass_states_is_state
-):  # pylint: disable=unused-argument
+async def test_over_switch_ac_full_start(hass: HomeAssistant, skip_hass_states_is_state, fake_underlying_switch_ac: MockSwitch):  # pylint: disable=unused-argument
     """Test the normal full start of a thermostat in thermostat_over_switch type"""
 
     temps = {

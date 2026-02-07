@@ -5,7 +5,7 @@
     "step": {
       "user": {
         "title": "Typ des Versatile Thermostat",
-        "description": "Wählen Sie den Thermostattyp, den Sie erstellen möchten.&nbsp;[![?](https://img.icons8.com/color/18/help.png)](https://github.com/jmcollin78/versatile_thermostat/blob/main/documentation/de/creation.md)",
+        "description": "Wählen Sie den Thermostattyp, den Sie erstellen möchten.",
         "data": {
           "thermostat_type": "Thermostattyp"
         },
@@ -31,7 +31,6 @@
           "auto_start_stop": "Auto Start und Stop",
           "valve_regulation": "Konfiguration Ventilsteuerung",
           "sync_device_internal_temp": "Synchronisierung der Gerätetemperatur",
-          "heating_failure_detection": "Heating failure detection",
           "lock": "Sperrenverwaltung",
           "finalize": "Alles erledigt",
           "configuration_not_complete": "Konfiguration unvollständig"
@@ -51,7 +50,7 @@
       },
       "main": {
         "title": "Neues Versatile Thermostat",
-        "description": "Wichtigste notwendige Attribute&nbsp;[![?](https://img.icons8.com/color/18/help.png)](https://github.com/jmcollin78/versatile_thermostat/blob/main/documentation/de/base-attributes.md)",
+        "description": "Wichtigste notwendige Attribute",
         "data": {
           "name": "Name",
           "thermostat_type": "Thermostattyp",
@@ -86,13 +85,12 @@
           "use_power_feature": "Powermanagement",
           "use_presence_feature": "Anwesenheitserkennung",
           "use_central_boiler_feature": "Zentralheizung hinzufügen. Aktivieren Sie diese Option, um eine Steuerung für eine Zentralheizung hinzuzufügen. Anschließend müssen die VTerms konfiguriert werden, die die Zentralheizung steuern. Sonst ist diese Option unwirksam. Sobald mindestens einer der VTherms heizen muss, wird die Zentralheizung aktiviert. Sollte keiner der VTherms heizen müssen, wird sie ausgeschaltet. Die Befehle zum Ein- und Ausschalten der Zentralheizung befinden sich auf der folgenden Konfigurationsseite",
-          "use_auto_start_stop_feature": "Mit automatische Start- und Stoppfunktion",
-          "use_heating_failure_detection_feature": "Use heating failure detection"
+          "use_auto_start_stop_feature": "Mit automatische Start- und Stoppfunktion"
         }
       },
       "type": {
         "title": "Verknüpfte Entities",
-        "description": "Verknüpfte Entitie-Attribute&nbsp;[![?](https://img.icons8.com/color/18/help.png)](https://github.com/jmcollin78/versatile_thermostat/blob/main/documentation/de/over-switch.md#configuration)",
+        "description": "Verknüpfte Entitie-Attribute",
         "data": {
           "underlying_entity_ids": "Zu steuernde Geräte",
           "heater_keep_alive": "Schaltintervall in Sekunden",
@@ -127,7 +125,7 @@
       },
       "tpi": {
         "title": "TPI",
-        "description": "Attribute des zeitproportionalen Integral (Time Proportional Integral)&nbsp;[![?](https://img.icons8.com/color/18/help.png)](https://github.com/jmcollin78/versatile_thermostat/blob/main/documentation/de/algorithms.md#lalgorithme-tpi)",
+        "description": "Attribute des zeitproportionalen Integral (Time Proportional Integral)",
         "data": {
           "tpi_coef_int": "coef_int",
           "tpi_coef_ext": "coef_ext",
@@ -149,14 +147,14 @@
       },
       "presets": {
         "title": "Voreinstellungen",
-        "description": "Aktivieren zur Verwendung der zentralen Voreinstellungen bei diesem Thermostat. Für eigene Voreinstellungen des Thermostats, diese Option deaktivieren.&nbsp;[![?](https://img.icons8.com/color/18/help.png)](https://github.com/jmcollin78/versatile_thermostat/blob/main/documentation/de/feature-presets.md)",
+        "description": "Aktivieren zur Verwendung der zentralen Voreinstellungen bei diesem Thermostat. Für eigene Voreinstellungen des Thermostats, diese Option deaktivieren.",
         "data": {
           "use_presets_central_config": "Verwenden der zentralen Voreinstellungen"
         }
       },
       "window": {
         "title": "Fensteröffnung verwalten",
-        "description": "Schaltet den Heizkörper aus, wenn Fenster offen ist. Entitäts-ID leer lassen, um die automatische Erkennung (auf Basis der Temperaturänderung) zu verwenden.&nbsp;[![?](https://img.icons8.com/color/18/help.png)](https://github.com/jmcollin78/versatile_thermostat/blob/main/documentation/de/feature-window.md)",
+        "description": "Schaltet den Heizkörper aus, wenn Fenster offen ist. Entitäts-ID leer lassen, um die automatische Erkennung (auf Basis der Temperaturänderung) zu verwenden.",
         "data": {
           "window_sensor_entity_id": "Öffnungssensor (Entity-ID)",
           "window_delay": "Verzögerung der Erfassung beim Öffnen (Sekunden)",
@@ -180,7 +178,7 @@
       },
       "motion": {
         "title": "Verwaltung Bewegungserkennung",
-        "description": "Die Voreinstellung passt sich automatisch an, wenn eine Bewegung erkannt wird.\n'Voreinstellung bei Bewegung' und 'Voreinstellung ohne Bewegung' müssen mit den zu verwendenden Voreinstellungen ausgewählt werden.&nbsp;[![?](https://img.icons8.com/color/18/help.png)](https://github.com/jmcollin78/versatile_thermostat/blob/main/documentation/de/feature-motion.md)",
+        "description": "Die Voreinstellung passt sich automatisch an, wenn eine Bewegung erkannt wird.\n'Voreinstellung bei Bewegung' und 'Voreinstellung ohne Bewegung' müssen mit den zu verwendenden Voreinstellungen ausgewählt werden.",
         "data": {
           "motion_sensor_entity_id": "Bewegungsmelder",
           "motion_delay": "Aktivierungsverzögerung",
@@ -200,7 +198,7 @@
       },
       "power": {
         "title": "Powermanagement",
-        "description": "Wählt automatisch die Voreinstellung 'power', wenn der Stromverbrauch ein Maximum überschreitet.\nGibt die Entity-IDs der Sensoren an, die die Gesamtleistung und die maximal zulässige Leistung messen.\nGib anschließend die Leistung des Geräts an.\nAlle Sensoren und die Geräteleistung sollten die gleiche Einheit verwenden (kW oder W).&nbsp;[![?](https://img.icons8.com/color/18/help.png)](https://github.com/jmcollin78/versatile_thermostat/blob/main/documentation/de/feature-power.md)",
+        "description": "Wählt automatisch die Voreinstellung 'power', wenn der Stromverbrauch ein Maximum überschreitet.\nGibt die Entity-IDs der Sensoren an, die die Gesamtleistung und die maximal zulässige Leistung messen.\nGib anschließend die Leistung des Geräts an.\nAlle Sensoren und die Geräteleistung sollten die gleiche Einheit verwenden (kW oder W).",
         "data": {
           "power_sensor_entity_id": "Gesamtleistungssensor (Entity-ID)",
           "max_power_sensor_entity_id": "Sensor für maximale Leistung (Entity-ID)",
@@ -216,7 +214,7 @@
       },
       "presence": {
         "title": "Verwaltung Anwesenheit",
-        "description": "Geben Sie einen Präsenzsensor (Status true, wenn jemand anwesend ist) und die bei Abwesenheit zu verwendenden Zieltemperaturen an.&nbsp;[![?](https://img.icons8.com/color/18/help.png)](https://github.com/jmcollin78/versatile_thermostat/blob/main/documentation/de/feature-presence.md)",
+        "description": "Geben Sie einen Präsenzsensor (Status true, wenn jemand anwesend ist) und die bei Abwesenheit zu verwendenden Zieltemperaturen an.",
         "data": {
           "presence_sensor_entity_id": "Anwesenheitssensor",
           "use_presence_central_config": "Verwendung der zentralen Temperaturkonfiguration bei Abwesenheit. Abwählen, um spezifische Temperaturen zu verwenden."
@@ -227,7 +225,7 @@
       },
       "advanced": {
         "title": "Erweiterte Einstellungen",
-        "description": "Konfiguration der erweiterten Einstellungen. Belassen Sie die Standardwerte, wenn Sie nicht wissen, was Sie tun.\nDiese Einstellungen können zu Fehlfunktionen des Thermostats führen.&nbsp;[![?](https://img.icons8.com/color/18/help.png)](https://github.com/jmcollin78/versatile_thermostat/blob/main/documentation/de/feature-advanced.md)",
+        "description": "Konfiguration der erweiterten Einstellungen. Belassen Sie die Standardwerte, wenn Sie nicht wissen, was Sie tun.\nDiese Einstellungen können zu Fehlfunktionen des Thermostats führen.",
         "data": {
           "safety_delay_min": "Maximale Zeitspanne zwischen zwei Temperaturmessungen",
           "safety_min_on_percent": "Mindestprozentsatz der Leistung",
@@ -243,7 +241,7 @@
       },
       "central_boiler": {
         "title": "Steuerung der Zentralheizung",
-        "description": "Geben Sie die Dienste an, die zum Ein- und Ausschalten des Zentralheizungskessels aufgerufen werden sollen. Der aufzurufende Dienst muss wie folgt formatiert sein: `entity_id/service_name[/attribut:wert]` (/attribut:wert ist optional)\nBeispiel:\n- zum Einschalten eines Schalters: `switch.kesselsteuerung/switch.turn_on`\n- zum Ausschalten eines Schalters: `switch.kesselsteuerung/switch. turn_off`\n- Um den Heizkessel auf 25 °C zu programmieren und somit sein Einschalten zu erzwingen: `climate.heizungsthermostat/climate.set_temperature/temperature:25`\n- Um 10 °C an den Heizkessel zu senden und somit sein Ausschalten zu erzwingen: `climate.heizungsthermostat/climate.set_temperature/temperature:10`&nbsp;[![?](https://img.icons8.com/color/18/help.png)](https://github.com/jmcollin78/versatile_thermostat/blob/main/documentation/de/feature-central-boiler.md)",
+        "description": "Geben Sie die Dienste an, die zum Ein- und Ausschalten des Zentralheizungskessels aufgerufen werden sollen. Der aufzurufende Dienst muss wie folgt formatiert sein: `entity_id/service_name[/attribut:wert]` (/attribut:wert ist optional)\nBeispiel:\n- zum Einschalten eines Schalters: `switch.kesselsteuerung/switch.turn_on`\n- zum Ausschalten eines Schalters: `switch.kesselsteuerung/switch. turn_off`\n- Um den Heizkessel auf 25 °C zu programmieren und somit sein Einschalten zu erzwingen: `climate.heizungsthermostat/climate.set_temperature/temperature:25`\n- Um 10 °C an den Heizkessel zu senden und somit sein Ausschalten zu erzwingen: `climate.heizungsthermostat/climate.set_temperature/temperature:10`",
         "data": {
           "central_boiler_activation_service": "Befehl zum Einschalten",
           "central_boiler_deactivation_service": "Befehl zum Ausschalten",
@@ -290,28 +288,6 @@
           "sync_with_calibration": "Check to apply the offset calibration when synchronizing the internal temperature. Uncheck to directly copy the temperature from the selected entities",
           "sync_entity_ids": "The list of the entities used to synchronize the internal temperature of the underlying devices. There should be one per underlying device. Should be a calibration entity if checkbox is selected or a temperature entity otherwise. Both are `number` entities."
         }
-      },
-      "heating_failure_detection": {
-        "title": "Heating failure detection",
-        "description": "Configure the heating failure detection feature. This detects anomalies when heating is expected but temperature doesn't increase, or when heating is off but temperature keeps rising.",
-        "data": {
-          "use_heating_failure_detection_feature": "Enable heating failure detection",
-          "use_heating_failure_detection_central_config": "Use central heating failure detection configuration",
-          "heating_failure_threshold": "Heating failure threshold",
-          "cooling_failure_threshold": "Cooling failure threshold",
-          "heating_failure_detection_delay": "Detection delay (minutes)",
-          "temperature_change_tolerance": "Temperature change tolerance (°C)",
-          "failure_detection_enable_template": "Detection enable template"
-        },
-        "data_description": {
-          "use_heating_failure_detection_feature": "Enable the detection of heating anomalies for VTherms with TPI",
-          "use_heating_failure_detection_central_config": "Check to use the central heating failure detection configuration. Uncheck to use specific parameters for this VTherm",
-          "heating_failure_threshold": "On percent threshold above which heating should cause temperature increase (0.9 = 90%)",
-          "cooling_failure_threshold": "On percent threshold below which temperature should not increase (0.0 = 0%)",
-          "heating_failure_detection_delay": "Time in minutes to wait before checking if temperature has changed as expected",
-          "temperature_change_tolerance": "Minimum temperature change in degrees to consider significant. Smaller changes are ignored to filter sensor noise (default: 0.5°C)",
-          "failure_detection_enable_template": "An optional Jinja2 template that must return True to enable detection. Useful to temporarily disable detection when an external heat source is active (e.g., is_state('binary_sensor.wood_stove', 'off') in double curly braces). If empty, detection is always enabled."
-        }
       }
     },
     "error": {
@@ -336,7 +312,7 @@
     "step": {
       "user": {
         "title": "Typ - {name}",
-        "description": "Wählen Sie den Thermostattyp, den Sie erstellen möchten.&nbsp;[![?](https://img.icons8.com/color/18/help.png)](https://github.com/jmcollin78/versatile_thermostat/blob/main/documentation/de/creation.md)",
+        "description": "Wählen Sie den Thermostattyp, den Sie erstellen möchten.",
         "data": {
           "thermostat_type": "Thermostattyp"
         },
@@ -362,7 +338,6 @@
           "auto_start_stop": "Auto Start und Stopp",
           "valve_regulation": "Konfiguration der Ventilsteuerung",
           "sync_device_internal_temp": "Synchronisierung der Gerätetemperatur",
-          "heating_failure_detection": "Heating failure detection",
           "lock": "Sperrenverwaltung",
           "finalize": "Alles erledigt",
           "configuration_not_complete": "Konfiguration unvollständig"
@@ -384,7 +359,7 @@
       },
       "main": {
         "title": "Attribute - {name}",
-        "description": "Wichtigste erforderliche Attribute&nbsp;[![?](https://img.icons8.com/color/18/help.png)](https://github.com/jmcollin78/versatile_thermostat/blob/main/documentation/de/base-attributes.md)",
+        "description": "Wichtigste erforderliche Attribute",
         "data": {
           "name": "Name",
           "thermostat_type": "Thermostattyp",
@@ -419,13 +394,12 @@
           "use_power_feature": "Mit Powermanagement",
           "use_presence_feature": "Mit Anwesenheitserkennung",
           "use_central_boiler_feature": "Benutze Zentralheizung. Aktivieren, um eine Steuerung für eine Zentralheizung hinzuzufügen. Anschließend muss VTerm für die Steuerung der Zentralheizung konfiguriert werden, um wirksam zu werden. Wenn mindestens einer der VTerms heizen muss, wird der Heizkessel angeschalten. Wenn kein VTherm heizen muss, wird sie abgeschalten. Die Befehle zum Ein- und Ausschalten der Zentralheizung finden sie auf der folgenden Konfigurationsseite.",
-          "use_auto_start_stop_feature": "Mit automatische Start- und Stopfunktion.",
-          "use_heating_failure_detection_feature": "Use heating failure detection"
+          "use_auto_start_stop_feature": "Mit automatische Start- und Stopfunktion."
         }
       },
       "type": {
         "title": "Zugehörige Entities - {name}",
-        "description": "Attribute der verknüpften Entities&nbsp;[![?](https://img.icons8.com/color/18/help.png)](https://github.com/jmcollin78/versatile_thermostat/blob/main/documentation/de/over-switch.md#configuration)",
+        "description": "Attribute der verknüpften Entities",
         "data": {
           "underlying_entity_ids": "Die zu steuernden Geräte",
           "heater_keep_alive": "Keep-alive Schaltinterval in Sekunden",
@@ -460,7 +434,7 @@
       },
       "tpi": {
         "title": "TPI (Zeitproportionales Integral) - {name}",
-        "description": "Attribute des Algorithmus 'zeitproportionales Integral'&nbsp;[![?](https://img.icons8.com/color/18/help.png)](https://github.com/jmcollin78/versatile_thermostat/blob/main/documentation/de/algorithms.md#lalgorithme-tpi)",
+        "description": "Attribute des Algorithmus 'zeitproportionales Integral'",
         "data": {
           "tpi_coef_int": "coeff_int",
           "tpi_coef_ext": "coeff_ext",
@@ -482,14 +456,14 @@
       },
       "presets": {
         "title": "Voreinstellungen - {name}",
-        "description": "Auswählen, wenn das Thermostat die zentrale Voreinstellungen verwenden soll. Deaktivieren und der Thermostat hat seine eigenen Voreinstellungseinheiten.&nbsp;[![?](https://img.icons8.com/color/18/help.png)](https://github.com/jmcollin78/versatile_thermostat/blob/main/documentation/de/feature-presets.md)",
+        "description": "Auswählen, wenn das Thermostat die zentrale Voreinstellungen verwenden soll. Deaktivieren und der Thermostat hat seine eigenen Voreinstellungseinheiten.",
         "data": {
           "use_presets_central_config": "Zentrale Voreinstellungen verwenden"
         }
       },
       "window": {
         "title": "Fenster - {name}",
-        "description": "Schaltet den Heizkörper aus, wenn das Fenster offen ist.\nIst keine Entity-ID angegeben, wird die automatische Erkennung von geöffneten Fenstern verwendet&nbsp;[![?](https://img.icons8.com/color/18/help.png)](https://github.com/jmcollin78/versatile_thermostat/blob/main/documentation/de/feature-window.md)",
+        "description": "Schaltet den Heizkörper aus, wenn das Fenster offen ist.\nIst keine Entity-ID angegeben, wird die automatische Erkennung von geöffneten Fenstern verwendet",
         "data": {
           "window_sensor_entity_id": "Öffnungssensor (Entity-ID)",
           "window_delay": "Verzögerung bei 'Offen' (Sekunden)",
@@ -513,7 +487,7 @@
       },
       "motion": {
         "title": "Bewegung (Motion) - {name}",
-        "description": "Die Voreinstellung passt sich automatisch an, wenn eine Bewegung erkannt wird.\n'Voreinstellung bei Bewegung' und 'Voreinstellung ohne Bewegung müssen mit den zu verwendenden Voreinstellungen ausgewählt werden&nbsp;[![?](https://img.icons8.com/color/18/help.png)](https://github.com/jmcollin78/versatile_thermostat/blob/main/documentation/de/feature-motion.md)",
+        "description": "Die Voreinstellung passt sich automatisch an, wenn eine Bewegung erkannt wird.\n'Voreinstellung bei Bewegung' und 'Voreinstellung ohne Bewegung müssen mit den zu verwendenden Voreinstellungen ausgewählt werden",
         "data": {
           "motion_sensor_entity_id": "Bewegungssensor",
           "motion_delay": "Einschaltverzögerung",
@@ -533,7 +507,7 @@
       },
       "power": {
         "title": "Powermanagement - {name}",
-        "description": "Wählt automatisch die Voreinstellung 'power', wenn der Stromverbrauch ein Maximum überschreitet. Gib ie die Entity-IDs der Sensoren an, die die Gesamtleistung und die maximal zulässige Leistung messen. Gib anschließend die Leistung des Geräts an. Alle Sensoren und der Stromverbrauch des Geräts müssen dieselbe Maßeinheit haben (kW oder W)&nbsp;[![?](https://img.icons8.com/color/18/help.png)](https://github.com/jmcollin78/versatile_thermostat/blob/main/documentation/de/feature-power.md)",
+        "description": "Wählt automatisch die Voreinstellung 'power', wenn der Stromverbrauch ein Maximum überschreitet. Gib ie die Entity-IDs der Sensoren an, die die Gesamtleistung und die maximal zulässige Leistung messen. Gib anschließend die Leistung des Geräts an. Alle Sensoren und der Stromverbrauch des Geräts müssen dieselbe Maßeinheit haben (kW oder W)",
         "data": {
           "power_sensor_entity_id": "Gesamtleistung",
           "max_power_sensor_entity_id": "Leistungssensor Max (Entity-ID)",
@@ -549,7 +523,7 @@
       },
       "presence": {
         "title": "Anwesenheit - {name}",
-        "description": "Gib einen Präsenzsensor (true, wenn jemand anwesend ist) und die bei Abwesenheit zu verwendenden Zieltemperaturen an.&nbsp;[![?](https://img.icons8.com/color/18/help.png)](https://github.com/jmcollin78/versatile_thermostat/blob/main/documentation/de/feature-presence.md)",
+        "description": "Gib einen Präsenzsensor (true, wenn jemand anwesend ist) und die bei Abwesenheit zu verwendenden Zieltemperaturen an.",
         "data": {
           "presence_sensor_entity_id": "Anwesenheitssensor",
           "use_presence_central_config": "Zentrale Temperaturkonfiguration bei Abweseheit benutzen. Nicht setzen bei dedizierten Temperatureinstellungen."
@@ -560,7 +534,7 @@
       },
       "advanced": {
         "title": "Erweitert - {name}",
-        "description": "Konfiguration der erweiterten Parameter. Belassen Sie die Standardwerte, wenn Sie nicht wissen, was Sie tun.\nDiese Einstellugen können zu Fehlfunktionen des Thermostats führen.&nbsp;[![?](https://img.icons8.com/color/18/help.png)](https://github.com/jmcollin78/versatile_thermostat/blob/main/documentation/de/feature-advanced.md)",
+        "description": "Konfiguration der erweiterten Parameter. Belassen Sie die Standardwerte, wenn Sie nicht wissen, was Sie tun.\nDiese Einstellugen können zu Fehlfunktionen des Thermostats führen.",
         "data": {
           "minimal_activation_delay": "Minimale Aktivierungsverzögerung",
           "minimal_deactivation_delay": "Minimale Deaktivierungsverzögerung",
@@ -580,7 +554,7 @@
       },
       "central_boiler": {
         "title": "Steuerung der Zentralheizung - {name}",
-        "description": "Geben Sie die Dienste ein, die zum Ein- und Ausschalten der Zentralheizung benutzt werden sollen. Der verwendete Dienst muss wie folgt formatiert sein: `entity_id/service_name[/attribute:wert]` (/attribute:wert ist optional)\nBeispiel:\n- zum Einschalten eines Schalters: `switch.control_heizung/switch.turn_on`\n- zum ausschalten eines Schalter: `switch.control_heizung/switch.turn_off`\n- Um den Kessel auf 25° zu programmieren und somit ein Einschalten zu erzwingen: `climate.thermostat_heizung/climate.set_temperature/temperature:25`\n- Um 10° an den Heizessel zu senden und so sein Ausschalten zu erzwingen: `climate.thermostat_heizung/climate.set_temperature/temperature:10`&nbsp;[![?](https://img.icons8.com/color/18/help.png)](https://github.com/jmcollin78/versatile_thermostat/blob/main/documentation/de/feature-central-boiler.md)",
+        "description": "Geben Sie die Dienste ein, die zum Ein- und Ausschalten der Zentralheizung benutzt werden sollen. Der verwendete Dienst muss wie folgt formatiert sein: `entity_id/service_name[/attribute:wert]` (/attribute:wert ist optional)\nBeispiel:\n- zum Einschalten eines Schalters: `switch.control_heizung/switch.turn_on`\n- zum ausschalten eines Schalter: `switch.control_heizung/switch.turn_off`\n- Um den Kessel auf 25° zu programmieren und somit ein Einschalten zu erzwingen: `climate.thermostat_heizung/climate.set_temperature/temperature:25`\n- Um 10° an den Heizessel zu senden und so sein Ausschalten zu erzwingen: `climate.thermostat_heizung/climate.set_temperature/temperature:10`",
         "data": {
           "central_boiler_activation_service": "Einschaltbefehl",
           "central_boiler_deactivation_service": "Ausschaltbefehl",
@@ -594,7 +568,7 @@
       },
       "valve_regulation": {
         "title": "Selbstregulierung durch Ventil",
-        "description": "Konfiguration der Selbstregelung durch direkte Ventilsteuerung&nbsp;[![?](https://img.icons8.com/color/18/help.png)](https://github.com/jmcollin78/versatile_thermostat/blob/main/documentation/de/self-regulation.md#auto-régulation-par-contrôle-direct-de-la-vanne)",
+        "description": "Konfiguration der Selbstregelung durch direkte Ventilsteuerung",
         "data": {
           "offset_calibration_entity_ids": "Offset Kalibrierung Entity-IDs",
           "opening_degree_entity_ids": "Öffnungswinkel Entity-IDs",
@@ -618,7 +592,7 @@
       },
       "sync_device_internal_temp": {
         "title": "Synchronize device internal temperature",
-        "description": "Configuration to synchronize the internal temperature of the underlying devices with selected entities&nbsp;[![?](https://img.icons8.com/color/18/help.png)](https://github.com/jmcollin78/versatile_thermostat/blob/main/documentation/de/feature-sync_device_temp.md)",
+        "description": "Configuration to synchronize the internal temperature of the underlying devices with selected entities",
         "data": {
           "sync_with_calibration": "Apply offset calibration",
           "sync_entity_ids": "Entities id used for synchronization"
@@ -626,28 +600,6 @@
         "data_description": {
           "sync_with_calibration": "Check to apply the offset calibration when synchronizing the internal temperature. Uncheck to directly copy the temperature from the selected entities",
           "sync_entity_ids": "The list of the entities used to synchronize the internal temperature of the underlying devices. There should be one per underlying device. Should be a calibration entity if checkbox is selected or a temperature entity otherwise. Both are `number` entities."
-        }
-      },
-      "heating_failure_detection": {
-        "title": "Heating failure detection",
-        "description": "Configure the heating failure detection feature. This detects anomalies when heating is expected but temperature doesn't increase, or when heating is off but temperature keeps rising.",
-        "data": {
-          "use_heating_failure_detection_feature": "Enable heating failure detection",
-          "use_heating_failure_detection_central_config": "Use central heating failure detection configuration",
-          "heating_failure_threshold": "Heating failure threshold",
-          "cooling_failure_threshold": "Cooling failure threshold",
-          "heating_failure_detection_delay": "Detection delay (minutes)",
-          "temperature_change_tolerance": "Temperature change tolerance (°C)",
-          "failure_detection_enable_template": "Detection enable template"
-        },
-        "data_description": {
-          "use_heating_failure_detection_feature": "Enable the detection of heating anomalies for VTherms with TPI",
-          "use_heating_failure_detection_central_config": "Check to use the central heating failure detection configuration. Uncheck to use specific parameters for this VTherm",
-          "heating_failure_threshold": "On percent threshold above which heating should cause temperature increase (0.9 = 90%)",
-          "cooling_failure_threshold": "On percent threshold below which temperature should not increase (0.0 = 0%)",
-          "heating_failure_detection_delay": "Time in minutes to wait before checking if temperature has changed as expected",
-          "temperature_change_tolerance": "Minimum temperature change in degrees to consider significant. Smaller changes are ignored to filter sensor noise (default: 0.5°C)",
-          "failure_detection_enable_template": "An optional Jinja2 template that must return True to enable detection. Useful to temporarily disable detection when an external heat source is active (e.g., is_state('binary_sensor.wood_stove', 'off') in double curly braces). If empty, detection is always enabled."
         }
       }
     },

@@ -51,7 +51,7 @@
       },
       "main": {
         "title": "Добавить новый универсальный термостат",
-        "description": "Основные обязательные атрибуты&nbsp;[![?](https://img.icons8.com/color/18/help.png)](https://github.com/jmcollin78/versatile_thermostat/blob/main/documentation/en/base-attributes.md)",
+        "description": "Основные обязательные атрибуты",
         "data": {
           "name": "Название",
           "thermostat_type": "Тип термостата",
@@ -92,7 +92,13 @@
       },
       "type": {
         "title": "Связанные сущности",
-        "description": "Атрибуты связанных сущностей&nbsp;[![?](https://img.icons8.com/color/18/help.png)](https://github.com/jmcollin78/versatile_thermostat/blob/main/documentation/en/over-switch.md#configuration)",
+        "description": "Атрибуты связанных сущностей {over_switch_doc}",
+        "description_placeholders": {
+          "over_switch_doc": {
+            "text": "документация",
+            "url": "https://github.com/jmcollin78/versatile_thermostat/blob/main/documentation/en/over-switch.md#configuration"
+          }
+        },
         "data": {
           "underlying_entity_ids": "Устройство(а) для управления",
           "heater_keep_alive": "Интервал поддержания переключателя (секунды)",
@@ -127,7 +133,7 @@
       },
       "tpi": {
         "title": "TPI",
-        "description": "Атрибуты Time Proportional Integral&nbsp;[![?](https://img.icons8.com/color/18/help.png)](https://github.com/jmcollin78/versatile_thermostat/blob/main/documentation/en/algorithms.md#lalgorithme-tpi)",
+        "description": "Атрибуты Time Proportional Integral",
         "data": {
           "tpi_coef_int": "coef_int",
           "tpi_coef_ext": "coef_ext",
@@ -149,14 +155,14 @@
       },
       "presets": {
         "title": "Предустановки",
-        "description": "Выберите, будет ли термостат использовать центральные предустановки - снимите для использования собственных предустановок термостата&nbsp;[![?](https://img.icons8.com/color/18/help.png)](https://github.com/jmcollin78/versatile_thermostat/blob/main/documentation/en/feature-presets.md)",
+        "description": "Выберите, будет ли термостат использовать центральные предустановки - снимите для использования собственных предустановок термостата",
         "data": {
           "use_presets_central_config": "Использовать центральную конфигурацию предустановок"
         }
       },
       "window": {
         "title": "Управление окнами",
-        "description": "Управление открытыми окнами.\nВы также можете настроить автоматическое обнаружение открытых окон на основе снижения температуры&nbsp;[![?](https://img.icons8.com/color/18/help.png)](https://github.com/jmcollin78/versatile_thermostat/blob/main/documentation/en/feature-window.md)",
+        "description": "Управление открытыми окнами.\nВы также можете настроить автоматическое обнаружение открытых окон на основе снижения температуры",
         "data": {
           "window_sensor_entity_id": "ID датчика окна",
           "window_delay": "Задержка датчика 'включено' (секунды)",
@@ -180,7 +186,7 @@
       },
       "motion": {
         "title": "Управление движением",
-        "description": "Управление датчиком движения. Предустановка может автоматически переключаться в зависимости от обнаружения движения\nmotion_preset и no_motion_preset должны быть установлены в соответствующие имена предустановок&nbsp;[![?](https://img.icons8.com/color/18/help.png)](https://github.com/jmcollin78/versatile_thermostat/blob/main/documentation/en/feature-motion.md)",
+        "description": "Управление датчиком движения. Предустановка может автоматически переключаться в зависимости от обнаружения движения\nmotion_preset и no_motion_preset должны быть установлены в соответствующие имена предустановок",
         "data": {
           "motion_sensor_entity_id": "ID датчика движения",
           "motion_delay": "Задержка активации",
@@ -200,7 +206,7 @@
       },
       "power": {
         "title": "Управление питанием",
-        "description": "Атрибуты управления питанием.\nУказывает датчики мощности и максимальной мощности вашего дома.\nУкажите потребляемую мощность обогревателя при включении.\nВсе датчики и мощность устройства должны использовать одинаковые единицы измерения (кВт или Вт)&nbsp;[![?](https://img.icons8.com/color/18/help.png)](https://github.com/jmcollin78/versatile_thermostat/blob/main/documentation/en/feature-power.md)",
+        "description": "Атрибуты управления питанием.\nУказывает датчики мощности и максимальной мощности вашего дома.\nУкажите потребляемую мощность обогревателя при включении.\nВсе датчики и мощность устройства должны использовать одинаковые единицы измерения (кВт или Вт)",
         "data": {
           "power_sensor_entity_id": "Мощность",
           "max_power_sensor_entity_id": "Максимальная мощность",
@@ -216,7 +222,7 @@
       },
       "presence": {
         "title": "Управление присутствием",
-        "description": "Атрибуты управления присутствием.\nУказывает датчик присутствия в вашем доме (true если кто-то присутствует) и соответствующую настройку температурной предустановки&nbsp;[![?](https://img.icons8.com/color/18/help.png)](https://github.com/jmcollin78/versatile_thermostat/blob/main/documentation/en/feature-presence.md)",
+        "description": "Атрибуты управления присутствием.\nУказывает датчик присутствия в вашем доме (true если кто-то присутствует) и соответствующую настройку температурной предустановки",
         "data": {
           "presence_sensor_entity_id": "Датчик присутствия",
           "use_presence_central_config": "Использовать центральную конфигурацию температуры присутствия. Снимите для использования специфичных температурных сущностей"
@@ -227,7 +233,7 @@
       },
       "advanced": {
         "title": "Расширенные параметры",
-        "description": "Конфигурация расширенных параметров. Оставьте значения по умолчанию, если не уверены в своих действиях.\nЭти параметры могут привести к очень плохому контролю температуры или плохому регулированию мощности&nbsp;[![?](https://img.icons8.com/color/18/help.png)](https://github.com/jmcollin78/versatile_thermostat/blob/main/documentation/en/feature-advanced.md)",
+        "description": "Конфигурация расширенных параметров. Оставьте значения по умолчанию, если не уверены в своих действиях.\nЭти параметры могут привести к очень плохому контролю температуры или плохому регулированию мощности",
         "data": {
           "safety_delay_min": "Защитная задержка (в минутах)",
           "safety_min_on_percent": "Минимальный процент мощности для включения защитного режима",
@@ -243,7 +249,7 @@
       },
       "central_boiler": {
         "title": "Управление центральным котлом",
-        "description": "Введите сервисы для вызова включения/выключения центрального котла. Вызываемый сервис должен быть отформатирован следующим образом: `entity_id/service_name[/attribute:value]` (/attribute:value опционально)\nНапример:\n- для включения переключателя: `switch.controle_chaudiere/switch.turn_on`\n- для выключения переключателя: `switch.controle_chaudiere/switch.turn_off`\n- для программирования котла на 25° и принудительного включения: `climate.thermostat_chaudiere/climate.set_temperature/temperature:25`\n- для отправки 10° котлу и принудительного выключения: `climate.thermostat_chaudiere/climate.set_temperature/temperature:10`&nbsp;[![?](https://img.icons8.com/color/18/help.png)](https://github.com/jmcollin78/versatile_thermostat/blob/main/documentation/fr/feature-central-boiler.md)",
+        "description": "Введите сервисы для вызова включения/выключения центрального котла. Вызываемый сервис должен быть отформатирован следующим образом: `entity_id/service_name[/attribute:value]` (/attribute:value опционально)\nНапример:\n- для включения переключателя: `switch.controle_chaudiere/switch.turn_on`\n- для выключения переключателя: `switch.controle_chaudiere/switch.turn_off`\n- для программирования котла на 25° и принудительного включения: `climate.thermostat_chaudiere/climate.set_temperature/temperature:25`\n- для отправки 10° котлу и принудительного выключения: `climate.thermostat_chaudiere/climate.set_temperature/temperature:10`",
         "data": {
           "central_boiler_activation_service": "Команда включения",
           "central_boiler_deactivation_service": "Команда выключения",
@@ -257,7 +263,7 @@
       },
       "valve_regulation": {
         "title": "Саморегулирование с клапаном",
-        "description": "Конфигурация для саморегулирования с прямым управлением клапаном&nbsp;[![?](https://img.icons8.com/color/18/help.png)](https://github.com/jmcollin78/versatile_thermostat/blob/main/documentation/fr/self-regulation.md#auto-régulation-par-contrôle-direct-de-la-vanne)",
+        "description": "Конфигурация для саморегулирования с прямым управлением клапаном",
         "data": {
           "offset_calibration_entity_ids": "Сущности калибровки смещения",
           "opening_degree_entity_ids": "Сущности степени открытия",
@@ -281,7 +287,7 @@
       },
       "sync_device_internal_temp": {
         "title": "Synchronize device internal temperature",
-        "description": "Configuration to synchronize the internal temperature of the underlying devices with selected entities&nbsp;[![?](https://img.icons8.com/color/18/help.png)](https://github.com/jmcollin78/versatile_thermostat/blob/main/documentation/ru/feature-sync_device_temp.md)",
+        "description": "Configuration to synchronize the internal temperature of the underlying devices with selected entities",
         "data": {
           "sync_with_calibration": "Apply offset calibration",
           "sync_entity_ids": "Entities id used for synchronization"
@@ -382,7 +388,7 @@
       },
       "main": {
         "title": "Основные - {name}",
-        "description": "Основные обязательные атрибуты&nbsp;[![?](https://img.icons8.com/color/18/help.png)](https://github.com/jmcollin78/versatile_thermostat/blob/main/documentation/en/base-attributes.md)",
+        "description": "Основные обязательные атрибуты",
         "data": {
           "name": "Название",
           "thermostat_type": "Тип термостата",
@@ -423,7 +429,7 @@
       },
       "type": {
         "title": "Сущности - {name}",
-        "description": "Атрибуты связанных сущностей&nbsp;[![?](https://img.icons8.com/color/18/help.png)](https://github.com/jmcollin78/versatile_thermostat/blob/main/documentation/en/over-switch.md#configuration)",
+        "description": "Атрибуты связанных сущностей {over_switch_doc}",
         "data": {
           "underlying_entity_ids": "Устройство(а) для управления",
           "heater_keep_alive": "Интервал поддержания переключателя (секунды)",
@@ -458,7 +464,7 @@
       },
       "tpi": {
         "title": "TPI - {name}",
-        "description": "Атрибуты Time Proportional Integral&nbsp;[![?](https://img.icons8.com/color/18/help.png)](https://github.com/jmcollin78/versatile_thermostat/blob/main/documentation/en/algorithms.md#lalgorithme-tpi)",
+        "description": "Атрибуты Time Proportional Integral",
         "data": {
           "tpi_coef_int": "coef_int",
           "tpi_coef_ext": "coef_ext",
@@ -480,14 +486,14 @@
       },
       "presets": {
         "title": "Предустановки - {name}",
-        "description": "Отметьте, если термостат будет использовать центральные предустановки. Снимите и термостат будет иметь собственные сущности предустановок&nbsp;[![?](https://img.icons8.com/color/18/help.png)](https://github.com/jmcollin78/versatile_thermostat/blob/main/documentation/en/feature-presets.md)",
+        "description": "Отметьте, если термостат будет использовать центральные предустановки. Снимите и термостат будет иметь собственные сущности предустановок",
         "data": {
           "use_presets_central_config": "Использовать центральную конфигурацию предустановок"
         }
       },
       "window": {
         "title": "Окна - {name}",
-        "description": "Управление открытыми окнами.\nВы также можете настроить автоматическое обнаружение открытых окон на основе снижения температуры&nbsp;[![?](https://img.icons8.com/color/18/help.png)](https://github.com/jmcollin78/versatile_thermostat/blob/main/documentation/en/feature-window.md)",
+        "description": "Управление открытыми окнами.\nВы также можете настроить автоматическое обнаружение открытых окон на основе снижения температуры",
         "data": {
           "window_sensor_entity_id": "ID датчика окна",
           "window_delay": "Задержка датчика 'включено' (секунды)",
@@ -510,7 +516,7 @@
       },
       "motion": {
         "title": "Движение - {name}",
-        "description": "Управление движением. Предустановка может автоматически переключаться в зависимости от обнаружения движения\nmotion_preset и no_motion_preset должны быть установлены в соответствующие имена предустановок&nbsp;[![?](https://img.icons8.com/color/18/help.png)](https://github.com/jmcollin78/versatile_thermostat/blob/main/documentation/en/feature-motion.md)",
+        "description": "Управление движением. Предустановка может автоматически переключаться в зависимости от обнаружения движения\nmotion_preset и no_motion_preset должны быть установлены в соответствующие имена предустановок",
         "data": {
           "motion_sensor_entity_id": "ID датчика движения",
           "motion_delay": "Задержка активации",
@@ -530,7 +536,7 @@
       },
       "power": {
         "title": "Питание - {name}",
-        "description": "Атрибуты управления питанием.\nУказывает датчики мощности и максимальной мощности вашего дома.\nУкажите потребляемую мощность обогревателя при включении.\nВсе датчики и мощность устройства должны использовать одинаковые единицы измерения (кВт или Вт)&nbsp;[![?](https://img.icons8.com/color/18/help.png)](https://github.com/jmcollin78/versatile_thermostat/blob/main/documentation/en/feature-power.md)",
+        "description": "Атрибуты управления питанием.\nУказывает датчики мощности и максимальной мощности вашего дома.\nУкажите потребляемую мощность обогревателя при включении.\nВсе датчики и мощность устройства должны использовать одинаковые единицы измерения (кВт или Вт)",
         "data": {
           "power_sensor_entity_id": "Мощность",
           "max_power_sensor_entity_id": "Максимальная мощность",
@@ -546,7 +552,7 @@
       },
       "presence": {
         "title": "Присутствие - {name}",
-        "description": "Атрибуты управления присутствием.\nУказывает датчик присутствия в вашем доме (true если кто-то присутствует) и соответствующую настройку температурной предустановки&nbsp;[![?](https://img.icons8.com/color/18/help.png)](https://github.com/jmcollin78/versatile_thermostat/blob/main/documentation/en/feature-presence.md)",
+        "description": "Атрибуты управления присутствием.\nУказывает датчик присутствия в вашем доме (true если кто-то присутствует) и соответствующую настройку температурной предустановки",
         "data": {
           "presence_sensor_entity_id": "Датчик присутствия",
           "use_presence_central_config": "Использовать центральную конфигурацию температуры присутствия. Снимите для использования специфичных температурных сущностей"
@@ -557,7 +563,7 @@
       },
       "advanced": {
         "title": "Расширенные - {name}",
-        "description": "Конфигурация расширенных параметров. Оставьте значения по умолчанию, если не уверены в своих действиях.\nЭти параметры могут привести к очень плохому контролю температуры или плохому регулированию мощности&nbsp;[![?](https://img.icons8.com/color/18/help.png)](https://github.com/jmcollin78/versatile_thermostat/blob/main/documentation/en/feature-advanced.md)",
+        "description": "Конфигурация расширенных параметров. Оставьте значения по умолчанию, если не уверены в своих действиях.\nЭти параметры могут привести к очень плохому контролю температуры или плохому регулированию мощности",
         "data": {
           "minimal_activation_delay": "Минимальная задержка активации",
           "minimal_deactivation_delay": "Минимальная задержка деактивации",
@@ -577,7 +583,7 @@
       },
       "central_boiler": {
         "title": "Управление центральным котлом - {name}",
-        "description": "Введите сервисы для вызова включения/выключения центрального котла. Вызываемый сервис должен быть отформатирован следующим образом: `entity_id/service_name[/attribute:value]` (/attribute:value опционально)\nНапример:\n- для включения переключателя: `switch.controle_chaudiere/switch.turn_on`\n- для выключения переключателя: `switch.controle_chaudiere/switch.turn_off`\n- для программирования котла на 25° и принудительного включения: `climate.thermostat_chaudiere/climate.set_temperature/temperature:25`\n- для отправки 10° котлу и принудительного выключения: `climate.thermostat_chaudiere/climate.set_temperature/temperature:10`&nbsp;[![?](https://img.icons8.com/color/18/help.png)](https://github.com/jmcollin78/versatile_thermostat/blob/main/documentation/fr/feature-central-boiler.md)",
+        "description": "Введите сервисы для вызова включения/выключения центрального котла. Вызываемый сервис должен быть отформатирован следующим образом: `entity_id/service_name[/attribute:value]` (/attribute:value опционально)\nНапример:\n- для включения переключателя: `switch.controle_chaudiere/switch.turn_on`\n- для выключения переключателя: `switch.controle_chaudiere/switch.turn_off`\n- для программирования котла на 25° и принудительного включения: `climate.thermostat_chaudiere/climate.set_temperature/temperature:25`\n- для отправки 10° котлу и принудительного выключения: `climate.thermostat_chaudiere/climate.set_temperature/temperature:10`",
         "data": {
           "central_boiler_activation_service": "Команда включения",
           "central_boiler_deactivation_service": "Команда выключения",
@@ -591,7 +597,7 @@
       },
       "valve_regulation": {
         "title": "Саморегулирование с клапаном - {name}",
-        "description": "Конфигурация для саморегулирования с прямым управлением клапаном&nbsp;[![?](https://img.icons8.com/color/18/help.png)](https://github.com/jmcollin78/versatile_thermostat/blob/main/documentation/fr/self-regulation.md#auto-régulation-par-contrôle-direct-de-la-vanne)",
+        "description": "Конфигурация для саморегулирования с прямым управлением клапаном",
         "data": {
           "offset_calibration_entity_ids": "Сущности калибровки смещения",
           "opening_degree_entity_ids": "Сущности степени открытия",
@@ -615,7 +621,7 @@
       },
       "sync_device_internal_temp": {
         "title": "Synchronize device internal temperature",
-        "description": "Configuration to synchronize the internal temperature of the underlying devices with selected entities&nbsp;[![?](https://img.icons8.com/color/18/help.png)](https://github.com/jmcollin78/versatile_thermostat/blob/main/documentation/ru/feature-sync_device_temp.md)",
+        "description": "Configuration to synchronize the internal temperature of the underlying devices with selected entities",
         "data": {
           "sync_with_calibration": "Apply offset calibration",
           "sync_entity_ids": "Entities id used for synchronization"

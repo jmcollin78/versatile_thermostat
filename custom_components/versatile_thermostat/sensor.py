@@ -758,6 +758,7 @@ class NbActiveDeviceForBoilerSensor(SensorEntity):
     """Representation of the  number of VTherm
     which are active and configured to activate the boiler"""
 
+    # TODO remove all listener mecanisms
     _entity_component_unrecorded_attributes = SensorEntity._entity_component_unrecorded_attributes.union(  # pylint: disable=protected-access
         frozenset({"active_device_ids"})
     )
@@ -817,7 +818,7 @@ class NbActiveDeviceForBoilerSensor(SensorEntity):
 
         # Listen to all VTherm underlying state change
         self._entities = []
-        underlying_entities_id = []
+        # underlying_entities_id = []
 
         component: EntityComponent[ClimateEntity] = self.hass.data.get(CLIMATE_DOMAIN)
         if component is None:
@@ -829,24 +830,24 @@ class NbActiveDeviceForBoilerSensor(SensorEntity):
         for entity in list(component.entities):
             if isinstance(entity, BaseThermostat) and entity.is_used_by_central_boiler:
                 self._entities.append(entity)
-                for under in entity.activable_underlying_entities:
-                    underlying_entities_id.append(under.entity_id)
-        if len(underlying_entities_id) > 0:
-            # Arme l'écoute de la première entité
-            self._cancel_listener_nb_active = async_track_state_change_event(
-                self._hass,
-                underlying_entities_id,
-                self.calculate_nb_active_devices,
-            )
-            _LOGGER.info(
-                "%s - the underlyings that could control the central boiler are %s",
-                self,
-                underlying_entities_id,
-            )
-            # Fix 1406
-            # self.async_on_remove(self._cancel_listener_nb_active)
-        else:
-            _LOGGER.debug("%s - no VTherm could control the central boiler", self)
+                # for under in entity.activable_underlying_entities:
+                #    underlying_entities_id.append(under.entity_id)
+        # if len(underlying_entities_id) > 0:
+        # Arme l'écoute de la première entité
+        # self._cancel_listener_nb_active = async_track_state_change_event(
+        #     self._hass,
+        #     underlying_entities_id,
+        #     self.calculate_nb_active_devices,
+        # )
+        #    _LOGGER.info(
+        #        "%s - the underlyings that could control the central boiler are %s",
+        #        self,
+        #        underlying_entities_id,
+        #     )
+        # Fix 1406
+        # self.async_on_remove(self._cancel_listener_nb_active)
+        # else:
+        #    _LOGGER.debug("%s - no VTherm could control the central boiler", self)
 
         await self.calculate_nb_active_devices(None)
 
