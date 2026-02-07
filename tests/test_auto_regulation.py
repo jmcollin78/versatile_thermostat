@@ -20,9 +20,6 @@ from custom_components.versatile_thermostat.thermostat_climate import (
 
 from .commons import *  # pylint: disable=wildcard-import, unused-wildcard-import
 
-
-@pytest.mark.parametrize("expected_lingering_tasks", [True])
-@pytest.mark.parametrize("expected_lingering_timers", [True])
 async def test_over_climate_regulation(
     hass: HomeAssistant, skip_hass_states_is_state, skip_send_event
 ):
@@ -119,9 +116,8 @@ async def test_over_climate_regulation(
             assert entity.regulated_target_temp < entity.target_temperature
             assert entity.regulated_target_temp == 18 - 2.0
 
+    entity.remove_thermostat()
 
-@pytest.mark.parametrize("expected_lingering_tasks", [True])
-@pytest.mark.parametrize("expected_lingering_timers", [True])
 async def test_over_climate_regulation_ac_mode(
     hass: HomeAssistant, skip_hass_states_is_state, skip_send_event
 ):
@@ -229,9 +225,8 @@ async def test_over_climate_regulation_ac_mode(
             assert entity.regulated_target_temp > entity.target_temperature
             assert entity.regulated_target_temp == 25 + 4  # +0.4 without round_to_nearest
 
+    entity.remove_thermostat()
 
-@pytest.mark.parametrize("expected_lingering_tasks", [True])
-@pytest.mark.parametrize("expected_lingering_timers", [True])
 async def test_over_climate_regulation_limitations(
     hass: HomeAssistant, skip_hass_states_is_state, skip_send_event
 ):
@@ -343,15 +338,13 @@ async def test_over_climate_regulation_limitations(
         assert entity.regulated_target_temp >= entity.target_temperature
         assert entity.regulated_target_temp == 17 + 1.5
 
+    entity.remove_thermostat()
 
-@pytest.mark.parametrize("expected_lingering_tasks", [True])
-@pytest.mark.parametrize("expected_lingering_timers", [True])
+
 # Disable this test which is not working when run in // of others.
 # I couldn't find out why
 # @pytest.mark.skip
-async def test_over_climate_regulation_use_device_temp(
-    hass: HomeAssistant, skip_hass_states_is_state, skip_send_event
-):
+async def test_over_climate_regulation_use_device_temp(hass: HomeAssistant, skip_send_event):
     """Test the regulation of an over climate thermostat"""
 
     entry = MockConfigEntry(
@@ -399,39 +392,20 @@ async def test_over_climate_regulation_use_device_temp(
     fake_underlying_climate.set_current_temperature(15)
     event_timestamp = now - timedelta(minutes=7)
     entity._set_now(event_timestamp)
-    with patch("homeassistant.core.ServiceRegistry.async_call") as mock_service_call:
-        await entity.async_set_temperature(temperature=16)
 
-        fake_underlying_climate.set_hvac_action(HVACAction.HEATING)  # simulate under heating
-        await hass.async_block_till_done()
-        entity.calculate_hvac_action()
-        assert entity.hvac_action == HVACAction.HEATING
-        assert entity.preset_mode == VThermPreset.NONE  # Manual mode
+    await entity.async_set_temperature(temperature=16)
 
-        # the regulated temperature should be higher
-        assert entity.regulated_target_temp < entity.target_temperature
-        # The calcul is the following: 16 + (16 - 18) x 0.4 (strong) + 0 x ki - 1 (device offset)
-        assert entity.regulated_target_temp == 15  # round(16 + (16 - 18) * 0.4 + 0 * 0.08)
-        assert entity.hvac_action == HVACAction.HEATING
+    await wait_for_local_condition(lambda: fake_underlying_climate.target_temperature == 12)  # 15 (regulated) - 3 (device offset 18-15)
+    assert fake_underlying_climate.hvac_action == HVACAction.IDLE  # current is 15 and target is 12
 
-        mock_service_call.assert_has_calls(
-            [
-                # call("climate", "set_temperature", {"entity_id": "climate.mock_climate", "temperature": 12.0}, ANY, ANY, ANY, ANY)
-                call.service_call(
-                    "climate",
-                    "set_temperature",
-                    {
-                        "entity_id": "climate.mock_climate",
-                        # because device offset is -3 but not used because target is reach
-                        "temperature": 12.0,
-                    },
-                    ANY,
-                    ANY,
-                    ANY,
-                    ANY,
-                ),
-            ]
-        )
+    # entity.calculate_hvac_action()
+    assert entity.hvac_action == HVACAction.IDLE
+    assert entity.preset_mode == VThermPreset.NONE  # Manual mode
+
+    # the regulated temperature should be higher
+    assert entity.regulated_target_temp < entity.target_temperature
+    # The calcul is the following: 16 + (16 - 18) x 0.4 (strong) + 0 x ki - 1 (device offset)
+    assert entity.regulated_target_temp == 15  # round(16 + (16 - 18) * 0.4 + 0 * 0.08)
 
     # 3. change temperature so that the regulated temperature should slow down
     # HVACMODE.HEAT
@@ -503,8 +477,9 @@ async def test_over_climate_regulation_use_device_temp(
             ]
         )
 
-@pytest.mark.parametrize("expected_lingering_tasks", [True])
-@pytest.mark.parametrize("expected_lingering_timers", [True])
+    entity.remove_thermostat()
+
+
 async def test_over_climate_regulation_dtemp_null(
     hass: HomeAssistant, skip_hass_states_is_state, skip_send_event
 ):
@@ -609,10 +584,10 @@ async def test_over_climate_regulation_dtemp_null(
             # the regulated temperature should be greater. This does not work if dtemp is not null
             assert entity.regulated_target_temp > old_regulated_temp
 
+    entity.remove_thermostat()
 
-@pytest.mark.parametrize("expected_lingering_tasks", [True])
-@pytest.mark.parametrize("expected_lingering_timers", [True])
-async def test_over_climate_regulation_calculation_scheduled(hass: HomeAssistant, skip_hass_states_is_state, skip_send_event):
+
+async def test_over_climate_regulation_calculation_scheduled(hass: HomeAssistant, skip_send_event):
     """Test the scheduled calculation of regulation for an over climate thermostat
     We should delay the calculation, if room temp changes too frequently
     """
@@ -628,65 +603,64 @@ async def test_over_climate_regulation_calculation_scheduled(hass: HomeAssistant
     tz = get_tz(hass)  # pylint: disable=invalid-name
     now: datetime = datetime.now(tz=tz)
 
-    fake_underlying_climate = MockClimate(hass, "mock_climate", "MockClimateName", {})
+    fake_underlying_climate = await create_and_register_mock_climate(hass, "mock_climate", "MockClimateName", {})
 
     # Creates the regulated VTherm over climate
     # change temperature so that the heating will start
 
-    # fmt: off
-    with patch("custom_components.versatile_thermostat.base_thermostat.BaseThermostat.send_event"):
-    # fmt: on
-        vtherm: ThermostatOverClimate = await create_thermostat(hass, entry, "climate.theoverclimatemockname")
-        assert vtherm
-        assert isinstance(vtherm, ThermostatOverClimate)
+    vtherm: ThermostatOverClimate = await create_thermostat(hass, entry, "climate.theoverclimatemockname")
+    assert vtherm
+    assert isinstance(vtherm, ThermostatOverClimate)
 
-        assert vtherm.name == "TheOverClimateMockName"
-        assert vtherm.is_over_climate is True
-        assert vtherm.is_regulated is True
-        assert vtherm.is_recalculate_scheduled is False
+    assert vtherm.name == "TheOverClimateMockName"
+    assert vtherm.is_over_climate is True
+    assert vtherm.is_regulated is True
+    assert vtherm.is_recalculate_scheduled is False
 
-        # Will initialize the _last_regulation_change
-        # Activate the heating by changing VThermHvacMode and temperature
-        # Select a hvacmode, presence and preset
-        vtherm._set_now(now)
-        await vtherm.async_set_hvac_mode(VThermHvacMode_HEAT)
-        assert vtherm.vtherm_hvac_mode is VThermHvacMode_HEAT
-        await vtherm.async_set_temperature(temperature=17)
-        await hass.async_block_till_done()
-        assert vtherm.is_recalculate_scheduled is False
+    # Will initialize the _last_regulation_change
+    # Activate the heating by changing VThermHvacMode and temperature
+    # Select a hvacmode, presence and preset
+    vtherm._set_now(now)
+    await vtherm.async_set_hvac_mode(VThermHvacMode_HEAT)
+    assert vtherm.vtherm_hvac_mode is VThermHvacMode_HEAT
+    await vtherm.async_set_temperature(temperature=17)
+    await hass.async_block_till_done()
+    assert vtherm.is_recalculate_scheduled is False
 
-        # Change the temperature too fast
-        now += timedelta(seconds=30)
-        vtherm._set_now(now)
-        await send_temperature_change_event(vtherm, 15, now)
-        await hass.async_block_till_done()
-        assert vtherm.is_recalculate_scheduled is True
+    # Change the temperature too fast
+    now += timedelta(seconds=30)
+    vtherm._set_now(now)
+    await send_temperature_change_event(vtherm, 15, now)
+    await hass.async_block_till_done()
+    assert vtherm.is_recalculate_scheduled is True
 
-        # 1. set manual target temp -> the regulation should be send because it is forced
-        now += timedelta(seconds=60)
-        vtherm._set_now(now)
-        await vtherm.async_set_temperature(temperature=18)
-        await hass.async_block_till_done()
-        # A timer is not started (change target temperature forces the change)
-        assert vtherm.is_recalculate_scheduled is False
+    # 1. set manual target temp -> the regulation should be send because it is forced
+    now += timedelta(seconds=60)
+    vtherm._set_now(now)
+    await vtherm.async_set_temperature(temperature=18)
+    await hass.async_block_till_done()
+    # A timer is not started (change target temperature forces the change)
+    assert vtherm.is_recalculate_scheduled is False
 
-        # 2. set the outdoor temperature
-        now += timedelta(seconds=60)
-        vtherm._set_now(now)
-        await send_ext_temperature_change_event(vtherm, 0, now)
-        await hass.async_block_till_done()
-        assert vtherm.is_recalculate_scheduled is True
+    # 2. set the outdoor temperature
+    now += timedelta(seconds=60)
+    vtherm._set_now(now)
+    await send_ext_temperature_change_event(vtherm, 0, now)
+    await hass.async_block_till_done()
+    assert vtherm.is_recalculate_scheduled is True
 
-        # 3 force hvac_mode
-        now += timedelta(minutes=2)
-        vtherm._set_now(now)
-        await vtherm.async_set_hvac_mode(VThermHvacMode_COOL)
-        await hass.async_block_till_done()
-        assert vtherm.is_recalculate_scheduled is False
+    # 3 force hvac_mode
+    now += timedelta(minutes=2)
+    vtherm._set_now(now)
+    await vtherm.async_set_hvac_mode(VThermHvacMode_COOL)
+    await hass.async_block_till_done()
+    assert vtherm.is_recalculate_scheduled is False
 
-        # 2. set the outdoor temperature
-        now += timedelta(seconds=60)
-        vtherm._set_now(now)
-        await send_ext_temperature_change_event(vtherm, 10, now)
-        await hass.async_block_till_done()
-        assert vtherm.is_recalculate_scheduled is True
+    # 2. set the outdoor temperature
+    now += timedelta(seconds=60)
+    vtherm._set_now(now)
+    await send_ext_temperature_change_event(vtherm, 10, now)
+    await hass.async_block_till_done()
+    assert vtherm.is_recalculate_scheduled is True
+
+    vtherm.remove_thermostat()
