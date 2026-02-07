@@ -35,12 +35,13 @@ from homeassistant.components.number import SERVICE_SET_VALUE
 from homeassistant.helpers.event import async_call_later
 from homeassistant.util.unit_conversion import TemperatureConverter
 
-from custom_components.versatile_thermostat.opening_degree_algorithm import OpeningClosingDegreeCalculation
+from .opening_degree_algorithm import OpeningClosingDegreeCalculation
 
 
 from .const import *  # pylint: disable=wildcard-import, unused-wildcard-import
 from .vtherm_hvac_mode import VThermHvacMode, to_legacy_ha_hvac_mode
 from .keep_alive import IntervalCaller
+from .vtherm_api import VersatileThermostatAPI
 from .underlying_state_manager import UnderlyingStateManager
 
 _LOGGER = logging.getLogger(__name__)
@@ -84,6 +85,7 @@ class UnderlyingEntity:
         # Use UnderlyingStateManager to track underlying entity state
         self._state_manager: UnderlyingStateManager = UnderlyingStateManager(self._hass, on_change=self._underlying_changed)
         self._is_initialized: bool = False
+        self._api = VersatileThermostatAPI.get_vtherm_api(hass)
 
     def register_cycle_callback(self, on_start: Callable):
         """Register a callback for cycle start"""
@@ -137,6 +139,14 @@ class UnderlyingEntity:
         if self._thermostat.hvac_action != self._thermostat.calculate_hvac_action():
             self._thermostat.update_custom_attributes()
             self._thermostat.async_write_ha_state()
+
+        # update the sensor which count the number of active devices is vtherm is used by central boiler
+        if (
+            self._thermostat.is_used_by_central_boiler
+            and self._api.central_boiler_manager is not None
+            and self._api.central_boiler_manager.nb_device_active_for_boiler_entity is not None
+        ):
+            await self._api.central_boiler_manager.nb_device_active_for_boiler_entity.calculate_nb_active_devices(None)
 
     async def set_hvac_mode(self, hvac_mode: VThermHvacMode):
         """Set the HVACmode"""

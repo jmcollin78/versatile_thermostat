@@ -44,8 +44,6 @@ from .const import *  # pylint: disable=wildcard-import, unused-wildcard-import
 
 _LOGGER = logging.getLogger(__name__)
 
-# @pytest.mark.parametrize("expected_lingering_tasks", [True])
-# @pytest.mark.parametrize("expected_lingering_timers", [True])
 async def test_add_a_central_config_with_boiler(
     hass: HomeAssistant,
     skip_hass_states_is_state,
@@ -86,17 +84,19 @@ async def test_add_a_central_config_with_boiler(
     assert central_boiler_manager.total_power_active_for_boiler == 0  # the default value is 0
     assert central_boiler_manager.total_power_active_for_boiler_threshold == 0  # the default value is 0
 
+
 async def test_update_central_boiler_state_simple(
     hass: HomeAssistant,
-    # skip_hass_states_is_state,
     init_central_config_with_boiler_fixture,
+    fake_underlying_switch,
 ):
+    switch1 = fake_underlying_switch
     """Test that the central boiler state behavior in a full normal conditions (with no mock)"""
 
     api = VersatileThermostatAPI.get_vtherm_api(hass)
 
-    switch1 = MockSwitch(hass, "switch1", "theSwitch1")
-    await register_mock_entity(hass, switch1, SWITCH_DOMAIN)
+    # switch1 = MockSwitch(hass, "switch1", "theSwitch1")
+    # await register_mock_entity(hass, switch1, SWITCH_DOMAIN)
 
     switch_pompe_chaudiere = MockSwitch(hass, "pompe_chaudiere", "SwitchPompeChaudiere")
     await register_mock_entity(hass, switch_pompe_chaudiere, SWITCH_DOMAIN)
@@ -147,7 +147,7 @@ async def test_update_central_boiler_state_simple(
     assert entity
     assert entity.name == "TheOverSwitchMockName"
     assert entity.is_over_switch
-    assert entity.underlying_entities[0].entity_id == "switch.switch1"
+    assert entity.underlying_entities[0].entity_id == "switch.mock_switch"
 
     api.central_boiler_manager._set_nb_active_device_threshold(1)
     api.central_boiler_manager._set_total_power_active_threshold(1000)
@@ -256,15 +256,17 @@ async def test_update_central_boiler_state_simple(
     assert switch_pompe_chaudiere.is_on
 
     # There should be one device active
-    assert api.central_boiler_manager.nb_active_device_for_boiler == 1
+    assert entity.is_initialized is True
+    await wait_for_local_condition(lambda: api.central_boiler_manager.nb_active_device_for_boiler == 1)
+
     # boiler binary sensor is on
     assert boiler_binary_sensor.state == STATE_ON
 
     assert nb_device_active_sensor.state == 1
-    assert nb_device_active_sensor.active_device_ids == ["switch.switch1"]
+    assert nb_device_active_sensor.active_device_ids == ["switch.mock_switch"]
 
     assert total_power_active_sensor.state == 1500
-    assert total_power_active_sensor.active_device_ids == ["switch.switch1"]
+    assert total_power_active_sensor.active_device_ids == ["switch.mock_switch"]
 
     # check custom attributes of boiler binary sensor
     assert boiler_binary_sensor.extra_state_attributes["central_boiler_state"] == STATE_ON
