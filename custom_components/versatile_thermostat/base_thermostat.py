@@ -1419,6 +1419,10 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
             force,
         )
 
+        if not self.is_initialized:
+            _LOGGER.debug("%s - async_control_heating is called but the entity is not initialized yet. Skip the cycle", self)
+            return False
+
         # check auto_window conditions
         await self._window_manager.manage_window_auto(in_cycle=True)
 
@@ -1611,6 +1615,8 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
             messages.append(self.hvac_off_reason)
         if self.temperature_reason:
             messages.append(self.temperature_reason)
+        if not self.is_initialized:
+            messages.append(MSG_NOT_INITIALIZED)
 
         self._attr_extra_state_attributes: dict[str, Any] = {
             "hvac_action": self.hvac_action,

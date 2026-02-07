@@ -581,8 +581,16 @@ class MagicMockClimate(MagicMock):
         return {}
 
 
-class MagicMockClimateWithTemperatureRange(MagicMock):
+class MagicMockClimateWithTemperatureRange(MagicMock, ClimateEntity):
     """A Magic Mock class for a underlying climate entity"""
+
+    def __init__(self, unique_id="theoverclimatemocknamewithtemperaturerange"):
+        """Init the mock climate with temperature range"""
+        super().__init__()
+        self._unique_id = unique_id
+        self.platform = "climate"
+        self.entity_id = (self.platform + "." + unique_id).lower()
+        self._name = "The Over Climate Mock Name With Temperature Range"
 
     @property
     def temperature_unit(self):  # pylint: disable=missing-function-docstring
@@ -649,6 +657,10 @@ class MagicMockClimateWithTemperatureRange(MagicMock):
         return None
 
     @property
+    def swing_horizontal_mode(self) -> str | None:  # pylint: disable=missing-function-docstring
+        return None
+
+    @property
     def supported_features(self):  # pylint: disable=missing-function-docstring
         return ClimateEntityFeature.TARGET_TEMPERATURE_RANGE
 
@@ -668,6 +680,24 @@ class MagicMockClimateWithTemperatureRange(MagicMock):
     def extra_restore_state_data(self) -> Dict[str, Any]:  # pylint: disable=missing-function-docstring
         """To disable the error when restoring the state/storing the state"""
         return {}
+
+    @property
+    def attributes(self) -> Dict[str, Any]:
+        """Return the state attributes."""
+        return {
+            "hvac_mode": self.hvac_mode,
+            "hvac_action": self.hvac_action,
+            "target_temperature": self.target_temperature,
+            "current_temperature": self.current_temperature,
+            "hvac_modes": self.hvac_modes,
+            "supported_features": self.supported_features,
+            "temperature_unit": self.temperature_unit,
+            "min_temp": self.min_temp,
+            "max_temp": self.max_temp,
+            "fan_mode": self.fan_mode,
+            "swing_mode": self.swing_mode,
+            "swing_horizontal_mode": self.swing_horizontal_mode,
+        }
 
 
 class MockSwitch(SwitchEntity):
@@ -896,10 +926,10 @@ async def create_and_register_mock_number(
 async def register_mock_entity(hass, entity: Entity, domain: str):
     """Register the entity in HA"""
 
-    component = EntityComponent(None, domain, hass)
+    component = EntityComponent(_LOGGER, domain, hass)
 
     await component.async_add_entities([entity])
-    await entity.hass.async_block_till_done()
+    await hass.async_block_till_done()
 
 
 async def create_thermostat(
@@ -1306,14 +1336,14 @@ async def send_climate_change_event_with_temperature(
             "new_state": State(
                 entity_id=underlying_entity_id,
                 state=new_hvac_mode,
-                attributes={"hvac_action": new_hvac_action, "temperature": temperature},
+                attributes={"hvac_action": new_hvac_action, "temperature": temperature, "supported_features": ClimateEntityFeature.TARGET_TEMPERATURE},
                 last_changed=date,
                 last_updated=date,
             ),
             "old_state": State(
                 entity_id=underlying_entity_id,
                 state=old_hvac_mode,
-                attributes={"hvac_action": old_hvac_action},
+                attributes={"hvac_action": old_hvac_action, "supported_features": ClimateEntityFeature.TARGET_TEMPERATURE},
                 last_changed=date,
                 last_updated=date,
             ),

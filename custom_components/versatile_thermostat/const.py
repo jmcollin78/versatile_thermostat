@@ -507,6 +507,7 @@ MSG_TARGET_TEMP_ACTIVITY_DETECTED = "target_temp_activity_detected"
 MSG_TARGET_TEMP_ACTIVITY_NOT_DETECTED = "target_temp_activity_not_detected"
 MSG_TARGET_TEMP_ABSENCE_DETECTED = "target_temp_absence_detected"
 MSG_TARGET_TEMP_TIMED_PRESET = "target_temp_timed_preset"
+MSG_NOT_INITIALIZED = "not_initialized"
 
 #  A special regulation parameter suggested by @Maia here: https://github.com/jmcollin78/versatile_thermostat/discussions/154
 class RegulationParamSlow:
