@@ -5,7 +5,7 @@
     "step": {
       "user": {
         "title": "Typ termostatu VTherm",
-        "description": "Wybierz typ termostatu, który chcesz utworzyć&nbsp;[![?](https://img.icons8.com/color/18/help.png)](https://github.com/jmcollin78/versatile_thermostat/blob/main/documentation/pl/creation.md)",
+        "description": "Wybierz typ termostatu, który chcesz utworzyć",
         "data": {
           "thermostat_type": "Typ termostatu"
         },
@@ -52,7 +52,7 @@
       },
       "main": {
         "title": "Dodaj nowy termostat VTherm",
-        "description": "Wymagane atrybuty podstawowe&nbsp;[![?](https://img.icons8.com/color/18/help.png)](https://github.com/jmcollin78/versatile_thermostat/blob/main/documentation/pl/base-attributes.md)",
+        "description": "Wymagane atrybuty podstawowe",
         "data": {
           "name": "Nazwa",
           "thermostat_type": "Typ termostatu",
@@ -134,7 +134,7 @@
       },
       "tpi": {
         "title": "TPI",
-        "description": "Atrybuty TPI&nbsp;[![?](https://img.icons8.com/color/18/help.png)](https://github.com/jmcollin78/versatile_thermostat/blob/main/documentation/pl/algorithms.md#lalgorithme-tpi)",
+        "description": "Atrybuty TPI",
         "data": {
           "tpi_coef_int": "Delta temperatury wewnętrznej",
           "tpi_coef_ext": "Delta temperatury zewnętrznej",
@@ -158,14 +158,14 @@
       },
       "presets": {
         "title": "Presety",
-        "description": "Wybierz, jeśli termostat ma używać presetów podstawowych. Wyłącz, jeśli termostat ma używać swoich własnych presetów&nbsp;[![?](https://img.icons8.com/color/18/help.png)](https://github.com/jmcollin78/versatile_thermostat/blob/main/documentation/pl/feature-presets.md)",
+        "description": "Wybierz, jeśli termostat ma używać presetów podstawowych. Wyłącz, jeśli termostat ma używać swoich własnych presetów",
         "data": {
           "use_presets_central_config": "Użyj konfiguracji presetów podstawowych"
         }
       },
       "window": {
         "title": "Okna",
-        "description": "Zarządzanie otwarciem okna.\nMożesz także skonfigurować automatyczną detekcję otwarcia okna w oparciu o spadek temperatury&nbsp;[![?](https://img.icons8.com/color/18/help.png)](https://github.com/jmcollin78/versatile_thermostat/blob/main/documentation/pl/feature-window.md)",
+        "description": "Zarządzanie otwarciem okna.\nMożesz także skonfigurować automatyczną detekcję otwarcia okna w oparciu o spadek temperatury",
         "data": {
           "window_sensor_entity_id": "Identyfikator encji sensora otwarcia okna",
           "window_delay": "Zwłoka otwarcia okna (w sek.)",
@@ -189,7 +189,7 @@
       },
       "motion": {
         "title": "Ruch",
-        "description": "Zarządzanie sensorem ruchu. Presety mogą przełączać się automatycznie w zależności od wykrycia ruchu. Parametry `Preset ruchu` i `Preset braku ruchu` powinny być ustawione jako odpowiednie presety. &nbsp;[![?](https://img.icons8.com/color/18/help.png)](https://github.com/jmcollin78/versatile_thermostat/blob/main/documentation/pl/feature-motion.md)",
+        "description": "Zarządzanie sensorem ruchu. Presety mogą przełączać się automatycznie w zależności od wykrycia ruchu. Parametry `Preset ruchu` i `Preset braku ruchu` powinny być ustawione jako odpowiednie presety. ",
         "data": {
           "motion_sensor_entity_id": "Identyfikator encji sensora ruchu",
           "motion_delay": "Zwłoka aktywacji",
@@ -209,7 +209,7 @@
       },
       "power": {
         "title": "Energia",
-        "description": "Atrybuty zarządzania energią.\nWskazują moc i maksymalną moc sensora.\nOkreślają pobór mocy grzejnika, gdy jest włączony.\nWszystkie sensory i urządzenia powinny mieć tę samą jednostkę mocy (kW lub W).&nbsp;[![?](https://img.icons8.com/color/18/help.png)](https://github.com/jmcollin78/versatile_thermostat/blob/main/documentation/pl/feature-power.md)",
+        "description": "Atrybuty zarządzania energią.\nWskazują moc i maksymalną moc sensora.\nOkreślają pobór mocy grzejnika, gdy jest włączony.\nWszystkie sensory i urządzenia powinny mieć tę samą jednostkę mocy (kW lub W).",
         "data": {
           "power_sensor_entity_id": "Moc",
           "max_power_sensor_entity_id": "Moc maksymalna",
@@ -225,7 +225,7 @@
       },
       "presence": {
         "title": "Obecność",
-        "description": "Atrybuty zarządzania obecnością.\nWskazują stan sensora obecności (PRAWDA, gdy wykrywana jest czyjaś obecność) oraz odpowiednie presety temperatury&nbsp;[![?](https://img.icons8.com/color/18/help.png)](https://github.com/jmcollin78/versatile_thermostat/blob/main/documentation/pl/feature-presence.md)",
+        "description": "Atrybuty zarządzania obecnością.\nWskazują stan sensora obecności (PRAWDA, gdy wykrywana jest czyjaś obecność) oraz odpowiednie presety temperatury",
         "data": {
           "presence_sensor_entity_id": "Sensor obecności",
           "use_presence_central_config": "Wybierz, aby użyć centralnej konfiguracji temperatury dla wykrytej obecności. Wyłącz wybór, aby użyć wybranych encji temperatury"
@@ -236,7 +236,7 @@
       },
       "advanced": {
         "title": "Parametry zaawansowane",
-        "description": "Konfiguracja parametrów zaawansowanych. Pozostaw wartości domyślne, jeśli nie wiesz, co zrobić.\nNieprawidłowa zmiana tych parametrów może prowadzić do błędnej kontroli temperatur lub błędnej regulacji mocy&nbsp;[![?](https://img.icons8.com/color/18/help.png)](https://github.com/jmcollin78/versatile_thermostat/blob/main/documentation/pl/feature-advanced.md)",
+        "description": "Konfiguracja parametrów zaawansowanych. Pozostaw wartości domyślne, jeśli nie wiesz, co zrobić.\nNieprawidłowa zmiana tych parametrów może prowadzić do błędnej kontroli temperatur lub błędnej regulacji mocy",
         "data": {
           "safety_delay_min": "Zwłoka trybu bezpiecznego (w min.)",
           "safety_min_on_percent": "Minimalny procent mocy do przejścia w tryb bezpieczny",
@@ -252,7 +252,7 @@
       },
       "central_boiler": {
         "title": "Sterowanie kotłem centralnym",
-        "description": "Wprowadź polecenia załączające i wyłączające kocioł centralny. Polecenia muszą mieć następujący format: `id_encji/nazwa_polecenia[/atrybut:wartość]` (/atrybut:wartość jest opcjonalny)\nNa przykład:\n- aby załączyć przełącznik: `switch.sterownik_pieca/switch.turn_on`\n- aby wyłączyć przełącznik: `switch.sterownik_pieca/switch.turn_off`\n- aby zaprogramować temperaturę kotła na 25° i tym samym wymusić jego zapłon: `climate.termostat_pieca/climate.set_temperature/temperature:25`\n- aby ustawić temperaturę kotła na 10° i tym samym wymusić jego wygaszenie: `climate.termostat_pieca/climate.set_temperature/temperature:10`&nbsp;[![?](https://img.icons8.com/color/18/help.png)](https://github.com/jmcollin78/versatile_thermostat/blob/main/documentation/pl/feature-central-boiler.md)",
+        "description": "Wprowadź polecenia załączające i wyłączające kocioł centralny. Polecenia muszą mieć następujący format: `id_encji/nazwa_polecenia[/atrybut:wartość]` (/atrybut:wartość jest opcjonalny)\nNa przykład:\n- aby załączyć przełącznik: `switch.sterownik_pieca/switch.turn_on`\n- aby wyłączyć przełącznik: `switch.sterownik_pieca/switch.turn_off`\n- aby zaprogramować temperaturę kotła na 25° i tym samym wymusić jego zapłon: `climate.termostat_pieca/climate.set_temperature/temperature:25`\n- aby ustawić temperaturę kotła na 10° i tym samym wymusić jego wygaszenie: `climate.termostat_pieca/climate.set_temperature/temperature:10`",
         "data": {
           "central_boiler_activation_service": "Polecenie załączenia",
           "central_boiler_deactivation_service": "Polecenie wyłączenia",
@@ -266,7 +266,7 @@
       },
       "valve_regulation": {
         "title": "Autoregulacja zaworu",
-        "description": "Konfiguracja autoregulacji z bezpośrednim sterowaniem zaworem&nbsp;[![?](https://img.icons8.com/color/18/help.png)](https://github.com/jmcollin78/versatile_thermostat/blob/main/documentation/pl/self-regulation.md#auto-régulation-par-contrôle-direct-de-la-vanne)",
+        "description": "Konfiguracja autoregulacji z bezpośrednim sterowaniem zaworem",
         "data": {
           "offset_calibration_entity_ids": "Encje kalibracji",
           "opening_degree_entity_ids": "Encje stopnia otwarcia",
@@ -290,7 +290,7 @@
       },
       "sync_device_internal_temp": {
         "title": "Synchronizuj wewnętrzną temperaturę urządzenia",
-        "description": "Konfiguracja umożliwiająca synchronizację temperatury wewnętrznej urządzeń bazowych z wybranymi encjami&nbsp;[![?](https://img.icons8.com/color/18/help.png)](https://github.com/jmcollin78/versatile_thermostat/blob/main/documentation/pl/feature-sync_device_temp.md)",
+        "description": "Konfiguracja umożliwiająca synchronizację temperatury wewnętrznej urządzeń bazowych z wybranymi encjami",
         "data": {
           "sync_with_calibration": "Zastosuj kalibrację offsetu",
           "sync_entity_ids": "Identyfikatory encji używanych w synchronizacji"
@@ -345,7 +345,7 @@
     "step": {
       "user": {
         "title": "Typ - {name}",
-        "description": "Wybierz typ termostatu, który chcesz utworzyć&nbsp;[![?](https://img.icons8.com/color/18/help.png)](https://github.com/jmcollin78/versatile_thermostat/blob/main/documentation/pl/creation.md)",
+        "description": "Wybierz typ termostatu, który chcesz utworzyć",
         "data": {
           "thermostat_type": "Typ termostatu"
         },
@@ -395,7 +395,7 @@
       },
       "main": {
         "title": "Główne - {name}",
-        "description": "Wymagane atrybuty podstawowe&nbsp;[![?](https://img.icons8.com/color/18/help.png)](https://github.com/jmcollin78/versatile_thermostat/blob/main/documentation/pl/base-attributes.md)",
+        "description": "Wymagane atrybuty podstawowe",
         "data": {
           "name": "Nazwa",
           "thermostat_type": "Typ termostatu",
@@ -477,7 +477,7 @@
       },
       "tpi": {
         "title": "TPI - {name}",
-        "description": "Atrybuty TPI&nbsp;[![?](https://img.icons8.com/color/18/help.png)](https://github.com/jmcollin78/versatile_thermostat/blob/main/documentation/pl/algorithms.md#lalgorithme-tpi)",
+        "description": "Atrybuty TPI",
         "data": {
           "tpi_coef_int": "Delta temperatury wewnętrznej",
           "tpi_coef_ext": "Delta temperatury zewnętrznej",
@@ -501,14 +501,14 @@
       },
       "presets": {
         "title": "Presety - {name}",
-        "description": "Wybierz, jeśli termostat ma używać presetów podstawowych - wyłącz wybór, jeśli termostat ma używać swoich własnych presetów&nbsp;[![?](https://img.icons8.com/color/18/help.png)](https://github.com/jmcollin78/versatile_thermostat/blob/main/documentation/pl/feature-presets.md)",
+        "description": "Wybierz, jeśli termostat ma używać presetów podstawowych - wyłącz wybór, jeśli termostat ma używać swoich własnych presetów",
         "data": {
           "use_presets_central_config": "Użyj centralnej konfiguracji presetów"
         }
       },
       "window": {
         "title": "Okno - {name}",
-        "description": "Zarządzanie otwarciem okna.\nMożesz także skonfigurować automatyczną detekcję otwarcia okna w oparciu o spadek temperatury&nbsp;[![?](https://img.icons8.com/color/18/help.png)](https://github.com/jmcollin78/versatile_thermostat/blob/main/documentation/pl/feature-window.md)",
+        "description": "Zarządzanie otwarciem okna.\nMożesz także skonfigurować automatyczną detekcję otwarcia okna w oparciu o spadek temperatury",
         "data": {
           "window_sensor_entity_id": "Identyfikator encji sensora otwarcia okna",
           "window_delay": "Zwłoka otwarcia okna (w sek.)",
@@ -532,7 +532,7 @@
       },
       "motion": {
         "title": "Ruch - {name}",
-        "description": "Zarządzanie sensorem ruchu. Presety mogą przełączać się automatycznie w zależności od wykrycia ruchu. Parametry `preset ruchu` i `preset braku ruchu` powinny być ustawione jako odpowiednie presety. &nbsp;[![?](https://img.icons8.com/color/18/help.png)](https://github.com/jmcollin78/versatile_thermostat/blob/main/documentation/pl/feature-motion.md)",
+        "description": "Zarządzanie sensorem ruchu. Presety mogą przełączać się automatycznie w zależności od wykrycia ruchu. Parametry `preset ruchu` i `preset braku ruchu` powinny być ustawione jako odpowiednie presety. ",
         "data": {
           "motion_sensor_entity_id": "Identyfikator encji sensora ruchu",
           "motion_delay": "Zwłoka aktywacji",
@@ -552,7 +552,7 @@
       },
       "power": {
         "title": "Energia - {name}",
-        "description": "Atrybuty zarządzania energią.\nWskazują moc i maksymalną moc sensora.\nOkreślają pobór mocy grzejnika, gdy jest włączony.\nWszystkie sensory i urządzenia powinny mieć tę samą jednostkę mocy (kW lub W)&nbsp;[![?](https://img.icons8.com/color/18/help.png)](https://github.com/jmcollin78/versatile_thermostat/blob/main/documentation/pl/feature-power.md)",
+        "description": "Atrybuty zarządzania energią.\nWskazują moc i maksymalną moc sensora.\nOkreślają pobór mocy grzejnika, gdy jest włączony.\nWszystkie sensory i urządzenia powinny mieć tę samą jednostkę mocy (kW lub W)",
         "data": {
           "power_sensor_entity_id": "Moc",
           "max_power_sensor_entity_id": "Moc maksymalna",
@@ -568,7 +568,7 @@
       },
       "presence": {
         "title": "Obecność - {name}",
-        "description": "Atrybuty zarządzania obecnością.\nWskazują stan sensora obecności (PRAWDA, gdy wykrywana jest czyjaś obecność) oraz odpowiednie presety temperatury&nbsp;[![?](https://img.icons8.com/color/18/help.png)](https://github.com/jmcollin78/versatile_thermostat/blob/main/documentation/pl/feature-presence.md)",
+        "description": "Atrybuty zarządzania obecnością.\nWskazują stan sensora obecności (PRAWDA, gdy wykrywana jest czyjaś obecność) oraz odpowiednie presety temperatury",
         "data": {
           "presence_sensor_entity_id": "Sensor obecności",
           "use_presence_central_config": "Wybierz, aby użyć centralnej konfiguracji temperatury dla wykrytej obecności. Wyłącz wybór, aby użyć wybranych encji temperatury"
@@ -579,7 +579,7 @@
       },
       "advanced": {
         "title": "Zaawansowane - {name}",
-        "description": "Konfiguracja parametrów zaawansowanych. Pozostaw wartości domyślne, jeśli nie wiesz, co zrobić.\nNieprawidłowa zmiana tych parametrów może prowadzić do błędnej kontroli temperatur lub błędnej regulacji mocy&nbsp;[![?](https://img.icons8.com/color/18/help.png)](https://github.com/jmcollin78/versatile_thermostat/blob/main/documentation/pl/feature-advanced.md)",
+        "description": "Konfiguracja parametrów zaawansowanych. Pozostaw wartości domyślne, jeśli nie wiesz, co zrobić.\nNieprawidłowa zmiana tych parametrów może prowadzić do błędnej kontroli temperatur lub błędnej regulacji mocy",
         "data": {
           "minimal_activation_delay": "Minimalna zwłoka aktywacji",
           "minimal_deactivation_delay": "Minimalna zwłoka deaktywacji",
@@ -599,7 +599,7 @@
       },
       "central_boiler": {
         "title": "Sterowanie kotłem centralnym - {name}",
-        "description": "Wprowadź polecenia załączające i wyłączające kocioł centralny. Polecenia muszą mieć następujacy format: `id_encji/nazwa_polecenia[/atrybut:wartość]` (/atrybut:wartość jest opcjonalny)\nNa przykład:\n- aby załączyć przełącznik: `switch.sterownik_pieca/switch.turn_on`\n- aby wyłączyć przełącznik: `switch.sterownik_pieca/switch.turn_off`\n- aby zaprogramować temperaturę kotła na 25° i w ten sposób wymusić jego zapłon: `climate.termostat_pieca/climate.set_temperature/temperature:25`\n- aby ustawić temperaturę kotła na 10° i w ten sposób wymusić jego wygaszenie: `climate.termostat_pieca/climate.set_temperature/temperature:10`&nbsp;[![?](https://img.icons8.com/color/18/help.png)](https://github.com/jmcollin78/versatile_thermostat/blob/main/documentation/pl/feature-central-boiler.md)",
+        "description": "Wprowadź polecenia załączające i wyłączające kocioł centralny. Polecenia muszą mieć następujacy format: `id_encji/nazwa_polecenia[/atrybut:wartość]` (/atrybut:wartość jest opcjonalny)\nNa przykład:\n- aby załączyć przełącznik: `switch.sterownik_pieca/switch.turn_on`\n- aby wyłączyć przełącznik: `switch.sterownik_pieca/switch.turn_off`\n- aby zaprogramować temperaturę kotła na 25° i w ten sposób wymusić jego zapłon: `climate.termostat_pieca/climate.set_temperature/temperature:25`\n- aby ustawić temperaturę kotła na 10° i w ten sposób wymusić jego wygaszenie: `climate.termostat_pieca/climate.set_temperature/temperature:10`",
         "data": {
           "central_boiler_activation_service": "Polecenie załączenia",
           "central_boiler_deactivation_service": "Polecenie wyłączenia",
@@ -613,7 +613,7 @@
       },
       "valve_regulation": {
         "title": "Autoregulacja zaworu - {name}",
-        "description": "Konfiguracja autoregulacji z bezpośrednim sterowaniem zaworem&nbsp;[![?](https://img.icons8.com/color/18/help.png)](https://github.com/jmcollin78/versatile_thermostat/blob/main/documentation/pl/self-regulation.md#auto-régulation-par-contrôle-direct-de-la-vanne)",
+        "description": "Konfiguracja autoregulacji z bezpośrednim sterowaniem zaworem",
         "data": {
           "offset_calibration_entity_ids": "Encje kalibracji",
           "opening_degree_entity_ids": "Encje stopnia otwarcia",

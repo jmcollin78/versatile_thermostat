@@ -5,7 +5,7 @@
     "step": {
       "user": {
         "title": "Type du nouveau Versatile Thermostat",
-        "description": "Choisissez le type de thermostat que vous voulez créer&nbsp;[![?](https://img.icons8.com/color/18/help.png)](https://github.com/jmcollin78/versatile_thermostat/blob/main/documentation/fr/creation.md)",
+        "description": "Choisissez le type de thermostat que vous voulez créer",
         "data": {
           "thermostat_type": "Type de thermostat"
         },
@@ -56,7 +56,7 @@
       },
       "main": {
         "title": "Ajout d'un nouveau thermostat",
-        "description": "Principaux attributs obligatoires&nbsp;[![?](https://img.icons8.com/color/18/help.png)](https://github.com/jmcollin78/versatile_thermostat/blob/main/documentation/fr/base-attributes.md)",
+        "description": "Principaux attributs obligatoires",
         "data": {
           "name": "Nom",
           "thermostat_type": "Type de thermostat",
@@ -138,7 +138,7 @@
       },
       "tpi": {
         "title": "TPI",
-        "description": "Attributs de l'algo Time Proportional Integral&nbsp;[![?](https://img.icons8.com/color/18/help.png)](https://github.com/jmcollin78/versatile_thermostat/blob/main/documentation/fr/algorithms.md#lalgorithme-tpi)",
+        "description": "Attributs de l'algo Time Proportional Integral",
         "data": {
           "tpi_coef_int": "coeff_int",
           "tpi_coef_ext": "coeff_ext",
@@ -162,14 +162,14 @@
       },
       "presets": {
         "title": "Pre-réglages",
-        "description": "Cochez pour que ce thermostat utilise les pré-réglages de la configuration centrale. Décochez pour utiliser des entités de température spécifiques&nbsp;[![?](https://img.icons8.com/color/18/help.png)](https://github.com/jmcollin78/versatile_thermostat/blob/main/documentation/fr/feature-presets.md)",
+        "description": "Cochez pour que ce thermostat utilise les pré-réglages de la configuration centrale. Décochez pour utiliser des entités de température spécifiques",
         "data": {
           "use_presets_central_config": "Utiliser la configuration des pré-réglages centrale"
         }
       },
       "window": {
         "title": "Gestion d'une ouverture",
-        "description": "Coupe le radiateur si l'ouverture est ouverte.\nLaissez l'id d'entité vide pour utiliser la détection automatique&nbsp;[![?](https://img.icons8.com/color/18/help.png)](https://github.com/jmcollin78/versatile_thermostat/blob/main/documentation/fr/feature-window.md)",
+        "description": "Coupe le radiateur si l'ouverture est ouverte.\nLaissez l'id d'entité vide pour utiliser la détection automatique",
         "data": {
           "window_sensor_entity_id": "Détecteur d'ouverture (entity id)",
           "window_delay": "Délai de prise en compte à l'ouverture (secondes)",
@@ -193,7 +193,7 @@
       },
       "motion": {
         "title": "Gestion de la détection de mouvement",
-        "description": "Le preset s'ajuste automatiquement si un mouvement est détecté\n'Preset mouvement' et 'Preset sans mouvement' doivent être choisis avec les preset à utiliser&nbsp;[![?](https://img.icons8.com/color/18/help.png)](https://github.com/jmcollin78/versatile_thermostat/blob/main/documentation/fr/feature-motion.md)",
+        "description": "Le preset s'ajuste automatiquement si un mouvement est détecté\n'Preset mouvement' et 'Preset sans mouvement' doivent être choisis avec les preset à utiliser",
         "data": {
           "motion_sensor_entity_id": "Détecteur de mouvement",
           "motion_delay": "Délai d'activation",
@@ -213,7 +213,7 @@
       },
       "power": {
         "title": "Gestion de la puissance",
-        "description": "Sélectionne automatiquement le preset 'power' si la puissance consommée est supérieure à un maximum.\nDonnez les entity id des capteurs qui mesurent la puissance totale et la puissance max autorisée.\nEnsuite donnez la puissance de l'équipement.\nTous les capteurs et la puissance consommée par l'équipement doivent avoir la même unité de mesure (kW ou W)&nbsp;[![?](https://img.icons8.com/color/18/help.png)](https://github.com/jmcollin78/versatile_thermostat/blob/main/documentation/fr/feature-power.md)",
+        "description": "Sélectionne automatiquement le preset 'power' si la puissance consommée est supérieure à un maximum.\nDonnez les entity id des capteurs qui mesurent la puissance totale et la puissance max autorisée.\nEnsuite donnez la puissance de l'équipement.\nTous les capteurs et la puissance consommée par l'équipement doivent avoir la même unité de mesure (kW ou W)",
         "data": {
           "power_sensor_entity_id": "Capteur de puissance totale (entity id)",
           "max_power_sensor_entity_id": "Capteur de puissance Max (entity id)",
@@ -229,7 +229,7 @@
       },
       "presence": {
         "title": "Gestion de la présenc",
-        "description": "Donnez un capteur de présence (true si quelqu'un est présent) et les températures cibles à utiliser en cas d'absence&nbsp;[![?](https://img.icons8.com/color/18/help.png)](https://github.com/jmcollin78/versatile_thermostat/blob/main/documentation/fr/feature-presence.md)",
+        "description": "Donnez un capteur de présence (true si quelqu'un est présent) et les températures cibles à utiliser en cas d'absence",
         "data": {
           "presence_sensor_entity_id": "Capteur de présence",
           "use_presence_central_config": "Utiliser la configuration centrale des températures en cas d'absence. Décochez pour avoir des entités de température dédiées"
@@ -240,7 +240,7 @@
       },
       "advanced": {
         "title": "Paramètres avancés",
-        "description": "Configuration des paramètres avancés. Laissez les valeurs par défaut si vous ne savez pas ce que vous faites.\nCes paramètres peuvent induire des mauvais comportements du thermostat&nbsp;[![?](https://img.icons8.com/color/18/help.png)](https://github.com/jmcollin78/versatile_thermostat/blob/main/documentation/fr/feature-advanced.md)",
+        "description": "Configuration des paramètres avancés. Laissez les valeurs par défaut si vous ne savez pas ce que vous faites.\nCes paramètres peuvent induire des mauvais comportements du thermostat",
         "data": {
           "safety_delay_min": "Délai maximal entre 2 mesures de températures",
           "safety_min_on_percent": "Pourcentage minimal de puissance",
@@ -256,7 +256,7 @@
       },
       "central_boiler": {
         "title": "Contrôle de la chaudière centrale",
-        "description": "Donnez les services à appeler pour allumer/éteindre la chaudière centrale. Le service à appeler doit être formatté comme suit: `entity_id/service_name[/attribut:valeur]` (/attribut:valeur est facultatif)\nPar exemple:\n- pour allumer un switch: `switch.controle_chaudiere/switch.turn_on`\n- pour éteindre un switch: `switch.controle_chaudiere/switch.turn_off`\n- pour programmer la chaudière sur 25° et ainsi forcer son allumage: `climate.thermostat_chaudiere/climate.set_temperature/temperature:25`\n- pour envoyer 10° à la chaudière et ainsi forcer son extinction: `climate.thermostat_chaudiere/climate.set_temperature/temperature:10`&nbsp;[![?](https://img.icons8.com/color/18/help.png)](https://github.com/jmcollin78/versatile_thermostat/blob/main/documentation/fr/feature-central-boiler.md)",
+        "description": "Donnez les services à appeler pour allumer/éteindre la chaudière centrale. Le service à appeler doit être formatté comme suit: `entity_id/service_name[/attribut:valeur]` (/attribut:valeur est facultatif)\nPar exemple:\n- pour allumer un switch: `switch.controle_chaudiere/switch.turn_on`\n- pour éteindre un switch: `switch.controle_chaudiere/switch.turn_off`\n- pour programmer la chaudière sur 25° et ainsi forcer son allumage: `climate.thermostat_chaudiere/climate.set_temperature/temperature:25`\n- pour envoyer 10° à la chaudière et ainsi forcer son extinction: `climate.thermostat_chaudiere/climate.set_temperature/temperature:10`",
         "data": {
           "central_boiler_activation_service": "Commande pour allumer",
           "central_boiler_deactivation_service": "Commande pour éteindre",
@@ -270,7 +270,7 @@
       },
       "valve_regulation": {
         "title": "Auto-régulation par vanne",
-        "description": "Configuration de l'auto-régulation par controle direct de la vanne&nbsp;[![?](https://img.icons8.com/color/18/help.png)](https://github.com/jmcollin78/versatile_thermostat/blob/main/documentation/fr/self-regulation.md#auto-régulation-par-contrôle-direct-de-la-vanne)",
+        "description": "Configuration de l'auto-régulation par controle direct de la vanne",
         "data": {
           "offset_calibration_entity_ids": "Entités de 'calibrage du décalage''",
           "opening_degree_entity_ids": "Entités 'ouverture de vanne'",
@@ -336,7 +336,7 @@
       },
       "sync_device_internal_temp": {
         "title": "Synchronisation de la température interne des sous-jacents",
-        "description": "Configuration de la synchronisation des températures internes des sous-jacents&nbsp;[![?](https://img.icons8.com/color/18/help.png)](https://github.com/jmcollin78/versatile_thermostat/blob/main/documentation/fr/feature-sync_device_temp.md)",
+        "description": "Configuration de la synchronisation des températures internes des sous-jacents",
         "data": {
           "sync_with_calibration": "Application d'un calibrage",
           "sync_entity_ids": "Identifiants des entités utilisées pour la synchronisation"
@@ -391,7 +391,7 @@
     "step": {
       "user": {
         "title": "Type - {name}",
-        "description": "Choisissez le type de thermostat que vous voulez créer&nbsp;[![?](https://img.icons8.com/color/18/help.png)](https://github.com/jmcollin78/versatile_thermostat/blob/main/documentation/fr/creation.md)",
+        "description": "Choisissez le type de thermostat que vous voulez créer",
         "data": {
           "thermostat_type": "Type de thermostat"
         },
@@ -439,7 +439,7 @@
       },
       "main": {
         "title": "Attributs - {name}",
-        "description": "Principaux attributs obligatoires&nbsp;[![?](https://img.icons8.com/color/18/help.png)](https://github.com/jmcollin78/versatile_thermostat/blob/main/documentation/fr/base-attributes.md)",
+        "description": "Principaux attributs obligatoires",
         "data": {
           "name": "Nom",
           "thermostat_type": "Type de thermostat",
@@ -521,7 +521,7 @@
       },
       "tpi": {
         "title": "TPI - {name}",
-        "description": "Attributs de l'algo Time Proportional Integral&nbsp;[![?](https://img.icons8.com/color/18/help.png)](https://github.com/jmcollin78/versatile_thermostat/blob/main/documentation/fr/algorithms.md#lalgorithme-tpi)",
+        "description": "Attributs de l'algo Time Proportional Integral",
         "data": {
           "tpi_coef_int": "coeff_int",
           "tpi_coef_ext": "coeff_ext",
@@ -545,14 +545,14 @@
       },
       "presets": {
         "title": "Pre-réglages - {name}",
-        "description": "Cochez pour que ce thermostat utilise les pré-réglages de la configuration centrale. Décochez pour utiliser des entités de température spécifiques&nbsp;[![?](https://img.icons8.com/color/18/help.png)](https://github.com/jmcollin78/versatile_thermostat/blob/main/documentation/fr/feature-presets.md)",
+        "description": "Cochez pour que ce thermostat utilise les pré-réglages de la configuration centrale. Décochez pour utiliser des entités de température spécifiques",
         "data": {
           "use_presets_central_config": "Utiliser la configuration des pré-réglages centrale"
         }
       },
       "window": {
         "title": "Ouverture - {name}",
-        "description": "Coupe le radiateur si l'ouverture est ouverte.\nLaissez l'id d'entité vide pour utiliser la détection automatique&nbsp;[![?](https://img.icons8.com/color/18/help.png)](https://github.com/jmcollin78/versatile_thermostat/blob/main/documentation/fr/feature-window.md)",
+        "description": "Coupe le radiateur si l'ouverture est ouverte.\nLaissez l'id d'entité vide pour utiliser la détection automatique",
         "data": {
           "window_sensor_entity_id": "Détecteur d'ouverture (entity id)",
           "window_delay": "Délai avant extinction (secondes)",
@@ -576,7 +576,7 @@
       },
       "motion": {
         "title": "Mouvement - {name}",
-        "description": "Le preset s'ajuste automatiquement si un mouvement est détecté\n'Preset mouvement' et 'Preset sans mouvement' doivent être choisis avec les preset à utiliser&nbsp;[![?](https://img.icons8.com/color/18/help.png)](https://github.com/jmcollin78/versatile_thermostat/blob/main/documentation/fr/feature-motion.md)",
+        "description": "Le preset s'ajuste automatiquement si un mouvement est détecté\n'Preset mouvement' et 'Preset sans mouvement' doivent être choisis avec les preset à utiliser",
         "data": {
           "motion_sensor_entity_id": "Détecteur de mouvement",
           "motion_delay": "Délai d'activation",
@@ -596,7 +596,7 @@
       },
       "power": {
         "title": "Puissance - {name}",
-        "description": "Sélectionne automatiquement le preset 'power' si la puissance consommée est supérieure à un maximum.\nDonnez les entity id des capteurs qui mesurent la puissance totale et la puissance max autorisée.\nEnsuite donnez la puissance de l'équipement.\nTous les capteurs et la puissance consommée par l'équipement doivent avoir la même unité de mesure (kW ou W)&nbsp;[![?](https://img.icons8.com/color/18/help.png)](https://github.com/jmcollin78/versatile_thermostat/blob/main/documentation/fr/feature-power.md)",
+        "description": "Sélectionne automatiquement le preset 'power' si la puissance consommée est supérieure à un maximum.\nDonnez les entity id des capteurs qui mesurent la puissance totale et la puissance max autorisée.\nEnsuite donnez la puissance de l'équipement.\nTous les capteurs et la puissance consommée par l'équipement doivent avoir la même unité de mesure (kW ou W)",
         "data": {
           "power_sensor_entity_id": "Puissance totale",
           "max_power_sensor_entity_id": "Capteur de puissance Max (entity id)",
@@ -612,7 +612,7 @@
       },
       "presence": {
         "title": "Présence - {name}",
-        "description": "Donnez un capteur de présence (true si quelqu'un est présent) et les températures cibles à utiliser en cas d'absence&nbsp;[![?](https://img.icons8.com/color/18/help.png)](https://github.com/jmcollin78/versatile_thermostat/blob/main/documentation/fr/feature-presence.md)",
+        "description": "Donnez un capteur de présence (true si quelqu'un est présent) et les températures cibles à utiliser en cas d'absence",
         "data": {
           "presence_sensor_entity_id": "Capteur de présence",
           "use_presence_central_config": "Utiliser la configuration centrale des températures en cas d'absence. Décochez pour avoir des entités de température dédiées"
@@ -623,7 +623,7 @@
       },
       "advanced": {
         "title": "Avancés - {name}",
-        "description": "Configuration des paramètres avancés. Laissez les valeurs par défaut si vous ne savez pas ce que vous faites.\nCes paramètres peuvent induire des mauvais comportements du thermostat&nbsp;[![?](https://img.icons8.com/color/18/help.png)](https://github.com/jmcollin78/versatile_thermostat/blob/main/documentation/fr/feature-advanced.md)",
+        "description": "Configuration des paramètres avancés. Laissez les valeurs par défaut si vous ne savez pas ce que vous faites.\nCes paramètres peuvent induire des mauvais comportements du thermostat",
         "data": {
           "minimal_activation_delay": "Délai minimal d'activation",
           "minimal_deactivation_delay": "Délai de désactivation minimal",
@@ -643,7 +643,7 @@
       },
       "central_boiler": {
         "title": "Contrôle de la chaudière centrale - {name}",
-        "description": "Donnez les services à appeler pour allumer/éteindre la chaudière centrale. Le service à appeler doit être formatté comme suit: `entity_id/service_name[/attribut:valeur]` (/attribut:valeur est facultatif)\nPar exemple:\n- pour allumer un switch: `switch.controle_chaudiere/switch.turn_on`\n- pour éteindre un switch: `switch.controle_chaudiere/switch.turn_off`\n- pour programmer la chaudière sur 25° et ainsi forcer son allumage: `climate.thermostat_chaudiere/climate.set_temperature/temperature:25`\n- pour envoyer 10° à la chaudière et ainsi forcer son extinction: `climate.thermostat_chaudiere/climate.set_temperature/temperature:10`&nbsp;[![?](https://img.icons8.com/color/18/help.png)](https://github.com/jmcollin78/versatile_thermostat/blob/main/documentation/fr/feature-central-boiler.md)",
+        "description": "Donnez les services à appeler pour allumer/éteindre la chaudière centrale. Le service à appeler doit être formatté comme suit: `entity_id/service_name[/attribut:valeur]` (/attribut:valeur est facultatif)\nPar exemple:\n- pour allumer un switch: `switch.controle_chaudiere/switch.turn_on`\n- pour éteindre un switch: `switch.controle_chaudiere/switch.turn_off`\n- pour programmer la chaudière sur 25° et ainsi forcer son allumage: `climate.thermostat_chaudiere/climate.set_temperature/temperature:25`\n- pour envoyer 10° à la chaudière et ainsi forcer son extinction: `climate.thermostat_chaudiere/climate.set_temperature/temperature:10`",
         "data": {
           "central_boiler_activation_service": "Commande pour allumer",
           "central_boiler_deactivation_service": "Commande pour éteindre",
@@ -657,7 +657,7 @@
       },
       "valve_regulation": {
         "title": "Auto-régulation par vanne - {name}",
-        "description": "Configuration de l'auto-régulation par controle direct de la vanne&nbsp;[![?](https://img.icons8.com/color/18/help.png)](https://github.com/jmcollin78/versatile_thermostat/blob/main/documentation/fr/self-regulation.md#auto-régulation-par-contrôle-direct-de-la-vanne)",
+        "description": "Configuration de l'auto-régulation par controle direct de la vanne",
         "data": {
           "offset_calibration_entity_ids": "Entités de 'calibrage du décalage''",
           "opening_degree_entity_ids": "Entités 'ouverture de vanne'",
@@ -723,7 +723,7 @@
       },
       "sync_device_internal_temp": {
         "title": "Synchronisation de la température interne des sous-jacents",
-        "description": "Configuration de la synchronisation des températures internes des sous-jacents&nbsp;[![?](https://img.icons8.com/color/18/help.png)](https://github.com/jmcollin78/versatile_thermostat/blob/main/documentation/fr/feature-sync_device_temp.md)",
+        "description": "Configuration de la synchronisation des températures internes des sous-jacents",
         "data": {
           "sync_with_calibration": "Application d'un calibrage",
           "sync_entity_ids": "Identifiants des entités utilisées pour la synchronisation"
