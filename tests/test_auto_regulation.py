@@ -186,6 +186,7 @@ async def test_over_climate_regulation_ac_mode(
                 HVACAction.COOLING
             )  # simulate under heating
             await hass.async_block_till_done()
+            await asyncio.sleep(0.1)
             entity.calculate_hvac_action()
             assert entity.hvac_action == HVACAction.COOLING
             assert entity.preset_mode == VThermPreset.NONE  # Manual mode
