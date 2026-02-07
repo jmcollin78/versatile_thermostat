@@ -92,7 +92,13 @@
       },
       "type": {
         "title": "Связанные сущности",
-        "description": "Атрибуты связанных сущностей&nbsp;[![?](https://img.icons8.com/color/18/help.png)](https://github.com/jmcollin78/versatile_thermostat/blob/main/documentation/en/over-switch.md#configuration)",
+        "description": "Атрибуты связанных сущностей {over_switch_doc}",
+        "description_placeholders": {
+          "over_switch_doc": {
+            "text": "документация",
+            "url": "https://github.com/jmcollin78/versatile_thermostat/blob/main/documentation/en/over-switch.md#configuration"
+          }
+        },
         "data": {
           "underlying_entity_ids": "Устройство(а) для управления",
           "heater_keep_alive": "Интервал поддержания переключателя (секунды)",
@@ -423,7 +429,7 @@
       },
       "type": {
         "title": "Сущности - {name}",
-        "description": "Атрибуты связанных сущностей&nbsp;[![?](https://img.icons8.com/color/18/help.png)](https://github.com/jmcollin78/versatile_thermostat/blob/main/documentation/en/over-switch.md#configuration)",
+        "description": "Атрибуты связанных сущностей {over_switch_doc}",
         "data": {
           "underlying_entity_ids": "Устройство(а) для управления",
           "heater_keep_alive": "Интервал поддержания переключателя (секунды)",

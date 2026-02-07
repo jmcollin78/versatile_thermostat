@@ -96,7 +96,13 @@
       },
       "type": {
         "title": "Linked entities",
-        "description": "Linked entities attributes&nbsp;[![?](https://img.icons8.com/color/18/help.png)](https://github.com/jmcollin78/versatile_thermostat/blob/main/documentation/en/over-switch.md#configuration)",
+        "description": "Linked entities attributes {over_switch_doc}",
+        "description_placeholders": {
+          "over_switch_doc": {
+            "text": "documentation",
+            "url": "https://github.com/jmcollin78/versatile_thermostat/blob/main/documentation/en/over-switch.md#configuration"
+          }
+        },
         "data": {
           "underlying_entity_ids": "The device(s) to be controlled",
           "heater_keep_alive": "Switch keep-alive interval in seconds",
@@ -476,7 +482,13 @@
       },
       "type": {
         "title": "Entities - {name}",
-        "description": "Linked entities attributes&nbsp;[![?](https://img.icons8.com/color/18/help.png)](https://github.com/jmcollin78/versatile_thermostat/blob/main/documentation/en/over-switch.md#configuration)",
+        "description": "Linked entities attributes {over_switch_doc}",
+        "description_placeholders": {
+          "over_switch_doc": {
+            "text": "documentation",
+            "url": "https://github.com/jmcollin78/versatile_thermostat/blob/main/documentation/en/over-switch.md#configuration"
+          }
+        },
         "data": {
           "underlying_entity_ids": "The device(s) to be controlled",
           "heater_keep_alive": "Switch keep-alive interval in seconds",

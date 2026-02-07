@@ -97,7 +97,13 @@
       },
       "type": {
         "title": "Entité(s) liée(s)",
-        "description": "Attributs de(s) l'entité(s) liée(s)&nbsp;[![?](https://img.icons8.com/color/18/help.png)](https://github.com/jmcollin78/versatile_thermostat/blob/main/documentation/fr/over-switch.md#configuration)",
+        "description": "Attributs de(s) l'entité(s) liée(s) {over_switch_doc}",
+        "description_placeholders": {
+          "over_switch_doc": {
+            "text": "documentation",
+            "url": "https://github.com/jmcollin78/versatile_thermostat/blob/main/documentation/fr/over-switch.md#configuration"
+          }
+        },
         "data": {
           "underlying_entity_ids": "Les équipements à controller",
           "heater_keep_alive": "keep-alive (sec)",
@@ -474,7 +480,13 @@
       },
       "type": {
         "title": "Entité(s) liée(s) - {name}",
-        "description": "Attributs de(s) l'entité(s) liée(s)&nbsp;[![?](https://img.icons8.com/color/18/help.png)](https://github.com/jmcollin78/versatile_thermostat/blob/main/documentation/fr/over-switch.md#configuration)",
+        "description": "Attributs de(s) l'entité(s) liée(s) {over_switch_doc}",
+        "description_placeholders": {
+          "over_switch_doc": {
+            "text": "documentation",
+            "url": "https://github.com/jmcollin78/versatile_thermostat/blob/main/documentation/fr/over-switch.md#configuration"
+          }
+        },
         "data": {
           "underlying_entity_ids": "Les équipements à controller",
           "heater_keep_alive": "keep-alive (sec)",

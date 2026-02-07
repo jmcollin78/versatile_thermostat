@@ -96,7 +96,13 @@
             },
             "type": {
                 "title": "Entità collegate",
-                "description": "Attributi delle entità collegate&nbsp;[![?](https://img.icons8.com/color/18/help.png)](https://github.com/jmcollin78/versatile_thermostat/blob/main/documentation/en/over-switch.md#configuration)",
+                "description": "Attributi delle entità collegate {over_switch_doc}",
+                "description_placeholders": {
+                    "over_switch_doc": {
+                        "text": "documentazione",
+                        "url": "https://github.com/jmcollin78/versatile_thermostat/blob/main/documentation/en/over-switch.md#configuration"
+                    }
+                },
                 "data": {
                     "underlying_entity_ids": "Dispositivo(i) da controllare",
                     "heater_keep_alive": "Intervallo di mantenimento della connessione in secondi",
@@ -472,7 +478,13 @@
             },
             "type": {
                 "title": "Carateristiche - {name}",
-                "description": "Attributi delle entità collegate&nbsp;[![?](https://img.icons8.com/color/18/help.png)](https://github.com/jmcollin78/versatile_thermostat/blob/main/documentation/en/over-switch.md#configuration)",
+                "description": "Attributi delle entità collegate {over_switch_doc}",
+                "description_placeholders": {
+                    "over_switch_doc": {
+                        "text": "documentazione",
+                        "url": "https://github.com/jmcollin78/versatile_thermostat/blob/main/documentation/en/over-switch.md#configuration"
+                    }
+                },
                 "data": {
                     "underlying_entity_ids": "Dispositivo(i) da controllare",
                     "heater_keep_alive": "Intervallo di mantenimento della connessione in secondi",
