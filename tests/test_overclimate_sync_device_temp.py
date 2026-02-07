@@ -19,7 +19,7 @@ from .const import *
 logging.getLogger().setLevel(logging.DEBUG)
 
 
-async def test_over_climate_valve_multi_sync_calibration(hass: HomeAssistant, skip_hass_states_get):
+async def test_over_climate_valve_multi_sync_calibration(hass: HomeAssistant, fake_temp_sensor: MockTemperatureSensor, fake_ext_temp_sensor: MockTemperatureSensor):
     """Test the temperature calibration synchronization of a thermostat in thermostat_over_climate type"""
 
     entry = MockConfigEntry(
@@ -73,111 +73,78 @@ async def test_over_climate_valve_multi_sync_calibration(hass: HomeAssistant, sk
         | MOCK_ADVANCED_CONFIG,
     )
 
-    fake_underlying_climate1 = MockClimate(
-        hass, "mockUniqueId1", "MockClimateName1", {}
-    )
-    fake_underlying_climate2 = MockClimate(
-        hass, "mockUniqueId2", "MockClimateName2", {}
-    )
+    # Create underlying climates
+    fake_underlying_climate1 = await create_and_register_mock_climate(hass, "mock_climate1", "MockClimateName1", {})
+    fake_underlying_climate2 = await create_and_register_mock_climate(hass, "mock_climate2", "MockClimateName2", {})
 
-    # mock_get_state will be called for each OPENING/CLOSING/OFFSET_CALIBRATION list
-    mock_get_state_side_effect = SideEffects(
-        {
-            # Valve 1 is open
-            "number.mock_opening_degree1": State("number.mock_opening_degree1", "11", {"min": 0, "max": 100}),
-            "number.mock_closing_degree1": State("number.mock_closing_degree1", "89", {"min": 0, "max": 100}),
-            "number.mock_offset_calibration1": State("number.mock_offset_calibration1", "0", {"min": -12, "max": 12}),
-            # Valve 2 is closed
-            "number.mock_opening_degree2": State("number.mock_opening_degree2", "0", {"min": 0, "max": 100}),
-            "number.mock_closing_degree2": State("number.mock_closing_degree2", "100", {"min": 0, "max": 100}),
-            "number.mock_offset_calibration2": State("number.mock_offset_calibration2", "10", {"min": -12, "max": 12}),
-        },
-        State("unknown.entity_id", "unknown"),
-    )
+    # Create mock number entities for valves and calibration
+    # Valve 1 is open
+    mock_opening_degree1 = await create_and_register_mock_number(hass, "mock_opening_degree1", "MockOpeningDegree1", 11, 0, 100)
+    mock_closing_degree1 = await create_and_register_mock_number(hass, "mock_closing_degree1", "MockClosingDegree1", 89, 0, 100)
+    mock_offset_calibration1 = await create_and_register_mock_number(hass, "mock_offset_calibration1", "MockOffsetCalibration1", 0, -12, 12)
+    # Valve 2 is closed
+    mock_opening_degree2 = await create_and_register_mock_number(hass, "mock_opening_degree2", "MockOpeningDegree2", 0, 0, 100)
+    mock_closing_degree2 = await create_and_register_mock_number(hass, "mock_closing_degree2", "MockClosingDegree2", 100, 0, 100)
+    mock_offset_calibration2 = await create_and_register_mock_number(hass, "mock_offset_calibration2", "MockOffsetCalibration2", 10, -12, 12)
 
     # 1. initialize the VTherm
     tz = get_tz(hass)  # pylint: disable=invalid-name
     now: datetime = datetime.now(tz=tz)
 
-    # fmt: off
-    with patch("custom_components.versatile_thermostat.underlyings.UnderlyingClimate.find_underlying_climate", side_effect=[fake_underlying_climate1, fake_underlying_climate2]), \
-        patch("homeassistant.core.ServiceRegistry.async_call") as mock_service_call,\
-        patch("homeassistant.core.StateMachine.get", side_effect=mock_get_state_side_effect.get_side_effects()):
-    # fmt: on
+    vtherm: ThermostatOverClimateValve = await create_thermostat(hass, entry, "climate.theoverclimatemockname", temps=default_temperatures)
+    assert vtherm
+    assert isinstance(vtherm, ThermostatOverClimateValve)
 
-        vtherm: ThermostatOverClimateValve = await create_thermostat(hass, entry, "climate.theoverclimatemockname", temps=default_temperatures)
-        assert vtherm
-        assert isinstance(vtherm, ThermostatOverClimateValve)
+    assert vtherm.name == "TheOverClimateMockName"
+    assert vtherm.is_over_climate is True
+    assert vtherm.have_valve_regulation is True
 
-        assert vtherm.name == "TheOverClimateMockName"
-        assert vtherm.is_over_climate is True
-        assert vtherm.have_valve_regulation is True
+    vtherm._set_now(now)
 
-        vtherm._set_now(now)
+    await vtherm.async_set_preset_mode(VThermPreset.COMFORT)
+    await vtherm.async_set_hvac_mode(VThermHvacMode_HEAT)
 
-        await vtherm.async_set_preset_mode(VThermPreset.COMFORT)
-        await vtherm.async_set_hvac_mode(VThermHvacMode_HEAT)
+    assert vtherm.target_temperature == 19
+    assert vtherm.nb_device_actives == 0
+    assert vtherm.is_device_active is False
 
-        assert vtherm.target_temperature == 19
-        assert vtherm.nb_device_actives == 0
-        assert vtherm.is_device_active is False
-        await send_ext_temperature_change_event(vtherm, 18, now, True)
+    fake_ext_temp_sensor.set_native_value(18)
+    await hass.async_block_till_done()
 
     # 2. set room temperature -> must see the calibration change
-    # fmt: off
-    with patch("homeassistant.core.ServiceRegistry.async_call") as mock_service_call,\
-        patch("homeassistant.core.StateMachine.get", side_effect=mock_get_state_side_effect.get_side_effects()):
-    # fmt: on
-        fake_underlying_climate1.set_current_temperature(15)
-        fake_underlying_climate2.set_current_temperature(15)
+    fake_underlying_climate1.set_current_temperature(15)
+    fake_underlying_climate2.set_current_temperature(15)
 
-        await send_temperature_change_event(vtherm, 18, now, True)
+    fake_temp_sensor.set_native_value(18)
+    await hass.async_block_till_done()
 
-        await wait_for_local_condition(lambda: vtherm.current_temperature == 18)
+    await wait_for_local_condition(lambda: vtherm.current_temperature == 18)
 
-        # Calibration should have changed
-        assert mock_service_call.call_count == 2
-        mock_service_call.assert_has_calls([
-            call('number', SERVICE_SET_VALUE, {'value': 3.0}, False, None, {'entity_id': 'number.mock_offset_calibration1'}, False), # 18 - 15 + 0
-            call('number', SERVICE_SET_VALUE, {'value': 12}, False, None, {'entity_id': 'number.mock_offset_calibration2'}, False)   # 18 - 15 + 10 < 12 max
-            ]
-        )
+    # Calibration should have changed
+    await wait_for_local_condition(lambda: mock_offset_calibration1.state == 3.0)  # 18 - 15 + 0
+    await wait_for_local_condition(lambda: mock_offset_calibration2.state == 12.0)  # 18 - 15 + 10 < 12 max
 
     # 3. set room temperature lower -> must see the calibration change
-    mock_get_state_side_effect.add_or_update_side_effect(
-        "number.mock_offset_calibration1", State("number.mock_offset_calibration1", "3", {"min": -12, "max": 12})
-    )
+    mock_offset_calibration1.set_native_value(3)
+    mock_offset_calibration2.set_native_value(12)
 
-    mock_get_state_side_effect.add_or_update_side_effect(
-        "number.mock_offset_calibration2", State("number.mock_offset_calibration2", "12", {"min": -12, "max": 12})
-    )
+    fake_underlying_climate1.set_current_temperature(13)
+    fake_underlying_climate2.set_current_temperature(21)
 
-    # fmt: off
-    with patch("homeassistant.core.ServiceRegistry.async_call") as mock_service_call,\
-        patch("homeassistant.core.StateMachine.get", side_effect=mock_get_state_side_effect.get_side_effects()):
-    # fmt: on
-        fake_underlying_climate1.set_current_temperature(13)
-        fake_underlying_climate2.set_current_temperature(21)
-        await send_temperature_change_event(vtherm, 15, now, True)
+    fake_temp_sensor.set_native_value(15)
+    await hass.async_block_till_done()
 
-        await wait_for_local_condition(lambda: vtherm.current_temperature == 15)
+    await wait_for_local_condition(lambda: vtherm.current_temperature == 15)
 
-        # Calibration should have changed
-        assert mock_service_call.call_count == 2
-        mock_service_call.assert_has_calls([
-            call('number', SERVICE_SET_VALUE, {'value': 5.0}, False, None, {'entity_id': 'number.mock_offset_calibration1'}, False), # 15 - 13 + 3
-            call('number', SERVICE_SET_VALUE, {'value': 6}, False, None, {'entity_id': 'number.mock_offset_calibration2'}, False)   # 15 - 21 + 12
-            ]
-        )
-
+    # Calibration should have changed
+    await wait_for_local_condition(lambda: mock_offset_calibration1.state == 5.0)  # 15 - 13 + 3
+    await wait_for_local_condition(lambda: mock_offset_calibration2.state == 6.0)  # 15 - 21
 
     vtherm.remove_thermostat()
     await hass.async_block_till_done()
 
 
-async def test_over_climate_valve_multi_sync_temperature(
-    hass: HomeAssistant, skip_hass_states_get
-):
+async def test_over_climate_valve_multi_sync_temperature(hass: HomeAssistant, fake_temp_sensor: MockTemperatureSensor, fake_ext_temp_sensor: MockTemperatureSensor):
     """Test the temperature synchronization of a thermostat in thermostat_over_climate type"""
 
     entry = MockConfigEntry(
@@ -231,103 +198,87 @@ async def test_over_climate_valve_multi_sync_temperature(
         | MOCK_ADVANCED_CONFIG,
     )
 
-    fake_underlying_climate1 = MockClimate(
-        hass, "mockUniqueId1", "MockClimateName1", {}
-    )
-    fake_underlying_climate2 = MockClimate(
-        hass, "mockUniqueId2", "MockClimateName2", {}
-    )
+    # Create underlying climates
+    fake_underlying_climate1 = await create_and_register_mock_climate(hass, "mock_climate1", "MockClimateName1", {})
+    fake_underlying_climate2 = await create_and_register_mock_climate(hass, "mock_climate2", "MockClimateName2", {})
 
-    # mock_get_state will be called for each OPENING/CLOSING/OFFSET_CALIBRATION list
-    mock_get_state_side_effect = SideEffects(
-        {
-            # Valve 1 is open
-            "number.mock_opening_degree1": State("number.mock_opening_degree1", "11", {"min": 0, "max": 100}),
-            "number.mock_closing_degree1": State("number.mock_closing_degree1", "89", {"min": 0, "max": 100}),
-            "number.mock_ext_temp1": State("number.mock_ext_temp1", "15", {"min": 0, "max": 35}),
-            # Valve 2 is closed
-            "number.mock_opening_degree2": State("number.mock_opening_degree2", "0", {"min": 0, "max": 100}),
-            "number.mock_closing_degree2": State("number.mock_closing_degree2", "100", {"min": 0, "max": 100}),
-            "number.mock_ext_temp2": State("number.mock_ext_temp2", "10", {"min": 0, "max": 35}),
-        },
-        State("unknown.entity_id", "unknown"),
-    )
+    # Create mock number entities for valves and external temperature
+    # Valve 1 is open
+    mock_opening_degree1 = await create_and_register_mock_number(hass, "mock_opening_degree1", "MockOpeningDegree1", 11, 0, 100)
+    mock_closing_degree1 = await create_and_register_mock_number(hass, "mock_closing_degree1", "MockClosingDegree1", 89, 0, 100)
+    mock_ext_temp1 = await create_and_register_mock_number(hass, "mock_ext_temp1", "MockExtTemp1", 15, 0, 35)
+    # Valve 2 is closed
+    mock_opening_degree2 = await create_and_register_mock_number(hass, "mock_opening_degree2", "MockOpeningDegree2", 0, 0, 100)
+    mock_closing_degree2 = await create_and_register_mock_number(hass, "mock_closing_degree2", "MockClosingDegree2", 100, 0, 100)
+    mock_ext_temp2 = await create_and_register_mock_number(hass, "mock_ext_temp2", "MockExtTemp2", 10, 0, 35)
 
     # 1. initialize the VTherm
     tz = get_tz(hass)  # pylint: disable=invalid-name
     now: datetime = datetime.now(tz=tz)
 
-    # fmt: off
-    with patch("custom_components.versatile_thermostat.underlyings.UnderlyingClimate.find_underlying_climate", side_effect=[fake_underlying_climate1, fake_underlying_climate2]), \
-        patch("homeassistant.core.ServiceRegistry.async_call") as mock_service_call,\
-        patch("homeassistant.core.StateMachine.get", side_effect=mock_get_state_side_effect.get_side_effects()):
-    # fmt: on
+    vtherm: ThermostatOverClimateValve = await create_thermostat(hass, entry, "climate.theoverclimatemockname", temps=default_temperatures)
+    assert vtherm
+    assert isinstance(vtherm, ThermostatOverClimateValve)
 
-        vtherm: ThermostatOverClimateValve = await create_thermostat(hass, entry, "climate.theoverclimatemockname", temps=default_temperatures)
-        assert vtherm
-        assert isinstance(vtherm, ThermostatOverClimateValve)
+    assert vtherm.name == "TheOverClimateMockName"
+    assert vtherm.is_over_climate is True
+    assert vtherm.have_valve_regulation is True
 
-        assert vtherm.name == "TheOverClimateMockName"
-        assert vtherm.is_over_climate is True
-        assert vtherm.have_valve_regulation is True
+    vtherm._set_now(now)
 
-        vtherm._set_now(now)
+    await vtherm.async_set_preset_mode(VThermPreset.COMFORT)
+    await vtherm.async_set_hvac_mode(VThermHvacMode_HEAT)
 
-        await vtherm.async_set_preset_mode(VThermPreset.COMFORT)
-        await vtherm.async_set_hvac_mode(VThermHvacMode_HEAT)
-
-        assert vtherm.target_temperature == 19
-        assert vtherm.nb_device_actives == 0
-        assert vtherm.is_device_active is False
-        await send_ext_temperature_change_event(vtherm, 18, now, True)
+    assert vtherm.target_temperature == 19
+    assert vtherm.nb_device_actives == 0
+    assert vtherm.is_device_active is False
+    fake_ext_temp_sensor.set_native_value(18)
+    await hass.async_block_till_done()
+    # await send_ext_temperature_change_event(vtherm, 18, now, True)
 
     # 2. set room temperature -> must see the calibration change
-    # fmt: off
-    with patch("homeassistant.core.ServiceRegistry.async_call") as mock_service_call,\
-        patch("homeassistant.core.StateMachine.get", side_effect=mock_get_state_side_effect.get_side_effects()):
-    # fmt: on
-        fake_underlying_climate1.set_current_temperature(15)
-        fake_underlying_climate2.set_current_temperature(15)
+    fake_underlying_climate1.set_current_temperature(15)
+    fake_underlying_climate2.set_current_temperature(15)
 
-        await send_temperature_change_event(vtherm, 18, now, True)
+    fake_temp_sensor.set_native_value(18)
+    await hass.async_block_till_done()
+    # await send_temperature_change_event(vtherm, 18, now, True)
 
-        await wait_for_local_condition(lambda: vtherm.current_temperature == 18)
+    await wait_for_local_condition(lambda: vtherm.current_temperature == 18)
 
-        # Calibration should have changed
-        assert mock_service_call.call_count == 2
-        mock_service_call.assert_has_calls([
-            call('number', SERVICE_SET_VALUE, {'value': 18.0}, False, None, {'entity_id': 'number.mock_ext_temp1'}, False),
-            call('number', SERVICE_SET_VALUE, {'value': 18.0}, False, None, {'entity_id': 'number.mock_ext_temp2'}, False)
-            ]
-        )
+    # Calibration should have changed
+    await wait_for_local_condition(lambda: mock_ext_temp1.state == 18)
+    await wait_for_local_condition(lambda: mock_ext_temp2.state == 18)
+    # assert mock_service_call.call_count == 2
+    # mock_service_call.assert_has_calls([
+    #     call('number', SERVICE_SET_VALUE, {'value': 18.0}, False, None, {'entity_id': 'number.mock_ext_temp1'}, False),
+    #     call('number', SERVICE_SET_VALUE, {'value': 18.0}, False, None, {'entity_id': 'number.mock_ext_temp2'}, False)
+    #     ]
+    # )
 
     # 3. set room temperature lower -> must see the calibration change
-    mock_get_state_side_effect.add_or_update_side_effect(
-        "number.mock_ext_temp1", State("number.mock_ext_temp1", "7", {"min": 0, "max": 35})
-    )
+    mock_ext_temp1.set_native_value(7)
+    mock_ext_temp2.set_native_value(9)
 
-    mock_get_state_side_effect.add_or_update_side_effect(
-        "number.mock_ext_temp2", State("number.mock_ext_temp2", "9", {"min": 0, "max": 35})
-    )
+    fake_underlying_climate1.set_current_temperature(13)
+    fake_underlying_climate2.set_current_temperature(21)
 
-    # fmt: off
-    with patch("homeassistant.core.ServiceRegistry.async_call") as mock_service_call,\
-        patch("homeassistant.core.StateMachine.get", side_effect=mock_get_state_side_effect.get_side_effects()):
-    # fmt: on
-        fake_underlying_climate1.set_current_temperature(13)
-        fake_underlying_climate2.set_current_temperature(21)
-        await send_temperature_change_event(vtherm, 15, now, True)
+    fake_temp_sensor.set_native_value(15)
+    await hass.async_block_till_done()
+    # await send_temperature_change_event(vtherm, 15, now, True)
 
-        await wait_for_local_condition(lambda: vtherm.current_temperature == 15)
+    await wait_for_local_condition(lambda: vtherm.current_temperature == 15)
 
-        # Calibration should have changed
-        assert mock_service_call.call_count == 2
-        mock_service_call.assert_has_calls([
-            call('number', SERVICE_SET_VALUE, {'value': 15}, False, None, {'entity_id': 'number.mock_ext_temp1'}, False),
-            call('number', SERVICE_SET_VALUE, {'value': 15}, False, None, {'entity_id': 'number.mock_ext_temp2'}, False)
-            ]
-        )
-
+    # Calibration should have changed
+    await wait_for_local_condition(lambda: mock_ext_temp1.state == 15)
+    await wait_for_local_condition(lambda: mock_ext_temp2.state == 15)
+    # assert mock_service_call.call_count == 2
+    # mock_service_call.assert_has_calls(
+    #     [
+    #         call("number", SERVICE_SET_VALUE, {"value": 15}, False, None, {"entity_id": "number.mock_ext_temp1"}, False),
+    #         call("number", SERVICE_SET_VALUE, {"value": 15}, False, None, {"entity_id": "number.mock_ext_temp2"}, False),
+    #     ]
+    # )
 
     vtherm.remove_thermostat()
     await hass.async_block_till_done()
