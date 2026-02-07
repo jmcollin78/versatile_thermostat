@@ -730,8 +730,9 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
 
         # Interpretation of hvac action
         if new_hvac_action:
-            if self.hvac_action not in HVAC_ACTION_ON and new_hvac_action in HVAC_ACTION_ON:
-                self._underlying_climate_start_hvac_action_date = self.get_last_updated_date_or_now(new_state)
+            old_hvac_action = old_state.attributes.get("hvac_action") if old_state and old_state.attributes else None
+            if old_hvac_action not in HVAC_ACTION_ON and new_hvac_action in HVAC_ACTION_ON:
+                self._underlying_climate_start_hvac_action_date = self.now  # self.get_last_updated_date_or_now(new_state) the event has the system date
                 self._underlying_climate_mean_power_cycle = self.power_manager.mean_cycle_power
                 _LOGGER.info(
                     "%s - underlying just switch ON. Set power and energy start date %s",
@@ -740,7 +741,7 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
                 )
                 changes = True
 
-            if self.hvac_action in HVAC_ACTION_ON and new_hvac_action not in HVAC_ACTION_ON:
+            if old_hvac_action in HVAC_ACTION_ON and new_hvac_action not in HVAC_ACTION_ON:
                 self.incremente_energy()
                 changes = True
 

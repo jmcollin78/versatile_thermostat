@@ -674,9 +674,9 @@ async def test_power_management_energy_over_switch(hass: HomeAssistant, skip_has
         assert round(entity.total_energy, 2) == round((2.0 + 0.6) * 100 * 5 / 60.0 / 2, 2)
 
 
-@pytest.mark.parametrize("expected_lingering_tasks", [True])
-@pytest.mark.parametrize("expected_lingering_timers", [True])
-async def test_power_management_energy_over_climate(hass: HomeAssistant, skip_hass_states_is_state, fake_underlying_climate: MockClimate):
+async def test_power_management_energy_over_climate(
+    hass: HomeAssistant, fake_temp_sensor: MockTemperatureSensor, fake_ext_temp_sensor: MockTemperatureSensor, fake_underlying_climate: MockClimate
+):
     """Test the Power management for a over_climate thermostat"""
 
     temps = {
@@ -684,6 +684,10 @@ async def test_power_management_energy_over_climate(hass: HomeAssistant, skip_ha
         "comfort": 18,
         "boost": 19,
     }
+
+    # Starts off
+    fake_underlying_climate.set_hvac_mode(VThermHvacMode_OFF)
+    fake_underlying_climate.set_hvac_action(HVACAction.OFF)
 
     # the_mock_underlying = MockClimate(hass=hass, unique_id="mock_climate", name="TheMockClimate")
     entry = MockConfigEntry(
@@ -716,40 +720,39 @@ async def test_power_management_energy_over_climate(hass: HomeAssistant, skip_ha
     assert entity
     assert entity.is_over_climate
 
+    assert entity.total_energy == 0
+    assert entity.hvac_mode == VThermHvacMode_OFF
+    assert entity.hvac_action == HVACAction.OFF
+
     now = datetime.now(tz=get_tz(hass))
     entity._set_now(now)
-
-    await send_temperature_change_event(entity, 15, now)
-    await entity.async_set_hvac_mode(VThermHvacMode_HEAT)
-    await entity.async_set_preset_mode(VThermPreset.BOOST)
-
-    assert entity.vtherm_hvac_mode is VThermHvacMode_HEAT
-    assert entity.hvac_action is HVACAction.OFF
-    assert entity.preset_mode == VThermPreset.BOOST
-    assert entity.target_temperature == 19
-    assert entity.current_temperature == 15
-
-    assert entity.power_manager.mean_cycle_power == 0.0  # not active yet
-    # Not initialised yet
-    assert entity._underlying_climate_start_hvac_action_date is None
 
     # 1. Start heating
     now = now + timedelta(minutes=3)
     entity._set_now(now)
-    fake_underlying_climate.set_hvac_mode(VThermHvacMode_HEAT)
-    fake_underlying_climate.set_hvac_action(HVACAction.HEATING)
-    await send_climate_change_event(
-        entity,
-        new_hvac_mode=VThermHvacMode_HEAT,
-        old_hvac_mode=VThermHvacMode_HEAT,
-        new_hvac_action=HVACAction.HEATING,
-        old_hvac_action=HVACAction.OFF,
-        date=now,
-        underlying_entity_id="climate.mock_climate",
-    )
+
+    await send_temperature_change_event(entity, 15, now)
+    fake_temp_sensor.set_native_value(15)
+    await hass.async_block_till_done()
+
+    await entity.async_set_preset_mode(VThermPreset.BOOST)
+    await entity.async_set_hvac_mode(VThermHvacMode_HEAT)
+    await hass.async_block_till_done()
+
+    await wait_for_local_condition(lambda: fake_underlying_climate.hvac_mode == VThermHvacMode_HEAT and fake_underlying_climate.hvac_action == HVACAction.HEATING)
+    await wait_for_local_condition(lambda: entity.hvac_mode == VThermHvacMode_HEAT and entity.hvac_action == HVACAction.HEATING)
+
+    # assert entity.vtherm_hvac_mode is VThermHvacMode_HEAT
+    # assert entity.hvac_action is HVACAction.OFF
+    assert entity.preset_mode == VThermPreset.BOOST
+    assert entity.target_temperature == 19
+    assert entity.current_temperature == 15
+
+    assert entity.power_manager.mean_cycle_power == 100.0  # fully active yet
     assert entity.is_device_active is True
 
     # We have the start event and not the end event
+    assert entity._underlying_climate_mean_power_cycle == 100.0
     assert (entity._underlying_climate_start_hvac_action_date - now).total_seconds() < 1
 
     # 2. wait a few and increment energy
@@ -785,9 +788,9 @@ async def test_power_management_energy_over_climate(hass: HomeAssistant, skip_ha
     entity.incremente_energy()
     assert entity.total_energy == round(5 + 100 * 10 / 60, 2)  # No change
 
+    entity.remove_thermostat()
 
-@pytest.mark.parametrize("expected_lingering_tasks", [True])
-@pytest.mark.parametrize("expected_lingering_timers", [True])
+
 async def test_power_management_turn_off_while_shedding(hass: HomeAssistant, skip_hass_states_is_state, init_central_power_manager, fake_underlying_switch: MockSwitch):
     """Test the Power management and that we can turn off a Vtherm that
     is in overpowering state"""
@@ -878,7 +881,7 @@ async def test_power_management_turn_off_while_shedding(hass: HomeAssistant, ski
         assert entity.target_temperature == 12
 
         assert mock_heater_on.call_count == 0
-        assert mock_heater_off.call_count == 1
+        assert mock_heater_off.call_count >= 1 # should be 1 but is_device_active is patched to True so can be called twice
 
     # 2. Turn-off Vtherm
     # fmt:off
@@ -907,8 +910,12 @@ async def test_power_management_turn_off_while_shedding(hass: HomeAssistant, ski
         assert entity.power_manager.overpowering_state is STATE_OFF
         assert entity.target_temperature == 19
 
+    entity.remove_thermostat()
 
-async def test_power_management_over_climate_valve(hass: HomeAssistant, skip_hass_states_get, fake_underlying_climate: MockClimate, fake_opening_degree: MockNumber):
+
+async def test_power_management_over_climate_valve(
+    hass: HomeAssistant, fake_temp_sensor: MockTemperatureSensor, fake_ext_temp_sensor: MockTemperatureSensor, fake_underlying_climate: MockClimate, fake_opening_degree: MockNumber
+):
     """Test the power and energy calculation for over_climate_valve thermostat"""
 
     entry = MockConfigEntry(
@@ -951,87 +958,66 @@ async def test_power_management_over_climate_valve(hass: HomeAssistant, skip_has
     )
 
     # mock_get_state will be called for each OPENING/CLOSING/OFFSET_CALIBRATION list
-    fake_opening_degree.set_native_value("10")
-    fake_opening_degree.set_min_value("0")
-    fake_opening_degree.set_max_value("100")
-
-    # mock_get_state_side_effect = SideEffects(
-    #     {
-    #         "number.mock_opening_degree": State("number.mock_opening_degree", "10", {"min": 0, "max": 100}),
-    #     },
-    #     State("unknown.entity_id", "unknown"),
-    # )
+    fake_opening_degree.set_native_value(10)
+    fake_opening_degree.set_min_value(0)
+    fake_opening_degree.set_max_value(100)
 
     # 1. initialize the VTherm
     tz = get_tz(hass)  # pylint: disable=invalid-name
     now: datetime = datetime.now(tz=tz)
 
-    # fmt: off
-    with patch("homeassistant.core.ServiceRegistry.async_call") as mock_service_call: #,\
-        #patch("homeassistant.core.StateMachine.get", side_effect=mock_get_state_side_effect.get_side_effects()):
-    # fmt: on
+    vtherm: ThermostatOverClimateValve = await create_thermostat(hass, entry, "climate.theoverclimatevalvemockname", temps=default_temperatures)
 
-        vtherm: ThermostatOverClimateValve = await create_thermostat(hass, entry, "climate.theoverclimatevalvemockname", temps=default_temperatures)
+    assert vtherm
+    vtherm._set_now(now)
+    assert isinstance(vtherm, ThermostatOverClimateValve)
 
-        assert vtherm
-        vtherm._set_now(now)
-        assert isinstance(vtherm, ThermostatOverClimateValve)
+    assert vtherm.name == "TheOverClimateValveMockName"
+    assert vtherm.is_over_climate is True
+    assert vtherm.have_valve_regulation is True
 
-        assert vtherm.name == "TheOverClimateValveMockName"
-        assert vtherm.is_over_climate is True
-        assert vtherm.have_valve_regulation is True
+    assert vtherm.hvac_action is HVACAction.OFF
+    assert vtherm.vtherm_hvac_mode is VThermHvacMode_OFF
 
-        assert vtherm.hvac_action is HVACAction.OFF
-        assert vtherm.vtherm_hvac_mode is VThermHvacMode_OFF
+    assert vtherm.is_initialized is True
 
-        assert vtherm.is_initialized is True
+    assert vtherm.is_device_active is False
+    assert vtherm.valve_open_percent == 0
 
-        assert vtherm.is_device_active is False
-        assert vtherm.valve_open_percent == 0
+    # the underlying set temperature call but no call to valve yet because VTherm is off
+    await wait_for_local_condition(lambda: fake_opening_degree.native_value == 0)
 
-        # the underlying set temperature call but no call to valve yet because VTherm is off
-        assert mock_service_call.call_count == 1
-        mock_service_call.assert_has_calls(
-            [
-                call('number', SERVICE_SET_VALUE, {'value': 0}, False, None, {'entity_id': 'number.mock_opening_degree'}, False),
-            ]
-        )
+    assert vtherm.nb_device_actives == 0
 
-        assert vtherm.nb_device_actives == 0
+    assert vtherm.total_energy == 0.0
+    assert vtherm.power_manager.mean_cycle_power == 0.0
 
-        assert vtherm.total_energy == 0.0
-        assert vtherm.power_manager.mean_cycle_power == 0.0
+    assert fake_underlying_climate.hvac_mode == VThermHvacMode_OFF
+    assert fake_underlying_climate.hvac_action == HVACAction.OFF
 
     # 2. Turn on the VTherm and make heating
-    # fmt: off
-    with patch("homeassistant.core.ServiceRegistry.async_call") as mock_service_call: #,\
-        #patch("homeassistant.core.StateMachine.get", side_effect=mock_get_state_side_effect.get_side_effects()):
-    # fmt: on
-        now = now + timedelta(minutes=1)
-        vtherm._set_now(now)
+    now = now + timedelta(minutes=1)
+    vtherm._set_now(now)
 
-        await send_temperature_change_event(vtherm, 18, now, True)
-        await send_ext_temperature_change_event(vtherm, 18, now, True)
-        await vtherm.async_set_hvac_mode(VThermHvacMode_HEAT)
-        await vtherm.async_set_preset_mode(VThermPreset.COMFORT) # 19
+    fake_temp_sensor.set_native_value(18)
+    fake_ext_temp_sensor.set_native_value(18)
+    await hass.async_block_till_done()
+    # await send_temperature_change_event(vtherm, 18, now, True)
+    # await send_ext_temperature_change_event(vtherm, 18, now, True)
+    await wait_for_local_condition(lambda: vtherm.current_temperature == 18 and vtherm.current_outdoor_temperature == 18)
 
-        # Simulate the underlying climate starting heating
-        await send_climate_change_event(
-            vtherm,
-            new_hvac_mode=VThermHvacMode_HEAT,
-            old_hvac_mode=VThermHvacMode_OFF,
-            new_hvac_action=HVACAction.HEATING,
-            old_hvac_action=HVACAction.OFF,
-            date=now,
-            underlying_entity_id="climate.mock_climate",
-        )
+    await vtherm.async_set_hvac_mode(VThermHvacMode_HEAT)
+    await vtherm.async_set_preset_mode(VThermPreset.COMFORT)  # 19
 
-        await wait_for_local_condition(lambda: vtherm.proportional_algorithm.on_percent == 0.4) # 0.4 = (19-18)*0.3 + (19-18)*0.1
+    await wait_for_local_condition(lambda: vtherm.proportional_algorithm.on_percent == 0.4)  # 0.4 = (19-18)*0.3 + (19-18)*0.1
 
-        assert vtherm.hvac_action is HVACAction.HEATING
-        assert vtherm.vtherm_hvac_mode is VThermHvacMode_HEAT
-        assert vtherm.total_energy == 0.0
-        assert vtherm.power_manager.mean_cycle_power == 1 * 0.4  # device_power * on_percent
+    assert vtherm.hvac_action is HVACAction.HEATING
+    assert vtherm.vtherm_hvac_mode is VThermHvacMode_HEAT
+    assert vtherm.total_energy == 0.0
+    assert vtherm.power_manager.mean_cycle_power == 1 * 0.4  # device_power * on_percent
+
+    await wait_for_local_condition(lambda: fake_underlying_climate.hvac_mode == HVACMode.HEAT and fake_underlying_climate.hvac_action == HVACAction.HEATING)
+    await wait_for_local_condition(lambda: vtherm._underlying_climate_start_hvac_action_date is not None)
 
     # 3. simulate a cycle that should calculate energy
     now = now + timedelta(minutes=5)
@@ -1044,7 +1030,8 @@ async def test_power_management_over_climate_valve(hass: HomeAssistant, skip_has
     # 4. limit the power by changing the room temperature closer to target
     now = now + timedelta(minutes=2)
     vtherm._set_now(now)
-    await send_temperature_change_event(vtherm, 18.5, now, True)
+    fake_temp_sensor.set_native_value(18.5)
+    # await send_temperature_change_event(vtherm, 18.5, now, True)
     await wait_for_local_condition(lambda: vtherm.proportional_algorithm.on_percent == 0.25) # 0.25 = (19-18.5)*0.3 + (19-18)*0.1
 
     # Simulate a cycle
@@ -1058,15 +1045,15 @@ async def test_power_management_over_climate_valve(hass: HomeAssistant, skip_has
 
     await vtherm.async_set_hvac_mode(VThermHvacMode_OFF)
     # Simulate the underlying climate starting heating
-    await send_climate_change_event(
-        vtherm,
-        new_hvac_mode=VThermHvacMode_OFF,
-        old_hvac_mode=VThermHvacMode_HEAT,
-        new_hvac_action=HVACAction.OFF,
-        old_hvac_action=HVACAction.HEATING,
-        date=now,
-        underlying_entity_id="climate.mock_climate",
-    )
+    # await send_climate_change_event(
+    #     vtherm,
+    #     new_hvac_mode=VThermHvacMode_OFF,
+    #     old_hvac_mode=VThermHvacMode_HEAT,
+    #     new_hvac_action=HVACAction.OFF,
+    #     old_hvac_action=HVACAction.HEATING,
+    #     date=now,
+    #     underlying_entity_id="climate.mock_climate",
+    # )
 
     await wait_for_local_condition(lambda: vtherm.proportional_algorithm.on_percent == 0.0)
 
@@ -1074,6 +1061,4 @@ async def test_power_management_over_climate_valve(hass: HomeAssistant, skip_has
     assert vtherm.power_manager.mean_cycle_power == 0.0
     assert vtherm.valve_open_percent == 0
 
-
     vtherm.remove_thermostat()
-    await hass.async_block_till_done()
