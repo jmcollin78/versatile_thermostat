@@ -818,7 +818,7 @@ async def test_central_power_manager_start_vtherm_power(
             CONF_USE_MOTION_FEATURE: False,
             CONF_USE_POWER_FEATURE: True,
             CONF_USE_PRESENCE_FEATURE: False,
-            CONF_UNDERLYING_LIST: ["switch.mock_climate"],
+            CONF_UNDERLYING_LIST: ["climate.mock_climate"],
             CONF_MINIMAL_ACTIVATION_DELAY: 30,
             CONF_MINIMAL_DEACTIVATION_DELAY: 0,
             CONF_SAFETY_DELAY_MIN: 5,
@@ -849,8 +849,7 @@ async def test_central_power_manager_start_vtherm_power(
         # the power of Vtherm should have not been added (cause it has not started) and the entity2 should be shedding
         await wait_for_local_condition(lambda: central_power_manager.started_vtherm_total_power == 1000)
 
-        ICI - devrait être ok
-        # await wait_for_local_condition(lambda: entity2.power_manager.overpowering_state is STATE_ON)
+        await wait_for_local_condition(lambda: entity2.power_manager.overpowering_state is STATE_ON)
 
     # 3. sends a new power sensor event
     await send_max_power_change_event(entity, 2150, now)
