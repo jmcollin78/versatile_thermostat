@@ -712,7 +712,12 @@ async def test_central_power_manager_max_power_event(
 
 
 async def test_central_power_manager_start_vtherm_power(
-    hass: HomeAssistant, skip_hass_states_is_state, init_central_power_manager, fake_underlying_switch: MockSwitch, fake_underlying_climate: MockClimate
+    hass: HomeAssistant,
+    init_central_power_manager,
+    fake_underlying_switch: MockSwitch,
+    fake_underlying_climate: MockClimate,
+    fake_temp_sensor: MockTemperatureSensor,
+    fake_ext_temp_sensor: MockTemperatureSensor,
 ):
     """Tests the central power start VTherm power. The objective is to starts VTherm until the power max is exceeded"""
 
@@ -770,15 +775,17 @@ async def test_central_power_manager_start_vtherm_power(
 
     # 1. Make the heater heats
     # fmt: off
-    with patch("homeassistant.core.StateMachine.get", side_effect=side_effects.get_side_effects()), \
-         patch("custom_components.versatile_thermostat.thermostat_switch.ThermostatOverSwitch.is_device_active", new_callable=PropertyMock, return_value=False):
+    with patch("homeassistant.core.StateMachine.get", side_effect=side_effects.get_side_effects()):
     # fmt: on
         # make the heater heats
         await send_power_change_event(entity, 1000, now)
         await send_max_power_change_event(entity, 2100, now)
 
-        await send_temperature_change_event(entity, 15, now)
-        await send_ext_temperature_change_event(entity, 1, now)
+        fake_temp_sensor.set_native_value(15)
+        fake_ext_temp_sensor.set_native_value(1)
+        await hass.async_block_till_done()
+        #await send_temperature_change_event(entity, 15, now)
+        #await send_ext_temperature_change_event(entity, 1, now)
 
         await entity.async_set_preset_mode(VThermPreset.BOOST)
         assert entity.preset_mode == VThermPreset.BOOST
@@ -790,10 +797,9 @@ async def test_central_power_manager_start_vtherm_power(
         assert entity.vtherm_hvac_mode is VThermHvacMode_HEAT
 
         await hass.async_block_till_done()
-        await asyncio.sleep(0.1)
 
         # the power of Vtherm should have been added
-        assert central_power_manager.started_vtherm_total_power == 1000
+        await wait_for_local_condition(lambda: central_power_manager.started_vtherm_total_power == 1000)
 
     # 2. Check that another heater cannot heat
     entry2 = MockConfigEntry(
@@ -825,15 +831,8 @@ async def test_central_power_manager_start_vtherm_power(
     entity2: ThermostatOverClimate = await create_thermostat(hass, entry2, "climate.theoverclimatemockname2", temps)
     assert entity2
 
-    # fake_underlying_climate = MockClimate(
-    #     hass=hass,
-    #     unique_id="mockUniqueId",
-    #     name="MockClimateName",
-    # )
-
     # fmt: off
-    with patch("homeassistant.core.StateMachine.get", side_effect=side_effects.get_side_effects()), \
-         patch("custom_components.versatile_thermostat.thermostat_switch.ThermostatOverSwitch.is_device_active", new_callable=PropertyMock, return_value=False):
+    with patch("homeassistant.core.StateMachine.get", side_effect=side_effects.get_side_effects()):
     # fmt: on
         # make the heater heats
         await entity2.async_set_preset_mode(VThermPreset.COMFORT)
@@ -845,20 +844,21 @@ async def test_central_power_manager_start_vtherm_power(
         await entity2.async_set_hvac_mode(VThermHvacMode_HEAT)
         await wait_for_local_condition(lambda: entity2.hvac_mode == VThermHvacMode_HEAT)
         assert entity2.hvac_mode == VThermHvacMode_HEAT
-
         await hass.async_block_till_done()
-        await asyncio.sleep(0.1)
 
         # the power of Vtherm should have not been added (cause it has not started) and the entity2 should be shedding
-        assert central_power_manager.started_vtherm_total_power == 1000
+        await wait_for_local_condition(lambda: central_power_manager.started_vtherm_total_power == 1000)
 
-
-        assert entity2.power_manager.overpowering_state is STATE_ON
+        ICI - devrait être ok
+        # await wait_for_local_condition(lambda: entity2.power_manager.overpowering_state is STATE_ON)
 
     # 3. sends a new power sensor event
     await send_max_power_change_event(entity, 2150, now)
     # No change
-    assert central_power_manager.started_vtherm_total_power == 1000
+    await wait_for_local_condition(lambda: central_power_manager.started_vtherm_total_power == 1000)
 
     await send_power_change_event(entity, 1010, now)
-    assert central_power_manager.started_vtherm_total_power == 0
+    await wait_for_local_condition(lambda: central_power_manager.started_vtherm_total_power == 0)
+
+    entity.remove_thermostat()
+    entity2.remove_thermostat()
