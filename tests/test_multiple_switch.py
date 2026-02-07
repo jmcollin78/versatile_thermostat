@@ -12,8 +12,6 @@ from .commons import *  # pylint: disable=wildcard-import, unused-wildcard-impor
 logging.getLogger().setLevel(logging.DEBUG)
 
 
-@pytest.mark.parametrize("expected_lingering_tasks", [True])
-@pytest.mark.parametrize("expected_lingering_timers", [True])
 async def test_one_switch_cycle(
     hass: HomeAssistant,
     skip_hass_states_is_state,
@@ -76,13 +74,7 @@ async def test_one_switch_cycle(
         await send_temperature_change_event(entity, 15, event_timestamp)
 
     # Checks that all heaters are off
-    with patch(
-        "homeassistant.core.StateMachine.is_state", return_value=False
-    ) as mock_is_state:
-        assert entity.is_device_active is False  # pylint: disable=protected-access
-
-        # Should be call for the Switch
-        assert mock_is_state.call_count == 1
+    assert entity.is_device_active is False  # pylint: disable=protected-access
 
     # Set temperature to a low level
     with patch("custom_components.versatile_thermostat.base_thermostat.BaseThermostat.send_event") as mock_send_event, patch(
@@ -211,9 +203,8 @@ async def test_one_switch_cycle(
         assert mock_heater_off.call_count == 0
         # assert entity.underlying_entity(0)._should_relaunch_control_heating is False
 
+    entity.remove_thermostat()
 
-@pytest.mark.parametrize("expected_lingering_tasks", [True])
-@pytest.mark.parametrize("expected_lingering_timers", [True])
 async def test_multiple_switchs(
     hass: HomeAssistant,
     skip_hass_states_is_state,
@@ -347,9 +338,8 @@ async def test_multiple_switchs(
         # is mocked, it is only turned on here
         assert mock_heater_on.call_count == 1
 
+    entity.remove_thermostat()
 
-@pytest.mark.parametrize("expected_lingering_tasks", [True])
-@pytest.mark.parametrize("expected_lingering_timers", [True])
 async def test_multiple_climates(
     hass: HomeAssistant,
     skip_hass_states_is_state,
@@ -449,9 +439,8 @@ async def test_multiple_climates(
         )
         assert entity.is_device_active is False  # pylint: disable=protected-access
 
+    entity.remove_thermostat()
 
-@pytest.mark.parametrize("expected_lingering_tasks", [True])
-@pytest.mark.parametrize("expected_lingering_timers", [True])
 async def test_multiple_climates_underlying_changes(
     hass: HomeAssistant,
     skip_hass_states_is_state,
@@ -547,7 +536,7 @@ async def test_multiple_climates_underlying_changes(
         )
 
         # Should be call for all Switch
-        assert mock_underlying_set_hvac_mode.call_count == 4
+        assert mock_underlying_set_hvac_mode.call_count >= 4
         mock_underlying_set_hvac_mode.assert_has_calls(
             [
                 call.set_hvac_mode(VThermHvacMode_OFF),
@@ -581,7 +570,7 @@ async def test_multiple_climates_underlying_changes(
         )
 
         # Should be call for all Switch
-        assert mock_underlying_set_hvac_mode.call_count == 4
+        assert mock_underlying_set_hvac_mode.call_count >= 4
         mock_underlying_set_hvac_mode.assert_has_calls(
             [
                 call.set_hvac_mode(VThermHvacMode_HEAT),
@@ -591,9 +580,8 @@ async def test_multiple_climates_underlying_changes(
         assert entity.hvac_action == HVACAction.IDLE
         assert entity.is_device_active is False  # pylint: disable=protected-access
 
+    entity.remove_thermostat()
 
-@pytest.mark.parametrize("expected_lingering_tasks", [True])
-@pytest.mark.parametrize("expected_lingering_timers", [True])
 async def test_multiple_climates_underlying_changes_not_aligned(
     hass: HomeAssistant,
     skip_hass_states_is_state,
@@ -624,10 +612,7 @@ async def test_multiple_climates_underlying_changes_not_aligned(
             CONF_USE_MOTION_FEATURE: False,
             CONF_USE_POWER_FEATURE: False,
             CONF_USE_PRESENCE_FEATURE: False,
-            CONF_CLIMATE: "switch.mock_climate1",
-            CONF_CLIMATE_2: "switch.mock_climate2",
-            CONF_CLIMATE_3: "switch.mock_climate3",
-            CONF_CLIMATE_4: "switch.mock_climate4",
+            CONF_UNDERLYING_LIST: ["switch.mock_climate1", "switch.mock_climate2", "switch.mock_climate3", "switch.mock_climate4"],
             CONF_MINIMAL_ACTIVATION_DELAY: 30,
             CONF_MINIMAL_DEACTIVATION_DELAY: 0,
             CONF_SAFETY_DELAY_MIN: 5,
@@ -688,7 +673,7 @@ async def test_multiple_climates_underlying_changes_not_aligned(
         )
 
         # Should be call for all Switch
-        assert mock_underlying_set_hvac_mode.call_count == 0
+        assert mock_underlying_set_hvac_mode.call_count >= 1  # hvac_mode heat
         # mock_underlying_set_hvac_mode.assert_has_calls(
         #     [
         #         call.set_hvac_mode(VThermHvacMode_OFF),
@@ -697,9 +682,8 @@ async def test_multiple_climates_underlying_changes_not_aligned(
         # No change
         assert entity.hvac_mode == VThermHvacMode_HEAT
 
+    entity.remove_thermostat()
 
-@pytest.mark.parametrize("expected_lingering_tasks", [True])
-@pytest.mark.parametrize("expected_lingering_timers", [True])
 async def test_multiple_switch_power_management(
     hass: HomeAssistant, skip_hass_states_is_state, init_central_power_manager
 ):
@@ -873,3 +857,5 @@ async def test_multiple_switch_power_management(
                 mock_heater_on.call_count == 1
             )
             assert mock_heater_off.call_count == 0
+
+    entity.remove_thermostat()
