@@ -21,8 +21,6 @@ from custom_components.versatile_thermostat.thermostat_climate import (
 from .commons import *  # pylint: disable=wildcard-import, unused-wildcard-import
 
 
-@pytest.mark.parametrize("expected_lingering_tasks", [True])
-@pytest.mark.parametrize("expected_lingering_timers", [True])
 async def test_over_climate_auto_fan_mode_with_3_fan_speed_values(
     hass: HomeAssistant, skip_hass_states_is_state, skip_send_event
 ):
@@ -58,7 +56,7 @@ async def test_over_climate_auto_fan_mode_with_3_fan_speed_values(
         },
     )
 
-    fake_underlying_climate = MockClimate(
+    fake_underlying_climate = await create_and_register_mock_climate(
         hass=hass,
         unique_id="mock_climate",
         name="MockClimateName",
@@ -106,9 +104,8 @@ async def test_over_climate_auto_fan_mode_with_3_fan_speed_values(
         assert entity._auto_activated_fan_mode == "1"
         assert entity._auto_deactivated_fan_mode == "1"
 
+    entity.remove_thermostat()
 
-@pytest.mark.parametrize("expected_lingering_tasks", [True])
-@pytest.mark.parametrize("expected_lingering_timers", [True])
 async def test_over_climate_auto_fan_mode_with_4_fan_speed_values(
     hass: HomeAssistant, skip_hass_states_is_state, skip_send_event
 ):
@@ -144,7 +141,7 @@ async def test_over_climate_auto_fan_mode_with_4_fan_speed_values(
         },
     )
 
-    fake_underlying_climate = MockClimate(
+    fake_underlying_climate = await create_and_register_mock_climate(
         hass=hass,
         unique_id="mock_climate",
         name="MockClimateName",
@@ -192,9 +189,8 @@ async def test_over_climate_auto_fan_mode_with_4_fan_speed_values(
         assert entity._auto_activated_fan_mode == "low"
         assert entity._auto_deactivated_fan_mode == "low"
 
+    entity.remove_thermostat()
 
-@pytest.mark.parametrize("expected_lingering_tasks", [True])
-@pytest.mark.parametrize("expected_lingering_timers", [True])
 async def test_over_climate_auto_fan_mode_with_5_fan_speed_values(
     hass: HomeAssistant, skip_hass_states_is_state, skip_send_event
 ):
@@ -230,7 +226,7 @@ async def test_over_climate_auto_fan_mode_with_5_fan_speed_values(
         },
     )
 
-    fake_underlying_climate = MockClimate(
+    fake_underlying_climate = await create_and_register_mock_climate(
         hass=hass,
         unique_id="mock_climate",
         name="MockClimateName",
@@ -278,8 +274,8 @@ async def test_over_climate_auto_fan_mode_with_5_fan_speed_values(
         assert entity._auto_activated_fan_mode == "1"
         assert entity._auto_deactivated_fan_mode == "quiet"
 
+    entity.remove_thermostat()
 
-@pytest.mark.parametrize("expected_lingering_timers", [True])
 async def test_over_climate_auto_fan_mode_turbo_activation(
     hass: HomeAssistant, skip_hass_states_is_state, skip_send_event
 ):
@@ -326,7 +322,7 @@ async def test_over_climate_auto_fan_mode_turbo_activation(
     entity = await create_thermostat(hass, entry, "climate.theoverclimatemockname")
 
     # Creates the under entity after the thermostat creation. It should works too.
-    fake_underlying_climate = MockClimate(
+    fake_underlying_climate = await create_and_register_mock_climate(
         hass=hass,
         unique_id="mock_climate",
         name="MockClimateName",
@@ -465,9 +461,8 @@ async def test_over_climate_auto_fan_mode_turbo_activation(
         await hass.async_block_till_done()
         assert entity.fan_mode == "turbo"
 
+    entity.remove_thermostat()
 
-@pytest.mark.parametrize("expected_lingering_tasks", [True])
-@pytest.mark.parametrize("expected_lingering_timers", [True])
 async def test_over_climate_auto_fan_mode_with_descending_speed_list(hass: HomeAssistant, skip_hass_states_is_state, skip_send_event):
     """Test the init of an over climate thermostat with 4 fan speed values"""
 
@@ -501,7 +496,7 @@ async def test_over_climate_auto_fan_mode_with_descending_speed_list(hass: HomeA
         },
     )
 
-    fake_underlying_climate = MockClimate(
+    fake_underlying_climate = await create_and_register_mock_climate(
         hass=hass,
         unique_id="mock_climate",
         name="MockClimateName",
@@ -543,9 +538,8 @@ async def test_over_climate_auto_fan_mode_with_descending_speed_list(hass: HomeA
         assert entity._auto_activated_fan_mode == "diffuse"
         assert entity._auto_deactivated_fan_mode == "low"
 
+    entity.remove_thermostat()
 
-@pytest.mark.parametrize("expected_lingering_tasks", [True])
-@pytest.mark.parametrize("expected_lingering_timers", [True])
 async def test_over_climate_auto_fan_mode_with_none_fan_speed_values(
     hass: HomeAssistant, skip_hass_states_is_state, skip_send_event
 ):
@@ -581,7 +575,7 @@ async def test_over_climate_auto_fan_mode_with_none_fan_speed_values(
         },
     )
 
-    fake_underlying_climate = MockClimate(
+    fake_underlying_climate = await create_and_register_mock_climate(
         hass=hass,
         unique_id="mock_climate",
         name="MockClimateName",
@@ -629,14 +623,13 @@ async def test_over_climate_auto_fan_mode_with_none_fan_speed_values(
         assert entity._auto_activated_fan_mode is None
         assert entity._auto_deactivated_fan_mode is None
 
+    entity.remove_thermostat()
 
-@pytest.mark.parametrize("expected_lingering_tasks", [True])
-@pytest.mark.parametrize("expected_lingering_timers", [True])
 async def test_over_climate_auto_fan_mode_check_delay_command(hass: HomeAssistant, skip_hass_states_is_state, skip_send_event):
     """Test the delay of the fan_mode command when the setpoint temperature triggers auto_fan_mode"""
 
     fan_modes = ["low", "medium", "high", "boost", "mute", "auto", "turbo"]
-    fake_underlying_climate = MockClimate(
+    fake_underlying_climate = await create_and_register_mock_climate(
         hass=hass,
         unique_id="mockUniqueId",
         name="MockClimateName",
@@ -677,23 +670,6 @@ async def test_over_climate_auto_fan_mode_check_delay_command(hass: HomeAssistan
 
     tz = get_tz(hass)  # pylint: disable=invalid-name
     now: datetime = datetime.now(tz=tz)
-
-    # Init fan mode and turn on the thermostat
-    # set a state for the underlying climate
-    # set_entity_states_from_entity(hass, fake_underlying_climate)
-    # set_entity_states(
-    #     hass,
-    #     entity_id="climate.mock_climate",
-    #     state=HVACMode.HEAT,
-    #     attributes={
-    #         "fan_modes": fan_modes,
-    #         "fan_mode": None,
-    #         "supported_features": ClimateEntityFeature.FAN_MODE | ClimateEntityFeature.PRESET_MODE | ClimateEntityFeature.TARGET_TEMPERATURE,
-    #         "preset_modes": [PRESET_COMFORT, PRESET_ECO, PRESET_BOOST],
-    #         "preset_mode": PRESET_COMFORT,
-    #         "hvac_modes": [HVACMode.HEAT, HVACMode.COOL, HVACMode.OFF],
-    #     },
-    # )
 
     entity = await create_thermostat(hass, entry, "climate.theoverclimatemockname")
 
@@ -765,3 +741,5 @@ async def test_over_climate_auto_fan_mode_check_delay_command(hass: HomeAssistan
         assert len(planned_commands) == 2
         assert planned_commands[1]["delay"] == 2.0
         assert planned_commands[1]["fan_mode"] == "mute"
+
+    entity.remove_thermostat()
