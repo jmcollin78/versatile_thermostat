@@ -1512,7 +1512,7 @@ async def wait_for_local_condition(check_condition: Callable[[], bool], timeout:
             raise TimeoutError("La condition locale n'a pas été satisfaite.")
 
         # Le minimum pour laisser l'event loop s'exécuter
-        await asyncio.sleep(0)
+        await asyncio.sleep(0.1)
 
 
 default_climate_attributes = {
