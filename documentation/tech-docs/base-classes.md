@@ -52,6 +52,19 @@ classDiagram
         +incremente_energy()
     }
 
+    class ThermostatOverValve {
+        -int _valve_open_percent
+        -datetime _last_calculation_timestamp
+        -float _auto_regulation_dpercent
+        -int _auto_regulation_period_min
+        +build_underlyings()
+        +listen_underlyings()
+        +add_valve_attributes()
+        +async_control_heating_valve()
+        +async_control_heating_later()
+        +incremente_energy()
+    }
+
     class ThermostatOverClimate {
         -str _auto_regulation_mode
         -AutoRegulationAlgorithm _regulation_algo
@@ -82,29 +95,17 @@ classDiagram
         +should_be_active() bool
     }
 
-    class UnderlyingSwitch {
-        -int _initial_delay_sec
-        -float _on_time_sec
-        -float _off_time_sec
-        -KeepAliveHandler _keep_alive_handler
-        -Dict _built_commands
-        +build_commands()
-        +start_cycle()
-        +async_activate_later()
-        +async_deactivate_later()
-        +cancel_cycle()
-    }
-
-    class UnderlyingClimate {
-        -float _last_temperature_sent
-        -str _sync_params
-        +set_hvac_mode()
-        +set_temperature()
-        +set_fan_mode()
-        +underlying_entity_state_changed()
-        +limit_value_to_hvac_action_range()
-        +is_aux_heat bool
-        +supports_fan_mode bool
+    class UnderlyingStateManager {
+        -HomeAssistant _hass
+        -List~str~ _entity_ids
+        -Callable _on_state_changed_cb
+        -List~State~ _last_states
+        +add_entities()
+        +get_state()
+        +update_state()
+        +async_state_changed_listener()
+        +is_initialized() bool
+        +stop_listening()
     }
 
     class StateManager {
@@ -132,69 +133,19 @@ classDiagram
         +add_listener()
     }
 
-    class FeaturePresenceManager {
-        -str _presence_sensor_id
-        -bool _is_presence_detected
-        +post_init()
-        +start_listening()
-        +refresh_state()
-    }
-
-    class FeaturePowerManager {
-        -str _power_sensor_id
-        -float _max_power
-        -bool _is_overpowering
-        +post_init()
-        +start_listening()
-        +refresh_state()
-    }
-
-    class FeatureWindowManager {
-        -str _window_sensor_id
-        -bool _is_window_open
-        -int _window_delay_sec
-        +post_init()
-        +start_listening()
-        +refresh_state()
-    }
-
-    class FeatureSafetyManager {
-        -float _safety_temp
-        -int _safety_delay_min
-        -bool _is_safety_active
-        +post_init()
-        +start_listening()
-        +refresh_state()
-    }
-
-    class FeatureMotionManager {
-        -str _motion_sensor_id
-        -bool _is_motion_detected
-        -int _motion_delay_sec
-        +post_init()
-        +start_listening()
-        +refresh_state()
-    }
-
     BaseThermostat "1" *-- "1" StateManager : manages state
     BaseThermostat "1" *-- "0..*" BaseFeatureManager : manages features
     BaseThermostat "1" *-- "1..*" UnderlyingEntity : controls
 
     ThermostatProp --|> BaseThermostat : inherits
     ThermostatOverSwitch --|> ThermostatProp : inherits
+    ThermostatOverValve --|> ThermostatProp : inherits
     ThermostatOverClimate --|> BaseThermostat : inherits
 
-    UnderlyingSwitch --|> UnderlyingEntity : inherits
-    UnderlyingClimate --|> UnderlyingEntity : inherits
-
+    UnderlyingEntity "1" *-- "1" UnderlyingStateManager : manages state
     UnderlyingEntity "1..*" --> "1" BaseThermostat : references
 
     BaseFeatureManager "0..*" --> "1" BaseThermostat : references
-    FeaturePresenceManager --|> BaseFeatureManager : inherits
-    FeaturePowerManager --|> BaseFeatureManager : inherits
-    FeatureWindowManager --|> BaseFeatureManager : inherits
-    FeatureSafetyManager --|> BaseFeatureManager : inherits
-    FeatureMotionManager --|> BaseFeatureManager : inherits
 ```
 
 ## Core Classes
@@ -312,6 +263,62 @@ def incremente_energy()           # Calculate energy based on power × ON time
 
 ---
 
+### ThermostatOverValve
+
+**File:** [thermostat_valve.py](../../custom_components/versatile_thermostat/thermostat_valve.py)
+
+**Purpose:** Thermostat controlling valve entities using proportional algorithm to calculate optimal valve opening percentage (0-100%).
+
+**Key Responsibilities:**
+- Controls one or more valve entities
+- Uses TPI/Smart PI algorithm to calculate valve opening percentage
+- Implements auto-regulation with configurable thresholds
+- Avoids excessive valve movements through delta and period constraints
+- Tracks energy consumption
+
+**Main Attributes:**
+- `_valve_open_percent: int` - Current valve opening percentage (0-100)
+- `_last_calculation_timestamp: datetime` - Timestamp of last calculation
+- `_auto_regulation_dpercent: float` - Minimum percentage change to send command
+- `_auto_regulation_period_min: int` - Minimum period between calculations (minutes)
+
+**Valve Control:**
+```python
+async def async_control_heating_valve()    # Calculate and apply valve opening
+async def async_control_heating_later()    # Schedule delayed recalculation
+```
+
+**Underlying Management:**
+```python
+def build_underlyings()                    # Create UnderlyingValve instances
+def listen_underlyings()                   # Listen to valve state changes
+```
+
+**Attributes:**
+```python
+def add_valve_attributes()                 # Add valve-specific attributes
+```
+
+**Energy Calculation:**
+```python
+def incremente_energy()                    # Calculate energy consumption
+```
+
+**Properties:**
+```python
+@property
+def valve_open_percent() -> int            # Current valve opening (0 if OFF)
+```
+
+**Auto-Regulation Mechanism:**
+- Respects minimum period between calculations to avoid excessive updates
+- Only sends commands if percentage change exceeds configured delta
+- Provides smooth and efficient valve control
+
+**Underlying Type:** Uses `UnderlyingValve` entities
+
+---
+
 ### ThermostatOverClimate
 
 **File:** [thermostat_climate.py](../../custom_components/versatile_thermostat/thermostat_climate.py)
@@ -397,6 +404,80 @@ def should_be_active() -> bool       # Should the entity be active?
 **Subclasses:**
 - `UnderlyingSwitch` - For switch entities
 - `UnderlyingClimate` - For climate entities
+- `UnderlyingValve` - For valve entities
+
+---
+
+### UnderlyingStateManager
+
+**File:** [underlyings.py](../../custom_components/versatile_thermostat/underlyings.py)
+
+**Purpose:** Centralized state manager that listens to Home Assistant state changes for underlying entities and maintains a cache of their last known states.
+
+**Key Responsibilities:**
+- Listens to state changes for multiple underlying entities
+- Maintains cache of last known states
+- Notifies parent UnderlyingEntity when states change
+- Manages listener lifecycle (start/stop)
+
+**Main Attributes:**
+- `_hass: HomeAssistant` - Home Assistant instance
+- `_entity_ids: List[str]` - List of entity IDs being monitored
+- `_on_state_changed_cb: Callable` - Callback function when state changes
+- `_last_states: List[State]` - Cached last states for each entity
+
+**Lifecycle Methods:**
+```python
+def __init__(hass, on_state_changed_cb)
+    # Initialize manager with callback
+
+async def add_entities(entity_ids)
+    # Add entities to monitor and start listening
+
+async def stop_listening()
+    # Stop all state listeners
+```
+
+**State Access:**
+```python
+def get_state(entity_id) -> State
+    # Get cached state for an entity
+
+def update_state(entity_id, new_state)
+    # Update cached state
+```
+
+**State Monitoring:**
+```python
+async def async_state_changed_listener(event)
+    # Internal callback for HA state changes
+    # Calls on_state_changed_cb when changes occur
+```
+
+**Properties:**
+```python
+@property
+def is_initialized() -> bool
+    # Check if all monitored entities have initial states
+```
+
+**Usage Pattern:**
+```python
+# In UnderlyingEntity
+self._underlying_state_manager = UnderlyingStateManager(
+    hass,
+    self.entity_state_changed  # Callback
+)
+await self._underlying_state_manager.add_entities([entity_id])
+
+# When state changes, entity_state_changed() is called
+```
+
+**Benefits:**
+- Centralizes state listening logic
+- Reduces boilerplate in UnderlyingEntity subclasses
+- Ensures consistent state caching
+- Simplifies cleanup on entity removal
 
 ---
 
