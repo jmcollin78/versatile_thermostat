@@ -1,5 +1,5 @@
 """Global fixtures for integration_blueprint integration."""
-# pylint: disable=line-too-long
+# pylint: disable=line-too-long, wildcard-import, unused-wildcard-import, redefined-outer-name
 
 # Fixtures allow you to replace functions with a Mock object. You can perform
 # many options via the Mock to reflect a particular behavior from the original
@@ -22,26 +22,24 @@ import pytest
 # https://github.com/miketheman/pytest-socket/pull/275
 from pytest_socket import socket_allow_hosts
 
+from homeassistant.const import UnitOfTemperature
 from homeassistant.core import StateMachine, State
+from homeassistant.components.switch import DOMAIN as SWITCH_DOMAIN
+from homeassistant.components.number import DOMAIN as NUMBER_DOMAIN
+from homeassistant.components.sensor import DOMAIN as SENSOR_DOMAIN
+from homeassistant.components.binary_sensor import DOMAIN as BINARY_SENSOR_DOMAIN
+
 
 from custom_components.versatile_thermostat.config_flow import (
     VersatileThermostatBaseConfigFlow,
 )
 
-from custom_components.versatile_thermostat.const import (
-    CONF_POWER_SENSOR,
-    CONF_MAX_POWER_SENSOR,
-    CONF_USE_POWER_FEATURE,
-    CONF_PRESET_POWER,
-)
+from custom_components.versatile_thermostat.const import *
 from custom_components.versatile_thermostat.vtherm_api import VersatileThermostatAPI
 from custom_components.versatile_thermostat.base_thermostat import BaseThermostat
+from custom_components.versatile_thermostat.vtherm_hvac_mode import *
 
-from .commons import (
-    create_central_config,
-    FULL_CENTRAL_CONFIG,
-    FULL_CENTRAL_CONFIG_WITH_BOILER,
-)
+from .commons import *
 
 # ...
 def pytest_runtest_setup():
@@ -110,15 +108,6 @@ def skip_control_heating_fixture():
     """Skip the control_heating of VersatileThermostat"""
     with patch(
         "custom_components.versatile_thermostat.base_thermostat.BaseThermostat.async_control_heating"
-    ):
-        yield
-
-
-@pytest.fixture(name="skip_find_underlying_climate")
-def skip_find_underlying_climate_fixture():
-    """Skip the find_underlying_climate of VersatileThermostat"""
-    with patch(
-        "custom_components.versatile_thermostat.underlyings.UnderlyingClimate.find_underlying_climate"
     ):
         yield
 
@@ -198,3 +187,73 @@ async def init_central_power_manager_fixture(
     assert vtherm_api.central_power_manager.is_configured
 
     yield
+
+
+@pytest.fixture(name="fake_underlying_switch")
+async def fake_underlying_switch_fixture(hass):
+    """Fixture to add an underlying switch named "switch.mock_switch" to a test"""
+    switch = MockSwitch(hass, "mock_switch", "theMockedSwitch")
+    await register_mock_entity(hass, switch, SWITCH_DOMAIN)
+    yield switch
+
+
+@pytest.fixture(name="fake_underlying_valve")
+async def fake_underlying_valve_fixture(hass):
+    """Fixture to add an underlying valve named "switch.mock_valve" to a test"""
+    valve = MockNumber(hass, "mock_valve", "theMockedValve")
+    await register_mock_entity(hass, valve, NUMBER_DOMAIN)
+    yield valve
+
+
+@pytest.fixture(name="fake_opening_degree")
+async def fake_opening_degree_fixture(hass):
+    """Fixture to add an underlying number opening degree named "number.mock_opening_degree" to a test"""
+    opening_degree = MockNumber(hass, "mock_opening_degree", "theMockedOpeningDegree")
+    await register_mock_entity(hass, opening_degree, NUMBER_DOMAIN)
+    yield opening_degree
+
+
+@pytest.fixture(name="fake_underlying_switch_ac")
+async def fake_underlying_switch_ac_fixture(hass):
+    """Fixture to add an underlying switch named "switch.mock_switch" to a test"""
+    switch = MockSwitch(hass, "mock_switch", "theMockedSwitch", {"ac_mode": True})
+    await register_mock_entity(hass, switch, SWITCH_DOMAIN)
+    yield switch
+
+
+@pytest.fixture(name="fake_underlying_climate")
+async def fake_underlying_climate_fixture(hass):
+    """Fixture to add an underlying switch named "climate.mock_climate" to a test"""
+    fake_underlying_climate = await create_and_register_mock_climate(hass, "mock_climate", "MockClimateName", {})
+    yield fake_underlying_climate
+
+
+@pytest.fixture(name="fake_underlying_climate_off_cool")
+async def fake_underlying_climate_off_cool_fixture(hass):
+    """Fixture to add an underlying switch named "climate.mock_climate" to a test"""
+    fake_underlying_climate = await create_and_register_mock_climate(hass, "mock_climate", "MockClimateName", {}, hvac_modes=[VThermHvacMode_OFF, VThermHvacMode_COOL])
+    yield fake_underlying_climate
+
+
+@pytest.fixture(name="fake_temp_sensor")
+async def fake_temp_sensor_fixture(hass):
+    """Fixture to add a sensor named  "sensor.mock_temp_sensor" to a test"""
+    sensor = MockTemperatureSensor(hass, "mock_temp_sensor", "theMockedTempSensor", value=20, unit_of_measurement=UnitOfTemperature.CELSIUS)
+    await register_mock_entity(hass, sensor, SENSOR_DOMAIN)
+    yield sensor
+
+
+@pytest.fixture(name="fake_ext_temp_sensor")
+async def fake_ext_temp_sensor_fixture(hass):
+    """Fixture to add a sensor named  "sensor.mock_ext_temp_sensor" to a test"""
+    sensor = MockTemperatureSensor(hass, "mock_ext_temp_sensor", "theMockedExtTempSensor", value=20, unit_of_measurement=UnitOfTemperature.CELSIUS)
+    await register_mock_entity(hass, sensor, SENSOR_DOMAIN)
+    yield sensor
+
+
+@pytest.fixture(name="fake_presence_sensor")
+async def fake_presence_sensor_fixture(hass):
+    """Fixture to add a binary sensor named "binary_sensor.presence_sensor" to a test"""
+    sensor = MockBinarySensor(hass, "fake_presence_sensor", "theMockedPresenceSensor")
+    await register_mock_entity(hass, sensor, BINARY_SENSOR_DOMAIN)
+    yield sensor

@@ -161,6 +161,7 @@ async def test_lock_code_feature_services_with_code(hass: HomeAssistant, skip_ha
 )
 async def test_lock_feature_behavior(
     hass: HomeAssistant,
+    fake_underlying_switch: MockSwitch,
     skip_hass_states_is_state,
     lock_users,
     lock_automations,

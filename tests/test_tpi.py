@@ -3,6 +3,7 @@
 import pytest
 
 from homeassistant.exceptions import ServiceValidationError
+from homeassistant.components.climate import ClimateEntityFeature
 
 from custom_components.versatile_thermostat.base_thermostat import BaseThermostat
 from custom_components.versatile_thermostat.prop_algo_tpi import TpiAlgorithm
@@ -434,7 +435,7 @@ async def test_prop_algorithm_thresholds(
 
 @pytest.mark.parametrize("expected_lingering_tasks", [True])
 @pytest.mark.parametrize("expected_lingering_timers", [True])
-async def test_service_set_tpi_parameters(hass: HomeAssistant, skip_hass_states_is_state, skip_turn_on_off_heater):
+async def test_service_set_tpi_parameters(hass: HomeAssistant, skip_hass_states_is_state, skip_turn_on_off_heater, fake_underlying_switch: MockSwitch):
     """Test the set_tpi_parameters service to change TPI coefficients and verify on_percent changes"""
     # Initialize a VTherm over_switch with default TPI parameters
     entry = MockConfigEntry(
@@ -602,60 +603,63 @@ async def test_service_set_tpi_parameters_not_allowed_on_over_climate(hass: Home
         entry_infos={},
     )
 
-    with patch(
-        "custom_components.versatile_thermostat.underlyings.UnderlyingClimate.find_underlying_climate",
-        return_value=climate_entity,
-    ):
-        # Initialize a VTherm over_climate (which doesn't use TPI algorithm)
-        entry = MockConfigEntry(
-            domain=DOMAIN,
-            title="TheOverClimateMockName",
-            unique_id="uniqueIdOverClimate",
-            data={
-                CONF_NAME: "TheOverClimateMockName",
-                CONF_THERMOSTAT_TYPE: CONF_THERMOSTAT_CLIMATE,
-                CONF_TEMP_SENSOR: "sensor.mock_temp_sensor",
-                CONF_EXTERNAL_TEMP_SENSOR: "sensor.mock_ext_temp_sensor",
-                CONF_CYCLE_MIN: 5,
-                CONF_TEMP_MIN: 15,
-                CONF_TEMP_MAX: 30,
-                "eco_temp": 17,
-                "comfort_temp": 18,
-                "boost_temp": 19,
-                CONF_USE_WINDOW_FEATURE: False,
-                CONF_USE_MOTION_FEATURE: False,
-                CONF_USE_POWER_FEATURE: False,
-                CONF_USE_PRESENCE_FEATURE: False,
-                CONF_UNDERLYING_LIST: ["climate.mock_climate"],
-                CONF_AUTO_REGULATION_MODE: CONF_AUTO_REGULATION_NONE,
-            },
+    # with patch(
+    #     "custom_components.versatile_thermostat.underlyings.UnderlyingClimate.find_underlying_climate",
+    #     return_value=climate_entity,
+    # ):
+    # Initialize a VTherm over_climate (which doesn't use TPI algorithm)
+    entry = MockConfigEntry(
+        domain=DOMAIN,
+        title="TheOverClimateMockName",
+        unique_id="uniqueIdOverClimate",
+        data={
+            CONF_NAME: "TheOverClimateMockName",
+            CONF_THERMOSTAT_TYPE: CONF_THERMOSTAT_CLIMATE,
+            CONF_TEMP_SENSOR: "sensor.mock_temp_sensor",
+            CONF_EXTERNAL_TEMP_SENSOR: "sensor.mock_ext_temp_sensor",
+            CONF_CYCLE_MIN: 5,
+            CONF_TEMP_MIN: 15,
+            CONF_TEMP_MAX: 30,
+            "eco_temp": 17,
+            "comfort_temp": 18,
+            "boost_temp": 19,
+            CONF_USE_WINDOW_FEATURE: False,
+            CONF_USE_MOTION_FEATURE: False,
+            CONF_USE_POWER_FEATURE: False,
+            CONF_USE_PRESENCE_FEATURE: False,
+            CONF_UNDERLYING_LIST: ["climate.mock_climate"],
+            CONF_AUTO_REGULATION_MODE: CONF_AUTO_REGULATION_NONE,
+        },
+    )
+
+    # set a state for the underlying climate
+    set_entity_states(hass, entity_id="climate.mock_climate", state=HVACMode.HEAT, attributes={"supported_features": ClimateEntityFeature.TARGET_TEMPERATURE})
+
+    entity: BaseThermostat = await create_thermostat(hass, entry, "climate.theoverclimatemockname")
+    assert entity
+    assert entity.is_over_climate is True
+
+    # Verify that the entity doesn't have a prop_algorithm (TPI is not used for over_climate)
+    assert getattr(entity, "proportional_algorithm", None) is None
+
+    # Try to call the service - it should raise an error or do nothing
+    # since over_climate doesn't use TPI algorithm
+    try:
+        await entity.service_set_tpi_parameters(
+            tpi_coef_int=0.6,
+            tpi_coef_ext=0.02,
+            minimal_activation_delay=60,
+            minimal_deactivation_delay=60,
+            tpi_threshold_low=-0.5,
+            tpi_threshold_high=0.5,
         )
+        await hass.async_block_till_done()
 
-        entity: BaseThermostat = await create_thermostat(hass, entry, "climate.theoverclimatemockname")
-        assert entity
-        assert entity.is_over_climate is True
+    except (ServiceValidationError, AttributeError) as e:
+        # This is also acceptable - if the service tries to access
+        # prop_algorithm attributes that don't exist
+        # or if the method itself doesn't exist (AttributeError)
+        pass
 
-        # Verify that the entity doesn't have a prop_algorithm (TPI is not used for over_climate)
-        assert getattr(entity, "proportional_algorithm", None) is None
-
-        # Try to call the service - it should raise an error or do nothing
-        # since over_climate doesn't use TPI algorithm
-        try:
-            await entity.service_set_tpi_parameters(
-                tpi_coef_int=0.6,
-                tpi_coef_ext=0.02,
-                minimal_activation_delay=60,
-                minimal_deactivation_delay=60,
-                tpi_threshold_low=-0.5,
-                tpi_threshold_high=0.5,
-            )
-            await hass.async_block_till_done()
-
-        except (ServiceValidationError, AttributeError) as e:
-            # This is also acceptable - if the service tries to access
-            # prop_algorithm attributes that don't exist
-            # or if the method itself doesn't exist (AttributeError)
-            pass
-
-        finally:
-            entity.remove_thermostat()
+    finally:
+        entity.remove_thermostat()

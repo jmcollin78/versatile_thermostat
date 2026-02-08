@@ -25,12 +25,14 @@ from homeassistant.const import (
 from homeassistant.config_entries import ConfigEntryState
 from homeassistant.helpers.entity import Entity
 from homeassistant.helpers.event import async_call_later
-from homeassistant.components.climate import ClimateEntity
+from homeassistant.components.climate import ClimateEntity, ClimateEntityFeature
 from homeassistant.components.climate.const import (
     DOMAIN as CLIMATE_DOMAIN,
     HVACAction,
     HVACMode,
-    ClimateEntityFeature,
+    PRESET_BOOST,
+    PRESET_COMFORT,
+    PRESET_ECO,
 )
 
 from homeassistant.components.switch import (
@@ -39,6 +41,8 @@ from homeassistant.components.switch import (
 )
 
 from homeassistant.components.number import NumberEntity, DOMAIN as NUMBER_DOMAIN
+from homeassistant.components.sensor import SensorEntity, DOMAIN as SENSOR_DOMAIN
+from homeassistant.components.binary_sensor import BinarySensorEntity, DOMAIN as BINARY_SENSOR_DOMAIN
 
 from homeassistant.helpers.entity_component import EntityComponent
 
@@ -262,6 +266,11 @@ class MockClimate(ClimateEntity):
         swing_modes: list[str] | None = None,
         swing_horizontal_mode: str | None = None,
         swing_horizontal_modes: list[str] | None = None,
+        min_temp: float = 7.0,
+        max_temp: float = 35.0,
+        step: float = 0.1,
+        ac_mode: bool = False,
+        add_state: bool = False,
     ) -> None:
         """Initialize the thermostat."""
 
@@ -273,7 +282,7 @@ class MockClimate(ClimateEntity):
         self._attr_extra_state_attributes = {}
         self._unique_id = unique_id
         self._name = name
-        self._attr_hvac_action = HVACAction.OFF if hvac_mode == VThermHvacMode_OFF else HVACAction.HEATING
+        self._ac_mode = ac_mode
         self._attr_hvac_mode = hvac_mode
         self._attr_available = True
         self._attr_hvac_modes = hvac_modes if hvac_modes is not None else [VThermHvacMode_OFF, VThermHvacMode_COOL, VThermHvacMode_HEAT]
@@ -284,10 +293,22 @@ class MockClimate(ClimateEntity):
         self._attr_temperature_unit = UnitOfTemperature.CELSIUS
         self._attr_target_temperature = 20
         self._attr_current_temperature = 15
-        self._attr_hvac_action = hvac_action
-        self._attr_target_temperature_step = 0.2
+        self._attr_target_temperature_step = step
         self._fan_modes = fan_modes if fan_modes else None
         self._attr_fan_mode = None
+        self._attr_preset_modes = [PRESET_COMFORT, PRESET_ECO, PRESET_BOOST]
+        self._attr_preset_mode = None
+        self._attr_min_temp = min_temp
+        self._attr_max_temp = max_temp
+
+        # Calculate hvac_action based on current state
+        self._calculate_hvac_action()
+
+        # if add_state:
+        # add the entity to hass states
+        #    set_entity_states_from_entity(hass, self)
+
+        # self.hass.loop.call_soon_threadsafe(self.async_write_ha_state)
 
     @property
     def name(self) -> str:
@@ -307,7 +328,8 @@ class MockClimate(ClimateEntity):
     def set_fan_mode(self, fan_mode):
         """Set the fan mode"""
         self._attr_fan_mode = fan_mode
-        self.async_write_ha_state()
+        # self.async_write_ha_state()
+        set_entity_states_from_entity(self.hass, self)
 
     @property
     def supported_features(self) -> int:
@@ -321,15 +343,29 @@ class MockClimate(ClimateEntity):
             ret = ret | ClimateEntityFeature.SWING_HORIZONTAL_MODE
         return ret
 
+    def _calculate_hvac_action(self):
+        """Calculate the hvac_action based on hvac_mode, target_temperature and current_temperature"""
+        if self._attr_hvac_mode in [HVACMode.OFF, STATE_UNAVAILABLE, STATE_UNKNOWN]:
+            self._attr_hvac_action = HVACAction.OFF
+        elif self._attr_hvac_mode in [HVACMode.HEAT, HVACMode.HEAT_COOL, HVACMode.AUTO]:
+            if self._attr_target_temperature > self._attr_current_temperature:
+                self._attr_hvac_action = HVACAction.HEATING
+            else:
+                self._attr_hvac_action = HVACAction.IDLE
+        elif self._attr_hvac_mode == HVACMode.COOL:
+            if self._attr_target_temperature < self._attr_current_temperature:
+                self._attr_hvac_action = HVACAction.COOLING
+            else:
+                self._attr_hvac_action = HVACAction.IDLE
+        else:
+            self._attr_hvac_action = HVACAction.IDLE
+
     def set_temperature(self, **kwargs):
         """Set the target temperature"""
         temperature = kwargs.get(ATTR_TEMPERATURE)
         self._attr_target_temperature = temperature
-        try:
-            # To avoid RuntimeError: Cannot call async_write_ha_state when not on main thread
-            self.async_write_ha_state()
-        except RuntimeError:
-            pass
+        self._calculate_hvac_action()
+        self.hass.loop.call_soon_threadsafe(self.async_write_ha_state)
 
     async def async_set_hvac_mode(self, hvac_mode):
         """The hvac mode"""
@@ -339,7 +375,8 @@ class MockClimate(ClimateEntity):
         else:
             self._attr_available = True
             self._attr_hvac_mode = hvac_mode
-        self.async_write_ha_state()
+        self._calculate_hvac_action()
+        self.hass.loop.call_soon_threadsafe(self.async_write_ha_state)
 
     def set_hvac_mode(self, hvac_mode):
         """The hvac mode"""
@@ -349,35 +386,59 @@ class MockClimate(ClimateEntity):
         else:
             self._attr_available = True
             self._attr_hvac_mode = hvac_mode
-        self.async_write_ha_state()
+        self._calculate_hvac_action()
+        self.hass.loop.call_soon_threadsafe(self.async_write_ha_state)
 
     def set_hvac_action(self, hvac_action: HVACAction):
         """Set the HVACaction"""
         self._attr_hvac_action = hvac_action
-        self.async_write_ha_state()
+        self.hass.loop.call_soon_threadsafe(self.async_write_ha_state)
 
     def set_current_temperature(self, current_temperature):
         """Set the current_temperature"""
         self._attr_current_temperature = current_temperature
-        self.async_write_ha_state()
+        self._calculate_hvac_action()
+        self.hass.loop.call_soon_threadsafe(self.async_write_ha_state)
 
     def set_swing_mode(self, swing_mode):
         """The swing mode"""
         self._attr_swing_mode = swing_mode
-        self.async_write_ha_state()
+        self.hass.loop.call_soon_threadsafe(self.async_write_ha_state)
 
     def set_swing_horizontal_mode(self, swing_horizontal_mode):
         """The swing horizontal mode"""
         self._attr_swing_horizontal_mode = swing_horizontal_mode
-        self.async_write_ha_state()
+        self.hass.loop.call_soon_threadsafe(self.async_write_ha_state)
+
+    @property
+    def attributes(self) -> Dict[str, Any]:
+        """Return the state attributes."""
+        attributes = self.state_attributes.copy()
+        if self.hvac_modes:
+            attributes["hvac_modes"] = self.hvac_modes
+        if self.fan_modes:
+            attributes["fan_modes"] = self.fan_modes
+        if self.preset_modes:
+            attributes["preset_modes"] = self.preset_modes
+        if self.swing_modes:
+            attributes["swing_modes"] = self.swing_modes
+        if self.swing_horizontal_modes:
+            attributes["swing_horizontal_modes"] = self.swing_horizontal_modes
+        if self.supported_features:
+            attributes["supported_features"] = self.supported_features
+        if self._attr_min_temp is not None:
+            attributes["min_temp"] = self._attr_min_temp
+        if self._attr_max_temp is not None:
+            attributes["max_temp"] = self._attr_max_temp
+        attributes["temperature_unit"] = self.temperature_unit
+
+        return attributes
 
 
 class MockUnavailableClimate(ClimateEntity):
     """A Mock Climate class used for Underlying climate mode"""
 
-    def __init__(
-        self, hass: HomeAssistant, unique_id, name, entry_infos
-    ) -> None:  # pylint: disable=unused-argument
+    def __init__(self, hass: HomeAssistant, unique_id, name, entry_infos, add_state: bool = True) -> None:  # pylint: disable=unused-argument
         """Initialize the thermostat."""
 
         super().__init__()
@@ -391,12 +452,34 @@ class MockUnavailableClimate(ClimateEntity):
         self._attr_hvac_modes = [VThermHvacMode_OFF, VThermHvacMode_COOL, VThermHvacMode_HEAT]
         self._attr_temperature_unit = UnitOfTemperature.CELSIUS
         self._attr_fan_mode = None
+        if add_state:
+            # add the entity to hass states
+            set_entity_states_from_entity(hass, self)
 
     @property
     def supported_features(self) -> int:
         """The supported feature of this climate entity"""
         ret = ClimateEntityFeature.TARGET_TEMPERATURE
         return ret
+
+    @property
+    def attributes(self) -> Dict[str, Any]:
+        """Return the state attributes."""
+        attributes = self.state_attributes.copy()
+        if self.hvac_modes:
+            attributes["hvac_modes"] = self.hvac_modes
+        if self.fan_modes:
+            attributes["fan_modes"] = self.fan_modes
+        if self.preset_modes:
+            attributes["preset_modes"] = self.preset_modes
+        if self.swing_modes:
+            attributes["swing_modes"] = self.swing_modes
+        if self.swing_horizontal_modes:
+            attributes["swing_horizontal_modes"] = self.swing_horizontal_modes
+        if self.supported_features:
+            attributes["supported_features"] = self.supported_features
+
+        return attributes
 
 
 class MagicMockClimate(MagicMock):
@@ -498,8 +581,16 @@ class MagicMockClimate(MagicMock):
         return {}
 
 
-class MagicMockClimateWithTemperatureRange(MagicMock):
+class MagicMockClimateWithTemperatureRange(MagicMock, ClimateEntity):
     """A Magic Mock class for a underlying climate entity"""
+
+    def __init__(self, unique_id="theoverclimatemocknamewithtemperaturerange"):
+        """Init the mock climate with temperature range"""
+        super().__init__()
+        self._unique_id = unique_id
+        self.platform = "climate"
+        self.entity_id = (self.platform + "." + unique_id).lower()
+        self._name = "The Over Climate Mock Name With Temperature Range"
 
     @property
     def temperature_unit(self):  # pylint: disable=missing-function-docstring
@@ -566,6 +657,10 @@ class MagicMockClimateWithTemperatureRange(MagicMock):
         return None
 
     @property
+    def swing_horizontal_mode(self) -> str | None:  # pylint: disable=missing-function-docstring
+        return None
+
+    @property
     def supported_features(self):  # pylint: disable=missing-function-docstring
         return ClimateEntityFeature.TARGET_TEMPERATURE_RANGE
 
@@ -585,6 +680,24 @@ class MagicMockClimateWithTemperatureRange(MagicMock):
     def extra_restore_state_data(self) -> Dict[str, Any]:  # pylint: disable=missing-function-docstring
         """To disable the error when restoring the state/storing the state"""
         return {}
+
+    @property
+    def attributes(self) -> Dict[str, Any]:
+        """Return the state attributes."""
+        return {
+            "hvac_mode": self.hvac_mode,
+            "hvac_action": self.hvac_action,
+            "target_temperature": self.target_temperature,
+            "current_temperature": self.current_temperature,
+            "hvac_modes": self.hvac_modes,
+            "supported_features": self.supported_features,
+            "temperature_unit": self.temperature_unit,
+            "min_temp": self.min_temp,
+            "max_temp": self.max_temp,
+            "fan_mode": self.fan_mode,
+            "swing_mode": self.swing_mode,
+            "swing_horizontal_mode": self.swing_horizontal_mode,
+        }
 
 
 class MockSwitch(SwitchEntity):
@@ -641,6 +754,7 @@ class MockNumber(NumberEntity):
         hass: HomeAssistant,
         unique_id,
         name,
+        value=0,
         min=0,
         max=100,
         step=1,
@@ -653,10 +767,10 @@ class MockNumber(NumberEntity):
         self.platform = "number"
         self.entity_id = self.platform + "." + unique_id
         self._name = name
-        self._attr_native_value = 0
+        self._attr_native_value = value
         self._attr_native_min_value = min
         self._attr_native_max_value = max
-        self._attr_step = step
+        self._attr_native_step = step
 
     @property
     def name(self) -> str:
@@ -667,17 +781,155 @@ class MockNumber(NumberEntity):
     def set_native_value(self, value: float):
         """Change the value"""
         self._attr_native_value = value
-        # self.async_write_ha_state generates exception if not on the main loop
-        self.schedule_update_ha_state()
+        self.hass.loop.call_soon_threadsafe(self.async_write_ha_state)
+
+    @overrides
+    def set_max_value(self, value: float):
+        """Change the max value"""
+        self._attr_native_max_value = value
+        self.hass.loop.call_soon_threadsafe(self.async_write_ha_state)
+
+    @overrides
+    def set_min_value(self, value: float):
+        """Change the min value"""
+        self._attr_native_min_value = value
+        self.hass.loop.call_soon_threadsafe(self.async_write_ha_state)
+
+
+class MockTemperatureSensor(SensorEntity):
+    """A fake temperature sensor to be used instead real sensor"""
+
+    def __init__(  # pylint: disable=unused-argument, dangerous-default-value
+        self, hass: HomeAssistant, unique_id, name, entry_infos={}, value=20, unit_of_measurement=UnitOfTemperature.CELSIUS
+    ):
+        """Init the temperature sensor"""
+        super().__init__()
+
+        self.hass = hass
+        self.platform = "sensor"
+        self.entity_id = self.platform + "." + unique_id
+        self._name = name
+        self._attr_native_unit_of_measurement = unit_of_measurement
+        self._attr_native_value = value
+
+    @property
+    def name(self) -> str:
+        """The name"""
+        return self._name
+
+    @overrides
+    def set_native_value(self, value: float):
+        """Change the value"""
+        self._attr_native_value = value
+        self.hass.loop.call_soon_threadsafe(self.async_write_ha_state)
+
+
+class MockBinarySensor(BinarySensorEntity):
+    """A fake binary sensor to be used instead of real binary sensor"""
+
+    def __init__(self, hass: HomeAssistant, unique_id, name, entry_infos={}, is_on=False):  # pylint: disable=unused-argument, dangerous-default-value
+        """Init the binary sensor"""
+        super().__init__()
+
+        self.hass = hass
+        self.platform = BINARY_SENSOR_DOMAIN
+        self.entity_id = self.platform + "." + unique_id
+        self._name = name
+        self._attr_is_on = is_on
+
+    @property
+    def name(self) -> str:
+        """The name"""
+        return self._name
+
+    @property
+    def is_on(self) -> bool:
+        """True if the binary sensor is on"""
+        return self._attr_is_on
+
+    def turn_on(self, **kwargs: Any):
+        """Turns the binary sensor on and notify the state change"""
+        self._attr_is_on = True
+        self.hass.loop.call_soon_threadsafe(self.async_write_ha_state)
+
+    def turn_off(self, **kwargs: Any):
+        """Turns the binary sensor off and notify the state change"""
+        self._attr_is_on = False
+        self.hass.loop.call_soon_threadsafe(self.async_write_ha_state)
+
+
+async def create_and_register_mock_climate(
+    hass: HomeAssistant,
+    unique_id,
+    name,
+    entry_infos={},
+    hvac_mode: HVACMode = HVACMode.OFF,
+    hvac_action: HVACAction = HVACAction.OFF,
+    fan_modes: list[str] | None = None,
+    hvac_modes: list[str] | None = None,
+    swing_mode: str | None = None,
+    swing_modes: list[str] | None = None,
+    swing_horizontal_mode: str | None = None,
+    swing_horizontal_modes: list[str] | None = None,
+    min_temp: float = 7.0,
+    max_temp: float = 35.0,
+    step: float = 0.1,
+):
+    """Create and register a mock climate entity"""
+    mock_climate = MockClimate(
+        hass,
+        unique_id,
+        name,
+        entry_infos,
+        hvac_mode,
+        hvac_action,
+        fan_modes,
+        hvac_modes,
+        swing_mode,
+        swing_modes,
+        swing_horizontal_mode,
+        swing_horizontal_modes,
+        min_temp=min_temp,
+        max_temp=max_temp,
+        step=step,
+        add_state=False,
+    )
+    await register_mock_entity(hass, mock_climate, CLIMATE_DOMAIN)
+    return mock_climate
+
+
+async def create_and_register_mock_number(
+    hass: HomeAssistant,
+    unique_id,
+    name,
+    value=0,
+    min=0,
+    max=100,
+    step=1,
+    entry_infos={},
+):
+    """Create and register a mock number entity"""
+    mock_number = MockNumber(
+        hass,
+        unique_id,
+        name,
+        value,
+        min,
+        max,
+        step,
+        entry_infos,
+    )
+    await register_mock_entity(hass, mock_number, NUMBER_DOMAIN)
+    return mock_number
 
 
 async def register_mock_entity(hass, entity: Entity, domain: str):
     """Register the entity in HA"""
 
-    component = EntityComponent(None, domain, hass)
+    component = EntityComponent(_LOGGER, domain, hass)
 
     await component.async_add_entities([entity])
-    await entity.hass.async_block_till_done()
+    await hass.async_block_till_done()
 
 
 async def create_thermostat(
@@ -1042,11 +1294,15 @@ async def send_climate_change_event(
             ),
         },
     )
-    ret = await entity._async_climate_changed(climate_event)
+    # Find under state manager and send the change
+    under = entity.find_underlying_by_entity_id(underlying_entity_id)
+    await under.state_manager._state_changed(climate_event)
+
+    # ret = await entity._async_climate_changed(climate_event)
     if sleep:
         await entity.hass.async_block_till_done()
-        await asyncio.sleep(0.1)
-    return ret
+        await asyncio.sleep(0.1)  # TODO remove this one day
+    # return ret
 
 
 async def send_climate_change_event_with_temperature(
@@ -1080,24 +1336,26 @@ async def send_climate_change_event_with_temperature(
             "new_state": State(
                 entity_id=underlying_entity_id,
                 state=new_hvac_mode,
-                attributes={"hvac_action": new_hvac_action, "temperature": temperature},
+                attributes={"hvac_action": new_hvac_action, "temperature": temperature, "supported_features": ClimateEntityFeature.TARGET_TEMPERATURE},
                 last_changed=date,
                 last_updated=date,
             ),
             "old_state": State(
                 entity_id=underlying_entity_id,
                 state=old_hvac_mode,
-                attributes={"hvac_action": old_hvac_action},
+                attributes={"hvac_action": old_hvac_action, "supported_features": ClimateEntityFeature.TARGET_TEMPERATURE},
                 last_changed=date,
                 last_updated=date,
             ),
         },
     )
-    ret = await entity._async_climate_changed(climate_event)
+    under = entity.find_underlying_by_entity_id(underlying_entity_id)
+    await under.state_manager._state_changed(climate_event)
+    # ret = await entity._async_climate_changed(climate_event)
     if sleep:
         await entity.hass.async_block_till_done()
-        await asyncio.sleep(0.1)
-    return ret
+        await asyncio.sleep(0.1)  # TODO remove this one day
+    # return ret
 
 
 def cancel_switchs_cycles(entity: BaseThermostat):
@@ -1254,4 +1512,29 @@ async def wait_for_local_condition(check_condition: Callable[[], bool], timeout:
             raise TimeoutError("La condition locale n'a pas été satisfaite.")
 
         # Le minimum pour laisser l'event loop s'exécuter
-        await asyncio.sleep(0)
+        await asyncio.sleep(0.1)
+
+
+default_climate_attributes = {
+    "supported_features": ClimateEntityFeature.TARGET_TEMPERATURE | ClimateEntityFeature.FAN_MODE | ClimateEntityFeature.SWING_MODE | ClimateEntityFeature.SWING_HORIZONTAL_MODE,
+}
+
+
+def set_entity_states(hass, entity_id, state, attributes=None):
+    """Set the states of an entity"""
+
+    hass.states.async_set(
+        entity_id=entity_id,
+        new_state=state,
+        attributes=attributes,
+    )
+
+
+def set_entity_states_from_entity(hass, entity: Entity):
+    """Set the states of an entity from an entity object"""
+
+    hass.states.async_set(
+        entity_id=entity.entity_id,
+        new_state=entity.state,
+        attributes=entity.attributes,
+    )

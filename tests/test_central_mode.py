@@ -174,9 +174,7 @@ async def test_config_with_central_mode_none(
 
 @pytest.mark.parametrize("expected_lingering_tasks", [True])
 @pytest.mark.parametrize("expected_lingering_timers", [True])
-async def test_switch_change_central_mode_true(
-    hass: HomeAssistant, skip_hass_states_is_state, init_central_config
-):
+async def test_switch_change_central_mode_true(hass: HomeAssistant, skip_hass_states_is_state, init_central_config, fake_underlying_switch: MockSwitch):
     """test that changes with over_switch config with central_mode True are
     taken into account"""
 
@@ -317,9 +315,7 @@ async def test_switch_change_central_mode_true(
 
 @pytest.mark.parametrize("expected_lingering_tasks", [True])
 @pytest.mark.parametrize("expected_lingering_timers", [True])
-async def test_switch_ac_change_central_mode_true(
-    hass: HomeAssistant, skip_hass_states_is_state, init_central_config
-):
+async def test_switch_ac_change_central_mode_true(hass: HomeAssistant, skip_hass_states_is_state, init_central_config, fake_underlying_switch_ac: MockSwitch):
     """test that changes with over_switch config with central_mode True are
     taken into account"""
 
@@ -454,13 +450,11 @@ async def test_switch_ac_change_central_mode_true(
 
 @pytest.mark.parametrize("expected_lingering_tasks", [True])
 @pytest.mark.parametrize("expected_lingering_timers", [True])
-async def test_climate_ac_change_central_mode_false(
-    hass: HomeAssistant, skip_hass_states_is_state, init_central_config
-):
+async def test_climate_ac_change_central_mode_false(hass: HomeAssistant, skip_hass_states_is_state, init_central_config, fake_underlying_climate: MockClimate):
     """test that changes with over_climate config with central_mode False are
     not taken into account"""
 
-    fake_underlying_climate = MockClimate(hass, "mockUniqueId", "MockClimateName", {})
+    # fake_underlying_climate = MockClimate(hass, "mockUniqueId", "MockClimateName", {})
 
     # Add a Climate VTherm
     entry = MockConfigEntry(
@@ -493,10 +487,7 @@ async def test_climate_ac_change_central_mode_false(
         },
     )
 
-    with patch("homeassistant.core.ServiceRegistry.async_call"), patch(
-        "custom_components.versatile_thermostat.underlyings.UnderlyingClimate.find_underlying_climate",
-        return_value=fake_underlying_climate,
-    ):
+    with patch("homeassistant.core.ServiceRegistry.async_call"):
         entity: ThermostatOverSwitch = await create_thermostat(
             hass, entry, "climate.theoverclimatemockname"
         )
@@ -590,20 +581,12 @@ async def test_climate_ac_change_central_mode_false(
 
 @pytest.mark.parametrize("expected_lingering_tasks", [True])
 @pytest.mark.parametrize("expected_lingering_timers", [True])
-async def test_climate_ac_only_change_central_mode_true(
-    hass: HomeAssistant, skip_hass_states_is_state, init_central_config
-):
+async def test_climate_ac_only_change_central_mode_true(hass: HomeAssistant, skip_hass_states_is_state, init_central_config, fake_underlying_climate_off_cool: MockClimate):
     """test that changes with over_climate with AC only config with central_mode True are
     taken into account
     Test also switching from central_mode without coming to AUTO each time"""
 
-    fake_underlying_climate = MockClimate(
-        hass,
-        "mockUniqueId",
-        "MockClimateName",
-        entry_infos={},
-        hvac_modes=[VThermHvacMode_OFF, VThermHvacMode_COOL],
-    )
+    assert fake_underlying_climate_off_cool.hvac_modes == [VThermHvacMode_OFF, VThermHvacMode_COOL]
 
     # Add a Climate VTherm
     entry = MockConfigEntry(
@@ -637,10 +620,7 @@ async def test_climate_ac_only_change_central_mode_true(
     )
 
     # 1. set hvac_mode to COOL and preet ECO
-    with patch("homeassistant.core.ServiceRegistry.async_call"), patch(
-        "custom_components.versatile_thermostat.underlyings.UnderlyingClimate.find_underlying_climate",
-        return_value=fake_underlying_climate,
-    ):
+    with patch("homeassistant.core.ServiceRegistry.async_call"):
         entity: ThermostatOverSwitch = await create_thermostat(
             hass, entry, "climate.theoverclimatemockname"
         )
@@ -752,9 +732,7 @@ async def test_climate_ac_only_change_central_mode_true(
 
 @pytest.mark.parametrize("expected_lingering_tasks", [True])
 @pytest.mark.parametrize("expected_lingering_timers", [True])
-async def test_switch_change_central_mode_true_with_window(
-    hass: HomeAssistant, skip_hass_states_is_state, init_central_config
-):
+async def test_switch_change_central_mode_true_with_window(hass: HomeAssistant, skip_hass_states_is_state, init_central_config, fake_underlying_switch: MockSwitch):
     """test that changes with over_switch config with central_mode True are
     taken into account"""
 
@@ -908,9 +886,7 @@ async def test_switch_change_central_mode_true_with_window(
 
 @pytest.mark.parametrize("expected_lingering_tasks", [True])
 @pytest.mark.parametrize("expected_lingering_timers", [True])
-async def test_switch_change_central_mode_true_with_cool_only_and_window(
-    hass: HomeAssistant, skip_hass_states_is_state, init_central_config
-):
+async def test_switch_change_central_mode_true_with_cool_only_and_window(hass: HomeAssistant, skip_hass_states_is_state, init_central_config, fake_underlying_switch: MockSwitch):
     """test that changes with over_switch config with central_mode True are
     taken into account"""
 

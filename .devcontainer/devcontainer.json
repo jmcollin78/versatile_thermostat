@@ -40,7 +40,8 @@
                 "huizhou.githd",
                 "github.copilot",
                 "github.copilot-chat",
-                "openai.chatgpt"
+                "openai.chatgpt",
+                "bierner.markdown-mermaid"
             ],
             "settings": {
                 "files.eol": "\n",

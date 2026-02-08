@@ -362,6 +362,12 @@ class FeatureCentralBoilerManager(BaseFeatureManager):
         if self._central_boiler_entity:
             self._central_boiler_entity.refresh_custom_attributes()
 
+    @property
+    def nb_device_active_for_boiler_entity(self):
+        """Returns the entity if the sensor which gives the number of active VTherm which have an
+        influence on boiler"""
+        return self._nb_active_device_number_entity
+
     # For testing purpose
     def _set_nb_active_device_threshold(self, value: int) -> None:
         """Set the number of active device threshold"""
