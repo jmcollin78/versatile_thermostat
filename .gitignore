@@ -118,3 +118,5 @@ htmlcov
 .venv
 
 .agent
+
+dev_tests/
