@@ -2,6 +2,7 @@
 """ Implements the VersatileThermostat sensors component """
 import logging
 import math
+from collections.abc import Callable
 
 from homeassistant.core import HomeAssistant, callback, Event, State
 
@@ -180,10 +181,14 @@ class EnergySensor(VersatileThermostatBaseEntity, SensorEntity):
 
     @property
     def device_class(self) -> SensorDeviceClass | None:
+        if not self.my_climate:
+            return None
         return SensorDeviceClass.ENERGY
 
     @property
     def state_class(self) -> SensorStateClass | None:
+        if not self.my_climate:
+            return None
         return SensorStateClass.TOTAL_INCREASING
 
     @property
@@ -339,9 +344,9 @@ class AutoTpiSensor(VersatileThermostatBaseEntity, SensorEntity):
             return
 
         if not hasattr(self.my_climate, "auto_tpi_manager") or not self.my_climate.auto_tpi_manager:
-             self._attr_native_value = "disabled"
-             self.async_write_ha_state()
-             return
+            self._attr_native_value = "disabled"
+            self.async_write_ha_state()
+            return
 
         manager = self.my_climate.auto_tpi_manager
 
@@ -773,7 +778,7 @@ class NbActiveDeviceForBoilerSensor(SensorEntity):
         self._attr_value = self._attr_native_value = None  # default value
         self._entities = []
         self._attr_active_device_ids = []  # Holds the entity ids of active devices``
-        self._cancel_listener_nb_active: callable | None = None
+        self._cancel_listener_nb_active: Callable | None = None
 
     @property
     def extra_state_attributes(self) -> dict:
@@ -926,7 +931,7 @@ class NbActiveDeviceForBoilerSensor(SensorEntity):
         """Cancel the listening of underlying VTherm state changes"""
         if self._cancel_listener_nb_active is not None:
             try:
-                self._cancel_listener_nb_active()
+                self._cancel_listener_nb_active()  # pylint: disable=not-callable
             except (ValueError, TypeError):  # the listener could be already cancelled
                 pass
             self._cancel_listener_nb_active = None
