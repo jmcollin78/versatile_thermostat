@@ -168,9 +168,9 @@ class ThermostatOverClimateValve(ThermostatProp[UnderlyingClimate], ThermostatOv
     @property
     def is_initialized(self) -> bool:
         """Check if all underlyings and valve underlyings are initialized"""
-        for under in self._underlyings:
-            if not under.is_initialized:
-                return False
+        if not super().is_initialized:
+            return False
+
         for under in self._underlyings_valve_regulation:
             if not under.is_initialized:
                 return False

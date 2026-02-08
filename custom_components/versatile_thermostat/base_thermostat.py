@@ -112,6 +112,7 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
         # To remove some silly warning event if code is fixed
         self._enable_turn_on_off_backwards_compatibility = False
         self._is_removed = False
+        self._is_startup_done = False
 
         self._hass = hass
         self._entry_infos = None
@@ -549,6 +550,7 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
                 "cause no external sensor",
                 self,
             )
+        self._is_startup_done = True
 
     async def init_underlyings_completed(self, under_entity_id: str):
         """All underlyings have been initialized. Then we can finish our initialization"""
@@ -578,7 +580,6 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
             #    need_write_state = True
 
         await self.update_states(force=True)
-        # self.async_write_ha_state()
         self.recalculate()
 
         # check initial state should be done after the current state has been calculated and so after the manager has been updated
@@ -790,6 +791,11 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
         """Check if all underlyings are initialized
         This is useful only for over_climate in which we
         should have found the underlying climate to be operational"""
+        if not self._is_startup_done:
+            return False
+        for under in self._underlyings:
+            if not under.is_initialized:
+                return False
         return True
 
     @property
@@ -1059,7 +1065,7 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
     @property
     def hass(self) -> HomeAssistant:
         """Return the Home Assistant instance.
-        
+
         This overrides the Entity.hass property to return our stored _hass
         reference during initialization (before async_added_to_hass is called).
         """
@@ -1068,7 +1074,7 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
     @hass.setter
     def hass(self, value: HomeAssistant):
         """Set the Home Assistant instance.
-        
+
         This is called by the entity platform when adding the entity.
         """
         self._hass = value
@@ -1172,7 +1178,6 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
     def proportional_algorithm(self):
         """Get the eventual ProportionalAlgorithm"""
         return None
-
 
     @property
     def last_temperature_measure(self) -> datetime | None:
