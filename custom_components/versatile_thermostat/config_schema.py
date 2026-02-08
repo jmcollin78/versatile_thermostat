@@ -12,6 +12,7 @@ from homeassistant.components.input_boolean import (
 )
 
 from homeassistant.components.sensor import DOMAIN as SENSOR_DOMAIN
+from homeassistant.components.weather import DOMAIN as WEATHER_DOMAIN
 from homeassistant.components.input_number import (
     DOMAIN as INPUT_NUMBER_DOMAIN,
 )
@@ -110,7 +111,9 @@ STEP_CENTRAL_FEATURES_DATA_SCHEMA = vol.Schema(  # pylint: disable=invalid-name
 STEP_CENTRAL_MAIN_DATA_SCHEMA = vol.Schema(  # pylint: disable=invalid-name
     {
         vol.Required(CONF_EXTERNAL_TEMP_SENSOR): selector.EntitySelector(
-            selector.EntitySelectorConfig(domain=[SENSOR_DOMAIN, INPUT_NUMBER_DOMAIN]),
+            selector.EntitySelectorConfig(
+                domain=[SENSOR_DOMAIN, INPUT_NUMBER_DOMAIN, WEATHER_DOMAIN]
+            ),
         ),
         vol.Required(CONF_TEMP_MIN, default=7): vol.Coerce(float),
         vol.Required(CONF_TEMP_MAX, default=35): vol.Coerce(float),
@@ -122,7 +125,9 @@ STEP_CENTRAL_MAIN_DATA_SCHEMA = vol.Schema(  # pylint: disable=invalid-name
 STEP_CENTRAL_SPEC_MAIN_DATA_SCHEMA = vol.Schema(  # pylint: disable=invalid-name
     {
         vol.Required(CONF_EXTERNAL_TEMP_SENSOR): selector.EntitySelector(
-            selector.EntitySelectorConfig(domain=[SENSOR_DOMAIN, INPUT_NUMBER_DOMAIN]),
+            selector.EntitySelectorConfig(
+                domain=[SENSOR_DOMAIN, INPUT_NUMBER_DOMAIN, WEATHER_DOMAIN]
+            ),
         ),
         vol.Required(CONF_TEMP_MIN, default=7): vol.Coerce(float),
         vol.Required(CONF_TEMP_MAX, default=35): vol.Coerce(float),

@@ -531,12 +531,22 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
                 STATE_UNAVAILABLE,
                 STATE_UNKNOWN,
             ):
-                _LOGGER.debug(
-                    "%s - external temperature sensor have been retrieved: %.1f",
-                    self,
-                    float(ext_temperature_state.state),
-                )
-                await self._async_update_ext_temp(ext_temperature_state)
+                try:
+                    ext_temp = self._extract_temperature_value(
+                        ext_temperature_state, allow_temperature_attribute=True
+                    )
+                    _LOGGER.debug(
+                        "%s - external temperature sensor have been retrieved: %.1f",
+                        self,
+                        ext_temp,
+                    )
+                    await self._async_update_ext_temp(ext_temperature_state)
+                except ValueError:
+                    _LOGGER.debug(
+                        "%s - external temperature sensor have NOT been retrieved "
+                        "cause it doesn't provide a usable temperature",
+                        self,
+                    )
             else:
                 _LOGGER.debug(
                     "%s - external temperature sensor have NOT been retrieved "
@@ -1751,6 +1761,7 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
             "hvac_mode": self.hvac_mode,
             "preset_mode": self.preset_mode,
             "ema_temp": self._ema_temp,
+            "ext_current_temperature_entity_id": self._ext_temp_sensor_entity_id,
             "specific_states": {
                 "is_on": self.is_on,
                 "last_central_mode": self.last_central_mode,
@@ -1896,7 +1907,8 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
         if new_state is None or new_state.state in (STATE_UNAVAILABLE, STATE_UNKNOWN):
             return
 
-        await self._async_update_ext_temp(new_state)
+        if not await self._async_update_ext_temp(new_state):
+            return
         self.recalculate()
 
         # Potentially it generates a safety event
@@ -1910,9 +1922,7 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
     async def _async_update_temp(self, state: State):
         """Update thermostat with latest state from sensor."""
         try:
-            cur_temp = float(state.state)
-            if math.isnan(cur_temp) or math.isinf(cur_temp):
-                raise ValueError(f"Sensor has illegal state {state.state}")
+            cur_temp = self._extract_temperature_value(state)
             self._cur_temp = cur_temp
 
             self._last_temperature_measure = self.get_state_date_or_now(state)
@@ -1941,9 +1951,9 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
     async def _async_update_ext_temp(self, state: State):
         """Update thermostat with latest state from sensor."""
         try:
-            cur_ext_temp = float(state.state)
-            if math.isnan(cur_ext_temp) or math.isinf(cur_ext_temp):
-                raise ValueError(f"Sensor has illegal state {state.state}")
+            cur_ext_temp = self._extract_temperature_value(
+                state, allow_temperature_attribute=True
+            )
             self._cur_ext_temp = cur_ext_temp
             self._last_ext_temperature_measure = self.get_state_date_or_now(state)
 
@@ -1957,8 +1967,36 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
             # try to restart if we were in safety mode
             # if self._safety_manager.is_safety_detected:
             #     await self._safety_manager.refresh_state()
+            return True
         except ValueError as ex:
             _LOGGER.error("Unable to update external temperature from sensor: %s", ex)
+            return False
+
+    def _extract_temperature_value(
+        self, state: State, allow_temperature_attribute: bool = False
+    ) -> float:
+        """Extract a finite temperature from state or (optionally) from attributes."""
+        values_to_try = [state.state]
+        if allow_temperature_attribute:
+            values_to_try.append(state.attributes.get(ATTR_TEMPERATURE))
+
+        for value in values_to_try:
+            if value in (None, STATE_UNKNOWN, STATE_UNAVAILABLE):
+                continue
+
+            try:
+                temperature = float(value)
+            except (ValueError, TypeError):
+                continue
+
+            if math.isnan(temperature) or math.isinf(temperature):
+                raise ValueError(f"Sensor has illegal state {value}")
+            return temperature
+
+        raise ValueError(
+            f"No usable temperature value in state={state.state} "
+            f"attr_temperature={state.attributes.get(ATTR_TEMPERATURE)}"
+        )
 
     ##
     ## Services (actions)
