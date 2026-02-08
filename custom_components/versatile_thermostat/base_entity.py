@@ -32,7 +32,7 @@ class VersatileThermostatBaseEntity(Entity):
         self.hass = hass
         self._config_id = config_id
         self._device_name = device_name
-        self._attr_entity_category = EntityCategory.DIAGNOSTIC
+        # self._attr_entity_category = EntityCategory.DIAGNOSTIC
         self._my_climate = None
         self._cancel_call = None
         self._attr_has_entity_name = True
@@ -119,3 +119,9 @@ class VersatileThermostatBaseEntity(Entity):
         This method aims to be overridden to take the status change
         """
         return
+
+    @property
+    def entity_category(self):
+        if not self.my_climate:
+            return EntityCategory.DIAGNOSTIC
+        return None
