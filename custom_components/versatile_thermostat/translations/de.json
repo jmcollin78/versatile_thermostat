@@ -5,7 +5,7 @@
     "step": {
       "user": {
         "title": "Typ des Versatile Thermostat",
-        "description": "Wählen Sie den Thermostattyp, den Sie erstellen möchten.",
+        "description": "Zu erstellenden Thermostattyp auswählen.",
         "data": {
           "thermostat_type": "Thermostattyp"
         },
@@ -22,7 +22,7 @@
           "type": "Basiswerte",
           "tpi": "TPI-Parameter (Time Proportional Integral)",
           "features": "Funktionen",
-          "presets": "Voreinstellungen",
+          "presets": "Temperaturvoreinstellungen",
           "window": "Fensteröffnugserkennung",
           "motion": "Bewegungserkennung",
           "power": "Powermanagement",
@@ -32,6 +32,10 @@
           "valve_regulation": "Konfiguration Ventilsteuerung",
           "sync_device_internal_temp": "Synchronisierung der Gerätetemperatur",
           "lock": "Sperrenverwaltung",
+          "heating_failure_detection": "Heizungsausfallerkennung",
+          "auto_tpi_configuration": "Auto TPI - Konfiguration",
+          "auto_tpi_avg_settings": "Auto TPI - Durchschnitt",
+          "auto_tpi_ema_settings": "Auto TPI - EMA",
           "finalize": "Alles erledigt",
           "configuration_not_complete": "Konfiguration unvollständig"
         }
@@ -41,28 +45,30 @@
         "description": "Die Sperrfunktion verhindert Änderungen an einem Thermostat über die Benutzeroberfläche oder Automatisierungen, während der Thermostat weiterhin funktioniert.",
         "data": {
           "use_lock_central_config": "Zentrale Sperrkonfiguration verwenden",
+          "lock_code": "Optionaler PIN-Code (4 Ziffern)",
           "lock_users": "Sperre verhindert Benutzerbefehle",
           "lock_automations": "Sperre verhindert Befehle von Automatisierungen und Integrationen (z.B. Planer)"
         },
         "data_description": {
-          "use_lock_central_config": "Aktivieren für zentrale Sperrkonfiguration. Deaktivieren für sperrspezifische Konfiguration dieses VTherm"
+          "use_lock_central_config": "Aktivieren für zentrale Sperrkonfiguration. Deaktivieren für sperrspezifische Konfiguration dieses VTherm",
+          "lock_code": "Der PIN-Code zum Entsperren des Thermostats (4 Ziffern)" 
         }
       },
       "main": {
         "title": "Neues Versatile Thermostat",
-        "description": "Wichtigste notwendige Attribute",
+        "description": "Wichtigste notwendige Eigenschaften",
         "data": {
           "name": "Name",
           "thermostat_type": "Thermostattyp",
           "temperature_sensor_entity_id": "Raumtemperatursensor",
           "last_seen_temperature_sensor_entity_id": "Letzte Sichtung des Temperatursensors",
-          "external_temperature_sensor_entity_id": "Entity des Außentemperatursensors",
+          "external_temperature_sensor_entity_id": "Außentemperatursensors",
           "cycle_min": "Zyklusdauer (Minuten)",
           "temp_min": "Zulässige Mindesttemperatur",
           "temp_max": "Zulässige Höchsttemperatur",
           "step_temperature": "Temperaturschritte",
           "device_power": "Geräteleistung",
-          "use_central_mode": "Kontrolle durch eine zentrale Stelle zulassen (zentrale Konfiguration erforderlich). Aktivieren, um die Steuerung des VTherm mit den ausgewählten Zentralmodus-Entities zu aktivieren.",
+          "use_central_mode": "Kontrolle durch zentrale Stelle zulassen (zentrale Konfiguration erforderlich). Aktivieren, um die Steuerung des VTherm mit den ausgewählten Zentralmodus-Entities zu aktivieren.",
           "use_main_central_config": "Zusätzliche zentrale Konfiguration verwenden. Anwählen, wenn eine zusätzliche zentrale Konfiguration verwendet werden soll (Außentemperatur, Min, Max, Stufe, ...).",
           "used_by_controls_central_boiler": "Zentralheizung verwenden. Wenn angewählt, steuert dieses VTherm den zentralen Heizkessel."
         },
@@ -85,7 +91,8 @@
           "use_power_feature": "Powermanagement",
           "use_presence_feature": "Anwesenheitserkennung",
           "use_central_boiler_feature": "Zentralheizung hinzufügen. Aktivieren Sie diese Option, um eine Steuerung für eine Zentralheizung hinzuzufügen. Anschließend müssen die VTerms konfiguriert werden, die die Zentralheizung steuern. Sonst ist diese Option unwirksam. Sobald mindestens einer der VTherms heizen muss, wird die Zentralheizung aktiviert. Sollte keiner der VTherms heizen müssen, wird sie ausgeschaltet. Die Befehle zum Ein- und Ausschalten der Zentralheizung befinden sich auf der folgenden Konfigurationsseite",
-          "use_auto_start_stop_feature": "Mit automatische Start- und Stoppfunktion"
+          "use_auto_start_stop_feature": "Mit automatischer Start- und Stoppfunktion",
+          "use_heating_failure_detection_feature": "Heizungsausfallerkennung"
         }
       },
       "type": {
@@ -100,27 +107,27 @@
           "auto_regulation_mode": "Selbstregelung",
           "auto_regulation_dtemp": "Regelungsschwelle",
           "auto_regulation_periode_min": "Mindestzeitraum Regelung",
-          "auto_regulation_use_device_temp": "Interne Bezugstemperatur",
+          "auto_regulation_use_device_temp": "Interne Bezugstemperatur ausgleichen",
           "inverse_switch_command": "Umgekehrter Schalterbefehl",
           "auto_fan_mode": "Automatischer Lüftermodus",
           "on_command_text": "Anpassung Einschaltbefehl",
           "vswitch_on_command": "Einschaltbefehl (optional)",
-          "off_command_text": "Anpassung für Ausschaltbefehl",
+          "off_command_text": "Anpassung Ausschaltbefehl",
           "vswitch_off_command": "Ausschaltbefehl (optional)"
         },
         "data_description": {
-          "underlying_entity_ids": "Zu steuernde Geräte - 1 ist erforderlich",
-          "heater_keep_alive": "Aktualisierungsintervall des Schalters in Sekunden. Zum Deaktivieren leer lassen. Nur für Schalter verwenden, die dies erfordern",
+          "underlying_entity_ids": "Liste der von diesem VTherm gesteuerten Geräte",
+          "heater_keep_alive": "Aktualisierungsintervall des Schalters in Sekunden. Leer lassen zum Deaktivieren. Nur für Schalter verwenden, wenn erforderlich",
           "proportional_function": "Zu verwendender Algorithmus (derzeit ist nur TPI verfügbar)",
-          "ac_mode": "Modus „Klimaanlage“ (AC) benutzen",
-          "sync_device_internal_temp": "Die interne Temperatur der zugrunde liegenden Geräte mit den ausgewählten Entitäten synchronisieren",
-          "auto_regulation_mode": "Verwendung der Selbstregulierung durch VTherm",
-          "auto_regulation_dtemp": "Der Schwellenwert in ° (oder % bei Ventilen), unter dem die Regelung nicht aktiviert wird",
+          "ac_mode": "Klimaanlage-Modus (AC)",
+          "sync_device_internal_temp": "Die Innentemperatur der verknüpften Geräte mit der von VTherm gemessenen Temperatur synchronisieren",
+          "auto_regulation_mode": "Selbstregulierung durch VTherm verwenden",
+          "auto_regulation_dtemp": "Schwellenwert in ° (oder % bei Ventilen), unterhalb dessen die Regelung nicht aktiviert wird",
           "auto_regulation_periode_min": "Dauer in Minuten zwischen zwei Regelungsaktualisierungen",
-          "auto_regulation_use_device_temp": "Ausgleich der internen Temperatur, zur Beschleunigung der Selbstregulierung (deshalb in den meisten Fällen nicht erforderlich)",
-          "inverse_switch_command": "Kehrt die Schaltersteuerung für Installationen mit Pilotdraht und Diode um.",
-          "auto_fan_mode": "Aktiviert die Belüftung automatisch bei großen Abweichungen",
-          "on_command_text": "Für Basiswerte des Typs `select` oder `climate` müssen die Befehle angepasst werden."
+          "auto_regulation_use_device_temp": "Geräteinnentemperatur ausgleichen, zur Selbstregulierungsbeschleunigung (in den meisten Fällen nicht erforderlich)",
+          "inverse_switch_command": "Schaltersteuerung umkehren für Installationen mit Pilotdraht und Diode.",
+          "auto_fan_mode": "Automatisch Belüftung bei großen Abweichungen",
+          "on_command_text": "Für verknüpfte Geräte des Typs `select` oder `climate` müssen die Befehle angepasst werden."
         }
       },
       "tpi": {
@@ -129,11 +136,12 @@
         "data": {
           "tpi_coef_int": "coef_int",
           "tpi_coef_ext": "coef_ext",
-          "tpi_threshold_low": "TPI Schwellwert niedrig",
-          "tpi_threshold_high": "TPI Schwellwert hoch",
-          "minimal_activation_delay": "Mindestaktivierungsverzögerung",
-          "minimal_deactivation_delay": "Mindestdeaktivierungsverzögerung",
-          "use_tpi_central_config": "Zentrale TPI-Konfiguration verwenden"
+          "tpi_threshold_low": "TPI unterer Schwellwert",
+          "tpi_threshold_high": "TPI oberer Schwellwert",
+          "minimal_activation_delay": "Mindest**aktivierung**sverzögerung",
+          "minimal_deactivation_delay": "Mindest**deaktivierung**sverzögerung",
+          "use_tpi_central_config": "Zentrale TPI-Konfiguration verwenden",
+          "auto_tpi_mode": "Auto-TPI-Lernen aktivieren"
         },
         "data_description": {
           "tpi_coef_int": "Zu verwendender Faktor für das interne Temperaturdelta",
@@ -142,25 +150,26 @@
           "tpi_threshold_high": "Schwellenwert in °, über dem der TPI-Algorithmus deaktiviert wird. 0 bedeutet kein Schwellenwert.",
           "use_tpi_central_config": "Aktivieren für zentrale TPI-Konfiguration. Bei deaktivierter Option, die Attribute eingeben um eine bestimmte TPI-Konfiguration zu verwenden",
           "minimal_activation_delay": "Zeit in Sekunden, unterhalb derer das Gerät nicht aktiviert wird",
-          "minimal_deactivation_delay": "Zeit in Sekunden, nach der das Gerät in den Ruhezustand wechselt"
+          "minimal_deactivation_delay": "Zeit in Sekunden, nach der das Gerät in den Ruhezustand wechselt",
+          "auto_tpi_mode": "Automatisches Lernen der TPI-Koeffizienten aktivieren"
         }
       },
       "presets": {
-        "title": "Voreinstellungen",
-        "description": "Aktivieren zur Verwendung der zentralen Voreinstellungen bei diesem Thermostat. Für eigene Voreinstellungen des Thermostats, diese Option deaktivieren.",
+        "title": "Temperaturvoreinstellungen",
+        "description": "Zentralen Temperaturvoreinstellungen für dieses Thermostat aktivieren. Für eigene Voreinstellungen des Thermostats, diese Option deaktivieren.",
         "data": {
-          "use_presets_central_config": "Verwenden der zentralen Voreinstellungen"
+          "use_presets_central_config": "Zentralen Temperaturvoreinstellungen verwenden"
         }
       },
       "window": {
         "title": "Fensteröffnung verwalten",
-        "description": "Schaltet den Heizkörper aus, wenn Fenster offen ist. Entitäts-ID leer lassen, um die automatische Erkennung (auf Basis der Temperaturänderung) zu verwenden.",
+        "description": "Heizkörper ausschalten, sobald Fenster offen ist. Entity-ID leer lassen, um die automatische Erkennung zu verwenden.",
         "data": {
           "window_sensor_entity_id": "Öffnungssensor (Entity-ID)",
-          "window_delay": "Verzögerung der Erfassung beim Öffnen (Sekunden)",
-          "window_off_delay": "Verzögerung der Erfassung beim Schliessen (Sekunden)",
+          "window_delay": "Auswertverzögerung beim Öffnen (Sekunden)",
+          "window_off_delay": "Auswertverzögerung beim Schliessen (Sekunden)",
           "window_auto_open_threshold": "Obere Temperaturabfallschwelle für die automatische Erkennung (in °/Stunden)",
-          "window_auto_close_threshold": "Untere Temperaturabfallschwelle für das Ende der automatischen Erkennung (in °/Stunden)",
+          "window_auto_close_threshold": "Untere Temperaturabfallschwelle zum Beenden der automatischen Erkennung (in °/Stunden)",
           "window_auto_max_duration": "Maximale Dauer einer automatischen Abschaltung (in min)",
           "use_window_central_config": "Zentrale Fensteröffnungskonfiguration verwenden",
           "window_action": "Aktion"
@@ -198,7 +207,7 @@
       },
       "power": {
         "title": "Powermanagement",
-        "description": "Wählt automatisch die Voreinstellung 'power', wenn der Stromverbrauch ein Maximum überschreitet.\nGibt die Entity-IDs der Sensoren an, die die Gesamtleistung und die maximal zulässige Leistung messen.\nGib anschließend die Leistung des Geräts an.\nAlle Sensoren und die Geräteleistung sollten die gleiche Einheit verwenden (kW oder W).",
+        "description": "Wählt automatisch die Voreinstellung 'power', wenn der Energieverbrauch ein Maximum überschreitet.\nGibt die Entity-IDs der Sensoren an, die die Gesamtleistung und die maximal zulässige Leistung messen.\nGib anschließend die Leistung des Geräts an.\nAlle Sensoren und die Geräteleistung sollten die gleiche Einheit verwenden (kW oder W).",
         "data": {
           "power_sensor_entity_id": "Gesamtleistungssensor (Entity-ID)",
           "max_power_sensor_entity_id": "Sensor für maximale Leistung (Entity-ID)",
@@ -255,38 +264,102 @@
       },
       "valve_regulation": {
         "title": "Selbstregulierung durch Ventil",
-        "description": "Konfiguration der Selbstregelung durch direkte Ventilsteuerung&nbsp;[![?](https://img.icons8.com/color/18/help.png)](https://github.com/jmcollin78/versatile_thermostat/blob/main/documentation/de/self-regulation.md#auto-régulation-par-contrôle-direct-de-la-vanne)",
+        "description": "Konfiguration der Selbstregelung durch direkte Ventilsteuerung",
         "data": {
           "offset_calibration_entity_ids": "Offset Kalibrierung Entity-IDs",
-          "opening_degree_entity_ids": "Öffnungswinkel Entity-IDs",
-          "closing_degree_entity_ids": "Schließwinkel Entity-IDs",
+          "opening_degree_entity_ids": "Öffnungsweite Entity-IDs",
+          "closing_degree_entity_ids": "Schließweite Entity-IDs",
           "proportional_function": "Algorithmus",
-          "opening_threshold_degree": "Öffnungsschwellenwert",
-          "min_opening_degrees": "Minimaler Öffnungsgrad",
-          "max_opening_degrees": "Maximaler Öffnungsgrad",
-          "max_closing_degree": "Maximaler Schließungsgrad"
+          "opening_threshold_degree": "Öffnungsschwelle",
+          "min_opening_degrees": "Minimaler Öffnungsweite",
+          "max_opening_degrees": "Maximale Öffnungsweite",
+          "max_closing_degree": "Maximale Schließweite"
         },
         "data_description": {
           "offset_calibration_entity_ids": "Liste der 'Offset-Kalibrierungs'-Entities (offset calibration). Für eine bessere Regelung konfigurieren, wenn das TRV diese Entity besitzt. Es sollte eine pro Klima-Entity geben",
           "opening_degree_entity_ids": "Liste der 'Ventil öffnen'-Entities. Es muss eine pro Klima-Entity geben",
           "closing_degree_entity_ids": "Liste der 'Ventil schließen'-Entities. Für eine bessere Regelung konfigurieren, wenn das TRV über dies Funktion verfügt. Es muss eine pro Klima-Entity geben",
           "proportional_function": "Zu verwendender Algorithmus (TPI ist derzeit der einzige)",
-          "opening_threshold_degree": "Ventilöffnungswert unter dem das Ventil als geschlossen angesehen wird (und dann wird 'max_closing_degree' angewendet)",
+          "opening_threshold_degree": "Öffnungsschwelle des Ventils, unterhalb derer das Ventil als geschlossen gilt (und dann 'max_closing_degree' gilt)",
           "min_opening_degrees": "Eine kommaseparierte Liste der Mindestöffnung. Standardwert ist 0. Beispiel: 20, 25, 30",
-          "max_opening_degrees": "Maximaler Öffnungsgrad für jedes zugrunde liegende Gerät, durch Kommas getrennt. Standard ist 100. Das Ventil wird nie mehr als dieser Wert geöffnet. Beispiel: 80, 85, 90",
-          "max_closing_degree": "Maximaler Schließungsgrad. Das Ventil wird niemals mehr als dieser Wert geschlossen. Setzen Sie auf 100, um das Ventil vollständig zu schließen"
+          "max_opening_degrees": "Maximaler Öffnungsgrad für jedes zugeordnete Gerät, durch Kommas getrennt. Standardwert 100. Das Ventil öffnet sich niemals über diesen Wert hinaus. Beispiel: 80, 85, 90",
+          "max_closing_degree": "Maximale Schließung. Das Ventil wird niemals über diesen Wert hinaus geschlossen. Zum vollständigen Schliessen auf 100 einstellen."
+        }
+      },
+      "auto_tpi_configuration": {
+        "title": "Auto TPI - Konfiguration",
+        "description": "Allgemeine Parameter für das Auto-TPI-Lernen.",
+        "data": {
+          "auto_tpi_learning_type": "Art des Lernens",
+          "heater_heating_time": "Aufheizzeit (min)",
+          "heater_cooling_time": "Auskühlzeit (min)",
+          "auto_tpi_heating_rate": "Aufheizgeschwindigkeit ({Einheit}/h)",
+          "auto_tpi_aggressiveness": "Aggressivität",
+          "auto_tpi_enable_advanced_settings": "Erweiterte Einstellungen aktivieren"
+        },
+        "data_description": {
+          "auto_tpi_learning_type": "Wähle 'Erkundung' für den ersten Start (gewichteter Durchschnitt, Gewicht 1) oder 'Feinabstimmung' für kontinuierliche Anpassungen (EWMA, Alpha 0,08).",
+          "heater_heating_time": "Zeit bis zum Erreichen der vollen Leistung (Minuten)",
+          "heater_cooling_time": "Abkühlzeit nach dem Ausschalten (Minuten)\n\n| Typ | Aufheizzeit | Abkühlzeit |\n| :--- | :--- | :--- |\n| Elektroheizkörper | 5 Min. | 7 Min. |\n| Wasserheizkörper | 15 Min. | 20 Min. |\n| Fußbodenheizung | 30 Min. | 45 Min. |",
+          "auto_tpi_heating_rate": "Temperaturanstiegskapazität des Heizkörpers ({Einheit} pro Stunde). Kann über den Aktionsdienst 'Kapazität kalibrieren' geschätzt werden.",
+          "auto_tpi_aggressiveness": "Skalierungsfaktor für die gelernten Koeffizienten (50-100 %). Niedrigere Werte führen zu konservativeren Koeffizienten und verringern das Risiko einer Überschreitung des Sollwerts.",
+          "auto_tpi_enable_advanced_settings": "Aktivieren Sie diese Option, um die Feinabstimmung der Parameter (Alpha, Abklingen, Gewicht) vorzunehmen."
+        }
+      },
+      "auto_tpi_avg_settings": {
+        "title": "Auto TPI - Gewichteter Durchschnitt",
+        "description": "Parameter für die gewichtete Durchschnittsmethode.",
+        "data": {
+          "auto_tpi_avg_initial_weight": "Anfangsgewicht"
+        },
+        "data_description": {
+          "auto_tpi_avg_initial_weight": "Gewichtung des Anfangs-/Vorherwerts bei der Durchschnittsberechnung"
+        }
+      },
+      "auto_tpi_ema_settings": {
+        "title": "Auto TPI - EWMA",
+        "description": "Parameter für die EWMA-Methode.\n\nEmpfehlungen :\n| Situation | Alpha (ema_alpha) | Abklingrate (ema_decay_rate) |\n| :--- | :--- | :--- |\n| Lernstart | 0.15 | 0.08 |\n| Lernabschluß | 0.08 | 0.12 |\n| Kontinuierliches Lernen | 0.05 | 0.02 |",
+        "data": {
+          "auto_tpi_ema_alpha": "Alpha",
+          "auto_tpi_ema_decay_rate": "Rückgangsrate"
+        },
+        "data_description": {
+          "auto_tpi_ema_alpha": "Glättungsfaktor (0-1). Höher = schnellere Anpassung",
+          "auto_tpi_ema_decay_rate": "Rate, mit der Alpha im Laufe der Zeit abnimmt (Stabilisierung)"
         }
       },
       "sync_device_internal_temp": {
-        "title": "Synchronize device internal temperature",
-        "description": "Configuration to synchronize the internal temperature of the underlying devices with selected entities&nbsp;[![?](https://img.icons8.com/color/18/help.png)](https://github.com/jmcollin78/versatile_thermostat/blob/main/documentation/en/feature-sync_device_temp.md)",
+        "title": "Geräte-Innentemperatur synchronisieren",
+        "description": "Konfiguration zur Synchronisierung der Innentemperatur der zugeordneten Geräte mit ausgewählten Entitäten",
         "data": {
-          "sync_with_calibration": "Apply offset calibration",
-          "sync_entity_ids": "Entities id used for synchronization"
+          "sync_with_calibration": "Offset-Kalibrierung anwenden",
+          "sync_entity_ids": "Für die Synchronisierung verwendete Entity-IDs"
         },
         "data_description": {
-          "sync_with_calibration": "Check to apply the offset calibration when synchronizing the internal temperature. Uncheck to directly copy the temperature from the selected entities",
-          "sync_entity_ids": "The list of the entities used to synchronize the internal temperature of the underlying devices. There should be one per underlying device. Should be a calibration entity if checkbox is selected or a temperature entity otherwise. Both are `number` entities."
+          "sync_with_calibration": "Aktiviert, wird die Offset-Kalibrierung bei der Synchronisierung der Innentemperatur angewenden. Deaktiviert, wird die Temperatur direkt aus den ausgewählten Entities kopiert.",
+          "sync_entity_ids": "Entitie-Liste, die zur Synchronisierung der internen Temperatur der zugeordneten Geräte verwendet werden. Es muss eine pro zugeordnetem Gerät vorhanden sein. Wenn es aktiviert ist, muss eine Kalibrierungsentität vorhanden sein, ansonsten eine Temperaturentity. Beides sind Entities vom Typ `number`."
+        }
+      },
+      "heating_failure_detection": {
+        "title": "Erkennung von Heizungsausfällen",
+        "description": "Konfiguration der Heizungsausfallerkennung. Diese Funktion erkennt Anomalien, wenn Heizleistung angefordert wird, die Temperatur jedoch nicht steigt, oder wenn die Heizung ausgeschaltet ist, die Temperatur jedoch weiter steigt.",
+        "data": {
+          "use_heating_failure_detection_feature": "Heizungsausfallerkennung aktivieren",
+          "use_heating_failure_detection_central_config": "Zentrale Konfiguration der Fehlererkennung verwenden",
+          "heating_failure_threshold": "Heizungsausfallschwellwert",
+          "cooling_failure_threshold": "Kühlungsausfallschwellwert",
+          "heating_failure_detection_delay": "Erkennungszeit (Minuten)",
+          "temperature_change_tolerance": "Toleranze (°C)",
+          "failure_detection_enable_template": "Template zur Aktivierung der Erkennung"
+        },
+        "data_description": {
+          "use_heating_failure_detection_feature": "Aktiviert die Erkennung von Heizungsstörungen für VTherms mit TPI.",
+          "use_heating_failure_detection_central_config": "Bei aktivierter Option wird zentrale Konfiguration für die Fehlererkennung verwendet. Deaktivieren, um spezifische Einstellungen für diesen VTherm zu verwenden.",
+          "heating_failure_threshold": "Schwellenwert in Prozent, ab dem die Heizung die Temperatur erhöhen sollte (0,9 = 90 %)",
+          "cooling_failure_threshold": "Schwellenwert in Prozent, unter dem die Temperatur nicht steigen sollte (0,0 = 0 %)",
+          "heating_failure_detection_delay": "Wartezeit in Minuten, ehe überprüft wird, ob sich die Temperatur wie erwartet verändert hat",
+          "temperature_change_tolerance": "Minimale Temperaturänderung in Grad, die als aussagekräftig angesehen wird. Kleinere Änderungen werden ignoriert, um Störsignale der Sensoren herauszufiltern (Standardwert: 0,5 °C).",
+          "failure_detection_enable_template": "Ein optionales Jinja2-Template, das 'True' zurückgeben muss, um die Erkennung zu aktivieren. Nützlich, um die Erkennung vorübergehend zu deaktivieren, wenn eine externe Wärmequelle aktiv ist (z. B. `is_state('binary_sensor.holzofen', 'off')` zwischen doppelten geschweiften Klammern). Wenn leer, ist die Erkennung immer aktiv."
         }
       }
     },
@@ -297,11 +370,11 @@
       "no_central_config": "'Zentrale Konfiguration verwenden' kann nicht aktiviert werden, da keine zentrale Konfiguration gefunden wurde. Es muss erst ein Versatile Thermostat des Typs 'Zentrale Konfiguration' erstellt werden, um ihn verwenden zu können.",
       "service_configuration_format": "Falsches Format der Servicekonfiguration",
       "valve_regulation_nb_entities_incorrect": "Die Anzahl der Entities für die Ventilregelung muss gleich der Anzahl der zugeordneten Entities sein",
-      "sync_device_internal_temp_nb_entities_incorrect": "Die Anzahl der Entities zur Synchronisierung der internen Gerätetemperatur muss der Anzahl der zugrunde liegenden Geräte entsprechen",
+      "sync_device_internal_temp_nb_entities_incorrect": "Die Anzahl der Entities zur Synchronisierung der internen Gerätetemperatur muss der Anzahl der zugeordneten Geräte entsprechen",
       "min_opening_degrees_format": "Es wird eine Liste positiver Ganzzahlen erwartet, die durch Komma getrennte sind. Beispiel: 20, 25, 30",
-      "max_opening_degrees_format": "Eine durch Kommas getrennte Liste positiver Ganzzahlen zwischen 0 und 100 wird erwartet. Beispiel: 80, 85, 90",
-      "min_max_opening_degrees_inconsistent": "Für jedes zugrunde liegende Gerät muss max_opening_degrees strikt größer als min_opening_degrees sein. Bitte überprüfen Sie Ihre Konfiguration.",
-      "vswitch_configuration_incorrect": "Die Konfiguration der Befehlsanpassung ist falsch. Sie ist für nicht umschaltbare Basiswerte erforderlich und muss das Format 'service_name[/attribut:wert]' haben. Weitere Informationen finden Sie in der README-Datei."
+      "max_opening_degrees_format": "Es wird eine Liste positiver Ganzzahlen zwischen 0 und der maximalen Ventilöffnung erwartet, die durch Kommas getrennt sind. Beispiel: 80, 85, 90",
+      "min_max_opening_degrees_inconsistent": "Für jedes zugeordnete Gerät muss max_opening_degrees absolut größer als min_opening_degrees sein. Bitte die Konfiguration überprüfen.",
+      "vswitch_configuration_incorrect": "Die Konfiguration der Befehlsanpassung ist falsch. Sie ist für nicht umschaltbare Basiswerte erforderlich und muss das Format 'service_name[/attribut:wert]' haben. Weitere Informationen in der README-Datei."
     },
     "abort": {
       "already_configured": "Gerät ist bereits konfiguriert"
@@ -312,7 +385,7 @@
     "step": {
       "user": {
         "title": "Typ - {name}",
-        "description": "Wählen Sie den Thermostattyp, den Sie erstellen möchten.",
+        "description": "Zu erstellenden Thermostattyp auswählen.",
         "data": {
           "thermostat_type": "Thermostattyp"
         },
@@ -322,24 +395,25 @@
       },
       "menu": {
         "title": "Menü",
-        "description": "Konfigurieren Sie Ihr Thermostat. Wenn alle erforderlichen Parameter eingegeben sind, kann die Konfiguration abgeschlossen werden.",
+        "description": "Konfiguration des Thermostats. Wenn alle erforderlichen Parameter eingegeben sind, kann die Konfiguration abgeschlossen werden.",
         "menu_options": {
-          "main": "Wichtigste Eigenschaften",
+          "main": "Grundlegendes (Name, Temperatursensor...)",
           "central_boiler": "Zentralheizung",
-          "type": "Basiswerte",
+          "type": "Gerätezuordnung",
           "tpi": "TPI-Parameter",
           "features": "Funktionen",
-          "presets": "Voreinstellungen",
+          "presets": "Temperaturvoreinstellungen",
           "window": "Fensteröffnugserkennung",
           "motion": "Bewegungserkennung",
           "power": "Powermanagement",
           "presence": "Anwesenheitserkennung",
           "advanced": "Erweiterte Einstellungen",
-          "auto_start_stop": "Auto Start und Stopp",
-          "valve_regulation": "Konfiguration der Ventilsteuerung",
+          "auto_start_stop": "Auto Start/Stopp",
+          "valve_regulation": "Ventilsteuerung",
           "sync_device_internal_temp": "Synchronisierung der Gerätetemperatur",
           "lock": "Sperrenverwaltung",
-          "finalize": "Alles erledigt",
+          "heating_failure_detection": "Heizungsausfallerkennung",
+          "finalize": "Abschliessen",
           "configuration_not_complete": "Konfiguration unvollständig"
         }
       },
@@ -353,7 +427,7 @@
           "lock_automations": "Sperre verhindert Befehle von Automatisierungen und Integrationen (z.B. Planer)"
         },
         "data_description": {
-          "use_lock_central_config": "Aktivieren für zentrale Sperrkonfiguration. Deaktivieren für sperrspezifische Konfiguration dieses VTherm",
+          "use_lock_central_config": "Aktivieren für zentrale Sperrkonfiguration. Deaktivieren für spezifische Sperrkonfiguration dieses VTherm",
           "lock_code": "Der PIN-Code zum Entsperren des Thermostats (4 Ziffern)"
         }
       },
@@ -394,22 +468,23 @@
           "use_power_feature": "Mit Powermanagement",
           "use_presence_feature": "Mit Anwesenheitserkennung",
           "use_central_boiler_feature": "Benutze Zentralheizung. Aktivieren, um eine Steuerung für eine Zentralheizung hinzuzufügen. Anschließend muss VTerm für die Steuerung der Zentralheizung konfiguriert werden, um wirksam zu werden. Wenn mindestens einer der VTerms heizen muss, wird der Heizkessel angeschalten. Wenn kein VTherm heizen muss, wird sie abgeschalten. Die Befehle zum Ein- und Ausschalten der Zentralheizung finden sie auf der folgenden Konfigurationsseite.",
-          "use_auto_start_stop_feature": "Mit automatische Start- und Stopfunktion."
+          "use_auto_start_stop_feature": "Mit automatischer Start- und Stopfunktion.",
+          "use_heating_failure_detection_feature": "Mit Heizungsausfallerkennung"
         }
       },
       "type": {
         "title": "Zugehörige Entities - {name}",
-        "description": "Attribute der verknüpften Entities",
+        "description": "Attribute der zugeordneten Entities",
         "data": {
           "underlying_entity_ids": "Die zu steuernden Geräte",
           "heater_keep_alive": "Keep-alive Schaltinterval in Sekunden",
           "proportional_function": "Algorithmus",
-          "ac_mode": "AC-Modus (Klimaanlage)",
+          "ac_mode": "AC-Modus (Klimaanlage)?",
           "sync_device_internal_temp": "Synchronisierung der internen Gerätetemperatur",
           "auto_regulation_mode": "Selbstregelnd",
           "auto_regulation_dtemp": "Regelschwelle",
           "auto_regulation_periode_min": "Minimale Regelzeit",
-          "auto_regulation_use_device_temp": "Ausgleich der Innentemperatur als Basis",
+          "auto_regulation_use_device_temp": "Ausgleich der Innentemperatur vom Gerät",
           "inverse_switch_command": "Umgekehrter Schaltbefehl",
           "auto_fan_mode": "Automatischer Lüfterbetrieb",
           "on_command_text": "Anpassung der Einschaltsteuerung",
@@ -422,14 +497,14 @@
           "heater_keep_alive": "Aktualisierungsintervall des Heizungsschalters in Sekunden. Nur für Schalter verwenden, die dies erfordern",
           "proportional_function": "Zu verwendender Algorithmus (derzeit ist nur TPI verfügbar)",
           "ac_mode": "Benutze Klimaanlagenmodus (AC)",
-          "sync_device_internal_temp": "Die interne Temperatur der zugrunde liegenden Geräte mit den ausgewählten Entitäten synchronisieren",
+          "sync_device_internal_temp": "Die Innentemperatur des zugeordneten Geräts mit der vom VTherm gemessenen Temperatur synchronisieren",
           "auto_regulation_mode": "Verwendung der Selbstregulierung durch VTherm",
           "auto_regulation_dtemp": "Der Schwellenwert in ° (oder % bei Ventilen), unter dem die Regelung nicht aktiviert wird",
           "auto_regulation_periode_min": "Dauer in Minuten zwischen zwei Regelungsaktualisierungen",
-          "auto_regulation_use_device_temp": "Ausgleich der eventuell vorhandenen Innentemperatur vom Basiswert benutzen, zur Beschleunigung der Selbstregulierung (deshalb in den meisten Fällen nicht erforderlich)",
-          "inverse_switch_command": "Kehr die Schaltersteuerung bei Installationen mit Pilotdraht und Diode um.",
+          "auto_regulation_use_device_temp": "Ausgleich der eventuell vorhandenen Innentemperatur vom zugeordneten Gerät benutzen, zur Beschleunigung der Selbstregulierung (ist in den meisten Fällen nicht erforderlich)",
+          "inverse_switch_command": "Kehrt die Schaltersteuerung bei Installationen mit Pilotdraht und Diode um.",
           "auto_fan_mode": "Aktiviert die Belüftung automatisch bei großen Abweichugnen.",
-          "on_command_text": "Für Basiswerte des Typs `select` oder `climate`."
+          "on_command_text": "Für zugeordnete Geräte des Typs `select` oder `climate`."
         }
       },
       "tpi": {
@@ -442,7 +517,8 @@
           "tpi_threshold_high": "TPI obere Schwelle",
           "minimal_activation_delay": "Mindestlaufzeit",
           "minimal_deactivation_delay": "Mindestabschaltzeit",
-          "use_tpi_central_config": "Zentrale TPI-Konfiguration verwenden"
+          "use_tpi_central_config": "Zentrale TPI-Konfiguration verwenden",
+          "auto_tpi_mode": "Auto-TPI-Lernen aktivieren"
         },
         "data_description": {
           "tpi_coef_int": "Zu verwendender Faktor für das interne Temperaturdelta",
@@ -451,7 +527,8 @@
           "tpi_threshold_high": "Schwellenwert in °, über dem der TPI-Algorithmus deaktiviert wird. 0 bedeutet kein Schwellenwert.",
           "use_tpi_central_config": "Aktivieren, um die zentrale TPI-Konfiguration zu benutzen. Deaktivieren, zur Verwendung einer spezifischen TPI-Konfiguration.",
           "minimal_activation_delay": "Zeit in Sekunden, unterhalb derer das Gerät nicht aktiviert wird",
-          "minimal_deactivation_delay": "Zeit in Sekunden, nach der das Gerät in den Ruhezustand wechselt"
+          "minimal_deactivation_delay": "Zeit in Sekunden, nach der das Gerät in den Ruhezustand wechselt",
+          "auto_tpi_mode": "TPI-Lernsitzungen werden manuell gestartet; bitte zuvor die Dokumentation lesen."
         }
       },
       "presets": {
@@ -463,7 +540,7 @@
       },
       "window": {
         "title": "Fenster - {name}",
-        "description": "Schaltet den Heizkörper aus, wenn das Fenster offen ist.\nIst keine Entity-ID angegeben, wird die automatische Erkennung von geöffneten Fenstern verwendet",
+        "description": "Schaltet den Heizkörper aus, wenn das Fenster offen ist.\nIst keine Entity-ID angegeben, wird die automatische Erkennung von geöffneten Fenstern verwendet.",
         "data": {
           "window_sensor_entity_id": "Öffnungssensor (Entity-ID)",
           "window_delay": "Verzögerung bei 'Offen' (Sekunden)",
@@ -487,7 +564,7 @@
       },
       "motion": {
         "title": "Bewegung (Motion) - {name}",
-        "description": "Die Voreinstellung passt sich automatisch an, wenn eine Bewegung erkannt wird.\n'Voreinstellung bei Bewegung' und 'Voreinstellung ohne Bewegung müssen mit den zu verwendenden Voreinstellungen ausgewählt werden",
+        "description": "Die Voreinstellung passt sich automatisch an, wenn eine Bewegung erkannt wird.\n'Voreinstellung bei Bewegung' und 'Voreinstellung ohne Bewegung müssen mit den zu verwendenden Voreinstellungen ausgewählt werden.",
         "data": {
           "motion_sensor_entity_id": "Bewegungssensor",
           "motion_delay": "Einschaltverzögerung",
@@ -567,39 +644,103 @@
         }
       },
       "valve_regulation": {
-        "title": "Selbstregulierung durch Ventil",
-        "description": "Konfiguration der Selbstregelung durch direkte Ventilsteuerung",
+        "title": "Selbstregulierung mit Ventil - {name}",
+        "description": "Konfiguration für Selbstregulierung durch direkte Ventilsteuerung",
         "data": {
-          "offset_calibration_entity_ids": "Offset Kalibrierung Entity-IDs",
-          "opening_degree_entity_ids": "Öffnungswinkel Entity-IDs",
-          "closing_degree_entity_ids": "Schließwinkel Entity-IDs",
+          "offset_calibration_entity_ids": "Entities zur 'Offset-Kalibrierung'",
+          "opening_degree_entity_ids": "Entities 'Ventil öffnen'",
+          "closing_degree_entity_ids": "Entities 'Ventil schliessen'",
           "proportional_function": "Algorithmus",
-          "opening_threshold_degree": "Öffnungsschwellenwert",
-          "min_opening_degrees": "Minimaler Öffnungsgrad",
-          "max_opening_degrees": "Maximaler Öffnungsgrad",
-          "max_closing_degree": "Maximaler Schließungsgrad"
+          "opening_threshold_degree": "Öffnungsschwelle",
+          "min_opening_degrees": "Minimaler Öffnungsweite",
+          "max_opening_degrees": "Maximale Öffnungsweite",
+          "max_closing_degree": "Maximale Schließweite"
         },
         "data_description": {
-          "offset_calibration_entity_ids": "Liste der 'Offset-Kalibrierungs'-Entities (offset calibration). Für eine bessere Regelung konfigurieren, wenn das TRV diese Entity besitzt. Es sollte eine pro Klima-Entity geben",
-          "opening_degree_entity_ids": "Liste der 'Ventil öffnen'-Entities. Es muss eine pro Klima-Entity geben",
-          "closing_degree_entity_ids": "Liste der 'Ventil schließen'-Entities. Für eine bessere Regelung konfigurieren, wenn das TRV über dies Funktion verfügt. Es muss eine pro Klima-Entity geben",
-          "proportional_function": "Zu verwendender Algorithmus (TPI ist derzeit der einzige)",
-          "opening_threshold_degree": "Ventilöffnungswert unter dem das Ventil als geschlossen angesehen wird (und dann wird 'max_closing_degree' angewendet)",
+          "offset_calibration_entity_ids": "Liste der 'Offset-Kalibrierung'-Entities. Wenn das TRV über diese Funktion verfügen, bitte dieses für eine bessere Regelung konfigurieren. Es muss eine pro zugeordneter Klima-Entity vorhanden sein",
+          "opening_degree_entity_ids": "Liste der 'Ventilöffnung'-Entities. Es muss eine pro zugeordneter Klima-Entity geben",
+          "closing_degree_entity_ids": "Liste der 'Ventil schliessen'-Entities. Wenn das TRV über diese Funktion verfügen, bitte dieses für eine bessere Regelung konfigurieren. Es muss eine pro zugeordneter Klima-Entity vorhanden sein",
+          "proportional_function": "Zu verwendender Algorithmus (derzeit ist nur TPI verfügbar)",
+          "opening_threshold_degree": "Öffnungsschwelle des Ventils, unterhalb derer das Ventil als geschlossen gilt (und dann 'max_closing_degree' gilt)",
           "min_opening_degrees": "Eine kommaseparierte Liste der Mindestöffnung. Standardwert ist 0. Beispiel: 20, 25, 30",
-          "max_opening_degrees": "Maximaler Öffnungsgrad für jedes zugrunde liegende Gerät, durch Kommas getrennt. Standard ist 100. Das Ventil wird nie mehr als dieser Wert geöffnet. Beispiel: 80, 85, 90",
-          "max_closing_degree": "Maximaler Schließungsgrad. Das Ventil wird niemals mehr als dieser Wert geschlossen. Setzen Sie auf 100, um das Ventil vollständig zu schließen"
+          "max_opening_degrees": "Maximaler Öffnungsgrad für jedes zugeordnete Gerät, durch Kommas getrennt. Standardwert 100. Das Ventil öffnet sich niemals über diesen Wert hinaus. Beispiel: 80, 85, 90",
+          "max_closing_degree": "Maximale Schließung. Das Ventil wird niemals über diesen Wert hinaus geschlossen. Bei einem Wert von 100, schliesst das Ventil vollständig."
+        }
+      },
+      "auto_tpi_configuration": {
+        "title": "Auto TPI - Konfiguration - {name}",
+        "description": "Allgemeine Parameter für das Auto-TPI-Lernen.",
+        "data": {
+          "auto_tpi_learning_type": "Art des Lernens",
+          "auto_tpi_heating_rate": "Aufheizrate ({Einheit}/h)",
+          "heater_heating_time": "Aufheizzeit (min)",
+          "heater_cooling_time": "Abkühlzeit (min)",
+          "auto_tpi_aggressiveness": "Aggressivität",
+          "auto_tpi_enable_advanced_settings": "Erweiterte Einstellungen aktivieren"
+        },
+        "data_description": {
+          "auto_tpi_learning_type": "Wähle 'Erkundung' für den ersten Start (gewichteter Durchschnitt, Gewicht 1) oder 'Feinabstimmung' für kontinuierliche Anpassungen (EWMA, Alpha 0,08).",
+          "auto_tpi_heating_rate": "Temperaturanstiegskapazität des Heizkörpers ({Einheit} pro Stunde). Kann über den Aktionsdienst 'Kapazität kalibrieren' geschätzt werden.",
+          "heater_heating_time": "Zeit bis zum Erreichen der vollen Leistung (Minuten)",
+          "heater_cooling_time": "Abkühlzeit nach dem Ausschalten (Minuten)\n\n| Typ | Aufheizzeit | Abkühlzeit |\n| :--- | :--- | :--- |\n| Elektroheizkörper | 5 Min. | 7 Min. |\n| Wasserheizkörper | 15 Min. | 20 Min. |\n| Fußbodenheizung | 30 Min. | 45 Min. |",
+          "auto_tpi_aggressiveness": "Skalierungsfaktor für die gelernten Koeffizienten (50–100 %). Niedrigere Werte führen zu konservativeren Koeffizienten und verringern das Risiko einer Überschreitung des Sollwerts.",
+          "auto_tpi_enable_advanced_settings": "Kontrollkästchen aktivieren, um die Parameter des ausgewählten Algorithmus zu ändern."
+        }
+      },
+      "auto_tpi_avg_settings": {
+        "title": "Auto TPI - Gewichteter Durchschnitt - {name}",
+        "description": "Paremeter für die 'Gewichteter Durchschnitt'-Methode",
+        "data": {
+          "auto_tpi_calculation_method": "Initialgewicht"
+        },
+        "data_description": {
+          "auto_tpi_avg_initial_weight": "Anfängliche Gewichtung der vorhandenen Koeffizienten bei der Berechnung des Durchschnitts (typischerweise 1-50). Je höher die Gewichtung, desto langsamer und stabiler ist der Lernprozess."
+        }
+      },
+      "auto_tpi_ema_settings": {
+        "title": "Auto TPI - EWMA - {name}",
+        "description": "Parameter für die EWMA-Methode.\n\nEmpfehlungen:\n| Situation | Alpha (ema_alpha) | Abklingrate (ema_decay_rate) |\n| :--- | :--- | :--- |\n| Anfängliches Lernen | 0,15 | 0,08 |\n| Endgültiges Lernen | 0,08 | 0,12 |\n| Kontinuierliches Lernen | 0,05 | 0,02 |",
+        "data": {
+          "auto_tpi_ema_alpha": "Alpha",
+          "auto_tpi_ema_decay_rate": "Rückgangsrate"
+        },
+        "data_description": {
+          "auto_tpi_ema_alpha": "Glättungsfaktor (0-1). Höher = schnellere Anpassung",
+          "auto_tpi_ema_decay_rate": "Rate, mit der Alpha im Laufe der Zeit abnimmt (Stabilisierung)"
         }
       },
       "sync_device_internal_temp": {
-        "title": "Synchronize device internal temperature",
-        "description": "Configuration to synchronize the internal temperature of the underlying devices with selected entities",
+        "title": "Synchronisierung der internen Temperatur der zugeordneten Geräte",
+        "description": "Konfiguration der Synchronisierung der internen Temperaturen der zugeordneten Geräte",
         "data": {
-          "sync_with_calibration": "Apply offset calibration",
-          "sync_entity_ids": "Entities id used for synchronization"
+          "sync_with_calibration": "Anwendung einer Kalibrierung",
+          "sync_entity_ids": "Für die Synchronisierung verwendete Entity-IDs"
         },
         "data_description": {
-          "sync_with_calibration": "Check to apply the offset calibration when synchronizing the internal temperature. Uncheck to directly copy the temperature from the selected entities",
-          "sync_entity_ids": "The list of the entities used to synchronize the internal temperature of the underlying devices. There should be one per underlying device. Should be a calibration entity if checkbox is selected or a temperature entity otherwise. Both are `number` entities."
+          "sync_with_calibration": "Ist die Option aktiviert, wird die Offset-Kalibrierung bei der Synchronisierung der Innentemperatur angewendet. Deaktivieren, um die Temperatur direkt in die ausgewählten Elemente zu kopieren.",
+          "sync_entity_ids": "Entitie-Liste, die zur Synchronisierung der internen Temperatur der zugeordneten Geräte verwendet werden. Es muss eine pro zugeordnetem Gerät vorhanden sein. Wenn es aktiviert ist, muss eine Kalibrierungsentität vorhanden sein, ansonsten eine Temperaturentity. Beides sind Entities vom Typ `number`."
+        }
+      },
+      "heating_failure_detection": {
+        "title": "Erkennung eines Heizungsausfalls - {name}",
+        "description": "Konfiguration der Heizungsausfallerkennung. Diese Funktion erkennt Anomalien, wenn Heizleistung angefordert wird, die Temperatur jedoch nicht steigt, oder wenn die Heizung ausgeschaltet ist, die Temperatur jedoch weiter steigt.",
+        "data": {
+          "use_heating_failure_detection_feature": "Heizungsausfallerkennung aktivieren",
+          "use_heating_failure_detection_central_config": "Zentrale Konfiguration der Fehlererkennung verwenden",
+          "heating_failure_threshold": "Heizungsausfallschwelle",
+          "cooling_failure_threshold": "Kühlungsausfallschwelle",
+          "heating_failure_detection_delay": "Erkennungszeit (Minuten)",
+          "temperature_change_tolerance": "Toleranz (°C)",
+          "failure_detection_enable_template": "Template zur Aktivierung der Erkennung"
+        },
+        "data_description": {
+          "use_heating_failure_detection_feature": "Aktivieren der Erkennung von Heizungsstörungen für VTherms mit TPI.",
+          "use_heating_failure_detection_central_config": "Aktivieren, um die zentrale Konfiguration für die Fehlererkennung zu verwenden. Deaktivieren, um spezifische Einstellungen bei diesen VTherm zu verwenden.",
+          "heating_failure_threshold": "Schwellenwert in Prozent, ab dem die Heizung die Temperatur erhöhen sollte (0,9 = 90 %)",
+          "cooling_failure_threshold": "Schwellenwert in Prozent, unter dem die Temperatur nicht steigen sollte (0,0 = 0 %)",
+          "heating_failure_detection_delay": "Wartezeit in Minuten, ehe überprüft wird, ob sich die Temperatur wie erwartet verändert hat",
+          "temperature_change_tolerance": "Minimale Temperaturänderung in Grad, die als aussagekräftig angesehen wird. Kleinere Änderungen werden ignoriert, um Störsignale der Sensoren herauszufiltern (Standardwert: 0,5 °C).",
+          "failure_detection_enable_template": "Ein optionales Jinja2-Template, das 'True' zurückgeben muss, um die Erkennung zu aktivieren. Nützlich, um die Erkennung vorübergehend zu deaktivieren, wenn eine externe Wärmequelle aktiv ist (z. B. `is_state('binary_sensor.holzofen', 'off')` zwischen doppelten geschweiften Klammern). Wenn leer, ist die Erkennung immer aktiv."
         }
       }
     },
@@ -612,9 +753,9 @@
       "valve_regulation_nb_entities_incorrect": "Die Anzahl der Entities für die Ventilregelung muss gleich der Anzahl der zugeordneten Entities sein",
       "sync_device_internal_temp_nb_entities_incorrect": "Die Anzahl der Entities zur Synchronisierung der internen Gerätetemperatur muss der Anzahl der zugrunde liegenden Geräte entsprechen",
       "min_opening_degrees_format": "Es wird eine Liste positiver Ganzzahlen erwartet, die durch Komma getrennte sind. Beispiel: 20, 25, 30",
-      "max_opening_degrees_format": "Eine durch Kommas getrennte Liste positiver Ganzzahlen zwischen 0 und 100 wird erwartet. Beispiel: 80, 85, 90",
-      "min_max_opening_degrees_inconsistent": "Für jedes zugrunde liegende Gerät muss max_opening_degrees strikt größer als min_opening_degrees sein. Bitte überprüfen Sie Ihre Konfiguration.",
-      "vswitch_configuration_incorrect": "Die Konfiguration der Befehlsanpassung ist falsch. Sie ist für nicht umschaltbare Basiswerte erforderlich und muss das Format 'service_name[/attribut:wert]' haben. Weitere Informationen finden Sie in der README-Datei."
+      "max_opening_degrees_format": "Es wird eine Liste positiver Ganzzahlen zwischen 0 und der maximalen Ventilöffnung erwartet, die durch Kommas getrennt sind. Beispiel: 80, 85, 90",
+      "min_max_opening_degrees_inconsistent": "Für jedes zugeordnete Gerät muss max_opening_degrees absolut größer als min_opening_degrees sein. Bitte die Konfiguration überprüfen.",
+      "vswitch_configuration_incorrect": "Die Konfiguration der Befehlsanpassung ist falsch. Sie ist für nicht umschaltbare Basiswerte erforderlich und muss das Format 'service_name[/attribut:wert]' haben. Weitere Informationen dazu in der README-Datei."
     },
     "abort": {
       "already_configured": "Das Gerät ist bereits konfiguriert"
@@ -625,7 +766,7 @@
       "options": {
         "thermostat_central_config": "Zentrale Konfiguration",
         "thermostat_over_switch": "Thermostat an einem Schalter",
-        "thermostat_over_climate": "Thermostat an einem TRV",
+        "thermostat_over_climate": "Thermostat an einem Thermostat",
         "thermostat_over_valve": "Thermostat an einem Ventil"
       }
     },
@@ -672,6 +813,18 @@
         "auto_start_stop_slow": "Langsam",
         "auto_start_stop_medium": "Mittel",
         "auto_start_stop_fast": "Schnell"
+       }
+    },
+    "auto_tpi_calculation_method": {
+      "options": {
+        "average": "Durchschnitt",
+        "ema": "Exponentialer gleitender Durchschnitt (EMA)"
+     }
+    },
+    "auto_tpi_learning_type": {
+      "options": {
+        "discovery": "Erkundung",
+        "fine_tuning": "Feinjustierung"
       }
     }
   },
@@ -688,6 +841,32 @@
             }
           }
         }
+      }
+    },
+    "binary_sensor": {
+      "safety_state": {
+        "name": "Sicherheitsstatus"
+      },
+      "heating_failure_state": {
+        "name": "Heizstatus"
+      },
+      "overpowering_state": {
+        "name": "Lastabwurfstatus"
+      },
+      "window_state": {
+        "name": "Fensterstatus"
+      },
+      "motion_state": {
+        "name": "Bewegungsstatus"
+      },
+      "presence_state": {
+        "name": "Anwesenheitsstatus"
+      },
+      "window_bypass_state": {
+        "name": "Fenster-Bypass"
+      },
+      "central_boiler_state": {
+        "name": "Zentralheizungskessel"
       }
     },
     "number": {
@@ -736,6 +915,99 @@
       "boost_ac_away_temp": {
         "name": "Boost Klima Abwesend"
       }
+    }
+  },
+  "services": {
+    "set_auto_tpi_mode": {
+      "name": "Auto-TPI-Modus einstellen",
+      "description": "Aktiviert oder deaktiviert den Auto-TPI-Lernmodus.",
+      "fields": {
+        "auto_tpi_mode": {
+          "name": "Auto-TPI-Modus",
+          "description": "Auto-TPI-Lernen aktivieren (true) oder deaktivieren (false)"
+        },
+        "reinitialise": {
+          "name": "Lern-Daten zurücksetzen",
+          "description": "Alle Lerndaten bei Aktivierung des Auto-TPI-Modus zurücksetzen (Standardwert: true)"
+        }
+      }
+    },
+    "reset_auto_tpi_capacities": {
+      "name": "Auto-TPI-Funktionen zurücksetzen",
+      "description": "Setzt die maximalen Heiz- und Kühlkapazitäten auf 1,0 °C/h zurück. Die erlernten Koeffizienten werden NICHT zurückgesetzt."
+    },
+    "auto_tpi_calibrate_capacity": {
+      "name": "Auto-TPI-Kapazitätskalibrierung",
+      "description": "Kalibriert die Heiz-/Kühlleistung (in °C/Stunde) mithilfe einer linearen Regression auf Basis der historischen Daten der Entity. Die erlernten TPI-Koeffizienten werden NICHT aktualisiert.",
+      "fields": {
+        "start_date": {
+          "name": "Startdatum des Verlaufs",
+          "description": "Datum, ab dem der Verlauf abgerufen werden soll (standardmäßig sind es 30 Tage)"
+        },
+        "end_date": {
+          "name": "Enddatum des Verlaufs",
+          "description": "Datum, bis zu dem der Verlauf abgerufen werden soll (Standardwert: jetzt)"
+        },
+        "hvac_mode": {
+          "name": "HVAC-Modus",
+          "description": "Welcher Modus soll kalibriert werden (Heizung oder Kühlung)?"
+        },
+        "save_to_config": {
+          "name": "Konfiguration speichern",
+          "description": "Die berechnete Kapazität auf die Auto-TPI-Konfiguration anwenden"
+        },
+        "min_power_threshold": {
+          "name": "Mindestleistungsschwelle",
+          "description": "Mindestprozentsatz der Leistung, ab dem ein Zyklus als gesättigt gilt (Standardwert 95 %). Niedrigere Werte umfassen mehr Zyklen, können jedoch weniger genau sein."
+        }
+      }
+    },
+    "set_tpi_parameters": {
+      "name": "TPI-Parameter definieren",
+      "description": "TPI-Einstellungen ändern",
+      "fields": {
+        "minimal_activation_delay": {
+          "name": "Mindestaktivierungszeit",
+          "description": "Zeit in Sekunden, unterhalb derer das Gerät nicht aktiviert wird"
+        },
+        "minimal_deactivation_delay": {
+          "name": "Mindestdeaktivierungszeit",
+          "description": "Zeit in Sekunden, nach deren Ablauf das Gerät aktiv bleibt"
+        },
+        "tpi_threshold_low": {
+          "name": "Untere TPI-Schwelle",
+          "description": "Seuil en ° en dessous duquel le TPI sera activé. 0 signifie pas de seuil"
+        },
+        "tpi_threshold_high": {
+          "name": "Obere TPI-Schwelle",
+          "description": "Schwellenwert in °, bei dessen Überschreitung der TPI-Algorithmus deaktiviert wird. 0 bedeutet kein Schwellenwert."
+        }
+      }
+    },
+    "lock": {
+      "name": "Sperren",
+      "description": "Sperrt den Thermostat und verhindert so jegliche Änderung seiner Konfiguration über die Benutzeroberfläche oder Automatisierungen.",
+      "fields": {
+        "code": {
+          "name": "Sperrcode",
+          "description": "Der optionale Sperrcode"
+        }
+      }
+    },
+    "unlock": {
+      "name": "Entsperren",
+      "description": "Entriegelt den Thermostat und ermöglicht so Änderungen an seiner Konfiguration.",
+      "fields": {
+        "code": {
+          "name": "Sperrcode",
+          "description": "Der optionale Sperrcode"
+        }
+      }
+    }
+  },
+  "exceptions": {
+    "auto_tpi_learning_stopped": {
+      "message": "Das Auto-TPI-Lernen für {name} wurde angehalten, da drei aufeinanderfolgende Fehler festgestellt wurden. Grund: {reason}. Bitte überprüfen Sie Ihre Konfiguration."
     }
   }
 }
