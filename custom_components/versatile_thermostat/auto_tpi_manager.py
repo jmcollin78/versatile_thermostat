@@ -8,7 +8,7 @@ import statistics
 from datetime import datetime, timedelta
 from typing import Optional
 from homeassistant.util.unit_conversion import TemperatureConverter
-from homeassistant.const import UnitOfTemperature
+from homeassistant.const import UnitOfTemperature, ATTR_TEMPERATURE
 from dataclasses import dataclass, asdict, field
 
 import asyncio
@@ -2416,10 +2416,16 @@ class AutoTpiManager(CycleManager):
         if ext_temp_entity_id:
             outdoor_state = self._hass.states.get(ext_temp_entity_id)
             if outdoor_state and outdoor_state.state not in ["unknown", "unavailable"]:
-                try:
-                    current_outdoor_temp = float(outdoor_state.state)
-                except (ValueError, TypeError):
-                    pass
+                state_temperature = outdoor_state.state
+                attr_temperature = outdoor_state.attributes.get(ATTR_TEMPERATURE)
+
+                for value in (state_temperature, attr_temperature):
+                    try:
+                        if value not in (None, "unknown", "unavailable"):
+                            current_outdoor_temp = float(value)
+                            break
+                    except (ValueError, TypeError):
+                        continue
 
         _LOGGER.debug(
             "%s - Adiabatic correction params: Kext_config=%.4f, T_indoor=%.1f, T_outdoor=%.1f",
