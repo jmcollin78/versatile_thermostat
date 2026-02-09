@@ -825,6 +825,49 @@ def hvac_action() -> HVACAction
 
 ---
 
+## Initialization and Readiness States
+
+### Readiness Concept
+
+The thermostat uses two distinct states to track its operational readiness:
+
+| State           | Property         | Condition                                                 | Usage                                           |
+| --------------- | ---------------- | --------------------------------------------------------- | ----------------------------------------------- |
+| **Initialized** | `is_initialized` | All underlying entities have received valid initial state | Indicates entities are connected and responsive |
+| **Ready**       | `is_ready`       | `is_initialized` AND `_is_startup_done`                   | Indicates thermostat is fully operational       |
+
+**Key relationships:**
+```python
+# In BaseThermostat
+@property
+def is_initialized(self) -> bool:
+    """Check if all underlyings are initialized"""
+    for under in self._underlyings:
+        if not under.is_initialized:
+            return False
+    return True
+
+@property
+def is_ready(self) -> bool:
+    """Check if all underlyings are ready (initialized AND startup complete)"""
+    return self._is_startup_done and self.is_initialized
+```
+
+**Readiness Phases:**
+1. **Startup Phase:** After `async_startup()` begins but before completion
+   - `is_initialized` = False (waiting for underlying states)
+   - `is_ready` = False (startup not complete)
+
+2. **Initialization Phase:** Underlyings receive initial states
+   - `is_initialized` = True (when all underlyings have valid states)
+   - `is_ready` = False (startup still in progress)
+
+3. **Operational Phase:** After `_is_startup_done = True`
+   - `is_initialized` = True
+   - `is_ready` = True ✓ (thermostat ready to control)
+
+---
+
 ## Initialization Flow
 
 ### Complete Startup Sequence
@@ -838,6 +881,7 @@ sequenceDiagram
     participant HA2 as HA State Registry
 
     HA->>VT: async_startup(config)
+    Note over VT: _is_startup_done = False<br/>is_ready = False
     VT->>VT: start listening to managers
 
     VT->>UE: startup() for each underlying
@@ -856,12 +900,18 @@ sequenceDiagram
 
     alt All Entities Initialized
         UE->>UE: _is_initialized = True
+        Note over UE: is_initialized = True<br/>is_ready = False
         UE->>UE: await check_initial_state()
         UE->>VT: await init_underlyings_completed(entity_id)
-        VT->>VT: All underlyings completed → start control
     else Not Yet Initialized
         UE->>UE: log: waiting for other underlyings...
     end
+
+    VT->>VT: _is_startup_done = True
+    Note over VT: is_initialized = True<br/>is_ready = True ✓
+
+    VT->>VT: update_states(force=True)
+    VT->>VT: recalculate()
 
     HA2->>USM: HA state changes
     USM->>USM: _state_changed(event)
@@ -913,22 +963,36 @@ sequenceDiagram
 ### Phase 4: Thermostat Completion (All Underlyings Initialized)
 
 6. **`BaseThermostat.init_underlyings_completed()` called:**
+   - All underlying entities are now `is_initialized = True`
    - Refresh all manager states
    - Call `update_states(force=True)` to update internal state
    - Call `recalculate()` to trigger initial control calculation
    - Send initial thermostat state to Home Assistant
-   - Thermostat now ready to control
 
-### Phase 5: Ongoing State Changes
+7. **`BaseThermostat.async_startup()` completes:**
+   - Set `self._is_startup_done = True`
+   - **Thermostat is now `is_ready = True`** ✓
+   - Ready for operational control cycles
 
-7. **On subsequent Home Assistant state changes:**
+### Phase 5: Readiness Guard in Control Cycles
+
+8. **`BaseThermostat.async_control_heating()` called:**
+   - **Check: `if not self.is_ready:`**
+     - If not ready: log "not yet initialized or startup not done" and skip cycle
+     - Returns `False` (no control executed)
+   - If ready: proceed with normal control logic
+   - Continue with manager checks, window management, etc.
+
+### Phase 6: Ongoing State Changes
+
+9. **On subsequent Home Assistant state changes:**
    - `UnderlyingStateManager._state_changed(event)` invoked by Home Assistant
    - Update cached state: `_set_state(entity_id, new_state)`
    - Call `on_change` callback: `_underlying_changed(entity_id, new_state, old_state)`
    - Subclass `_underlying_changed` implementation:
      - Check for real changes (not just noise)
      - Call `self._thermostat.underlying_changed()` with change details
-     - Thermostat updates control state
+     - Thermostat updates control state (only if `is_ready`)
 
 ---
 
@@ -1025,6 +1089,128 @@ ThermostatOverClimate.underlying_changed() processes:
   - Updates internal state
   - May trigger control_heating()
   - Updates HA state representation
+```
+
+---
+
+## Readiness Behavior and Control Cycles
+
+### Understanding the Readiness States
+
+The distinction between `is_initialized` and `is_ready` is crucial for proper thermostat operation:
+
+#### is_initialized State
+- **When:** Set to `True` when all underlying entities have received their first valid state
+- **Where:** In `UnderlyingEntity._underlying_changed()` after `is_all_states_initialized` check
+- **Purpose:** Ensures all underlying entities are responsive and connected to Home Assistant
+- **Used by:** Initialization sequence, basic state queries
+
+**Code flow:**
+```python
+# In UnderlyingEntity._underlying_changed()
+if not self.is_initialized:
+    if self._state_manager.is_all_states_initialized:
+        self._is_initialized = True  # ← Set here
+        await self.check_initial_state()
+        if self._thermostat.is_initialized:
+            await self._thermostat.init_underlyings_completed(self._entity_id)
+```
+
+#### is_ready State
+- **When:** Set to `True` when `is_initialized=True` AND `_is_startup_done=True`
+- **Where:** In `BaseThermostat.async_startup()` after all initialization steps complete
+- **Purpose:** Ensures the thermostat has fully initialized AND underlying entities are responsive
+- **Used by:** Control heating cycles, critical operations
+
+**Code flow:**
+```python
+# In BaseThermostat.async_startup()
+# ... all initialization steps ...
+self._is_startup_done = True  # ← Sets is_ready=True
+
+# In async_control_heating()
+if not self.is_ready:  # ← Guard against premature control
+    _LOGGER.info("... not yet initialized or startup not done. Skip cycle")
+    return False
+```
+
+### Control Cycle Readiness Guard
+
+The most critical use of `is_ready` is in `async_control_heating()`:
+
+```python
+async def async_control_heating(self, timestamp=None, force=False) -> bool:
+    _LOGGER.debug(
+        "Checking new cycle. hvac_mode=%s, safety_state=%s, "
+        "preset_mode=%s, force=%s",
+        self, self.vtherm_hvac_mode, self._safety_manager.safety_state,
+        self.vtherm_preset_mode, force,
+    )
+
+    # Guard: Do not execute any control if not ready
+    if not self.is_ready:
+        _LOGGER.info(
+            "%s - async_control_heating is called but the entity is not "
+            "ready yet (not initialized or startup not done). Skip the cycle",
+            self
+        )
+        return False
+
+    # Safe to proceed with normal control logic
+    await self._window_manager.manage_window_auto(in_cycle=True)
+    # ... continue with safety checks, feature managers, etc ...
+```
+
+**Why this guard is essential:**
+
+| Scenario | is_initialized | is_ready | Behavior |
+|----------|---|---|----------|
+| Startup beginning | False | False | Skip control (safe) |
+| Underlyings received first state | True | False | Skip control (still initializing) |
+| Thermostat fully initialized | True | True | Execute control ✓ |
+| Entity becomes unavailable later | False | False | Skip control (wait for recovery) |
+
+### Implications for Underlying Entity Types
+
+#### UnderlyingSwitch
+- During initialization phase (`is_ready=False`): No cycling occurs
+- After readiness (`is_ready=True`): On/off cycles activate based on algorithm
+- If any underlying becomes uninitialized: All switching pauses
+
+#### UnderlyingClimate
+- During initialization phase (`is_ready=False`): No temperature/mode changes sent
+- After readiness (`is_ready=True`): Temperature and HVAC mode changes propagate
+- If any underlying becomes uninitialized: All mode changes blocked
+
+#### UnderlyingValve/UnderlyingValveRegulation
+- During initialization phase (`is_ready=False`): Valve stays at last known position
+- After readiness (`is_ready=True`): Valve percentage changes based on thermostat algorithm
+- If any underlying becomes uninitialized: Valve movements blocked
+
+### State Transitions Timeline
+
+```
+Time    Event                                  is_initialized  _is_startup_done  is_ready
+────────────────────────────────────────────────────────────────────────────────────────
+T0      async_startup() called                 False           False             False
+        
+T1      UE1 receives initial state             False           False             False
+        (waiting for UE2, UE3...)
+        
+T2      UE2 receives initial state             False           False             False
+        (waiting for UE3...)
+        
+T3      UE3 receives initial state             True            False             False
+        All initialized, check_initial_state()
+        
+T4      async_startup() completes              True            True              True ✓
+        _is_startup_done = True
+        
+Tn      UE2 becomes unavailable                False           True              False
+        (connection lost)
+        
+Tn+1    UE2 recovers & sends state             True            True              True ✓
+        (back to operational)
 ```
 
 ### Propagation Path: UnderlyingValveRegulation
