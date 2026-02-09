@@ -791,12 +791,12 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
         """Check if all underlyings are initialized
         This is useful only for over_climate in which we
         should have found the underlying climate to be operational"""
-        if not self._is_startup_done:
-            return False
-        for under in self._underlyings:
-            if not under.is_initialized:
-                return False
+        # TODO ICI
         return True
+        # for under in self._underlyings:
+        #     if not under.is_initialized:
+        #         return False
+        # return True
 
     @property
     def vtherm_hvac_modes(self) -> list[VThermHvacMode]:
@@ -1484,6 +1484,10 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
     ##
     async def update_states(self, force=False):
         """Update the states of the thermostat considering the requested state and the current state"""
+        if not self.is_initialized or not self._is_startup_done:
+            _LOGGER.debug("%s - update_states is called but the entity is not initialized yet. Skip the update", self)
+            return False
+
         changed = False
         if self._state_manager.requested_state.is_changed:
             if changed := await self._state_manager.calculate_current_state(self):
@@ -1552,7 +1556,7 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
             force,
         )
 
-        if not self.is_initialized:
+        if not self.is_initialized or not self._is_startup_done:
             _LOGGER.debug("%s - async_control_heating is called but the entity is not initialized yet. Skip the cycle", self)
             return False
 

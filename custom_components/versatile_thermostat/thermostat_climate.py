@@ -1374,6 +1374,14 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
         return None
 
     @property
+    def is_initialized(self) -> bool:
+        """Check that all underlyings are initialized"""
+        for under in self._underlyings:
+            if not under.is_initialized:
+                return False
+        return True
+
+    @property
     def follow_underlying_temp_change(self) -> bool:
         """Get the follow underlying temp change flag"""
         return self._follow_underlying_temp_change
