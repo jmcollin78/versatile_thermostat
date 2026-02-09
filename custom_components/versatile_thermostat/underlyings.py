@@ -329,6 +329,7 @@ class UnderlyingSwitch(UnderlyingEntity):
         )
         self._initial_delay_sec = initial_delay_sec
         self._async_cancel_cycle = None
+        self._async_next_cycle = None
         self._should_relaunch_control_heating = False
         self._on_time_sec = 0
         self._off_time_sec = 0
@@ -534,6 +535,8 @@ class UnderlyingSwitch(UnderlyingEntity):
         self._off_time_sec = off_time_sec
         self._hvac_mode = hvac_mode
 
+        _LOGGER.info("DEBUG: Start cycle called for %s. active? %s. Cancel? %s", self, self.should_device_be_active, self._async_cancel_cycle)
+
         # Cancel eventual previous cycle if any
         if self._async_cancel_cycle is not None:
             if force:
@@ -541,20 +544,38 @@ class UnderlyingSwitch(UnderlyingEntity):
                 self._cancel_cycle()
             else:
                 _LOGGER.debug(
-                    "%s - A previous cycle is alredy running and no force -> waits for its end",
+                    "%s - A previous cycle is alredy running and no force -> we will schedule next cycle",
                     self,
                 )
-                # self._should_relaunch_control_heating = True
-                _LOGGER.debug("%s - End of cycle (2)", self)
-                return
 
         # If we should heat, starts the cycle with delay
         if self.should_device_be_active:
             # Starts the cycle after the initial delay
-            self._async_cancel_cycle = self.call_later(
-                self._hass, self._initial_delay_sec, self._turn_on_later
-            )
-            _LOGGER.debug("%s - _async_cancel_cycle=%s", self, self._async_cancel_cycle)
+            # If a cycle is already running, we schedule the next cycle
+            if self._async_cancel_cycle is not None:
+                _LOGGER.debug("%s - A cycle is already running, scheduling next cycle", self)
+                # We need to cancel the previous next cycle if any
+                if self._async_next_cycle is not None:
+                    self._async_next_cycle()
+                    self._async_next_cycle = None
+                
+                # Schedule the next cycle
+                # We need a wrapper to clear _async_next_cycle when it runs
+                async def _next_cycle_wrapper(_):
+                    self._async_next_cycle = None
+                    # We cancel the current cycle (which should be finished or about to finish)
+                    # This ensures _async_cancel_cycle is cleared and ready for the new cycle
+                    self._cancel_cycle() 
+                    await self._turn_on_later(_)
+
+                self._async_next_cycle = self.call_later(
+                    self._hass, self._initial_delay_sec, _next_cycle_wrapper
+                )
+            else:
+                self._async_cancel_cycle = self.call_later(
+                    self._hass, self._initial_delay_sec, self._turn_on_later
+                )
+            _LOGGER.debug("%s - _async_cancel_cycle=%s, _async_next_cycle=%s", self, self._async_cancel_cycle, self._async_next_cycle)
 
         # if we not heat but device is active
         elif self.is_device_active:
@@ -575,6 +596,12 @@ class UnderlyingSwitch(UnderlyingEntity):
             self._async_cancel_cycle()
             self._async_cancel_cycle = None
             _LOGGER.debug("%s - Stopping cycle during calculation", self)
+        
+        # Also cancel any pending next cycle to ensure a complete stop or fresh restart.
+        if self._async_next_cycle:
+            self._async_next_cycle()
+            self._async_next_cycle = None
+            _LOGGER.debug("%s - Stopping next cycle", self)
 
     async def _turn_on_later(self, _):
         """Turn the heater on after a delay"""
@@ -591,7 +618,13 @@ class UnderlyingSwitch(UnderlyingEntity):
             self._on_time_sec,
         )
 
-        self._cancel_cycle()
+        # We are starting the "active" part of the cycle.
+        # Technically the "delay" part is over.
+        # self._async_cancel_cycle should be THIS task.
+        # But this task is executing.
+        
+        # We clear the self._async_cancel_cycle to allow a new one to be set for turn_off_later
+        self._async_cancel_cycle = None
 
         if self._hvac_mode == VThermHvacMode_OFF:
             _LOGGER.debug("%s - End of cycle (HVAC_MODE_OFF - 2)", self)
@@ -635,7 +668,8 @@ class UnderlyingSwitch(UnderlyingEntity):
                     callback,
                     ex,
                 )
-
+        
+        # Schedule the OFF time
         self._async_cancel_cycle = self.call_later(
             self._hass,
             time,
