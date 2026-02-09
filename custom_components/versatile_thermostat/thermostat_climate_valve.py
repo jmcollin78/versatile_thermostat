@@ -126,23 +126,10 @@ class ThermostatOverClimateValve(ThermostatProp[UnderlyingClimate], ThermostatOv
         _LOGGER.debug("%s - init_underlyings_completed called for %s", self, under_entity_id)
         if not self.is_initialized:
             return
-        # if under_entity_id in [under.entity_id for under in self._underlyings]:
-        #     self._climate_under_initialized = True
-        # elif under_entity_id in [under.entity_id for under in self._underlyings_valve_regulation]:
-        #     self._valve_under_initialized = True
-        #
-        # if not (self._climate_under_initialized and self._valve_under_initialized):
-        #     return
 
         _LOGGER.debug("%s - both climate and valve underlyings are initialized", self)
 
         await super().init_underlyings_completed(under_entity_id)
-
-        # Find the underlying valve regulation corresponding to this underlying climate
-        # for under in self._underlyings_valve_regulation:
-        #     if under.climate_underlying.entity_id == under_entity_id:
-        #         await under.check_initial_state()
-        #         break
 
     async def async_startup(self, central_configuration):
         """Startup the Entity. Listen to the underlying state changes"""

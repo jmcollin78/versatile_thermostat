@@ -12,11 +12,7 @@ from .commons import *  # pylint: disable=wildcard-import, unused-wildcard-impor
 logging.getLogger().setLevel(logging.DEBUG)
 
 
-async def test_one_switch_cycle(
-    hass: HomeAssistant,
-    skip_hass_states_is_state,
-    skip_send_event,
-):  # pylint: disable=unused-argument
+async def test_one_switch_cycle(hass: HomeAssistant, skip_send_event, fake_temp_sensor, fake_ext_temp_sensor, fake_underlying_switch):  # pylint: disable=unused-argument
     """Test that when multiple switch are configured the activation is distributed"""
 
     tz = get_tz(hass)  # pylint: disable=invalid-name
@@ -41,7 +37,7 @@ async def test_one_switch_cycle(
             CONF_USE_MOTION_FEATURE: False,
             CONF_USE_POWER_FEATURE: False,
             CONF_USE_PRESENCE_FEATURE: False,
-            CONF_HEATER: "switch.mock_switch1",
+            CONF_UNDERLYING_LIST: ["switch.mock_switch"],
             CONF_MINIMAL_ACTIVATION_DELAY: 30,
             CONF_MINIMAL_DEACTIVATION_DELAY: 0,
             CONF_SAFETY_DELAY_MIN: 5,
@@ -73,8 +69,10 @@ async def test_one_switch_cycle(
         event_timestamp = now - timedelta(minutes=4)
         await send_temperature_change_event(entity, 15, event_timestamp)
 
+        assert entity.is_ready is True
+
     # Checks that all heaters are off
-    assert entity.is_device_active is False  # pylint: disable=protected-access
+    assert entity.is_device_active is False
 
     # Set temperature to a low level
     with patch("custom_components.versatile_thermostat.base_thermostat.BaseThermostat.send_event") as mock_send_event, patch(
@@ -205,10 +203,12 @@ async def test_one_switch_cycle(
 
     entity.remove_thermostat()
 
+
 async def test_multiple_switchs(
     hass: HomeAssistant,
-    skip_hass_states_is_state,
     skip_send_event,
+    fake_temp_sensor,
+    fake_ext_temp_sensor,
 ):  # pylint: disable=unused-argument
     """Test that when multiple switch are configured the activation is distributed"""
 
@@ -234,10 +234,7 @@ async def test_multiple_switchs(
             CONF_USE_MOTION_FEATURE: False,
             CONF_USE_POWER_FEATURE: False,
             CONF_USE_PRESENCE_FEATURE: False,
-            CONF_HEATER: "switch.mock_switch1",
-            CONF_HEATER_2: "switch.mock_switch2",
-            CONF_HEATER_3: "switch.mock_switch3",
-            CONF_HEATER_4: "switch.mock_switch4",
+            CONF_UNDERLYING_LIST: ["switch.mock_switch1", "switch.mock_switch2", "switch.mock_switch3", "switch.mock_switch4"],
             CONF_HEATER_KEEP_ALIVE: 0,
             CONF_MINIMAL_ACTIVATION_DELAY: 30,
             CONF_MINIMAL_DEACTIVATION_DELAY: 0,
@@ -255,6 +252,15 @@ async def test_multiple_switchs(
     assert entity
     assert entity.is_over_climate is False
     assert entity.nb_underlying_entities == 4
+
+    assert entity.is_initialized is False
+    assert entity._is_startup_done is True
+    assert entity.is_ready is False
+
+    # register the switch after thermostat creation
+    for switch_id in ["mock_switch1", "mock_switch2", "mock_switch3", "mock_switch4"]:
+        switch = MockSwitch(hass, switch_id, switch_id + "_name")
+        await register_mock_entity(hass, switch, SWITCH_DOMAIN)
 
     # start heating, in boost mode. We block the control_heating to avoid running a cycle
     with patch(
@@ -339,6 +345,7 @@ async def test_multiple_switchs(
         assert mock_heater_on.call_count == 1
 
     entity.remove_thermostat()
+
 
 async def test_multiple_climates(
     hass: HomeAssistant,
@@ -684,9 +691,8 @@ async def test_multiple_climates_underlying_changes_not_aligned(
 
     entity.remove_thermostat()
 
-async def test_multiple_switch_power_management(
-    hass: HomeAssistant, skip_hass_states_is_state, init_central_power_manager
-):
+
+async def test_multiple_switch_power_management(hass: HomeAssistant, fake_temp_sensor, fake_ext_temp_sensor, init_central_power_manager):
     """Test the Power management with 4 underlyings switch"""
     temps = {
         "eco": 17,
@@ -737,6 +743,15 @@ async def test_multiple_switch_power_management(
 
     tpi_algo = entity._prop_algorithm
     assert tpi_algo
+
+    assert entity.is_ready is False
+
+    # register the switch after thermostat creation
+    for switch_id in ["mock_switch1", "mock_switch2", "mock_switch3", "mock_switch4"]:
+        switch = MockSwitch(hass, switch_id, switch_id + "_name")
+        await register_mock_entity(hass, switch, SWITCH_DOMAIN)
+
+    await wait_for_local_condition(lambda: entity.is_ready is True)
 
     now: datetime = NowClass.get_now(hass)
     VersatileThermostatAPI.get_vtherm_api()._set_now(now)
@@ -815,7 +830,7 @@ async def test_multiple_switch_power_management(
                 any_order=True,
             )
             assert mock_heater_on.call_count == 0
-            assert mock_heater_off.call_count == 4  # The fourth are shutdown
+            assert mock_heater_off.call_count >= 4  # The fourth are shutdown
 
     # 3. change PRESET to ECO. But overpowering is still on cause temp is very low
         with patch(

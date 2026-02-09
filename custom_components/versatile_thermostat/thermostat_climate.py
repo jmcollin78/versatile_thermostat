@@ -1070,7 +1070,7 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
     async def async_control_heating(self, timestamp=None, force=False) -> bool:
         """The main function used to run the calculation at each cycle"""
 
-        if not self.is_initialized:
+        if not self.is_ready:
             _LOGGER.debug("%s - async_control_heating is called but the entity is not initialized yet. Skip the cycle", self)
             return False
 

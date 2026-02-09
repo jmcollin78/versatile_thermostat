@@ -791,12 +791,15 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
         """Check if all underlyings are initialized
         This is useful only for over_climate in which we
         should have found the underlying climate to be operational"""
-        # TODO ICI
+        for under in self._underlyings:
+            if not under.is_initialized:
+                return False
         return True
-        # for under in self._underlyings:
-        #     if not under.is_initialized:
-        #         return False
-        # return True
+
+    @property
+    def is_ready(self) -> bool:
+        """Check if all underlyings are ready (initialized and startup is complete)"""
+        return self._is_startup_done and self.is_initialized
 
     @property
     def vtherm_hvac_modes(self) -> list[VThermHvacMode]:
@@ -1556,8 +1559,8 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
             force,
         )
 
-        if not self.is_initialized or not self._is_startup_done:
-            _LOGGER.debug("%s - async_control_heating is called but the entity is not initialized yet. Skip the cycle", self)
+        if not self.is_ready:
+            _LOGGER.info("%s - async_control_heating is called but the entity is not ready yet (not initialized or startup not done). Skip the cycle", self)
             return False
 
         # check auto_window conditions
@@ -1760,7 +1763,9 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
             "hvac_mode": self.hvac_mode,
             "preset_mode": self.preset_mode,
             "ema_temp": self._ema_temp,
+            "is_ready": self.is_ready,
             "specific_states": {
+                "is_initialized": self.is_initialized,
                 "is_on": self.is_on,
                 "last_central_mode": self.last_central_mode,
                 "last_update_datetime": self.now.isoformat(),
@@ -1778,10 +1783,10 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
                 "last_change_time_from_vtherm": (
                     self._last_change_time_from_vtherm.astimezone(self._current_tz).isoformat() if self._last_change_time_from_vtherm is not None else None
                 ),
-                "messages": messages,
                 "is_sleeping": self.is_sleeping,
                 "is_locked": self.lock_manager.is_locked,
                 "is_recalculate_scheduled": self.is_recalculate_scheduled,
+                "messages": messages,
             },
             "configuration": {
                 "ac_mode": self._ac_mode,

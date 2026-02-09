@@ -537,8 +537,12 @@ async def test_power_management_hvac_on(hass: HomeAssistant, skip_hass_states_is
 
 @pytest.mark.parametrize("expected_lingering_tasks", [True])
 @pytest.mark.parametrize("expected_lingering_timers", [True])
-async def test_power_management_energy_over_switch(hass: HomeAssistant, skip_hass_states_is_state, init_central_power_manager, fake_underlying_switch: MockSwitch):
+async def test_power_management_energy_over_switch(hass: HomeAssistant, skip_hass_states_is_state, init_central_power_manager):
     """Test the Power management energy mesurement"""
+
+    for switch_id in ["mock_switch1", "mock_switch2"]:
+        switch = MockSwitch(hass, switch_id, switch_id + "_name")
+        await register_mock_entity(hass, switch, SWITCH_DOMAIN)
 
     temps = {
         "eco": 17,
@@ -562,7 +566,7 @@ async def test_power_management_energy_over_switch(hass: HomeAssistant, skip_has
             CONF_USE_MOTION_FEATURE: False,
             CONF_USE_POWER_FEATURE: True,
             CONF_USE_PRESENCE_FEATURE: False,
-            CONF_UNDERLYING_LIST: ["switch.mock_switch", "switch.mock_switch2"],
+            CONF_UNDERLYING_LIST: ["switch.mock_switch1", "switch.mock_switch2"],
             CONF_PROP_FUNCTION: PROPORTIONAL_FUNCTION_TPI,
             CONF_TPI_COEF_INT: 0.3,
             CONF_TPI_COEF_EXT: 0.01,
@@ -585,6 +589,8 @@ async def test_power_management_energy_over_switch(hass: HomeAssistant, skip_has
 
     assert entity.total_energy == 0
     assert entity.nb_underlying_entities == 2
+
+    await wait_for_local_condition(lambda: entity.is_ready)
 
     # set temperature to 15 so that on_percent will be set
     with patch(

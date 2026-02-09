@@ -60,14 +60,6 @@ class ThermostatOverSwitch(ThermostatProp[UnderlyingSwitch]):
         """True if the switch is inversed (for pilot wire and diode)"""
         return self._is_inversed is True
 
-    @property
-    def is_initialized(self) -> bool:
-        """Check that all underlyings are initialized"""
-        for under in self._underlyings:
-            if not under.is_initialized:
-                return False
-        return True
-
     @overrides
     def post_init(self, config_entry: ConfigData):
         """Initialize the Thermostat"""
