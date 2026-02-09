@@ -377,10 +377,12 @@ async def test_multiple_climates(
             CONF_USE_MOTION_FEATURE: False,
             CONF_USE_POWER_FEATURE: False,
             CONF_USE_PRESENCE_FEATURE: False,
-            CONF_CLIMATE: "switch.mock_climate1",
-            CONF_CLIMATE_2: "switch.mock_climate2",
-            CONF_CLIMATE_3: "switch.mock_climate3",
-            CONF_CLIMATE_4: "switch.mock_climate4",
+            CONF_UNDERLYING_LIST: [
+                "climate.mock_climate1",
+                "climate.mock_climate2",
+                "climate.mock_climate3",
+                "climate.mock_climate4",
+            ],
             CONF_MINIMAL_ACTIVATION_DELAY: 30,
             CONF_MINIMAL_DEACTIVATION_DELAY: 0,
             CONF_SAFETY_DELAY_MIN: 5,
@@ -394,6 +396,11 @@ async def test_multiple_climates(
     assert entity
     assert entity.is_over_climate is True
     assert entity.nb_underlying_entities == 4
+
+    # register the switch after thermostat creation
+    for climate_id in ["mock_climate1", "mock_climate2", "mock_climate3", "mock_climate4"]:
+        climate = MockClimate(hass, climate_id, climate_id + "_name")
+        await register_mock_entity(hass, climate, CLIMATE_DOMAIN)
 
     # start heating, in boost mode. We block the control_heating to avoid running a cycle
     with patch(
@@ -412,7 +419,7 @@ async def test_multiple_climates(
         event_timestamp = now - timedelta(minutes=4)
         await send_temperature_change_event(entity, 15, event_timestamp)
 
-        # Should be call for all Switch
+        # Should be call for all Climates
         assert mock_underlying_set_hvac_mode.call_count == 4
         mock_underlying_set_hvac_mode.assert_has_calls(
             [
@@ -478,10 +485,7 @@ async def test_multiple_climates_underlying_changes(
             CONF_USE_MOTION_FEATURE: False,
             CONF_USE_POWER_FEATURE: False,
             CONF_USE_PRESENCE_FEATURE: False,
-            CONF_CLIMATE: "switch.mock_climate1",
-            CONF_CLIMATE_2: "switch.mock_climate2",
-            CONF_CLIMATE_3: "switch.mock_climate3",
-            CONF_CLIMATE_4: "switch.mock_climate4",
+            CONF_UNDERLYING_LIST: ["climate.mock_climate1", "climate.mock_climate2", "climate.mock_climate3", "climate.mock_climate4"],
             CONF_MINIMAL_ACTIVATION_DELAY: 30,
             CONF_MINIMAL_DEACTIVATION_DELAY: 0,
             CONF_SAFETY_DELAY_MIN: 5,
@@ -495,6 +499,11 @@ async def test_multiple_climates_underlying_changes(
     assert entity
     assert entity.is_over_climate is True
     assert entity.nb_underlying_entities == 4
+
+    # register the switch after thermostat creation
+    for climate_id in ["mock_climate1", "mock_climate2", "mock_climate3", "mock_climate4"]:
+        climate = MockClimate(hass, climate_id, climate_id + "_name")
+        await register_mock_entity(hass, climate, CLIMATE_DOMAIN)
 
     # start heating, in boost mode. We block the control_heating to avoid running a cycle
     with patch(
@@ -513,7 +522,7 @@ async def test_multiple_climates_underlying_changes(
         event_timestamp = now - timedelta(minutes=4)
         await send_temperature_change_event(entity, 15, event_timestamp)
 
-        # Should be call for all Switch
+        # Should be call for all Climates
         assert mock_underlying_set_hvac_mode.call_count == 4
         mock_underlying_set_hvac_mode.assert_has_calls(
             [
@@ -539,10 +548,10 @@ async def test_multiple_climates_underlying_changes(
             HVACAction.OFF,
             HVACAction.HEATING,
             event_timestamp,
-            underlying_entity_id="switch.mock_climate3",
+            underlying_entity_id="climate.mock_climate3",
         )
 
-        # Should be call for all Switch
+        # Should be call for all Climates
         assert mock_underlying_set_hvac_mode.call_count >= 4
         mock_underlying_set_hvac_mode.assert_has_calls(
             [
@@ -573,10 +582,10 @@ async def test_multiple_climates_underlying_changes(
             HVACAction.IDLE,
             HVACAction.OFF,
             event_timestamp,
-            underlying_entity_id="switch.mock_climate3",
+            underlying_entity_id="climate.mock_climate3",
         )
 
-        # Should be call for all Switch
+        # Should be call for all Climates
         assert mock_underlying_set_hvac_mode.call_count >= 4
         mock_underlying_set_hvac_mode.assert_has_calls(
             [
@@ -600,6 +609,11 @@ async def test_multiple_climates_underlying_changes_not_aligned(
     tz = get_tz(hass)  # pylint: disable=invalid-name
     now: datetime = datetime.now(tz=tz)
 
+    # register the switch after thermostat creation
+    for climate_id in ["mock_climate1", "mock_climate2", "mock_climate3", "mock_climate4"]:
+        climate = MockClimate(hass, climate_id, climate_id + "_name")
+        await register_mock_entity(hass, climate, CLIMATE_DOMAIN)
+
     entry = MockConfigEntry(
         domain=DOMAIN,
         title="TheOver4ClimateMockName",
@@ -619,7 +633,7 @@ async def test_multiple_climates_underlying_changes_not_aligned(
             CONF_USE_MOTION_FEATURE: False,
             CONF_USE_POWER_FEATURE: False,
             CONF_USE_PRESENCE_FEATURE: False,
-            CONF_UNDERLYING_LIST: ["switch.mock_climate1", "switch.mock_climate2", "switch.mock_climate3", "switch.mock_climate4"],
+            CONF_UNDERLYING_LIST: ["climate.mock_climate1", "climate.mock_climate2", "climate.mock_climate3", "climate.mock_climate4"],
             CONF_MINIMAL_ACTIVATION_DELAY: 30,
             CONF_MINIMAL_DEACTIVATION_DELAY: 0,
             CONF_SAFETY_DELAY_MIN: 5,
@@ -633,6 +647,8 @@ async def test_multiple_climates_underlying_changes_not_aligned(
     assert entity
     assert entity.is_over_climate is True
     assert entity.nb_underlying_entities == 4
+
+    await wait_for_local_condition(lambda: entity.is_ready is True)
 
     # start heating, in boost mode. We block the control_heating to avoid running a cycle
     with patch(
@@ -651,7 +667,7 @@ async def test_multiple_climates_underlying_changes_not_aligned(
         event_timestamp = now - timedelta(minutes=4)
         await send_temperature_change_event(entity, 15, event_timestamp)
 
-        # Should be call for all Switch
+        # Should be call for all Climates
         assert mock_underlying_set_hvac_mode.call_count == 4
         mock_underlying_set_hvac_mode.assert_has_calls(
             [
@@ -676,10 +692,10 @@ async def test_multiple_climates_underlying_changes_not_aligned(
             HVACAction.OFF,
             HVACAction.HEATING,
             event_timestamp,
-            underlying_entity_id="switch.mock_climate3",
+            underlying_entity_id="climate.mock_climate3",
         )
 
-        # Should be call for all Switch
+        # Should be call for all Climates
         assert mock_underlying_set_hvac_mode.call_count >= 1  # hvac_mode heat
         # mock_underlying_set_hvac_mode.assert_has_calls(
         #     [

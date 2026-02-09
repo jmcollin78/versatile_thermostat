@@ -44,6 +44,8 @@ async def test_over_switch_full_start(hass: HomeAssistant, skip_hass_states_is_s
 
         assert entity.name == "TheOverSwitchMockName"
         assert entity.is_over_climate is False
+        await wait_for_local_condition(lambda: entity.is_ready is True)
+
         assert entity.hvac_action is HVACAction.OFF
         assert entity.vtherm_hvac_mode is VThermHvacMode_OFF
         assert entity.target_temperature == entity.min_temp
@@ -102,6 +104,9 @@ async def test_over_climate_full_start(hass: HomeAssistant, skip_hass_states_is_
 
         assert entity.name == "TheOverClimateMockName"
         assert entity.is_over_climate is True
+
+        await wait_for_local_condition(lambda: entity.is_ready is True)
+
         assert entity.hvac_action is HVACAction.OFF
         assert entity.vtherm_hvac_mode is VThermHvacMode_OFF
         assert entity.target_temperature == entity.min_temp
@@ -406,8 +411,6 @@ async def test_over_switch_start_heating(hass: HomeAssistant, skip_hass_states_i
     entity.remove_thermostat()
 
 
-@pytest.mark.parametrize("expected_lingering_tasks", [True])
-@pytest.mark.parametrize("expected_lingering_timers", [True])
 async def test_over_climate_start_heating(hass: HomeAssistant, skip_hass_states_is_state, fake_underlying_climate: MockClimate):
     """Test that a thermostat over climate starts heating and sends hvac_mode and target_temperature to underlying climate"""
 
@@ -481,8 +484,6 @@ async def test_over_climate_start_heating(hass: HomeAssistant, skip_hass_states_
     entity.remove_thermostat()
 
 
-@pytest.mark.parametrize("expected_lingering_tasks", [True])
-@pytest.mark.parametrize("expected_lingering_timers", [True])
 async def test_over_valve_start_heating(hass: HomeAssistant, skip_hass_states_is_state, fake_underlying_valve: MockNumber):  # pylint: disable=unused-argument
     """Test that when VTherm over_valve starts heating, the underlying number entity receives the valve_open_percent value"""
 

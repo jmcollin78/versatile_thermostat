@@ -20,9 +20,8 @@ from custom_components.versatile_thermostat.thermostat_climate import (
 
 from .commons import *  # pylint: disable=wildcard-import, unused-wildcard-import
 
-async def test_over_climate_regulation(
-    hass: HomeAssistant, skip_hass_states_is_state, skip_send_event
-):
+
+async def test_over_climate_regulation(hass: HomeAssistant, skip_hass_states_is_state, skip_send_event, fake_underlying_climate):
     """Test the regulation of an over climate thermostat"""
 
     entry = MockConfigEntry(
@@ -35,8 +34,6 @@ async def test_over_climate_regulation(
 
     tz = get_tz(hass)  # pylint: disable=invalid-name
     now: datetime = datetime.now(tz=tz)
-
-    fake_underlying_climate = await create_and_register_mock_climate(hass, "mock_climate", "MockClimateName", {})
 
     # Creates the regulated VTherm over climate
     # change temperature so that the heating will start
@@ -66,6 +63,8 @@ async def test_over_climate_regulation(
             VThermPreset.BOOST,
         ]
         assert entity.preset_mode is VThermPreset.NONE
+
+        await wait_for_local_condition(lambda: entity.is_ready is True)
 
         # Activate the heating by changing VThermHvacMode and temperature
         # Select a hvacmode, presence and preset
@@ -117,6 +116,7 @@ async def test_over_climate_regulation(
             assert entity.regulated_target_temp == 18 - 2.0
 
     entity.remove_thermostat()
+
 
 async def test_over_climate_regulation_ac_mode(
     hass: HomeAssistant, skip_hass_states_is_state, skip_send_event

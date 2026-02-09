@@ -899,7 +899,7 @@ async def test_change_vtherm_temperature(hass: HomeAssistant, skip_hass_states_i
             CONF_TPI_COEF_EXT: 0.02,
             CONF_CYCLE_MIN: 5,
             CONF_PROP_FUNCTION: PROPORTIONAL_FUNCTION_TPI,
-            CONF_UNDERLYING_LIST: ["switch.mock_valve"],
+            CONF_UNDERLYING_LIST: ["number.mock_valve"],
             CONF_USE_PRESENCE_FEATURE: True,
             CONF_USE_PRESENCE_CENTRAL_CONFIG: True,
             CONF_USE_ADVANCED_CENTRAL_CONFIG: True,
@@ -918,6 +918,8 @@ async def test_change_vtherm_temperature(hass: HomeAssistant, skip_hass_states_i
 
     assert vtherm.use_central_config_temperature is True
 
+    await wait_for_local_condition(lambda: vtherm.is_ready)
+
     # Creates another VTherm which is NOT binded to central configuration
     vtherm2_entry = MockConfigEntry(
         domain=DOMAIN,
@@ -934,7 +936,7 @@ async def test_change_vtherm_temperature(hass: HomeAssistant, skip_hass_states_i
             CONF_TPI_COEF_EXT: 0.02,
             CONF_CYCLE_MIN: 5,
             CONF_PROP_FUNCTION: PROPORTIONAL_FUNCTION_TPI,
-            CONF_UNDERLYING_LIST: ["switch.mock_valve"],
+            CONF_UNDERLYING_LIST: ["number.mock_valve"],
             CONF_USE_PRESENCE_FEATURE: True,
             CONF_USE_PRESENCE_CENTRAL_CONFIG: False,
             CONF_PRESENCE_SENSOR: "person.presence_sensor",
@@ -953,6 +955,7 @@ async def test_change_vtherm_temperature(hass: HomeAssistant, skip_hass_states_i
     )
 
     assert vtherm2.use_central_config_temperature is False
+    await wait_for_local_condition(lambda: vtherm2.is_ready)
 
     # 1. No temp Number should be present cause central config mode
     preset_name = "boost"

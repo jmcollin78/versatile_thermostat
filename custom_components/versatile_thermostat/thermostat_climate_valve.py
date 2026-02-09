@@ -4,6 +4,7 @@
 import logging
 import asyncio
 from datetime import datetime
+from typing import Optional
 
 from homeassistant.core import Event, HomeAssistant, State
 from homeassistant.components.climate import HVACAction, HVACMode
@@ -118,13 +119,13 @@ class ThermostatOverClimateValve(ThermostatProp[UnderlyingClimate], ThermostatOv
             )
             self._underlyings_valve_regulation.append(under)
 
-    async def init_underlyings_completed(self, under_entity_id: str):
+    async def init_underlyings_completed(self, under_entity_id: Optional[str] = None):
         """Called when an underlying is fully initialized
         Caution: this method is called for the _underlyings of the ThermostatClimate but also for the underlyings_valve_regulation
         We have to call the parent method only when the both underlyings are initialized"""
 
         _LOGGER.debug("%s - init_underlyings_completed called for %s", self, under_entity_id)
-        if not self.is_initialized:
+        if not self.is_ready:
             return
 
         _LOGGER.debug("%s - both climate and valve underlyings are initialized", self)

@@ -5,6 +5,7 @@
 import math
 import logging
 import asyncio
+from typing import Optional
 from datetime import datetime, timedelta
 from functools import partial
 
@@ -121,18 +122,14 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
         self._unique_id = unique_id
         self._name = name
 
+        self._is_ready: bool = False
+
         self._async_cancel_cycle = None
 
         # Callbacks for TPI cycle events
         self._on_cycle_start_callbacks: list[Callable] = []
 
         self._state_manager = StateManager()
-        # self._hvac_mode = None
-        # self._target_temp = None
-        # self._saved_target_temp = None
-        # self._saved_preset_mode = None
-        # self._saved_hvac_mode = None
-
         self._fan_mode = None
         self._humidity = None
         self._swing_mode = None
@@ -552,13 +549,23 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
             )
         self._is_startup_done = True
 
-    async def init_underlyings_completed(self, under_entity_id: str):
+        if self.is_ready:
+            await self.init_underlyings_completed()
+
+    async def init_underlyings_completed(self, under_entity_id: Optional[str] = None):
         """All underlyings have been initialized. Then we can finish our initialization"""
-        if not self.is_initialized:
+        _LOGGER.debug("%s - Calling init_underlyings_completed", self)
+        if not self.is_ready:
             return
 
+        # Then we:
+        # - refresh all managers states,
+        # - calculate the current state of the VTherm (it depends on the managers states and the requested state)
+        # - check if the initial conditions are met
+        # - force the first cycle if changes has been detected
+
         # in over_climate, we have to remove the FROST preset for a COOL only device
-        if self._ac_mode and VThermPreset.FROST in self._vtherm_preset_modes:
+        if self._ac_mode and VThermPreset.FROST in self._vtherm_preset_modes and HVACMode.HEAT not in self.hvac_modes:
             self._vtherm_preset_modes.remove(VThermPreset.FROST)
             if VThermPreset.FROST in self._attr_preset_modes:
                 self._attr_preset_modes.remove(VThermPreset.FROST)
@@ -567,12 +574,6 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
                 self,
                 self._attr_preset_modes,
             )
-
-        # Then we:
-        # - refresh all managers states,
-        # - calculate the current state of the VTherm (it depends on the managers states and the requested state)
-        # - check if the initial conditions are met
-        # - force the first cycle if changes has been detected
 
         # refresh states for all managers
         for manager in self._managers:
@@ -703,13 +704,6 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
         """Called when the entry have changed in ConfigFlow"""
         _LOGGER.info("%s - Change entry with the values: %s", self, config_entry.data)
 
-    # #1654 - no more needed now @callback
-    # async def _check_initial_state(self):
-    #     """Prevent the device from keep running if HVAC_MODE_OFF."""
-    #     _LOGGER.debug("%s - Calling _check_initial_state", self)
-    #     for under in self._underlyings:
-    #         await under.check_initial_state(self.vtherm_hvac_mode)
-
     async def init_presets(self, central_config):
         """Init all presets of the VTherm"""
         # If preset central config is used and central config is set,
@@ -799,7 +793,9 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
     @property
     def is_ready(self) -> bool:
         """Check if all underlyings are ready (initialized and startup is complete)"""
-        return self._is_startup_done and self.is_initialized
+        if not self._is_ready:
+            self._is_ready = self._is_startup_done and self.is_initialized
+        return self._is_ready
 
     @property
     def vtherm_hvac_modes(self) -> list[VThermHvacMode]:
@@ -1487,7 +1483,7 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
     ##
     async def update_states(self, force=False):
         """Update the states of the thermostat considering the requested state and the current state"""
-        if not self.is_initialized or not self._is_startup_done:
+        if not self.is_ready:
             _LOGGER.debug("%s - update_states is called but the entity is not initialized yet. Skip the update", self)
             return False
 
