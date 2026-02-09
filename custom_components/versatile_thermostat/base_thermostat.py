@@ -5,6 +5,7 @@
 import math
 import logging
 import asyncio
+from typing import Optional
 from datetime import datetime, timedelta
 from functools import partial
 
@@ -112,6 +113,7 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
         # To remove some silly warning event if code is fixed
         self._enable_turn_on_off_backwards_compatibility = False
         self._is_removed = False
+        self._is_startup_done = False
 
         self._hass = hass
         self._entry_infos = None
@@ -120,18 +122,14 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
         self._unique_id = unique_id
         self._name = name
 
+        self._is_ready: bool = False
+
         self._async_cancel_cycle = None
 
         # Callbacks for TPI cycle events
         self._on_cycle_start_callbacks: list[Callable] = []
 
         self._state_manager = StateManager()
-        # self._hvac_mode = None
-        # self._target_temp = None
-        # self._saved_target_temp = None
-        # self._saved_preset_mode = None
-        # self._saved_hvac_mode = None
-
         self._fan_mode = None
         self._humidity = None
         self._swing_mode = None
@@ -549,14 +547,25 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
                 "cause no external sensor",
                 self,
             )
+        self._is_startup_done = True
 
-    async def init_underlyings_completed(self, under_entity_id: str):
+        if self.is_ready:
+            await self.init_underlyings_completed()
+
+    async def init_underlyings_completed(self, under_entity_id: Optional[str] = None):
         """All underlyings have been initialized. Then we can finish our initialization"""
-        if not self.is_initialized:
+        _LOGGER.debug("%s - Calling init_underlyings_completed", self)
+        if not self.is_ready:
             return
 
+        # We:
+        # - refresh all managers states,
+        # - calculate the current state of the VTherm (it depends on the managers states and the requested state)
+        # - check if the initial conditions are met
+        # - force the first cycle if changes has been detected
+
         # in over_climate, we have to remove the FROST preset for a COOL only device
-        if self._ac_mode and VThermPreset.FROST in self._vtherm_preset_modes:
+        if self._ac_mode and VThermPreset.FROST in self._vtherm_preset_modes and HVACMode.HEAT not in self.hvac_modes:
             self._vtherm_preset_modes.remove(VThermPreset.FROST)
             if VThermPreset.FROST in self._attr_preset_modes:
                 self._attr_preset_modes.remove(VThermPreset.FROST)
@@ -566,19 +575,12 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
                 self._attr_preset_modes,
             )
 
-        # Then we:
-        # - refresh all managers states,
-        # - calculate the current state of the VTherm (it depends on the managers states and the requested state)
-        # - check if the initial conditions are met
-        # - force the first cycle if changes has been detected
-
         # refresh states for all managers
         for manager in self._managers:
             await manager.refresh_state()
             #    need_write_state = True
 
         await self.update_states(force=True)
-        # self.async_write_ha_state()
         self.recalculate()
 
         # check initial state should be done after the current state has been calculated and so after the manager has been updated
@@ -702,13 +704,6 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
         """Called when the entry have changed in ConfigFlow"""
         _LOGGER.info("%s - Change entry with the values: %s", self, config_entry.data)
 
-    # #1654 - no more needed now @callback
-    # async def _check_initial_state(self):
-    #     """Prevent the device from keep running if HVAC_MODE_OFF."""
-    #     _LOGGER.debug("%s - Calling _check_initial_state", self)
-    #     for under in self._underlyings:
-    #         await under.check_initial_state(self.vtherm_hvac_mode)
-
     async def init_presets(self, central_config):
         """Init all presets of the VTherm"""
         # If preset central config is used and central config is set,
@@ -790,7 +785,17 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
         """Check if all underlyings are initialized
         This is useful only for over_climate in which we
         should have found the underlying climate to be operational"""
+        for under in self._underlyings:
+            if not under.is_initialized:
+                return False
         return True
+
+    @property
+    def is_ready(self) -> bool:
+        """Check if all underlyings are ready (initialized and startup is complete)"""
+        if not self._is_ready:
+            self._is_ready = self._is_startup_done and self.is_initialized
+        return self._is_ready
 
     @property
     def vtherm_hvac_modes(self) -> list[VThermHvacMode]:
@@ -1059,7 +1064,7 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
     @property
     def hass(self) -> HomeAssistant:
         """Return the Home Assistant instance.
-        
+
         This overrides the Entity.hass property to return our stored _hass
         reference during initialization (before async_added_to_hass is called).
         """
@@ -1068,7 +1073,7 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
     @hass.setter
     def hass(self, value: HomeAssistant):
         """Set the Home Assistant instance.
-        
+
         This is called by the entity platform when adding the entity.
         """
         self._hass = value
@@ -1172,7 +1177,6 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
     def proportional_algorithm(self):
         """Get the eventual ProportionalAlgorithm"""
         return None
-
 
     @property
     def last_temperature_measure(self) -> datetime | None:
@@ -1479,6 +1483,10 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
     ##
     async def update_states(self, force=False):
         """Update the states of the thermostat considering the requested state and the current state"""
+        if not self.is_ready:
+            _LOGGER.debug("%s - update_states is called but the entity is not initialized yet. Skip the update", self)
+            return False
+
         changed = False
         if self._state_manager.requested_state.is_changed:
             if changed := await self._state_manager.calculate_current_state(self):
@@ -1547,8 +1555,8 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
             force,
         )
 
-        if not self.is_initialized:
-            _LOGGER.debug("%s - async_control_heating is called but the entity is not initialized yet. Skip the cycle", self)
+        if not self.is_ready:
+            _LOGGER.info("%s - async_control_heating is called but the entity is not ready yet (not initialized or startup not done). Skip the cycle", self)
             return False
 
         # check auto_window conditions
@@ -1751,7 +1759,9 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
             "hvac_mode": self.hvac_mode,
             "preset_mode": self.preset_mode,
             "ema_temp": self._ema_temp,
+            "is_ready": self.is_ready,
             "specific_states": {
+                "is_initialized": self.is_initialized,
                 "is_on": self.is_on,
                 "last_central_mode": self.last_central_mode,
                 "last_update_datetime": self.now.isoformat(),
@@ -1769,10 +1779,10 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
                 "last_change_time_from_vtherm": (
                     self._last_change_time_from_vtherm.astimezone(self._current_tz).isoformat() if self._last_change_time_from_vtherm is not None else None
                 ),
-                "messages": messages,
                 "is_sleeping": self.is_sleeping,
                 "is_locked": self.lock_manager.is_locked,
                 "is_recalculate_scheduled": self.is_recalculate_scheduled,
+                "messages": messages,
             },
             "configuration": {
                 "ac_mode": self._ac_mode,

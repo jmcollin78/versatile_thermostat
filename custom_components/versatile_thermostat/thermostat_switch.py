@@ -60,9 +60,6 @@ class ThermostatOverSwitch(ThermostatProp[UnderlyingSwitch]):
         """True if the switch is inversed (for pilot wire and diode)"""
         return self._is_inversed is True
 
-
-
-
     @overrides
     def post_init(self, config_entry: ConfigData):
         """Initialize the Thermostat"""
@@ -144,7 +141,7 @@ class ThermostatOverSwitch(ThermostatProp[UnderlyingSwitch]):
         )
         self._on_time_sec = on_time_sec
         self._off_time_sec = off_time_sec
-        
+
         # Underlying specific attributes
         vtherm_over_switch_attr = {
             "is_inversed": self.is_inversed,
@@ -169,7 +166,7 @@ class ThermostatOverSwitch(ThermostatProp[UnderlyingSwitch]):
                 "minimal_activation_delay": self._minimal_activation_delay,
                 "minimal_deactivation_delay": self._minimal_deactivation_delay,
             })
-            
+
         attributes["vtherm_over_switch"] = vtherm_over_switch_attr
         self._attr_extra_state_attributes.update(attributes)
 

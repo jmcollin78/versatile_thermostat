@@ -497,8 +497,6 @@ async def test_security_feature_back_on_percent(hass: HomeAssistant, skip_hass_s
         assert mock_heater_on.call_count == 0
 
 
-@pytest.mark.parametrize("expected_lingering_tasks", [True])
-@pytest.mark.parametrize("expected_lingering_timers", [True])
 async def test_security_over_climate(
     hass: HomeAssistant,
     skip_hass_states_is_state,
@@ -521,18 +519,6 @@ async def test_security_over_climate(
     fake_underlying_climate = await create_and_register_mock_climate(hass, "mock_climate", "MockClimateName", {}, VThermHvacMode_HEAT, HVACAction.HEATING)
 
     with patch("custom_components.versatile_thermostat.base_thermostat.BaseThermostat.send_event") as mock_send_event:
-        # entry.add_to_hass(hass)
-        # await hass.config_entries.async_setup(entry.entry_id)
-        # assert entry.state is ConfigEntryState.LOADED
-
-        # def find_my_entity(entity_id) -> ClimateEntity:
-        #     """Find my new entity"""
-        #     component: EntityComponent[ClimateEntity] = hass.data[CLIMATE_DOMAIN]
-        #     for entity in list(component.entities):
-        #         if entity.entity_id == entity_id:
-        #             return entity
-
-        # entity: ThermostatOverClimate = find_my_entity("climate.theoverclimatemockname")
 
         entity: ThermostatOverClimate = await create_thermostat(hass, entry, "climate.theoverclimatemockname")
 
@@ -541,9 +527,11 @@ async def test_security_over_climate(
         assert entity.name == "TheOverClimateMockName"
         assert entity.is_over_climate is True
 
+        await wait_for_local_condition(lambda: entity.is_ready)
+
         # Even if the underlying is HEATING it will be off at startup
+        await wait_for_local_condition(lambda: entity.vtherm_hvac_mode is VThermHvacMode_OFF)
         assert entity.hvac_action is HVACAction.OFF
-        assert entity.vtherm_hvac_mode is VThermHvacMode_OFF
         assert fake_underlying_climate.hvac_mode == HVACMode.OFF
         assert fake_underlying_climate.hvac_action == HVACAction.OFF
 
@@ -610,3 +598,5 @@ async def test_security_over_climate(
             assert entity.safety_state is not STATE_ON
             assert entity.preset_mode == "none"
             # assert entity._saved_preset_mode == "none"
+
+    entity.remove_thermostat()

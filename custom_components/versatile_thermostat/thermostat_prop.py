@@ -17,11 +17,11 @@ _LOGGER = logging.getLogger(__name__)
 
 class ThermostatProp(BaseThermostat[T], Generic[T]):
     """Base class for proportional thermostats.
-    
+
     This class provides the common infrastructure for proportional
     control algorithms (TPI, SmartPI). Algorithm-specific logic is
     delegated to a handler via composition.
-    
+
     Note: TPI-specific attributes (_tpi_coef_int, _proportional_function, etc.)
     are inherited from BaseThermostat and updated by the handler during init.
     """
@@ -69,12 +69,12 @@ class ThermostatProp(BaseThermostat[T], Generic[T]):
         if self._safety_state:
             val = self._safety_default_on_percent
         elif self._prop_algorithm:
-             val = self._prop_algorithm.on_percent
+            val = self._prop_algorithm.on_percent
         else:
-             val = 0
+            val = 0
 
         # Clamp with max_on_percent
-         # issue 538 - clamping with max_on_percent should be done here
+        # issue 538 - clamping with max_on_percent should be done here
         if self._max_on_percent is not None and val > self._max_on_percent:
             val = self._max_on_percent
 
@@ -109,9 +109,6 @@ class ThermostatProp(BaseThermostat[T], Generic[T]):
     @property
     def auto_tpi_manager(self):
         """Return the Auto TPI manager from handler."""
-    @property
-    def auto_tpi_manager(self):
-        """Return the Auto TPI manager from handler."""
         return self._algo_handler.auto_tpi_manager if self._algo_handler else None
 
     @property
@@ -140,7 +137,7 @@ class ThermostatProp(BaseThermostat[T], Generic[T]):
 
     def _init_algorithm_handler(self):
         """Initialize the algorithm handler based on proportional_function config.
-        
+
         This method creates the appropriate handler (TPI or other future ones) based on
         the CONF_PROP_FUNCTION setting in the configuration.
         """
@@ -279,7 +276,7 @@ class ThermostatProp(BaseThermostat[T], Generic[T]):
             )
     async def _on_prop_cycle_start(self, params: dict[str, Any]):
         """Called by Algorithm Handler when a new cycle starts.
-        
+
         Args:
             params: Dictionary containing cycle parameters (on_time, off_time, etc.)
         """

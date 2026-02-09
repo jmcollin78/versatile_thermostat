@@ -537,8 +537,12 @@ async def test_power_management_hvac_on(hass: HomeAssistant, skip_hass_states_is
 
 @pytest.mark.parametrize("expected_lingering_tasks", [True])
 @pytest.mark.parametrize("expected_lingering_timers", [True])
-async def test_power_management_energy_over_switch(hass: HomeAssistant, skip_hass_states_is_state, init_central_power_manager, fake_underlying_switch: MockSwitch):
+async def test_power_management_energy_over_switch(hass: HomeAssistant, skip_hass_states_is_state, init_central_power_manager):
     """Test the Power management energy mesurement"""
+
+    for switch_id in ["mock_switch1", "mock_switch2"]:
+        switch = MockSwitch(hass, switch_id, switch_id + "_name")
+        await register_mock_entity(hass, switch, SWITCH_DOMAIN)
 
     temps = {
         "eco": 17,
@@ -562,7 +566,7 @@ async def test_power_management_energy_over_switch(hass: HomeAssistant, skip_has
             CONF_USE_MOTION_FEATURE: False,
             CONF_USE_POWER_FEATURE: True,
             CONF_USE_PRESENCE_FEATURE: False,
-            CONF_UNDERLYING_LIST: ["switch.mock_switch", "switch.mock_switch2"],
+            CONF_UNDERLYING_LIST: ["switch.mock_switch1", "switch.mock_switch2"],
             CONF_PROP_FUNCTION: PROPORTIONAL_FUNCTION_TPI,
             CONF_TPI_COEF_INT: 0.3,
             CONF_TPI_COEF_EXT: 0.01,
@@ -585,6 +589,8 @@ async def test_power_management_energy_over_switch(hass: HomeAssistant, skip_has
 
     assert entity.total_energy == 0
     assert entity.nb_underlying_entities == 2
+
+    await wait_for_local_condition(lambda: entity.is_ready)
 
     # set temperature to 15 so that on_percent will be set
     with patch(
@@ -1008,7 +1014,6 @@ async def test_power_management_over_climate_valve(
 
     await vtherm.async_set_hvac_mode(VThermHvacMode_HEAT)
     await vtherm.async_set_preset_mode(VThermPreset.COMFORT)  # 19
-
     await wait_for_local_condition(lambda: vtherm.proportional_algorithm.on_percent == 0.4)  # 0.4 = (19-18)*0.3 + (19-18)*0.1
 
     assert vtherm.hvac_action is HVACAction.HEATING
@@ -1016,6 +1021,8 @@ async def test_power_management_over_climate_valve(
     assert vtherm.total_energy == 0.0
     assert vtherm.power_manager.mean_cycle_power == 1 * 0.4  # device_power * on_percent
 
+    # sometimes this test failed here
+    await asyncio.sleep(0.1)  # wait for the async_set_hvac_mode and async_set_preset_mode to be processed
     await wait_for_local_condition(lambda: fake_underlying_climate.hvac_mode == HVACMode.HEAT and fake_underlying_climate.hvac_action == HVACAction.HEATING)
     await wait_for_local_condition(lambda: vtherm._underlying_climate_start_hvac_action_date is not None)
 

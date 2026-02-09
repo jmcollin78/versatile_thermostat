@@ -1155,24 +1155,6 @@ async def test_update_central_boiler_state_simple_climate_valve_regulation(
     fake_opening_degree = await create_and_register_mock_number(hass, "mock_opening_degree", "MockOpeningDegree", value=0, min=0, max=100)
     await hass.async_block_till_done()
 
-    # mock_get_state will be called for each OPENING/CLOSING/OFFSET_CALIBRATION list
-    # mock_get_state_side_effect = SideEffects(
-    #     {
-    #         open_degree_entity.entity_id: State(
-    #             open_degree_entity.entity_id,
-    #             open_degree_entity.state,
-    #             {"min": 0, "max": 100},
-    #         ),
-    #         "number.mock_closing_degree": State(
-    #             "number.mock_closing_degree", "0", {"min": 0, "max": 100}
-    #         ),
-    #         "number.mock_offset_calibration": State(
-    #             "number.mock_offset_calibration", "0", {"min": -12, "max": 12}
-    #         ),
-    #     },
-    #     State("unknown.entity_id", "unknown"),
-    # )
-
     entity: ThermostatOverClimate = await create_thermostat(hass, entry, "climate.theoverclimatemockname", temps=default_temperatures)
     assert entity
     assert entity.name == "TheOverClimateMockName"
@@ -1213,7 +1195,7 @@ async def test_update_central_boiler_state_simple_climate_valve_regulation(
     # a valve at 0 is considered as OFF
     await wait_for_local_condition(lambda: entity.hvac_action == HVACAction.OFF)
     assert entity.activable_underlying_entities[0]._percent_open == 0
-    assert entity.device_actives == []
+    await wait_for_local_condition(lambda: entity.device_actives == [])
 
     boiler_binary_sensor: CentralBoilerBinarySensor = search_entity(hass, "binary_sensor.central_configuration_central_boiler", "binary_sensor")
     assert boiler_binary_sensor is not None
@@ -1228,6 +1210,7 @@ async def test_update_central_boiler_state_simple_climate_valve_regulation(
     # in Boost setpoint is 21°C
     fake_temp_sensor.set_native_value(19.5)
     await hass.async_block_till_done()
+    await asyncio.sleep(0.1)
     # await send_temperature_change_event(entity, 19.5, now)
 
     # we have to simulate the climate also else the test don't work
@@ -1235,7 +1218,7 @@ async def test_update_central_boiler_state_simple_climate_valve_regulation(
     fake_underlying_climate.set_hvac_action(HVACAction.HEATING)
     # Wait for state event propagation
     await hass.async_block_till_done()
-    await asyncio.sleep(0.5)
+    await asyncio.sleep(0.1)
 
     assert entity.hvac_action == HVACAction.HEATING
     assert entity.device_actives == ["number.mock_opening_degree"]
@@ -1258,25 +1241,11 @@ async def test_update_central_boiler_state_simple_climate_valve_regulation(
     assert boiler_binary_sensor.state == STATE_ON
 
     # 2. stop a climate
-    # mock_get_state_side_effect = SideEffects(
-    #     {
-    #         open_degree_entity.entity_id: State(
-    #             open_degree_entity.entity_id,
-    #             open_degree_entity.state,
-    #             {"min": 0, "max": 100},
-    #         ),
-    #         "number.mock_closing_degree": State(
-    #             "number.mock_closing_degree", "0", {"min": 0, "max": 100}
-    #         ),
-    #         "number.mock_offset_calibration": State(
-    #             "number.mock_offset_calibration", "0", {"min": -12, "max": 12}
-    #         ),
-    #     },
-    #     State("unknown.entity_id", "unknown"),
-    # )
 
     # await send_temperature_change_event(entity, 25, now)
     fake_temp_sensor.set_native_value(25)
+    await asyncio.sleep(0.1)
+
     fake_underlying_climate.set_hvac_mode(VThermHvacMode_HEAT)
     fake_underlying_climate.set_hvac_action(HVACAction.IDLE)
 
@@ -1317,14 +1286,6 @@ async def test_bug_339(
         hvac_modes=[VThermHvacMode_AUTO, VThermHvacMode_OFF, VThermHvacMode_HEAT, VThermHvacMode_COOL],
         hvac_action=HVACAction.HEATING,
     )
-    # climate1 = MockClimate(
-    #     hass=hass,
-    #     unique_id="climate1",
-    #     name="theClimate1",
-    #     hvac_mode=VThermHvacMode_AUTO,
-    #     hvac_modes=[VThermHvacMode_AUTO, VThermHvacMode_OFF, VThermHvacMode_HEAT, VThermHvacMode_COOL],
-    #     hvac_action=HVACAction.HEATING,
-    # )
 
     entry = MockConfigEntry(
         domain=DOMAIN,

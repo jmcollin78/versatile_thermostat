@@ -20,8 +20,6 @@ from custom_components.versatile_thermostat.vtherm_preset import VThermPreset, V
 from .commons import *  # pylint: disable=wildcard-import, unused-wildcard-import
 
 
-@pytest.mark.parametrize("expected_lingering_tasks", [True])
-@pytest.mark.parametrize("expected_lingering_timers", [True])
 async def test_over_switch_ac_full_start(hass: HomeAssistant, skip_hass_states_is_state, fake_underlying_switch_ac: MockSwitch):  # pylint: disable=unused-argument
     """Test the normal full start of a thermostat in thermostat_over_switch type"""
 
@@ -80,6 +78,9 @@ async def test_over_switch_ac_full_start(hass: HomeAssistant, skip_hass_states_i
         assert entity.name == "TheOverSwitchMockName"
         assert entity.is_over_climate is False  # pylint: disable=protected-access
         assert entity.ac_mode is True
+
+        await wait_for_local_condition(lambda: entity.is_ready)
+
         assert entity.hvac_action is HVACAction.OFF
         assert entity.hvac_mode is HVACMode.OFF
         assert entity.vtherm_hvac_mode is VThermHvacMode_OFF
@@ -190,3 +191,5 @@ async def test_over_switch_ac_full_start(hass: HomeAssistant, skip_hass_states_i
         await entity.async_set_preset_mode(VThermPreset.BOOST)
         assert entity.preset_mode == VThermPreset.BOOST
         assert entity.target_temperature == 18
+
+    entity.remove_thermostat()
