@@ -558,7 +558,7 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
         if not self.is_ready:
             return
 
-        # Then we:
+        # We:
         # - refresh all managers states,
         # - calculate the current state of the VTherm (it depends on the managers states and the requested state)
         # - check if the initial conditions are met

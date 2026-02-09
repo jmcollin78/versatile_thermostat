@@ -1127,12 +1127,12 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
         """Called when all entities of an underlying are initialized. Then we can complete the startup with the underlying info"""
         if not self.is_ready:
             return
-        await super().init_underlyings_completed(under_entity_id)
-
-        self.choose_auto_fan_mode(self._auto_fan_mode)
 
         # Reinitialize the hvac list because we have one underlying at least now
         self.set_hvac_list()
+        await super().init_underlyings_completed(under_entity_id)
+
+        self.choose_auto_fan_mode(self._auto_fan_mode)
 
     @overrides
     def turn_aux_heat_on(self) -> None:

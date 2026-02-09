@@ -505,6 +505,9 @@ async def test_multiple_climates_underlying_changes(
         climate = MockClimate(hass, climate_id, climate_id + "_name")
         await register_mock_entity(hass, climate, CLIMATE_DOMAIN)
 
+    await wait_for_local_condition(lambda: entity.is_ready is True)
+    entity.set_follow_underlying_temp_change(True)
+
     # start heating, in boost mode. We block the control_heating to avoid running a cycle
     with patch(
         "custom_components.versatile_thermostat.base_thermostat.BaseThermostat.async_control_heating"
@@ -648,7 +651,10 @@ async def test_multiple_climates_underlying_changes_not_aligned(
     assert entity.is_over_climate is True
     assert entity.nb_underlying_entities == 4
 
+    entity._set_now(now)  # pylint: disable=protected-access
+
     await wait_for_local_condition(lambda: entity.is_ready is True)
+    entity.set_follow_underlying_temp_change(True)
 
     # start heating, in boost mode. We block the control_heating to avoid running a cycle
     with patch(
@@ -684,24 +690,20 @@ async def test_multiple_climates_underlying_changes_not_aligned(
         VThermHvacMode_COOL,
     ):
         # Wait 11 sec so that the event will not be discarded
-        event_timestamp = now + timedelta(seconds=11)
+        now = now + timedelta(seconds=11)
+        entity._set_now(now)  # pylint: disable=protected-access
         await send_climate_change_event(
             entity,
             VThermHvacMode_OFF,
             VThermHvacMode_HEAT,
             HVACAction.OFF,
             HVACAction.HEATING,
-            event_timestamp,
+            now,
             underlying_entity_id="climate.mock_climate3",
         )
 
-        # Should be call for all Climates
-        assert mock_underlying_set_hvac_mode.call_count >= 1  # hvac_mode heat
-        # mock_underlying_set_hvac_mode.assert_has_calls(
-        #     [
-        #         call.set_hvac_mode(VThermHvacMode_OFF),
-        #     ]
-        # )
+        # Should not call hvac_mode
+        assert mock_underlying_set_hvac_mode.call_count == 0  # off is not propagated because the hvac_mode are not aligned
         # No change
         assert entity.hvac_mode == VThermHvacMode_HEAT
 
