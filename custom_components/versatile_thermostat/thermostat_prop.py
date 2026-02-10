@@ -129,6 +129,9 @@ class ThermostatProp(BaseThermostat[T], Generic[T]):
         """Finish the initialization of the thermostat."""
         super().post_init(config_entry)
 
+        # Initialize off_time to full cycle duration (on_percent=0 at startup)
+        self._off_time_sec = int(self._cycle_min * 60)
+
         # Initialize the proportional function from config
         # This allows selecting the correct handler (TPI, or other prop algorithms)
         self._proportional_function = self._entry_infos.get(CONF_PROP_FUNCTION)
