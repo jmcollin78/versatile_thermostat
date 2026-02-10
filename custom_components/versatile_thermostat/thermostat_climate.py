@@ -233,7 +233,10 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
 
             target_temp = round_to_nearest(new_regulated_temp + offset_temp, regulation_step)
 
-            dtemp = target_temp - self._regulated_target_temp
+            # The dtemp is the difference between the new target temp and the last sent temperature to the underlying. 
+            # If the dtemp is too low, we consider that there is no need to send a new temperature to the underlying because it
+            # will not have any effect on the device. This avoid to send too many temperature changes to the underlying.
+            dtemp = target_temp - (under.last_sent_temperature if under.last_sent_temperature else 0)
 
             if not force and abs(dtemp) < (self._auto_regulation_dtemp or 0):
                 _LOGGER.info(
