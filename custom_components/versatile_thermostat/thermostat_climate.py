@@ -93,7 +93,7 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
             )
             self._underlyings.append(under)
 
-        self._sync_entity_list = config_entry.get(CONF_SYNC_ENTITY_LIST, [])
+        self._sync_entity_list = config_entry.get(CONF_SYNC_ENTITY_LIST, []) if config_entry.get(CONF_SYNC_DEVICE_INTERNAL_TEMP, False) else []
         self._sync_with_calibration = config_entry.get(CONF_SYNC_WITH_CALIBRATION, False)
 
         self.choose_auto_regulation_mode(
