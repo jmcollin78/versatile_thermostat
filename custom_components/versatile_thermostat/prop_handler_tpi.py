@@ -331,6 +331,8 @@ class TPIHandler:
         # Stop here if we are off
         if t.vtherm_hvac_mode == VThermHvacMode_OFF:
             _LOGGER.debug("%s - End of cycle (HVAC_MODE_OFF)", t)
+            t._on_time_sec = 0
+            t._off_time_sec = int(t.cycle_min * 60)
             if t.is_device_active:
                 await t.async_underlying_entity_turn_off()
         else:
@@ -349,6 +351,10 @@ class TPIHandler:
                     realized_percent = on_time_sec / (t.cycle_min * 60)
                     if t.prop_algorithm and hasattr(t.prop_algorithm, "update_realized_power"):
                         t.prop_algorithm.update_realized_power(realized_percent)
+
+            # Store on/off times on thermostat for sensors and attributes
+            t._on_time_sec = on_time_sec
+            t._off_time_sec = off_time_sec
 
             for under in t.underlyings:
                 await under.start_cycle(

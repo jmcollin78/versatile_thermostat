@@ -23,7 +23,6 @@ from .const import (
 )
 
 from .commons import write_event_log
-from .timing_utils import calculate_cycle_times
 
 from .base_thermostat import BaseThermostat, ConfigData
 from .thermostat_prop import ThermostatProp
@@ -132,15 +131,9 @@ class ThermostatOverSwitch(ThermostatProp[UnderlyingSwitch]):
             "power_percent": self.power_percent,
         }
 
-        # Calculate on/off times for attributes (generic for any proportional algo on switch)
-        on_time_sec, off_time_sec, _ = calculate_cycle_times(
-            self.safe_on_percent,
-            self._cycle_min,
-            self._minimal_activation_delay,
-            self._minimal_deactivation_delay
-        )
-        self._on_time_sec = on_time_sec
-        self._off_time_sec = off_time_sec
+        # Use pre-calculated on/off times from handler's control_heating
+        on_time_sec = self._on_time_sec
+        off_time_sec = self._off_time_sec
 
         # Underlying specific attributes
         vtherm_over_switch_attr = {
