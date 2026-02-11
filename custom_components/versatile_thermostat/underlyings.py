@@ -968,11 +968,15 @@ class UnderlyingClimate(UnderlyingEntity):
         if ClimateEntityFeature.TARGET_TEMPERATURE in self.supported_features:
             data["temperature"] = target_temp
 
-        await self.hass_services_async_call(
-            CLIMATE_DOMAIN,
-            SERVICE_SET_TEMPERATURE,
-            data,
-        )
+        try:
+            await self.hass_services_async_call(
+                CLIMATE_DOMAIN,
+                SERVICE_SET_TEMPERATURE,
+                data,
+            )
+        except Exception as ex:
+            _LOGGER.error("%s - Error while sending set_temperature: %s", self, ex)
+            raise ex
 
         self._last_sent_temperature = target_temp
         _LOGGER.debug("%s - Last_sent_temperature is now: %s", self, self._last_sent_temperature)
