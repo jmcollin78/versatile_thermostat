@@ -1751,8 +1751,14 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
             messages.append(self.hvac_off_reason)
         if self.temperature_reason:
             messages.append(self.temperature_reason)
+
+        not_initialized_entities = []
         if not self.is_initialized:
             messages.append(MSG_NOT_INITIALIZED)
+            # Find all underlying entities that are not initialized
+            for under in self._underlyings:
+                if not under.is_initialized:
+                    not_initialized_entities.extend(under.state_manager.get_uninitialized_entities())
 
         self._attr_extra_state_attributes: dict[str, Any] = {
             "hvac_action": self.hvac_action,
@@ -1782,6 +1788,7 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
                 "is_sleeping": self.is_sleeping,
                 "is_locked": self.lock_manager.is_locked,
                 "is_recalculate_scheduled": self.is_recalculate_scheduled,
+                "not_initialized_entities": not_initialized_entities,
                 "messages": messages,
             },
             "configuration": {

@@ -257,10 +257,22 @@ async def test_multiple_switchs(
     assert entity._is_startup_done is True
     assert entity.is_ready is False
 
+    entity.update_custom_attributes()
+
+    assert MSG_NOT_INITIALIZED in entity._attr_extra_state_attributes["specific_states"].get("messages")
+    assert "switch.mock_switch1" in entity._attr_extra_state_attributes["specific_states"].get("not_initialized_entities", [])
+    assert "switch.mock_switch2" in entity._attr_extra_state_attributes["specific_states"].get("not_initialized_entities", [])
+    assert "switch.mock_switch3" in entity._attr_extra_state_attributes["specific_states"].get("not_initialized_entities", [])
+    assert "switch.mock_switch4" in entity._attr_extra_state_attributes["specific_states"].get("not_initialized_entities", [])
+
     # register the switch after thermostat creation
     for switch_id in ["mock_switch1", "mock_switch2", "mock_switch3", "mock_switch4"]:
         switch = MockSwitch(hass, switch_id, switch_id + "_name")
         await register_mock_entity(hass, switch, SWITCH_DOMAIN)
+
+    await wait_for_local_condition(lambda: entity.is_ready is True)
+    assert MSG_NOT_INITIALIZED not in entity._attr_extra_state_attributes["specific_states"].get("messages")
+    assert len(entity._attr_extra_state_attributes["specific_states"].get("not_initialized_entities", [])) == 0
 
     # start heating, in boost mode. We block the control_heating to avoid running a cycle
     with patch(

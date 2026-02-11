@@ -72,6 +72,7 @@ async def test_over_climate_not_initialized(
 
     assert entity._attr_extra_state_attributes["specific_states"].get("messages") is not None
     assert MSG_NOT_INITIALIZED in entity._attr_extra_state_attributes["specific_states"].get("messages")
+    assert "climate.mock_climate" in entity._attr_extra_state_attributes["specific_states"].get("not_initialized_entities", [])
 
     # try to call async_control_heating
     try:
@@ -80,8 +81,6 @@ async def test_over_climate_not_initialized(
         assert ret is False
     except Exception:  # pylint: disable=broad-exception-caught
         assert False
-
-    assert MSG_NOT_INITIALIZED in entity._attr_extra_state_attributes["specific_states"].get("messages")
 
     # This time the underlying will be found
     await create_and_register_mock_climate(hass, "mock_climate", "MockClimateName", {}, hvac_modes=[VThermHvacMode_OFF, VThermHvacMode_COOL])
@@ -100,6 +99,7 @@ async def test_over_climate_not_initialized(
     # Should not have NOT_INITIALIZED message anymore
     entity.update_custom_attributes()
     assert MSG_NOT_INITIALIZED not in entity._attr_extra_state_attributes["specific_states"].get("messages")
+    assert len(entity._attr_extra_state_attributes["specific_states"].get("not_initialized_entities", [])) == 0
 
     entity.remove_thermostat()
 

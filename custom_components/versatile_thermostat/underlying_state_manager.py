@@ -109,6 +109,14 @@ class UnderlyingStateManager:
                 return False
         return len(self._states) == len(self._entity_ids)
 
+    def get_uninitialized_entities(self) -> List[str]:
+        """Return a list of entity_ids that are not initialized."""
+        uninitialized = []
+        for entity_id, state in zip(self._entity_ids, self._states):
+            if state is None or state.state in [STATE_UNAVAILABLE, STATE_UNKNOWN]:
+                uninitialized.append(entity_id)
+        return uninitialized
+
     def _index_of(self, entity_id: str) -> Optional[int]:
         """Return the index of `entity_id` in the monitored list, or None."""
         try:
