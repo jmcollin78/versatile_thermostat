@@ -1562,13 +1562,6 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
         # check auto_window conditions
         await self._window_manager.manage_window_auto(in_cycle=True)
 
-        # In over_climate mode, if the underlying climate is not initialized,
-        # try to initialize it
-        # if not self.is_initialized:
-        #     if not self.init_underlyings():
-        #         # still not found, we an stop here
-        #         return False
-
         if timestamp and await self._safety_manager.refresh_and_update_if_changed():
             return False
 

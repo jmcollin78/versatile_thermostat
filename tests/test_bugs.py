@@ -758,7 +758,7 @@ async def test_bug_1220(hass: HomeAssistant, skip_hass_states_is_state):
     now += timedelta(minutes=10)
     vtherm._set_now(now)
     await fake_underlying_climate.async_set_hvac_mode(HVACMode.HEAT)
-    asyncio.sleep(0.1)
+    await asyncio.sleep(0.1)
     # await hass.async_block_till_done()
 
     await wait_for_local_condition(lambda: vtherm._underlyings[0].state_manager.get_state("climate.mock_climate").state == HVACMode.HEAT, timeout=10)
