@@ -147,7 +147,11 @@
           "minimal_activation_delay": "Délai minimal d'activation",
           "minimal_deactivation_delay": "Délai de désactivation minimal",
           "use_tpi_central_config": "Utiliser la configuration TPI centrale",
-          "auto_tpi_mode": "Activer l'apprentissage Auto TPI"
+          "auto_tpi_mode": "Activer l'apprentissage Auto TPI",
+          "anticipation_mode": "Mode d'anticipation",
+          "anticipation_coef_d": "Coefficient dérivé (D)",
+          "bang_activation_threshold": "Seuil d'activation Bang (°)",
+          "bang_initial_inertia_coeff": "Coefficient d'inertie initial (h)"
         },
         "data_description": {
           "tpi_coef_int": "Coefficient à utiliser pour le delta de température interne",
@@ -157,7 +161,11 @@
           "use_tpi_central_config": "Cochez pour utiliser la configuration TPI centrale. Décochez et saisissez les attributs pour utiliser une configuration TPI spécifique",
           "minimal_activation_delay": "Délai en secondes en-dessous duquel l'équipement ne sera pas activé",
           "minimal_deactivation_delay": "Délai en secondes en-dessous duquel l'équipement se laissé actif",
-          "auto_tpi_mode": "Les sessions d’apprentissage TPI sont démarrées manuellement ; veuillez lire la doc au préalable."
+          "auto_tpi_mode": "Les sessions d’apprentissage TPI sont démarrées manuellement ; veuillez lire la doc au préalable.",
+          "anticipation_mode": "Classique = TPI standard. TPI+D = freinage proportionnel basé sur la pente. Intelligent = chauffe à 100% puis coupure apprise par l’inertie thermique.",
+          "anticipation_coef_d": "Réduction du on_percent par °/h de pente. Utilisé par les modes TPI+D et Intelligent.",
+          "bang_activation_threshold": "Écart de température (°) au-dessus duquel la chauffe à 100% se déclenche (mode Intelligent uniquement).",
+          "bang_initial_inertia_coeff": "Coefficient initial d'inertie thermique en heures. Se raffine par apprentissage (mode Intelligent)."
         }
       },
       "presets": {
@@ -530,7 +538,11 @@
           "minimal_activation_delay": "Délai minimal d'activation",
           "minimal_deactivation_delay": "Délai de désactivation minimal",
           "use_tpi_central_config": "Utiliser la configuration TPI centrale",
-          "auto_tpi_mode": "Activer l'apprentissage Auto TPI"
+          "auto_tpi_mode": "Activer l'apprentissage Auto TPI",
+          "anticipation_mode": "Mode d'anticipation",
+          "anticipation_coef_d": "Coefficient dérivé (D)",
+          "bang_activation_threshold": "Seuil d'activation Bang (°)",
+          "bang_initial_inertia_coeff": "Coefficient d'inertie initial (h)"
         },
         "data_description": {
           "tpi_coef_int": "Coefficient à utiliser pour le delta de température interne",
@@ -540,7 +552,11 @@
           "use_tpi_central_config": "Cochez pour utiliser la configuration TPI centrale. Décochez et saisissez les attributs pour utiliser une configuration TPI spécifique",
           "minimal_activation_delay": "Délai en secondes en-dessous duquel l'équipement ne sera pas activé",
           "minimal_deactivation_delay": "Délai en secondes en-dessous duquel l'équipement sera laissé actif",
-          "auto_tpi_mode": "Les sessions d’apprentissage TPI sont démarrées manuellement ; veuillez lire la doc au préalable."
+          "auto_tpi_mode": "Les sessions d’apprentissage TPI sont démarrées manuellement ; veuillez lire la doc au préalable.",
+          "anticipation_mode": "Classique = TPI standard. TPI+D = freinage proportionnel basé sur la pente. Intelligent = chauffe à 100% puis coupure apprise par l’inertie thermique.",
+          "anticipation_coef_d": "Réduction du on_percent par °/h de pente. Utilisé par les modes TPI+D et Intelligent.",
+          "bang_activation_threshold": "Écart de température (°) au-dessus duquel la chauffe à 100% se déclenche (mode Intelligent uniquement).",
+          "bang_initial_inertia_coeff": "Coefficient initial d'inertie thermique en heures. Se raffine par apprentissage (mode Intelligent)."
         }
       },
       "presets": {
@@ -837,6 +853,13 @@
       "options": {
         "discovery": "Découverte",
         "fine_tuning": "Ajustement fin"
+      }
+    },
+    "anticipation_mode": {
+      "options": {
+        "anticipation_none": "Classique",
+        "anticipation_d_term": "TPI + Dérivé (D)",
+        "anticipation_smart": "Intelligent (Bang-Coast)"
       }
     }
   },

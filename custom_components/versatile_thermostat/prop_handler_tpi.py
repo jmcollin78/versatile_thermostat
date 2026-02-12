@@ -9,6 +9,7 @@ from homeassistant.exceptions import ServiceValidationError
 
 from .prop_algo_tpi import TpiAlgorithm
 from .auto_tpi_manager import AutoTpiManager
+from .bang_coast_manager import BangCoastManager
 from .const import *  # pylint: disable=wildcard-import, unused-wildcard-import
 from .vtherm_hvac_mode import VThermHvacMode_OFF, VThermHvacMode_HEAT, VThermHvacMode_COOL
 from .vtherm_api import VersatileThermostatAPI
@@ -34,9 +35,12 @@ class TPIHandler:
         """Initialize handler with parent thermostat reference."""
         self._thermostat = thermostat
         self._auto_tpi_manager: AutoTpiManager | None = None
+        self._bang_coast_manager: BangCoastManager | None = None
         # Save default values for Auto TPI reset
         self._default_coef_int: float = 0
         self._default_coef_ext: float = 0
+        # Cache for BangCoast result to avoid double process() calls
+        self._cached_effective_on_percent: float | None = None
 
     @property
     def tpi_coef_int(self) -> float:
@@ -127,6 +131,12 @@ class TPIHandler:
             )
             t.tpi_coef_ext = 0
 
+        # Read anticipation config
+        anticipation_mode = entry.get(CONF_ANTICIPATION_MODE, CONF_ANTICIPATION_NONE)
+        anticipation_coef_d = entry.get(CONF_ANTICIPATION_COEF_D, 0.1)
+        bang_activation_threshold = entry.get(CONF_BANG_ACTIVATION_THRESHOLD, 1.0)
+        bang_initial_inertia_coeff = entry.get(CONF_BANG_INITIAL_INERTIA_COEFF, 0.4)
+
         # Create TpiAlgorithm on thermostat
         t.prop_algorithm = TpiAlgorithm(
             t.tpi_coef_int,
@@ -135,7 +145,30 @@ class TPIHandler:
             max_on_percent=t.max_on_percent,
             tpi_threshold_low=t.tpi_threshold_low,
             tpi_threshold_high=t.tpi_threshold_high,
+            anticipation_mode=anticipation_mode,
+            anticipation_coef_d=anticipation_coef_d,
         )
+
+        # Create BangCoastManager for Smart mode
+        if anticipation_mode == CONF_ANTICIPATION_SMART:
+            self._bang_coast_manager = BangCoastManager(
+                hass=t.hass,
+                unique_id=t.unique_id,
+                name=t.name,
+                bang_activation_threshold=bang_activation_threshold,
+                initial_inertia_coeff=bang_initial_inertia_coeff,
+            )
+            _LOGGER.info(
+                "%s - Smart anticipation mode enabled: bang_threshold=%.1f, initial_coeff=%.2f",
+                t, bang_activation_threshold, bang_initial_inertia_coeff,
+            )
+        else:
+            self._bang_coast_manager = None
+            if anticipation_mode != CONF_ANTICIPATION_NONE:
+                _LOGGER.info(
+                    "%s - Anticipation mode: %s, coef_d=%.2f",
+                    t, anticipation_mode, anticipation_coef_d,
+                )
 
         # Initialize Auto TPI Manager from config
         heater_heating_time = entry.get(CONF_AUTO_TPI_HEATER_HEATING_TIME, 5)
@@ -176,8 +209,13 @@ class TPIHandler:
                      t, self._auto_tpi_manager._default_coef_int, self._auto_tpi_manager._default_coef_ext)
 
     async def async_added_to_hass(self):
-        """Load Auto TPI data."""
+        """Load Auto TPI and Bang-Coast data."""
         t = self._thermostat
+
+        # Load Bang-Coast learning data
+        if self._bang_coast_manager:
+            await self._bang_coast_manager.async_load_data()
+
         if self._auto_tpi_manager:
             # Set entity_id for pre-bootstrap calibration sensor lookup
             self._auto_tpi_manager._entity_id = t.entity_id
@@ -259,12 +297,30 @@ class TPIHandler:
         # Force recalculation with potentially updated coefficients
         t.recalculate()
 
+        # Get the base on_percent (P-only, before anticipation) for Learning
+        base_on_percent = t.base_on_percent
+
+        # For Smart mode, apply Bang-Coast state machine override
+        effective_on_percent = t.on_percent  # Default: includes D-term if TPI+D mode
+        if self._bang_coast_manager:
+            effective_on_percent = self._bang_coast_manager.process(
+                target_temp=t.target_temperature,
+                current_temp=t.current_temperature,
+                slope=t.last_temperature_slope,
+                base_on_percent=base_on_percent,
+                coef_d=t.prop_algorithm.anticipation_coef_d if t.prop_algorithm else 0.1,
+            )
+            # Cache the result so control_heating() doesn't call process() again
+            self._cached_effective_on_percent = effective_on_percent
+            # Save BangCoast data periodically (every cycle)
+            await self._bang_coast_manager.async_save_data()
+
         # Calculate time (in seconds)
         if t.prop_algorithm:
             # temporary ignore the forced_by_timing prop
             # todo: implement handle of forced_by_timing to auto_tpi loop
             on_time_sec, off_time_sec, forced_by_timing = calculate_cycle_times(
-                t.on_percent,
+                effective_on_percent,
                 t.cycle_min,
                 t.minimal_activation_delay,
                 t.minimal_deactivation_delay,
@@ -282,13 +338,19 @@ class TPIHandler:
         return {
             "on_time_sec": on_time_sec,
             "off_time_sec": off_time_sec,
-            "on_percent": t.safe_on_percent,
+            # Learning uses base_on_percent (P-only, unaffected by D-term or Bang-Coast override)
+            "on_percent": base_on_percent,
             "hvac_mode": str(t.vtherm_hvac_mode),
         }
 
     async def control_heating(self, force=False):
         """TPI-specific control heating logic."""
         t = self._thermostat
+
+        # Invalidate BangCoast cache at the start of each cycle.
+        # If _get_tpi_data() is called by process_cycle(), it will populate the cache.
+        # If not (learning inactive), we'll compute fresh in the valve control block.
+        self._cached_effective_on_percent = None
 
         # Feed the Auto TPI manager
         if self._auto_tpi_manager:
@@ -333,6 +395,9 @@ class TPIHandler:
             _LOGGER.debug("%s - End of cycle (HVAC_MODE_OFF)", t)
             t._on_time_sec = 0
             t._off_time_sec = int(t.cycle_min * 60)
+            # Reset BangCoast state machine to avoid stale BANG/COAST state on re-enable
+            if self._bang_coast_manager:
+                self._bang_coast_manager.reset_to_maintain()
             if t.is_device_active:
                 await t.async_underlying_entity_turn_off()
         else:
@@ -340,7 +405,26 @@ class TPIHandler:
             off_time_sec = 0
             on_percent = 0
             if t.prop_algorithm:
-                on_percent = t.on_percent
+                # Get effective on_percent (with Bang-Coast override if Smart mode)
+                if self._bang_coast_manager:
+                    if self._cached_effective_on_percent is not None:
+                        # Reuse the result from _get_tpi_data() to avoid double state transitions
+                        on_percent = self._cached_effective_on_percent
+                    else:
+                        # Learning was not active, so _get_tpi_data() wasn't called.
+                        # Need to recalculate and call process() fresh.
+                        t.recalculate()
+                        on_percent = self._bang_coast_manager.process(
+                            target_temp=t.target_temperature,
+                            current_temp=t.current_temperature,
+                            slope=t.last_temperature_slope,
+                            base_on_percent=t.base_on_percent,
+                            coef_d=t.prop_algorithm.anticipation_coef_d if t.prop_algorithm else 0.1,
+                        )
+                        # Persist learning data (may have changed during process)
+                        await self._bang_coast_manager.async_save_data()
+                else:
+                    on_percent = t.on_percent
                 on_time_sec, off_time_sec, forced_by_timing = calculate_cycle_times(
                     on_percent,
                     t.cycle_min,
@@ -382,9 +466,20 @@ class TPIHandler:
             ),
         })
 
+        # Add Bang-Coast diagnostics if Smart mode is active
+        if self._bang_coast_manager:
+            t._attr_extra_state_attributes["specific_states"].update(
+                self._bang_coast_manager.get_state_for_attributes()
+            )
+
+        anticipation_mode = CONF_ANTICIPATION_NONE
+        if t.prop_algorithm and hasattr(t.prop_algorithm, "anticipation_mode"):
+            anticipation_mode = t.prop_algorithm.anticipation_mode
+
         t._attr_extra_state_attributes["configuration"].update({
             "minimal_activation_delay_sec": t.minimal_activation_delay,
             "minimal_deactivation_delay_sec": t.minimal_deactivation_delay,
+            "anticipation_mode": anticipation_mode,
         })
 
 

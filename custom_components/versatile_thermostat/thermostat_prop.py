@@ -95,6 +95,15 @@ class ThermostatProp(BaseThermostat[T], Generic[T]):
         """
         return self.on_percent
 
+    @property
+    def base_on_percent(self) -> float:
+        """Return the base on_percent before anticipation post-processing.
+        This is the pure TPI (P-only) value, used by Auto TPI Learning.
+        """
+        if self._prop_algorithm and hasattr(self._prop_algorithm, "base_on_percent"):
+            return self._prop_algorithm.base_on_percent
+        return self.on_percent
+
     def set_safety(self, default_on_percent: float):
         """Set a default value for on_percent (used for safety mode)"""
         _LOGGER.info("%s - Set safety to ON with default_on_percent=%s", self, default_on_percent)

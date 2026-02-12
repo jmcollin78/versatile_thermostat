@@ -3,6 +3,7 @@
 import logging
 
 from .vtherm_hvac_mode import VThermHvacMode, VThermHvacMode_OFF, VThermHvacMode_COOL, VThermHvacMode_SLEEP
+from .const import CONF_ANTICIPATION_NONE, CONF_ANTICIPATION_D_TERM
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -26,16 +27,19 @@ class TpiAlgorithm:
         max_on_percent: float = None,
         tpi_threshold_low: float = 0.0,
         tpi_threshold_high: float = 0.0,
+        anticipation_mode: str = CONF_ANTICIPATION_NONE,
+        anticipation_coef_d: float = 0.1,
     ) -> None:
         """Initialisation of the Proportional Algorithm"""
         _LOGGER.debug(
-            "%s - Creation new TpiAlgorithm tpi_coef_int: %s, tpi_coef_ext: %s, tpi_threshold_low=%s, tpi_threshold_high=%s",  # pylint: disable=line-too-long
+            "%s - Creation new TpiAlgorithm tpi_coef_int: %s, tpi_coef_ext: %s, tpi_threshold_low=%s, tpi_threshold_high=%s, anticipation=%s",  # pylint: disable=line-too-long
             vtherm_entity_id,
 
             tpi_coef_int,
             tpi_coef_ext,
             tpi_threshold_low,
             tpi_threshold_high,
+            anticipation_mode,
         )
 
         # Issue 506 - check parameters
@@ -61,11 +65,14 @@ class TpiAlgorithm:
         self._tpi_coef_ext = tpi_coef_ext
         self._on_percent = 0
         self._calculated_on_percent = 0
+        self._base_on_percent = 0
         self._total_on_percent = 0
         self._max_on_percent = max_on_percent
         self._tpi_threshold_low = tpi_threshold_low
         self._tpi_threshold_high = tpi_threshold_high
         self._apply_threshold = tpi_threshold_low != 0.0 and tpi_threshold_high != 0.0
+        self._anticipation_mode = anticipation_mode
+        self._anticipation_coef_d = anticipation_coef_d
 
     def calculate(
         self,
@@ -131,7 +138,28 @@ class TpiAlgorithm:
                     )
                     self._calculated_on_percent = 0
 
+        # Save base on_percent (P-only value) before any anticipation post-processing.
+        # This is used by Auto TPI Learning which should observe the pure TPI output.
+        self._base_on_percent = self._calculated_on_percent
 
+        # Apply D-term post-processing for TPI+D mode.
+        # For Smart (Bang-Coast) mode, the D-term is applied by BangCoastManager, not here.
+        if (
+            self._anticipation_mode == CONF_ANTICIPATION_D_TERM
+            and slope is not None
+            and slope > 0
+            and self._calculated_on_percent > 0
+        ):
+            d_correction = self._anticipation_coef_d * slope
+            self._calculated_on_percent = max(0.0, self._calculated_on_percent - d_correction)
+            _LOGGER.debug(
+                "%s - D-term anticipation: slope=%.2f, correction=%.3f, base=%.2f, final=%.2f",
+                self._vtherm_entity_id,
+                slope,
+                d_correction,
+                self._base_on_percent,
+                self._calculated_on_percent,
+            )
 
         _LOGGER.debug(
             "%s - heating percent calculated for current_temp %.1f, ext_current_temp %.1f and target_temp %.1f is %.2f",  # pylint: disable=line-too-long
@@ -219,4 +247,21 @@ class TpiAlgorithm:
     def tpi_threshold_high(self) -> float:
         """Returns the TPI threshold high"""
         return self._tpi_threshold_high
+
+    @property
+    def base_on_percent(self) -> float:
+        """Returns the base on_percent before anticipation post-processing.
+        This is the pure TPI (P-only) value used by Auto TPI Learning.
+        """
+        return round(self._base_on_percent, 2)
+
+    @property
+    def anticipation_mode(self) -> str:
+        """Returns the current anticipation mode."""
+        return self._anticipation_mode
+
+    @property
+    def anticipation_coef_d(self) -> float:
+        """Returns the derivative coefficient."""
+        return self._anticipation_coef_d
 

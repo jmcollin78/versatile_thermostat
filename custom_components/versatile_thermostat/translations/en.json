@@ -140,7 +140,11 @@
           "use_tpi_central_config": "Use central TPI configuration",
           "minimal_activation_delay": "Minimum activation delay",
           "minimal_deactivation_delay": "Minimum deactivation delay",
-          "auto_tpi_mode": "Enable Auto TPI Learning"
+          "auto_tpi_mode": "Enable Auto TPI Learning",
+          "anticipation_mode": "Anticipation mode",
+          "anticipation_coef_d": "Derivative coefficient (D)",
+          "bang_activation_threshold": "Bang activation threshold (°)",
+          "bang_initial_inertia_coeff": "Initial inertia coefficient (h)"
         },
         "data_description": {
           "tpi_coef_int": "Coefficient to use for internal temperature delta",
@@ -150,7 +154,11 @@
           "use_tpi_central_config": "Check to use the central TPI configuration. Uncheck to use a specific TPI configuration for this VTherm",
           "minimal_activation_delay": "Delay in seconds under which the equipment will not be activated",
           "minimal_deactivation_delay": "Delay in seconds under which the equipment will be kept active",
-          "auto_tpi_mode": "TPI learning session are started manually, read the doc first."
+          "auto_tpi_mode": "TPI learning session are started manually, read the doc first.",
+          "anticipation_mode": "Classic = standard TPI. TPI+D = proportional braking based on temperature slope. Smart = heats at 100% then learned cutoff based on thermal inertia.",
+          "anticipation_coef_d": "Reduction of on_percent per °/h of slope. Used by TPI+D and Smart modes.",
+          "bang_activation_threshold": "Temperature gap (°) above which 100% heating is triggered (Smart mode only).",
+          "bang_initial_inertia_coeff": "Initial thermal inertia coefficient in hours. Refined automatically through learning (Smart mode)."
         }
       },
       "presets": {
@@ -516,7 +524,11 @@
           "use_tpi_central_config": "Use central TPI configuration",
           "minimal_activation_delay": "Minimum activation delay",
           "minimal_deactivation_delay": "Minimum deactivation delay",
-          "auto_tpi_mode": "Enable Auto TPI Learning"
+          "auto_tpi_mode": "Enable Auto TPI Learning",
+          "anticipation_mode": "Anticipation mode",
+          "anticipation_coef_d": "Derivative coefficient (D)",
+          "bang_activation_threshold": "Bang activation threshold (°)",
+          "bang_initial_inertia_coeff": "Initial inertia coefficient (h)"
         },
         "data_description": {
           "tpi_coef_int": "Coefficient to use for internal temperature delta",
@@ -526,7 +538,11 @@
           "use_tpi_central_config": "Check to use the central TPI configuration. Uncheck to use a specific TPI configuration for this VTherm",
           "minimal_activation_delay": "Delay in seconds under which the equipment will not be activated",
           "minimal_deactivation_delay": "Delay in seconds under which the equipment will be kept active",
-          "auto_tpi_mode": "TPI learning session are started manually, read the doc first."
+          "auto_tpi_mode": "TPI learning session are started manually, read the doc first.",
+          "anticipation_mode": "Classic = standard TPI. TPI+D = proportional braking based on temperature slope. Smart = heats at 100% then learned cutoff based on thermal inertia.",
+          "anticipation_coef_d": "Reduction of on_percent per °/h of slope. Used by TPI+D and Smart modes.",
+          "bang_activation_threshold": "Temperature gap (°) above which 100% heating is triggered (Smart mode only).",
+          "bang_initial_inertia_coeff": "Initial thermal inertia coefficient in hours. Refined automatically through learning (Smart mode)."
         }
       },
       "presets": {
@@ -823,6 +839,13 @@
       "options": {
         "discovery": "Discovery",
         "fine_tuning": "Fine Tuning"
+      }
+    },
+    "anticipation_mode": {
+      "options": {
+        "anticipation_none": "Classic",
+        "anticipation_d_term": "TPI + Derivative (D)",
+        "anticipation_smart": "Smart (Bang-Coast)"
       }
     }
   },

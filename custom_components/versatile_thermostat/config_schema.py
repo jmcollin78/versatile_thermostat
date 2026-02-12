@@ -279,6 +279,28 @@ STEP_CENTRAL_TPI_DATA_SCHEMA = vol.Schema(  # pylint: disable=invalid-name
                 min=-10.0, max=10.0, step=0.1, mode=selector.NumberSelectorMode.BOX
             )
         ),
+        vol.Optional(CONF_ANTICIPATION_MODE, default=CONF_ANTICIPATION_NONE): selector.SelectSelector(
+            selector.SelectSelectorConfig(
+                options=CONF_ANTICIPATION_MODES,
+                translation_key="anticipation_mode",
+                mode="dropdown",
+            )
+        ),
+        vol.Optional(CONF_ANTICIPATION_COEF_D, default=0.1): selector.NumberSelector(
+            selector.NumberSelectorConfig(
+                min=0.0, max=1.0, step=0.01, mode=selector.NumberSelectorMode.BOX
+            )
+        ),
+        vol.Optional(CONF_BANG_ACTIVATION_THRESHOLD, default=1.0): selector.NumberSelector(
+            selector.NumberSelectorConfig(
+                min=0.5, max=5.0, step=0.1, mode=selector.NumberSelectorMode.BOX
+            )
+        ),
+        vol.Optional(CONF_BANG_INITIAL_INERTIA_COEFF, default=0.4): selector.NumberSelector(
+            selector.NumberSelectorConfig(
+                min=0.05, max=2.0, step=0.05, mode=selector.NumberSelectorMode.BOX
+            )
+        ),
         vol.Optional(CONF_AUTO_TPI_MODE, default=False): cv.boolean,
     }
 )
@@ -307,6 +329,28 @@ STEP_CENTRAL_TPI_DATA_SCHEMA_CENTRAL = vol.Schema(  # pylint: disable=invalid-na
         vol.Optional(CONF_TPI_THRESHOLD_HIGH, default=0): selector.NumberSelector(
             selector.NumberSelectorConfig(
                 min=-10.0, max=10.0, step=0.1, mode=selector.NumberSelectorMode.BOX
+            )
+        ),
+        vol.Optional(CONF_ANTICIPATION_MODE, default=CONF_ANTICIPATION_NONE): selector.SelectSelector(
+            selector.SelectSelectorConfig(
+                options=CONF_ANTICIPATION_MODES,
+                translation_key="anticipation_mode",
+                mode="dropdown",
+            )
+        ),
+        vol.Optional(CONF_ANTICIPATION_COEF_D, default=0.1): selector.NumberSelector(
+            selector.NumberSelectorConfig(
+                min=0.0, max=1.0, step=0.01, mode=selector.NumberSelectorMode.BOX
+            )
+        ),
+        vol.Optional(CONF_BANG_ACTIVATION_THRESHOLD, default=1.0): selector.NumberSelector(
+            selector.NumberSelectorConfig(
+                min=0.5, max=5.0, step=0.1, mode=selector.NumberSelectorMode.BOX
+            )
+        ),
+        vol.Optional(CONF_BANG_INITIAL_INERTIA_COEFF, default=0.4): selector.NumberSelector(
+            selector.NumberSelectorConfig(
+                min=0.05, max=2.0, step=0.05, mode=selector.NumberSelectorMode.BOX
             )
         ),
     }

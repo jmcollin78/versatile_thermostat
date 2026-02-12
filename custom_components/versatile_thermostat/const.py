@@ -77,6 +77,26 @@ CONF_TPI_COEF_INT = "tpi_coef_int"
 CONF_TPI_COEF_EXT = "tpi_coef_ext"
 CONF_TPI_THRESHOLD_LOW = "tpi_threshold_low"
 CONF_TPI_THRESHOLD_HIGH = "tpi_threshold_high"
+
+# Anticipation modes
+CONF_ANTICIPATION_MODE = "anticipation_mode"
+CONF_ANTICIPATION_NONE = "anticipation_none"
+CONF_ANTICIPATION_D_TERM = "anticipation_d_term"
+CONF_ANTICIPATION_SMART = "anticipation_smart"
+CONF_ANTICIPATION_MODES = [
+    CONF_ANTICIPATION_NONE,
+    CONF_ANTICIPATION_D_TERM,
+    CONF_ANTICIPATION_SMART,
+]
+
+# Derivative term parameter (used by TPI+D and Smart mode MAINTAIN phase)
+CONF_ANTICIPATION_COEF_D = "anticipation_coef_d"
+
+# Bang-Coast parameters (Smart mode only)
+CONF_BANG_ACTIVATION_THRESHOLD = "bang_activation_threshold"
+CONF_BANG_INITIAL_INERTIA_COEFF = "bang_initial_inertia_coeff"
+# Minimum slope for learning safety (avoid division by near-zero)
+BANG_COAST_MIN_SLOPE_FOR_LEARNING = 0.2
 CONF_PRESENCE_SENSOR = "presence_sensor_entity_id"
 CONF_PRESET_POWER = "power_temp"
 CONF_MINIMAL_ACTIVATION_DELAY = "minimal_activation_delay"
