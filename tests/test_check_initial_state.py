@@ -40,6 +40,8 @@ async def test_check_initial_state_underlying_switch(hass, hvac_mode, last_state
     thermostat.vtherm_hvac_mode = hvac_mode
     thermostat.now = None
     thermostat.is_inversed = False
+    thermostat.init_underlyings_completed = AsyncMock()
+    thermostat.underlying_changed = AsyncMock()
     # power_manager used by turn_on/turn_off - provide safe mocks
     power_manager = MagicMock()
     power_manager.add_power_consumption_to_central_power_manager = MagicMock()
