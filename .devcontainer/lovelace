@@ -1773,6 +1773,23 @@
               ]
             },
             {
+              "type": "entities",
+              "entities": [
+                {
+                  "entity": "input_boolean.fake_heater_4switch1"
+                },
+                {
+                  "entity": "input_boolean.fake_heater_4switch2"
+                },
+                {
+                  "entity": "input_boolean.fake_heater_4switch3"
+                },
+                {
+                  "entity": "input_boolean.fake_heater_4switch4"
+                }
+              ]
+            },
+            {
               "type": "history-graph",
               "entities": [
                 {
