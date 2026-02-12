@@ -215,10 +215,13 @@ class UnderlyingEntity:
         return_response: bool = False,
     ) -> ServiceResponse:
         """Wrapper for HASS service calls"""
-        reponse: ServiceResponse = await self._hass.services.async_call(domain, service, service_data, blocking, context, target, return_response)
+        try:
+            response: ServiceResponse = await self._hass.services.async_call(domain, service, service_data, blocking, context, target, return_response)
 
-        self._last_command_sent_datetime = self._thermostat.now
-        return reponse
+            self._last_command_sent_datetime = self._thermostat.now
+            return response
+        except Exception as err:
+            _LOGGER.error("Error calling service %s.%s: %s. The underlying will not change its state.", domain, service, err)
 
     async def start_cycle(
         self,
@@ -546,7 +549,7 @@ class UnderlyingSwitch(UnderlyingEntity):
         self._off_time_sec = off_time_sec
         self._hvac_mode = hvac_mode
         self._calculate_should_be_on(False)
-        
+
         # Cancel eventual previous cycle if any
         if self._async_cancel_cycle is not None:
             if force:
@@ -568,7 +571,7 @@ class UnderlyingSwitch(UnderlyingEntity):
             # - At low power (off_time >> on_time): use initial_delay to spread switches
             # - At high power (off_time << on_time): reduce delay to create overlap
             # - At 100% power (off_time=0): all switches turn on immediately
-            
+
             if off_time_sec == 0:
                 # 100% power: no delay, all switches on simultaneously
                 effective_delay = 0
@@ -581,7 +584,7 @@ class UnderlyingSwitch(UnderlyingEntity):
                 # Scale delay proportionally to allow overlap
                 # This ensures switches can complete their on_time within the cycle
                 effective_delay = off_time_sec
-            
+
             self._async_cancel_cycle = self.call_later(
                 self._hass, effective_delay, self._turn_on_later
             )

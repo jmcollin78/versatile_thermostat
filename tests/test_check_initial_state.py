@@ -113,6 +113,8 @@ async def test_check_initial_state_underlying_valve(hass, hvac_mode, percent_ope
     thermostat.hvac_mode = hvac_mode
     thermostat.vtherm_hvac_mode = hvac_mode
     thermostat.valve_open_percent = 35 if hvac_mode == VThermHvacMode_HEAT else 0
+    thermostat.init_underlyings_completed = AsyncMock()
+    thermostat.underlying_changed = AsyncMock()
     thermostat.now = None
 
     u = UnderlyingValve(hass=hass, thermostat=thermostat, valve_entity_id="number.valve")
@@ -182,6 +184,8 @@ async def test_check_initial_state_underlying_climate(hass, hvac_mode, last_stat
     power_manager.sub_power_consumption_to_central_power_manager = MagicMock()
     power_manager.check_power_available = AsyncMock(return_value=(True, None))
     thermostat.power_manager = power_manager
+    thermostat.init_underlyings_completed = AsyncMock()
+    thermostat.underlying_changed = AsyncMock()
 
     # Instantiate the UnderlyingClimate
     u = UnderlyingClimate(hass=hass, thermostat=thermostat, climate_entity_id="climate.test")
@@ -251,6 +255,7 @@ async def test_check_initial_state_underlying_climate_valve(hass, hvac_mode, is_
     thermostat.now = None
     thermostat.init_underlyings_completed = AsyncMock()
     thermostat.underlying_changed = AsyncMock()
+    thermostat.init_underlyings_completed = AsyncMock()
 
     # power_manager used by turn_on/turn_off - provide safe mocks
     power_manager = MagicMock()
