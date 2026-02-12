@@ -615,7 +615,7 @@ async def test_power_management_energy_over_switch(hass: HomeAssistant, skip_has
         assert entity.power_manager.device_power == 100.0
 
         assert mock_send_event.call_count == 2
-        assert mock_heater_on.call_count == 1
+        assert mock_heater_on.call_count == 2  # both switches turn on immediately at 100%
         assert mock_heater_off.call_count == 0
 
     with patch(

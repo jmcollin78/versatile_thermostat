@@ -342,6 +342,7 @@ class UnderlyingSwitch(UnderlyingEntity):
         self._on_command = {"command": command, "data": data, "state": state_on}
         command, data, state_off = self.build_command(use_on=False)
         self._off_command = {"command": command, "data": data, "state": state_off}
+        self._should_be_on = False
 
     @property
     def initial_delay_sec(self):
@@ -375,14 +376,25 @@ class UnderlyingSwitch(UnderlyingEntity):
 
         if self.hvac_mode != hvac_mode:
             await super().set_hvac_mode(hvac_mode)
+            self._calculate_should_be_on()
             return True
         else:
             return False
 
+    def _calculate_should_be_on(self, should_be_on: bool | None = None) -> bool:
+        """Calculate and update the _should_be_on flag"""
+        if should_be_on is not None:
+            self._should_be_on = should_be_on
+
+        if self._hvac_mode == VThermHvacMode_OFF or self._on_time_sec <= 0:
+            self._should_be_on = False
+
+        return self._should_be_on
+
     @property
     def should_device_be_active(self) -> bool:
         """If the toggleable device is currently active."""
-        return self._on_time_sec > 0 and self.hvac_mode in [VThermHvacMode_HEAT, VThermHvacMode_COOL]
+        return self._calculate_should_be_on()
 
     @property
     def is_device_active(self) -> bool | None:
@@ -533,7 +545,8 @@ class UnderlyingSwitch(UnderlyingEntity):
         self._on_time_sec = on_time_sec
         self._off_time_sec = off_time_sec
         self._hvac_mode = hvac_mode
-
+        self._calculate_should_be_on(False)
+        
         # Cancel eventual previous cycle if any
         if self._async_cancel_cycle is not None:
             if force:
@@ -549,13 +562,37 @@ class UnderlyingSwitch(UnderlyingEntity):
                 return
 
         # If we should heat, starts the cycle with delay
-        if self.should_device_be_active:
-            # Starts the cycle after the initial delay
-            self._async_cancel_cycle = self.call_later(
-                self._hass, self._initial_delay_sec, self._turn_on_later
-            )
-            _LOGGER.debug("%s - _async_cancel_cycle=%s", self, self._async_cancel_cycle)
 
+        if on_time_sec > 0 and hvac_mode in [VThermHvacMode_HEAT, VThermHvacMode_COOL]:
+            # Calculate effective delay based on power level:
+            # - At low power (off_time >> on_time): use initial_delay to spread switches
+            # - At high power (off_time << on_time): reduce delay to create overlap
+            # - At 100% power (off_time=0): all switches turn on immediately
+            
+            if off_time_sec == 0:
+                # 100% power: no delay, all switches on simultaneously
+                effective_delay = 0
+            elif off_time_sec >= self._initial_delay_sec:
+                # Low power: enough off_time to accommodate full initial delay
+                # Use the full initial delay to maximize separation
+                effective_delay = self._initial_delay_sec
+            else:
+                # Medium to high power: off_time < initial_delay
+                # Scale delay proportionally to allow overlap
+                # This ensures switches can complete their on_time within the cycle
+                effective_delay = off_time_sec
+            
+            self._async_cancel_cycle = self.call_later(
+                self._hass, effective_delay, self._turn_on_later
+            )
+            _LOGGER.debug(
+                "%s - _async_cancel_cycle=%s with effective_delay=%d (off_time=%d, initial_delay=%d)",
+                self,
+                self._async_cancel_cycle,
+                effective_delay,
+                off_time_sec,
+                self._initial_delay_sec,
+            )
         # if we not heat but device is active
         elif self.is_device_active:
             _LOGGER.info(
@@ -595,7 +632,8 @@ class UnderlyingSwitch(UnderlyingEntity):
 
         if self._hvac_mode == VThermHvacMode_OFF:
             _LOGGER.debug("%s - End of cycle (HVAC_MODE_OFF - 2)", self)
-            if self.should_device_be_active:
+            self._calculate_should_be_on(False)
+            if self.is_device_active:
                 await self.turn_off()
             return
 
@@ -614,6 +652,7 @@ class UnderlyingSwitch(UnderlyingEntity):
             )
             if not await self.turn_on():
                 return
+            self._calculate_should_be_on(True)
         else:
             _LOGGER.debug("%s - No action on heater cause duration is 0", self)
 
@@ -660,7 +699,8 @@ class UnderlyingSwitch(UnderlyingEntity):
 
         if self._hvac_mode == VThermHvacMode_OFF:
             _LOGGER.debug("%s - End of cycle (HVAC_MODE_OFF - 2)", self)
-            if self.should_device_be_active:
+            self._calculate_should_be_on(False)
+            if self.is_device_active:
                 await self.turn_off()
             return
 
@@ -676,6 +716,7 @@ class UnderlyingSwitch(UnderlyingEntity):
                 time % 60,
             )
             await self.turn_off()
+            self._calculate_should_be_on(False)
         else:
             _LOGGER.debug("%s - No action on heater cause duration is 0", self)
         self._async_cancel_cycle = self.call_later(

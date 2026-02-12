@@ -289,7 +289,7 @@ async def test_multiple_switchs(
         assert entity.window_state is STATE_UNAVAILABLE
 
         event_timestamp = now - timedelta(minutes=4)
-        await send_temperature_change_event(entity, 15, event_timestamp)
+        await send_temperature_change_event(entity, 18.5, event_timestamp)
 
         # Checks that all climates are off
         assert entity.is_device_active is False  # pylint: disable=protected-access
@@ -313,7 +313,7 @@ async def test_multiple_switchs(
         "custom_components.versatile_thermostat.underlyings.UnderlyingSwitch.call_later",
         return_value=None,
     ) as mock_call_later:
-        await send_ext_temperature_change_event(entity, 5, event_timestamp)
+        await send_ext_temperature_change_event(entity, 15, event_timestamp)
 
         # No special event
         assert mock_send_event.call_count == 0
