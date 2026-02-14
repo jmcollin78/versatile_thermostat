@@ -113,14 +113,29 @@ class FeatureCentralBoilerManager(BaseFeatureManager):
                 self._call_later_handle()
                 self._call_later_handle = None
 
-            _LOGGER.info("%s - central boiler have been turned on", self)
-            await self.call_service(self._service_activate)
-            _LOGGER.info("%s - central boiler have been turned on after delay", self)
+            # the condition may have changed during the delay, so we check it again before activating the boiler
+            active = self.is_nb_active_active_for_boiler_exceeded or self.is_total_power_active_for_boiler_exceeded
+            if not active:
+                _LOGGER.info("%s - central boiler delayed activation cancelled because condition is not valid anymore", self)
+                return
 
-            self._is_on = True
-            _send_vtherm_event(
-                data={"central_boiler": True},
-            )
+            _LOGGER.info("%s - central boiler will be turned on", self)
+            try:
+                await self.call_service(self._service_activate)
+                _LOGGER.info("%s - central boiler have been turned on after delay", self)
+                self._is_on = True
+                _send_vtherm_event(
+                    data={"central_boiler": True},
+                )
+            except HomeAssistantError as err:
+                _LOGGER.error(
+                    "%s - Impossible to activate boiler due to error %s. "
+                    "Central boiler will not being controlled by VTherm. "
+                    "Please check your service configuration. Cf. README.",
+                    self,
+                    err,
+                )
+                return
 
         if not self.is_ready:
             _LOGGER.warning(
