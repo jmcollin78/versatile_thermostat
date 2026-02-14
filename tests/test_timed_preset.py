@@ -362,3 +362,243 @@ async def test_service_cancel_timed_preset_locked(hass: HomeAssistant):
 
     # Verify the timed_preset_manager was NOT called
     vtherm._timed_preset_manager.cancel_timed_preset.assert_not_called()
+
+
+async def test_restore_state_with_active_timed_preset(hass: HomeAssistant):
+    """Test restore_state with an active timed preset that hasn't expired"""
+    vtherm = MagicMock()
+    vtherm.name = "test_vtherm"
+    vtherm.now = datetime(2026, 1, 2, 10, 0, 0)
+
+    manager = FeatureTimedPresetManager(vtherm, hass)
+
+    # Create a mock old_state with attributes
+    old_state = MagicMock()
+    now = vtherm.now
+    end_time = now + timedelta(minutes=30)
+
+    old_state.attributes = {
+        "timed_preset_manager": {
+            "is_active": True,
+            "preset": str(VThermPreset.BOOST),
+            "end_time": end_time.isoformat(),
+            "remaining_time_min": 30,
+        }
+    }
+
+    # Mock async_track_point_in_time
+    with patch(
+        "custom_components.versatile_thermostat.feature_timed_preset_manager.async_track_point_in_time"
+    ) as mock_track:
+        mock_cancel = MagicMock()
+        mock_track.return_value = mock_cancel
+
+        # Call restore_state
+        manager.restore_state(old_state)
+
+        # Verify the manager state was restored
+        assert manager.is_timed_preset_active is True
+        assert manager.timed_preset == VThermPreset.BOOST
+        assert manager.timed_preset_end_time == end_time
+
+        # Verify the timer was scheduled
+        mock_track.assert_called_once()
+        call_args = mock_track.call_args
+        assert call_args[0][0] == hass
+        assert call_args[0][2] == end_time
+
+
+async def test_restore_state_with_expired_timed_preset(hass: HomeAssistant):
+    """Test restore_state with a timed preset that has expired during downtime"""
+    vtherm = MagicMock()
+    vtherm.name = "test_vtherm"
+    now = datetime(2026, 1, 2, 10, 0, 0)
+    vtherm.now = now
+
+    manager = FeatureTimedPresetManager(vtherm, hass)
+
+    # Create a mock old_state with an expired timed preset
+    old_state = MagicMock()
+    end_time = now - timedelta(minutes=10)  # 10 minutes ago
+
+    old_state.attributes = {
+        "timed_preset_manager": {
+            "is_active": True,
+            "preset": str(VThermPreset.BOOST),
+            "end_time": end_time.isoformat(),
+            "remaining_time_min": 0,
+        }
+    }
+
+    with patch(
+        "custom_components.versatile_thermostat.feature_timed_preset_manager.async_track_point_in_time"
+    ) as mock_track:
+        # Call restore_state
+        manager.restore_state(old_state)
+
+        # Verify the manager state was set but timer was NOT scheduled
+        assert manager.is_timed_preset_active is True
+        assert manager.timed_preset == VThermPreset.BOOST
+        assert manager.timed_preset_end_time == end_time
+
+        # Timer should not be scheduled for expired presets
+        mock_track.assert_not_called()
+
+
+async def test_restore_state_with_no_attributes(hass: HomeAssistant):
+    """Test restore_state when old_state has no timed_preset_manager attributes"""
+    vtherm = MagicMock()
+    vtherm.name = "test_vtherm"
+    vtherm.now = datetime(2026, 1, 2, 10, 0, 0)
+
+    manager = FeatureTimedPresetManager(vtherm, hass)
+
+    # Create a mock old_state without timed_preset_manager attributes
+    old_state = MagicMock()
+    old_state.attributes = {}
+
+    # Call restore_state
+    manager.restore_state(old_state)
+
+    # Verify the manager state was NOT changed
+    assert manager.is_timed_preset_active is False
+    assert manager.timed_preset is None
+    assert manager.timed_preset_end_time is None
+
+
+async def test_restore_state_with_inactive_preset(hass: HomeAssistant):
+    """Test restore_state when is_active is False"""
+    vtherm = MagicMock()
+    vtherm.name = "test_vtherm"
+    vtherm.now = datetime(2026, 1, 2, 10, 0, 0)
+
+    manager = FeatureTimedPresetManager(vtherm, hass)
+
+    # Create a mock old_state with is_active=False
+    old_state = MagicMock()
+    old_state.attributes = {
+        "timed_preset_manager": {
+            "is_active": False,
+            "preset": str(VThermPreset.BOOST),
+            "end_time": "2026-01-02T10:30:00",
+            "remaining_time_min": 30,
+        }
+    }
+
+    # Call restore_state
+    manager.restore_state(old_state)
+
+    # Verify the manager state was NOT changed
+    assert manager.is_timed_preset_active is False
+    assert manager.timed_preset is None
+    assert manager.timed_preset_end_time is None
+
+
+async def test_restore_state_with_missing_end_time(hass: HomeAssistant):
+    """Test restore_state when end_time is missing"""
+    vtherm = MagicMock()
+    vtherm.name = "test_vtherm"
+    vtherm.now = datetime(2026, 1, 2, 10, 0, 0)
+
+    manager = FeatureTimedPresetManager(vtherm, hass)
+
+    # Create a mock old_state without end_time
+    old_state = MagicMock()
+    old_state.attributes = {
+        "timed_preset_manager": {
+            "is_active": True,
+            "preset": str(VThermPreset.BOOST),
+            "end_time": None,
+            "remaining_time_min": 30,
+        }
+    }
+
+    # Call restore_state
+    manager.restore_state(old_state)
+
+    # Verify the manager state was NOT changed
+    assert manager.is_timed_preset_active is False
+    assert manager.timed_preset is None
+    assert manager.timed_preset_end_time is None
+
+
+async def test_restore_state_with_missing_preset(hass: HomeAssistant):
+    """Test restore_state when preset is missing"""
+    vtherm = MagicMock()
+    vtherm.name = "test_vtherm"
+    vtherm.now = datetime(2026, 1, 2, 10, 0, 0)
+
+    manager = FeatureTimedPresetManager(vtherm, hass)
+
+    # Create a mock old_state without preset
+    old_state = MagicMock()
+    now = vtherm.now
+    end_time = now + timedelta(minutes=30)
+
+    old_state.attributes = {
+        "timed_preset_manager": {
+            "is_active": True,
+            "preset": None,
+            "end_time": end_time.isoformat(),
+            "remaining_time_min": 30,
+        }
+    }
+
+    # Call restore_state
+    manager.restore_state(old_state)
+
+    # Verify the manager state was NOT changed
+    assert manager.is_timed_preset_active is False
+    assert manager.timed_preset is None
+    assert manager.timed_preset_end_time is None
+
+
+async def test_restore_state_with_invalid_end_time(hass: HomeAssistant):
+    """Test restore_state with invalid end_time format"""
+    vtherm = MagicMock()
+    vtherm.name = "test_vtherm"
+    vtherm.now = datetime(2026, 1, 2, 10, 0, 0)
+
+    manager = FeatureTimedPresetManager(vtherm, hass)
+
+    # Create a mock old_state with invalid end_time
+    old_state = MagicMock()
+    old_state.attributes = {
+        "timed_preset_manager": {
+            "is_active": True,
+            "preset": str(VThermPreset.BOOST),
+            "end_time": "invalid-datetime-format",
+            "remaining_time_min": 30,
+        }
+    }
+
+    # Call restore_state
+    manager.restore_state(old_state)
+
+    # Verify the manager state was NOT changed (error was caught)
+    assert manager.is_timed_preset_active is False
+    assert manager.timed_preset is None
+    assert manager.timed_preset_end_time is None
+
+
+async def test_restore_state_with_none_attributes(hass: HomeAssistant):
+    """Test restore_state when timed_preset_manager attribute is None"""
+    vtherm = MagicMock()
+    vtherm.name = "test_vtherm"
+    vtherm.now = datetime(2026, 1, 2, 10, 0, 0)
+
+    manager = FeatureTimedPresetManager(vtherm, hass)
+
+    # Create a mock old_state with timed_preset_manager=None
+    old_state = MagicMock()
+    old_state.attributes = {
+        "timed_preset_manager": None
+    }
+
+    # Call restore_state
+    manager.restore_state(old_state)
+
+    # Verify the manager state was NOT changed
+    assert manager.is_timed_preset_active is False
+    assert manager.timed_preset is None
+    assert manager.timed_preset_end_time is None
