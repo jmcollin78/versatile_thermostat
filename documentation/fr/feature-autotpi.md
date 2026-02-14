@@ -138,6 +138,22 @@ Ces facteurs faussent la perception qu'a le système de l'isolation de votre pi�
 1.  **Stabilité** : Conservez vos habitudes de chauffage habituelles en évitant simplement les perturbations exceptionnelles (fenêtres ouvertes longtemps, chauffage d'appoint).
 2.  **Observation** : Laissez le système observer les micro-variations et ajuster les coefficients sur 50 cycles.
 3.  **Ré-évaluation** : Si vous constatez que les coefficients dérivent fortement ou que le confort se dégrade, il est préférable de relancer une session complète en mode **Découverte**.
+
+---
+
+## 🔄 Apprentissage Continu du Kext
+
+Alors que les sessions Auto TPI standard sont conçues pour un apprentissage ponctuel (découverte initiale ou ajustement fin), la fonctionnalité d'**Apprentissage Continu du Kext** permet au thermostat de s'adapter aux changements climatiques à long terme et aux variations d'isolation du bâtiment sans nécessiter de sessions manuelles.
+
+### Comment ça marche
+Une fois activé, le système surveille en permanence la précision du coefficient $K_{ext}$ (Isolation externe) pendant le fonctionnement normal. S'il détecte un écart systématique (ex: la température est toujours 0,2°C en dessous de la consigne lors de vagues de froid), il applique des micro-corrections via une **Moyenne Mobile Exponentielle (EWMA)**.
+
+### Points clés
+- **Adaptation Passive** : Fonctionne en arrière-plan tant que le thermostat est en service.
+- **Sécurité** : Actif uniquement lorsque la puissance n'est pas saturée et que le système est stable.
+- **Alpha Configurable** : Vous pouvez ajuster le facteur "Alpha" (0,04 par défaut) pour contrôler la vitesse d'adaptation. Une valeur plus élevée signifie une adaptation plus rapide mais une plus grande sensibilité au bruit.
+- **Bootstrap Requis** : L'apprentissage continu ne démarre qu'après au moins un cycle d'apprentissage extérieur réussi lors d'une session standard.
+
 ---
 
 ## 📊 Suivi visualisé
