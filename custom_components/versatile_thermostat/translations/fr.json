@@ -301,7 +301,8 @@
           "heater_cooling_time": "Temps de refroidissement (min)",
           "auto_tpi_heating_rate": "Taux de chauffe ({unit}/h)",
           "auto_tpi_aggressiveness": "Agressivité",
-          "auto_tpi_enable_advanced_settings": "Activer les paramètres avancés"
+          "auto_tpi_enable_advanced_settings": "Activer les paramètres avancés",
+          "auto_tpi_continuous_kext": "Apprentissage continu de Kext"
         },
         "data_description": {
           "auto_tpi_learning_type": "Choisissez 'Découverte' pour le démarrage initial (Moyenne pondérée, poids 1) ou 'Réglage Fin' pour des ajustements continus (EWMA, Alpha 0.08).",
@@ -309,7 +310,8 @@
           "heater_cooling_time": "Temps pour refroidir après arrêt (minutes)\n\n| Type | Temps de chauffe | Temps de refroidissement |\n| :--- | :--- | :--- |\n| Radiateur électrique | 5mn | 7mn |\n| Radiateur à eau | 15mn | 20mn |\n| Chauffage par le sol | 30mn | 45mn |",
           "auto_tpi_heating_rate": "Capacité de montée en température du radiateur ({unit} par heure). Laisser à 0 pour l'apprentissage automatique (bootstrap).",
           "auto_tpi_aggressiveness": "Facteur de réduction des coefficients appris (50-100%). Des valeurs plus basses donnent des coefficients plus conservateurs et réduisent le risque de dépassement de consigne.",
-          "auto_tpi_enable_advanced_settings": "Cochez pour accéder au réglage fin des paramètres (Alpha, Décroissance, Poids)."
+          "auto_tpi_enable_advanced_settings": "Cochez pour accéder au réglage fin des paramètres (Alpha, Décroissance, Poids).",
+          "auto_tpi_continuous_kext": "Cochez pour activer l'ajustement continu du coefficient extérieur (Kext) hors session AutoTPI."
         }
       },
       "auto_tpi_avg_settings": {
@@ -327,11 +329,13 @@
         "description": "Paramètres pour la méthode EWMA.\n\nRecommandations :\n| Situation | Alpha (ema_alpha) | Taux de Décroissance (ema_decay_rate) |\n| :--- | :--- | :--- |\n| Apprentissage initial | 0.15 | 0.08 |\n| Apprentissage fin | 0.08 | 0.12 |\n| Apprentissage continu | 0.05 | 0.02 |",
         "data": {
           "auto_tpi_ema_alpha": "Alpha",
-          "auto_tpi_ema_decay_rate": "Taux de décroissance"
+          "auto_tpi_ema_decay_rate": "Taux de décroissance",
+          "auto_tpi_continuous_kext_alpha": "Alpha Apprentissage Continu"
         },
         "data_description": {
           "auto_tpi_ema_alpha": "Facteur de lissage (0-1). Plus élevé = adaptation plus rapide",
-          "auto_tpi_ema_decay_rate": "Taux auquel Alpha diminue avec le temps (stabilisation)"
+          "auto_tpi_ema_decay_rate": "Taux auquel Alpha diminue avec le temps (stabilisation)",
+          "auto_tpi_continuous_kext_alpha": "Facteur de lissage pour l'apprentissage continu (Alpha). Défaut 0.04 (adaptation env. 3-5 jours)."
         }
       },
       "sync_device_internal_temp": {
@@ -688,7 +692,8 @@
           "heater_heating_time": "Temps de chauffe (min)",
           "heater_cooling_time": "Temps de refroidissement (min)",
           "auto_tpi_aggressiveness": "Agressivité",
-          "auto_tpi_enable_advanced_settings": "Activer les paramètres avancés"
+          "auto_tpi_enable_advanced_settings": "Activer les paramètres avancés",
+          "auto_tpi_continuous_kext": "Apprentissage continu de Kext"
         },
         "data_description": {
           "auto_tpi_learning_type": "Choisissez 'Découverte' pour le démarrage initial (Moyenne pondérée, poids 1) ou 'Ajustement fin' pour des ajustements continus (EWMA, Alpha 0.08).",
@@ -696,7 +701,8 @@
           "heater_heating_time": "Temps pour atteindre la pleine puissance (minutes)",
           "heater_cooling_time": "Temps pour refroidir après arrêt (minutes)\n\n| Type | Temps de chauffe | Temps de refroidissement |\n| :--- | :--- | :--- |\n| Radiateur électrique | 5mn | 7mn |\n| Radiateur à eau | 15mn | 20mn |\n| Chauffage par le sol | 30mn | 45mn |",
           "auto_tpi_aggressiveness": "Facteur de réduction des coefficients appris (50-100%). Des valeurs plus basses donnent des coefficients plus conservateurs et réduisent le risque de dépassement de consigne.",
-          "auto_tpi_enable_advanced_settings": "Cochez pour modifier les paramètres de l'algorithme choisi."
+          "auto_tpi_enable_advanced_settings": "Cochez pour modifier les paramètres de l'algorithme choisi.",
+          "auto_tpi_continuous_kext": "Cochez pour activer l'ajustement continu du coefficient extérieur (Kext) hors session AutoTPI."
         }
       },
       "auto_tpi_avg_settings": {
@@ -714,11 +720,13 @@
         "description": "Paramétres pour la méthode EWMA.\n\nRecommandations :\n| Situation | Alpha (ema_alpha) | Taux de Décroissance (ema_decay_rate) |\n| :--- | :--- | :--- |\n| Ajustements fort | 0.15 | 0.08 |\n| Ajustement fin | 0.08 | 0.12 |",
         "data": {
           "auto_tpi_ema_alpha": "Alpha",
-          "auto_tpi_ema_decay_rate": "Taux de décroissance"
+          "auto_tpi_ema_decay_rate": "Taux de décroissance",
+          "auto_tpi_continuous_kext_alpha": "Alpha Apprentissage Continu"
         },
         "data_description": {
           "auto_tpi_ema_alpha": "Facteur de lissage (0-1). Plus élevé = adaptation plus rapide",
-          "auto_tpi_ema_decay_rate": "Taux auquel Alpha diminue avec le temps (stabilisation)"
+          "auto_tpi_ema_decay_rate": "Taux auquel Alpha diminue avec le temps (stabilisation)",
+          "auto_tpi_continuous_kext_alpha": "Facteur de lissage pour l'apprentissage continu (Alpha). Défaut 0.04 (adaptation env. 3-5 jours)."
         }
       },
       "sync_device_internal_temp": {

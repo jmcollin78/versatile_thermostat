@@ -147,6 +147,8 @@ class TPIHandler:
         heating_rate = entry.get(CONF_AUTO_TPI_HEATING_POWER, 1.0)
         cooling_rate = entry.get(CONF_AUTO_TPI_COOLING_POWER, 1.0)
         aggressiveness = entry.get(CONF_AUTO_TPI_AGGRESSIVENESS, 1.0)
+        continuous_kext = entry.get(CONF_AUTO_TPI_CONTINUOUS_KEXT, False)
+        continuous_kext_alpha = entry.get(CONF_AUTO_TPI_CONTINUOUS_KEXT_ALPHA, 0.04)
 
         _LOGGER.info("%s - DEBUG: TPI coefficients from entry_infos: int=%.3f, ext=%.3f",
                      t, t.tpi_coef_int, t.tpi_coef_ext)
@@ -170,6 +172,8 @@ class TPIHandler:
             heating_rate=heating_rate,
             cooling_rate=cooling_rate,
             aggressiveness=aggressiveness,
+            continuous_kext=continuous_kext,
+            continuous_kext_alpha=continuous_kext_alpha,
         )
         self._auto_tpi_manager.set_is_vtherm_stopping_callback(lambda: t.is_removed)
         _LOGGER.info("%s - DEBUG: AutoTpiManager initialized with defaults: int=%.3f, ext=%.3f",
@@ -183,6 +187,9 @@ class TPIHandler:
             self._auto_tpi_manager._entity_id = t.entity_id
             _LOGGER.info("%s - DEBUG: Before load_data - int=%.3f, ext=%.3f", t, t.tpi_coef_int, t.tpi_coef_ext)
             await self._auto_tpi_manager.async_load_data()
+            
+            # Sync config entry with latest learned data if needed (especially for Continuous Kext)
+            await self._auto_tpi_manager.async_sync_config_at_startup()
             
             # If we have learned parameters, apply them
             learned_params = self._auto_tpi_manager.get_calculated_params()
@@ -309,7 +316,7 @@ class TPIHandler:
             )
 
             # 2. Drive the cycle processing passively
-            if self._auto_tpi_manager.learning_active:
+            if self._auto_tpi_manager.learning_active or self._auto_tpi_manager._continuous_kext:
                 await self._auto_tpi_manager.process_cycle(
                     # Use provided timestamp or current time if missing
                     timestamp=dt_util.now(),
@@ -385,9 +392,10 @@ class TPIHandler:
         t = self._thermostat
         t._attr_extra_state_attributes["specific_states"].update({
             "auto_tpi_state": "on" if self._auto_tpi_manager and self._auto_tpi_manager.learning_active else "off",
+            "auto_tpi_continuous_kext": "on" if self._auto_tpi_manager and self._auto_tpi_manager._continuous_kext else "off",
             "auto_tpi_learning": (
                 self._auto_tpi_manager.get_filtered_state()
-                if self._auto_tpi_manager and self._auto_tpi_manager.learning_active
+                if self._auto_tpi_manager and (self._auto_tpi_manager.learning_active or self._auto_tpi_manager._continuous_kext)
                 else {}
             ),
         })

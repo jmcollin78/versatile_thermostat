@@ -300,6 +300,28 @@ Kint_final = (1 - α) × Kint_old + α × Kint_new
 | `α₀` (initial alpha) | 0.08 | Initial weight of new values |
 | `decay_rate` | 0.12 | Alpha decrease speed |
 
+### Continuous Kext Learning
+
+This mechanism allows for long-term adaptation of $K_{ext}$ without an active learning session.
+
+#### Eligibility Conditions
+A cycle is used for continuous learning only if:
+1. **Feature enabled**: `auto_tpi_continuous_kext` is set to `true`.
+2. **Bootstrapped**: At least one outdoor learning cycle has been completed previously for the current mode.
+3. **Non-saturated power**: $0 < P_{real} < P_{saturation}$.
+4. **Stable system**: No cycle interruptions, no boiler off, no heating failure, and no excessive consecutive failures.
+5. **Significant outdoor delta**: $|Setpoint - T_{outdoor}| \ge 1.0°C$.
+6. **No setpoint change**: The target temperature did not change during the cycle.
+
+#### Continuous Learning Formula
+The correction is calculated similarly to the standard $K_{ext}$ learning:
+$$K_{ext}^{target} = K_{ext}^{old} + K_{int} \times \frac{\Delta T_{indoor}}{\Delta T_{outdoor}}$$
+
+Then, it is applied using an EWMA with a specific alpha:
+$$K_{ext}^{new} = (1 - \alpha_{cont}) \times K_{ext}^{old} + \alpha_{cont} \times K_{ext}^{target}$$
+
+By default, $\alpha_{cont} = 0.04$.
+
 ---
 
 ## Automatic Correction Mechanisms
@@ -488,6 +510,11 @@ flowchart TD
 **Location**: `.storage/versatile_thermostat_{unique_id}_auto_tpi_v2.json`
 
 This file contains the complete learning state and is restored on Home Assistant restart. It can be deleted to force a complete reset (not recommended).
+
+#### Startup Synchronization
+At each startup, if **Continuous Kext Learning** is enabled, the system performs an **Alignment** between the stored data (JSON) and the Home Assistant configuration (`ConfigEntry`):
+1. **Clamping**: Loaded coefficients are immediately capped to the `max_coef_int` limit (standard safety).
+2. **Kext and Capacity Configuration Sync**: If the $K_{ext}$ or the **heating/cooling capacity** in the configuration differs from the learned value in storage (captured through background adaptation without integration reload), the system performs an atomic update of the configuration. This ensures that the user interface and the YAML/UI configuration remain synchronized with the most accurate building model.
 
 ---
 
