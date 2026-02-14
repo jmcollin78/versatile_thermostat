@@ -386,11 +386,7 @@ class UnderlyingSwitch(UnderlyingEntity):
 
     def _calculate_should_be_on(self, should_be_on: bool | None = None) -> bool:
         """Calculate and update the _should_be_on flag"""
-        if should_be_on is not None:
-            self._should_be_on = should_be_on
-
-        if self._hvac_mode == VThermHvacMode_OFF or self._on_time_sec <= 0:
-            self._should_be_on = False
+        self._should_be_on = self._hvac_mode in [VThermHvacMode_HEAT, VThermHvacMode_COOL] and self._on_time_sec > 0
 
         return self._should_be_on
 
@@ -527,14 +523,7 @@ class UnderlyingSwitch(UnderlyingEntity):
             _LOGGER.error(err)
 
     @overrides
-    async def start_cycle(
-        self,
-        hvac_mode: VThermHvacMode,
-        on_time_sec: int,
-        off_time_sec: int,
-        on_percent: int,
-        force=False,
-    ):
+    async def start_cycle(self, hvac_mode: VThermHvacMode, on_time_sec: int, off_time_sec: int, on_percent: int, force=False):
         """Starting cycle for switch"""
         _LOGGER.debug(
             "%s - Starting new cycle hvac_mode=%s on_time_sec=%d off_time_sec=%d force=%s",
@@ -549,67 +538,36 @@ class UnderlyingSwitch(UnderlyingEntity):
         self._off_time_sec = off_time_sec
         self._hvac_mode = hvac_mode
 
-        # Cancel eventual previous cycle if any
+        should_be_on = self._calculate_should_be_on(False)
+
+        # Cancel eventual previous cycle if any and force.
         if self._async_cancel_cycle is not None:
-            if force:
-                _LOGGER.debug("%s - we force a new cycle", self)
+            if force or not should_be_on:
+                _LOGGER.info("%s - We cancel the previous cycle because force=%s or should_be_on=%s", self, force, should_be_on)
                 self._cancel_cycle()
             else:
-                _LOGGER.debug(
-                    "%s - A previous cycle is alredy running and no force -> waits for its end",
-                    self,
-                )
-                # self._should_relaunch_control_heating = True
-                _LOGGER.debug("%s - End of cycle (2)", self)
+                _LOGGER.debug("%s - A previous cycle is alredy running and no force -> waits for its end", self)
                 return
 
-        # If we should heat, starts the cycle with delay
-
-        if on_time_sec > 0 and hvac_mode in [VThermHvacMode_HEAT, VThermHvacMode_COOL]:
+        # no cycle or with need to start another one
+        # If we should heat, starts the cycle with delay. Setting the parameter to false will do the calculation of the should_be_on based on the on_time_sec and hvac_mode
+        if should_be_on:
             # Set intended state before async scheduling to avoid race condition with keep_alive
-            self._calculate_should_be_on(True)
-            # Calculate effective delay based on power level:
-            # - At low power (off_time >> on_time): use initial_delay to spread switches
-            # - At high power (off_time << on_time): reduce delay to create overlap
-            # - At 100% power (off_time=0): all switches turn on immediately
+            # by pass the initial delay but repsect the cycle is 100% powr is needed, so that maximum heating will be obtained immediately and not after the first cycle
+            if self._off_time_sec <= 0 and self._initial_delay_sec > 0:
+                _LOGGER.info("%s - 100%% power is requested -> start heating immediatly", self)
+                await self.turn_on()
 
-            if off_time_sec == 0:
-                # 100% power: no delay, all switches on simultaneously
-                effective_delay = 0
-            elif off_time_sec >= self._initial_delay_sec:
-                # Low power: enough off_time to accommodate full initial delay
-                # Use the full initial delay to maximize separation
-                effective_delay = self._initial_delay_sec
-            else:
-                # Medium to high power: off_time < initial_delay
-                # Scale delay proportionally to allow overlap
-                # This ensures switches can complete their on_time within the cycle
-                effective_delay = off_time_sec
-
-            self._async_cancel_cycle = self.call_later(
-                self._hass, effective_delay, self._turn_on_later
-            )
-            _LOGGER.debug(
-                "%s - _async_cancel_cycle=%s with effective_delay=%d (off_time=%d, initial_delay=%d)",
-                self,
-                self._async_cancel_cycle,
-                effective_delay,
-                off_time_sec,
-                self._initial_delay_sec,
-            )
+            # and starts the cycle with the initial delay
+            self._async_cancel_cycle = self.call_later(self._hass, self._initial_delay_sec, self._turn_on_later)
+            _LOGGER.debug("%s - Start cycle on_time=%d, initial_delay=%d)", self, self._on_time_sec, self._initial_delay_sec)
         # if we not heat but device is active
         elif self.is_device_active:
-            self._calculate_should_be_on(False)
-            _LOGGER.info(
-                "%s - stop heating (2) for %d min %d sec",
-                self,
-                off_time_sec // 60,
-                off_time_sec % 60,
-            )
+            _LOGGER.info("%s - stop heating because device should be off", self)
             await self.turn_off()
         else:
-            self._calculate_should_be_on(False)
-            _LOGGER.debug("%s - nothing to do", self)
+            # calculate the should_be_on (setting false as parameter will do the calculation)
+            _LOGGER.debug("%s - nothing to do - no cycle and no need to start one", self)
 
     @overrides
     def _cancel_cycle(self):

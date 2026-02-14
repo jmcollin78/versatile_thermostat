@@ -58,8 +58,6 @@ class ThermostatOverValve(ThermostatProp[UnderlyingValve]):  # pylint: disable=a
         else:
             return self._valve_open_percent
 
-
-
     @overrides
     def post_init(self, config_entry: ConfigData):
         """Initialize the Thermostat"""
@@ -156,7 +154,7 @@ class ThermostatOverValve(ThermostatProp[UnderlyingValve]):  # pylint: disable=a
             }
         )
 
-        _LOGGER.debug("%s - Calling update_custom_attributes: %s", self, self._attr_extra_state_attributes)
+        # _LOGGER.debug("%s - Calling update_custom_attributes: %s", self, self._attr_extra_state_attributes)
 
     @overrides
     def recalculate(self, force=False):

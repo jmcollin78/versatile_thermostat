@@ -233,7 +233,7 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
 
             target_temp = round_to_nearest(new_regulated_temp + offset_temp, regulation_step)
 
-            # The dtemp is the difference between the new target temp and the last sent temperature to the underlying. 
+            # The dtemp is the difference between the new target temp and the last sent temperature to the underlying.
             # If the dtemp is too low, we consider that there is no need to send a new temperature to the underlying because it
             # will not have any effect on the device. This avoid to send too many temperature changes to the underlying.
             dtemp = target_temp - (under.last_sent_temperature if under.last_sent_temperature else 0)
@@ -632,7 +632,7 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
 
         self._attr_extra_state_attributes.update({"vtherm_over_climate": vtherm_over_climate_data})
 
-        _LOGGER.debug("%s - Calling update_custom_attributes: %s", self, self._attr_extra_state_attributes)
+        # _LOGGER.debug("%s - Calling update_custom_attributes: %s", self, self._attr_extra_state_attributes)
 
     @overrides
     def recalculate(self, force=False):

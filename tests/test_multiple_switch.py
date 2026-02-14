@@ -91,12 +91,8 @@ async def test_one_switch_cycle(hass: HomeAssistant, skip_send_event, fake_temp_
         assert mock_send_event.call_count == 0
         assert mock_heater_off.call_count == 0
 
-        # The first heater should be on but because call_later is mocked heater_on is not called
-        # assert mock_heater_on.call_count == 1
+        # The first heater should be on bu call_later is mocked.
         assert mock_heater_on.call_count == 0
-        # There is no check if active
-        # don't work with PropertyMock
-        # assert mock_device_active.call_count == 0
 
         # 4 calls dispatched along the cycle
         assert mock_call_later.call_count == 1
