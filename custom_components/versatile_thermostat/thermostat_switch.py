@@ -163,7 +163,7 @@ class ThermostatOverSwitch(ThermostatProp[UnderlyingSwitch]):
         attributes["vtherm_over_switch"] = vtherm_over_switch_attr
         self._attr_extra_state_attributes.update(attributes)
 
-        _LOGGER.debug("%s - Calling update_custom_attributes: %s", self, self._attr_extra_state_attributes)
+        # _LOGGER.debug("%s - Calling update_custom_attributes: %s", self, self._attr_extra_state_attributes)
 
     @overrides
     def incremente_energy(self):
