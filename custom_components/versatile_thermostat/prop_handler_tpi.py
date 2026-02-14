@@ -261,8 +261,6 @@ class TPIHandler:
 
         # Calculate time (in seconds)
         if t.prop_algorithm:
-            # temporary ignore the forced_by_timing prop
-            # todo: implement handle of forced_by_timing to auto_tpi loop
             on_time_sec, off_time_sec, forced_by_timing = calculate_cycle_times(
                 t.on_percent,
                 t.cycle_min,
@@ -270,11 +268,18 @@ class TPIHandler:
                 t.minimal_deactivation_delay,
             )
 
-            # if forced_by_timing, update the realized power
+            realized_percent = on_time_sec / (t.cycle_min * 60)
+
+            # Notify prop_algorithm if forced by timing (existing behavior)
             if forced_by_timing:
-                realized_percent = on_time_sec / (t.cycle_min * 60)
                 if t.prop_algorithm and hasattr(t.prop_algorithm, "update_realized_power"):
                     t.prop_algorithm.update_realized_power(realized_percent)
+
+            # Always notify AutoTPI manager with the realized power (NEW)
+            # This also accounts for max_on_percent and safety clamping
+            # applied by thermostat_prop.on_percent
+            if self._auto_tpi_manager:
+                self._auto_tpi_manager.update_realized_power(realized_percent)
         else:
             on_time_sec = 0
             off_time_sec = 0
@@ -347,10 +352,15 @@ class TPIHandler:
                     t.minimal_activation_delay,
                     t.minimal_deactivation_delay,
                 )
+                
+                realized_percent = on_time_sec / (t.cycle_min * 60)
+                
                 if forced_by_timing:
-                    realized_percent = on_time_sec / (t.cycle_min * 60)
                     if t.prop_algorithm and hasattr(t.prop_algorithm, "update_realized_power"):
                         t.prop_algorithm.update_realized_power(realized_percent)
+
+                if self._auto_tpi_manager:
+                    self._auto_tpi_manager.update_realized_power(realized_percent)
 
             # Store on/off times on thermostat for sensors and attributes
             t._on_time_sec = on_time_sec
