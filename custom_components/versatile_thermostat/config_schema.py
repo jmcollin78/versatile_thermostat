@@ -519,6 +519,7 @@ STEP_AUTO_TPI_CONFIGURATION_SCHEMA = vol.Schema(
         vol.Optional(CONF_AUTO_TPI_HEATER_HEATING_TIME, default=5): cv.positive_int,
         vol.Optional(CONF_AUTO_TPI_HEATER_COOLING_TIME, default=5): cv.positive_int,
         vol.Required(CONF_AUTO_TPI_HEATING_POWER, default=0.0): vol.Coerce(float),
+        vol.Optional(CONF_AUTO_TPI_CONTINUOUS_KEXT, default=False): cv.boolean,
         vol.Optional(
             CONF_AUTO_TPI_ENABLE_ADVANCED_SETTINGS, default=False
         ): cv.boolean,
@@ -544,6 +545,11 @@ STEP_AUTO_TPI_EMA_SETTINGS_SCHEMA = vol.Schema(
         ): selector.NumberSelector(
             selector.NumberSelectorConfig(
                 min=0.0, max=1.0, step=0.01, mode=selector.NumberSelectorMode.BOX
+            )
+        ),
+        vol.Required(CONF_AUTO_TPI_CONTINUOUS_KEXT_ALPHA, default=0.04): selector.NumberSelector(
+            selector.NumberSelectorConfig(
+                min=0.005, max=0.2, step=0.005, mode=selector.NumberSelectorMode.BOX
             )
         ),
     }
