@@ -8,7 +8,7 @@ import logging
 
 from datetime import datetime, timedelta
 
-from unittest.mock import patch, call
+from unittest.mock import patch, MagicMock, PropertyMock
 
 from homeassistant.const import STATE_ON, STATE_OFF
 from homeassistant.core import HomeAssistant
@@ -1341,3 +1341,70 @@ async def test_bug_339(
     assert api.central_boiler_manager.is_nb_active_active_for_boiler_exceeded is True
 
     entity.remove_thermostat()
+
+
+async def test_central_boiler_cancel_delayed_activation(hass: HomeAssistant):
+    """Test that call_service is NOT called when _activate_later finds the condition is no longer met.
+
+    This test:
+    1. Triggers activation scheduling (conditions TRUE) which captures the _activate_later callback
+    2. Changes conditions to FALSE
+    3. Calls the _activate_later callback directly
+    4. Verifies that call_service was NOT called and the cancellation log appears
+    """
+    from custom_components.versatile_thermostat.feature_central_boiler_manager import FeatureCentralBoilerManager
+
+    api_mock = MagicMock()
+    manager = FeatureCentralBoilerManager(hass, api_mock)
+    manager._name = "TestCentralBoilerManager"
+
+    # Mock the central boiler entity to avoid AttributeError in send_vtherm_event
+    boiler_entity_mock = MagicMock()
+    boiler_entity_mock.entity_id = "binary_sensor.central_boiler"
+    manager._central_boiler_entity = boiler_entity_mock
+
+    entry_infos = {
+        CONF_CENTRAL_BOILER_ACTIVATION_SRV: "switch.boiler/switch.turn_on",
+        CONF_CENTRAL_BOILER_DEACTIVATION_SRV: "switch.boiler/switch.turn_off",
+        CONF_CENTRAL_BOILER_ACTIVATION_DELAY_SEC: 1,
+    }
+    manager.post_init(entry_infos)
+
+    manager.call_service = MagicMock(return_value=None)
+    manager._is_ready = True
+    manager._is_on = False
+
+    # Capture the _activate_later callback from async_call_later
+    captured_callback: Callable = None
+
+    def mock_async_call_later(hass_arg, delay, callback):
+        nonlocal captured_callback
+        captured_callback = callback
+        return MagicMock()  # Return a handle
+
+    # STEP 1: Trigger activation scheduling - condition is TRUE
+    with patch.object(type(manager), "is_nb_active_active_for_boiler_exceeded", new_callable=PropertyMock, return_value=True):
+        with patch.object(type(manager), "is_total_power_active_for_boiler_exceeded", new_callable=PropertyMock, return_value=False):
+            with patch("custom_components.versatile_thermostat.feature_central_boiler_manager.async_call_later", side_effect=mock_async_call_later):
+                await manager.calculate_central_boiler_state(None)
+
+    # Verify the callback was captured
+    assert captured_callback is not None, "async_call_later was not called - callback not captured"
+
+    # STEP 2: Now conditions are FALSE - call the real _activate_later callback
+    with patch.object(type(manager), "is_nb_active_active_for_boiler_exceeded", new_callable=PropertyMock, return_value=False):
+        with patch.object(type(manager), "is_total_power_active_for_boiler_exceeded", new_callable=PropertyMock, return_value=False):
+            with patch("custom_components.versatile_thermostat.feature_central_boiler_manager._LOGGER.info") as mock_info:
+                # Call the REAL _activate_later function
+                await captured_callback(None)  # pylint: disable=not-callable
+
+                # Verify the cancellation log was called
+                mock_info.assert_called()
+                call_args = str(mock_info.call_args_list[0])
+                assert "central boiler delayed activation cancelled because condition is not valid anymore" in call_args
+
+                # Verify that call_service was NOT called (this is the key assertion)
+                manager.call_service.assert_not_called()
+
+                # Verify boiler is still off
+                assert manager._is_on is False
