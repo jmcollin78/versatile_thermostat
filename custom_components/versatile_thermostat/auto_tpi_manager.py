@@ -2540,6 +2540,26 @@ class AutoTpiManager(CycleManager):
         _LOGGER.debug("%s - Auto TPI: Captured end of ON temp: %.1f", self._name, self.state.last_on_temp_in)
         self._timer_capture_remove_callback = None
 
+    def update_realized_power(self, realized_percent: float):
+        """Update the power actually applied to the underlyings.
+
+        Called by the handler when the realized power differs from the
+        requested on_percent. Sources of difference:
+        - timing constraints (min_activation_delay, min_deactivation_delay)
+        - max_on_percent clamping
+        - safety mode override
+
+        This ensures learning uses the actual applied power, not the requested one.
+        """
+        if self.state.cycle_active:
+            old = self.state.last_power
+            self.state.last_power = realized_percent
+            if abs(old - realized_percent) > 0.001:
+                _LOGGER.debug(
+                    "%s - Auto TPI: Realized power updated: %.1f%% -> %.1f%%",
+                    self._name, old * 100, realized_percent * 100
+                )
+
     async def on_cycle_started(self, on_time_sec: float, off_time_sec: float, on_percent: float, hvac_mode: str):
         """Called when a TPI cycle starts."""
         # Detect if previous cycle was interrupted

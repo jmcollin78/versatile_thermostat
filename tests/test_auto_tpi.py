@@ -17,7 +17,30 @@ from custom_components.versatile_thermostat.const import (
     CONF_TPI_COEF_INT,
     CONF_TPI_COEF_EXT,
     CONF_AUTO_TPI_HEATING_POWER,
+    CONF_NAME,
+    CONF_THERMOSTAT_TYPE,
+    CONF_THERMOSTAT_SWITCH,
+    CONF_TEMP_SENSOR,
+    CONF_EXTERNAL_TEMP_SENSOR,
+    CONF_CYCLE_MIN,
+    CONF_TEMP_MIN,
+    CONF_TEMP_MAX,
+    CONF_USE_WINDOW_FEATURE,
+    CONF_USE_MOTION_FEATURE,
+    CONF_USE_POWER_FEATURE,
+    CONF_USE_PRESENCE_FEATURE,
+    CONF_UNDERLYING_LIST,
+    CONF_PROP_FUNCTION,
+    PROPORTIONAL_FUNCTION_TPI,
+    CONF_MINIMAL_ACTIVATION_DELAY,
+    CONF_MINIMAL_DEACTIVATION_DELAY,
+    CONF_AUTO_TPI_MODE,
+    DOMAIN,
 )
+from custom_components.versatile_thermostat.thermostat_prop import ThermostatProp
+from custom_components.versatile_thermostat.vtherm_hvac_mode import VThermHvacMode_HEAT
+from homeassistant.components.climate.const import HVACMode, PRESET_NONE
+from .commons import MockConfigEntry, create_thermostat, send_temperature_change_event, send_ext_temperature_change_event
 
 import logging
 _LOGGER = logging.getLogger(__name__)
@@ -449,3 +472,139 @@ async def test_persistence_overrides_config_on_startup(mock_hass):
         assert manager.state.max_capacity_heat == 1500.0, \
             f"Expected persisted capacity 1500.0, but got {manager.state.max_capacity_heat}"
 
+async def test_update_realized_power(manager):
+    """Test update_realized_power method."""
+    manager.state.cycle_active = True
+    manager.state.last_power = 0.8
+    
+    # Update with different value
+    manager.update_realized_power(0.5)
+    assert manager.state.last_power == 0.5
+    
+    # Update with same value (should log debug but change nothing)
+    manager.update_realized_power(0.5)
+    assert manager.state.last_power == 0.5
+
+async def test_update_realized_power_no_cycle(manager):
+    """Test update_realized_power when no cycle is active."""
+    manager.state.cycle_active = False
+    manager.state.last_power = 0.8
+    
+    # Should NOT update
+    manager.update_realized_power(0.5)
+    assert manager.state.last_power == 0.8
+
+
+@pytest.mark.parametrize("expected_lingering_tasks", [True])
+@pytest.mark.parametrize("expected_lingering_timers", [True])
+async def test_auto_tpi_realized_power_integration(
+    hass: HomeAssistant, skip_hass_states_is_state: None
+):
+    """Test that initialized AutoTpiManager correctly receives realized power updates in integration."""
+    
+    # 1. Configure Thermostat with TPI and AutoTPI
+    entry = MockConfigEntry(
+        domain=DOMAIN,
+        title="AutoTpiTest",
+        unique_id="auto_tpi_test_realized",
+        data={
+            CONF_NAME: "AutoTpiTest",
+            CONF_THERMOSTAT_TYPE: CONF_THERMOSTAT_SWITCH,
+            CONF_TEMP_SENSOR: "sensor.mock_temp_sensor",
+            CONF_EXTERNAL_TEMP_SENSOR: "sensor.mock_ext_temp_sensor",
+            CONF_CYCLE_MIN: 5,  # 300 seconds
+            CONF_TEMP_MIN: 15,
+            CONF_TEMP_MAX: 30,
+            CONF_USE_WINDOW_FEATURE: False,
+            CONF_USE_MOTION_FEATURE: False,
+            CONF_USE_POWER_FEATURE: False,
+            CONF_USE_PRESENCE_FEATURE: False,
+            CONF_UNDERLYING_LIST: ["switch.mock_switch"],
+            CONF_PROP_FUNCTION: PROPORTIONAL_FUNCTION_TPI,
+            CONF_TPI_COEF_INT: 0.5,
+            CONF_TPI_COEF_EXT: 0.01,
+            CONF_MINIMAL_ACTIVATION_DELAY: 30,      # 10% of 300s
+            CONF_MINIMAL_DEACTIVATION_DELAY: 30,    # 10% of 300s
+            CONF_AUTO_TPI_MODE: True,
+        },
+    )
+
+    # Setup initial states
+    hass.states.async_set("switch.mock_switch", "off")
+    hass.states.async_set("sensor.mock_temp_sensor", "18.0")
+    hass.states.async_set("sensor.mock_ext_temp_sensor", "10.0")
+
+    entity: ThermostatProp = await create_thermostat(
+        hass, entry, "climate.autotpitest_realized"
+    )
+    assert entity
+    assert entity._algo_handler
+    assert entity._algo_handler._auto_tpi_manager
+    manager = entity._algo_handler._auto_tpi_manager
+    
+    # Force startup done to allow control_heating
+    entity._startup_done = True
+    assert entity._startup_done
+    
+    # Ensure cycle is active so updates are processed
+    manager.state.cycle_active = True
+    
+    # ---------------------------------------------------------
+    # Case 1: Minimal Activation Delay (Forced OFF)
+    # ---------------------------------------------------------
+    # Request very low power (1%). Min activation is 10%. Should be forced to 0.
+    
+    # Setup conditions
+    now = datetime.now()
+    await entity.async_set_hvac_mode(HVACMode.HEAT)
+    assert entity.hvac_mode == HVACMode.HEAT
+    
+    await entity.async_set_preset_mode(PRESET_NONE)
+    await entity.async_set_temperature(temperature=20.0)
+    
+    # Target 20, Current 19.98 (Delta 0.02), Ext 20 (Delta 0)
+    # Coef_int=0.5 -> 0.5 * 0.02 = 0.01 (1%)
+    # Coef_ext=0.01 * 0 = 0
+    # Total = 1%. 3s < 30s. Forced to 0.
+    
+    await send_temperature_change_event(entity, 19.98, now)
+    await send_ext_temperature_change_event(entity, 20.0, now) # No external contribution
+    
+    # Trigger calculation
+    # Note: control_heating calls _get_tpi_data which updates realized power
+    await entity.async_control_heating()
+    
+    assert entity.on_percent == 0.01 # The requested power is still 1%
+    assert manager.state.last_power == 0.0 # But realized power is 0%
+    
+    # ---------------------------------------------------------
+    # Case 2: Minimal Deactivation Delay (Forced ON)
+    # ---------------------------------------------------------
+    # Request high power (95%). Min deactivation is 10% (30s).
+    # 95% means 5% off = 15s. 15s < 30s. Forced to 100%.
+    
+    # Target 20. Current 18.1 (Delta 1.9).
+    # Coef_int=0.5 * 1.9 = 0.95 (95%)
+    await send_temperature_change_event(entity, 18.1, now)
+    
+    await entity.async_control_heating()
+    
+    assert abs(entity.on_percent - 0.95) < 0.001 # Requested 95%
+    assert manager.state.last_power == 1.0 # Realized 100%
+    
+    # ---------------------------------------------------------
+    # Case 3: Max On Percent Clamping
+    # ---------------------------------------------------------
+    # Set max_on_percent to 0.5
+    entity._max_on_percent = 0.5
+    
+    # Request 95% again.
+    # Should be clamped to 50% by thermostat_prop.on_percent
+    # 50% is 150s. Delays are 30s. No timing forcing.
+    
+    # We need to force a recalculation/control heating
+    # Just calling control_heating again with same temps
+    await entity.async_control_heating()
+    
+    assert entity.on_percent == 0.5 # Clamped
+    assert manager.state.last_power == 0.5 # Realized matches clamped
