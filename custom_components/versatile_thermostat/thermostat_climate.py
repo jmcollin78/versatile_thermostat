@@ -925,7 +925,8 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
                         current_offset,
                         offset,
                     )
-                    await under.send_value_to_number(sync_entity_id, offset)
+                    if offset != current_offset:
+                        await under.send_value_to_number(sync_entity_id, offset)
             elif room_temp is not None:
                 # Send the new temperature directly
                 val = round_to_nearest(room_temp, step_sync_entity)
