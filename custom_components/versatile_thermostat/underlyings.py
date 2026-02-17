@@ -223,27 +223,9 @@ class UnderlyingEntity:
         except Exception as err:
             _LOGGER.error("Error calling service %s.%s: %s. The underlying will not change its state.", domain, service, err)
 
-    async def start_cycle(
-        self,
-        hvac_mode: VThermHvacMode,
-        on_time_sec: int,
-        off_time_sec: int,
-        on_percent: int,
-        force=False,
-    ):
-        """Starting cycle for switch"""
-
-    def _cancel_cycle(self):
-        """Stops an eventual cycle"""
-
     def clamp_sent_value(self, value) -> float:
         """capping of the value send to the underlying eqt"""
         return value
-
-    async def turn_off_and_cancel_cycle(self):
-        """Turn off and cancel eventual running cycle"""
-        self._cancel_cycle()
-        await self.turn_off()
 
     async def check_overpowering(self) -> bool:
         """Check that a underlying can be turned on, else
@@ -1088,8 +1070,6 @@ class UnderlyingValve(UnderlyingEntity):
             entity_type=UnderlyingEntityType.VALVE,
             entity_id=valve_entity_id,
         )
-        self._async_cancel_cycle = None
-        self._should_relaunch_control_heating = False
         self._hvac_mode = None
         self._percent_open: int | None = None  # self._thermostat.valve_open_percent
         self._min_open: float | None = None
@@ -1198,19 +1178,6 @@ class UnderlyingValve(UnderlyingEntity):
         return current_opening > (self._min_open or 0)
 
     @overrides
-    async def start_cycle(
-        self,
-        hvac_mode: VThermHvacMode,
-        _1,
-        _2,
-        _3,
-        force=False,
-    ):
-        """We use this function to change the on_percent"""
-        # if force:
-        await self.set_valve_open_percent()
-
-    @overrides
     def clamp_sent_value(self, value) -> float:
         """Try to adapt the open_percent value to the min / max found
         in the underlying entity (if any)"""
@@ -1251,8 +1218,7 @@ class UnderlyingValve(UnderlyingEntity):
         await self.send_percent_open()
 
     def remove_entity(self):
-        """Remove the entity after stopping its cycle"""
-        self._cancel_cycle()
+        """Remove the entity"""
         super().remove_entity()
 
     @property
@@ -1422,19 +1388,6 @@ class UnderlyingValveRegulation(UnderlyingValve):
         if not self.is_initialized:
             return []
         return [VThermHvacMode_HEAT, VThermHvacMode_SLEEP, VThermHvacMode_OFF]
-
-    @overrides
-    async def start_cycle(
-        self,
-        hvac_mode: VThermHvacMode,
-        _1,
-        _2,
-        _3,
-        force=False,
-    ):
-        """We use this function to change the on_percent"""
-        # if force:
-        await self.set_valve_open_percent()
 
     @property
     def is_device_active(self):

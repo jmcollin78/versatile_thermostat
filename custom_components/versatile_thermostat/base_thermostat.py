@@ -124,7 +124,6 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
 
         self._is_ready: bool = False
 
-        self._async_cancel_cycle = None
         self._cycle_scheduler = None
 
         # Callbacks for TPI cycle events

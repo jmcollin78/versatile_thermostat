@@ -1,9 +1,9 @@
-"""CycleScheduler: orchestrates ON/OFF cycles for multiple underlyings within a master cycle.
+"""CycleScheduler: orchestrates cycles for multiple underlyings within a master cycle.
 
-Instead of each UnderlyingSwitch managing its own independent cycle,
-the CycleScheduler centralizes cycle management, computing staggered
-offsets so that ON periods are distributed to minimize overlap and
-smooth electrical load.
+For switches: manages staggered ON/OFF PWM timing to minimize overlap
+and smooth electrical load.
+For valves: passthrough mode that calls set_valve_open_percent() directly
+without temporal scheduling.
 """
 
 import logging
@@ -18,10 +18,11 @@ _LOGGER = logging.getLogger(__name__)
 
 
 class CycleScheduler:
-    """Orchestrates ON/OFF cycles for multiple underlyings within a master cycle.
+    """Orchestrates cycles for multiple underlyings within a master cycle.
 
-    All underlyings operate within the same time window (the master cycle).
+    For switches: all underlyings operate within the same time window.
     ON periods are staggered using computed offsets to minimize overlap.
+    For valves: passthrough mode — calls set_valve_open_percent() directly.
     """
 
     def __init__(
@@ -43,11 +44,28 @@ class CycleScheduler:
         self._current_on_time_sec: float = 0
         self._current_off_time_sec: float = 0
         self._current_on_percent: float = 0
+        # Detect valve mode from underlying types
+        self._is_valve_mode: bool = self._detect_valve_mode()
 
     @property
     def is_cycle_running(self) -> bool:
         """Return True if a cycle is currently scheduled."""
         return len(self._scheduled_actions) > 0
+
+    @property
+    def is_valve_mode(self) -> bool:
+        """Return True if managing valve underlyings (passthrough mode)."""
+        return self._is_valve_mode
+
+    def _detect_valve_mode(self) -> bool:
+        """Detect if underlyings are valves by checking entity_type."""
+        from .underlyings import UnderlyingEntityType  # pylint: disable=import-outside-toplevel
+        if not self._underlyings:
+            return False
+        return self._underlyings[0].entity_type in (
+            UnderlyingEntityType.VALVE,
+            UnderlyingEntityType.VALVE_REGULATION,
+        )
 
     @staticmethod
     def compute_offsets(
@@ -130,6 +148,32 @@ class CycleScheduler:
             on_time_sec, off_time_sec, on_percent, hvac_mode
         )
 
+        if self._is_valve_mode:
+            await self._start_cycle_valve(hvac_mode)
+        else:
+            await self._start_cycle_switch(
+                hvac_mode, on_time_sec, off_time_sec, on_percent
+            )
+
+    async def _start_cycle_valve(self, hvac_mode: VThermHvacMode):
+        """Valve passthrough: call set_valve_open_percent() on each underlying.
+
+        Valves don't need temporal ON/OFF scheduling. They just need
+        their open percentage updated. No master cycle repeat is needed
+        because control_heating is called periodically by async_track_time_interval.
+        """
+        for under in self._underlyings:
+            under._hvac_mode = hvac_mode
+            await under.set_valve_open_percent()
+
+    async def _start_cycle_switch(
+        self,
+        hvac_mode: VThermHvacMode,
+        on_time_sec: float,
+        off_time_sec: float,
+        on_percent: float,
+    ):
+        """Switch PWM scheduling: stagger ON/OFF periods across underlyings."""
         n = len(self._underlyings)
 
         # Update on_time/off_time on each underlying for keep-alive and monitoring
