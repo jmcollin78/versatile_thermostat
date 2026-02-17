@@ -27,6 +27,7 @@ from .commons import write_event_log
 from .base_thermostat import BaseThermostat, ConfigData
 from .thermostat_prop import ThermostatProp
 from .underlyings import UnderlyingSwitch
+from .cycle_scheduler import CycleScheduler
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -84,6 +85,13 @@ class ThermostatOverSwitch(ThermostatProp[UnderlyingSwitch]):
                     vswitch_off=vswitch_off,
                 )
             )
+
+        self._cycle_scheduler = CycleScheduler(
+            hass=self._hass,
+            thermostat=self,
+            underlyings=self._underlyings,
+            cycle_duration_sec=self._cycle_min * 60,
+        )
 
         self._should_relaunch_control_heating = False
 
