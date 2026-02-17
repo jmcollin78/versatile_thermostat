@@ -1,0 +1,290 @@
+"""CycleScheduler: orchestrates ON/OFF cycles for multiple underlyings within a master cycle.
+
+Instead of each UnderlyingSwitch managing its own independent cycle,
+the CycleScheduler centralizes cycle management, computing staggered
+offsets so that ON periods are distributed to minimize overlap and
+smooth electrical load.
+"""
+
+import logging
+from typing import Any, Callable
+
+from homeassistant.core import CALLBACK_TYPE, HomeAssistant
+from homeassistant.helpers.event import async_call_later
+
+from .vtherm_hvac_mode import VThermHvacMode, VThermHvacMode_OFF
+
+_LOGGER = logging.getLogger(__name__)
+
+
+class CycleScheduler:
+    """Orchestrates ON/OFF cycles for multiple underlyings within a master cycle.
+
+    All underlyings operate within the same time window (the master cycle).
+    ON periods are staggered using computed offsets to minimize overlap.
+    """
+
+    def __init__(
+        self,
+        hass: HomeAssistant,
+        thermostat: Any,
+        underlyings: list,
+        cycle_duration_sec: float,
+    ):
+        self._hass = hass
+        self._thermostat = thermostat
+        self._underlyings = underlyings
+        self._cycle_duration_sec = cycle_duration_sec
+        self._scheduled_actions: list[CALLBACK_TYPE] = []
+        self._on_cycle_start_callbacks: list[Callable] = []
+        self._on_cycle_end_callbacks: list[Callable] = []
+        # Current cycle parameters (for repeat at cycle end)
+        self._current_hvac_mode: VThermHvacMode | None = None
+        self._current_on_time_sec: float = 0
+        self._current_off_time_sec: float = 0
+        self._current_on_percent: float = 0
+
+    @property
+    def is_cycle_running(self) -> bool:
+        """Return True if a cycle is currently scheduled."""
+        return len(self._scheduled_actions) > 0
+
+    @staticmethod
+    def compute_offsets(
+        on_time_sec: float,
+        cycle_duration_sec: float,
+        n: int,
+    ) -> list[float]:
+        """Compute start offsets for n underlyings to minimize ON overlap.
+
+        Uses uniform distribution: offsets are spread evenly across
+        [0, cycle_duration - on_time] for optimal electrical load smoothing.
+
+        Returns:
+            List of start offsets in seconds for each underlying (0-indexed).
+        """
+        if n <= 1:
+            return [0.0]
+
+        if on_time_sec <= 0:
+            return [0.0] * n
+
+        if on_time_sec >= cycle_duration_sec:
+            # 100% power: all start at 0
+            return [0.0] * n
+
+        # Maximum offset so the last underlying finishes at cycle end
+        max_offset = cycle_duration_sec - on_time_sec
+
+        # Distribute offsets evenly across [0, max_offset]
+        step = max_offset / (n - 1)
+
+        return [round(i * step, 1) for i in range(n)]
+
+    def register_cycle_start_callback(self, callback: Callable):
+        """Register a callback to be called at the start of each master cycle.
+
+        Callback signature: async def callback(on_time_sec, off_time_sec, on_percent, hvac_mode)
+        """
+        self._on_cycle_start_callbacks.append(callback)
+
+    def register_cycle_end_callback(self, callback: Callable):
+        """Register a callback to be called at the end of each master cycle."""
+        self._on_cycle_end_callbacks.append(callback)
+
+    async def start_cycle(
+        self,
+        hvac_mode: VThermHvacMode,
+        on_time_sec: float,
+        off_time_sec: float,
+        on_percent: float,
+        force: bool = False,
+    ):
+        """Start a new master cycle for all underlyings.
+
+        Args:
+            hvac_mode: Current HVAC mode.
+            on_time_sec: Duration in seconds each underlying should be ON.
+            off_time_sec: Duration in seconds each underlying should be OFF.
+            on_percent: Power percentage (0-100).
+            force: If True, cancel any running cycle and restart immediately.
+        """
+        if self._scheduled_actions and not force:
+            _LOGGER.debug(
+                "%s - Cycle already running, skipping (force=%s)",
+                self._thermostat,
+                force,
+            )
+            return
+
+        self.cancel_cycle()
+
+        # Store current cycle parameters for repeat
+        self._current_hvac_mode = hvac_mode
+        self._current_on_time_sec = on_time_sec
+        self._current_off_time_sec = off_time_sec
+        self._current_on_percent = on_percent
+
+        # Fire cycle start callbacks
+        await self._fire_cycle_start_callbacks(
+            on_time_sec, off_time_sec, on_percent, hvac_mode
+        )
+
+        n = len(self._underlyings)
+
+        # Update on_time/off_time on each underlying for keep-alive and monitoring
+        for under in self._underlyings:
+            under._on_time_sec = on_time_sec
+            under._off_time_sec = off_time_sec
+            under._hvac_mode = hvac_mode
+
+        if hvac_mode == VThermHvacMode_OFF or on_time_sec <= 0:
+            # Turn off all underlyings
+            for under in self._underlyings:
+                if under.is_device_active:
+                    await under.turn_off()
+                under._should_be_on = False
+            # Schedule next cycle evaluation
+            self._schedule(self._cycle_duration_sec, self._on_master_cycle_end)
+            return
+
+        offsets = self.compute_offsets(on_time_sec, self._cycle_duration_sec, n)
+
+        _LOGGER.debug(
+            "%s - Starting master cycle: on_time=%.0fs, off_time=%.0fs, "
+            "on_percent=%.0f%%, offsets=%s",
+            self._thermostat,
+            on_time_sec,
+            off_time_sec,
+            on_percent,
+            offsets,
+        )
+
+        for i, under in enumerate(self._underlyings):
+            start = offsets[i]
+            end = start + on_time_sec
+
+            # Schedule turn ON
+            if start == 0:
+                _LOGGER.info(
+                    "%s - start heating for %d min %d sec",
+                    under,
+                    on_time_sec // 60,
+                    on_time_sec % 60,
+                )
+                await under.turn_on()
+                under._should_be_on = True
+            else:
+                self._schedule(start, self._make_turn_on(under, on_time_sec))
+
+            # Schedule turn OFF
+            if end >= self._cycle_duration_sec:
+                # This underlying stays ON until cycle end;
+                # turn_off handled by _on_master_cycle_end
+                pass
+            else:
+                self._schedule(end, self._make_turn_off(under))
+
+        # Schedule master cycle end
+        self._schedule(self._cycle_duration_sec, self._on_master_cycle_end)
+
+    def _schedule(self, delay_sec: float, callback) -> None:
+        """Schedule a callback after delay_sec seconds."""
+        cancel = async_call_later(self._hass, delay_sec, callback)
+        self._scheduled_actions.append(cancel)
+
+    def _make_turn_on(self, under, on_time_sec: float):
+        """Create a turn_on callback for a specific underlying."""
+
+        async def _callback(_now):
+            _LOGGER.info(
+                "%s - start heating for %d min %d sec",
+                under,
+                on_time_sec // 60,
+                on_time_sec % 60,
+            )
+            await under.turn_on()
+            under._should_be_on = True
+
+        return _callback
+
+    def _make_turn_off(self, under):
+        """Create a turn_off callback for a specific underlying."""
+
+        async def _callback(_now):
+            _LOGGER.info(
+                "%s - stop heating for %d min %d sec",
+                under,
+                self._current_off_time_sec // 60,
+                self._current_off_time_sec % 60,
+            )
+            await under.turn_off()
+            under._should_be_on = False
+
+        return _callback
+
+    async def _on_master_cycle_end(self, _now):
+        """Called at the end of the master cycle. Turn off remaining and restart."""
+        # Turn off any underlying still ON (unless 100% power)
+        if self._current_on_time_sec < self._cycle_duration_sec:
+            for under in self._underlyings:
+                if under.is_device_active:
+                    await under.turn_off()
+                    under._should_be_on = False
+
+        # Fire cycle end callbacks
+        await self._fire_cycle_end_callbacks()
+
+        # Increment energy
+        self._thermostat.incremente_energy()
+
+        # Clear scheduled actions
+        self._scheduled_actions.clear()
+
+        # Restart cycle with same parameters
+        await self.start_cycle(
+            self._current_hvac_mode,
+            self._current_on_time_sec,
+            self._current_off_time_sec,
+            self._current_on_percent,
+            force=True,
+        )
+
+    def cancel_cycle(self):
+        """Cancel all scheduled actions."""
+        for cancel in self._scheduled_actions:
+            cancel()
+        self._scheduled_actions.clear()
+
+    async def _fire_cycle_start_callbacks(
+        self, on_time_sec, off_time_sec, on_percent, hvac_mode
+    ):
+        """Fire all registered cycle start callbacks."""
+        for callback in self._on_cycle_start_callbacks:
+            try:
+                await callback(
+                    on_time_sec=on_time_sec,
+                    off_time_sec=off_time_sec,
+                    on_percent=on_percent,
+                    hvac_mode=hvac_mode,
+                )
+            except Exception as ex:
+                _LOGGER.warning(
+                    "%s - Error calling cycle start callback %s: %s",
+                    self._thermostat,
+                    callback,
+                    ex,
+                )
+
+    async def _fire_cycle_end_callbacks(self):
+        """Fire all registered cycle end callbacks."""
+        for callback in self._on_cycle_end_callbacks:
+            try:
+                await callback()
+            except Exception as ex:
+                _LOGGER.warning(
+                    "%s - Error calling cycle end callback %s: %s",
+                    self._thermostat,
+                    callback,
+                    ex,
+                )
