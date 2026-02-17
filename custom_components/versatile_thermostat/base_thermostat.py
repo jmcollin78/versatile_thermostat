@@ -1375,7 +1375,7 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
 
         # Change the requested state
         self._state_manager.requested_state.set_hvac_mode(hvac_mode)
-        await self.update_states(force=True)
+        await self.update_states(force=False)
 
     @overrides
     @check_lock
