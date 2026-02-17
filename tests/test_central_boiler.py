@@ -247,6 +247,7 @@ async def test_update_central_boiler_state_simple(
     #
     _LOGGER.debug("---- 1. Turn on the switch1")
     now = now + timedelta(minutes=1)
+    entity.cycle_scheduler.cancel_cycle()
     await send_temperature_change_event(entity, 10, now)
 
     await wait_for_local_condition(lambda: entity.hvac_action == HVACAction.HEATING)

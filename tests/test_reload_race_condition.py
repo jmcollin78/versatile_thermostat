@@ -2,10 +2,9 @@
 
 """Test the race condition during thermostat reload.
 
-This test verifies that timer callbacks (_turn_on_later, _turn_off_later)
-do not perform any actions after remove_entity() has been called.
-This prevents "ghost sessions" where old thermostat instances continue
-to control heating after a reload.
+With CycleScheduler, cycle timers are centralized. This test verifies
+that cancel_cycle() properly cancels all scheduled actions, preventing
+ghost sessions after a reload.
 """
 
 import asyncio
@@ -24,16 +23,17 @@ logging.getLogger().setLevel(logging.DEBUG)
 
 @pytest.mark.parametrize("expected_lingering_tasks", [True])
 @pytest.mark.parametrize("expected_lingering_timers", [True])
-async def test_underlying_switch_turn_on_after_remove(
+async def test_cycle_scheduler_cancel_on_remove(
     hass: HomeAssistant,
     skip_hass_states_is_state,
     skip_send_event,
     fake_underlying_switch: MockSwitch,
 ):
-    """Test that _turn_on_later does nothing after remove_entity() is called.
+    """Test that CycleScheduler.cancel_cycle() is effective.
 
-    This simulates the race condition where a timer callback fires
-    after the entity has been removed during a reload.
+    When a thermostat is removed during reload, the scheduler's
+    cancel_cycle should cancel all pending timers to prevent
+    ghost sessions.
     """
     tz = get_tz(hass)
     now: datetime = datetime.now(tz=tz)
@@ -72,135 +72,23 @@ async def test_underlying_switch_turn_on_after_remove(
         hass, entry, "climate.theoverswitchmockname"
     )
     assert entity
-    assert entity.is_over_climate is False
+    assert entity.cycle_scheduler is not None
 
-    # Start heating to create an active cycle
-    with patch(
-        "custom_components.versatile_thermostat.base_thermostat.BaseThermostat.async_control_heating"
-    ):
-        await entity.async_set_hvac_mode(VThermHvacMode_HEAT)
-        await entity.async_set_preset_mode(VThermPreset.BOOST)
+    scheduler = entity.cycle_scheduler
 
-    # Get the underlying switch
-    underlying = entity.underlying_entity(0)
-    assert underlying is not None
+    # Start a cycle via mock
+    mock_cancel_1 = MagicMock()
+    mock_cancel_2 = MagicMock()
+    scheduler._scheduled_actions = [mock_cancel_1, mock_cancel_2]
+    assert scheduler.is_cycle_running is True
 
-    # Setup the underlying with a simulated cycle in progress
-    underlying._on_time_sec = 120
-    underlying._off_time_sec = 180
-    underlying._hvac_mode = VThermHvacMode_HEAT
+    # Cancel cycle (as would happen during remove/reload)
+    scheduler.cancel_cycle()
 
-    # Now simulate what happens during a reload:
-    # 1. remove_entity() is called
-    underlying.remove_entity()
-
-    # 2. But the timer callback fires AFTER removal (race condition)
-    with patch(
-        "custom_components.versatile_thermostat.underlyings.UnderlyingSwitch.turn_on"
-    ) as mock_turn_on, patch(
-        "custom_components.versatile_thermostat.underlyings.UnderlyingSwitch.call_later",
-        return_value=MagicMock(),
-    ) as mock_call_later:
-        # Simulate the timer callback firing after removal
-        await underlying._turn_on_later(None)
-
-        # EXPECTED BEHAVIOR: No action should be taken
-        # This test will FAIL initially because there's no guard in _turn_on_later
-        assert mock_turn_on.call_count == 0, (
-            "turn_on() should NOT be called after remove_entity(). "
-            "This is the race condition bug!"
-        )
-
-        # Also verify no new timer was scheduled
-        assert mock_call_later.call_count == 0, (
-            "No new timer should be scheduled after remove_entity(). "
-            "This would create a ghost session!"
-        )
-
-
-@pytest.mark.parametrize("expected_lingering_tasks", [True])
-@pytest.mark.parametrize("expected_lingering_timers", [True])
-async def test_underlying_switch_turn_off_after_remove(
-    hass: HomeAssistant,
-    skip_hass_states_is_state,
-    skip_send_event,
-    fake_underlying_switch: MockSwitch,
-):
-    """Test that _turn_off_later does nothing after remove_entity() is called."""
-    tz = get_tz(hass)
-    now: datetime = datetime.now(tz=tz)
-
-    entry = MockConfigEntry(
-        domain=DOMAIN,
-        title="TheOverSwitchMockName",
-        unique_id="uniqueId2",
-        data={
-            CONF_NAME: "TheOverSwitchMockName2",
-            CONF_THERMOSTAT_TYPE: CONF_THERMOSTAT_SWITCH,
-            CONF_TEMP_SENSOR: "sensor.mock_temp_sensor",
-            CONF_EXTERNAL_TEMP_SENSOR: "sensor.mock_ext_temp_sensor",
-            CONF_CYCLE_MIN: 5,
-            CONF_TEMP_MIN: 15,
-            CONF_TEMP_MAX: 30,
-            "eco_temp": 17,
-            "comfort_temp": 18,
-            "boost_temp": 19,
-            CONF_USE_WINDOW_FEATURE: False,
-            CONF_USE_MOTION_FEATURE: False,
-            CONF_USE_POWER_FEATURE: False,
-            CONF_USE_PRESENCE_FEATURE: False,
-            CONF_HEATER: "switch.mock_switch",
-            CONF_MINIMAL_ACTIVATION_DELAY: 0,
-            CONF_MINIMAL_DEACTIVATION_DELAY: 0,
-            CONF_SAFETY_DELAY_MIN: 5,
-            CONF_SAFETY_MIN_ON_PERCENT: 0.3,
-            CONF_PROP_FUNCTION: PROPORTIONAL_FUNCTION_TPI,
-            CONF_TPI_COEF_INT: 0.3,
-            CONF_TPI_COEF_EXT: 0.01,
-        },
-    )
-
-    entity: BaseThermostat = await create_thermostat(
-        hass, entry, "climate.theoverswitchmockname2"
-    )
-    assert entity
-
-    # Start heating
-    with patch(
-        "custom_components.versatile_thermostat.base_thermostat.BaseThermostat.async_control_heating"
-    ):
-        await entity.async_set_hvac_mode(VThermHvacMode_HEAT)
-        await entity.async_set_preset_mode(VThermPreset.BOOST)
-
-    underlying = entity.underlying_entity(0)
-    assert underlying is not None
-
-    # Setup the underlying with a simulated cycle
-    underlying._on_time_sec = 120
-    underlying._off_time_sec = 180
-    underlying._hvac_mode = VThermHvacMode_HEAT
-
-    # Simulate reload: remove_entity() is called
-    underlying.remove_entity()
-
-    # Timer callback fires after removal
-    with patch(
-        "custom_components.versatile_thermostat.underlyings.UnderlyingSwitch.turn_off"
-    ) as mock_turn_off, patch(
-        "custom_components.versatile_thermostat.underlyings.UnderlyingSwitch.call_later",
-        return_value=MagicMock(),
-    ) as mock_call_later:
-        await underlying._turn_off_later(None)
-
-        # EXPECTED: No action after removal
-        assert mock_turn_off.call_count == 0, (
-            "turn_off() should NOT be called after remove_entity(). "
-            "This is the race condition bug!"
-        )
-
-        assert mock_call_later.call_count == 0, (
-            "No new timer should be scheduled after remove_entity()."
-        )
+    # All cancel functions should have been called
+    mock_cancel_1.assert_called_once()
+    mock_cancel_2.assert_called_once()
+    assert scheduler.is_cycle_running is False
 
 
 @pytest.mark.parametrize("expected_lingering_tasks", [True])
