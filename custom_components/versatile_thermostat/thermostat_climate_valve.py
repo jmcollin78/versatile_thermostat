@@ -16,6 +16,7 @@ from .underlyings import UnderlyingValveRegulation, UnderlyingClimate
 from .base_thermostat import ConfigData
 from .thermostat_climate import ThermostatOverClimate
 from .thermostat_prop import ThermostatProp
+from .cycle_scheduler import CycleScheduler
 
 from .const import *  # pylint: disable=wildcard-import, unused-wildcard-import
 from .commons import write_event_log
@@ -118,6 +119,13 @@ class ThermostatOverClimateValve(ThermostatProp[UnderlyingClimate], ThermostatOv
                 opening_threshold=self._opening_threshold_degree,
             )
             self._underlyings_valve_regulation.append(under)
+
+        self._cycle_scheduler = CycleScheduler(
+            hass=self._hass,
+            thermostat=self,
+            underlyings=self._underlyings_valve_regulation,
+            cycle_duration_sec=self._cycle_min * 60,
+        )
 
     async def init_underlyings_completed(self, under_entity_id: Optional[str] = None):
         """Called when an underlying is fully initialized
