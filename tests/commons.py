@@ -1362,8 +1362,8 @@ def cancel_switchs_cycles(entity: BaseThermostat):
     """This method will cancel all running cycle on all underlying switch entity"""
     if entity.is_over_climate:
         return
-    for under in entity._underlyings:
-        under._cancel_cycle()
+    if entity.cycle_scheduler:
+        entity.cycle_scheduler.cancel_cycle()
 
 
 async def set_climate_preset_temp(

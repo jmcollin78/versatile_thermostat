@@ -73,16 +73,19 @@ async def test_inverted_switch(hass: HomeAssistant, fake_underlying_switch: Mock
     await wait_for_local_condition(lambda: entity.is_device_active is False)
 
     # 1. Make the temperature down to activate the switch
+    # Cancel existing cycle so the new cycle can start
+    entity.cycle_scheduler.cancel_cycle()
     now = now + timedelta(minutes=4)
     entity._set_now(now)
     fake_temp_sensor.set_native_value(19)
     # await send_temperature_change_event(entity, 19, event_timestamp)
 
-    # The heater turns on
+    # The heater turns on (for inverted switch, underlying switch turns OFF)
     assert entity.vtherm_hvac_mode is VThermHvacMode_HEAT
     # not updated cause mocked assert entity.is_device_active is True
 
-    await wait_for_local_condition(lambda: fake_underlying_switch.is_on is True)
+    # For inverted switch: heater ON -> underlying switch OFF
+    await wait_for_local_condition(lambda: fake_underlying_switch.is_on is False)
 
     # 2. Make the temperature up to deactivate the switch
     now = now + timedelta(minutes=3)

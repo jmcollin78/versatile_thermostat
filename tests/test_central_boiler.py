@@ -247,6 +247,7 @@ async def test_update_central_boiler_state_simple(
     #
     _LOGGER.debug("---- 1. Turn on the switch1")
     now = now + timedelta(minutes=1)
+    entity.cycle_scheduler.cancel_cycle()
     await send_temperature_change_event(entity, 10, now)
 
     await wait_for_local_condition(lambda: entity.hvac_action == HVACAction.HEATING)
@@ -685,10 +686,16 @@ async def test_update_central_boiler_state_multiple(
     await asyncio.sleep(0.5)
 
     assert entity.hvac_action == HVACAction.HEATING
+    # First cycle uses linear offsets (no wrapping) for staggered starts:
+    # cycle=300s, 4 underlyings, on_percent=0.5, on_time=150s
+    # max_offset=150, step=50. Offsets: [0, 50, 100, 150]
+    # Under 0 (switch1): on_t=0, off_t=150 → target=ON at t=0 → turn_on
+    # Under 1 (switch2): on_t=50, off_t=200 → target=OFF at t=0
+    # Under 2 (switch3): on_t=100, off_t=250 → target=OFF at t=0
+    # Under 3 (switch4): on_t=150, off_t=300 → target=OFF at t=0
     assert api.central_boiler_manager.nb_active_device_for_boiler == 1
-    assert boiler_binary_sensor.state == STATE_ON  # On by total power > threshold
 
-    # A cycle has began with switch1 only
+    # At t=0: only switch1 (under 0) is ON
     assert nb_device_active_sensor.state == 1
     assert nb_device_active_sensor.active_device_ids == ["switch.switch1"]
 

@@ -376,6 +376,7 @@ async def test_security_feature_back_on_percent(hass: HomeAssistant, skip_hass_s
     assert entity.hvac_mode == VThermHvacMode_HEAT
 
     # 2. activate on_percent
+    entity.cycle_scheduler.cancel_cycle()
     with patch(
         "custom_components.versatile_thermostat.base_thermostat.BaseThermostat.send_event"
     ) as mock_send_event, patch(
@@ -395,6 +396,7 @@ async def test_security_feature_back_on_percent(hass: HomeAssistant, skip_hass_s
         assert mock_heater_on.call_count == 1
 
     # 3. Set safety mode with a preset change
+    entity.cycle_scheduler.cancel_cycle()
     with patch(
         "custom_components.versatile_thermostat.base_thermostat.BaseThermostat.send_event"
     ) as mock_send_event, patch(
