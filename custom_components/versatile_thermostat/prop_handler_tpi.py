@@ -366,14 +366,13 @@ class TPIHandler:
             t._on_time_sec = on_time_sec
             t._off_time_sec = off_time_sec
 
-            for under in t.underlyings:
-                await under.start_cycle(
-                    t.vtherm_hvac_mode,
-                    on_time_sec,
-                    off_time_sec,
-                    on_percent,
-                    force,
-                )
+            await t.cycle_scheduler.start_cycle(
+                t.vtherm_hvac_mode,
+                on_time_sec,
+                off_time_sec,
+                on_percent,
+                force,
+            )
 
     async def on_state_changed(self):
         """Handle state changes."""
