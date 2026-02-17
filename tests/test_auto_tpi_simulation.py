@@ -154,34 +154,48 @@ async def test_auto_tpi_convergence_simulation(mock_hass, mock_store, mock_confi
                 "hvac_mode": "heat"
             }
         
-        manager_event_sender = MagicMock()
-        
         for i in range(50):
-            # Drive the cycle (Matches ThermostatProp.async_control_heating call)
-            # On first iteration, it initializes. On subsequent, it triggers boundary logic.
-            await manager.process_cycle(
-                timestamp=sim_time,
-                data_provider=data_provider,
-                event_sender=manager_event_sender,
-                force=False
-            )
-
-            # Get current data and power for this cycle
+            # Calculate power for this cycle using current state
             cycle_data = await data_provider()
             power = cycle_data["on_percent"]
-            
+            on_time_sec = cycle_data["on_time_sec"]
+            off_time_sec = cycle_data["off_time_sec"]
+
+            # Start cycle (marks cycle_start_date = sim_time via dt_util.now())
+            await manager.on_cycle_started(
+                on_time_sec=on_time_sec,
+                off_time_sec=off_time_sec,
+                on_percent=power,
+                hvac_mode="heat",
+            )
+
             # Advance simulation time (end of cycle)
             sim_time += timedelta(minutes=10)
-            
+
             # Step Physics (Simulate 10 minute cycle)
             model.step(power, 10.0)
-            
+
+            # Update manager with end-of-cycle temperatures so learning sees
+            # the post-cycle room temp (mirrors production where control_heating
+            # is called at each heartbeat, keeping _current_temp_in up to date)
+            await manager.update(
+                room_temp=model.room_temp,
+                ext_temp=model.ext_temp,
+                target_temp=target_temp,
+                hvac_mode="heat",
+                is_overpowering_detected=False
+            )
+
+            # Complete cycle — dt_util.now() now returns sim_time + 10min,
+            # so elapsed ≈ cycle_min → valid learning boundary
+            await manager.on_cycle_completed()
+
             status = manager.state.last_learning_status
             print(f"{i+1:<5} | {model.room_temp:<8.3f} | {model.ext_temp:<8.1f} | {power:<8.2f} | {manager.state.coeff_indoor_heat:<8.3f} | {manager.state.coeff_outdoor_heat:<8.3f} | {status}")
-            
+
             # Perturbation: Drop external temp to force Kext learning
             if i == 30:
-                 model.ext_temp = 0.0
+                model.ext_temp = 0.0
 
         final_kext = manager.state.coeff_outdoor_heat
         final_kint = manager.state.coeff_indoor_heat
