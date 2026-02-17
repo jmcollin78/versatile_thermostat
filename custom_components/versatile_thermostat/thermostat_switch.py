@@ -71,7 +71,6 @@ class ThermostatOverSwitch(ThermostatProp[UnderlyingSwitch]):
         self._lst_vswitch_on = config_entry.get(CONF_VSWITCH_ON_CMD_LIST, [])
         self._lst_vswitch_off = config_entry.get(CONF_VSWITCH_OFF_CMD_LIST, [])
 
-        delta_cycle = self._cycle_min * 60 / len(lst_switches)
         for idx, switch in enumerate(lst_switches):
             vswitch_on = self._lst_vswitch_on[idx] if idx < len(self._lst_vswitch_on) else None
             vswitch_off = self._lst_vswitch_off[idx] if idx < len(self._lst_vswitch_off) else None
@@ -80,7 +79,6 @@ class ThermostatOverSwitch(ThermostatProp[UnderlyingSwitch]):
                     hass=self._hass,
                     thermostat=self,
                     switch_entity_id=switch,
-                    initial_delay_sec=idx * delta_cycle,
                     keep_alive_sec=config_entry.get(CONF_HEATER_KEEP_ALIVE, 0),
                     vswitch_on=vswitch_on,
                     vswitch_off=vswitch_off,
