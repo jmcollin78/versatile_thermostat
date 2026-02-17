@@ -3,7 +3,7 @@
 """ Test the Window management """
 import asyncio
 
-from unittest.mock import patch, call, PropertyMock
+from unittest.mock import patch, call, PropertyMock, MagicMock, AsyncMock, Mock
 from datetime import datetime, timedelta
 
 import logging
@@ -25,7 +25,10 @@ from custom_components.versatile_thermostat.thermostat_switch import (
     ThermostatOverSwitch,
 )
 
+from custom_components.versatile_thermostat.underlyings import UnderlyingSwitch
+
 from .commons import *
+
 
 logging.getLogger().setLevel(logging.DEBUG)
 
@@ -826,3 +829,111 @@ async def test_bug_1379(
     assert entity.current_state.target_temperature == 17.5
 
     entity.remove_thermostat()
+
+
+async def test_big_1777(hass):
+    """Test that on over_switch VTherm the cycle is respected when on_percent goes from 0 to non 0 value"""
+
+    fake_vtherm = MagicMock()
+
+    under = UnderlyingSwitch(hass, fake_vtherm, "switch_entity_id", initial_delay_sec=10, keep_alive_sec=0)
+
+    under.turn_on = AsyncMock()
+    under.turn_off = AsyncMock()
+    under.call_later = Mock(return_value="_turn_on_later")
+    under._cancel_cycle = Mock()
+
+    # 1. Call start_cycle with non 0 on_percent. The cycle is not started, lets start it
+    await under.start_cycle(VThermHvacMode_HEAT, 90, 10, 0.9, False)
+
+    assert under._should_be_on is True
+    assert under._on_time_sec == 90
+    assert under._off_time_sec == 10
+    assert under._new_on_time_sec == 90
+    assert under._new_off_time_sec == 10
+
+    assert under.turn_on.await_count == 0
+    assert under.turn_off.await_count == 0
+    assert under.call_later.call_count == 1
+    assert under._cancel_cycle.call_count == 0
+    assert under._async_cancel_cycle is not None
+
+    # 2. Call start_cycle with other values. The cycle is already started let it continue
+    under.turn_on.reset_mock()
+    under.turn_off.reset_mock()
+    under.call_later.reset_mock()
+    under._cancel_cycle.reset_mock()
+
+    await under.start_cycle(VThermHvacMode_HEAT, 80, 20, 0.8, False)
+
+    assert under._should_be_on is True
+    assert under._on_time_sec == 90  # no change
+    assert under._off_time_sec == 10  # no change
+    assert under._new_on_time_sec == 80  # new values
+    assert under._new_off_time_sec == 20  # new values
+
+    assert under.turn_on.await_count == 0
+    assert under.turn_off.await_count == 0
+    assert under.call_later.call_count == 0
+    assert under._cancel_cycle.call_count == 0
+    assert under._async_cancel_cycle is not None
+
+    # 3. turn_on (simulate the next cycle)
+    under.turn_on.reset_mock()
+    under.turn_off.reset_mock()
+    under.call_later.reset_mock()
+    under._cancel_cycle.reset_mock()
+
+    type(under).is_device_active = PropertyMock(return_value=True)
+
+    await under._turn_on_later(None)
+    assert under._cancel_cycle.call_count == 1
+    assert under._should_be_on is True  # Now we should be off
+    assert under._on_time_sec == 80  # the last value
+    assert under._off_time_sec == 20  # the last value
+    assert under._new_on_time_sec == 80  # the last value
+    assert under._new_off_time_sec == 20  # the last value
+
+    assert under.turn_on.await_count == 1
+    assert under.turn_off.await_count == 0
+    assert under.call_later.call_count == 1
+
+    # 4. Call start_cycle with 0 values. The cycle is already started it should continue
+    under.turn_on.reset_mock()
+    under.turn_off.reset_mock()
+    under.call_later.reset_mock()
+    under._cancel_cycle.reset_mock()
+
+    await under.start_cycle(VThermHvacMode_HEAT, 0, 100, 0.0, False)
+
+    assert under._should_be_on is True  # it would be off and the end of the cycle
+    assert under._on_time_sec == 80  # no change
+    assert under._off_time_sec == 20  # no change
+    assert under._new_on_time_sec == 0  # new values
+    assert under._new_off_time_sec == 100  # new values
+
+    assert under.turn_on.await_count == 0
+    assert under.turn_off.await_count == 0
+    assert under.call_later.call_count == 0
+    assert under._cancel_cycle.call_count == 0
+    assert under._async_cancel_cycle is not None
+
+    # 5. turn_on (simulate the next cycle)
+    under.turn_on.reset_mock()
+    under.turn_off.reset_mock()
+    under.call_later.reset_mock()
+    under._cancel_cycle.reset_mock()
+
+    type(under).is_device_active = PropertyMock(return_value=True)
+
+    await under._turn_on_later(None)
+    assert under._cancel_cycle.call_count == 1
+    assert under._should_be_on is False  # Now we should be off
+    assert under._on_time_sec == 0  # the last value
+    assert under._off_time_sec == 100  # the last value
+    assert under._new_on_time_sec == 0  # no change
+    assert under._new_off_time_sec == 100  # no change
+
+    assert under.turn_on.await_count == 0
+    assert under.turn_off.await_count == 1
+    assert under.call_later.call_count == 0
