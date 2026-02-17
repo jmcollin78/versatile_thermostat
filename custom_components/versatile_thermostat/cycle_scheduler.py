@@ -128,12 +128,30 @@ class CycleScheduler:
             force: If True, cancel any running cycle and restart immediately.
         """
         if self._scheduled_actions and not force:
+            if self._current_on_time_sec > 0:
+                # A real cycle is actively running — don't interrupt it.
+                # Just update stored params so the next auto-repeat uses them.
+                _LOGGER.debug(
+                    "%s - Cycle already running (on_time=%.0fs), skipping (force=%s). "
+                    "Updating params for next repeat: on_time=%.0f, off_time=%.0f, on_percent=%.2f",
+                    self._thermostat,
+                    self._current_on_time_sec,
+                    force,
+                    on_time_sec,
+                    off_time_sec,
+                    on_percent,
+                )
+                self._current_hvac_mode = hvac_mode
+                self._current_on_time_sec = on_time_sec
+                self._current_off_time_sec = off_time_sec
+                self._current_on_percent = on_percent
+                return
+            # Current cycle is idle (on_time=0, device off).
+            # Cancel it and allow a real cycle to start.
             _LOGGER.debug(
-                "%s - Cycle already running, skipping (force=%s)",
+                "%s - Current cycle is idle (on_time=0), replacing with new cycle",
                 self._thermostat,
-                force,
             )
-            return
 
         self.cancel_cycle()
 
