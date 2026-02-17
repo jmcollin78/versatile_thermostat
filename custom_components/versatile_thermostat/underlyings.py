@@ -335,6 +335,8 @@ class UnderlyingSwitch(UnderlyingEntity):
         self._should_relaunch_control_heating = False
         self._on_time_sec = 0
         self._off_time_sec = 0
+        self._new_on_time_sec = 0
+        self._new_off_time_sec = 0
         self._is_removed = False
         self._keep_alive = IntervalCaller(hass, keep_alive_sec)
         self._vswitch_on = vswitch_on.strip() if vswitch_on else None
@@ -345,7 +347,12 @@ class UnderlyingSwitch(UnderlyingEntity):
         self._on_command = {"command": command, "data": data, "state": state_on}
         command, data, state_off = self.build_command(use_on=False)
         self._off_command = {"command": command, "data": data, "state": state_off}
+
+        # the underlying is cycling with on_percent > 0
         self._should_be_on = False
+
+        # true if the on part of the cycle is running. Off if the off part is running
+        self._is_on_part_running = False
 
     @property
     def initial_delay_sec(self):
@@ -444,7 +451,7 @@ class UnderlyingSwitch(UnderlyingEntity):
                     self._entity_id,
                     state.state,
                 )
-            await (self.turn_on() if self.should_device_be_active else self.turn_off())
+            await (self.turn_on() if self._is_on_part_running else self.turn_off())
 
     def build_command(self, use_on: bool) -> Tuple[str, Dict[str, str]]:
         """Build a command and returns a command and a dict as data"""
@@ -489,6 +496,7 @@ class UnderlyingSwitch(UnderlyingEntity):
                 self._thermostat.power_manager.sub_power_consumption_to_central_power_manager()
                 _LOGGER.debug("%s - Sending command %s with data=%s", self, command, data)
                 await self._hass.services.async_call(self._domain, command, data)
+                self._is_on_part_running = False
                 self._keep_alive.set_async_action(self._keep_alive_callback)
             except Exception:
                 self._keep_alive.cancel()
@@ -514,6 +522,7 @@ class UnderlyingSwitch(UnderlyingEntity):
                 self._thermostat.power_manager.add_power_consumption_to_central_power_manager()
                 _LOGGER.debug("%s - Sending command %s with data=%s", self, command, data)
                 await self._hass.services.async_call(self._domain, command, data)
+                self._is_on_part_running = True
                 self._keep_alive.set_async_action(self._keep_alive_callback)
                 return True
             except Exception:
@@ -524,7 +533,7 @@ class UnderlyingSwitch(UnderlyingEntity):
 
     @overrides
     async def start_cycle(self, hvac_mode: VThermHvacMode, on_time_sec: int, off_time_sec: int, on_percent: int, force=False):
-        """Starting cycle for switch"""
+        """Starting or update the cycle for switch"""
         _LOGGER.debug(
             "%s - Starting new cycle hvac_mode=%s on_time_sec=%d off_time_sec=%d force=%s",
             self,
@@ -534,22 +543,28 @@ class UnderlyingSwitch(UnderlyingEntity):
             force,
         )
 
-        self._on_time_sec = on_time_sec
-        self._off_time_sec = off_time_sec
         self._hvac_mode = hvac_mode
 
+        # if a previous cycle is running
+        if self._async_cancel_cycle is not None:
+            if not force:
+                # Store new values which will be used at next cycle
+                self._new_on_time_sec = on_time_sec
+                self._new_off_time_sec = off_time_sec
+
+                _LOGGER.debug("%s - New on_time/off_time has been stored waiting for the end of the cycle", self)
+                return
+            else:
+                # stop the previous cycle and store new values as active now
+                self._cancel_cycle()
+                _LOGGER.debug("%s - cycle has been canceled and on_time/off_time has been stored as active", self)
+
+        self._on_time_sec = self._new_on_time_sec = on_time_sec
+        self._off_time_sec = self._new_off_time_sec = off_time_sec
+
+        # here the eventual previous cycle is stopped. Let see if we need to start another one
         should_be_on = self._calculate_should_be_on(False)
 
-        # Cancel eventual previous cycle if any and force.
-        if self._async_cancel_cycle is not None:
-            if force or not should_be_on:
-                _LOGGER.info("%s - We cancel the previous cycle because force=%s or should_be_on=%s", self, force, should_be_on)
-                self._cancel_cycle()
-            else:
-                _LOGGER.debug("%s - A previous cycle is alredy running and no force -> waits for its end", self)
-                return
-
-        # no cycle or with need to start another one
         # If we should heat, starts the cycle with delay. Setting the parameter to false will do the calculation of the should_be_on based on the on_time_sec and hvac_mode
         if should_be_on:
             # Set intended state before async scheduling to avoid race condition with keep_alive
@@ -563,7 +578,7 @@ class UnderlyingSwitch(UnderlyingEntity):
             _LOGGER.debug("%s - Start cycle on_time=%d, initial_delay=%d)", self, self._on_time_sec, self._initial_delay_sec)
         # if we not heat but device is active
         elif self.is_device_active:
-            _LOGGER.info("%s - stop heating because device should be off", self)
+            _LOGGER.info("%s - stop heating because device should be off and no cycle is active", self)
             await self.turn_off()
         else:
             # calculate the should_be_on (setting false as parameter will do the calculation)
@@ -594,15 +609,15 @@ class UnderlyingSwitch(UnderlyingEntity):
 
         self._cancel_cycle()
 
-        if self._hvac_mode == VThermHvacMode_OFF:
+        # at begining of a new cycle, get the last on_time_sec and off_time_sec
+        time = self._on_time_sec = self._new_on_time_sec
+        self._off_time_sec = self._new_off_time_sec
+
+        if not self._calculate_should_be_on(False):
             _LOGGER.debug("%s - End of cycle (HVAC_MODE_OFF - 2)", self)
-            self._calculate_should_be_on(False)
             if self.is_device_active:
                 await self.turn_off()
             return
-
-        # safety mode could have change the on_time percent
-        time = self._on_time_sec
 
         action_label = "start"
 
@@ -616,7 +631,6 @@ class UnderlyingSwitch(UnderlyingEntity):
             )
             if not await self.turn_on():
                 return
-            self._calculate_should_be_on(True)
         else:
             _LOGGER.debug("%s - No action on heater cause duration is 0", self)
 
@@ -639,6 +653,7 @@ class UnderlyingSwitch(UnderlyingEntity):
                     ex,
                 )
 
+        # waits time sec and stop the switch
         self._async_cancel_cycle = self.call_later(
             self._hass,
             time,
@@ -663,7 +678,7 @@ class UnderlyingSwitch(UnderlyingEntity):
 
         if self._hvac_mode == VThermHvacMode_OFF:
             _LOGGER.debug("%s - End of cycle (HVAC_MODE_OFF - 2)", self)
-            self._calculate_should_be_on(False)
+            self._is_on_part_running = False
             if self.is_device_active:
                 await self.turn_off()
             return
@@ -680,7 +695,6 @@ class UnderlyingSwitch(UnderlyingEntity):
                 time % 60,
             )
             await self.turn_off()
-            self._calculate_should_be_on(False)
         else:
             _LOGGER.debug("%s - No action on heater cause duration is 0", self)
         self._async_cancel_cycle = self.call_later(
@@ -689,7 +703,7 @@ class UnderlyingSwitch(UnderlyingEntity):
             self._turn_on_later,
         )
 
-        # increment energy at the end of the cycle
+        # increment energy at the end of the on cycle
         self._thermostat.incremente_energy()
 
     @overrides
