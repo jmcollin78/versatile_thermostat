@@ -361,40 +361,10 @@ class AutoTpiManager(CycleManager):
         )
 
     async def async_sync_config_at_startup(self):
-        """Sync the configuration with the latest learned data from storage at startup."""
-        # Only sync if Continuous Kext is enabled. 
-        # Standard learning sessions handle their own persistence upon completion.
-        if not self._enable_update_config or not self._continuous_kext:
-            return
-
-        # Check last known mode to determine which coefficients to sync
-        # Default to heat if unknown or not cool
-        is_cool = self.state.last_state == "cool"
-        
-        target_ext = self.state.coeff_outdoor_cool if is_cool else self.state.coeff_outdoor_heat
-        target_cap = self.state.max_capacity_cool if is_cool else self.state.max_capacity_heat
-
-        current_ext = self._config_entry.data.get(CONF_TPI_COEF_EXT)
-        current_cap = self._config_entry.data.get(CONF_AUTO_TPI_COOLING_POWER if is_cool else CONF_AUTO_TPI_HEATING_POWER)
-        
-        # Internal units check vs Config Entry (User units)
-        update_ext = target_ext if current_ext is not None and abs(current_ext - (target_ext / self._unit_factor)) > 0.001 else None
-        # Capacity is already stored in User Units * self._unit_factor internally?
-        # Actually in __init__: self._heating_rate = heating_rate / self._unit_factor
-        # So we should compare with target_cap * self._unit_factor
-        update_cap = target_cap if current_cap is not None and target_cap > 0 and abs(current_cap - (target_cap * self._unit_factor)) > 0.01 else None
-
-        if update_ext is not None or update_cap is not None:
-            _LOGGER.info(
-                "%s - Auto TPI: Syncing Kext/Capacity in configuration with stored learned data at startup (target_mode=%s)",
-                self._name, "cool" if is_cool else "heat"
-            )
-            # async_update_learning_data expects internal units
-            await self.async_update_learning_data(
-                coef_ext=update_ext,
-                capacity=update_cap,
-                is_heat_mode=not is_cool
-            )
+        """No-op: the config entry is now updated immediately after each learning cycle."""
+        # Continuous Kext is saved to the config entry by _learn_kext_continuous on
+        # every cycle where Kext changes. No startup sync is needed.
+        return
 
 
 
@@ -2791,7 +2761,7 @@ class AutoTpiManager(CycleManager):
         alpha = self._continuous_kext_alpha
         new_kext = (current_outdoor * (1.0 - alpha)) + (target_outdoor * alpha)
 
-        # Update State
+        # Update state in memory
         if is_heat:
              self.state.coeff_outdoor_heat = new_kext
         else:
@@ -2804,6 +2774,14 @@ class AutoTpiManager(CycleManager):
             "%s - Continuous Kext Learning (%s): Old=%.4f, Target=%.4f, New=%.4f (Alpha=%.3f, GapIn=%.2f, GapOut=%.2f)",
             self._name, "heat" if is_heat else "cool", current_outdoor, target_outdoor, new_kext, alpha, gap_in, gap_out
         )
+
+        # Persist immediately to config entry if Kext changed significantly (threshold: 0.001).
+        # This avoids having to rely on a startup sync, and keeps the config entry up to date.
+        if abs(new_kext - current_outdoor) > 0.001:
+            await self.async_update_learning_data(
+                coef_ext=new_kext,
+                is_heat_mode=is_heat
+            )
 
     async def on_cycle_completed(self, new_params: dict, prev_params: dict | None) -> bool:
         """Called when a TPI cycle completes."""
