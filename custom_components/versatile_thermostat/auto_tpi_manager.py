@@ -31,6 +31,7 @@ from .const import (
     CONF_AUTO_TPI_COOLING_POWER,
 )
 from .cycle_manager import CycleManager
+from .vtherm_api import VersatileThermostatAPI
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -340,16 +341,22 @@ class AutoTpiManager(CycleManager):
             _LOGGER.debug("%s - Auto TPI: update_learning_data - no updates to apply", self._name)
             return
 
-        # 5. Apply atomic config update (Triggers Reload)
-        new_data = {**self._config_entry.data, **updates}
-        self._hass.config_entries.async_update_entry(self._config_entry, data=new_data)
+        # 5. Apply atomic config update (no reload: flag prevents update_listener from reloading)
+        api = VersatileThermostatAPI.get_vtherm_api(self._hass)
+        if api:
+            api.skip_reload_on_config_update = True
+        try:
+            new_data = {**self._config_entry.data, **updates}
+            self._hass.config_entries.async_update_entry(self._config_entry, data=new_data)
+        finally:
+            if api:
+                api.skip_reload_on_config_update = False
 
-        
         _LOGGER.info(
-            "%s - Auto TPI: ATOMIC UPDATE: Kint=%s, Kext=%s, Capacity=%s", 
-            self._name, 
+            "%s - Auto TPI: ATOMIC UPDATE: Kint=%s, Kext=%s, Capacity=%s",
+            self._name,
             f"{coef_int:.3f}" if coef_int is not None else "N/A",
-            f"{coef_ext:.3f}" if coef_ext is not None else "N/A", 
+            f"{coef_ext:.3f}" if coef_ext is not None else "N/A",
             f"{capacity:.3f}" if capacity is not None else "N/A"
         )
 

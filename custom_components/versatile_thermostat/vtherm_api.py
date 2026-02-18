@@ -70,6 +70,11 @@ class VersatileThermostatAPI:
         # the current time (for testing purpose)
         self._now = None
 
+        # Flag to skip reload when a config entry update is triggered by the auto-TPI
+        # learning system (e.g. saving Kext). When True, update_listener will return
+        # immediately without reloading the config entry.
+        self.skip_reload_on_config_update: bool = False
+
     def find_central_configuration(self):
         """Search for a central configuration"""
         if not self._central_configuration:
