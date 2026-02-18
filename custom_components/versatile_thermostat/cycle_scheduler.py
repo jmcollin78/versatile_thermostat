@@ -300,10 +300,8 @@ class CycleScheduler:
         # Increment energy
         self._thermostat.incremente_energy()
 
-        # Clear scheduled actions
-        self._scheduled_actions.clear()
-
         # Restart cycle with same parameters
+        # Note: cancel_cycle() inside start_cycle(force=True) will clear _scheduled_actions atomically.
         await self.start_cycle(
             self._current_hvac_mode,
             self._current_on_time_sec,
