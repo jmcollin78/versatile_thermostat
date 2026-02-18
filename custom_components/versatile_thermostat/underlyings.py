@@ -786,10 +786,22 @@ class UnderlyingClimate(UnderlyingEntity):
         if state is None:
             return None
 
+        # Issue 1779 - if no hvac_action is available use a fake hvac_action based on temperature
         hvac_action = state.attributes.get("hvac_action", None)
+        if not hvac_action:
+            hvac_action = self.hvac_action
 
         # The device is active if hvac_mode is not OFF/IDLE and hvac_action is not OFF/IDLE. hvac_action could be None because it is not always implemented by all climate entities
         return state.state != HVACMode.OFF and (hvac_action not in [HVACAction.IDLE, HVACAction.OFF])
+
+        # old code - if self.is_initialized:
+        # return self.hvac_mode != VThermHvacMode_OFF and self.hvac_action not in [
+        # HVACAction.IDLE,
+        # HVACAction.OFF,
+        # None,
+        # ]
+        # else:
+        # return None
 
     async def check_initial_state(self):
         """Prevent the underlying to be on but thermostat is off"""
