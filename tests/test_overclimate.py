@@ -1,13 +1,14 @@
 # pylint: disable=wildcard-import, unused-wildcard-import, protected-access, unused-argument, line-too-long, too-many-lines
 
 """ Test the over_climate Vtherm """
-from unittest.mock import patch, call
+from unittest.mock import patch, call, PropertyMock
 from datetime import datetime, timedelta
 
 import logging
+import pytest
 
 from homeassistant.core import HomeAssistant
-from homeassistant.components.climate import SERVICE_SET_TEMPERATURE, HVACMode
+from homeassistant.components.climate import SERVICE_SET_TEMPERATURE, HVACMode, HVACAction
 
 from homeassistant.components.switch import DOMAIN as SWITCH_DOMAIN
 
@@ -1182,3 +1183,122 @@ async def test_multi_climate(
             assert temp_sent == new_regulated_temp, f"Temperature sent ({temp_sent}) should be the new regulated temp ({new_regulated_temp})"
 
     entity.remove_thermostat()
+
+
+@pytest.mark.parametrize(
+    "under_state, hvac_mode, hvac_action, target_temp, current_temp, expected_result, description",
+    [
+        # fmt: off
+        #
+        # With full state (hvac_mode and hvac_action)
+        # Case 0: state.state == HVACMode.OFF
+        (State("climate.entityid", HVACMode.OFF, attributes={ "hvac_action": HVACAction.OFF }), None, None, None, None, False, "hvac_mode OFF with hvac_action OFF"),
+
+        # Case 1: state.state == HVACMode.HEAT and hvac_action == HVACAction.HEATING
+        (State("climate.entityid", HVACMode.HEAT, attributes={ "hvac_action": HVACAction.HEATING }), None, None, None, None, True, "hvac_mode HEAT with hvac_action HEATING"),
+
+        # Case 2: state.state == HVACMode.HEAT and hvac_action == HVACAction.IDLE
+        (State("climate.entityid", HVACMode.HEAT, attributes={ "hvac_action": HVACAction.IDLE }), None, None, None, None, False, "hvac_mode HEAT with hvac_action IDLE"),
+
+        # Case 3: state.state == HVACMode.HEAT and hvac_action == HVACAction.OFF
+        (State("climate.entityid", HVACMode.HEAT, attributes={ "hvac_action": HVACAction.OFF }), None, None, None, None, False, "hvac_mode HEAT with hvac_action OFF"),
+
+        # Case 4: state.state == HVACMode.COOL and hvac_action == HVACAction.COOLING
+        (State("climate.entityid", HVACMode.COOL, attributes={ "hvac_action": HVACAction.COOLING }), None, None, None, None, True, "hvac_mode COOL with hvac_action COOLING"),
+
+        # Case 5: state.state == HVACMode.COOL and hvac_action == HVACAction.IDLE
+        (State("climate.entityid", HVACMode.COOL, attributes={ "hvac_action": HVACAction.IDLE }), None, None, None, None, False, "hvac_mode COOL with hvac_action IDLE"),
+
+        # Case 6: state.state == HVACMode.COOL and hvac_action == HVACAction.OFF
+        (State("climate.entityid", HVACMode.COOL, attributes={ "hvac_action": HVACAction.OFF }), None, None, None, None, False, "hvac_mode COOL with hvac_action OFF"),
+
+        #
+        # With hvac_mode but with no hvac_action
+        # Case 7: state.state == HVACMode.OFF
+        (State("climate.entityid", HVACMode.OFF, attributes={ }), None, HVACAction.OFF, None, None, False, "no hvac_action - hvac_mode OFF with hvac_action OFF"),
+
+        # Case 8: state.state == HVACMode.HEAT and hvac_action == HVACAction.HEATING
+        (State("climate.entityid", HVACMode.HEAT, attributes={ }), None, HVACAction.HEATING, None, None, True, "no hvac_action - hvac_mode HEAT with hvac_action HEATING"),
+
+        # Case 9: state.state == HVACMode.HEAT and hvac_action == HVACAction.IDLE
+        (State("climate.entityid", HVACMode.HEAT, attributes={ }), None, HVACAction.IDLE, None, None, False, "no hvac_action - hvac_mode HEAT with hvac_action IDLE"),
+
+        # Case 10: state.state == HVACMode.HEAT and hvac_action == HVACAction.OFF
+        (State("climate.entityid", HVACMode.HEAT, attributes={ }), None, HVACAction.OFF, None, None, False, "no hvac_action - hvac_mode HEAT with hvac_action OFF"),
+
+        # Case 11: state.state == HVACMode.COOL and hvac_action == HVACAction.COOLING
+        (State("climate.entityid", HVACMode.COOL, attributes={ }), None, HVACAction.COOLING, None, None, True, "no hvac_action - hvac_mode COOL with hvac_action COOLING"),
+
+        # Case 12: state.state == HVACMode.COOL and hvac_action == HVACAction.IDLE
+        (State("climate.entityid", HVACMode.COOL, attributes={ }), None, HVACAction.IDLE, None, None, False, "no hvac_action - hvac_mode COOL with hvac_action IDLE"),
+
+        # Case 13: state.state == HVACMode.COOL and hvac_action == HVACAction.OFF
+        (State("climate.entityid", HVACMode.COOL, attributes={ }), None, HVACAction.OFF, None, None, False, "no hvac_action - hvac_mode COOL with hvac_action OFF"),
+
+        #
+        # With hvac_mode but with no hvac_action and only temperature
+        # Case 14: state.state == HVACMode.OFF
+        (State("climate.entityid", HVACMode.OFF, attributes={ }), None, None, None, None, False, "no hvac_action - hvac_mode OFF with hvac_action OFF"),
+
+        # Case 15: state.state == HVACMode.HEAT and hvac_action == HVACAction.HEATING
+        (State("climate.entityid", HVACMode.HEAT, attributes={ }), None, None, 18, 17, True, "no hvac_action - hvac_mode HEAT with hvac_action HEATING"),
+
+        # Case 16: state.state == HVACMode.HEAT and hvac_action == HVACAction.IDLE
+        (State("climate.entityid", HVACMode.HEAT, attributes={ }), None, None, 18, 18, False, "no hvac_action - hvac_mode HEAT with hvac_action IDLE"),
+
+        # Case 17: state.state == HVACMode.HEAT and hvac_action == HVACAction.OFF
+        (State("climate.entityid", HVACMode.HEAT, attributes={ }), None, None, 18, 19, False, "no hvac_action - hvac_mode HEAT with hvac_action OFF"),
+
+        # Case 18: state.state == HVACMode.COOL and hvac_action == HVACAction.COOLING
+        (State("climate.entityid", HVACMode.COOL, attributes={ }), None, None, 17, 18, True, "no hvac_action - hvac_mode COOL with hvac_action COOLING"),
+
+        # Case 19: state.state == HVACMode.COOL and hvac_action == HVACAction.IDLE
+        (State("climate.entityid", HVACMode.COOL, attributes={ }), None, None, 17, 17, False, "no hvac_action - hvac_mode COOL with hvac_action IDLE"),
+
+        # Case 20: state.state == HVACMode.COOL and hvac_action == HVACAction.OFF
+        (State("climate.entityid", HVACMode.COOL, attributes={ }), None, None, 18, 17, False, "no hvac_action - hvac_mode COOL with hvac_action OFF"),
+        # fmt: on
+    ],
+)
+async def test_under_climate_is_device_active(
+    hass: HomeAssistant,
+    under_state,
+    hvac_mode,
+    hvac_action,
+    target_temp,
+    current_temp,
+    expected_result,
+    description,
+):
+    """Test UnderlyingClimate.is_device_active with different states and hvac configurations"""
+
+    vtherm = await create_and_register_mock_climate(
+        hass,
+        "mock_climate",
+        "MockClimateName",
+        {},
+        hvac_mode=hvac_mode,
+        hvac_action=hvac_action if hvac_action is not None else HVACAction.OFF,  # Default to OFF if None
+    )
+
+    # Set target and current temperatures
+    vtherm.set_temperature(temperature=target_temp)
+    vtherm.set_current_temperature(current_temp)
+
+    under = UnderlyingClimate(hass, vtherm, vtherm.entity_id)
+
+    under.state_manager.get_state = MagicMock(return_value=under_state)
+    type(under).is_initialized = PropertyMock(return_value=True)
+    type(under).underlying_target_temperature = PropertyMock(return_value=target_temp)
+    type(under).underlying_current_temperature = PropertyMock(return_value=current_temp)
+    type(under).underlying_hvac_action = PropertyMock(return_value=hvac_action)
+
+    # Test the is_device_active property with the given configuration
+    result = under.is_device_active
+
+    assert result == expected_result, (
+        f"{description}: Expected is_device_active={expected_result}, "
+        f"but got {result}. "
+        f"hvac_mode={hvac_mode}, hvac_action={hvac_action}, "
+        f"state={under_state}, target_temp={target_temp}, current_temp={current_temp}"
+    )
