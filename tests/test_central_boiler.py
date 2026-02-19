@@ -154,7 +154,7 @@ async def test_update_central_boiler_state_simple(
     await hass.async_block_till_done()
 
     assert api.central_boiler_manager.nb_active_device_for_boiler_threshold == 1
-    assert api.central_boiler_manager.nb_active_device_for_boiler == 0
+    await wait_for_local_condition(lambda: api.central_boiler_manager.nb_active_device_for_boiler == 0)
 
     assert api.central_boiler_manager.total_power_active_for_boiler_threshold == 1000
     assert api.central_boiler_manager.total_power_active_for_boiler == 0

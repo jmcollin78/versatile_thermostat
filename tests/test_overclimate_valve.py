@@ -164,7 +164,7 @@ async def test_over_climate_valve_mono(hass: HomeAssistant, fake_temp_sensor, fa
         assert vtherm.valve_open_percent == 40 # 0.3*1 + 0.1*1
 
 
-        assert fake_underlying_climate.target_temperature == 19
+        await wait_for_local_condition(lambda: fake_underlying_climate.target_temperature == 19)
         assert fake_opening_degree.native_value == 40
         assert fake_closing_degree.native_value == 60
 
