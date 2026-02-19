@@ -237,6 +237,13 @@ class CycleScheduler:
                 await under.turn_on()
                 under._should_be_on = True
             else:
+                # This underlying's ON phase starts later.
+                # If it is currently ON (e.g. from a previous 100%-power cycle),
+                # turn it off immediately so the new staggered offset takes effect.
+                if under.is_device_active:
+                    _LOGGER.info("%s - turning off (waiting for offset %ds)", under, start)
+                    await under.turn_off()
+                    under._should_be_on = False
                 self._schedule(start, self._make_turn_on(under, on_time_sec))
 
             # Schedule turn OFF

@@ -788,6 +788,8 @@ async def test_multiple_switch_power_management(hass: HomeAssistant, fake_temp_s
             assert (
                 mock_heater_on.call_count == 1
             )
-            assert mock_heater_off.call_count == 0
+            # The 3 other heaters should be turned off because they have a non-zero offset
+            # and were previously ON (from the 100% power cycle at step 1)
+            assert mock_heater_off.call_count == 3
 
     entity.remove_thermostat()
