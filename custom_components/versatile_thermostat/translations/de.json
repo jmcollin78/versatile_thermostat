@@ -50,8 +50,7 @@
           "lock_automations": "Sperre verhindert Befehle von Automatisierungen und Integrationen (z.B. Planer)"
         },
         "data_description": {
-          "use_lock_central_config": "Aktivieren für zentrale Sperrkonfiguration. Deaktivieren für sperrspezifische Konfiguration dieses VTherm",
-          "lock_code": "Der PIN-Code zum Entsperren des Thermostats (4 Ziffern)" 
+          "use_lock_central_config": "Aktivieren für zentrale Sperrkonfiguration. Deaktivieren für sperrspezifische Konfiguration dieses VTherm"
         }
       },
       "main": {
@@ -427,8 +426,7 @@
           "lock_automations": "Sperre verhindert Befehle von Automatisierungen und Integrationen (z.B. Planer)"
         },
         "data_description": {
-          "use_lock_central_config": "Aktivieren für zentrale Sperrkonfiguration. Deaktivieren für spezifische Sperrkonfiguration dieses VTherm",
-          "lock_code": "Der PIN-Code zum Entsperren des Thermostats (4 Ziffern)"
+          "use_lock_central_config": "Aktivieren für zentrale Sperrkonfiguration. Deaktivieren für spezifische Sperrkonfiguration dieses VTherm"
         }
       },
       "main": {
@@ -667,7 +665,19 @@
           "max_closing_degree": "Maximale Schließung. Das Ventil wird niemals über diesen Wert hinaus geschlossen. Bei einem Wert von 100, schliesst das Ventil vollständig."
         }
       },
-      "auto_tpi_configuration": {
+      "sync_device_internal_temp": {
+        "title": "Synchronisierung der internen Temperatur der zugeordneten Geräte",
+        "description": "Konfiguration der Synchronisierung der internen Temperaturen der zugeordneten Geräte",
+        "data": {
+          "sync_with_calibration": "Anwendung einer Kalibrierung",
+          "sync_entity_ids": "Für die Synchronisierung verwendete Entity-IDs"
+        },
+        "data_description": {
+          "sync_with_calibration": "Ist die Option aktiviert, wird die Offset-Kalibrierung bei der Synchronisierung der Innentemperatur angewendet. Deaktivieren, um die Temperatur direkt in die ausgewählten Elemente zu kopieren.",
+          "sync_entity_ids": "Entitie-Liste, die zur Synchronisierung der internen Temperatur der zugeordneten Geräte verwendet werden. Es muss eine pro zugeordnetem Gerät vorhanden sein. Wenn es aktiviert ist, muss eine Kalibrierungsentität vorhanden sein, ansonsten eine Temperaturentity. Beides sind Entities vom Typ `number`."
+        }
+      },
+       "auto_tpi_configuration": {
         "title": "Auto TPI - Konfiguration - {name}",
         "description": "Allgemeine Parameter für das Auto-TPI-Lernen.",
         "data": {
@@ -707,18 +717,6 @@
         "data_description": {
           "auto_tpi_ema_alpha": "Glättungsfaktor (0-1). Höher = schnellere Anpassung",
           "auto_tpi_ema_decay_rate": "Rate, mit der Alpha im Laufe der Zeit abnimmt (Stabilisierung)"
-        }
-      },
-      "sync_device_internal_temp": {
-        "title": "Synchronisierung der internen Temperatur der zugeordneten Geräte",
-        "description": "Konfiguration der Synchronisierung der internen Temperaturen der zugeordneten Geräte",
-        "data": {
-          "sync_with_calibration": "Anwendung einer Kalibrierung",
-          "sync_entity_ids": "Für die Synchronisierung verwendete Entity-IDs"
-        },
-        "data_description": {
-          "sync_with_calibration": "Ist die Option aktiviert, wird die Offset-Kalibrierung bei der Synchronisierung der Innentemperatur angewendet. Deaktivieren, um die Temperatur direkt in die ausgewählten Elemente zu kopieren.",
-          "sync_entity_ids": "Entitie-Liste, die zur Synchronisierung der internen Temperatur der zugeordneten Geräte verwendet werden. Es muss eine pro zugeordnetem Gerät vorhanden sein. Wenn es aktiviert ist, muss eine Kalibrierungsentität vorhanden sein, ansonsten eine Temperaturentity. Beides sind Entities vom Typ `number`."
         }
       },
       "heating_failure_detection": {
