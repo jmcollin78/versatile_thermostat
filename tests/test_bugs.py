@@ -893,7 +893,7 @@ async def test_bug_1777(mock_call_later, hass):
     under.turn_off.reset_mock()
     mock_call_later.reset_mock()
 
-    with patch.object(type(under), "is_device_active", new_callable=PropertyMock, return_value=True):
+    with patch.object(under, "is_device_active", new_callable=PropertyMock, return_value=True):
         await scheduler._on_master_cycle_end(None)
 
     assert under._should_be_on is True
@@ -930,8 +930,8 @@ async def test_bug_1777(mock_call_later, hass):
     under.turn_on.reset_mock()
     under.turn_off.reset_mock()
     mock_call_later.reset_mock()
-    with patch.object(type(under), "is_device_active", new_callable=PropertyMock, return_value=True):
-await scheduler._on_master_cycle_end(None)
+    with patch.object(under, "is_device_active", new_callable=PropertyMock, return_value=True):
+        await scheduler._on_master_cycle_end(None)
 
     assert under._should_be_on is False      # device should be off
     assert under._on_time_sec == 0
