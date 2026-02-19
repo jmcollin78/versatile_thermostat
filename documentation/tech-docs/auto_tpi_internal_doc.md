@@ -323,6 +323,25 @@ L'apprentissage extérieur est tenté si l'apprentissage Indoor n'a pas abouti.
 6.  **Ajustement Rétroactif de Capacité** :
     *   Si `Kext` est modifié, la capacité thermique (`max_capacity`) est ajustée pour refléter le changement d'estimation des pertes : `New_Capacity = Old_Capacity + (New_Kext - Old_Kext) * DeltaT`.
 
+### E. Apprentissage Continu du Kext (`_learn_kext_continuous`)
+
+Ce mécanisme permet d'ajuster $K_{ext}$ en dehors des sessions d'apprentissage Auto TPI.
+
+**Déclenchement** : Appelé dans `on_cycle_completed` si `learning_active` est `False` mais que `_continuous_kext` est `True`.
+
+**Conditions (`_should_learn_continuous_kext`)** :
+*   **Feature activée** : `_continuous_kext` à `True`.
+*   **Bootstrap OK** : `coeff_outdoor_autolearn > 0` (pour le mode concerné).
+*   **Puissance valide** : Non saturée ($0 < power < saturation\_threshold$).
+*   **Pas d'interruptions** : Ni délestage, ni chaudière OFF, ni panne, ni échecs excessifs.
+*   **Pas de changement de consigne** : L'écart entre `_current_target_temp` et `last_order` doit être $\le 0.1$.
+*   **Delta extérieur** : $|Consigne - T_{ext}| \ge 1.0$.
+
+**Algorithme** :
+*   Utilise la même logique de calcul de `Target_Outdoor` que l'apprentissage standard.
+*   Applique un lissage **EMA pur** avec l'alpha configuré (`_continuous_kext_alpha`, défaut 0.04).
+*   Met à jour `coeff_outdoor_heat` ou `coeff_outdoor_cool` dans le `state`.
+
 #### 6. Cas d'Échec
 Si aucune des priorités n'est déclenchée, le statut `no_valid_conditions` est enregistré.
 
@@ -481,7 +500,9 @@ Pour alléger l'interface, plusieurs options techniques ont été retirées de l
 *   `auto_tpi_enable_update_config` : **True** (La configuration est toujours mise à jour avec les valeurs apprises).
 *   `auto_tpi_enable_notification` : **True** (Les notifications de fin d'apprentissage sont toujours envoyées).
 *   `auto_tpi_keep_ext_learning` : **True** (L'apprentissage externe continue tant que l'interne n'est pas stable).
-*   `auto_tpi_continuous_learning` : **False** (L'apprentissage s'arrête une fois stable par défaut).
+*   `auto_tpi_continuous_kext` : **False** (Permet l'adaptation continue du Kext hors session).
+*   `auto_tpi_continuous_kext_alpha` : **0.04** (Vitesse d'adaptation de l'apprentissage continu).
+*   `auto_tpi_learning_type` : **Discovery** par défaut.
 
 ### C. Impact sur le Code
 *   **`config_flow.py`** : Implémente la logique de branchement direct (Général -> Méthode) et l'application des valeurs par défaut.

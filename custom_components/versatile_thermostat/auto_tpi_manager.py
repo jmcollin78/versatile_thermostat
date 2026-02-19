@@ -31,6 +31,7 @@ from .const import (
     CONF_AUTO_TPI_COOLING_POWER,
 )
 from .cycle_manager import CycleManager
+from .vtherm_api import VersatileThermostatAPI
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -176,6 +177,8 @@ class AutoTpiManager(CycleManager):
         ema_alpha: float = 0.15,
         ema_decay_rate: float = 0.08,
         aggressiveness: float = 0.9,
+        continuous_kext: bool = False,
+        continuous_kext_alpha: float = 0.04,
     ):
         super().__init__(hass, name, cycle_min, minimal_deactivation_delay)
         self._config_entry = config_entry
@@ -190,6 +193,9 @@ class AutoTpiManager(CycleManager):
         self._minimal_deactivation_delay_sec = minimal_deactivation_delay
         self._heater_heating_time = heater_heating_time
         self._heater_cooling_time = heater_cooling_time
+
+        self._continuous_kext = continuous_kext
+        self._continuous_kext_alpha = continuous_kext_alpha
 
         self._temp_unit = self._hass.config.units.temperature_unit
         self._unit_factor = 1.8 if self._temp_unit == UnitOfTemperature.FAHRENHEIT else 1.0
@@ -247,6 +253,20 @@ class AutoTpiManager(CycleManager):
         # 1. Remove internal debugging attributes
         if "recent_errors" in data:
             del data["recent_errors"]
+
+        # 2. Filter counters if learning session is NOT active (Continuous Kext only)
+        if not self.state.autolearn_enabled:
+            # If main learning is off, hide indoor counters as they are not updated/relevant in continuous mode
+            # (Continuous mode only updates Kext/Outdoor)
+            keys_to_hide = [
+                "coeff_indoor_autolearn", 
+                "coeff_indoor_cool_autolearn",
+                "learning_start_date",
+                "last_learning_status"
+            ]
+            for k in keys_to_hide:
+                if k in data:
+                    del data[k]
 
         # 2. Filter based on Mode
         is_cool_mode = self._current_hvac_mode == "cool"
@@ -321,18 +341,30 @@ class AutoTpiManager(CycleManager):
             _LOGGER.debug("%s - Auto TPI: update_learning_data - no updates to apply", self._name)
             return
 
-        # 5. Apply atomic config update (Triggers Reload)
-        new_data = {**self._config_entry.data, **updates}
-        self._hass.config_entries.async_update_entry(self._config_entry, data=new_data)
+        # 5. Apply atomic config update (no reload: flag prevents update_listener from reloading)
+        api = VersatileThermostatAPI.get_vtherm_api(self._hass)
+        if api:
+            api.skip_reload_on_config_update = True
+        try:
+            new_data = {**self._config_entry.data, **updates}
+            self._hass.config_entries.async_update_entry(self._config_entry, data=new_data)
+        finally:
+            if api:
+                api.skip_reload_on_config_update = False
 
-        
         _LOGGER.info(
-            "%s - Auto TPI: ATOMIC UPDATE: Kint=%s, Kext=%s, Capacity=%s", 
-            self._name, 
+            "%s - Auto TPI: ATOMIC UPDATE: Kint=%s, Kext=%s, Capacity=%s",
+            self._name,
             f"{coef_int:.3f}" if coef_int is not None else "N/A",
-            f"{coef_ext:.3f}" if coef_ext is not None else "N/A", 
+            f"{coef_ext:.3f}" if coef_ext is not None else "N/A",
             f"{capacity:.3f}" if capacity is not None else "N/A"
         )
+
+    async def async_sync_config_at_startup(self):
+        """No-op: the config entry is now updated immediately after each learning cycle."""
+        # Continuous Kext is saved to the config entry by _learn_kext_continuous on
+        # every cycle where Kext changes. No startup sync is needed.
+        return
 
 
 
@@ -720,7 +752,10 @@ class AutoTpiManager(CycleManager):
 
     def _should_learn(self) -> bool:
         """Check if learning should be performed."""
-        if not self.state.autolearn_enabled:
+        # We learn if:
+        # 1. Main learning session is active (autolearn_enabled)
+        # 2. OR Continuous Kext is enabled (we will filter Kint vs Kext inside _perform_learning)
+        if not self.state.autolearn_enabled and not self._continuous_kext:
             return False
 
         # Power conditions: 0 < last_power < saturation_threshold
@@ -781,7 +816,7 @@ class AutoTpiManager(CycleManager):
 
     def _get_no_learn_reason(self) -> str:
         """Get reason why learning is not happening."""
-        if not self.state.autolearn_enabled:
+        if not self.state.autolearn_enabled and not self._continuous_kext:
             return "learning_disabled"
 
         saturation_threshold = self.saturation_threshold  # pylint: disable=no-member
@@ -905,8 +940,9 @@ class AutoTpiManager(CycleManager):
         # - Significant temperature progress (> 0.05°C)
         # - Significant gap to cover (> 0.1°C)
         # - Power not saturated (0 < power < 0.99)
+        # - Main Learning Session MUST be active (we don't learn Kint in continuous mode)
 
-        if 0 < self.state.last_power < 0.99:
+        if self.state.autolearn_enabled and 0 < self.state.last_power < 0.99:
             temp_progress_threshold = 0.05
             target_diff_threshold = 0.01
             if temp_progress > temp_progress_threshold and target_diff > target_diff_threshold:
@@ -1378,8 +1414,8 @@ class AutoTpiManager(CycleManager):
 
     def _should_learn_capacity(self) -> bool:
         """Check if capacity learning should occur this cycle."""
-        if not self.learning_active:
-             _LOGGER.debug("%s - Not learning capacity: learning is disabled", self._name)
+        if not self.learning_active and not self._continuous_kext:
+             _LOGGER.debug("%s - Not learning capacity: learning and continuous kext are disabled", self._name)
              return False
         
         # Determine if we are in bootstrap
@@ -2628,6 +2664,125 @@ class AutoTpiManager(CycleManager):
 
         await self.async_save_data()
 
+    def _should_learn_continuous_kext(self) -> bool:
+        """Check if we should proceed with continuous Kext learning."""
+        if not self._continuous_kext:
+            return False
+
+        # Must be bootstrapped (at least 1 outdoor sample)
+        # We check both modes as we don't know the future mode yet,
+        # but technically we should check the count for the CURRENT mode in _learn_kext_continuous.
+        # Here we just check if it's generally possible (any learning done).
+        # However, to be strict, we can defer the check to _learn_kext_continuous.
+        if self.state.coeff_outdoor_autolearn == 0 and self.state.coeff_outdoor_cool_autolearn == 0:
+            return False
+
+        # Standard exclusions adapted from _should_learn
+        saturation_threshold = self.saturation_threshold
+        if not (0 < self.state.last_power < saturation_threshold):
+            return False
+
+        if self._current_cycle_interrupted:
+            return False
+
+        if self._central_boiler_off:
+            return False
+
+        if self._current_is_heating_failure:
+            return False
+
+        if self.state.consecutive_failures >= 3:
+            return False
+
+        if self.state.previous_state == "stop":
+            return False
+
+        if self.state.last_order == 0:
+            return False
+
+        # Significant outdoor delta (> 1.0)
+        delta_out = self.state.last_order - self._current_temp_out
+        if abs(delta_out) < 1.0:
+            return False
+
+        return True
+
+    async def _learn_kext_continuous(self, current_temp_in: float, current_temp_out: float):
+        """Perform continuous Kext learning."""
+        if not self._should_learn_continuous_kext():
+            return
+
+        is_heat = self.state.last_state == "heat"
+        is_cool = self.state.last_state == "cool"
+
+        if not (is_heat or is_cool):
+            return
+
+        # Check bootstrap for specific mode
+        count = self.state.coeff_outdoor_autolearn if is_heat else self.state.coeff_outdoor_cool_autolearn
+        if count == 0:
+            _LOGGER.debug("%s - Continuous Kext: Not bootstrapped for %s mode", self._name, "heat" if is_heat else "cool")
+            self.state.last_learning_status = "continuous_kext_not_bootstrapped"
+            return
+
+        # Check setpoint change
+        if abs(self._current_target_temp - self.state.last_order) > 0.1:
+            _LOGGER.debug("%s - Continuous Kext: Setpoint changed", self._name)
+            self.state.last_learning_status = "continuous_kext_setpoint_changed"
+            return
+
+        target_temp = self.state.last_order
+        gap_in = target_temp - current_temp_in
+        gap_out = target_temp - current_temp_out
+
+        # Avoid division by zero or small deltas
+        if abs(gap_out) < 1.0:
+             # Already checked in _should_learn but good to be safe
+             return
+
+        current_indoor = self.state.coeff_indoor_heat if is_heat else self.state.coeff_indoor_cool
+        current_outdoor = self.state.coeff_outdoor_heat if is_heat else self.state.coeff_outdoor_cool
+
+        # Formula: correction = Kint * (Gap_In / Gap_Out)
+        correction = current_indoor * (gap_in / gap_out)
+        target_outdoor = current_outdoor + correction
+
+        # Validations
+        if not math.isfinite(target_outdoor) or target_outdoor <= 0:
+             _LOGGER.warning("%s - Continuous Kext: Invalid target Kext %.4f", self._name, target_outdoor)
+             self.state.last_learning_status = "continuous_kext_invalid"
+             return
+
+        MAX_KEXT = 1.2
+        if target_outdoor > MAX_KEXT:
+             target_outdoor = MAX_KEXT
+
+        # EMA
+        alpha = self._continuous_kext_alpha
+        new_kext = (current_outdoor * (1.0 - alpha)) + (target_outdoor * alpha)
+
+        # Update state in memory
+        if is_heat:
+             self.state.coeff_outdoor_heat = new_kext
+        else:
+             self.state.coeff_outdoor_cool = new_kext
+
+        self.state.last_learning_status = f"continuous_kext_learned_{'cool' if is_cool else 'heat'}"
+        self._learning_just_completed = True
+
+        _LOGGER.info(
+            "%s - Continuous Kext Learning (%s): Old=%.4f, Target=%.4f, New=%.4f (Alpha=%.3f, GapIn=%.2f, GapOut=%.2f)",
+            self._name, "heat" if is_heat else "cool", current_outdoor, target_outdoor, new_kext, alpha, gap_in, gap_out
+        )
+
+        # Persist immediately to config entry if Kext changed significantly (threshold: 0.001).
+        # This avoids having to rely on a startup sync, and keeps the config entry up to date.
+        if abs(new_kext - current_outdoor) > 0.001:
+            await self.async_update_learning_data(
+                coef_ext=new_kext,
+                is_heat_mode=is_heat
+            )
+
     async def on_cycle_completed(self, new_params: dict, prev_params: dict | None) -> bool:
         """Called when a TPI cycle completes."""
         # Validation logic (moved from old _tick)
@@ -2768,6 +2923,9 @@ class AutoTpiManager(CycleManager):
         elif self._should_learn() and is_significant_cycle:
             _LOGGER.info("%s - Auto TPI: Attempting to learn Kint/Kext from cycle data", self._name)
             await self._perform_learning(self._current_temp_in, self._current_temp_out)
+        elif self._continuous_kext and is_significant_cycle and self._should_learn_continuous_kext():
+            _LOGGER.info("%s - Continuous Kext: Learning active...", self._name)
+            await self._learn_kext_continuous(self._current_temp_in, self._current_temp_out)
         else:
             reason = self._get_no_learn_reason()
             if not is_significant_cycle and reason == "unknown":

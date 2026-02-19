@@ -138,6 +138,22 @@ These factors distort the system's perception of your room's insulation.
 1.  **Stability**: Keep your usual heating habits while simply avoiding exceptional disturbances (windows open for long periods, auxiliary heating).
 2.  **Observation**: Let the system observe micro-variations and adjust coefficients over 50 cycles.
 3.  **Re-evaluation**: If you notice coefficients drifting significantly or comfort degrading, it's better to restart a complete session in **Discovery** mode.
+
+---
+
+## 🔄 Continuous Kext Learning
+
+While standard Auto TPI sessions are designed for punctual learning (initial discovery or fine-tuning), the **Continuous Kext Learning** feature allows the thermostat to adapt to long-term climate changes and variations in building insulation without requiring manual sessions.
+
+### How it works
+Once enabled, the system continuously monitors the precision of the $K_{ext}$ (External Insulation) coefficient during normal operation. If it detects a systematic deviation (e.g., the temperature is always 0.2°C below the setpoint during cold snaps), it applies micro-corrections using an **Exponential Moving Average (EWMA)**.
+
+### Features
+- **Passive Adaptation**: Operates in the background as long as the thermostat is running.
+- **Safety**: Only active when the power is not saturated and the system is stable.
+- **Configurable Alpha**: You can adjust the "Alpha" factor (default 0.04) to control how fast the system adapts. A higher value means faster adaptation but more sensitivity to noise.
+- **Requires Bootstrap**: Continuous learning only starts after at least one successful outdoor learning cycle has been performed in a standard session.
+
 ---
 
 ## 📊 Visual Monitoring
