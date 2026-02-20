@@ -252,7 +252,7 @@ The non-disruptive update (when `force=False` and a real cycle is running) allow
 
 ---
 
-## 8. Callbacks
+## 8. Callbacks and Handler Integration
 
 ### 8.1 Registration
 
@@ -267,13 +267,14 @@ cycle_scheduler.register_cycle_end_callback(callback)
 async def callback(
     on_time_sec: float,
     off_time_sec: float,
-    on_percent: float,   # fraction 0.0–1.0
+    on_percent: float,   # realized fraction 0.0–1.0 (timing-constrained)
     hvac_mode: VThermHvacMode,
 ) -> None: ...
 ```
 
 Called once at the beginning of each master cycle (before any `turn_on`).
-Used by SmartPI for learning and power feedback computation.
+
+> **Note:** `on_percent` is the **realized** fraction after applying `min_activation_delay` / `min_deactivation_delay` constraints — not the raw value passed to `start_cycle()`. Use this value for power feedback (e.g. `update_realized_power()`), not the raw algorithm output.
 
 ### 8.3 Cycle end callback signature
 
@@ -282,6 +283,87 @@ async def callback() -> None: ...
 ```
 
 Called once at `_on_master_cycle_end`, before `incremente_energy()` and before the cycle restarts.
+
+### 8.4 Handler Integration via `on_scheduler_ready()`
+
+Instead of assigning `self._cycle_scheduler = CycleScheduler(...)` directly, thermostat subclasses call `_bind_scheduler()`:
+
+```python
+# In thermostat_switch.py / thermostat_valve.py / thermostat_climate_valve.py:
+self._bind_scheduler(CycleScheduler(
+    hass=self._hass,
+    thermostat=self,
+    underlyings=self._underlyings,
+    cycle_duration_sec=self._cycle_min * 60,
+    min_activation_delay=self.minimal_activation_delay,
+    min_deactivation_delay=self.minimal_deactivation_delay,
+))
+```
+
+`ThermostatProp._bind_scheduler()` stores the scheduler and notifies the active handler:
+
+```python
+def _bind_scheduler(self, scheduler) -> None:
+    self._cycle_scheduler = scheduler
+    if self._algo_handler and hasattr(self._algo_handler, "on_scheduler_ready"):
+        self._algo_handler.on_scheduler_ready(scheduler)
+```
+
+Each handler implements `on_scheduler_ready(scheduler)` to self-register callbacks:
+
+**TPI handler:**
+```python
+def on_scheduler_ready(self, scheduler) -> None:
+    if self._auto_tpi_manager:
+        scheduler.register_cycle_start_callback(self._auto_tpi_manager.on_cycle_started)
+        scheduler.register_cycle_end_callback(self._auto_tpi_manager.on_cycle_completed)
+```
+
+**SmartPI handler:**
+```python
+def on_scheduler_ready(self, scheduler) -> None:
+    algo = self._thermostat.prop_algorithm
+    if algo:
+        scheduler.register_cycle_start_callback(algo.on_cycle_started)
+        scheduler.register_cycle_end_callback(algo.on_cycle_completed)
+```
+
+Lifecycle:
+```
+ThermostatProp.post_init()
+  └─ _bind_scheduler(CycleScheduler(...))
+       ├─ self._cycle_scheduler = scheduler
+       └─ algo_handler.on_scheduler_ready(scheduler)
+            ├─ scheduler.register_cycle_start_callback(algo.on_cycle_started)
+            └─ scheduler.register_cycle_end_callback(algo.on_cycle_completed)
+```
+
+At each master cycle boundary:
+- `on_cycle_started(on_time_sec, off_time_sec, realized_on_percent, hvac_mode)` fires → algo stores params, updates power feedback
+- `on_cycle_completed()` fires → algo reads stored params, runs learning
+
+### 8.5 Removal of `CycleManager`
+
+`CycleManager` — a polling-based abstract class with `process_cycle(timestamp, data_provider, event_sender, force)` — has been deleted. Algorithm classes that previously inherited from it (`AutoTpiManager`, `SmartPI`) now:
+
+- Implement `on_cycle_started()` / `on_cycle_completed()` callbacks directly
+- Do not inherit from `CycleManager`
+- Are no longer driven by `process_cycle()` calls from handlers
+
+Handlers no longer contain a `_data_provider` / `process_cycle()` block in `control_heating()`.
+
+### 8.6 `update_realized_power()` — Heartbeat Requirement
+
+`AutoTpiManager.update_realized_power(realized_percent)` must be called **on every `control_heating()` invocation**, not only at cycle boundaries. This ensures `last_power` stays current when `max_on_percent` or other limiting factors change mid-cycle.
+
+The TPI handler calls this unconditionally:
+
+```python
+if self._auto_tpi_manager:
+    self._auto_tpi_manager.update_realized_power(realized_percent)
+```
+
+This call is independent of the `on_cycle_started` callback (which fires only at cycle boundaries via the scheduler timer).
 
 ---
 
@@ -314,24 +396,28 @@ Called once at `_on_master_cycle_end`, before `incremente_energy()` and before t
 
 ### 10.2 Deleted files
 
-| File             | Reason                                                                               |
-| ---------------- | ------------------------------------------------------------------------------------ |
-| `timing_utils.py`| `calculate_cycle_times()` moved to module level of `cycle_scheduler.py`             |
+| File               | Reason                                                                                      |
+| ------------------ | ------------------------------------------------------------------------------------------- |
+| `timing_utils.py`  | `calculate_cycle_times()` moved to module level of `cycle_scheduler.py`                     |
+| `cycle_manager.py` | Abstract polling-based cycle detection; replaced by timer callbacks in `CycleScheduler`     |
 
 ### 10.3 Modified files
 
-| File                        | Change                                                                                                                                                                                                                    |
-| --------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `thermostat_switch.py`      | Creates `CycleScheduler` in `post_init()` passing `min_activation_delay` and `min_deactivation_delay` from thermostat attributes (set by `init_algorithm()` earlier in the call chain)                                   |
-| `thermostat_valve.py`       | Same as above                                                                                                                                                                                                             |
-| `thermostat_climate_valve.py` | Same as above                                                                                                                                                                                                           |
-| `base_thermostat.py`        | `_cycle_scheduler = None` in `__init__`; `cycle_scheduler` property; `async_underlying_entity_turn_off()` calls `cancel_cycle()`; `register_cycle_callback()` routes to `cycle_scheduler.register_cycle_start_callback()` |
-| `prop_handler_tpi.py`       | Imports `calculate_cycle_times` from `cycle_scheduler`; calls `start_cycle(hvac_mode, on_percent, force)` — no longer pre-computes `on_time`/`off_time` or sets `t._on_time_sec`/`t._off_time_sec` directly              |
-| `prop_handler_smartpi.py`   | Same pattern as TPI handler                                                                                                                                                                                               |
+| File                          | Change                                                                                                                                                                                                                                  |
+| ----------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `thermostat_switch.py`        | Calls `_bind_scheduler(CycleScheduler(...))` in `post_init()` passing delay attributes (set by `init_algorithm()` earlier in the call chain)                                                                                           |
+| `thermostat_valve.py`         | Same as above                                                                                                                                                                                                                           |
+| `thermostat_climate_valve.py` | Same as above                                                                                                                                                                                                                           |
+| `thermostat_prop.py`          | Added `_bind_scheduler()` to store scheduler and notify handler via `on_scheduler_ready()`; removed `_on_prop_cycle_start()` (dead code)                                                                                                |
+| `base_thermostat.py`          | `_cycle_scheduler = None` in `__init__`; `cycle_scheduler` property; `async_underlying_entity_turn_off()` calls `cancel_cycle()`; removed `_fire_cycle_start_callbacks()` (dead code); removed unused `asyncio` import                 |
+| `prop_handler_tpi.py`         | Imports `calculate_cycle_times` from `cycle_scheduler`; calls `start_cycle(hvac_mode, on_percent, force)`; implements `on_scheduler_ready()` to register `AutoTpiManager` callbacks; calls `update_realized_power()` on every heartbeat |
+| `prop_handler_smartpi.py`     | Same pattern as TPI handler; implements `on_scheduler_ready()` to register `SmartPI` algo callbacks                                                                                                                                     |
+| `auto_tpi_manager.py`         | Removed `CycleManager` inheritance; implements `on_cycle_started()` / `on_cycle_completed()` callbacks; stores cycle params in `state.current_cycle_params`                                                                             |
+| `prop_algo_smartpi.py`        | Removed `CycleManager` inheritance; added `cycle_min` property; simplified `on_cycle_completed()`; added `reset_cycle_state()` method                                                                                                   |
 
 ### 10.4 Unaffected files
 
-- `prop_algo_tpi.py`, `prop_algo_smartpi.py` (pure algorithms)
+- `prop_algo_tpi.py` (pure TPI algorithm)
 - Config flow, services, feature managers
 
 ---
