@@ -84,14 +84,14 @@ class ThermostatOverValve(ThermostatProp[UnderlyingValve]):  # pylint: disable=a
                 UnderlyingValve(hass=self._hass, thermostat=self, valve_entity_id=valve)
             )
 
-        self._cycle_scheduler = CycleScheduler(
+        self._bind_scheduler(CycleScheduler(
             hass=self._hass,
             thermostat=self,
             underlyings=self._underlyings,
             cycle_duration_sec=self._cycle_min * 60,
             min_activation_delay=self.minimal_activation_delay,
             min_deactivation_delay=self.minimal_deactivation_delay,
-        )
+        ))
 
         self._should_relaunch_control_heating = False
 

@@ -4,7 +4,6 @@
 """ Implements the VersatileThermostat climate component """
 import math
 import logging
-import asyncio
 from typing import Optional
 from datetime import datetime, timedelta
 from functools import partial
@@ -462,22 +461,6 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
             # Register on the CycleScheduler if available
             if self._cycle_scheduler:
                 self._cycle_scheduler.register_cycle_start_callback(on_start)
-
-    async def _fire_cycle_start_callbacks(self, on_time_sec, off_time_sec, on_percent, hvac_mode):
-        """Fire cycle start callbacks."""
-        for callback in self._on_cycle_start_callbacks:
-            try:
-                if is_async := (
-                    asyncio.iscoroutinefunction(callback)
-                    or (hasattr(callback, "__call__") and asyncio.iscoroutinefunction(callback.__call__))
-                ):
-                    await callback(on_time_sec, off_time_sec, on_percent, hvac_mode)
-                else:
-                    await self.hass.async_add_executor_job(
-                        callback, on_time_sec, off_time_sec, on_percent, hvac_mode
-                    )
-            except Exception as ex:  # pylint: disable=broad-except
-                _LOGGER.error("%s - Error calling cycle start callback: %s", self, ex)
 
     def stop_recalculate_later(self):
         """Stop any scheduled call later tasks if any."""

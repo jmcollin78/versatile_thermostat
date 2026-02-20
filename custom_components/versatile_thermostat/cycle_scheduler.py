@@ -221,9 +221,12 @@ class CycleScheduler:
         self._current_off_time_sec = off_time_sec
         self._current_on_percent = on_percent
 
-        # Fire cycle start callbacks
+        # Compute realized on_percent after timing constraints (for learning callbacks)
+        realized_on_percent = on_time_sec / self._cycle_duration_sec if self._cycle_duration_sec > 0 else 0.0
+
+        # Fire cycle start callbacks with realized percent so learners see actual applied power
         await self._fire_cycle_start_callbacks(
-            on_time_sec, off_time_sec, on_percent, hvac_mode
+            on_time_sec, off_time_sec, realized_on_percent, hvac_mode
         )
 
         if self._is_valve_mode:
