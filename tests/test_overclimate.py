@@ -1288,13 +1288,15 @@ async def test_under_climate_is_device_active(
     under = UnderlyingClimate(hass, vtherm, vtherm.entity_id)
 
     under.state_manager.get_state = MagicMock(return_value=under_state)
-    type(under).is_initialized = PropertyMock(return_value=True)
-    type(under).underlying_target_temperature = PropertyMock(return_value=target_temp)
-    type(under).underlying_current_temperature = PropertyMock(return_value=current_temp)
-    type(under).underlying_hvac_action = PropertyMock(return_value=hvac_action)
 
-    # Test the is_device_active property with the given configuration
-    result = under.is_device_active
+    # Use patch.object to avoid permanently modifying the UnderlyingClimate class
+    with patch.object(type(under), "is_initialized", new_callable=PropertyMock, return_value=True), \
+         patch.object(type(under), "underlying_target_temperature", new_callable=PropertyMock, return_value=target_temp), \
+         patch.object(type(under), "underlying_current_temperature", new_callable=PropertyMock, return_value=current_temp), \
+         patch.object(type(under), "underlying_hvac_action", new_callable=PropertyMock, return_value=hvac_action):
+
+        # Test the is_device_active property with the given configuration
+        result = under.is_device_active
 
     assert result == expected_result, (
         f"{description}: Expected is_device_active={expected_result}, "

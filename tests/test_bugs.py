@@ -831,7 +831,7 @@ async def test_bug_1379(
     entity.remove_thermostat()
 
 
-async def test_big_1777(hass):
+async def test_bug_1777(hass):
     """Test that on over_switch VTherm the cycle is respected when on_percent goes from 0 to non 0 value"""
 
     fake_vtherm = MagicMock()
@@ -884,9 +884,9 @@ async def test_big_1777(hass):
     under.call_later.reset_mock()
     under._cancel_cycle.reset_mock()
 
-    type(under).is_device_active = PropertyMock(return_value=True)
+    with patch.object(type(under), "is_device_active", new_callable=PropertyMock, return_value=True):
+        await under._turn_on_later(None)
 
-    await under._turn_on_later(None)
     assert under._cancel_cycle.call_count == 1
     assert under._should_be_on is True  # Now we should be off
     assert under._on_time_sec == 80  # the last value
@@ -924,9 +924,8 @@ async def test_big_1777(hass):
     under.call_later.reset_mock()
     under._cancel_cycle.reset_mock()
 
-    type(under).is_device_active = PropertyMock(return_value=True)
-
-    await under._turn_on_later(None)
+    with patch.object(type(under), "is_device_active", new_callable=PropertyMock, return_value=True):
+        await under._turn_on_later(None)
     assert under._cancel_cycle.call_count == 1
     assert under._should_be_on is False  # Now we should be off
     assert under._on_time_sec == 0  # the last value
