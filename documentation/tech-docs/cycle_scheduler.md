@@ -52,8 +52,8 @@ BEFORE:
              (each underlying loops independently)
 
 AFTER:
-  Handler → cycle_scheduler.start_cycle(hvac_mode, on_time, off_time, on_percent, force)
-             (scheduler orchestrates all underlyings in one master cycle)
+  Handler → cycle_scheduler.start_cycle(hvac_mode, on_percent, force)
+             (scheduler computes timing internally and orchestrates all underlyings)
 ```
 
 ### 2.2 Architecture Diagram
@@ -71,14 +71,15 @@ AFTER:
 |  +--------+-----------+                  |
 |           |                               |
 |           v                               |
-|  +--------+-----------+                  |
-|  | CycleScheduler     |                  |
-|  |                    |                  |
-|  | start_cycle()      |                  |
-|  |   compute_offsets()|                  |
-|  |   schedule_actions()|                 |
-|  |                    |                  |
-|  +--+------+------+--+                  |
+|  +--------+---------------------------+  |
+|  | CycleScheduler                     |  |
+|  |                                    |  |
+|  | start_cycle(hvac_mode, on_percent) |  |
+|  |   calculate_cycle_times()          |  |
+|  |   compute_offsets()                |  |
+|  |   schedule_actions()               |  |
+|  |                                    |  |
+|  +--+------+------+------------------+  |
 |     |      |      |                      |
 |     v      v      v                      |
 |   R1.on  R2.on  R3.on                   |
@@ -111,9 +112,35 @@ Mode detection is automatic at construction time via `_detect_valve_mode()`, whi
 
 ---
 
-## 4. Offset Computation Algorithm
+## 4. `calculate_cycle_times()` — Timing Constraint Function
 
-### 4.1 Principle
+This module-level function (defined in `cycle_scheduler.py`) converts `on_percent` to `on_time_sec` / `off_time_sec` while enforcing equipment-protection constraints.
+
+```python
+def calculate_cycle_times(
+    on_percent: float,           # fraction 0.0–1.0
+    cycle_min: int,              # cycle duration in minutes
+    minimal_activation_delay: int = 0,    # minimum ON time (seconds)
+    minimal_deactivation_delay: int = 0,  # minimum OFF time (seconds)
+) -> tuple[int, int, bool]:
+    # returns (on_time_sec, off_time_sec, forced_by_timing)
+```
+
+**Constraint rules:**
+
+| Condition                              | Effect                                          |
+| -------------------------------------- | ----------------------------------------------- |
+| `0 < on_time < min_activation_delay`  | `on_time` forced to 0 (too short to be useful)  |
+| `off_time < min_deactivation_delay`   | `on_time` forced to `cycle_sec` (stays full ON) |
+| `forced_by_timing = True`             | Handlers use this to update `realized_power`    |
+
+This function is also called directly by handlers (TPI, SmartPI) to compute `realized_percent` for algorithm feedback — independently of the scheduler's internal computation.
+
+---
+
+## 5. Offset Computation Algorithm
+
+### 5.1 Principle
 
 For switch mode, the scheduler spreads ON start times evenly across the available window `[0, cycle_duration - on_time]`. This is the **uniform distribution** strategy.
 
@@ -128,7 +155,7 @@ Edge cases:
 - `on_time_sec <= 0`: returns `[0.0] * n` (nothing to schedule)
 - `on_time_sec >= cycle_duration_sec` (100% power): returns `[0.0] * n` (all start together)
 
-### 4.2 Examples — 2 heaters, 600s cycle
+### 5.2 Examples — 2 heaters, 600s cycle
 
 | on_percent | on_time | max_offset | step | Offsets  | ON periods             |
 | ---------- | ------- | ---------- | ---- | -------- | ---------------------- |
@@ -138,7 +165,7 @@ Edge cases:
 | 60%        | 360s    | 240s       | 240s | [0, 240] | R1: 0-360, R2: 240-600 |
 | 100%       | 600s    | 0s         | —    | [0, 0]   | R1: 0-600, R2: 0-600   |
 
-### 4.3 Examples — 3 heaters, 600s cycle
+### 5.3 Examples — 3 heaters, 600s cycle
 
 | on_percent | on_time | Offsets       | Max overlap   |
 | ---------- | ------- | ------------- | ------------- |
@@ -152,9 +179,9 @@ At high `on_percent`, some overlap is unavoidable. The uniform distribution mini
 
 ---
 
-## 5. Master Cycle Lifecycle
+## 6. Master Cycle Lifecycle
 
-### 5.1 Sequence Diagram
+### 6.1 Sequence Diagram
 
 ```
 t=0          t=offset[1]  t=offset[2]  t=off[1]     t=off[2]    t=cycle_end
@@ -176,7 +203,7 @@ t=0          t=offset[1]  t=offset[2]  t=off[1]     t=off[2]    t=cycle_end
 R1 (offset=0) is turned on immediately with `await under.turn_on()`.
 All others are scheduled via `async_call_later`.
 
-### 5.2 Timer count per cycle
+### 6.2 Timer count per cycle
 
 ```
 Total timers = 2 * N + 1
@@ -187,20 +214,25 @@ Total timers = 2 * N + 1
 
 For typical configurations (N = 2–4), this is 5–9 timers per cycle — negligible for Home Assistant.
 
-### 5.3 At `_on_master_cycle_end`
+### 6.3 At `_on_master_cycle_end`
 
 1. Turn off any underlying still ON (except when `on_time >= cycle_duration`)
 2. Fire all registered `_on_cycle_end_callbacks`
 3. Call `thermostat.incremente_energy()`
-4. Clear `_scheduled_actions`
-5. Call `start_cycle(..., force=True)` to restart with the same parameters
+4. Call `start_cycle(hvac_mode, on_percent, force=True)` — `cancel_cycle()` is called atomically inside
 
 ---
 
-## 6. `start_cycle()` Logic
+## 7. `start_cycle()` Logic
 
 ```
-start_cycle(hvac_mode, on_time, off_time, on_percent, force=False)
+start_cycle(hvac_mode, on_percent, force=False)
+│
+├── calculate_cycle_times(on_percent, cycle_min,
+│       min_activation_delay, min_deactivation_delay)
+│     → on_time_sec, off_time_sec
+│
+├── update thermostat._on_time_sec / _off_time_sec   ← always, even before early return
 │
 ├── if _scheduled_actions is non-empty AND force=False
 │   ├── if current on_time > 0  → update stored params, return (non-disruptive update)
@@ -214,26 +246,28 @@ start_cycle(hvac_mode, on_time, off_time, on_percent, force=False)
 └── if switch mode → _start_cycle_switch()
 ```
 
+**Key behavior:** `thermostat._on_time_sec` and `thermostat._off_time_sec` are updated **before** the early-return check. This ensures sensor display values always reflect the latest computed values, even when the running cycle is not interrupted — preserving backward compatibility with the previous handler-side assignment.
+
 The non-disruptive update (when `force=False` and a real cycle is running) allows the handler to submit new `on_percent` values without breaking the current cycle's timing. The new parameters take effect at the next auto-repeat.
 
 ---
 
-## 7. Callbacks
+## 8. Callbacks
 
-### 7.1 Registration
+### 8.1 Registration
 
 ```python
 cycle_scheduler.register_cycle_start_callback(callback)
 cycle_scheduler.register_cycle_end_callback(callback)
 ```
 
-### 7.2 Cycle start callback signature
+### 8.2 Cycle start callback signature
 
 ```python
 async def callback(
     on_time_sec: float,
     off_time_sec: float,
-    on_percent: float,
+    on_percent: float,   # fraction 0.0–1.0
     hvac_mode: VThermHvacMode,
 ) -> None: ...
 ```
@@ -241,7 +275,7 @@ async def callback(
 Called once at the beginning of each master cycle (before any `turn_on`).
 Used by SmartPI for learning and power feedback computation.
 
-### 7.3 Cycle end callback signature
+### 8.3 Cycle end callback signature
 
 ```python
 async def callback() -> None: ...
@@ -251,23 +285,23 @@ Called once at `_on_master_cycle_end`, before `incremente_energy()` and before t
 
 ---
 
-## 8. Special Cases
+## 9. Special Cases
 
-| Case                  | Behavior                                                                                                                                 |
-| --------------------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
-| `on_percent = 0`      | All underlyings turned off. Idle cycle scheduled for `cycle_duration_sec` (keeps master rhythm).                                         |
-| `on_percent = 100`    | All underlyings turned on at offset=0. No `turn_off` scheduled. All turned off at `_on_master_cycle_end` then immediately re-enabled.    |
-| Force restart         | `force=True` cancels all current timers via `cancel_cycle()` then restarts immediately.                                                  |
-| HVAC_MODE_OFF         | Handler calls `async_underlying_entity_turn_off()` which calls `cancel_cycle()` + `turn_off()` on each underlying.                       |
-| Single underlying     | `compute_offsets` returns `[0.0]`. Behavior identical to the previous implementation.                                                    |
-| Keep-alive            | Remains in `UnderlyingSwitch`. Reads `_should_be_on` (updated by the scheduler) to resend the current state periodically.                |
-| Pre-cycle constraints | `calculate_cycle_times()` in `timing_utils.py` clamps `on_time_sec`/`off_time_sec` before the scheduler receives them. No change needed. |
+| Case                      | Behavior                                                                                                                              |
+| ------------------------- | ------------------------------------------------------------------------------------------------------------------------------------- |
+| `on_percent = 0`          | All underlyings turned off. Idle cycle scheduled for `cycle_duration_sec` (keeps master rhythm).                                      |
+| `on_percent = 1.0` (100%) | All underlyings turned on at offset=0. No `turn_off` scheduled. All turned off at `_on_master_cycle_end` then immediately re-enabled. |
+| Force restart             | `force=True` cancels all current timers via `cancel_cycle()` then restarts immediately.                                               |
+| HVAC_MODE_OFF             | Handler sets `t._on_time_sec=0`, `t._off_time_sec=cycle_sec` directly, then calls `async_underlying_entity_turn_off()` (→ `cancel_cycle()` + `turn_off()`). `start_cycle()` is not called. |
+| Single underlying         | `compute_offsets` returns `[0.0]`. Behavior identical to the previous implementation.                                                 |
+| Keep-alive                | Remains in `UnderlyingSwitch`. Reads `_should_be_on` (updated by the scheduler) to resend the current state periodically.            |
+| Timing constraints        | `calculate_cycle_times()` is called **internally** by `start_cycle()`. Handlers also call it directly for `realized_percent` feedback only. |
 
 ---
 
-## 9. Impact on Existing Code
+## 10. Impact on Existing Code
 
-### 9.1 Removed from `underlyings.py`
+### 10.1 Removed from `underlyings.py`
 
 | Class                       | Removed                                                                                          |
 | --------------------------- | ------------------------------------------------------------------------------------------------ |
@@ -278,27 +312,52 @@ Called once at `_on_master_cycle_end`, before `incremente_energy()` and before t
 
 `UnderlyingSwitch` retains: `turn_on()`, `turn_off()`, `_should_be_on`, `_on_time_sec`, `_off_time_sec`, keep-alive logic.
 
-### 9.2 Modified files
+### 10.2 Deleted files
 
-| File                      | Change                                                                                                                                                                                                                    |
-| ------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `thermostat_switch.py`    | Creates `CycleScheduler` in `post_init()` after building underlyings list                                                                                                                                                 |
-| `thermostat_valve.py`     | Creates `CycleScheduler` in `post_init()` after building underlyings list                                                                                                                                                 |
-| `base_thermostat.py`      | `_cycle_scheduler = None` in `__init__`; `cycle_scheduler` property; `async_underlying_entity_turn_off()` calls `cancel_cycle()`; `register_cycle_callback()` routes to `cycle_scheduler.register_cycle_start_callback()` |
-| `prop_handler_tpi.py`     | Calls `t.cycle_scheduler.start_cycle(...)` directly                                                                                                                                                                       |
-| `prop_handler_smartpi.py` | Calls `t.cycle_scheduler.start_cycle(...)` directly                                                                                                                                                                       |
+| File             | Reason                                                                               |
+| ---------------- | ------------------------------------------------------------------------------------ |
+| `timing_utils.py`| `calculate_cycle_times()` moved to module level of `cycle_scheduler.py`             |
 
-### 9.3 Unaffected files
+### 10.3 Modified files
+
+| File                        | Change                                                                                                                                                                                                                    |
+| --------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `thermostat_switch.py`      | Creates `CycleScheduler` in `post_init()` passing `min_activation_delay` and `min_deactivation_delay` from thermostat attributes (set by `init_algorithm()` earlier in the call chain)                                   |
+| `thermostat_valve.py`       | Same as above                                                                                                                                                                                                             |
+| `thermostat_climate_valve.py` | Same as above                                                                                                                                                                                                           |
+| `base_thermostat.py`        | `_cycle_scheduler = None` in `__init__`; `cycle_scheduler` property; `async_underlying_entity_turn_off()` calls `cancel_cycle()`; `register_cycle_callback()` routes to `cycle_scheduler.register_cycle_start_callback()` |
+| `prop_handler_tpi.py`       | Imports `calculate_cycle_times` from `cycle_scheduler`; calls `start_cycle(hvac_mode, on_percent, force)` — no longer pre-computes `on_time`/`off_time` or sets `t._on_time_sec`/`t._off_time_sec` directly              |
+| `prop_handler_smartpi.py`   | Same pattern as TPI handler                                                                                                                                                                                               |
+
+### 10.4 Unaffected files
 
 - `prop_algo_tpi.py`, `prop_algo_smartpi.py` (pure algorithms)
 - Config flow, services, feature managers
-- `timing_utils.py`
 
 ---
 
-## 10. Properties
+## 11. Properties and Constructor
 
-| Property           | Type   | Description                               |
-| ------------------ | ------ | ----------------------------------------- |
-| `is_cycle_running` | `bool` | True if `_scheduled_actions` is non-empty |
-| `is_valve_mode`    | `bool` | True if managing valve underlyings        |
+### 11.1 Constructor
+
+```python
+CycleScheduler(
+    hass: HomeAssistant,
+    thermostat: Any,
+    underlyings: list,
+    cycle_duration_sec: float,
+    min_activation_delay: int = 0,    # minimum ON time in seconds
+    min_deactivation_delay: int = 0,  # minimum OFF time in seconds
+)
+```
+
+`min_activation_delay` and `min_deactivation_delay` are permanent attributes accessible as `scheduler.min_activation_delay` and `scheduler.min_deactivation_delay`. They are updated by service calls (e.g. `service_set_tpi_parameters`) when the user changes these values at runtime.
+
+### 11.2 Properties
+
+| Property               | Type   | Description                                  |
+| ---------------------- | ------ | -------------------------------------------- |
+| `is_cycle_running`     | `bool` | True if `_scheduled_actions` is non-empty    |
+| `is_valve_mode`        | `bool` | True if managing valve underlyings           |
+| `min_activation_delay` | `int`  | Minimum ON time in seconds (equipment guard) |
+| `min_deactivation_delay` | `int` | Minimum OFF time in seconds (equipment guard)|

@@ -52,16 +52,16 @@ AVANT :
              (chaque sous-jacent boucle indépendamment)
 
 APRÈS :
-  Handler → cycle_scheduler.start_cycle(hvac_mode, on_time, off_time, on_percent, force)
-             (le planificateur orchestre tous les sous-jacents dans un cycle maître unique)
+  Handler → cycle_scheduler.start_cycle(hvac_mode, on_percent, force)
+             (le planificateur calcule le timing en interne et orchestre tous les sous-jacents)
 ```
 
 ### 2.2 Diagramme d'Architecture
 
 ```
 +------------------------------------------+
-|            ThermostatProp                |
-|                                          |
+|            ThermostatProp                 |
+|                                           |
 |  +--------------------+                  |
 |  | AlgoHandler        |                  |
 |  | (TPI / SmartPI)    |                  |
@@ -69,21 +69,22 @@ APRÈS :
 |  | control_heating()  |                  |
 |  |   → on_percent     |                  |
 |  +--------+-----------+                  |
-|           |                              |
-|           v                              |
-|  +--------+-----------+                  |
-|  | CycleScheduler     |                  |
-|  |                    |                  |
-|  | start_cycle()      |                  |
-|  |   compute_offsets()|                  |
-|  |   schedule_actions()|                 |
-|  |                    |                  |
-|  +--+------+------+--+                   |
+|           |                               |
+|           v                               |
+|  +--------+---------------------------+  |
+|  | CycleScheduler                     |  |
+|  |                                    |  |
+|  | start_cycle(hvac_mode, on_percent) |  |
+|  |   calculate_cycle_times()          |  |
+|  |   compute_offsets()                |  |
+|  |   schedule_actions()               |  |
+|  |                                    |  |
+|  +--+------+------+------------------+  |
 |     |      |      |                      |
 |     v      v      v                      |
-|   R1.on  R2.on  R3.on                    |
+|   R1.on  R2.on  R3.on                   |
 |   R1.off R2.off R3.off                   |
-|                                          |
+|                                           |
 |  Sous-jacents (turn_on/turn_off uniq.)   |
 +------------------------------------------+
 ```
@@ -111,9 +112,35 @@ La détection du mode est automatique lors de la construction via `_detect_valve
 
 ---
 
-## 4. Algorithme de Calcul des Décalages
+## 4. `calculate_cycle_times()` — Fonction de Contraintes Temporelles
 
-### 4.1 Principe
+Cette fonction au niveau module (définie dans `cycle_scheduler.py`) convertit `on_percent` en `on_time_sec` / `off_time_sec` tout en appliquant les contraintes de protection du matériel.
+
+```python
+def calculate_cycle_times(
+    on_percent: float,           # fraction 0.0–1.0
+    cycle_min: int,              # durée du cycle en minutes
+    minimal_activation_delay: int = 0,    # durée minimale ON (secondes)
+    minimal_deactivation_delay: int = 0,  # durée minimale OFF (secondes)
+) -> tuple[int, int, bool]:
+    # retourne (on_time_sec, off_time_sec, forced_by_timing)
+```
+
+**Règles de contrainte :**
+
+| Condition                              | Effet                                                  |
+| -------------------------------------- | ------------------------------------------------------ |
+| `0 < on_time < min_activation_delay`  | `on_time` forcé à 0 (trop court pour être utile)       |
+| `off_time < min_deactivation_delay`   | `on_time` forcé à `cycle_sec` (reste en ON permanent)  |
+| `forced_by_timing = True`             | Les gestionnaires l'utilisent pour mettre à jour `realized_power` |
+
+Cette fonction est également appelée directement par les gestionnaires (TPI, SmartPI) pour calculer `realized_percent` en retour d'algorithme — indépendamment du calcul interne du planificateur.
+
+---
+
+## 5. Algorithme de Calcul des Décalages
+
+### 5.1 Principe
 
 Pour le mode switch, le planificateur répartit les heures de début d'allumage (ON) uniformément sur la fenêtre disponible `[0, cycle_duration - on_time]`. C'est la stratégie de **distribution uniforme**.
 
@@ -128,7 +155,7 @@ Cas particuliers :
 - `on_time_sec <= 0` : retourne `[0.0] * n` (rien à planifier)
 - `on_time_sec >= cycle_duration_sec` (puissance 100%) : retourne `[0.0] * n` (tous démarrent ensemble)
 
-### 4.2 Exemples — 2 radiateurs, cycle de 600s
+### 5.2 Exemples — 2 radiateurs, cycle de 600s
 
 | on_percent | on_time | max_offset | pas  | Offsets  | Périodes ON            |
 | ---------- | ------- | ---------- | ---- | -------- | ---------------------- |
@@ -138,7 +165,7 @@ Cas particuliers :
 | 60%        | 360s    | 240s       | 240s | [0, 240] | R1: 0-360, R2: 240-600 |
 | 100%       | 600s    | 0s         | —    | [0, 0]   | R1: 0-600, R2: 0-600   |
 
-### 4.3 Exemples — 3 radiateurs, cycle de 600s
+### 5.3 Exemples — 3 radiateurs, cycle de 600s
 
 | on_percent | on_time | Offsets       | Chevauchement max |
 | ---------- | ------- | ------------- | ----------------- |
@@ -152,12 +179,12 @@ Cas particuliers :
 
 ---
 
-## 5. Cycle de Vie du Cycle Maître
+## 6. Cycle de Vie du Cycle Maître
 
-### 5.1 Diagramme de Séquence
+### 6.1 Diagramme de Séquence
 
 ```
-t=0          t=offset[1]  t=offset[2]  t=off[1]     t=off[2]     t=cycle_end
+t=0          t=offset[1]  t=offset[2]  t=off[1]     t=off[2]    t=cycle_end
  |                |             |             |             |             |
  | start_cycle()  |             |             |             |             |
  | R1.turn_on()   |             |             |             |             |
@@ -176,7 +203,7 @@ t=0          t=offset[1]  t=offset[2]  t=off[1]     t=off[2]     t=cycle_end
 R1 (offset=0) est allumé immédiatement avec `await under.turn_on()`.
 Tous les autres sont planifiés via `async_call_later`.
 
-### 5.2 Nombre de minuteurs par cycle
+### 6.2 Nombre de minuteurs par cycle
 
 ```
 Total minuteurs = 2 * N + 1
@@ -187,20 +214,25 @@ Total minuteurs = 2 * N + 1
 
 Pour les configurations typiques (N = 2–4), cela représente 5–9 minuteurs par cycle — négligeable pour Home Assistant.
 
-### 5.3 À `_on_master_cycle_end`
+### 6.3 À `_on_master_cycle_end`
 
 1. Éteindre tout sous-jacent encore allumé (sauf si `on_time >= cycle_duration`).
 2. Déclencher tous les `_on_cycle_end_callbacks` enregistrés.
 3. Appeler `thermostat.incremente_energy()`.
-4. Effacer `_scheduled_actions`.
-5. Appeler `start_cycle(..., force=True)` pour redémarrer avec les mêmes paramètres.
+4. Appeler `start_cycle(hvac_mode, on_percent, force=True)` — `cancel_cycle()` est appelé atomiquement à l'intérieur.
 
 ---
 
-## 6. Logique de `start_cycle()`
+## 7. Logique de `start_cycle()`
 
 ```
-start_cycle(hvac_mode, on_time, off_time, on_percent, force=False)
+start_cycle(hvac_mode, on_percent, force=False)
+│
+├── calculate_cycle_times(on_percent, cycle_min,
+│       min_activation_delay, min_deactivation_delay)
+│     → on_time_sec, off_time_sec
+│
+├── mettre à jour thermostat._on_time_sec / _off_time_sec   ← toujours, avant le retour anticipé
 │
 ├── si _scheduled_actions n'est pas vide ET force=False
 │   ├── si on_time actuel > 0  → mettre à jour les params stockés, retour (maj non disruptive)
@@ -214,26 +246,28 @@ start_cycle(hvac_mode, on_time, off_time, on_percent, force=False)
 └── si mode switch → _start_cycle_switch()
 ```
 
+**Comportement clé :** `thermostat._on_time_sec` et `thermostat._off_time_sec` sont mis à jour **avant** la vérification de retour anticipé. Cela garantit que les valeurs affichées par les capteurs reflètent toujours les dernières valeurs calculées, même lorsque le cycle en cours n'est pas interrompu — préservant la compatibilité ascendante avec l'ancienne assignation côté gestionnaire.
+
 La mise à jour non disruptive (quand `force=False` et qu'un cycle réel est en cours) permet au gestionnaire de soumettre de nouvelles valeurs `on_percent` sans casser le timing du cycle en cours. Les nouveaux paramètres prennent effet à la prochaine répétition automatique.
 
 ---
 
-## 7. Callbacks (Rappels)
+## 8. Callbacks (Rappels)
 
-### 7.1 Enregistrement
+### 8.1 Enregistrement
 
 ```python
 cycle_scheduler.register_cycle_start_callback(callback)
 cycle_scheduler.register_cycle_end_callback(callback)
 ```
 
-### 7.2 Signature du callback de début de cycle
+### 8.2 Signature du callback de début de cycle
 
 ```python
 async def callback(
     on_time_sec: float,
     off_time_sec: float,
-    on_percent: float,
+    on_percent: float,   # fraction 0.0–1.0
     hvac_mode: VThermHvacMode,
 ) -> None: ...
 ```
@@ -241,7 +275,7 @@ async def callback(
 Appelé une fois au début de chaque cycle maître (avant tout `turn_on`).
 Utilisé par SmartPI pour l'apprentissage et le calcul du retour de puissance.
 
-### 7.3 Signature du callback de fin de cycle
+### 8.3 Signature du callback de fin de cycle
 
 ```python
 async def callback() -> None: ...
@@ -251,23 +285,23 @@ Appelé une fois à `_on_master_cycle_end`, avant `incremente_energy()` et avant
 
 ---
 
-## 8. Cas Particuliers
+## 9. Cas Particuliers
 
-| Cas                   | Comportement                                                                                                                                                |
-| --------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `on_percent = 0`      | Tous les sous-jacents éteints. Cycle inactif planifié pour `cycle_duration_sec` (maintient le rythme maître).                                               |
-| `on_percent = 100`    | Tous les sous-jacents allumés à offset=0. Pas de `turn_off` planifié. Tous éteints à `_on_master_cycle_end` puis immédiatement réactivés.                   |
-| Redémarrage forcé     | `force=True` annule tous les minuteurs actuels via `cancel_cycle()` puis redémarre immédiatement.                                                           |
-| HVAC_MODE_OFF         | Le gestionnaire appelle `async_underlying_entity_turn_off()` qui appelle `cancel_cycle()` + `turn_off()` sur chaque sous-jacent.                            |
-| Sous-jacent unique    | `compute_offsets` retourne `[0.0]`. Comportement identique à l'implémentation précédente.                                                                   |
-| Keep-alive            | Reste dans `UnderlyingSwitch`. Lit `_should_be_on` (mis à jour par le planificateur) pour renvoyer l'état actuel périodiquement.                            |
-| Contraintes pré-cycle | `calculate_cycle_times()` dans `timing_utils.py` borne `on_time_sec`/`off_time_sec` avant que le planificateur ne les reçoive. Aucun changement nécessaire. |
+| Cas                        | Comportement                                                                                                                                                                   |
+| -------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `on_percent = 0`           | Tous les sous-jacents éteints. Cycle inactif planifié pour `cycle_duration_sec` (maintient le rythme maître).                                                                  |
+| `on_percent = 1.0` (100%)  | Tous les sous-jacents allumés à offset=0. Pas de `turn_off` planifié. Tous éteints à `_on_master_cycle_end` puis immédiatement réactivés.                                      |
+| Redémarrage forcé          | `force=True` annule tous les minuteurs actuels via `cancel_cycle()` puis redémarre immédiatement.                                                                              |
+| HVAC_MODE_OFF              | Le gestionnaire positionne `t._on_time_sec=0`, `t._off_time_sec=cycle_sec` directement, puis appelle `async_underlying_entity_turn_off()` (→ `cancel_cycle()` + `turn_off()`). `start_cycle()` n'est pas appelé. |
+| Sous-jacent unique         | `compute_offsets` retourne `[0.0]`. Comportement identique à l'implémentation précédente.                                                                                      |
+| Keep-alive                 | Reste dans `UnderlyingSwitch`. Lit `_should_be_on` (mis à jour par le planificateur) pour renvoyer l'état actuel périodiquement.                                               |
+| Contraintes temporelles    | `calculate_cycle_times()` est appelé **en interne** par `start_cycle()`. Les gestionnaires l'appellent aussi directement pour le retour `realized_percent` uniquement.         |
 
 ---
 
-## 9. Impact sur le Code Existant
+## 10. Impact sur le Code Existant
 
-### 9.1 Supprimé de `underlyings.py`
+### 10.1 Supprimé de `underlyings.py`
 
 | Classe                      | Supprimé                                                                                         |
 | --------------------------- | ------------------------------------------------------------------------------------------------ |
@@ -278,27 +312,52 @@ Appelé une fois à `_on_master_cycle_end`, avant `incremente_energy()` et avant
 
 `UnderlyingSwitch` conserve : `turn_on()`, `turn_off()`, `_should_be_on`, `_on_time_sec`, `_off_time_sec`, logique keep-alive.
 
-### 9.2 Fichiers modifiés
+### 10.2 Fichiers supprimés
 
-| Fichier                   | Changement                                                                                                                                                                                                                       |
-| ------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `thermostat_switch.py`    | Crée `CycleScheduler` dans `post_init()` après la construction de la liste des sous-jacents.                                                                                                                                     |
-| `thermostat_valve.py`     | Crée `CycleScheduler` dans `post_init()` après la construction de la liste des sous-jacents.                                                                                                                                     |
-| `base_thermostat.py`      | `_cycle_scheduler = None` dans `__init__`; propriété `cycle_scheduler`; `async_underlying_entity_turn_off()` appelle `cancel_cycle()`; `register_cycle_callback()` route vers `cycle_scheduler.register_cycle_start_callback()`. |
-| `prop_handler_tpi.py`     | Appelle `t.cycle_scheduler.start_cycle(...)` directement.                                                                                                                                                                        |
-| `prop_handler_smartpi.py` | Appelle `t.cycle_scheduler.start_cycle(...)` directement.                                                                                                                                                                        |
+| Fichier           | Raison                                                                                   |
+| ----------------- | ---------------------------------------------------------------------------------------- |
+| `timing_utils.py` | `calculate_cycle_times()` déplacé au niveau module de `cycle_scheduler.py`               |
 
-### 9.3 Fichiers non affectés
+### 10.3 Fichiers modifiés
 
-- `prop_algo_tpi.py` (algorithmes purs)
+| Fichier                        | Changement                                                                                                                                                                                                                                  |
+| ------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `thermostat_switch.py`         | Crée `CycleScheduler` dans `post_init()` en passant `min_activation_delay` et `min_deactivation_delay` depuis les attributs du thermostat (définis par `init_algorithm()` plus tôt dans la chaîne d'appel).                                |
+| `thermostat_valve.py`          | Identique à ci-dessus.                                                                                                                                                                                                                      |
+| `thermostat_climate_valve.py`  | Identique à ci-dessus.                                                                                                                                                                                                                      |
+| `base_thermostat.py`           | `_cycle_scheduler = None` dans `__init__` ; propriété `cycle_scheduler` ; `async_underlying_entity_turn_off()` appelle `cancel_cycle()` ; `register_cycle_callback()` route vers `cycle_scheduler.register_cycle_start_callback()`.         |
+| `prop_handler_tpi.py`          | Importe `calculate_cycle_times` depuis `cycle_scheduler` ; appelle `start_cycle(hvac_mode, on_percent, force)` — ne précalcule plus `on_time`/`off_time` ni ne définit directement `t._on_time_sec`/`t._off_time_sec`.                     |
+| `prop_handler_smartpi.py`      | Même schéma que le gestionnaire TPI.                                                                                                                                                                                                        |
+
+### 10.4 Fichiers non affectés
+
+- `prop_algo_tpi.py`, `prop_algo_smartpi.py` (algorithmes purs)
 - Flux de configuration, services, gestionnaires de fonctionnalités
-- `timing_utils.py`
 
 ---
 
-## 10. Propriétés
+## 11. Constructeur et Propriétés
 
-| Propriété          | Type   | Description                                   |
-| ------------------ | ------ | --------------------------------------------- |
-| `is_cycle_running` | `bool` | True si `_scheduled_actions` n'est pas vide   |
-| `is_valve_mode`    | `bool` | True si gestion de sous-jacents de type vanne |
+### 11.1 Constructeur
+
+```python
+CycleScheduler(
+    hass: HomeAssistant,
+    thermostat: Any,
+    underlyings: list,
+    cycle_duration_sec: float,
+    min_activation_delay: int = 0,    # durée minimale ON en secondes
+    min_deactivation_delay: int = 0,  # durée minimale OFF en secondes
+)
+```
+
+`min_activation_delay` et `min_deactivation_delay` sont des attributs permanents accessibles via `scheduler.min_activation_delay` et `scheduler.min_deactivation_delay`. Ils sont mis à jour par les appels de service (ex. `service_set_tpi_parameters`) lorsque l'utilisateur modifie ces valeurs à l'exécution.
+
+### 11.2 Propriétés
+
+| Propriété               | Type   | Description                                           |
+| ----------------------- | ------ | ----------------------------------------------------- |
+| `is_cycle_running`      | `bool` | True si `_scheduled_actions` n'est pas vide           |
+| `is_valve_mode`         | `bool` | True si gestion de sous-jacents de type vanne         |
+| `min_activation_delay`  | `int`  | Durée minimale ON en secondes (protection matériel)   |
+| `min_deactivation_delay`| `int`  | Durée minimale OFF en secondes (protection matériel)  |
