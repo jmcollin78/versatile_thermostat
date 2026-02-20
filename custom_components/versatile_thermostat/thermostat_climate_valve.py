@@ -125,6 +125,8 @@ class ThermostatOverClimateValve(ThermostatProp[UnderlyingClimate], ThermostatOv
             thermostat=self,
             underlyings=self._underlyings_valve_regulation,
             cycle_duration_sec=self._cycle_min * 60,
+            min_activation_delay=self.minimal_activation_delay,
+            min_deactivation_delay=self.minimal_deactivation_delay,
         )
 
     async def init_underlyings_completed(self, under_entity_id: Optional[str] = None):

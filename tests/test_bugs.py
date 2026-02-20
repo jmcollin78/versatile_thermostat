@@ -857,7 +857,7 @@ async def test_bug_1777(mock_call_later, hass):
     scheduler = CycleScheduler(hass, fake_thermostat, [under], 100)
 
     # 1. No cycle running: start_cycle with non-zero on_percent starts fresh
-    await scheduler.start_cycle(VThermHvacMode_HEAT, 90, 10, 0.9, False)
+    await scheduler.start_cycle(VThermHvacMode_HEAT, 0.9, False)
 
     assert under._should_be_on is True
     assert under._on_time_sec == 90
@@ -875,7 +875,7 @@ async def test_bug_1777(mock_call_later, hass):
     under.turn_off.reset_mock()
     mock_call_later.reset_mock()
 
-    await scheduler.start_cycle(VThermHvacMode_HEAT, 80, 20, 0.8, False)
+    await scheduler.start_cycle(VThermHvacMode_HEAT, 0.8, False)
 
     assert under._should_be_on is True
     assert under._on_time_sec == 90          # unchanged on underlying
@@ -913,7 +913,7 @@ async def test_bug_1777(mock_call_later, hass):
     mock_call_later.reset_mock()
     fake_thermostat.incremente_energy.reset_mock()
 
-    await scheduler.start_cycle(VThermHvacMode_HEAT, 0, 100, 0.0, False)
+    await scheduler.start_cycle(VThermHvacMode_HEAT, 0.0, False)
 
     assert under._should_be_on is True       # unchanged (cycle still running)
     assert under._on_time_sec == 80          # unchanged on underlying

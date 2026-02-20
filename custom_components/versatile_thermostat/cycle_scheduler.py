@@ -17,6 +17,50 @@ from .vtherm_hvac_mode import VThermHvacMode, VThermHvacMode_OFF
 _LOGGER = logging.getLogger(__name__)
 
 
+def calculate_cycle_times(
+    on_percent: float,
+    cycle_min: int,
+    minimal_activation_delay: int | None = 0,
+    minimal_deactivation_delay: int | None = 0,
+) -> tuple[int, int, bool]:
+    """Convert on_percent to on_time_sec and off_time_sec.
+
+    Applies minimal activation and deactivation delays to avoid
+    very short on/off periods that may damage equipment or be ineffective.
+
+    Args:
+        on_percent: The calculated heating percentage (0.0 to 1.0)
+        cycle_min: The cycle duration in minutes
+        minimal_activation_delay: Minimum on time in seconds (below this, turn off)
+        minimal_deactivation_delay: Minimum off time in seconds (below this, stay on)
+
+    Returns:
+        Tuple of (on_time_sec, off_time_sec, forced_by_timing)
+        - forced_by_timing: True if min_on or min_off delays modified the percentage significantly.
+    """
+    min_on = minimal_activation_delay if minimal_activation_delay is not None else 0
+    min_off = minimal_deactivation_delay if minimal_deactivation_delay is not None else 0
+
+    on_percent = max(0.0, min(1.0, on_percent))
+
+    cycle_sec = cycle_min * 60
+    on_time_sec = on_percent * cycle_sec
+    forced_by_timing = False
+
+    if on_time_sec > 0 and on_time_sec < min_on:
+        on_time_sec = 0
+        forced_by_timing = True
+
+    off_time_sec = cycle_sec - on_time_sec
+
+    if on_time_sec < cycle_sec and off_time_sec < min_off:
+        on_time_sec = cycle_sec
+        off_time_sec = 0
+        forced_by_timing = True
+
+    return int(on_time_sec), int(off_time_sec), forced_by_timing
+
+
 class CycleScheduler:
     """Orchestrates cycles for multiple underlyings within a master cycle.
 
@@ -31,11 +75,15 @@ class CycleScheduler:
         thermostat: Any,
         underlyings: list,
         cycle_duration_sec: float,
+        min_activation_delay: int = 0,
+        min_deactivation_delay: int = 0,
     ):
         self._hass = hass
         self._thermostat = thermostat
         self._underlyings = underlyings
         self._cycle_duration_sec = cycle_duration_sec
+        self.min_activation_delay: int = min_activation_delay
+        self.min_deactivation_delay: int = min_deactivation_delay
         self._scheduled_actions: list[CALLBACK_TYPE] = []
         self._on_cycle_start_callbacks: list[Callable] = []
         self._on_cycle_end_callbacks: list[Callable] = []
@@ -113,20 +161,32 @@ class CycleScheduler:
     async def start_cycle(
         self,
         hvac_mode: VThermHvacMode,
-        on_time_sec: float,
-        off_time_sec: float,
         on_percent: float,
         force: bool = False,
     ):
         """Start a new master cycle for all underlyings.
 
+        Computes on_time_sec and off_time_sec from on_percent, applying
+        min_activation_delay and min_deactivation_delay constraints.
+
         Args:
             hvac_mode: Current HVAC mode.
-            on_time_sec: Duration in seconds each underlying should be ON.
-            off_time_sec: Duration in seconds each underlying should be OFF.
-            on_percent: Power percentage (0-100).
+            on_percent: Power percentage as a fraction (0.0 to 1.0).
             force: If True, cancel any running cycle and restart immediately.
         """
+        cycle_min = self._cycle_duration_sec / 60
+        on_time_sec, off_time_sec, _ = calculate_cycle_times(
+            on_percent,
+            cycle_min,
+            self.min_activation_delay,
+            self.min_deactivation_delay,
+        )
+
+        # Always update thermostat timing attributes immediately so sensors
+        # reflect the latest computed value, even when the cycle returns early.
+        self._thermostat._on_time_sec = on_time_sec
+        self._thermostat._off_time_sec = off_time_sec
+
         if self._scheduled_actions and not force:
             if self._current_on_time_sec > 0:
                 # A real cycle is actively running — don't interrupt it.
@@ -311,8 +371,6 @@ class CycleScheduler:
         # Note: cancel_cycle() inside start_cycle(force=True) will clear _scheduled_actions atomically.
         await self.start_cycle(
             self._current_hvac_mode,
-            self._current_on_time_sec,
-            self._current_off_time_sec,
             self._current_on_percent,
             force=True,
         )

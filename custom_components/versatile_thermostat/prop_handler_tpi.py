@@ -14,7 +14,7 @@ from .vtherm_hvac_mode import VThermHvacMode_OFF, VThermHvacMode_HEAT, VThermHva
 from .vtherm_api import VersatileThermostatAPI
 from .commons import write_event_log
 from .const import EventType
-from .timing_utils import calculate_cycle_times
+from .cycle_scheduler import calculate_cycle_times
 
 if TYPE_CHECKING:
     from .thermostat_prop import ThermostatProp
@@ -341,8 +341,6 @@ class TPIHandler:
             if t.is_device_active:
                 await t.async_underlying_entity_turn_off()
         else:
-            on_time_sec = 0
-            off_time_sec = 0
             on_percent = 0
             if t.prop_algorithm:
                 on_percent = t.on_percent
@@ -352,9 +350,9 @@ class TPIHandler:
                     t.minimal_activation_delay,
                     t.minimal_deactivation_delay,
                 )
-                
+
                 realized_percent = on_time_sec / (t.cycle_min * 60)
-                
+
                 if forced_by_timing:
                     if t.prop_algorithm and hasattr(t.prop_algorithm, "update_realized_power"):
                         t.prop_algorithm.update_realized_power(realized_percent)
@@ -362,14 +360,8 @@ class TPIHandler:
                 if self._auto_tpi_manager:
                     self._auto_tpi_manager.update_realized_power(realized_percent)
 
-            # Store on/off times on thermostat for sensors and attributes
-            t._on_time_sec = on_time_sec
-            t._off_time_sec = off_time_sec
-
             await t.cycle_scheduler.start_cycle(
                 t.vtherm_hvac_mode,
-                on_time_sec,
-                off_time_sec,
                 on_percent,
                 force,
             )
@@ -467,8 +459,10 @@ class TPIHandler:
         # Update delays directly on thermostat (not in algo anymore)
         if minimal_activation_delay is not None:
             t.minimal_activation_delay = minimal_activation_delay
+            t.cycle_scheduler.min_activation_delay = t.minimal_activation_delay
         if minimal_deactivation_delay is not None:
             t.minimal_deactivation_delay = minimal_deactivation_delay
+            t.cycle_scheduler.min_deactivation_delay = t.minimal_deactivation_delay
 
         await self._async_update_tpi_config_entry()
 

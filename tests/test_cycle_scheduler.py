@@ -160,7 +160,7 @@ class TestCycleSchedulerLifecycle:
         r1 = make_underlying("R1")
         scheduler = CycleScheduler(hass, thermostat, [r1], 600)
 
-        await scheduler.start_cycle(VThermHvacMode_HEAT, 120, 480, 20, force=True)
+        await scheduler.start_cycle(VThermHvacMode_HEAT, 0.2, force=True)
 
         # R1 should be turned on immediately (offset=0)
         r1.turn_on.assert_called_once()
@@ -185,7 +185,7 @@ class TestCycleSchedulerLifecycle:
         r2 = make_underlying("R2")
         scheduler = CycleScheduler(hass, thermostat, [r1, r2], 600)
 
-        await scheduler.start_cycle(VThermHvacMode_HEAT, 300, 300, 50, force=True)
+        await scheduler.start_cycle(VThermHvacMode_HEAT, 0.5, force=True)
 
         # R1 immediately on (offset=0)
         r1.turn_on.assert_called_once()
@@ -212,7 +212,7 @@ class TestCycleSchedulerLifecycle:
         r2 = make_underlying("R2", active=True)
         scheduler = CycleScheduler(hass, thermostat, [r1, r2], 600)
 
-        await scheduler.start_cycle(VThermHvacMode_OFF, 0, 600, 0, force=True)
+        await scheduler.start_cycle(VThermHvacMode_OFF, 0.0, force=True)
 
         r1.turn_off.assert_called_once()
         r2.turn_off.assert_called_once()
@@ -233,7 +233,7 @@ class TestCycleSchedulerLifecycle:
         r1 = make_underlying("R1", active=True)
         scheduler = CycleScheduler(hass, thermostat, [r1], 600)
 
-        await scheduler.start_cycle(VThermHvacMode_HEAT, 0, 600, 0, force=True)
+        await scheduler.start_cycle(VThermHvacMode_HEAT, 0.0, force=True)
 
         r1.turn_off.assert_called_once()
         assert r1._should_be_on is False
@@ -251,7 +251,7 @@ class TestCycleSchedulerLifecycle:
         r2 = make_underlying("R2")
         scheduler = CycleScheduler(hass, thermostat, [r1, r2], 600)
 
-        await scheduler.start_cycle(VThermHvacMode_HEAT, 600, 0, 100, force=True)
+        await scheduler.start_cycle(VThermHvacMode_HEAT, 1.0, force=True)
 
         # Both turned on immediately (offsets = [0, 0])
         r1.turn_on.assert_called_once()
@@ -273,7 +273,7 @@ class TestCycleSchedulerLifecycle:
         r1 = make_underlying("R1")
         scheduler = CycleScheduler(hass, thermostat, [r1], 600)
 
-        await scheduler.start_cycle(VThermHvacMode_HEAT, 120, 480, 20, force=True)
+        await scheduler.start_cycle(VThermHvacMode_HEAT, 0.2, force=True)
         assert scheduler.is_cycle_running is True
 
         scheduler.cancel_cycle()
@@ -292,11 +292,11 @@ class TestCycleSchedulerLifecycle:
         r1 = make_underlying("R1")
         scheduler = CycleScheduler(hass, thermostat, [r1], 600)
 
-        await scheduler.start_cycle(VThermHvacMode_HEAT, 120, 480, 20, force=True)
+        await scheduler.start_cycle(VThermHvacMode_HEAT, 0.2, force=True)
         first_call_count = mock_call_later.call_count
 
         # Try to start again without force
-        await scheduler.start_cycle(VThermHvacMode_HEAT, 300, 300, 50, force=False)
+        await scheduler.start_cycle(VThermHvacMode_HEAT, 0.5, force=False)
 
         # No additional calls - cycle was not restarted
         assert mock_call_later.call_count == first_call_count
@@ -313,12 +313,12 @@ class TestCycleSchedulerLifecycle:
         r1 = make_underlying("R1")
         scheduler = CycleScheduler(hass, thermostat, [r1], 600)
 
-        await scheduler.start_cycle(VThermHvacMode_HEAT, 120, 480, 20, force=True)
+        await scheduler.start_cycle(VThermHvacMode_HEAT, 0.2, force=True)
         initial_calls = mock_call_later.call_count
 
         # Force restart
         r1.turn_on.reset_mock()
-        await scheduler.start_cycle(VThermHvacMode_HEAT, 300, 300, 50, force=True)
+        await scheduler.start_cycle(VThermHvacMode_HEAT, 0.5, force=True)
 
         # Previous cancel functions were called
         assert mock_cancel.call_count >= initial_calls
@@ -348,12 +348,12 @@ class TestCycleSchedulerCallbacks:
         cb = AsyncMock()
         scheduler.register_cycle_start_callback(cb)
 
-        await scheduler.start_cycle(VThermHvacMode_HEAT, 120, 480, 20, force=True)
+        await scheduler.start_cycle(VThermHvacMode_HEAT, 0.2, force=True)
 
         cb.assert_called_once_with(
             on_time_sec=120,
             off_time_sec=480,
-            on_percent=20,
+            on_percent=0.2,
             hvac_mode=VThermHvacMode_HEAT,
         )
 
@@ -374,7 +374,7 @@ class TestCycleSchedulerCallbacks:
         # Simulate a cycle end
         scheduler._current_on_time_sec = 120
         scheduler._current_off_time_sec = 480
-        scheduler._current_on_percent = 20
+        scheduler._current_on_percent = 0.2
         scheduler._current_hvac_mode = VThermHvacMode_HEAT
         scheduler._cycle_duration_sec = 600
 
@@ -397,7 +397,7 @@ class TestCycleSchedulerCallbacks:
         scheduler.register_cycle_start_callback(failing_cb)
 
         # Should not raise
-        await scheduler.start_cycle(VThermHvacMode_HEAT, 120, 480, 20, force=True)
+        await scheduler.start_cycle(VThermHvacMode_HEAT, 0.2, force=True)
 
         # R1 still turned on despite callback error
         r1.turn_on.assert_called_once()
@@ -423,7 +423,7 @@ class TestMasterCycleEnd:
         scheduler = CycleScheduler(hass, thermostat, [r1], 600)
         scheduler._current_on_time_sec = 300  # < 600, so should turn off
         scheduler._current_off_time_sec = 300
-        scheduler._current_on_percent = 50
+        scheduler._current_on_percent = 0.5
         scheduler._current_hvac_mode = VThermHvacMode_HEAT
 
         await scheduler._on_master_cycle_end(None)
@@ -443,7 +443,7 @@ class TestMasterCycleEnd:
         scheduler = CycleScheduler(hass, thermostat, [r1], 600)
         scheduler._current_on_time_sec = 600  # == cycle_duration
         scheduler._current_off_time_sec = 0
-        scheduler._current_on_percent = 100
+        scheduler._current_on_percent = 1.0
         scheduler._current_hvac_mode = VThermHvacMode_HEAT
 
         await scheduler._on_master_cycle_end(None)
@@ -463,7 +463,7 @@ class TestMasterCycleEnd:
         scheduler = CycleScheduler(hass, thermostat, [r1], 600)
         scheduler._current_on_time_sec = 120
         scheduler._current_off_time_sec = 480
-        scheduler._current_on_percent = 20
+        scheduler._current_on_percent = 0.2
         scheduler._current_hvac_mode = VThermHvacMode_HEAT
 
         await scheduler._on_master_cycle_end(None)
@@ -482,7 +482,7 @@ class TestMasterCycleEnd:
         scheduler = CycleScheduler(hass, thermostat, [r1], 600)
         scheduler._current_on_time_sec = 120
         scheduler._current_off_time_sec = 480
-        scheduler._current_on_percent = 20
+        scheduler._current_on_percent = 0.2
         scheduler._current_hvac_mode = VThermHvacMode_HEAT
 
         await scheduler._on_master_cycle_end(None)
@@ -511,7 +511,7 @@ class TestUnderlyingStateUpdates:
         r2 = make_underlying("R2")
         scheduler = CycleScheduler(hass, thermostat, [r1, r2], 600)
 
-        await scheduler.start_cycle(VThermHvacMode_COOL, 180, 420, 30, force=True)
+        await scheduler.start_cycle(VThermHvacMode_COOL, 0.3, force=True)
 
         assert r1._on_time_sec == 180
         assert r1._off_time_sec == 420
