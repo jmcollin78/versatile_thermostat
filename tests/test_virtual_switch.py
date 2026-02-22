@@ -144,7 +144,7 @@ async def test_build_command(
     assert vtherm.is_inversed == is_inversed
 
     try:
-        under = UnderlyingSwitch(hass, vtherm, "switch.test", 0, 0, vswitch_on_command, vswitch_off_command)
+        under = UnderlyingSwitch(hass, vtherm, "switch.test", 0, vswitch_on_command, vswitch_off_command)
     except ValueError as e:
         if is_ok:
             pytest.fail(f"Initialization failed with ValueError: {e}")

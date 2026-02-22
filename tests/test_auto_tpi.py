@@ -253,14 +253,7 @@ async def test_cycle_lifecycle(manager):
     manager.state.cycle_start_date = datetime.now(timezone.utc) - timedelta(minutes=5)
 
     # 2. Complete Cycle
-    await manager.on_cycle_completed(
-        new_params={},
-        prev_params={
-            "on_time_sec": 150,
-            "off_time_sec": 150,
-            "hvac_mode": "heat"
-        }
-    )
+    await manager.on_cycle_completed()
     
     assert manager.state.cycle_active is False
     assert manager.state.total_cycles == 1

@@ -18,6 +18,8 @@ from .const import *  # pylint: disable=wildcard-import, unused-wildcard-import
 from .commons import write_event_log
 
 from .underlyings import UnderlyingValve
+from .cycle_scheduler import CycleScheduler
+from .vtherm_hvac_mode import VThermHvacMode_OFF
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -81,6 +83,15 @@ class ThermostatOverValve(ThermostatProp[UnderlyingValve]):  # pylint: disable=a
             self._underlyings.append(
                 UnderlyingValve(hass=self._hass, thermostat=self, valve_entity_id=valve)
             )
+
+        self._bind_scheduler(CycleScheduler(
+            hass=self._hass,
+            thermostat=self,
+            underlyings=self._underlyings,
+            cycle_duration_sec=self._cycle_min * 60,
+            min_activation_delay=self.minimal_activation_delay,
+            min_deactivation_delay=self.minimal_deactivation_delay,
+        ))
 
         self._should_relaunch_control_heating = False
 
@@ -225,9 +236,8 @@ class ThermostatOverValve(ThermostatProp[UnderlyingValve]):  # pylint: disable=a
 
         self._valve_open_percent = new_valve_percent
 
-        # is in start_cycle now which is called by control_heating
-        # for under in self._underlyings:
-        #    under.set_valve_open_percent()
+        # Valve open percent is sent to underlyings by CycleScheduler
+        # in start_cycle (called from control_heating)
 
         self._last_calculation_timestamp = now
 

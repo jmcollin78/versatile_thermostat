@@ -14,7 +14,7 @@ from .vtherm_hvac_mode import VThermHvacMode_OFF, VThermHvacMode_HEAT, VThermHva
 from .vtherm_api import VersatileThermostatAPI
 from .commons import write_event_log
 from .const import EventType
-from .timing_utils import calculate_cycle_times
+from .cycle_scheduler import calculate_cycle_times
 
 if TYPE_CHECKING:
     from .thermostat_prop import ThermostatProp
@@ -218,6 +218,12 @@ class TPIHandler:
         if self._auto_tpi_manager:
             t.hass.async_create_task(self._auto_tpi_manager.async_save_data())
 
+    def on_scheduler_ready(self, scheduler) -> None:
+        """Register AutoTPI learning callbacks on the cycle scheduler."""
+        if self._auto_tpi_manager:
+            scheduler.register_cycle_start_callback(self._auto_tpi_manager.on_cycle_started)
+            scheduler.register_cycle_end_callback(self._auto_tpi_manager.on_cycle_completed)
+
     def _is_central_boiler_off(self) -> bool:
         """Check if the central boiler is configured but currently off."""
         t = self._thermostat
@@ -308,17 +314,7 @@ class TPIHandler:
                 is_heating_failure=t.heating_failure_detection_manager.is_failure_detected,
             )
 
-            # 2. Drive the cycle processing passively
-            if self._auto_tpi_manager.learning_active:
-                await self._auto_tpi_manager.process_cycle(
-                    # Use provided timestamp or current time if missing
-                    timestamp=dt_util.now(),
-                    data_provider=self._get_tpi_data,
-                    event_sender=t._on_prop_cycle_start,
-                    force=force
-                )
-
-            # 3. Synchronize parameters if learning is active
+            # 2. Synchronize parameters if learning is active
             new_params = await self._auto_tpi_manager.calculate()
             if self._auto_tpi_manager.learning_active and new_params:
                 new_coef_int = new_params.get(CONF_TPI_COEF_INT)
@@ -341,8 +337,6 @@ class TPIHandler:
             if t.is_device_active:
                 await t.async_underlying_entity_turn_off()
         else:
-            on_time_sec = 0
-            off_time_sec = 0
             on_percent = 0
             if t.prop_algorithm:
                 on_percent = t.on_percent
@@ -352,28 +346,24 @@ class TPIHandler:
                     t.minimal_activation_delay,
                     t.minimal_deactivation_delay,
                 )
-                
+
                 realized_percent = on_time_sec / (t.cycle_min * 60)
-                
+
                 if forced_by_timing:
                     if t.prop_algorithm and hasattr(t.prop_algorithm, "update_realized_power"):
                         t.prop_algorithm.update_realized_power(realized_percent)
 
+                # Always notify AutoTPI manager with the current realized power so that
+                # last_power reflects runtime changes (e.g. max_on_percent clamping) even
+                # when the CycleScheduler skips the cycle-start callbacks.
                 if self._auto_tpi_manager:
                     self._auto_tpi_manager.update_realized_power(realized_percent)
 
-            # Store on/off times on thermostat for sensors and attributes
-            t._on_time_sec = on_time_sec
-            t._off_time_sec = off_time_sec
-
-            for under in t.underlyings:
-                await under.start_cycle(
-                    t.vtherm_hvac_mode,
-                    on_time_sec,
-                    off_time_sec,
-                    on_percent,
-                    force,
-                )
+            await t.cycle_scheduler.start_cycle(
+                t.vtherm_hvac_mode,
+                on_percent,
+                force,
+            )
 
     async def on_state_changed(self):
         """Handle state changes."""
@@ -468,8 +458,10 @@ class TPIHandler:
         # Update delays directly on thermostat (not in algo anymore)
         if minimal_activation_delay is not None:
             t.minimal_activation_delay = minimal_activation_delay
+            t.cycle_scheduler.min_activation_delay = t.minimal_activation_delay
         if minimal_deactivation_delay is not None:
             t.minimal_deactivation_delay = minimal_deactivation_delay
+            t.cycle_scheduler.min_deactivation_delay = t.minimal_deactivation_delay
 
         await self._async_update_tpi_config_entry()
 

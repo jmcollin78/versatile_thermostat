@@ -3,7 +3,7 @@
 """ Test the Window management """
 import asyncio
 
-from unittest.mock import patch, call, PropertyMock, MagicMock, AsyncMock, Mock
+from unittest.mock import patch, call, PropertyMock, MagicMock, AsyncMock
 from datetime import datetime, timedelta
 
 import logging
@@ -25,7 +25,7 @@ from custom_components.versatile_thermostat.thermostat_switch import (
     ThermostatOverSwitch,
 )
 
-from custom_components.versatile_thermostat.underlyings import UnderlyingSwitch
+from custom_components.versatile_thermostat.cycle_scheduler import CycleScheduler
 
 from .commons import *
 
@@ -831,108 +831,116 @@ async def test_bug_1379(
     entity.remove_thermostat()
 
 
-async def test_bug_1777(hass):
-    """Test that on over_switch VTherm the cycle is respected when on_percent goes from 0 to non 0 value"""
+@patch("custom_components.versatile_thermostat.cycle_scheduler.async_call_later")
+async def test_bug_1777(mock_call_later, hass):
+    """Test that cycle correctly handles on_percent transitions (bug 1777).
 
-    fake_vtherm = MagicMock()
+    When start_cycle is called while a cycle is running (force=False), it
+    should only update stored params without restarting. At the next cycle end,
+    the updated params are used.
+    """
+    mock_cancel = MagicMock()
+    mock_call_later.return_value = mock_cancel
 
-    under = UnderlyingSwitch(hass, fake_vtherm, "switch_entity_id", initial_delay_sec=10, keep_alive_sec=0)
+    fake_thermostat = MagicMock()
+    fake_thermostat.incremente_energy = MagicMock()
 
+    under = MagicMock()
     under.turn_on = AsyncMock()
     under.turn_off = AsyncMock()
-    under.call_later = Mock(return_value="_turn_on_later")
-    under._cancel_cycle = Mock()
+    under.is_device_active = False
+    under._should_be_on = False
+    under._on_time_sec = 0
+    under._off_time_sec = 0
+    under._hvac_mode = None
 
-    # 1. Call start_cycle with non 0 on_percent. The cycle is not started, lets start it
-    await under.start_cycle(VThermHvacMode_HEAT, 90, 10, 0.9, False)
+    scheduler = CycleScheduler(hass, fake_thermostat, [under], 100)
+
+    # 1. No cycle running: start_cycle with non-zero on_percent starts fresh
+    await scheduler.start_cycle(VThermHvacMode_HEAT, 0.9, False)
 
     assert under._should_be_on is True
     assert under._on_time_sec == 90
     assert under._off_time_sec == 10
-    assert under._new_on_time_sec == 90
-    assert under._new_off_time_sec == 10
+    assert scheduler._current_on_time_sec == 90
+    assert scheduler._current_off_time_sec == 10
 
-    assert under.turn_on.await_count == 0
+    assert under.turn_on.await_count == 1   # turned on immediately (single underlying, offset=0)
     assert under.turn_off.await_count == 0
-    assert under.call_later.call_count == 1
-    assert under._cancel_cycle.call_count == 0
-    assert under._async_cancel_cycle is not None
+    assert mock_call_later.call_count == 2  # turn_off at 90s + cycle_end at 100s
+    assert scheduler.is_cycle_running is True
 
-    # 2. Call start_cycle with other values. The cycle is already started let it continue
+    # 2. Cycle already running with on_time>0: update params but don't restart
     under.turn_on.reset_mock()
     under.turn_off.reset_mock()
-    under.call_later.reset_mock()
-    under._cancel_cycle.reset_mock()
+    mock_call_later.reset_mock()
 
-    await under.start_cycle(VThermHvacMode_HEAT, 80, 20, 0.8, False)
+    await scheduler.start_cycle(VThermHvacMode_HEAT, 0.8, False)
 
     assert under._should_be_on is True
-    assert under._on_time_sec == 90  # no change
-    assert under._off_time_sec == 10  # no change
-    assert under._new_on_time_sec == 80  # new values
-    assert under._new_off_time_sec == 20  # new values
+    assert under._on_time_sec == 90          # unchanged on underlying
+    assert under._off_time_sec == 10         # unchanged on underlying
+    assert scheduler._current_on_time_sec == 80   # updated in scheduler
+    assert scheduler._current_off_time_sec == 20  # updated in scheduler
 
     assert under.turn_on.await_count == 0
     assert under.turn_off.await_count == 0
-    assert under.call_later.call_count == 0
-    assert under._cancel_cycle.call_count == 0
-    assert under._async_cancel_cycle is not None
+    assert mock_call_later.call_count == 0   # no new scheduling
+    assert scheduler.is_cycle_running is True
 
-    # 3. turn_on (simulate the next cycle)
+    # 3. Simulate master cycle end: restarts using updated params (80/20)
     under.turn_on.reset_mock()
     under.turn_off.reset_mock()
-    under.call_later.reset_mock()
-    under._cancel_cycle.reset_mock()
+    mock_call_later.reset_mock()
 
-    with patch.object(type(under), "is_device_active", new_callable=PropertyMock, return_value=True):
-        await under._turn_on_later(None)
+    with patch.object(under, "is_device_active", new_callable=PropertyMock, return_value=True):
+        await scheduler._on_master_cycle_end(None)
 
-    assert under._cancel_cycle.call_count == 1
-    assert under._should_be_on is True  # Now we should be off
-    assert under._on_time_sec == 80  # the last value
-    assert under._off_time_sec == 20  # the last value
-    assert under._new_on_time_sec == 80  # the last value
-    assert under._new_off_time_sec == 20  # the last value
+    assert under._should_be_on is True
+    assert under._on_time_sec == 80          # updated to new values
+    assert under._off_time_sec == 20
+    assert scheduler._current_on_time_sec == 80
+    assert scheduler._current_off_time_sec == 20
 
-    assert under.turn_on.await_count == 1
-    assert under.turn_off.await_count == 0
-    assert under.call_later.call_count == 1
+    assert under.turn_on.await_count == 1    # restarted cycle, turned on
+    assert under.turn_off.await_count == 1   # turned off at cycle end before restart
+    assert mock_call_later.call_count == 2   # turn_off at 80s + cycle_end at 100s
+    assert fake_thermostat.incremente_energy.call_count == 1
 
-    # 4. Call start_cycle with 0 values. The cycle is already started it should continue
+    # 4. Cycle running with on_time>0: update params to 0 (no restart)
     under.turn_on.reset_mock()
     under.turn_off.reset_mock()
-    under.call_later.reset_mock()
-    under._cancel_cycle.reset_mock()
+    mock_call_later.reset_mock()
+    fake_thermostat.incremente_energy.reset_mock()
 
-    await under.start_cycle(VThermHvacMode_HEAT, 0, 100, 0.0, False)
+    await scheduler.start_cycle(VThermHvacMode_HEAT, 0.0, False)
 
-    assert under._should_be_on is True  # it would be off and the end of the cycle
-    assert under._on_time_sec == 80  # no change
-    assert under._off_time_sec == 20  # no change
-    assert under._new_on_time_sec == 0  # new values
-    assert under._new_off_time_sec == 100  # new values
+    assert under._should_be_on is True       # unchanged (cycle still running)
+    assert under._on_time_sec == 80          # unchanged on underlying
+    assert under._off_time_sec == 20         # unchanged on underlying
+    assert scheduler._current_on_time_sec == 0    # updated in scheduler
+    assert scheduler._current_off_time_sec == 100  # updated in scheduler
 
     assert under.turn_on.await_count == 0
     assert under.turn_off.await_count == 0
-    assert under.call_later.call_count == 0
-    assert under._cancel_cycle.call_count == 0
-    assert under._async_cancel_cycle is not None
+    assert mock_call_later.call_count == 0   # no new scheduling
+    assert scheduler.is_cycle_running is True
 
-    # 5. turn_on (simulate the next cycle)
+    # 5. Simulate master cycle end: device turns OFF (on_time=0)
     under.turn_on.reset_mock()
     under.turn_off.reset_mock()
-    under.call_later.reset_mock()
-    under._cancel_cycle.reset_mock()
+    mock_call_later.reset_mock()
+    with patch.object(under, "is_device_active", new_callable=PropertyMock, return_value=True):
+        await scheduler._on_master_cycle_end(None)
 
-    with patch.object(type(under), "is_device_active", new_callable=PropertyMock, return_value=True):
-        await under._turn_on_later(None)
-    assert under._cancel_cycle.call_count == 1
-    assert under._should_be_on is False  # Now we should be off
-    assert under._on_time_sec == 0  # the last value
-    assert under._off_time_sec == 100  # the last value
-    assert under._new_on_time_sec == 0  # no change
-    assert under._new_off_time_sec == 100  # no change
+    assert under._should_be_on is False      # device should be off
+    assert under._on_time_sec == 0
+    assert under._off_time_sec == 100
+    assert scheduler._current_on_time_sec == 0
+    assert scheduler._current_off_time_sec == 100
 
     assert under.turn_on.await_count == 0
-    assert under.turn_off.await_count == 1
-    assert under.call_later.call_count == 0
+    # turn_off called twice: once at cycle end cleanup, once in restarted cycle (on_time=0)
+    assert under.turn_off.await_count == 2
+    assert mock_call_later.call_count == 1   # only cycle_end scheduled (on_time=0)
+    assert fake_thermostat.incremente_energy.call_count == 1

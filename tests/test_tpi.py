@@ -8,7 +8,7 @@ from homeassistant.components.climate import ClimateEntityFeature
 from custom_components.versatile_thermostat.base_thermostat import BaseThermostat
 from custom_components.versatile_thermostat.prop_algo_tpi import TpiAlgorithm
 from custom_components.versatile_thermostat.const import PROPORTIONAL_FUNCTION_TPI
-from custom_components.versatile_thermostat.timing_utils import calculate_cycle_times
+from custom_components.versatile_thermostat.cycle_scheduler import calculate_cycle_times
 from .commons import *  # pylint: disable=wildcard-import, unused-wildcard-import
 
 

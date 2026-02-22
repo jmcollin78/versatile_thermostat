@@ -1,8 +1,8 @@
 # pylint: disable=wildcard-import, unused-wildcard-import, protected-access, unused-argument, line-too-long
 
 """ Test the normal start of a Thermostat """
-from unittest.mock import patch, call
-from datetime import datetime
+from unittest.mock import patch, call, MagicMock
+from datetime import datetime, timedelta
 
 from homeassistant.core import HomeAssistant
 from homeassistant.components.climate.const import HVACAction
@@ -191,7 +191,9 @@ async def test_over_4switch_full_start(hass: HomeAssistant, skip_hass_states_is_
             assert under is not None
             assert isinstance(under, UnderlyingSwitch)
             assert under.entity_id == "switch.mock_4switch" + str(idx)
-            assert under.initial_delay_sec == 8 * 60 / 4 * idx
+
+        # Verify that a CycleScheduler is created for multi-switch
+        assert entity.cycle_scheduler is not None
 
         # should have been called with EventType.PRESET_EVENT and EventType.HVAC_MODE_EVENT
         assert mock_send_event.call_count == 2
@@ -344,8 +346,13 @@ async def test_over_climate_deactivate_preset(hass: HomeAssistant, skip_hass_sta
     entity.remove_thermostat()
 
 
+@pytest.mark.parametrize("expected_lingering_timers", [True])
 async def test_over_switch_start_heating(hass: HomeAssistant, skip_hass_states_is_state, fake_underlying_switch: MockSwitch):
-    """Test that a thermostat over switch starts heating and turns on the switch"""
+    """Test that a thermostat over switch starts heating via CycleScheduler"""
+    from unittest.mock import PropertyMock
+
+    tz = get_tz(hass)
+    now = datetime.now(tz=tz)
 
     entry = MockConfigEntry(
         domain=DOMAIN,
@@ -381,33 +388,37 @@ async def test_over_switch_start_heating(hass: HomeAssistant, skip_hass_states_i
     entity: BaseThermostat = await create_thermostat(hass, entry, "climate.theoverswitchmockname")
     assert entity
     assert isinstance(entity, ThermostatOverSwitch)
+    assert entity.cycle_scheduler is not None
 
-    # Check that VTherm is OFF at startup
-    assert entity.vtherm_hvac_mode is VThermHvacMode_OFF
-    assert entity.hvac_action is HVACAction.OFF
-    assert fake_underlying_switch.is_on is False
+    # Block control_heating during initialization
+    with patch(
+        "custom_components.versatile_thermostat.base_thermostat.BaseThermostat.async_control_heating"
+    ):
+        await entity.async_set_hvac_mode(VThermHvacMode_HEAT)
+        await entity.async_set_preset_mode(VThermPreset.BOOST)
+        assert entity.target_temperature == 21
 
-    # Enable heating mode
-    await entity.async_set_hvac_mode(VThermHvacMode_HEAT)
-    assert entity.vtherm_hvac_mode is VThermHvacMode_HEAT
+        await send_temperature_change_event(entity, 15, now - timedelta(minutes=4))
+        assert entity.is_ready is True
 
-    # Set a target temperature and send a low current temperature
-    await entity.async_set_preset_mode(VThermPreset.BOOST)
-    assert entity.target_temperature == 21
+    # Now trigger control_heating with CycleScheduler
+    with patch(
+        "custom_components.versatile_thermostat.base_thermostat.BaseThermostat.send_event"
+    ), patch(
+        "custom_components.versatile_thermostat.underlyings.UnderlyingSwitch.turn_on"
+    ) as mock_heater_on, patch(
+        "custom_components.versatile_thermostat.underlyings.UnderlyingSwitch.is_device_active",
+        new_callable=PropertyMock,
+        return_value=False,
+    ), patch(
+        "custom_components.versatile_thermostat.cycle_scheduler.async_call_later",
+        return_value=MagicMock(),
+    ):
+        await send_ext_temperature_change_event(entity, 5, now - timedelta(minutes=4))
 
-    # Send a low temperature to trigger heating
-    await send_temperature_change_event(entity, 15, datetime.now())
-    await hass.async_block_till_done()
-
-    # Wait for the switch to turn on
-    # The TPI algorithm will calculate an on_percent and start the cycle
-    # With a temperature of 15° and a target of 21°, the delta is 6°
-    # The on_percent should be close to 1 (100%)
-    await wait_for_local_condition(lambda: fake_underlying_switch.is_on is True)
-
-    # Check that the underlying switch is turned on
-    assert fake_underlying_switch.is_on is True, "The switch should be on after heating starts"
-    assert entity.hvac_action is HVACAction.HEATING
+        # TPI with temp=15, target=21, ext=5 → on_percent ~100%
+        # CycleScheduler calls turn_on immediately (offset=0)
+        assert mock_heater_on.call_count == 1
 
     entity.remove_thermostat()
 

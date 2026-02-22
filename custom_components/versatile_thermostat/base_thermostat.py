@@ -4,7 +4,6 @@
 """ Implements the VersatileThermostat climate component """
 import math
 import logging
-import asyncio
 from typing import Optional
 from datetime import datetime, timedelta
 from functools import partial
@@ -124,7 +123,7 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
 
         self._is_ready: bool = False
 
-        self._async_cancel_cycle = None
+        self._cycle_scheduler = None
 
         # Callbacks for TPI cycle events
         self._on_cycle_start_callbacks: list[Callable] = []
@@ -459,26 +458,9 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
         if on_start:
             self._on_cycle_start_callbacks.append(on_start)
             _LOGGER.debug("%s - Registered cycle start callback: %s", self, on_start)
-            # Register to existing underlyings
-            if self._underlyings:
-                for under in self._underlyings:
-                    under.register_cycle_callback(on_start)
-
-    async def _fire_cycle_start_callbacks(self, on_time_sec, off_time_sec, on_percent, hvac_mode):
-        """Fire cycle start callbacks."""
-        for callback in self._on_cycle_start_callbacks:
-            try:
-                if is_async := (
-                    asyncio.iscoroutinefunction(callback)
-                    or (hasattr(callback, "__call__") and asyncio.iscoroutinefunction(callback.__call__))
-                ):
-                    await callback(on_time_sec, off_time_sec, on_percent, hvac_mode)
-                else:
-                    await self.hass.async_add_executor_job(
-                        callback, on_time_sec, off_time_sec, on_percent, hvac_mode
-                    )
-            except Exception as ex:  # pylint: disable=broad-except
-                _LOGGER.error("%s - Error calling cycle start callback: %s", self, ex)
+            # Register on the CycleScheduler if available
+            if self._cycle_scheduler:
+                self._cycle_scheduler.register_cycle_start_callback(on_start)
 
     def stop_recalculate_later(self):
         """Stop any scheduled call later tasks if any."""
@@ -500,11 +482,12 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
 
         await self.get_my_previous_state()
 
-        # Register callbacks to new underlyings
+        # Start underlyings and register cycle callbacks on the scheduler
         for under in self._underlyings:
             under.startup()
+        if self._cycle_scheduler:
             for cb in self._on_cycle_start_callbacks:
-                under.register_cycle_callback(cb)
+                self._cycle_scheduler.register_cycle_start_callback(cb)
 
         # init presets. Should be after underlyings init because for over_climate it uses the hvac_modes
         await self.init_presets(central_configuration)
@@ -1169,6 +1152,11 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
         self._prop_algorithm = value
 
     @property
+    def cycle_scheduler(self):
+        """Return the CycleScheduler instance, if any."""
+        return self._cycle_scheduler
+
+    @property
     def underlyings(self) -> list:
         """Return the list of underlying entities."""
         return self._underlyings
@@ -1677,8 +1665,11 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
         """Turn heater toggleable device off. Used by Window, overpowering,
         control_heating to turn all off"""
 
+        if self._cycle_scheduler:
+            self._cycle_scheduler.cancel_cycle()
+
         for under in self._underlyings:
-            await under.turn_off_and_cancel_cycle()
+            await under.turn_off()
 
     def set_hvac_off_reason(self, hvac_off_reason: str | None):
         """Set the reason of hvac_off"""
