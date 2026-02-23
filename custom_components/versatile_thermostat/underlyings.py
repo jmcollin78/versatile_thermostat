@@ -294,7 +294,7 @@ class UnderlyingEntity:
     @property
     def hvac_action(self) -> HVACAction:
         """Calculate a hvac_action"""
-        return HVACAction.HEATING if self.should_device_be_active is True else HVACAction.OFF
+        raise NotImplementedError
 
     @property
     def is_inversed(self):
@@ -713,6 +713,13 @@ class UnderlyingSwitch(UnderlyingEntity):
         self._cancel_cycle()
         self._keep_alive.cancel()
         super().remove_entity()
+
+    def hvac_action(self) -> HVACAction:
+        """Calculate a hvac_action based on the current state and should_be_on"""
+        if not self.is_initialized:
+            return HVACAction.OFF
+
+        return HVACAction.HEATING if self.should_device_be_active is True else HVACAction.OFF
 
 
 # ----------------------------------------------------------------
@@ -1639,7 +1646,8 @@ class UnderlyingValveRegulation(UnderlyingValve):
         if (value := self.last_sent_opening_value) is None:
             return HVACAction.OFF
 
-        if value > (100 - self._max_closing_degree):
+        # Align the behavior with is_device_active
+        if self.is_device_active:
             return HVACAction.HEATING
         elif value > 0:
             return HVACAction.IDLE

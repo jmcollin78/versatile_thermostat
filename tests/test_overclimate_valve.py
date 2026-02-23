@@ -1,7 +1,7 @@
 # pylint: disable=wildcard-import, unused-wildcard-import, protected-access, unused-argument, line-too-long, too-many-lines
 
 """ Test the over_climate with valve regulation """
-from unittest.mock import patch, call
+from unittest.mock import patch, call, PropertyMock
 from datetime import datetime, timedelta
 
 import logging
@@ -498,7 +498,7 @@ async def test_over_climate_valve_multi_min_opening_degrees(hass: HomeAssistant,
 
         assert vtherm.target_temperature == 19
         assert vtherm.nb_device_actives == 2
-        assert vtherm.hvac_action == HVACAction.IDLE # max closing=90 so valve is not at 0
+        assert vtherm.hvac_action == HVACAction.HEATING # 10 > threshold of 5
 
     # 2: set temperature -> should activate the valve and change target
     now = now + timedelta(minutes=3)
@@ -1099,3 +1099,123 @@ async def test_over_climate_valve_max_opening_degree(hass: HomeAssistant, fake_t
 
     vtherm.remove_thermostat()
     await hass.async_block_till_done()
+
+
+async def test_over_climate_valve_bug_1798(hass: HomeAssistant, fake_temp_sensor, fake_ext_temp_sensor):
+    """Test the bug described in issue 1798: if opening_degree is < opening_threshold, then the VTherm heating state is not compliant with the valve state"""
+
+    fake_temp_sensor.set_native_value(20)
+    fake_ext_temp_sensor.set_native_value(20)
+
+    entry = MockConfigEntry(
+        domain=DOMAIN,
+        title="TheOverClimateMockName",
+        unique_id="uniqueId",
+        version=2,
+        minor_version=2,
+        data={
+            CONF_NAME: "TheOverClimateMockName",
+            CONF_TEMP_SENSOR: "sensor.mock_temp_sensor",
+            CONF_CYCLE_MIN: 5,
+            CONF_DEVICE_POWER: 1,
+            CONF_USE_MAIN_CENTRAL_CONFIG: False,
+            CONF_USE_CENTRAL_MODE: False,
+            CONF_THERMOSTAT_TYPE: CONF_THERMOSTAT_CLIMATE,
+            CONF_EXTERNAL_TEMP_SENSOR: "sensor.mock_ext_temp_sensor",
+            CONF_TEMP_MIN: 15,
+            CONF_TEMP_MAX: 30,
+            CONF_STEP_TEMPERATURE: 0.1,
+            CONF_UNDERLYING_LIST: ["climate.mock_climate1", "climate.mock_climate2"],
+            CONF_AC_MODE: False,
+            CONF_AUTO_REGULATION_MODE: CONF_AUTO_REGULATION_VALVE,
+            CONF_AUTO_REGULATION_DTEMP: 0,
+            CONF_AUTO_REGULATION_PERIOD_MIN: 0,
+            CONF_AUTO_FAN_MODE: CONF_AUTO_FAN_HIGH,
+            CONF_AUTO_REGULATION_USE_DEVICE_TEMP: False,
+            CONF_PROP_FUNCTION: PROPORTIONAL_FUNCTION_TPI,
+            CONF_TPI_COEF_INT: 0.3,
+            CONF_TPI_COEF_EXT: 0.1,
+            CONF_OPENING_DEGREE_LIST: [
+                "number.mock_opening_degree1",
+                "number.mock_opening_degree2",
+            ],
+            CONF_CLOSING_DEGREE_LIST: [
+                "number.mock_closing_degree1",
+                "number.mock_closing_degree2",
+            ],
+            CONF_SYNC_DEVICE_INTERNAL_TEMP: False,
+            CONF_USE_PRESENCE_FEATURE: False,
+            CONF_USE_WINDOW_FEATURE: False,
+            CONF_USE_MOTION_FEATURE: False,
+            CONF_USE_POWER_FEATURE: False,
+            CONF_OPENING_THRESHOLD_DEGREE: 5,  # important parameter for this test
+        }
+        | MOCK_DEFAULT_CENTRAL_CONFIG
+        | MOCK_ADVANCED_CONFIG,
+    )
+
+    # Create the underlying climate entities
+    fake_underlying_climate1: MockClimate = await create_and_register_mock_climate(hass, "mock_climate1", "MockClimateName1")
+    fake_underlying_climate2: MockClimate = await create_and_register_mock_climate(hass, "mock_climate2", "MockClimateName2")
+
+    # Create all the number entities needed for the test
+    # Valve 1 is initially open at 10%
+    fake_opening_degree1 = await create_and_register_mock_number(hass, "mock_opening_degree1", "MockOpeningDegree1", value=10, min=0, max=100)
+    fake_closing_degree1 = await create_and_register_mock_number(hass, "mock_closing_degree1", "MockClosingDegree1", value=90, min=0, max=100)
+
+    # Valve 2 is initially closed
+    fake_opening_degree2 = await create_and_register_mock_number(hass, "mock_opening_degree2", "MockOpeningDegree2", value=0, min=0, max=100)
+    fake_closing_degree2 = await create_and_register_mock_number(hass, "mock_closing_degree2", "MockClosingDegree2", value=100, min=0, max=100)
+
+    # 1. initialize the VTherm
+    tz = get_tz(hass)  # pylint: disable=invalid-name
+    now: datetime = datetime.now(tz=tz)
+
+    vtherm: ThermostatOverClimateValve = await create_thermostat(hass, entry, "climate.theoverclimatemockname")
+    assert vtherm
+    assert isinstance(vtherm, ThermostatOverClimateValve)
+
+    assert vtherm.name == "TheOverClimateMockName"
+    assert vtherm.is_over_climate is True
+    assert vtherm.have_valve_regulation is True
+
+    vtherm._set_now(now)
+
+    # initialize the temps
+    await set_all_climate_preset_temp(hass, vtherm, default_temperatures, "theoverclimatemockname")
+
+    # TPI algo should returns 2%, valve are open at 10%
+    # fmt: off
+    with patch("custom_components.versatile_thermostat.thermostat_climate_valve.ThermostatOverClimateValve.valve_open_percent", new_callable=PropertyMock,return_value=2), \
+         patch("custom_components.versatile_thermostat.underlyings.UnderlyingValveRegulation.last_sent_opening_value", new_callable=PropertyMock,return_value=10), \
+         patch("custom_components.versatile_thermostat.underlyings.UnderlyingValveRegulation.current_valve_opening", new_callable=PropertyMock,return_value=10), \
+         patch("custom_components.versatile_thermostat.underlyings.UnderlyingValveRegulation.percent_open", new_callable=PropertyMock,return_value=0), \
+         patch("custom_components.versatile_thermostat.underlying_state_manager.UnderlyingStateManager.get_state", return_value=State("climate.mock_climate1", state=HVACMode.HEAT,attributes={"current_temperature": 18, "hvac_action": HVACAction.HEATING})):
+    # fmt: on
+        assert vtherm.valve_open_percent == 2
+
+        vtherm.calculate_hvac_action()
+        assert vtherm.hvac_action == HVACAction.HEATING
+
+        assert vtherm.is_device_active is True
+        assert vtherm.nb_device_actives == 2
+        assert vtherm.device_actives == ["number.mock_opening_degree1", "number.mock_opening_degree2"]  # Valve are active becaue 10 > threshold (5)
+
+    # TPI algo should returns 15%, valve are open at 10%
+    # fmt: off
+    with patch("custom_components.versatile_thermostat.thermostat_climate_valve.ThermostatOverClimateValve.valve_open_percent", new_callable=PropertyMock,return_value=15), \
+         patch("custom_components.versatile_thermostat.underlyings.UnderlyingValveRegulation.last_sent_opening_value", new_callable=PropertyMock,return_value=4), \
+         patch("custom_components.versatile_thermostat.underlyings.UnderlyingValveRegulation.current_valve_opening", new_callable=PropertyMock,return_value=4), \
+         patch("custom_components.versatile_thermostat.underlyings.UnderlyingValveRegulation.percent_open", new_callable=PropertyMock,return_value=15), \
+         patch("custom_components.versatile_thermostat.underlying_state_manager.UnderlyingStateManager.get_state", return_value=State("climate.mock_climate1", state=HVACMode.HEAT,attributes={"current_temperature": 18, "hvac_action": HVACAction.IDLE})):
+    # fmt: on
+        assert vtherm.valve_open_percent == 15
+
+        vtherm.calculate_hvac_action()
+        assert vtherm.hvac_action == HVACAction.IDLE
+
+        assert vtherm.is_device_active is False
+        assert vtherm.nb_device_actives == 0
+        assert vtherm.device_actives == []
+
+    vtherm.remove_thermostat()
