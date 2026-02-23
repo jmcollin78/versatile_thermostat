@@ -1204,10 +1204,14 @@ class UnderlyingClimate(UnderlyingEntity):
             raise RuntimeError(f"{self} - cannot cap sent value because underlying is not initialized")
             # return value
 
-        # Gets the min_temp and max_temp
+        # Gets the min_temp and max_temp.
+        # Values from state attributes are already in HA's configured unit (same as value),
+        # because HA's climate component normalizes them via show_temp() before storing.
+        # No unit conversion is needed here.
+
         if self.min_temp is not None:
-            min_val = TemperatureConverter.convert(self.min_temp, self.temperature_unit, self._hass.config.units.temperature_unit)
-            max_val = TemperatureConverter.convert(self.max_temp, self.temperature_unit, self._hass.config.units.temperature_unit)
+            min_val = self.min_temp
+            max_val = self.max_temp
 
             new_value = max(min_val, min(value, max_val))
         else:
