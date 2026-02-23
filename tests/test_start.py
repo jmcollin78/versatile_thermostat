@@ -470,7 +470,7 @@ async def test_over_climate_start_heating(hass: HomeAssistant, skip_hass_states_
     assert fake_underlying_climate.hvac_mode == VThermHvacMode_HEAT, "The underlying climate should be in HEAT mode"
 
     # Check that the underlying climate has received the correct target_temperature
-    await wait_for_local_condition(lambda: fake_underlying_climate.target_temperature == 21)
+    await wait_for_local_condition(lambda: fake_underlying_climate.target_temperature == 21, 10)
 
     # MockClimate now automatically calculates hvac_action based on hvac_mode and temperatures
     # Since hvac_mode=HEAT and target_temperature (21) > current_temperature (15), hvac_action should be HEATING

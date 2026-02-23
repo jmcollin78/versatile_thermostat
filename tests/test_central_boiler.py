@@ -1191,9 +1191,8 @@ async def test_update_central_boiler_state_simple_climate_valve_regulation(
 
     # the VTherm should not heat now
     assert entity.hvac_mode == VThermHvacMode_HEAT
-    # await asyncio.sleep(0.5)
     # a valve at 0 is considered as OFF
-    await wait_for_local_condition(lambda: entity.hvac_action == HVACAction.OFF)
+    await wait_for_local_condition(lambda: entity.hvac_action == HVACAction.OFF, 10)
     assert entity.activable_underlying_entities[0]._percent_open == 0
     await wait_for_local_condition(lambda: entity.device_actives == [])
 

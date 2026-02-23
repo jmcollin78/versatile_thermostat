@@ -1503,7 +1503,7 @@ async def do_central_power_refresh(hass):
     return await hass.async_block_till_done()
 
 
-async def wait_for_local_condition(check_condition: Callable[[], bool], timeout: float = 5.0):
+async def wait_for_local_condition(check_condition: Callable[[], bool], timeout: float = 1.0):
     """Waits that a local condition is satisfied, with a timeout."""
     start_time = asyncio.get_event_loop().time()
 

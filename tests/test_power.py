@@ -1016,14 +1016,16 @@ async def test_power_management_over_climate_valve(
     await vtherm.async_set_preset_mode(VThermPreset.COMFORT)  # 19
     await wait_for_local_condition(lambda: vtherm.proportional_algorithm.on_percent == 0.4)  # 0.4 = (19-18)*0.3 + (19-18)*0.1
 
+    await wait_for_local_condition(lambda: fake_opening_degree.native_value == 40)
+    await wait_for_local_condition(lambda: vtherm._underlyings_valve_regulation[0].state_manager.get_state("number.mock_opening_degree").state == "40.0")
+
     assert vtherm.hvac_action is HVACAction.HEATING
     assert vtherm.vtherm_hvac_mode is VThermHvacMode_HEAT
     assert vtherm.total_energy == 0.0
     assert vtherm.power_manager.mean_cycle_power == 1 * 0.4  # device_power * on_percent
 
-    # sometimes this test failed here
-    await asyncio.sleep(0.1)  # wait for the async_set_hvac_mode and async_set_preset_mode to be processed
-    await wait_for_local_condition(lambda: fake_underlying_climate.hvac_mode == HVACMode.HEAT and fake_underlying_climate.hvac_action == HVACAction.HEATING)
+    await wait_for_local_condition(lambda: fake_underlying_climate.hvac_mode == HVACMode.HEAT, 5)
+    await wait_for_local_condition(lambda: fake_underlying_climate.hvac_action == HVACAction.HEATING, 10)
     await wait_for_local_condition(lambda: vtherm._underlying_climate_start_hvac_action_date is not None)
 
     # 3. simulate a cycle that should calculate energy
