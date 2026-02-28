@@ -94,13 +94,7 @@
       },
       "type": {
         "title": "Propojené entity",
-        "description": "Atributy propojených entit {over_switch_doc}",
-        "description_placeholders": {
-          "over_switch_doc": {
-            "text": "dokumentace",
-            "url": "https://github.com/jmcollin78/versatile_thermostat/blob/main/documentation/cs/over-switch.md#configuration"
-          }
-        },
+        "description": "Atributy propojených entit",
         "data": {
           "underlying_entity_ids": "Zařízení, která mají být řízena",
           "heater_keep_alive": "Interval keep-alive spínače v sekundách",
@@ -427,13 +421,7 @@
       },
       "type": {
         "title": "Entity - {name}",
-        "description": "Atributy propojených entit {over_switch_doc}",
-        "description_placeholders": {
-          "over_switch_doc": {
-            "text": "dokumentace",
-            "url": "https://github.com/jmcollin78/versatile_thermostat/blob/main/documentation/cs/over-switch.md#configuration"
-          }
-        },
+        "description": "Atributy propojených entit",
         "data": {
           "underlying_entity_ids": "Zařízení, která mají být řízena",
           "heater_keep_alive": "Interval keep-alive spínače v sekundách",
