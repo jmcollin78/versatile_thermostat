@@ -155,6 +155,15 @@ async def update_listener(hass: HomeAssistant, entry: ConfigEntry) -> None:
         entry.data,
     )
 
+    # If a component has set this flag, skip the reload (data is still persisted to disk).
+    api: VersatileThermostatAPI = VersatileThermostatAPI.get_vtherm_api(hass)
+    if api and api.skip_reload_on_config_update:
+        _LOGGER.debug(
+            "update_listener: skipping reload for entry '%s' (skip_reload_on_config_update=True)",
+            entry.entry_id,
+        )
+        return
+
     if entry.data.get(CONF_THERMOSTAT_TYPE) == CONF_THERMOSTAT_CENTRAL_CONFIG:
         await reload_all_vtherm(hass)
     else:

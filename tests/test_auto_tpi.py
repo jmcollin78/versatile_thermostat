@@ -205,6 +205,7 @@ async def test_should_learn_failures(manager):
 
 async def test_perform_learning_indoor(manager):
     """Test indoor coefficient learning."""
+    manager.state.autolearn_enabled = True
     manager.state.last_state = "heat"
     manager.state.last_order = 20.0
     manager.state.last_temp_in = 19.0
