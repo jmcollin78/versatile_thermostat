@@ -936,3 +936,109 @@ async def test_bug_1777(hass):
     assert under.turn_on.await_count == 0
     assert under.turn_off.await_count == 1
     assert under.call_later.call_count == 0
+
+
+@pytest.mark.parametrize("expected_lingering_tasks", [True])
+@pytest.mark.parametrize("expected_lingering_timers", [True])
+async def test_bug_activity_preset_temperature_change(
+    hass: HomeAssistant,
+    skip_hass_states_is_state,
+    fake_underlying_switch: MockSwitch,
+):
+    """Test that changing the temperature of a preset used by activity
+    updates the current target temperature.
+
+    Bug: when VTherm is in activity preset, the motion manager delegates to a
+    sub-preset (e.g. comfort or boost). If the user changes the temperature of
+    that sub-preset via set_preset_temperature, the condition
+    `preset.startswith(self.preset_mode)` evaluates to False because
+    preset_mode == 'activity' and preset == 'comfort', so the current target
+    temperature is never updated.
+    """
+
+    entry = MockConfigEntry(
+        domain=DOMAIN,
+        title="TheOverSwitchMockName",
+        unique_id="uniqueId",
+        data={
+            CONF_NAME: "TheOverSwitchMockName",
+            CONF_THERMOSTAT_TYPE: CONF_THERMOSTAT_SWITCH,
+            CONF_TEMP_SENSOR: "sensor.mock_temp_sensor",
+            CONF_EXTERNAL_TEMP_SENSOR: "sensor.mock_ext_temp_sensor",
+            CONF_CYCLE_MIN: 5,
+            CONF_TEMP_MIN: 15,
+            CONF_TEMP_MAX: 30,
+            "eco_temp": 17,
+            "comfort_temp": 18,
+            "boost_temp": 19,
+            CONF_USE_WINDOW_FEATURE: False,
+            CONF_USE_MOTION_FEATURE: True,
+            CONF_USE_POWER_FEATURE: False,
+            CONF_USE_PRESENCE_FEATURE: False,
+            CONF_UNDERLYING_LIST: ["switch.mock_switch"],
+            CONF_PROP_FUNCTION: PROPORTIONAL_FUNCTION_TPI,
+            CONF_TPI_COEF_INT: 0.3,
+            CONF_TPI_COEF_EXT: 0.01,
+            CONF_MINIMAL_ACTIVATION_DELAY: 30,
+            CONF_MINIMAL_DEACTIVATION_DELAY: 0,
+            CONF_SAFETY_DELAY_MIN: 5,
+            CONF_SAFETY_MIN_ON_PERCENT: 0.3,
+            CONF_MOTION_SENSOR: "binary_sensor.mock_motion_sensor",
+            CONF_MOTION_DELAY: 0,  # important to not be obliged to wait
+            CONF_MOTION_PRESET: "boost",
+            CONF_NO_MOTION_PRESET: "comfort",
+        },
+    )
+
+    entity: BaseThermostat = await create_thermostat(hass, entry, "climate.theoverswitchmockname")
+    assert entity
+
+    tz = get_tz(hass)  # pylint: disable=invalid-name
+    now: datetime = datetime.now(tz=tz)
+
+    # 1. Start heating in activity mode. No motion detected -> no_motion_preset = comfort -> 18°
+    with patch("custom_components.versatile_thermostat.base_thermostat.BaseThermostat.async_control_heating"):
+        await entity.async_set_hvac_mode(VThermHvacMode_HEAT)
+        await entity.async_set_preset_mode(VThermPreset.ACTIVITY)
+
+        assert entity.vtherm_hvac_mode is VThermHvacMode_HEAT
+        assert entity.preset_mode == VThermPreset.ACTIVITY
+        # no motion detected -> using no_motion_preset = comfort = 18
+        assert entity.target_temperature == 18
+
+        event_timestamp = now - timedelta(minutes=4)
+        await send_temperature_change_event(entity, 15, event_timestamp)
+        await send_ext_temperature_change_event(entity, 10, event_timestamp)
+
+    # 2. Now change the comfort preset temperature (the active sub-preset of activity)
+    with patch("custom_components.versatile_thermostat.base_thermostat.BaseThermostat.async_control_heating"):
+        await entity.set_preset_temperature("comfort", temperature=20.0)
+        # Wait for async jobs
+        await hass.async_block_till_done()
+        await asyncio.sleep(0.1)
+
+        # The target temperature should now reflect the new comfort temp
+        assert entity._presets["comfort"] == 20.0
+        assert entity.target_temperature == 20.0  # <-- This is the bug: stays at 18
+
+    # 3. Also test with motion detected -> boost sub-preset
+    with patch("custom_components.versatile_thermostat.base_thermostat.BaseThermostat.async_control_heating"), patch(
+        "custom_components.versatile_thermostat.underlyings.UnderlyingSwitch.turn_on"
+    ), patch("custom_components.versatile_thermostat.underlyings.UnderlyingSwitch.turn_off"), patch(
+        "custom_components.versatile_thermostat.underlyings.UnderlyingSwitch.is_device_active",
+        new_callable=PropertyMock,
+        return_value=False,
+    ), patch(
+        "homeassistant.helpers.condition.state", return_value=True
+    ):
+        event_timestamp = now - timedelta(minutes=2)
+        await send_motion_change_event(entity, True, False, event_timestamp)
+        assert entity.target_temperature == 19  # boost temp
+
+        # Change boost preset temperature while motion is active
+        await entity.set_preset_temperature("boost", temperature=22.0)
+        await hass.async_block_till_done()
+        await asyncio.sleep(0.1)
+
+        assert entity._presets["boost"] == 22.0
+        assert entity.target_temperature == 22.0  # <-- Same bug for boost sub-preset

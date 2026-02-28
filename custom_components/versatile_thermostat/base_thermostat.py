@@ -1474,7 +1474,15 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
 
         # If the changed preset is active, change the current temperature
         # Issue #119 - reload new preset temperature also in ac mode
-        if preset.startswith(self.preset_mode):
+        is_active_preset = preset.startswith(self.preset_mode)
+
+        # Also check if activity is the current preset and the changed preset
+        # is the current motion sub-preset (e.g. comfort or boost)
+        if not is_active_preset and self.preset_mode == VThermPreset.ACTIVITY and self._motion_manager.is_configured:
+            current_motion_preset = self._motion_manager.get_current_motion_preset()
+            is_active_preset = preset.startswith(current_motion_preset)
+
+        if is_active_preset:
             self.requested_state.force_changed()
             await self.update_states(force=True)
 
