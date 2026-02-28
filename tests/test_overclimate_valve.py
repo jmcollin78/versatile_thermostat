@@ -493,12 +493,12 @@ async def test_over_climate_valve_multi_min_opening_degrees(hass: HomeAssistant,
 
         await hass.async_block_till_done()
 
-        # because there is no opening_threshold, the valve are considered as active but the cliamte if Idle (room temp=20 and target=19)
+        # the valve are considered as closed because the max_closing_degree is reached but the climate is Idle (room temp=20 and target=19)
         await wait_for_local_condition(lambda: vtherm.is_device_active is False)
 
         assert vtherm.target_temperature == 19
-        assert vtherm.nb_device_actives == 2
-        assert vtherm.hvac_action == HVACAction.HEATING # 10 > threshold of 5
+        assert vtherm.nb_device_actives == 0
+        assert vtherm.hvac_action == HVACAction.IDLE # 10 > threshold of 5
 
     # 2: set temperature -> should activate the valve and change target
     now = now + timedelta(minutes=3)
@@ -537,7 +537,7 @@ async def test_over_climate_valve_multi_min_opening_degrees(hass: HomeAssistant,
 
     await wait_for_local_condition(lambda: fake_opening_degree1.native_value == 10) # 100 (max) - 90 (max closing)
     await wait_for_local_condition(lambda: fake_opening_degree2.native_value == 10)  # 100 - 90
-    assert vtherm.is_device_active is True # 10 is considered as active
+    assert vtherm.is_device_active is False # 10 is considered as active
     assert vtherm.valve_open_percent == 0
 
     # The valves should be closed to max_closing_degree=90
@@ -548,7 +548,7 @@ async def test_over_climate_valve_multi_min_opening_degrees(hass: HomeAssistant,
     assert fake_closing_degree2.native_value == 90
     assert fake_offset_calibration2.native_value == 12
 
-    assert vtherm.nb_device_actives == 2# both valve are open
+    assert vtherm.nb_device_actives == 0 # both valve are closed
 
     # 4. restart the VTherm
     now = now + timedelta(minutes=3)
@@ -588,7 +588,7 @@ async def test_over_climate_valve_multi_min_opening_degrees(hass: HomeAssistant,
     assert fake_opening_degree2.native_value == 10  # 100 - 90
     assert fake_closing_degree2.native_value == 90
 
-    assert vtherm.nb_device_actives == 2
+    assert vtherm.nb_device_actives == 0
 
     await hass.async_block_till_done()
     vtherm.remove_thermostat()
@@ -1148,7 +1148,8 @@ async def test_over_climate_valve_bug_1798(hass: HomeAssistant, fake_temp_sensor
             CONF_USE_WINDOW_FEATURE: False,
             CONF_USE_MOTION_FEATURE: False,
             CONF_USE_POWER_FEATURE: False,
-            CONF_OPENING_THRESHOLD_DEGREE: 5,  # important parameter for this test
+            # CONF_OPENING_THRESHOLD_DEGREE: 5,  # important parameter for this test
+            CONF_MAX_CLOSING_DEGREE: 95,  # important parameter for this test
         }
         | MOCK_DEFAULT_CENTRAL_CONFIG
         | MOCK_ADVANCED_CONFIG,
