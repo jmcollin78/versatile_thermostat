@@ -1634,13 +1634,13 @@ class UnderlyingValveRegulation(UnderlyingValve):
 
     @property
     def is_device_active(self):
-        """If the opening valve is open."""
+        """If the opening valve is open. The real opening value is used here. So we need to compare with 100 - max_closing which the max closing value if the valve is closed."""
         val = self.current_valve_opening
-        return val > self._opening_threshold if isinstance(val, (int, float)) else False
+        return val > (100 - self._max_closing_degree) if isinstance(val, (int, float)) else False
 
     @property
     def should_device_be_active(self):
-        """If the opening valve is open."""
+        """If the opening valve is open. The real opening value is used here. So we need to compare with 100 - max_closing which the max closing value if the valve is closed."""
         # return value > (100 - self._max_closing_degree) # TODO why this ?
         return self.hvac_mode not in [VThermHvacMode_OFF] and self._percent_open > self._opening_threshold if isinstance(self._percent_open, (int, float)) else False
 
