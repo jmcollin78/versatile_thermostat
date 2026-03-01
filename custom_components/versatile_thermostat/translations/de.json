@@ -37,7 +37,8 @@
           "auto_tpi_avg_settings": "Auto TPI - Durchschnitt",
           "auto_tpi_ema_settings": "Auto TPI - EMA",
           "finalize": "Alles erledigt",
-          "configuration_not_complete": "Konfiguration unvollständig"
+          "configuration_not_complete": "Konfiguration unvollständig",
+          "stuck_valve_detection": "Erkennung blockierter Ventile"
         }
       },
       "lock": {
@@ -91,7 +92,8 @@
           "use_presence_feature": "Anwesenheitserkennung",
           "use_central_boiler_feature": "Zentralheizung hinzufügen. Aktivieren Sie diese Option, um eine Steuerung für eine Zentralheizung hinzuzufügen. Anschließend müssen die VTerms konfiguriert werden, die die Zentralheizung steuern. Sonst ist diese Option unwirksam. Sobald mindestens einer der VTherms heizen muss, wird die Zentralheizung aktiviert. Sollte keiner der VTherms heizen müssen, wird sie ausgeschaltet. Die Befehle zum Ein- und Ausschalten der Zentralheizung befinden sich auf der folgenden Konfigurationsseite",
           "use_auto_start_stop_feature": "Mit automatischer Start- und Stoppfunktion",
-          "use_heating_failure_detection_feature": "Heizungsausfallerkennung"
+          "use_heating_failure_detection_feature": "Heizungsausfallerkennung",
+          "use_stuck_valve_detection_feature": "Erkennung blockierter Ventile verwenden"
         }
       },
       "type": {
@@ -360,6 +362,22 @@
           "temperature_change_tolerance": "Minimale Temperaturänderung in Grad, die als aussagekräftig angesehen wird. Kleinere Änderungen werden ignoriert, um Störsignale der Sensoren herauszufiltern (Standardwert: 0,5 °C).",
           "failure_detection_enable_template": "Ein optionales Jinja2-Template, das 'True' zurückgeben muss, um die Erkennung zu aktivieren. Nützlich, um die Erkennung vorübergehend zu deaktivieren, wenn eine externe Wärmequelle aktiv ist (z. B. `is_state('binary_sensor.holzofen', 'off')` zwischen doppelten geschweiften Klammern). Wenn leer, ist die Erkennung immer aktiv."
         }
+      },
+      "stuck_valve_detection": {
+        "title": "Erkennung blockierter Ventile",
+        "description": "Konfiguration der Erkennung blockierter TRV-Ventile. Erkennt, wenn ein TRV-Ventil 'Heizen' meldet, aber die Raumtemperatur bereits über dem Sollwert liegt, und schaltet das Ventil automatisch aus/ein, um es zu entriegeln.",
+        "data": {
+          "use_stuck_valve_detection_feature": "Erkennung blockierter Ventile aktivieren",
+          "use_stuck_valve_detection_central_config": "Zentrale Konfiguration für Erkennung blockierter Ventile verwenden",
+          "stuck_valve_detection_delay_sec": "Erkennungsverzögerung (Sekunden)",
+          "stuck_valve_max_cycles": "Maximale Aus/Ein-Zyklen"
+        },
+        "data_description": {
+          "use_stuck_valve_detection_feature": "Erkennung blockierter TRV-Ventile für over_climate VTherms aktivieren",
+          "use_stuck_valve_detection_central_config": "Aktivieren, um die zentrale Konfiguration zu verwenden. Deaktivieren für spezifische Parameter für diesen VTherm",
+          "stuck_valve_detection_delay_sec": "Zeit in Sekunden, die das Ventil im anomalen Zustand sein muss, bevor ein Aus/Ein-Zyklus ausgelöst wird (Standard: 120)",
+          "stuck_valve_max_cycles": "Maximale Anzahl von Aus/Ein-Zyklen, bevor aufgegeben wird (Standard: 3)"
+        }
       }
     },
     "error": {
@@ -413,7 +431,8 @@
           "lock": "Sperrenverwaltung",
           "heating_failure_detection": "Heizungsausfallerkennung",
           "finalize": "Abschliessen",
-          "configuration_not_complete": "Konfiguration unvollständig"
+          "configuration_not_complete": "Konfiguration unvollständig",
+          "stuck_valve_detection": "Erkennung blockierter Ventile"
         }
       },
       "lock": {
@@ -467,7 +486,8 @@
           "use_presence_feature": "Mit Anwesenheitserkennung",
           "use_central_boiler_feature": "Benutze Zentralheizung. Aktivieren, um eine Steuerung für eine Zentralheizung hinzuzufügen. Anschließend muss VTerm für die Steuerung der Zentralheizung konfiguriert werden, um wirksam zu werden. Wenn mindestens einer der VTerms heizen muss, wird der Heizkessel angeschalten. Wenn kein VTherm heizen muss, wird sie abgeschalten. Die Befehle zum Ein- und Ausschalten der Zentralheizung finden sie auf der folgenden Konfigurationsseite.",
           "use_auto_start_stop_feature": "Mit automatischer Start- und Stopfunktion.",
-          "use_heating_failure_detection_feature": "Mit Heizungsausfallerkennung"
+          "use_heating_failure_detection_feature": "Mit Heizungsausfallerkennung",
+          "use_stuck_valve_detection_feature": "Erkennung blockierter Ventile verwenden"
         }
       },
       "type": {
@@ -677,7 +697,7 @@
           "sync_entity_ids": "Entitie-Liste, die zur Synchronisierung der internen Temperatur der zugeordneten Geräte verwendet werden. Es muss eine pro zugeordnetem Gerät vorhanden sein. Wenn es aktiviert ist, muss eine Kalibrierungsentität vorhanden sein, ansonsten eine Temperaturentity. Beides sind Entities vom Typ `number`."
         }
       },
-       "auto_tpi_configuration": {
+      "auto_tpi_configuration": {
         "title": "Auto TPI - Konfiguration - {name}",
         "description": "Allgemeine Parameter für das Auto-TPI-Lernen.",
         "data": {
@@ -739,6 +759,22 @@
           "heating_failure_detection_delay": "Wartezeit in Minuten, ehe überprüft wird, ob sich die Temperatur wie erwartet verändert hat",
           "temperature_change_tolerance": "Minimale Temperaturänderung in Grad, die als aussagekräftig angesehen wird. Kleinere Änderungen werden ignoriert, um Störsignale der Sensoren herauszufiltern (Standardwert: 0,5 °C).",
           "failure_detection_enable_template": "Ein optionales Jinja2-Template, das 'True' zurückgeben muss, um die Erkennung zu aktivieren. Nützlich, um die Erkennung vorübergehend zu deaktivieren, wenn eine externe Wärmequelle aktiv ist (z. B. `is_state('binary_sensor.holzofen', 'off')` zwischen doppelten geschweiften Klammern). Wenn leer, ist die Erkennung immer aktiv."
+        }
+      },
+      "stuck_valve_detection": {
+        "title": "Erkennung blockierter Ventile - {name}",
+        "description": "Konfiguration der Erkennung blockierter TRV-Ventile. Erkennt, wenn ein TRV-Ventil 'Heizen' meldet, aber die Raumtemperatur bereits über dem Sollwert liegt, und schaltet das Ventil automatisch aus/ein, um es zu entriegeln.",
+        "data": {
+          "use_stuck_valve_detection_feature": "Erkennung blockierter Ventile aktivieren",
+          "use_stuck_valve_detection_central_config": "Zentrale Konfiguration für Erkennung blockierter Ventile verwenden",
+          "stuck_valve_detection_delay_sec": "Erkennungsverzögerung (Sekunden)",
+          "stuck_valve_max_cycles": "Maximale Aus/Ein-Zyklen"
+        },
+        "data_description": {
+          "use_stuck_valve_detection_feature": "Erkennung blockierter TRV-Ventile für over_climate VTherms aktivieren",
+          "use_stuck_valve_detection_central_config": "Aktivieren, um die zentrale Konfiguration zu verwenden. Deaktivieren für spezifische Parameter für diesen VTherm",
+          "stuck_valve_detection_delay_sec": "Zeit in Sekunden, die das Ventil im anomalen Zustand sein muss, bevor ein Aus/Ein-Zyklus ausgelöst wird (Standard: 120)",
+          "stuck_valve_max_cycles": "Maximale Anzahl von Aus/Ein-Zyklen, bevor aufgegeben wird (Standard: 3)"
         }
       }
     },
@@ -811,13 +847,13 @@
         "auto_start_stop_slow": "Langsam",
         "auto_start_stop_medium": "Mittel",
         "auto_start_stop_fast": "Schnell"
-       }
+      }
     },
     "auto_tpi_calculation_method": {
       "options": {
         "average": "Durchschnitt",
         "ema": "Exponentialer gleitender Durchschnitt (EMA)"
-     }
+      }
     },
     "auto_tpi_learning_type": {
       "options": {

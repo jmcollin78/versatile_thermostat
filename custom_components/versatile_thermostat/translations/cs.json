@@ -34,7 +34,8 @@
           "heating_failure_detection": "Heating failure detection",
           "lock": "Správa zámku",
           "finalize": "Vše hotovo",
-          "configuration_not_complete": "Konfigurace není kompletní"
+          "configuration_not_complete": "Konfigurace není kompletní",
+          "stuck_valve_detection": "Detekce zaseknutého ventilu"
         }
       },
       "lock": {
@@ -89,7 +90,8 @@
           "use_presence_feature": "Použít detekci přítomnosti",
           "use_central_boiler_feature": "Použít centrální kotel. Zaškrtněte pro přidání ovládání centrálního kotle. Po zaškrtnutí budete muset nakonfigurovat VTherm, který bude mít kontrolu nad centrálním kotlem. Pokud jeden VTherm vyžaduje vytápění, kotel se zapne. Pokud žádný VTherm nevyžaduje vytápění, kotel se vypne. Příkazy pro zapnutí/vypnutí centrálního kotle jsou uvedeny na související konfigurační stránce",
           "use_auto_start_stop_feature": "Použít funkci automatického spuštění a zastavení",
-          "use_heating_failure_detection_feature": "Use heating failure detection"
+          "use_heating_failure_detection_feature": "Use heating failure detection",
+          "use_stuck_valve_detection_feature": "Použít detekci zaseknutého ventilu"
         }
       },
       "type": {
@@ -310,6 +312,22 @@
           "temperature_change_tolerance": "Minimum temperature change in degrees to consider significant. Smaller changes are ignored to filter sensor noise (default: 0.5°C)",
           "failure_detection_enable_template": "An optional Jinja2 template that must return True to enable detection. Useful to temporarily disable detection when an external heat source is active (e.g., is_state('binary_sensor.wood_stove', 'off') in double curly braces). If empty, detection is always enabled."
         }
+      },
+      "stuck_valve_detection": {
+        "title": "Detekce zaseknutého ventilu",
+        "description": "Konfigurace detekce zaseknutých TRV ventilů. Detekuje, když TRV ventil hlásí 'topení', ale teplota v místnosti je již nad cílovou hodnotou, a automaticky cykluje ventil vypnout/zapnout pro odblokování.",
+        "data": {
+          "use_stuck_valve_detection_feature": "Povolit detekci zaseknutého ventilu",
+          "use_stuck_valve_detection_central_config": "Použít centrální konfiguraci detekce zaseknutého ventilu",
+          "stuck_valve_detection_delay_sec": "Zpoždění detekce (sekundy)",
+          "stuck_valve_max_cycles": "Maximální počet cyklů vypnout/zapnout"
+        },
+        "data_description": {
+          "use_stuck_valve_detection_feature": "Povolit detekci zaseknutých TRV ventilů pro over_climate VThermy",
+          "use_stuck_valve_detection_central_config": "Zaškrtněte pro použití centrální konfigurace. Odškrtněte pro specifické parametry pro tento VTherm",
+          "stuck_valve_detection_delay_sec": "Čas v sekundách, po který musí být ventil v anomálním stavu, než se spustí cyklus vypnout/zapnout (výchozí: 120)",
+          "stuck_valve_max_cycles": "Maximální počet cyklů vypnout/zapnout před vzdáním se (výchozí: 3)"
+        }
       }
     },
     "error": {
@@ -362,7 +380,8 @@
           "heating_failure_detection": "Heating failure detection",
           "lock": "Zámek",
           "finalize": "Vše hotovo",
-          "configuration_not_complete": "Konfigurace není kompletní"
+          "configuration_not_complete": "Konfigurace není kompletní",
+          "stuck_valve_detection": "Detekce zaseknutého ventilu"
         }
       },
       "lock": {
@@ -416,7 +435,8 @@
           "use_presence_feature": "Použít detekci přítomnosti",
           "use_central_boiler_feature": "Použít centrální kotel. Zaškrtněte pro přidání ovládání centrálního kotle. Po zaškrtnutí budete muset nakonfigurovat VTherm, který bude mít kontrolu nad centrálním kotlem. Pokud jeden VTherm vyžaduje vytápění, kotel se zapne. Pokud žádný VTherm nevyžaduje vytápění, kotel se vypne. Příkazy pro zapnutí/vypnutí centrálního kotle jsou uvedeny na související konfigurační stránce",
           "use_auto_start_stop_feature": "Použít funkci automatického spuštění a zastavení",
-          "use_heating_failure_detection_feature": "Use heating failure detection"
+          "use_heating_failure_detection_feature": "Use heating failure detection",
+          "use_stuck_valve_detection_feature": "Použít detekci zaseknutého ventilu"
         }
       },
       "type": {
@@ -635,6 +655,22 @@
           "heating_failure_detection_delay": "Time in minutes to wait before checking if temperature has changed as expected",
           "temperature_change_tolerance": "Minimum temperature change in degrees to consider significant. Smaller changes are ignored to filter sensor noise (default: 0.5°C)",
           "failure_detection_enable_template": "An optional Jinja2 template that must return True to enable detection. Useful to temporarily disable detection when an external heat source is active (e.g., is_state('binary_sensor.wood_stove', 'off') in double curly braces). If empty, detection is always enabled."
+        }
+      },
+      "stuck_valve_detection": {
+        "title": "Detekce zaseknutého ventilu - {name}",
+        "description": "Konfigurace detekce zaseknutých TRV ventilů. Detekuje, když TRV ventil hlásí 'topení', ale teplota v místnosti je již nad cílovou hodnotou, a automaticky cykluje ventil vypnout/zapnout pro odblokování.",
+        "data": {
+          "use_stuck_valve_detection_feature": "Povolit detekci zaseknutého ventilu",
+          "use_stuck_valve_detection_central_config": "Použít centrální konfiguraci detekce zaseknutého ventilu",
+          "stuck_valve_detection_delay_sec": "Zpoždění detekce (sekundy)",
+          "stuck_valve_max_cycles": "Maximální počet cyklů vypnout/zapnout"
+        },
+        "data_description": {
+          "use_stuck_valve_detection_feature": "Povolit detekci zaseknutých TRV ventilů pro over_climate VThermy",
+          "use_stuck_valve_detection_central_config": "Zaškrtněte pro použití centrální konfigurace. Odškrtněte pro specifické parametry pro tento VTherm",
+          "stuck_valve_detection_delay_sec": "Čas v sekundách, po který musí být ventil v anomálním stavu, než se spustí cyklus vypnout/zapnout (výchozí: 120)",
+          "stuck_valve_max_cycles": "Maximální počet cyklů vypnout/zapnout před vzdáním se (výchozí: 3)"
         }
       }
     },
