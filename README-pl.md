@@ -26,6 +26,12 @@ Karta integracji VTherm UI (dostępna na [Github](https://github.com/jmcollin78/
 # Co nowego?
 ![New](images/new-icon.png)
 
+## Release 9.1
+> 1. Nowe logo. Zainspirowane pracami @Krzysztonek (zobacz [tutaj](https://github.com/jmcollin78/versatile_thermostat/pull/1598)), VTherm korzysta z nowej funkcji wprowadzonej w [HA 206.03](https://developers.home-assistant.io/blog/2026/02/24/brands-proxy-api/), aby zmienić swoje logo. Cały zespół ma nadzieję, że przypadnie Wam do gustu. Miłego korzystania!
+> 2. Strona internetowa stworzona przez @bontiv rozwiązuje jeden z głównych problemów VTherm: dokumentację. Strona umożliwia także analizę logów! Przekaż swoje logi (w trybie debug), a będziesz mógł je analizować, przybliżać widok dla konkretnego termostatu, wybranego okresu, filtrować interesujące dane itd. Zachęcamy do odkrycia tej pierwszej wersji tutaj: [Versatile Thermostat Web site](https://www.versatile-thermostat.org/). Ogromne podziękowania dla @bontiv za tę świetną realizację.
+> 3. Oficjalna publikacja funkcji auto-TPI. Funkcja ta oblicza optymalne wartości współczynników dla algorytmu [TPI](documentation/fr/algorithms.md#lalgorithme-tpi). Warto podkreślić niesamowitą pracę @KipK oraz @gael1980 w tym zakresie. Jeśli chcesz z niej korzystać, koniecznie przeczytaj dokumentację.
+> 4. VTherm opiera się teraz na stanie raportowanym przez urządzenia podrzędne w HA. Dopóki wszystkie urządzenia podrzędne nie mają znanego stanu w HA, VTherm pozostaje wyłączony.
+
 ## Wydanie 8.6
 > 1. Dodanie parametru `max_opening_degrees` dla termostatów VTherm typu `over_climate_valve` pozwalającego ograniczyć maksymalny procent otwarcia każdego zaworu w celu kontrolowania przepływu gorącej wody i optymalizacji zużycia energii.
 > 2. Dodanie funkcji ponownej kalibracji zaworów dla _VTherm_ `over_climate_valve`, pozwalającej wymusić maksymalne otwarcie, a następnie maksymalne zamknięcie w celu próby ponownej kalibracji TRV. Więcej informacji [tutaj](documentation/pl/feature-recalibrate-valves.md).
@@ -37,25 +43,6 @@ Karta integracji VTherm UI (dostępna na [Github](https://github.com/jmcollin78/
 >
 > Anomalie te mogą wskazywać na otwarte okno, uszkodzony grzejnik lub zewnętrzne źródło ciepła. Funkcja wysyła zdarzenia, które mogą być używane do wyzwalania automatyzacji (powiadomienia, alerty itp.). Więcej informacji [tutaj](documentation/pl/feature-heating-failure-detection.md).
 >
-
-## Wydanie 8.42.
-> 1. Dodanie eksperymentalnej funkcji automatyzacji algorytmu TPI. Ta nowa funkcja pozwala na automatyczne obliczanie najlepszych współczynników dla algorytmu TPI. Więcej informacji znajdziesz [tutaj](documentation/pl/feature-autotpi.md).
-> 2. Dodanie funkcji synchronizacji temperatury dla urządzenia sterowanego w trybie `na_klimacie`. W zależności od możliwości urządzenia, _VTherm_ może sterować jednostką kalibracji offsetu lub bezpośrednio zewnętrzną encją temperatury. Więcej informacji znajduje się [tutaj](documentation/pl/feature-sync_device_temp.md).
-> 3. Dodanie funkcji _**presetu czasowego**_, która umożliwia wybranie presetu na z góry określony czas i powrót do poprzedniego po upływie wkazanego opóźnienia. Nowa funkcja jest szczegółowo opisana [tutaj](documentation/pl/feature-timed-preset.md).
->
-
-## Wydanie 8.3
-> 1. Dodanie konfigurowalnego opóźnienia przed załączeniem kotła centralnego.
-> 2. Dodanie wyzwalacza kotła centralnego, gdy całkowita moc aktywowana przekroczy założony próg. Aby ta funkcja działała, musisz:
-> - skonfigurować próg mocy, który uruchomi kocioł. Jest to nowa jednostka dostępna w urządzeniu _„Konfiguracja centralna”_.
-> - skonfigurować wartości mocy termostatów _VTherm_. Można to zrobić na pierwszym ekranie konfiguracji każdego termostatu _VTherm_.
-> - zaznaczyć pole „Używane przez kocioł centralny”.
->
-> Za każdym razem, gdy VTherm jest aktywowany, jego skonfigurowana moc jest dodawana do sumy, a w przypadku przekroczenia progu, kocioł centralny zostanie uruchomiony po opóźnieniu skonfigurowanym w kroku 1.
->
-> Poprzedni licznik liczby aktywowanych urządzeń i jego progu nadal istnieją. Aby wyłączyć jeden z progów (próg mocy lub próg liczby aktywnych urządzeń), ustaw jego wartość na zero (`0`). Po przekroczeniu któregokolwiek z dwóch niezerowych progów kocioł zostanie uruchomiony. Dlatego pomiędzy dwoma progami stosuje się alternatywę logiczną _'lub'_.
->
-> Więcej informacji znajdziesz [tutaj](documentation/pl/feature-central-boiler.md).
 
 ## 🍻 Dziękuję za piwo! 🍻
 [!["Buy Me A Coffee"](https://www.buymeacoffee.com/assets/img/custom_images/orange_img.png)](https://www.buymeacoffee.com/jmcollin78)

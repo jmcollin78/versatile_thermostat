@@ -26,6 +26,12 @@ Versatile Thermostat UI Card (Available on [Github](https://github.com/jmcollin7
 # What's New?
 ![New](images/new-icon.png)
 
+## Release 9.1
+> 1. New logo. Inspired by the work of @Krzysztonek (see [here](https://github.com/jmcollin78/versatile_thermostat/pull/1598)), VTherm benefits from a new feature introduced in [HA 206.03](https://developers.home-assistant.io/blog/2026/02/24/brands-proxy-api/) to change its logo. The whole team hopes you will like it. Enjoy!
+> 2. A website created by @bontiv addresses one of VTherm’s major challenges: documentation. This site also allows you to analyze your logs! Provide your logs (in debug mode) and you will be able to analyze them, zoom in on a thermostat, focus on a time period, filter what interests you, and more. Discover this first version here: [Versatile Thermostat Web site](https://www.versatile-thermostat.org/). A huge thank you to @bontiv for this great work.
+> 3. Official release of the auto-TPI feature. This function calculates the optimal coefficient values for the [TPI](documentation/fr/algorithms.md#lalgorithme-tpi). We would like to highlight the incredible work of @KipK and @gael1980 on this topic. Do not skip the documentation if you plan to use it.
+> 4. VTherm now relies on the state reported by underlying devices in HA. As long as all underlying devices do not have a known state in HA, the VTherm remains disabled.
+
 ## Release 8.6
 > 1. added `max_opening_degrees` parameter for `over_climate_valve` VTherms allowing to limit the maximum opening percentage of each valve to control hot water flow and optimize energy consumption or other use cases.
 > 2. added a valve recalibration function for an _VTherm_ `over_climate_valve` allowing to force a maximum opening then a maximum closing to attempt recalibration of a TRV. More information [here](documentation/en/feature-recalibrate-valves.md).
@@ -36,23 +42,6 @@ Versatile Thermostat UI Card (Available on [Github](https://github.com/jmcollin7
 >    - **cooling failure**: the radiator is not heating (on_percent at 0) but the temperature keeps rising.
 >
 > These anomalies may indicate an open window, a faulty radiator, or an external heat source. The feature sends events that can be used to trigger automations (notifications, alerts, etc.). More information [here](documentation/en/feature-heating-failure-detection.md).
-
-## Release 8.4
-> 1. added auto TPI (experimental). This new feature allows automatically calculating the best coefficients for the TPI algorithm. More information [here](documentation/en/feature-auto_tpi.md)
-> 2. added a temperature synchronization function for a device controlled in `over_climate` mode. Depending on your device's capabilities, _VTherm_ can control an offset calibration entity or directly an external temperature entity. More information [here](documentation/en/feature-sync_device_temp.md),
-> 3. added a feature named "timed preset" which aims to select a preset for a certain duration and come back to the previous preset after the expiration of the delay. The new feature is totally described [here](documentation/en/feature-timed-preset.md).
-
-
-## Release 8.3
-1. Addition of a configurable delay before activating the central boiler.
-2. Addition of a trigger for the central boiler when the total activated power exceeds a threshold. To make this feature work you must:
-   - Configure the power threshold that will trigger the boiler. This is a new entity available in the `central configuration` device.
-   - Configure the power values of the VTherms. This can be found on the first configuration page of each VTherm.
-   - Check the `Used by central boiler` box.
-
-Each time a VTherm is activated, its configured power is added to the total and, if the threshold is exceeded, the central boiler will be activated after the delay configured in item 1.
-
-The previous counter for the number of activated devices and its threshold still exist. To disable one of the thresholds (the power threshold or the activated-devices count threshold), set it to zero. As soon as either of the two non-zero thresholds is exceeded, the boiler is activated. Therefore a logical "or" is applied between the two thresholds.
 
 More informations [here](documentation/en/feature-central-boiler.md).
 

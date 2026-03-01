@@ -2,6 +2,23 @@
 
 ![New](images/new-icon.png)
 
+## Release 8.4
+> 1. added auto TPI (experimental). This new feature allows automatically calculating the best coefficients for the TPI algorithm. More information [here](documentation/en/feature-auto_tpi.md)
+> 2. added a temperature synchronization function for a device controlled in `over_climate` mode. Depending on your device's capabilities, _VTherm_ can control an offset calibration entity or directly an external temperature entity. More information [here](documentation/en/feature-sync_device_temp.md),
+> 3. added a feature named "timed preset" which aims to select a preset for a certain duration and come back to the previous preset after the expiration of the delay. The new feature is totally described [here](documentation/en/feature-timed-preset.md).
+
+
+## Release 8.3
+1. Addition of a configurable delay before activating the central boiler.
+2. Addition of a trigger for the central boiler when the total activated power exceeds a threshold. To make this feature work you must:
+   - Configure the power threshold that will trigger the boiler. This is a new entity available in the `central configuration` device.
+   - Configure the power values of the VTherms. This can be found on the first configuration page of each VTherm.
+   - Check the `Used by central boiler` box.
+
+Each time a VTherm is activated, its configured power is added to the total and, if the threshold is exceeded, the central boiler will be activated after the delay configured in item 1.
+
+The previous counter for the number of activated devices and its threshold still exist. To disable one of the thresholds (the power threshold or the activated-devices count threshold), set it to zero. As soon as either of the two non-zero thresholds is exceeded, the boiler is activated. Therefore a logical "or" is applied between the two thresholds.
+
 ## Release 8.2
 > Added a feature to lock / unlock a VTherm with an optional code. More information [here](documentation/en/feature-lock.md)
 
