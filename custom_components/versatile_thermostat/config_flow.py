@@ -115,6 +115,10 @@ class VersatileThermostatBaseConfigFlow(FlowHandler):
             CONF_USE_HEATING_FAILURE_DETECTION_FEATURE, False
         )
 
+        self._infos[CONF_USE_STUCK_VALVE_DETECTION_FEATURE] = self._infos.get(
+            CONF_USE_STUCK_VALVE_DETECTION_FEATURE, False
+        )
+
     def _init_central_config_flags(self, infos):
         """Initialisation of central configuration flags"""
         is_empty: bool = not bool(infos)
@@ -605,6 +609,10 @@ class VersatileThermostatBaseConfigFlow(FlowHandler):
         # Add heating failure detection menu if feature is enabled
         if self._infos.get(CONF_USE_HEATING_FAILURE_DETECTION_FEATURE, False) is True:
             menu_options.append("heating_failure_detection")
+
+        # Add stuck valve detection menu if feature is enabled
+        if self._infos.get(CONF_USE_STUCK_VALVE_DETECTION_FEATURE, False) is True:
+            menu_options.append("stuck_valve_detection")
 
         if self.check_config_complete(self._infos):
             menu_options.append("finalize")
@@ -1188,6 +1196,37 @@ class VersatileThermostatBaseConfigFlow(FlowHandler):
 
         return await self.generic_step("heating_failure_detection", schema, user_input, next_step)
 
+    async def async_step_stuck_valve_detection(self, user_input: dict | None = None) -> FlowResult:
+        """Handle the stuck valve detection flow steps"""
+        _LOGGER.debug("Into ConfigFlow.async_step_stuck_valve_detection user_input=%s", user_input)
+
+        next_step = self.async_step_menu
+        if self._infos[CONF_THERMOSTAT_TYPE] == CONF_THERMOSTAT_CENTRAL_CONFIG:
+            schema = STEP_CENTRAL_STUCK_VALVE_DETECTION_SCHEMA
+        else:
+            schema = STEP_STUCK_VALVE_DETECTION_SCHEMA
+
+            if user_input and user_input.get(CONF_USE_STUCK_VALVE_DETECTION_CENTRAL_CONFIG, False) is False:
+                if user_input and self._infos.get(COMES_FROM) == "async_step_spec_stuck_valve_detection":
+                    schema = STEP_CENTRAL_STUCK_VALVE_DETECTION_SCHEMA
+                    del self._infos[COMES_FROM]
+                else:
+                    next_step = self.async_step_spec_stuck_valve_detection
+
+        return await self.generic_step("stuck_valve_detection", schema, user_input, next_step)
+
+    async def async_step_spec_stuck_valve_detection(self, user_input: dict | None = None) -> FlowResult:
+        """Handle the specific stuck valve detection flow steps"""
+        _LOGGER.debug("Into ConfigFlow.async_step_spec_stuck_valve_detection user_input=%s", user_input)
+
+        schema = STEP_CENTRAL_STUCK_VALVE_DETECTION_SCHEMA
+
+        self._infos[COMES_FROM] = "async_step_spec_stuck_valve_detection"
+
+        next_step = self.async_step_stuck_valve_detection
+
+        return await self.generic_step("stuck_valve_detection", schema, user_input, next_step)
+
     async def async_step_finalize(self, _):
         """Finalize the creation. Should be overriden by underlyings"""
         if not self._infos[CONF_USE_WINDOW_FEATURE]:
@@ -1221,6 +1260,13 @@ class VersatileThermostatBaseConfigFlow(FlowHandler):
                 del self._infos[CONF_CENTRAL_BOILER_DEACTIVATION_SRV]
         if not self._infos[CONF_USE_AUTO_START_STOP_FEATURE]:
             self._infos[CONF_AUTO_START_STOP_LEVEL] = AUTO_START_STOP_LEVEL_NONE
+
+        if not self._infos.get(CONF_USE_STUCK_VALVE_DETECTION_FEATURE, False):
+            self._infos[CONF_USE_STUCK_VALVE_DETECTION_CENTRAL_CONFIG] = False
+            if CONF_STUCK_VALVE_DETECTION_DELAY_SEC in self._infos:
+                del self._infos[CONF_STUCK_VALVE_DETECTION_DELAY_SEC]
+            if CONF_STUCK_VALVE_MAX_CYCLES in self._infos:
+                del self._infos[CONF_STUCK_VALVE_MAX_CYCLES]
 
         # Removes temporary value
         if COMES_FROM in self._infos:
