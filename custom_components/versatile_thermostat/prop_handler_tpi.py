@@ -188,8 +188,6 @@ class TPIHandler:
             _LOGGER.info("%s - DEBUG: Before load_data - int=%.3f, ext=%.3f", t, t.tpi_coef_int, t.tpi_coef_ext)
             await self._auto_tpi_manager.async_load_data()
 
-            # Sync config entry with latest learned data if needed (especially for Continuous Kext)
-            await self._auto_tpi_manager.async_sync_config_at_startup()
 
             # If we have learned parameters, apply them
             learned_params = self._auto_tpi_manager.get_calculated_params()
