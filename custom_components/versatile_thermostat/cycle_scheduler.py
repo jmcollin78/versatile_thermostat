@@ -334,55 +334,65 @@ class CycleScheduler:
             else:
                 under_dt = 999999.0  # Safe large value if no history
 
-            if target_is_on and (_is_initial or not under.is_device_active):
-                action, new_on_t, pen_delta = evaluate_need_on(
-                    under_dt, state_duration,
-                    self.min_deactivation_delay, self.min_activation_delay,
-                    state.on_t, current_t
-                )
-                if action == 'turn_on':
-                    if not under.is_device_active:
+            if target_is_on:
+                if not under.is_device_active:
+                    action, new_on_t, pen_delta = evaluate_need_on(
+                        under_dt, state_duration,
+                        self.min_deactivation_delay, self.min_activation_delay,
+                        state.on_t, current_t
+                    )
+                    if action == 'turn_on':
                         _LOGGER.info(
                             "%s - tick turn_on (state_duration=%.1fs, initial=%s)",
                             under, state_duration, _is_initial
                         )
                         await under.turn_on()
                         under._should_be_on = True
-                elif action == 'skip' and new_on_t is not None:
-                    _LOGGER.debug(
-                        "%s - tick skip turn_on (racollage), on_t shifted %.1f -> %.1f, penalty=%.1f",
-                        under, state.on_t, new_on_t, pen_delta
-                    )
-                    state.on_t = new_on_t
-                    self._penalty += pen_delta
-                    resched_time = new_on_t - current_t
-                    if 0 < resched_time < next_global_tick:
-                        next_global_tick = resched_time
+                    elif action == 'skip' and new_on_t is not None:
+                        _LOGGER.debug(
+                            "%s - tick skip turn_on (racollage), on_t shifted %.1f -> %.1f, penalty=%.1f",
+                            under, state.on_t, new_on_t, pen_delta
+                        )
+                        state.on_t = new_on_t
+                        self._penalty += pen_delta
+                        resched_time = new_on_t - current_t
+                        if 0 < resched_time < next_global_tick:
+                            next_global_tick = resched_time
+                elif _is_initial:
+                    # Enforce state unconditionally on the first tick
+                    if not under.is_device_active:
+                        await under.turn_on()
+                    under._should_be_on = True
 
-            elif not target_is_on and (_is_initial or under.is_device_active):
-                action, new_off_t, pen_delta = evaluate_need_off(
-                    under_dt, state_duration,
-                    self.min_activation_delay, self.min_deactivation_delay,
-                    state.off_t, current_t
-                )
-                if action == 'turn_off':
-                    if under.is_device_active:
+            elif not target_is_on:
+                if under.is_device_active:
+                    action, new_off_t, pen_delta = evaluate_need_off(
+                        under_dt, state_duration,
+                        self.min_activation_delay, self.min_deactivation_delay,
+                        state.off_t, current_t
+                    )
+                    if action == 'turn_off':
                         _LOGGER.info(
                             "%s - tick turn_off (state_duration=%.1fs, initial=%s)",
                             under, state_duration, _is_initial
                         )
                         await under.turn_off()
                         under._should_be_on = False
-                elif action == 'skip' and new_off_t is not None:
-                    _LOGGER.debug(
-                        "%s - tick skip turn_off (racollage), off_t shifted %.1f -> %.1f, penalty=%.1f",
-                        under, state.off_t, new_off_t, pen_delta
-                    )
-                    state.off_t = new_off_t
-                    self._penalty += pen_delta
-                    resched_time = new_off_t - current_t
-                    if 0 < resched_time < next_global_tick:
-                        next_global_tick = resched_time
+                    elif action == 'skip' and new_off_t is not None:
+                        _LOGGER.debug(
+                            "%s - tick skip turn_off (racollage), off_t shifted %.1f -> %.1f, penalty=%.1f",
+                            under, state.off_t, new_off_t, pen_delta
+                        )
+                        state.off_t = new_off_t
+                        self._penalty += pen_delta
+                        resched_time = new_off_t - current_t
+                        if 0 < resched_time < next_global_tick:
+                            next_global_tick = resched_time
+                elif _is_initial:
+                    # Enforce state unconditionally on the first tick
+                    if under.is_device_active:
+                        await under.turn_off()
+                    under._should_be_on = False
 
         # Ensure we do not schedule too fast (< 0.1s)
         next_global_tick = max(0.1, next_global_tick)
