@@ -69,7 +69,7 @@ def evaluate_need_on(
         (action, new_on_t_or_none, penalty_delta)
         action is 'turn_on' or 'skip'
     """
-    if under_dt >= min_deactivation and state_duration > min_activation:
+    if under_dt >= min_deactivation and state_duration >= min_activation:
         return 'turn_on', None, 0.0
 
     # CAS RACOLLAGE (Skip this turn ON)
@@ -95,7 +95,7 @@ def evaluate_need_off(
         (action, new_off_t_or_none, penalty_delta)
         action is 'turn_off' or 'skip'
     """
-    if under_dt >= min_activation and state_duration > min_deactivation:
+    if under_dt >= min_activation and state_duration >= min_deactivation:
         return 'turn_off', None, 0.0
 
     # CAS RACOLLAGE (Skip this turn OFF)
