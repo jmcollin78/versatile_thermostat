@@ -245,6 +245,22 @@
           "temperature_change_tolerance": "Minimum temperature change in degrees to consider significant. Smaller changes are ignored to filter sensor noise (default: 0.5°C)",
           "failure_detection_enable_template": "An optional Jinja2 template that must return True to enable detection. Useful to temporarily disable detection when an external heat source is active (e.g., `is_state('binary_sensor.wood_stove', 'off')` in double curly braces). If empty, detection is always enabled."
         }
+      },
+      "stuck_valve_detection": {
+        "title": "Ανίχνευση μπλοκαρισμένης βαλβίδας",
+        "description": "Ρύθμιση ανίχνευσης μπλοκαρισμένων βαλβίδων TRV. Ανιχνεύει όταν μια βαλβίδα TRV αναφέρει 'θέρμανση' αλλά η θερμοκρασία δωματίου είναι ήδη πάνω από τον στόχο, και αυτόματα κάνει κύκλο απενεργοποίησης/ενεργοποίησης της βαλβίδας για να την ξεμπλοκάρει.",
+        "data": {
+          "use_stuck_valve_detection_feature": "Ενεργοποίηση ανίχνευσης μπλοκαρισμένης βαλβίδας",
+          "use_stuck_valve_detection_central_config": "Χρήση κεντρικής διαμόρφωσης ανίχνευσης μπλοκαρισμένης βαλβίδας",
+          "stuck_valve_detection_delay_sec": "Καθυστέρηση ανίχνευσης (δευτερόλεπτα)",
+          "stuck_valve_max_cycles": "Μέγιστοι κύκλοι απενεργοποίησης/ενεργοποίησης"
+        },
+        "data_description": {
+          "use_stuck_valve_detection_feature": "Ενεργοποίηση ανίχνευσης μπλοκαρισμένων βαλβίδων TRV για over_climate VTherms",
+          "use_stuck_valve_detection_central_config": "Επιλέξτε για χρήση της κεντρικής διαμόρφωσης. Αποεπιλέξτε για συγκεκριμένες παραμέτρους για αυτόν τον VTherm",
+          "stuck_valve_detection_delay_sec": "Χρόνος σε δευτερόλεπτα που η βαλβίδα πρέπει να βρίσκεται σε ανώμαλη κατάσταση πριν ενεργοποιηθεί ο κύκλος απενεργοποίησης/ενεργοποίησης (προεπιλογή: 120)",
+          "stuck_valve_max_cycles": "Μέγιστος αριθμός κύκλων απενεργοποίησης/ενεργοποίησης πριν την εγκατάλειψη (προεπιλογή: 3)"
+        }
       }
     },
     "error": {
@@ -508,6 +524,22 @@
           "heating_failure_detection_delay": "Time in minutes to wait before checking if temperature has changed as expected",
           "temperature_change_tolerance": "Minimum temperature change in degrees to consider significant. Smaller changes are ignored to filter sensor noise (default: 0.5°C)",
           "failure_detection_enable_template": "An optional Jinja2 template that must return True to enable detection. Useful to temporarily disable detection when an external heat source is active (e.g., `is_state('binary_sensor.wood_stove', 'off')` in double curly braces). If empty, detection is always enabled."
+        }
+      },
+      "stuck_valve_detection": {
+        "title": "Ανίχνευση μπλοκαρισμένης βαλβίδας - {name}",
+        "description": "Ρύθμιση ανίχνευσης μπλοκαρισμένων βαλβίδων TRV. Ανιχνεύει όταν μια βαλβίδα TRV αναφέρει 'θέρμανση' αλλά η θερμοκρασία δωματίου είναι ήδη πάνω από τον στόχο, και αυτόματα κάνει κύκλο απενεργοποίησης/ενεργοποίησης της βαλβίδας για να την ξεμπλοκάρει.",
+        "data": {
+          "use_stuck_valve_detection_feature": "Ενεργοποίηση ανίχνευσης μπλοκαρισμένης βαλβίδας",
+          "use_stuck_valve_detection_central_config": "Χρήση κεντρικής διαμόρφωσης ανίχνευσης μπλοκαρισμένης βαλβίδας",
+          "stuck_valve_detection_delay_sec": "Καθυστέρηση ανίχνευσης (δευτερόλεπτα)",
+          "stuck_valve_max_cycles": "Μέγιστοι κύκλοι απενεργοποίησης/ενεργοποίησης"
+        },
+        "data_description": {
+          "use_stuck_valve_detection_feature": "Ενεργοποίηση ανίχνευσης μπλοκαρισμένων βαλβίδων TRV για over_climate VTherms",
+          "use_stuck_valve_detection_central_config": "Επιλέξτε για χρήση της κεντρικής διαμόρφωσης. Αποεπιλέξτε για συγκεκριμένες παραμέτρους για αυτόν τον VTherm",
+          "stuck_valve_detection_delay_sec": "Χρόνος σε δευτερόλεπτα που η βαλβίδα πρέπει να βρίσκεται σε ανώμαλη κατάσταση πριν ενεργοποιηθεί ο κύκλος απενεργοποίησης/ενεργοποίησης (προεπιλογή: 120)",
+          "stuck_valve_max_cycles": "Μέγιστος αριθμός κύκλων απενεργοποίησης/ενεργοποίησης πριν την εγκατάλειψη (προεπιλογή: 3)"
         }
       }
     },

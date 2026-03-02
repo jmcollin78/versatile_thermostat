@@ -34,7 +34,8 @@
           "lock": "Zarządzanie blokadą",
           "finalize": "Wszystko zrobione",
           "configuration_not_complete": "Konfiguracja niekompletna",
-          "heating_failure_detection": "Wykrywanie awarii ogrzewania"
+          "heating_failure_detection": "Wykrywanie awarii ogrzewania",
+          "stuck_valve_detection": "Wykrywanie zablokowanego zaworu"
         }
       },
       "lock": {
@@ -88,7 +89,8 @@
           "use_presence_feature": "Użyj detekcji obecności",
           "use_central_boiler_feature": "Użyj kotła centralnego. Zaznacz, aby dodać sterowanie kotłem centralnym. Po zaznaczeniu tej opcji musisz skonfigurować termostat sterujący kotłem centralnym. Jeśli któryś z termostatów zażąda ogrzewania, kocioł się załączy. Jeśli żaden termostat nie będzie żądał ogrzewania, kocioł pozostanie wyłączony. Polecenia załączenia i wyłączenia kotła centralnego są podane na odpowiedniej stronie konfiguracyjnej",
           "use_auto_start_stop_feature": "Użyj funkcji autoSTART i autoSTOP",
-          "use_heating_failure_detection_feature": "Użyj wykrywania awarii ogrzewania"
+          "use_heating_failure_detection_feature": "Użyj wykrywania awarii ogrzewania",
+          "use_stuck_valve_detection_feature": "Użyj wykrywania zablokowanego zaworu"
         }
       },
       "type": {
@@ -315,6 +317,22 @@
           "temperature_change_tolerance": "Minimalna zmiana temperatury w stopniach uznawana za znaczącą. Mniejsze zmiany są ignorowane w celu filtrowania szumu czujnika (domyślnie: 0.5°C)",
           "failure_detection_enable_template": "Opcjonalny szablon Jinja2, który musi zwrócić True, aby włączyć wykrywanie. Przydatne do tymczasowego wyłączenia wykrywania, gdy zewnętrzne źródło ciepła jest aktywne (np. `is_state('binary_sensor.piec_na_drewno', 'off')` w podwójnych nawiasach klamrowych). Jeśli pusty, wykrywanie jest zawsze włączone."
         }
+      },
+      "stuck_valve_detection": {
+        "title": "Wykrywanie zablokowanego zaworu",
+        "description": "Konfiguracja wykrywania zablokowanych zaworów TRV. Wykrywa, gdy zawór TRV zgłasza 'grzanie', ale temperatura w pomieszczeniu jest już powyżej wartości docelowej, i automatycznie wykonuje cykl wyłączenia/włączenia zaworu w celu odblokowania.",
+        "data": {
+          "use_stuck_valve_detection_feature": "Włącz wykrywanie zablokowanego zaworu",
+          "use_stuck_valve_detection_central_config": "Użyj centralnej konfiguracji wykrywania zablokowanego zaworu",
+          "stuck_valve_detection_delay_sec": "Opóźnienie wykrywania (sekundy)",
+          "stuck_valve_max_cycles": "Maksymalna liczba cykli wyłączenia/włączenia"
+        },
+        "data_description": {
+          "use_stuck_valve_detection_feature": "Włącz wykrywanie zablokowanych zaworów TRV dla VThermów over_climate",
+          "use_stuck_valve_detection_central_config": "Zaznacz, aby użyć konfiguracji centralnej. Odznacz, aby użyć specyficznych parametrów dla tego VTherma",
+          "stuck_valve_detection_delay_sec": "Czas w sekundach, przez który zawór musi być w stanie anomalnym przed uruchomieniem cyklu wyłączenia/włączenia (domyślnie: 120)",
+          "stuck_valve_max_cycles": "Maksymalna liczba cykli wyłączenia/włączenia przed rezygnacją (domyślnie: 3)"
+        }
       }
     },
     "error": {
@@ -371,7 +389,8 @@
           "auto_tpi_ema_settings": "Auto TPI - EMA",
           "finalize": "Wszystko zrobione",
           "configuration_not_complete": "Konfiguracja niekompletna",
-          "heating_failure_detection": "Wykrywanie awarii ogrzewania"
+          "heating_failure_detection": "Wykrywanie awarii ogrzewania",
+          "stuck_valve_detection": "Wykrywanie zablokowanego zaworu"
         }
       },
       "lock": {
@@ -425,7 +444,8 @@
           "use_presence_feature": "Użyj detekcji obecności",
           "use_central_boiler_feature": "Użyj kotła centralnego. Zaznacz, aby dodać sterowanie kotłem centralnym. Po zaznaczeniu tej opcji musisz skonfigurować termostat sterujący kotłem centralnym. Jeśli któryś z termostatów będzie wymagał ogrzewania, kocioł się załączy. Jeśli żaden termostat nie będzie wymagał ogrzewania, kocioł pozostanie wyłączony. Polecenia załączenia i wyłączenia kotła centralnego są podane na odpowiedniej stronie konfiguracyjnej",
           "use_auto_start_stop_feature": "Użyj funkcji autoSTART i autoSTOP",
-          "use_heating_failure_detection_feature": "Użyj wykrywania awarii ogrzewania"
+          "use_heating_failure_detection_feature": "Użyj wykrywania awarii ogrzewania",
+          "use_stuck_valve_detection_feature": "Użyj wykrywania zablokowanego zaworu"
         }
       },
       "type": {
@@ -689,6 +709,22 @@
           "heating_failure_detection_delay": "Czas w minutach do odczekania przed sprawdzeniem, czy temperatura zmieniła się zgodnie z oczekiwaniami",
           "temperature_change_tolerance": "Minimalna zmiana temperatury w stopniach uznawana za znaczącą. Mniejsze zmiany są ignorowane w celu filtrowania szumu czujnika (domyślnie: 0.5°C)",
           "failure_detection_enable_template": "Opcjonalny szablon Jinja2, który musi zwrócić True, aby włączyć wykrywanie. Przydatne do tymczasowego wyłączenia wykrywania, gdy zewnętrzne źródło ciepła jest aktywne (np. `is_state('binary_sensor.piec_na_drewno', 'off')` w podwójnych nawiasach klamrowych). Jeśli pusty, wykrywanie jest zawsze włączone."
+        }
+      },
+      "stuck_valve_detection": {
+        "title": "Wykrywanie zablokowanego zaworu - {name}",
+        "description": "Konfiguracja wykrywania zablokowanych zaworów TRV. Wykrywa, gdy zawór TRV zgłasza 'grzanie', ale temperatura w pomieszczeniu jest już powyżej wartości docelowej, i automatycznie wykonuje cykl wyłączenia/włączenia zaworu w celu odblokowania.",
+        "data": {
+          "use_stuck_valve_detection_feature": "Włącz wykrywanie zablokowanego zaworu",
+          "use_stuck_valve_detection_central_config": "Użyj centralnej konfiguracji wykrywania zablokowanego zaworu",
+          "stuck_valve_detection_delay_sec": "Opóźnienie wykrywania (sekundy)",
+          "stuck_valve_max_cycles": "Maksymalna liczba cykli wyłączenia/włączenia"
+        },
+        "data_description": {
+          "use_stuck_valve_detection_feature": "Włącz wykrywanie zablokowanych zaworów TRV dla VThermów over_climate",
+          "use_stuck_valve_detection_central_config": "Zaznacz, aby użyć konfiguracji centralnej. Odznacz, aby użyć specyficznych parametrów dla tego VTherma",
+          "stuck_valve_detection_delay_sec": "Czas w sekundach, przez który zawór musi być w stanie anomalnym przed uruchomieniem cyklu wyłączenia/włączenia (domyślnie: 120)",
+          "stuck_valve_max_cycles": "Maksymalna liczba cykli wyłączenia/włączenia przed rezygnacją (domyślnie: 3)"
         }
       }
     },

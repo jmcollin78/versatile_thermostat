@@ -37,7 +37,8 @@
           "auto_tpi_avg_settings": "Auto TPI - Moyenne pondérée",
           "auto_tpi_ema_settings": "Auto TPI - EWMA",
           "finalize": "Finaliser la création",
-          "configuration_not_complete": "Configuration incomplète"
+          "configuration_not_complete": "Configuration incomplète",
+          "stuck_valve_detection": "Détection de vanne bloquée"
         }
       },
       "lock": {
@@ -92,7 +93,8 @@
           "use_presence_feature": "Avec détection de présence",
           "use_central_boiler_feature": "Ajouter une chaudière centrale. Cochez pour ajouter un contrôle sur une chaudière centrale. Vous devrez ensuite configurer les VTherms qui commandent la chaudière centrale pour que cette option prenne effet. Si au moins un des VTherm a besoin de chauffer, la chaudière centrale sera activée. Si aucun VTherm n'a besoin de chauffer, elle sera éteinte. Les commandes pour allumer/éteindre la chaudière centrale sont données dans la page de configuration suivante.",
           "use_auto_start_stop_feature": "Avec démarrage et extinction automatique",
-          "use_heating_failure_detection_feature": "Avec détection de panne de chauffage"
+          "use_heating_failure_detection_feature": "Avec détection de panne de chauffage",
+          "use_stuck_valve_detection_feature": "Utiliser la détection de vanne bloquée"
         }
       },
       "type": {
@@ -365,6 +367,22 @@
           "temperature_change_tolerance": "Variation minimale de température en degrés pour être considérée comme significative. Les variations plus petites sont ignorées pour filtrer le bruit des capteurs (défaut: 0.5°C)",
           "failure_detection_enable_template": "Un template Jinja2 optionnel qui doit retourner True pour activer la détection. Utile pour désactiver temporairement la détection lorsqu'une source de chaleur externe est active (ex: `is_state('binary_sensor.poele_a_bois', 'off')` entre double accolades). Si vide, la détection est toujours active."
         }
+      },
+      "stuck_valve_detection": {
+        "title": "Détection de vanne bloquée",
+        "description": "Configurer la détection de vannes TRV bloquées. Détecte quand une vanne TRV indique 'chauffage' mais que la température ambiante est déjà au-dessus de la consigne, et cycle automatiquement la vanne off/on pour la débloquer.",
+        "data": {
+          "use_stuck_valve_detection_feature": "Activer la détection de vanne bloquée",
+          "use_stuck_valve_detection_central_config": "Utiliser la configuration centrale de détection de vanne bloquée",
+          "stuck_valve_detection_delay_sec": "Délai de détection (secondes)",
+          "stuck_valve_max_cycles": "Nombre maximum de cycles off/on"
+        },
+        "data_description": {
+          "use_stuck_valve_detection_feature": "Activer la détection des vannes TRV bloquées pour les VTherms over_climate",
+          "use_stuck_valve_detection_central_config": "Cocher pour utiliser la configuration centrale. Décocher pour utiliser des paramètres spécifiques pour ce VTherm",
+          "stuck_valve_detection_delay_sec": "Temps en secondes pendant lequel la vanne doit être dans un état anormal avant de déclencher un cycle off/on (par défaut : 120)",
+          "stuck_valve_max_cycles": "Nombre maximum de cycles off/on à tenter avant d'abandonner (par défaut : 3)"
+        }
       }
     },
     "error": {
@@ -418,7 +436,8 @@
           "lock": "Verrouillage",
           "heating_failure_detection": "Détection de panne de chauffage",
           "finalize": "Finaliser les modifications",
-          "configuration_not_complete": "Configuration incomplète"
+          "configuration_not_complete": "Configuration incomplète",
+          "stuck_valve_detection": "Détection de vanne bloquée"
         }
       },
       "lock": {
@@ -473,7 +492,8 @@
           "use_presence_feature": "Avec détection de présence",
           "use_central_boiler_feature": "Ajouter une chaudière centrale. Cochez pour ajouter un contrôle sur une chaudière centrale. Vous devrez ensuite configurer les VTherms qui commandent la chaudière centrale pour que cette option prenne effet. Si au moins un des VTherm a besoin de chauffer, la chaudière centrale sera activée. Si aucun VTherm n'a besoin de chauffer, elle sera éteinte. Les commandes pour allumer/éteindre la chaudière centrale sont données dans la page de configuration suivante.",
           "use_auto_start_stop_feature": "Avec démarrage et extinction automatique",
-          "use_heating_failure_detection_feature": "Avec détection de panne de chauffage"
+          "use_heating_failure_detection_feature": "Avec détection de panne de chauffage",
+          "use_stuck_valve_detection_feature": "Utiliser la détection de vanne bloquée"
         }
       },
       "type": {
@@ -749,6 +769,22 @@
           "heating_failure_detection_delay": "Temps en minutes à attendre avant de vérifier si la température a évolué comme attendu",
           "temperature_change_tolerance": "Variation minimale de température en degrés pour être considérée comme significative. Les variations plus petites sont ignorées pour filtrer le bruit des capteurs (défaut: 0.5°C)",
           "failure_detection_enable_template": "Un template Jinja2 optionnel qui doit retourner True pour activer la détection. Utile pour désactiver temporairement la détection lorsqu'une source de chaleur externe est active (ex: `is_state('binary_sensor.poele_a_bois', 'off')` entre double accolades). Si vide, la détection est toujours active."
+        }
+      },
+      "stuck_valve_detection": {
+        "title": "Détection de vanne bloquée - {name}",
+        "description": "Configurer la détection de vannes TRV bloquées. Détecte quand une vanne TRV indique 'chauffage' mais que la température ambiante est déjà au-dessus de la consigne, et cycle automatiquement la vanne off/on pour la débloquer.",
+        "data": {
+          "use_stuck_valve_detection_feature": "Activer la détection de vanne bloquée",
+          "use_stuck_valve_detection_central_config": "Utiliser la configuration centrale de détection de vanne bloquée",
+          "stuck_valve_detection_delay_sec": "Délai de détection (secondes)",
+          "stuck_valve_max_cycles": "Nombre maximum de cycles off/on"
+        },
+        "data_description": {
+          "use_stuck_valve_detection_feature": "Activer la détection des vannes TRV bloquées pour les VTherms over_climate",
+          "use_stuck_valve_detection_central_config": "Cocher pour utiliser la configuration centrale. Décocher pour utiliser des paramètres spécifiques pour ce VTherm",
+          "stuck_valve_detection_delay_sec": "Temps en secondes pendant lequel la vanne doit être dans un état anormal avant de déclencher un cycle off/on (par défaut : 120)",
+          "stuck_valve_max_cycles": "Nombre maximum de cycles off/on à tenter avant d'abandonner (par défaut : 3)"
         }
       }
     },

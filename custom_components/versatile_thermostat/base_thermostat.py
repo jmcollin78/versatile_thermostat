@@ -1584,6 +1584,10 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
         # Check for heating/cooling failures (only for TPI VTherms)
         await self._heating_failure_detection_manager.refresh_state()
 
+        # Check for stuck valve (only for over_climate VTherms)
+        if hasattr(self, '_stuck_valve_detection_manager') and self._stuck_valve_detection_manager:
+            await self._stuck_valve_detection_manager.refresh_state()
+
         self.calculate_hvac_action()
         self.update_custom_attributes()
         self.async_write_ha_state()

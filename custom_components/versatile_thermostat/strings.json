@@ -33,6 +33,7 @@
           "sync_device_internal_temp": "Synchronize device temperature",
           "lock": "Lock",
           "heating_failure_detection": "Heating failure detection",
+          "stuck_valve_detection": "Stuck valve detection",
           "auto_tpi_configuration": "Auto TPI - Configuration",
           "auto_tpi_avg_settings": "Auto TPI - Weighted Average",
           "auto_tpi_ema_settings": "Auto TPI - EWMA",
@@ -91,7 +92,8 @@
           "use_presence_feature": "Use presence detection",
           "use_central_boiler_feature": "Use a central boiler. Check to add a control to your central boiler. You will have to configure the VTherm which will have a control of the central boiler after selecting this checkbox to take effect. If one VTherm requires heating, the boiler will be turned on. If no VTherm requires heating, the boiler will be turned off. Commands for turning on/off the central boiler are given in the related configuration page",
           "use_auto_start_stop_feature": "Use the auto start and stop feature",
-          "use_heating_failure_detection_feature": "Use heating failure detection"
+          "use_heating_failure_detection_feature": "Use heating failure detection",
+          "use_stuck_valve_detection_feature": "Use stuck valve detection"
         }
       },
       "type": {
@@ -363,6 +365,22 @@
           "temperature_change_tolerance": "Minimum temperature change in degrees to consider significant. Smaller changes are ignored to filter sensor noise (default: 0.5°C)",
           "failure_detection_enable_template": "An optional Jinja2 template that must return True to enable detection. Useful to temporarily disable detection when an external heat source is active (e.g., `is_state('binary_sensor.wood_stove', 'off')` in double curly braces). If empty, detection is always enabled."
         }
+      },
+      "stuck_valve_detection": {
+        "title": "Stuck valve detection",
+        "description": "Configure stuck TRV valve detection. Detects when a TRV valve reports 'heating' but room temperature is already above target, and automatically cycles the valve off/on to unstick it.",
+        "data": {
+          "use_stuck_valve_detection_feature": "Enable stuck valve detection",
+          "use_stuck_valve_detection_central_config": "Use central stuck valve detection configuration",
+          "stuck_valve_detection_delay_sec": "Detection delay (seconds)",
+          "stuck_valve_max_cycles": "Maximum off/on cycles"
+        },
+        "data_description": {
+          "use_stuck_valve_detection_feature": "Enable detection of stuck TRV valves for over_climate VTherms",
+          "use_stuck_valve_detection_central_config": "Check to use the central configuration. Uncheck for specific parameters for this VTherm",
+          "stuck_valve_detection_delay_sec": "Time in seconds the valve must be in anomalous state before triggering an off/on cycle (default: 120)",
+          "stuck_valve_max_cycles": "Maximum number of off/on cycles to attempt before giving up (default: 3)"
+        }
       }
     },
     "error": {
@@ -413,6 +431,7 @@
           "sync_device_internal_temp": "Synchronize device temperature",
           "lock": "Lock",
           "heating_failure_detection": "Heating failure detection",
+          "stuck_valve_detection": "Stuck valve detection",
           "auto_tpi_configuration": "Auto TPI - Configuration",
           "auto_tpi_avg_settings": "Auto TPI - Weighted Average",
           "auto_tpi_ema_settings": "Auto TPI - EWMA",
@@ -471,7 +490,8 @@
           "use_presence_feature": "Use presence detection",
           "use_central_boiler_feature": "Use a central boiler. Check to add a control to your central boiler. You will have to configure the VTherm which will have a control of the central boiler after selecting this checkbox to take effect. If one VTherm requires heating, the boiler will be turned on. If no VTherm requires heating, the boiler will be turned off. Commands for turning on/off the central boiler are given in the related configuration page",
           "use_auto_start_stop_feature": "Use the auto start and stop feature",
-          "use_heating_failure_detection_feature": "Use heating failure detection"
+          "use_heating_failure_detection_feature": "Use heating failure detection",
+          "use_stuck_valve_detection_feature": "Use stuck valve detection"
         }
       },
       "type": {
@@ -747,6 +767,22 @@
           "heating_failure_detection_delay": "Time in minutes to wait before checking if temperature has changed as expected",
           "temperature_change_tolerance": "Minimum temperature change in degrees to consider significant. Smaller changes are ignored to filter sensor noise (default: 0.5°C)",
           "failure_detection_enable_template": "An optional Jinja2 template that must return True to enable detection. Useful to temporarily disable detection when an external heat source is active (e.g., `is_state('binary_sensor.wood_stove', 'off')` in double curly braces). If empty, detection is always enabled."
+        }
+      },
+      "stuck_valve_detection": {
+        "title": "Stuck valve detection - {name}",
+        "description": "Configure stuck TRV valve detection. Detects when a TRV valve reports 'heating' but room temperature is already above target, and automatically cycles the valve off/on to unstick it.",
+        "data": {
+          "use_stuck_valve_detection_feature": "Enable stuck valve detection",
+          "use_stuck_valve_detection_central_config": "Use central stuck valve detection configuration",
+          "stuck_valve_detection_delay_sec": "Detection delay (seconds)",
+          "stuck_valve_max_cycles": "Maximum off/on cycles"
+        },
+        "data_description": {
+          "use_stuck_valve_detection_feature": "Enable detection of stuck TRV valves for over_climate VTherms",
+          "use_stuck_valve_detection_central_config": "Check to use the central configuration. Uncheck for specific parameters for this VTherm",
+          "stuck_valve_detection_delay_sec": "Time in seconds the valve must be in anomalous state before triggering an off/on cycle (default: 120)",
+          "stuck_valve_max_cycles": "Maximum number of off/on cycles to attempt before giving up (default: 3)"
         }
       }
     },

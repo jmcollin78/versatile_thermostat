@@ -22,6 +22,7 @@ from .const import *  # pylint: disable=wildcard-import, unused-wildcard-import
 from .vtherm_api import VersatileThermostatAPI
 from .underlyings import UnderlyingClimate
 from .feature_auto_start_stop_manager import FeatureAutoStartStopManager
+from .feature_stuck_valve_detection_manager import FeatureStuckValveDetectionManager
 from .vtherm_hvac_mode import VThermHvacMode
 
 _LOGGER = logging.getLogger(__name__)
@@ -43,6 +44,7 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
                 "vtherm_over_climate",
             }
         ).union(FeatureAutoStartStopManager.unrecorded_attributes)
+        .union(FeatureStuckValveDetectionManager.unrecorded_attributes)
     )
 
     def __init__(
@@ -80,8 +82,12 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
         self._auto_start_stop_manager: FeatureAutoStartStopManager = (
             FeatureAutoStartStopManager(self, self._hass)
         )
+        self._stuck_valve_detection_manager: FeatureStuckValveDetectionManager = (
+            FeatureStuckValveDetectionManager(self, self._hass)
+        )
 
         self.register_manager(self._auto_start_stop_manager)
+        self.register_manager(self._stuck_valve_detection_manager)
 
         super().post_init(config_entry)
 

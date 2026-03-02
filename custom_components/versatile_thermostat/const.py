@@ -140,6 +140,14 @@ CONF_HEATING_FAILURE_DETECTION_DELAY = "heating_failure_detection_delay"
 CONF_TEMPERATURE_CHANGE_TOLERANCE = "temperature_change_tolerance"
 CONF_FAILURE_DETECTION_ENABLE_TEMPLATE = "failure_detection_enable_template"
 
+CONF_USE_STUCK_VALVE_DETECTION_FEATURE = "use_stuck_valve_detection_feature"
+CONF_USE_STUCK_VALVE_DETECTION_CENTRAL_CONFIG = "use_stuck_valve_detection_central_config"
+CONF_STUCK_VALVE_DETECTION_DELAY_SEC = "stuck_valve_detection_delay_sec"
+CONF_STUCK_VALVE_MAX_CYCLES = "stuck_valve_max_cycles"
+
+DEFAULT_STUCK_VALVE_DETECTION_DELAY_SEC = 120  # 2 minutes
+DEFAULT_STUCK_VALVE_MAX_CYCLES = 3
+
 CONF_LOCK_CODE = "lock_code"
 CONF_LOCK_USERS = "lock_users"
 CONF_LOCK_AUTOMATIONS = "lock_automations"
@@ -399,6 +407,10 @@ ALL_CONF = (
         CONF_HEATING_FAILURE_DETECTION_DELAY,
         CONF_TEMPERATURE_CHANGE_TOLERANCE,
         CONF_FAILURE_DETECTION_ENABLE_TEMPLATE,
+        CONF_USE_STUCK_VALVE_DETECTION_FEATURE,
+        CONF_USE_STUCK_VALVE_DETECTION_CENTRAL_CONFIG,
+        CONF_STUCK_VALVE_DETECTION_DELAY_SEC,
+        CONF_STUCK_VALVE_MAX_CYCLES,
     ]
     + CONF_PRESETS_VALUES
     + CONF_PRESETS_AWAY_VALUES
@@ -595,6 +607,7 @@ class EventType(Enum):
     AUTO_TPI_EVENT = "versatile_thermostat_auto_tpi_event"
     TIMED_PRESET_EVENT = "versatile_thermostat_timed_preset_event"
     HEATING_FAILURE_EVENT = "versatile_thermostat_heating_failure_event"
+    STUCK_VALVE_EVENT = "versatile_thermostat_stuck_valve_event"
 
 
 def send_vtherm_event(hass, event_type: EventType, entity, data: dict):

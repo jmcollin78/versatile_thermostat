@@ -83,6 +83,7 @@ STEP_CLIMATE_FEATURES_DATA_SCHEMA = vol.Schema(  # pylint: disable=invalid-name
         vol.Optional(CONF_USE_POWER_FEATURE, default=False): cv.boolean,
         vol.Optional(CONF_USE_PRESENCE_FEATURE, default=False): cv.boolean,
         vol.Optional(CONF_USE_AUTO_START_STOP_FEATURE, default=False): cv.boolean,
+        vol.Optional(CONF_USE_STUCK_VALVE_DETECTION_FEATURE, default=False): cv.boolean,
     }
 )
 
@@ -93,6 +94,7 @@ STEP_CLIMATE_VALVE_FEATURES_DATA_SCHEMA = vol.Schema(  # pylint: disable=invalid
         vol.Optional(CONF_USE_POWER_FEATURE, default=False): cv.boolean,
         vol.Optional(CONF_USE_PRESENCE_FEATURE, default=False): cv.boolean,
         vol.Optional(CONF_USE_HEATING_FAILURE_DETECTION_FEATURE, default=False): cv.boolean,
+        vol.Optional(CONF_USE_STUCK_VALVE_DETECTION_FEATURE, default=False): cv.boolean,
     }
 )
 
@@ -104,6 +106,7 @@ STEP_CENTRAL_FEATURES_DATA_SCHEMA = vol.Schema(  # pylint: disable=invalid-name
         vol.Optional(CONF_USE_PRESENCE_FEATURE, default=False): cv.boolean,
         vol.Optional(CONF_USE_CENTRAL_BOILER_FEATURE, default=False): cv.boolean,
         vol.Optional(CONF_USE_HEATING_FAILURE_DETECTION_FEATURE, default=False): cv.boolean,
+        vol.Optional(CONF_USE_STUCK_VALVE_DETECTION_FEATURE, default=False): cv.boolean,
     }
 )
 
@@ -497,6 +500,25 @@ STEP_CENTRAL_HEATING_FAILURE_DETECTION_SCHEMA = vol.Schema(  # pylint: disable=i
 STEP_HEATING_FAILURE_DETECTION_SCHEMA = vol.Schema(  # pylint: disable=invalid-name
     {
         vol.Required(CONF_USE_HEATING_FAILURE_DETECTION_CENTRAL_CONFIG, default=True): cv.boolean,
+    }
+)
+
+STEP_CENTRAL_STUCK_VALVE_DETECTION_SCHEMA = vol.Schema(  # pylint: disable=invalid-name
+    {
+        vol.Required(
+            CONF_STUCK_VALVE_DETECTION_DELAY_SEC,
+            default=DEFAULT_STUCK_VALVE_DETECTION_DELAY_SEC,
+        ): cv.positive_int,
+        vol.Required(
+            CONF_STUCK_VALVE_MAX_CYCLES,
+            default=DEFAULT_STUCK_VALVE_MAX_CYCLES,
+        ): cv.positive_int,
+    }
+)
+
+STEP_STUCK_VALVE_DETECTION_SCHEMA = vol.Schema(  # pylint: disable=invalid-name
+    {
+        vol.Required(CONF_USE_STUCK_VALVE_DETECTION_CENTRAL_CONFIG, default=True): cv.boolean,
     }
 )
 
