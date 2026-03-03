@@ -198,14 +198,15 @@ class CycleScheduler:
 
         self.cancel_cycle()
 
+        # Compute realized on_percent after timing constraints (for learning callbacks)
+        # This is the actual percentage that will be executed physically
+        realized_on_percent = on_time_sec / self._cycle_duration_sec if self._cycle_duration_sec > 0 else 0.0
+
         # Store current cycle parameters for repeat
         self._current_hvac_mode = hvac_mode
         self._current_on_time_sec = on_time_sec
         self._current_off_time_sec = off_time_sec
-        self._current_on_percent = on_percent
-
-        # Compute realized on_percent after timing constraints (for learning callbacks)
-        realized_on_percent = on_time_sec / self._cycle_duration_sec if self._cycle_duration_sec > 0 else 0.0
+        self._current_on_percent = realized_on_percent
 
         # Fire cycle start callbacks with realized percent so learners see actual applied power
         await self._fire_cycle_start_callbacks(
@@ -216,7 +217,7 @@ class CycleScheduler:
             await self._start_cycle_valve(hvac_mode)
         else:
             await self._start_cycle_switch(
-                hvac_mode, on_time_sec, off_time_sec, on_percent
+                hvac_mode, on_time_sec, off_time_sec, realized_on_percent
             )
 
     async def _start_cycle_valve(self, hvac_mode: VThermHvacMode):
@@ -346,8 +347,11 @@ class CycleScheduler:
                             "%s - tick turn_on (state_duration=%.1fs, initial=%s)",
                             under, state_duration, _is_initial
                         )
-                        await under.turn_on()
-                        under._should_be_on = True
+                        try:
+                            await under.turn_on()
+                            under._should_be_on = True
+                        except Exception as err:
+                            _LOGGER.error("%s - tick turn_on failed: %s", under, err)
                     elif action == 'skip' and new_on_t is not None:
                         _LOGGER.debug(
                             "%s - tick skip turn_on (racollage), on_t shifted %.1f -> %.1f, penalty=%.1f",
@@ -376,8 +380,11 @@ class CycleScheduler:
                             "%s - tick turn_off (state_duration=%.1fs, initial=%s)",
                             under, state_duration, _is_initial
                         )
-                        await under.turn_off()
-                        under._should_be_on = False
+                        try:
+                            await under.turn_off()
+                            under._should_be_on = False
+                        except Exception as err:
+                            _LOGGER.error("%s - tick turn_off failed: %s", under, err)
                     elif action == 'skip' and new_off_t is not None:
                         _LOGGER.debug(
                             "%s - tick skip turn_off (racollage), off_t shifted %.1f -> %.1f, penalty=%.1f",
@@ -391,8 +398,11 @@ class CycleScheduler:
                 elif _is_initial:
                     # Enforce state unconditionally on the first tick
                     if under.is_device_active:
-                        await under.turn_off()
-                    under._should_be_on = False
+                        try:
+                            await under.turn_off()
+                            under._should_be_on = False
+                        except Exception as err:
+                            _LOGGER.error("%s - initial turn_off failed: %s", under, err)
 
         # Ensure we do not schedule too fast (< 0.1s)
         next_global_tick = max(0.1, next_global_tick)
