@@ -335,24 +335,27 @@ Then the action is `turn_off`.
 
 ### 10.1 Principle
 
-Effective power is computed at the end of each cycle by `compute_e_eff()`. It represents the power actually produced, accounting for reattachment adjustments.
+Effective power is computed and notified by `CycleScheduler` via the internal `_calculate_realized_e_eff(elapsed_sec)` method.
+It represents the power actually produced by exactly integrating the underlyings' heating time over the elapsed time, accounting for reattachment adjustments.
 
-### 10.2 Formula
+### 10.2 Exact Integration Formula
+
+Rather than estimating at cycle end, the algorithm computes the exact physical projected activation time `t_on_actual` of each underlying over an absolute `elapsed_sec` window:
 
 ```python
-full_on_t = cycle_duration * n_underlyings
-e_eff = (full_on_t * on_percent - penalty) / full_on_t
+e_eff = max(0.0, t_on_actual - penalty) / (elapsed_sec * n_underlyings)
 ```
 
 Where:
-- `full_on_t` is the total operating time at 100% for all underlyings.
-- `on_percent` is the originally requested power.
+- `t_on_actual` is the sum of the absolute activation time fractions cut over `elapsed_sec` (handling the scheduler's *wrap-around*).
 - `penalty` is the cumulative heating time added (+) or removed (−) by reattachments during the cycle.
 - `e_eff` is clamped between 0.0 and 1.0.
 
-### 10.3 Cycle Duration
+### 10.3 Cycle End and Interruptions
 
-The `cycle_duration` used is the actual time elapsed between cycle start and end. If the cycle was not interrupted, it equals `cycle_duration_sec`. If it was interrupted (power change with `force=True`), the time elapsed since the last `_init_cycle` is used.
+The method applies in two crucial contexts:
+1. **Normal end (`_on_master_cycle_end`)**: Called with `nominal_cycle_duration`.
+2. **Interruption (`cancel_cycle`)**: If a running cycle (> 1.0s) is canceled (e.g., the setpoint is changed mid-cycle), a partial `e_eff` is computed over the actual elapsed time (`elapsed_sec`). The scheduler then triggers a notification (`on_cycle_completed(partial_e_eff)` callback), ensuring the regulation algorithms (like Smart-PI) properly integrate this slice of thermal history.
 
 ---
 
@@ -592,7 +595,7 @@ This call is independent of the `on_cycle_started` callback (which fires only at
 
 | File                  | Role                                                                                         |
 | --------------------- | -------------------------------------------------------------------------------------------- |
-| `cycle_tick_logic.py` | Pure tick scheduler logic: `UnderlyingCycleState`, `compute_circular_offsets`, `compute_target_state`, `evaluate_need_on`, `evaluate_need_off`, `compute_e_eff` |
+| `cycle_tick_logic.py` | Pure tick scheduler logic: `UnderlyingCycleState`, `compute_circular_offsets`, `compute_target_state`, `evaluate_need_on`, `evaluate_need_off` |
 
 ### 15.4 Modified Files
 

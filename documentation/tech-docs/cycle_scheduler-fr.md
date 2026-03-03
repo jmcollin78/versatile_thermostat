@@ -335,24 +335,27 @@ Alors l'action est `turn_off`.
 
 ### 10.1 Principe
 
-La puissance effective est calculée à la fin de chaque cycle par `compute_e_eff()`. Elle représente la puissance réellement produite en tenant compte des ajustements de racollage.
+La puissance effective est calculée et notifiée par `CycleScheduler` via la méthode interne `_calculate_realized_e_eff(elapsed_sec)`.
+Elle représente la puissance réellement produite en intégrant exactement le temps de chauffe des sous-jacents sur le temps écoulé, en tenant compte des ajustements de racollage.
 
-### 10.2 Formule
+### 10.2 Formule d'intégration exacte
+
+Plutôt que d'estimer en fin de cycle, l'algorithme calcule le temps physique exact `t_on_actual` d'activation projeté de chaque sous-jacent sur une fenêtre de temps absolue `elapsed_sec` :
 
 ```python
-full_on_t = cycle_duration * n_underlyings
-e_eff = (full_on_t * on_percent - penalty) / full_on_t
+e_eff = max(0.0, t_on_actual - penalty) / (elapsed_sec * n_underlyings)
 ```
 
 Où :
-- `full_on_t` est la durée totale de fonctionnement à 100% pour tous les sous-jacents.
-- `on_percent` est la puissance demandée à l'origine.
+- `t_on_actual` est la somme des fractions temporelles d'activation absolues découpées sur `elapsed_sec` (gérant le *wrap-around* du scheduler).
 - `penalty` est le cumul des temps de chauffe ajoutés (+) ou retirés (−) par les racollages pendant le cycle.
 - `e_eff` est borné entre 0.0 et 1.0.
 
-### 10.3 Durée du cycle
+### 10.3 Fin de cycle et Interruptions
 
-Le `cycle_duration` utilisé est le temps réellement écoulé entre le début et la fin du cycle. Si le cycle n'a pas été interrompu, il est égal à `cycle_duration_sec`. S'il a été interrompu (changement de puissance avec `force=True`), on utilise le temps écoulé depuis le dernier `_init_cycle`.
+La méthode s'applique dans deux contextes cruciaux :
+1. **Fin normale (`_on_master_cycle_end`)** : Appelée avec `nominal_cycle_duration`.
+2. **Interruption (`cancel_cycle`)** : Si un cycle en cours de roulement (> 1.0s) est annulé (ex. la consigne change à mi-cycle), un `e_eff` partiel est calculé sur le vrai temps écoulé (`elapsed_sec`). Le scheduler déclenche alors une notification (callback `on_cycle_completed(e_eff_partiel)`), ce qui permet notamment aux algorithmes de régulation (comme Smart-PI) d'intégrer proprement ce fragment d'historique thermique.
 
 ---
 
@@ -592,7 +595,7 @@ Cet appel est indépendant du callback `on_cycle_started` (qui se déclenche uni
 
 | Fichier              | Rôle                                                                                         |
 | -------------------- | -------------------------------------------------------------------------------------------- |
-| `cycle_tick_logic.py` | Logique pure du tick scheduler : `UnderlyingCycleState`, `compute_circular_offsets`, `compute_target_state`, `evaluate_need_on`, `evaluate_need_off`, `compute_e_eff` |
+| `cycle_tick_logic.py` | Logique pure du tick scheduler : `UnderlyingCycleState`, `compute_circular_offsets`, `compute_target_state`, `evaluate_need_on`, `evaluate_need_off` |
 
 ### 15.4 Fichiers modifiés
 
