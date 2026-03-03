@@ -419,12 +419,7 @@ class CycleScheduler:
         # consistent with the penalty calculated in evaluate_need_on/off.
         nominal_cycle_duration = self._cycle_duration_sec
 
-        e_eff = compute_e_eff(
-            self._current_on_percent, 
-            self._penalty, 
-            nominal_cycle_duration, 
-            len(self._underlyings)
-        )
+        e_eff = self._calculate_realized_e_eff(nominal_cycle_duration)
 
         _LOGGER.debug(
             "%s - cycle end: nominal_dur=%.1f, on_pct=%.2f, pen=%.1f -> e_eff=%.3f",
@@ -447,18 +442,58 @@ class CycleScheduler:
 
     def cancel_cycle(self):
         """Cancel the current cycle if one is running."""
+        was_running = self.is_cycle_running
+
         if self._tick_unsub:
             self._tick_unsub()
             self._tick_unsub = None
         if self._cycle_end_unsub:
             self._cycle_end_unsub()
             self._cycle_end_unsub = None
+
+        import time
+        elapsed_sec = time.time() - self._cycle_start_time if self._cycle_start_time > 0 else 0
+
+        if was_running and elapsed_sec > 1.0 and self._states and not self._is_valve_mode:
+            realized_e_eff = self._calculate_realized_e_eff(elapsed_sec)
+            
+            _LOGGER.debug(
+                "%s - cycle interrupted: elapsed_sec=%.1f, realized_e_eff=%.3f",
+                self._thermostat, elapsed_sec, realized_e_eff
+            )
+            # Create task so SmartPI can process the partial cycle integral update
+            self._hass.async_create_task(self._fire_cycle_end_callbacks(realized_e_eff))
+
         self._states = []
         self._current_on_time_sec = 0
         self._current_off_time_sec = 0
         self._current_on_percent = 0.0
         self._current_hvac_mode = None
+        self._cycle_start_time = 0.0
         _LOGGER.debug("%s - Cycle cancelled", self._thermostat)
+
+    def _calculate_realized_e_eff(self, elapsed_sec: float) -> float:
+        """Calculate the actual effective power applied over the given elapsed time."""
+        if not self._underlyings or elapsed_sec <= 0:
+            return 0.0
+
+        t_on_actual = 0.0
+        for state in self._states:
+            if state.off_t >= state.on_t:
+                start_on = min(state.on_t, elapsed_sec)
+                end_on = min(state.off_t, elapsed_sec)
+                if end_on > start_on:
+                    t_on_actual += (end_on - start_on)
+            else:
+                end_on_1 = min(state.off_t, elapsed_sec)
+                t_on_actual += end_on_1
+
+                start_on_2 = min(state.on_t, elapsed_sec)
+                end_on_2 = elapsed_sec
+                if end_on_2 > start_on_2:
+                    t_on_actual += (end_on_2 - start_on_2)
+
+        return max(0.0, t_on_actual - self._penalty) / (elapsed_sec * len(self._underlyings))
 
     async def _fire_cycle_start_callbacks(
         self, on_time_sec, off_time_sec, on_percent, hvac_mode
