@@ -292,7 +292,7 @@
           "auto_tpi_learning_type": "Art des Lernens",
           "heater_heating_time": "Aufheizzeit (min)",
           "heater_cooling_time": "Auskühlzeit (min)",
-          "auto_tpi_heating_rate": "Aufheizgeschwindigkeit ({Einheit}/h)",
+          "auto_tpi_heating_rate": "Aufheizgeschwindigkeit ({unit}/h)",
           "auto_tpi_aggressiveness": "Aggressivität",
           "auto_tpi_enable_advanced_settings": "Erweiterte Einstellungen aktivieren"
         },
@@ -300,7 +300,7 @@
           "auto_tpi_learning_type": "Wähle 'Erkundung' für den ersten Start (gewichteter Durchschnitt, Gewicht 1) oder 'Feinabstimmung' für kontinuierliche Anpassungen (EWMA, Alpha 0,08).",
           "heater_heating_time": "Zeit bis zum Erreichen der vollen Leistung (Minuten)",
           "heater_cooling_time": "Abkühlzeit nach dem Ausschalten (Minuten)\n\n| Typ | Aufheizzeit | Abkühlzeit |\n| :--- | :--- | :--- |\n| Elektroheizkörper | 5 Min. | 7 Min. |\n| Wasserheizkörper | 15 Min. | 20 Min. |\n| Fußbodenheizung | 30 Min. | 45 Min. |",
-          "auto_tpi_heating_rate": "Temperaturanstiegskapazität des Heizkörpers ({Einheit} pro Stunde). Kann über den Aktionsdienst 'Kapazität kalibrieren' geschätzt werden.",
+          "auto_tpi_heating_rate": "Temperaturanstiegskapazität des Heizkörpers ({unit} pro Stunde). Kann über den Aktionsdienst 'Kapazität kalibrieren' geschätzt werden.",
           "auto_tpi_aggressiveness": "Skalierungsfaktor für die gelernten Koeffizienten (50-100 %). Niedrigere Werte führen zu konservativeren Koeffizienten und verringern das Risiko einer Überschreitung des Sollwerts.",
           "auto_tpi_enable_advanced_settings": "Aktivieren Sie diese Option, um die Feinabstimmung der Parameter (Alpha, Abklingen, Gewicht) vorzunehmen."
         }
@@ -682,7 +682,7 @@
         "description": "Allgemeine Parameter für das Auto-TPI-Lernen.",
         "data": {
           "auto_tpi_learning_type": "Art des Lernens",
-          "auto_tpi_heating_rate": "Aufheizrate ({Einheit}/h)",
+          "auto_tpi_heating_rate": "Aufheizrate ({unit}/h)",
           "heater_heating_time": "Aufheizzeit (min)",
           "heater_cooling_time": "Abkühlzeit (min)",
           "auto_tpi_aggressiveness": "Aggressivität",
@@ -690,7 +690,7 @@
         },
         "data_description": {
           "auto_tpi_learning_type": "Wähle 'Erkundung' für den ersten Start (gewichteter Durchschnitt, Gewicht 1) oder 'Feinabstimmung' für kontinuierliche Anpassungen (EWMA, Alpha 0,08).",
-          "auto_tpi_heating_rate": "Temperaturanstiegskapazität des Heizkörpers ({Einheit} pro Stunde). Kann über den Aktionsdienst 'Kapazität kalibrieren' geschätzt werden.",
+          "auto_tpi_heating_rate": "Temperaturanstiegskapazität des Heizkörpers ({unit} pro Stunde). Kann über den Aktionsdienst 'Kapazität kalibrieren' geschätzt werden.",
           "heater_heating_time": "Zeit bis zum Erreichen der vollen Leistung (Minuten)",
           "heater_cooling_time": "Abkühlzeit nach dem Ausschalten (Minuten)\n\n| Typ | Aufheizzeit | Abkühlzeit |\n| :--- | :--- | :--- |\n| Elektroheizkörper | 5 Min. | 7 Min. |\n| Wasserheizkörper | 15 Min. | 20 Min. |\n| Fußbodenheizung | 30 Min. | 45 Min. |",
           "auto_tpi_aggressiveness": "Skalierungsfaktor für die gelernten Koeffizienten (50–100 %). Niedrigere Werte führen zu konservativeren Koeffizienten und verringern das Risiko einer Überschreitung des Sollwerts.",
