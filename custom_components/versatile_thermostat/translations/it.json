@@ -300,7 +300,7 @@
                     "auto_tpi_learning_type": "Scegliere “Discovery” per l'avvio iniziale (media ponderata, peso 1) o “Regolazione fine” per le regolazioni continue (EWMA, Alpha 0,08).",
                     "heater_heating_time": "Tempo necessario per raggiungere la piena potenza (minuti)",
                     "heater_cooling_time": "Tempo di raffreddamento dopo l'arresto (minuti)\n\n| Tipo | Tempo di riscaldamento | Tempo di raffreddamento |\n| :--- | :--- | :--- |\n| Radiatore elettrico | 5 min | 7 min |\n| Radiatore ad acqua | 15 min | 20 min |\n| Riscaldamento a pavimento | 30 min | 45 min |",
-                    "auto_tpi_heating_rate": "Capacità di aumento della temperatura del radiatore ({unità} all'ora). Lasciare a 0 per l'apprendimento automatico (bootstrap).",
+                    "auto_tpi_heating_rate": "Capacità di aumento della temperatura del radiatore ({unit} all'ora). Lasciare a 0 per l'apprendimento automatico (bootstrap).",
                     "auto_tpi_aggressiveness": "Fattore di riduzione per i coefficienti appresi (50-100%). Valori inferiori determinano coefficienti più conservativi e riducono il rischio di sovra-riscaldamento.",
                     "auto_tpi_enable_advanced_settings": "Controlla per accedere alla regolazione fine dei parametri (Alpha, Decadimento, Peso)."
                 }
@@ -678,11 +678,11 @@
                 }
             },
             "auto_tpi_configuration": {
-                "title": "Auto TPI - Configurazione - {nome}",
+                "title": "Auto TPI - Configurazione - {name}",
                 "description": "Impostazioni generali per l'apprendimento automatico del TPI.",
                 "data": {
                     "auto_tpi_learning_type": "Tipo di apprendimento",
-                    "auto_tpi_heating_rate": "Velocità di riscaldamento ({unità}/h)",
+                    "auto_tpi_heating_rate": "Velocità di riscaldamento ({unit}/h)",
                     "heater_heating_time": "Tempo di riscaldamento (min)",
                     "heater_cooling_time": "Tempo di raffrescamento (min)",
                     "auto_tpi_aggressiveness": "Aggressività",
@@ -690,7 +690,7 @@
                 },
                 "data_description": {
                     "auto_tpi_learning_type": "Scegliere “Discovery” per l'avvio iniziale (media ponderata, peso 1) o “Fine Tuning” per le regolazioni continue (EWMA, Alpha 0,08).",
-                    "auto_tpi_heating_rate": "Capacità di aumento della temperatura del radiatore ({unità} all'ora). Lasciare a 0 per l'apprendimento automatico (bootstrap).",
+                    "auto_tpi_heating_rate": "Capacità di aumento della temperatura del radiatore ({unit} all'ora). Lasciare a 0 per l'apprendimento automatico (bootstrap).",
                     "heater_heating_time": "Tempo necessario per raggiungere la piena potenza (minuti)",
                     "heater_cooling_time": "Tempo di raffreddamento dopo l'arresto (minuti)\n\n| Tipo | Tempo di riscaldamento | Tempo di raffreddamento |\n| :--- | :--- | :--- |\n| Radiatore elettrico | 5 min | 7 min |\n| Radiatore ad acqua | 15 min | 20 min |\n| Riscaldamento a pavimento | 30 min | 45 min |",
                     "auto_tpi_aggressiveness": "Fattore di riduzione per i coefficienti appresi (50-100%). Valori inferiori determinano coefficienti più conservativi e riducono il rischio di sovrariscaldamento.",
@@ -698,7 +698,7 @@
                 }
             },
             "auto_tpi_avg_settings": {
-                "title": "Auto TPI - Media ponderata - {nome}",
+                "title": "Auto TPI - Media ponderata - {name}",
                 "description": "Parametri per il metodo della media ponderata.",
                 "data": {
                     "auto_tpi_avg_initial_weight": "Peso iniziale"
@@ -708,7 +708,7 @@
                 }
             },
             "auto_tpi_ema_settings": {
-                "title": "Auto TPI - EWMA - {nome}",
+                "title": "Auto TPI - EWMA - {name}",
                 "description": "Parametri per il metodo EWMA.\n\nRaccomandazioni:\n| Situazione | Alpha (ema_alpha) | Tasso di decadimento (ema_decay_rate) |\n| :--- | :--- | :--- |\n| Regolazioni significative | 0,15 | 0,08 |\n| Regolazioni di precisione | 0,08 | 0,12 |",
                 "data": {
                     "auto_tpi_ema_alpha": "Alpha",
