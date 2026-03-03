@@ -412,29 +412,23 @@ class CycleScheduler:
 
     async def _on_master_cycle_end(self, _now):
         """Called at the end of the master cycle. Compute e_eff and restart."""
-        # Compute real cycle duration since _init_cycle based on time
-        # If no states exist (e.g. 0% or 100% fixed), e_eff logic might differ
-        # But compute_e_eff handles it if we pass proper values
-        
-        # 0% or OFF will have no states initialization if it didn't call _init_cycle
-        # We can just fall back to standard calculation for these limits
-        import time
-        real_cycle_duration = self._cycle_duration_sec
-        if self._cycle_start_time > 0:
-            elapsed = time.time() - self._cycle_start_time
-            if elapsed > 0:
-                real_cycle_duration = elapsed
+        if not self.is_cycle_running:
+            return
+
+        # F3 Note: We use nominal cycle duration for computing e_eff to be mathematically
+        # consistent with the penalty calculated in evaluate_need_on/off.
+        nominal_cycle_duration = self._cycle_duration_sec
 
         e_eff = compute_e_eff(
             self._current_on_percent, 
             self._penalty, 
-            real_cycle_duration, 
+            nominal_cycle_duration, 
             len(self._underlyings)
         )
 
         _LOGGER.debug(
-            "%s - cycle end: dur=%.1f, on_pct=%.2f, pen=%.1f -> e_eff=%.3f",
-            self._thermostat, real_cycle_duration, self._current_on_percent, self._penalty, e_eff
+            "%s - cycle end: nominal_dur=%.1f, on_pct=%.2f, pen=%.1f -> e_eff=%.3f",
+            self._thermostat, nominal_cycle_duration, self._current_on_percent, self._penalty, e_eff
         )
 
         # Fire cycle end callbacks with e_eff
@@ -462,6 +456,8 @@ class CycleScheduler:
         self._states = []
         self._current_on_time_sec = 0
         self._current_off_time_sec = 0
+        self._current_on_percent = 0.0
+        self._current_hvac_mode = None
         _LOGGER.debug("%s - Cycle cancelled", self._thermostat)
 
     async def _fire_cycle_start_callbacks(

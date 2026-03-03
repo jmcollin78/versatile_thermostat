@@ -54,6 +54,9 @@ def compute_target_state(
             target = True
             next_tick = cycle_duration
 
+    # Note (off_t == on_t falls in wrap-around condition):
+    # This works safely because upstream guards in cycle_scheduler._start_cycle_switch
+    # handle `on_time == 0` and `on_time == cycle_duration` before evaluating ticks.
     state_duration = next_tick - current_t
     return target, next_tick, state_duration
 
@@ -69,11 +72,11 @@ def evaluate_need_on(
         (action, new_on_t_or_none, penalty_delta)
         action is 'turn_on' or 'skip'
     """
-    if under_dt >= min_deactivation and state_duration >= min_activation:
+    if under_dt >= min_deactivation and state_duration > min_activation:
         return 'turn_on', None, 0.0
 
     # CAS RACOLLAGE (Skip this turn ON)
-    new_on_t = on_t - state_duration
+    new_on_t = max(0.0, on_t - state_duration)
     penalty_delta = state_duration
     
     if (new_on_t - current_t) < (min_deactivation - under_dt):
@@ -95,11 +98,11 @@ def evaluate_need_off(
         (action, new_off_t_or_none, penalty_delta)
         action is 'turn_off' or 'skip'
     """
-    if under_dt >= min_activation and state_duration >= min_deactivation:
+    if under_dt >= min_activation and state_duration > min_deactivation:
         return 'turn_off', None, 0.0
 
     # CAS RACOLLAGE (Skip this turn OFF)
-    new_off_t = off_t - state_duration
+    new_off_t = max(0.0, off_t - state_duration)
     penalty_delta = -state_duration
 
     if (new_off_t - current_t) < (min_activation - under_dt):

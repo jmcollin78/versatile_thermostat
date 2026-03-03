@@ -293,6 +293,7 @@ class TestCycleSchedulerCallbacks:
         scheduler._current_on_percent = 0.2
         scheduler._current_hvac_mode = VThermHvacMode_HEAT
         scheduler._cycle_duration_sec = 600
+        scheduler._cycle_end_unsub = MagicMock()
 
         await scheduler._on_master_cycle_end(None)
 
@@ -341,6 +342,7 @@ class TestMasterCycleEnd:
         scheduler._current_off_time_sec = 300
         scheduler._current_on_percent = 0.5
         scheduler._current_hvac_mode = VThermHvacMode_HEAT
+        scheduler._cycle_end_unsub = MagicMock()
 
         await scheduler._on_master_cycle_end(None)
 
@@ -361,6 +363,7 @@ class TestMasterCycleEnd:
         scheduler._current_off_time_sec = 0
         scheduler._current_on_percent = 1.0
         scheduler._current_hvac_mode = VThermHvacMode_HEAT
+        scheduler._cycle_end_unsub = MagicMock()
 
         await scheduler._on_master_cycle_end(None)
 
@@ -381,6 +384,7 @@ class TestMasterCycleEnd:
         scheduler._current_off_time_sec = 480
         scheduler._current_on_percent = 0.2
         scheduler._current_hvac_mode = VThermHvacMode_HEAT
+        scheduler._cycle_end_unsub = MagicMock()
 
         await scheduler._on_master_cycle_end(None)
 
@@ -400,6 +404,7 @@ class TestMasterCycleEnd:
         scheduler._current_off_time_sec = 480
         scheduler._current_on_percent = 0.2
         scheduler._current_hvac_mode = VThermHvacMode_HEAT
+        scheduler._cycle_end_unsub = MagicMock()
 
         await scheduler._on_master_cycle_end(None)
 

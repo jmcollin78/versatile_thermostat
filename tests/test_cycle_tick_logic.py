@@ -106,6 +106,30 @@ def test_evaluate_need_on_racollage_min_deactivation():
     assert penalty == 20.0
 
 
+def test_evaluate_need_on_racollage_exact_equality():
+    """Test finding 2: exact equality for min_activation should skip."""
+    action, new_on_t, penalty = evaluate_need_on(
+        under_dt=60, state_duration=20,
+        min_deactivation=30, min_activation=20,
+        on_t=100, current_t=100
+    )
+    assert action == 'skip'
+    assert new_on_t == 80.0
+    assert penalty == 20.0
+
+
+def test_evaluate_need_on_racollage_negative():
+    """Test finding 1: handles potential negative new_on_t correctly."""
+    action, new_on_t, penalty = evaluate_need_on(
+        under_dt=100, state_duration=50,
+        min_deactivation=30, min_activation=60,
+        on_t=0.0, current_t=0.0
+    )
+    assert action == 'skip'
+    assert new_on_t == 0.0
+    assert penalty == 50.0
+
+
 def test_evaluate_need_off_nominal():
     """Test turning OFF is OK when constraints are met."""
     action, new_off_t, penalty = evaluate_need_off(
@@ -131,6 +155,30 @@ def test_evaluate_need_off_racollage_min_activation():
     # new_off_t = 200 + 20 = 220
     assert new_off_t == 220.0
     assert penalty == -20.0
+
+
+def test_evaluate_need_off_racollage_exact_equality():
+    """Test finding 2: exact equality for min_deactivation should skip."""
+    action, new_off_t, penalty = evaluate_need_off(
+        under_dt=60, state_duration=20,
+        min_activation=30, min_deactivation=20,
+        off_t=200, current_t=200
+    )
+    assert action == 'skip'
+    assert new_off_t == 180.0
+    assert penalty == -20.0
+
+
+def test_evaluate_need_off_racollage_negative():
+    """Test finding 1: handles potential negative new_off_t correctly."""
+    action, new_off_t, penalty = evaluate_need_off(
+        under_dt=100, state_duration=50,
+        min_activation=30, min_deactivation=60,
+        off_t=0.0, current_t=0.0
+    )
+    assert action == 'skip'
+    assert new_off_t == 0.0
+    assert penalty == -50.0
 
 
 def test_compute_e_eff():
