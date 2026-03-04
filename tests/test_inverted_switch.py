@@ -74,7 +74,7 @@ async def test_inverted_switch(hass: HomeAssistant, fake_underlying_switch: Mock
 
     # 1. Make the temperature down to activate the switch
     # Cancel existing cycle so the new cycle can start
-    entity.cycle_scheduler.cancel_cycle()
+    await entity.cycle_scheduler.cancel_cycle()
     now = now + timedelta(minutes=4)
     entity._set_now(now)
     fake_temp_sensor.set_native_value(19)

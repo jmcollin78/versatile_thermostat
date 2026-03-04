@@ -76,7 +76,7 @@ async def test_window_management_time_not_enough(
     assert entity.window_state is STATE_UNKNOWN
 
     # Cancel any running cycle so the scheduler accepts a new start_cycle(force=False)
-    entity.cycle_scheduler.cancel_cycle()
+    await entity.cycle_scheduler.cancel_cycle()
 
     # Open the window, but condition of time is not satisfied and check the thermostat don't turns off
     with patch(
@@ -172,7 +172,7 @@ async def test_window_management_time_enough(
     assert entity.window_state is STATE_UNKNOWN
 
     # Cancel any running cycle so the scheduler accepts a new start_cycle(force=False)
-    entity.cycle_scheduler.cancel_cycle()
+    await entity.cycle_scheduler.cancel_cycle()
 
     # change temperature to force turning on the heater
     with patch(
@@ -870,7 +870,7 @@ async def test_window_auto_no_on_percent(
         assert entity.proportional_algorithm.on_percent == 0.0
 
     # Cancel any running cycle so the scheduler accepts a new start_cycle(force=False)
-    entity.cycle_scheduler.cancel_cycle()
+    await entity.cycle_scheduler.cancel_cycle()
 
     # send one degre down in one minute
     with patch(
@@ -962,7 +962,7 @@ async def test_window_bypass(hass: HomeAssistant, skip_hass_states_is_state, fak
     assert entity.window_manager.is_window_auto_configured is False
 
     # Cancel any running cycle so the scheduler accepts a new start_cycle(force=False)
-    entity.cycle_scheduler.cancel_cycle()
+    await entity.cycle_scheduler.cancel_cycle()
 
     # change temperature to force turning on the heater
     with patch(
@@ -1234,7 +1234,7 @@ async def test_window_bypass_reactivate(hass: HomeAssistant, skip_hass_states_is
     assert entity.window_state is STATE_UNKNOWN
 
     # Cancel any running cycle so the scheduler accepts a new start_cycle(force=False)
-    entity.cycle_scheduler.cancel_cycle()
+    await entity.cycle_scheduler.cancel_cycle()
 
     # change temperature to force turning on the heater
     with patch(
@@ -2065,7 +2065,7 @@ async def test_bug_66(
     assert entity.window_state is STATE_UNKNOWN
 
     # Cancel any running cycle so the scheduler accepts a new start_cycle(force=False)
-    entity.cycle_scheduler.cancel_cycle()
+    await entity.cycle_scheduler.cancel_cycle()
 
     # Open the window and let the thermostat shut down
     with patch("custom_components.versatile_thermostat.base_thermostat.BaseThermostat.send_event") as mock_send_event, patch(
@@ -2424,7 +2424,7 @@ async def test_window_bypass_frost(hass: HomeAssistant, skip_hass_states_is_stat
     assert entity.window_state is STATE_UNKNOWN
 
     # Cancel any running cycle so the scheduler accepts a new start_cycle(force=False)
-    entity.cycle_scheduler.cancel_cycle()
+    await entity.cycle_scheduler.cancel_cycle()
 
     # change temperature to force turning on the heater
     with patch("custom_components.versatile_thermostat.base_thermostat.BaseThermostat.send_event") as mock_send_event, patch(
@@ -2770,7 +2770,7 @@ async def test_window_and_central_mode_heat_only(hass: HomeAssistant, skip_hass_
     await entity.async_set_preset_mode(VThermPreset.COMFORT)
 
     # Cancel any running cycle so the scheduler accepts a new start_cycle(force=False)
-    entity.cycle_scheduler.cancel_cycle()
+    await entity.cycle_scheduler.cancel_cycle()
 
     with patch("custom_components.versatile_thermostat.base_thermostat.BaseThermostat.send_event") as mock_send_event, patch(
         "custom_components.versatile_thermostat.underlyings.UnderlyingSwitch.turn_on"

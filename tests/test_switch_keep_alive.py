@@ -235,7 +235,7 @@ class TestKeepAlive:
         # 2. Increase the temperature to deactivate the heater switch
 
         # Cancel the existing cycle so the new cycle with on_time_sec=0 can start
-        thermostat.cycle_scheduler.cancel_cycle()
+        await thermostat.cycle_scheduler.cancel_cycle()
 
         await send_temperature_change_event(thermostat, 20, event_timestamp)
 

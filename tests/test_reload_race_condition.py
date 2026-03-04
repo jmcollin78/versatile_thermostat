@@ -84,7 +84,7 @@ async def test_cycle_scheduler_cancel_on_remove(
     assert scheduler.is_cycle_running is True
 
     # Cancel cycle (as would happen during remove/reload)
-    scheduler.cancel_cycle()
+    await scheduler.cancel_cycle()
 
     # All cancel functions should have been called
     mock_tick_unsub.assert_called_once()

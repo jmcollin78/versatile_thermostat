@@ -1358,12 +1358,12 @@ async def send_climate_change_event_with_temperature(
     # return ret
 
 
-def cancel_switchs_cycles(entity: BaseThermostat):
+async def cancel_switchs_cycles(entity: BaseThermostat):
     """This method will cancel all running cycle on all underlying switch entity"""
     if entity.is_over_climate:
         return
     if entity.cycle_scheduler:
-        entity.cycle_scheduler.cancel_cycle()
+        await entity.cycle_scheduler.cancel_cycle()
 
 
 async def set_climate_preset_temp(

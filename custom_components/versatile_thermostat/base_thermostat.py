@@ -1674,7 +1674,7 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
         control_heating to turn all off"""
 
         if self._cycle_scheduler:
-            self._cycle_scheduler.cancel_cycle()
+            await self._cycle_scheduler.cancel_cycle()
 
         for under in self._underlyings:
             await under.turn_off()

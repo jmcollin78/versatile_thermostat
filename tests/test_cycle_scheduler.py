@@ -192,7 +192,7 @@ class TestCycleSchedulerLifecycle:
         await scheduler.start_cycle(VThermHvacMode_HEAT, 0.2, force=True)
         assert scheduler.is_cycle_running is True
 
-        scheduler.cancel_cycle()
+        await scheduler.cancel_cycle()
         assert mock_cancel.call_count == 2  # turn_off + cycle_end
         assert scheduler.is_cycle_running is False
 

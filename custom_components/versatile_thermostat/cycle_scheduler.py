@@ -196,7 +196,7 @@ class CycleScheduler:
                 self._thermostat,
             )
 
-        self.cancel_cycle()
+        await self.cancel_cycle()
 
         # Compute realized on_percent after timing constraints (for learning callbacks)
         # This is the actual percentage that will be executed physically
@@ -440,7 +440,7 @@ class CycleScheduler:
             _from_cycle_end=True,
         )
 
-    def cancel_cycle(self):
+    async def cancel_cycle(self):
         """Cancel the current cycle if one is running."""
         was_running = self.is_cycle_running
 
@@ -454,15 +454,18 @@ class CycleScheduler:
         import time
         elapsed_sec = time.time() - self._cycle_start_time if self._cycle_start_time > 0 else 0
 
-        if was_running and elapsed_sec > 1.0 and self._states and not self._is_valve_mode:
+        # Capture states before clearing them
+        had_states = bool(self._states)
+
+        if was_running and elapsed_sec > 1.0 and had_states and not self._is_valve_mode:
             realized_e_eff = self._calculate_realized_e_eff(elapsed_sec)
-            
+
             _LOGGER.debug(
                 "%s - cycle interrupted: elapsed_sec=%.1f, realized_e_eff=%.3f",
                 self._thermostat, elapsed_sec, realized_e_eff
             )
-            # Create task so SmartPI can process the partial cycle integral update
-            self._hass.async_create_task(self._fire_cycle_end_callbacks(realized_e_eff))
+            # Await directly to guarantee ordering: e_eff callback runs before new cycle starts.
+            await self._fire_cycle_end_callbacks(realized_e_eff)
 
         self._states = []
         self._current_on_time_sec = 0
@@ -475,6 +478,13 @@ class CycleScheduler:
     def _calculate_realized_e_eff(self, elapsed_sec: float) -> float:
         """Calculate the actual effective power applied over the given elapsed time."""
         if not self._underlyings or elapsed_sec <= 0:
+            return 0.0
+
+        # When _states is empty the cycle ran at either 0% or 100% (no tick scheduling).
+        # Infer from _current_on_time_sec: if it covers the full duration, e_eff = 1.0.
+        if not self._states:
+            if self._current_on_time_sec >= self._cycle_duration_sec:
+                return 1.0
             return 0.0
 
         t_on_actual = 0.0
