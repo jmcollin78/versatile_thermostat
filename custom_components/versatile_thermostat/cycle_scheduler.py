@@ -496,7 +496,12 @@ class CycleScheduler:
                 if end_on_2 > start_on_2:
                     t_on_actual += (end_on_2 - start_on_2)
 
-        return max(0.0, t_on_actual - self._penalty) / (elapsed_sec * len(self._underlyings))
+        # Keep e_eff in physical bounds [0, 1].
+        # Always use full cycle duration as denominator so that partial cycles
+        # (interrupted early) report the energy fraction relative to a complete
+        # cycle instead of an inflated instantaneous ratio.
+        e_eff = max(0.0, t_on_actual - self._penalty) / (self._cycle_duration_sec * len(self._underlyings))
+        return max(0.0, min(1.0, e_eff))
 
     async def _fire_cycle_start_callbacks(
         self, on_time_sec, off_time_sec, on_percent, hvac_mode
