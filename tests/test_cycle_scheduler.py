@@ -276,7 +276,8 @@ class TestCycleSchedulerCallbacks:
     @pytest.mark.asyncio
     @patch("custom_components.versatile_thermostat.cycle_scheduler.async_call_later")
     async def test_cycle_end_callback_fired(self, mock_call_later):
-        """Cycle end callbacks are fired at master cycle end."""
+        """Cycle end callbacks are fired at master cycle end via cancel_cycle."""
+        import time as _time
         mock_call_later.return_value = MagicMock()
 
         hass = make_hass()
@@ -287,13 +288,15 @@ class TestCycleSchedulerCallbacks:
         cb_end = AsyncMock()
         scheduler.register_cycle_end_callback(cb_end)
 
-        # Simulate a cycle end
+        # Simulate a running cycle that is about to end naturally
         scheduler._current_on_time_sec = 120
         scheduler._current_off_time_sec = 480
         scheduler._current_on_percent = 0.2
         scheduler._current_hvac_mode = VThermHvacMode_HEAT
         scheduler._cycle_duration_sec = 600
         scheduler._cycle_end_unsub = MagicMock()
+        # Simulate 300s of elapsed time so cancel_cycle fires the callback
+        scheduler._cycle_start_time = _time.time() - 300
 
         await scheduler._on_master_cycle_end(None)
 

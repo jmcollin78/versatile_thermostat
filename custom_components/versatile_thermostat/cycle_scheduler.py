@@ -411,28 +411,19 @@ class CycleScheduler:
         self._tick_unsub = async_call_later(self._hass, next_global_tick, self._tick)
 
     async def _on_master_cycle_end(self, _now):
-        """Called at the end of the master cycle. Compute e_eff and restart."""
+        """Called at the end of the master cycle. Restart with the same parameters.
+
+        The cycle end callback (e_eff) is fired by cancel_cycle(), which is called
+        inside start_cycle(force=True). This ensures exactly one callback per cycle
+        end regardless of how the cycle terminates.
+        """
         if not self.is_cycle_running:
             return
 
-        # F3 Note: We use nominal cycle duration for computing e_eff to be mathematically
-        # consistent with the penalty calculated in evaluate_need_on/off.
-        nominal_cycle_duration = self._cycle_duration_sec
-
-        e_eff = self._calculate_realized_e_eff(nominal_cycle_duration)
-
-        _LOGGER.debug(
-            "%s - cycle end: nominal_dur=%.1f, on_pct=%.2f, pen=%.1f -> e_eff=%.3f",
-            self._thermostat, nominal_cycle_duration, self._current_on_percent, self._penalty, e_eff
-        )
-
-        # Fire cycle end callbacks with e_eff
-        await self._fire_cycle_end_callbacks(e_eff)
-
-        # Increment energy
+        # Increment energy counter
         self._thermostat.incremente_energy()
 
-        # Restart cycle with same parameters
+        # Restart cycle — cancel_cycle() inside start_cycle will fire the end callback.
         await self.start_cycle(
             self._current_hvac_mode,
             self._current_on_percent,
@@ -454,14 +445,16 @@ class CycleScheduler:
         import time
         elapsed_sec = time.time() - self._cycle_start_time if self._cycle_start_time > 0 else 0
 
-        # Capture states before clearing them
-        had_states = bool(self._states)
-
-        if was_running and elapsed_sec > 1.0 and had_states and not self._is_valve_mode:
+        # Fire end-of-cycle callback for all non-valve cycles that ran long enough.
+        # This includes normal ends (via _on_master_cycle_end -> start_cycle(force=True))
+        # and mid-cycle interruptions (force restart on setpoint change, etc.).
+        # 0% and 100% cycles have no _states but _calculate_realized_e_eff handles them
+        # correctly via _current_on_time_sec.
+        if was_running and elapsed_sec > 1.0 and not self._is_valve_mode:
             realized_e_eff = self._calculate_realized_e_eff(elapsed_sec)
 
             _LOGGER.debug(
-                "%s - cycle interrupted: elapsed_sec=%.1f, realized_e_eff=%.3f",
+                "%s - cycle end: elapsed_sec=%.1f, realized_e_eff=%.3f",
                 self._thermostat, elapsed_sec, realized_e_eff
             )
             # Await directly to guarantee ordering: e_eff callback runs before new cycle starts.
