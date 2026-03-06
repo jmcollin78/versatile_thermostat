@@ -247,6 +247,7 @@ async def test_update_central_boiler_state_simple(
     #
     _LOGGER.debug("---- 1. Turn on the switch1")
     now = now + timedelta(minutes=1)
+    await entity.cycle_scheduler.cancel_cycle()
     await send_temperature_change_event(entity, 10, now)
 
     await wait_for_local_condition(lambda: entity.hvac_action == HVACAction.HEATING)
@@ -685,24 +686,29 @@ async def test_update_central_boiler_state_multiple(
     await asyncio.sleep(0.5)
 
     assert entity.hvac_action == HVACAction.HEATING
-    assert api.central_boiler_manager.nb_active_device_for_boiler == 1
-    assert boiler_binary_sensor.state == STATE_ON  # On by total power > threshold
+    # Circular offsets: cycle=300s, 4 underlyings, step=75s
+    # on_percent=0.5, on_time=150s. Offsets: [0, 75, 150, 225]
+    # Under 0 (switch1): on_t=0,   off_t=150 → ON in [0,150)     → ON at t=0
+    # Under 1 (switch2): on_t=75,  off_t=225 → ON in [75,225)    → OFF at t=0
+    # Under 2 (switch3): on_t=150, off_t=0   → ON in [150,300)   → OFF at t=0
+    # Under 3 (switch4): on_t=225, off_t=75  → ON wraps [225,300)∪[0,75) → ON at t=0
+    assert api.central_boiler_manager.nb_active_device_for_boiler == 2
 
-    # A cycle has began with switch1 only
-    assert nb_device_active_sensor.state == 1
-    assert nb_device_active_sensor.active_device_ids == ["switch.switch1"]
+    # At t=0: switch1 (offset 0) and switch4 (wrap-around) are ON
+    assert nb_device_active_sensor.state == 2
+    assert nb_device_active_sensor.active_device_ids == ["switch.switch1", "switch.switch4"]
 
     # on_percent is 50
     assert entity.power_percent == 50
     assert total_power_active_sensor.state == 750
     assert total_power_active_sensor.active_device_ids == ["switch.switch1", "switch.switch2", "switch.switch3", "switch.switch4"]
-    assert api.central_boiler_manager.is_nb_active_active_for_boiler_exceeded is False
+    assert api.central_boiler_manager.is_nb_active_active_for_boiler_exceeded is True
     assert api.central_boiler_manager.is_total_power_active_for_boiler_exceeded is True
 
     # check custom attributes of boiler binary sensor
     assert boiler_binary_sensor.extra_state_attributes["central_boiler_state"] == STATE_ON
     assert boiler_binary_sensor.extra_state_attributes["central_boiler_manager"]["is_on"] is True
-    assert boiler_binary_sensor.extra_state_attributes["central_boiler_manager"]["nb_active_device_for_boiler"] == 1
+    assert boiler_binary_sensor.extra_state_attributes["central_boiler_manager"]["nb_active_device_for_boiler"] == 2
     assert boiler_binary_sensor.extra_state_attributes["central_boiler_manager"]["total_power_active_for_boiler"] == 750
 
     entity.remove_thermostat()

@@ -2,7 +2,7 @@
 """Base class for proportional thermostats (TPI, SmartPI)."""
 
 import logging
-from typing import Generic, Any
+from typing import Generic
 
 from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import ServiceValidationError
@@ -277,15 +277,15 @@ class ThermostatProp(BaseThermostat[T], Generic[T]):
                 allow_kint_boost=allow_kint_boost,
                 allow_kext_overshoot=allow_kext_overshoot,
             )
-    async def _on_prop_cycle_start(self, params: dict[str, Any]):
-        """Called by Algorithm Handler when a new cycle starts.
 
-        Args:
-            params: Dictionary containing cycle parameters (on_time, off_time, etc.)
+    def _bind_scheduler(self, scheduler) -> None:
+        """Store the CycleScheduler and notify the algo handler.
+
+        Called by concrete subclasses (ThermostatOverSwitch, etc.) immediately
+        after CycleScheduler construction. The handler registers whatever
+        callbacks it needs via on_scheduler_ready() — the thermostat does not
+        need to know the details.
         """
-        await self._fire_cycle_start_callbacks(
-            params.get("on_time_sec", 0),
-            params.get("off_time_sec", 0),
-            params.get("on_percent", 0),
-            params.get("hvac_mode", "stop")
-        )
+        self._cycle_scheduler = scheduler
+        if self._algo_handler and hasattr(self._algo_handler, "on_scheduler_ready"):
+            self._algo_handler.on_scheduler_ready(scheduler)

@@ -1,0 +1,7 @@
+# Fix CycleScheduler racollage computation and edge cases
+
+- Prevent negative delays during racollage logic
+- Align minimum activation/deactivation delay evaluation with strict inequality specification
+- Base cycle effective power calculation on nominal rather than real cycle duration
+- Guarantee full internal state reset and safeguard master cycle end upon cancellation
+- Add regression tests covering negative wait conditions and exact delay boundaries
