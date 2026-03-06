@@ -448,17 +448,16 @@ class CycleScheduler:
         # Fire end-of-cycle callback for all non-valve cycles that ran long enough.
         # This includes normal ends (via _on_master_cycle_end -> start_cycle(force=True))
         # and mid-cycle interruptions (force restart on setpoint change, etc.).
-        # 0% and 100% cycles have no _states but _calculate_realized_e_eff handles them
-        # correctly via _current_on_time_sec.
         if was_running and elapsed_sec > 1.0 and not self._is_valve_mode:
             realized_e_eff = self._calculate_realized_e_eff(elapsed_sec)
+            elapsed_ratio = min(1.0, elapsed_sec / self._cycle_duration_sec) if self._cycle_duration_sec > 0 else 1.0
 
             _LOGGER.debug(
-                "%s - cycle end: elapsed_sec=%.1f, realized_e_eff=%.3f",
-                self._thermostat, elapsed_sec, realized_e_eff
+                "%s - cycle end: elapsed_sec=%.1f, realized_e_eff=%.3f, elapsed_ratio=%.2f",
+                self._thermostat, elapsed_sec, realized_e_eff, elapsed_ratio
             )
             # Await directly to guarantee ordering: e_eff callback runs before new cycle starts.
-            await self._fire_cycle_end_callbacks(realized_e_eff)
+            await self._fire_cycle_end_callbacks(realized_e_eff, elapsed_ratio)
 
         self._states = []
         self._current_on_time_sec = 0
@@ -496,11 +495,8 @@ class CycleScheduler:
                 if end_on_2 > start_on_2:
                     t_on_actual += (end_on_2 - start_on_2)
 
-        # Keep e_eff in physical bounds [0, 1].
-        # Always use full cycle duration as denominator so that partial cycles
-        # (interrupted early) report the energy fraction relative to a complete
-        # cycle instead of an inflated instantaneous ratio.
-        e_eff = max(0.0, t_on_actual - self._penalty) / (self._cycle_duration_sec * len(self._underlyings))
+        # e_eff is the true instantaneous duty cycle over the elapsed window.
+        e_eff = max(0.0, t_on_actual - self._penalty) / (elapsed_sec * len(self._underlyings))
         return max(0.0, min(1.0, e_eff))
 
     async def _fire_cycle_start_callbacks(
@@ -523,11 +519,11 @@ class CycleScheduler:
                     ex,
                 )
 
-    async def _fire_cycle_end_callbacks(self, e_eff: float):
-        """Fire all registered cycle end callbacks with e_eff."""
+    async def _fire_cycle_end_callbacks(self, e_eff: float, elapsed_ratio: float = 1.0):
+        """Fire all registered cycle end callbacks with e_eff and elapsed_ratio."""
         for callback in self._on_cycle_end_callbacks:
             try:
-                await callback(e_eff=e_eff)
+                await callback(e_eff=e_eff, elapsed_ratio=elapsed_ratio)
             except Exception as ex:
                 _LOGGER.warning(
                     "%s - Error calling cycle end callback %s: %s",

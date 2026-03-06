@@ -2786,7 +2786,7 @@ class AutoTpiManager:
                 is_heat_mode=is_heat
             )
 
-    async def on_cycle_completed(self, e_eff: float = None) -> None:
+    async def on_cycle_completed(self, e_eff: float = None, **_kw) -> None:
         """Called when a TPI cycle completes."""
         # Validation logic (moved from old _tick)
         now = dt_util.now()
