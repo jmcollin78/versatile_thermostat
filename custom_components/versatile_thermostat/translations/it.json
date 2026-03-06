@@ -50,7 +50,8 @@
                     "lock_automations": "Il blocco impedirà i comandi delle automazioni e delle integrazioni (ad es. pianificatore)"
                 },
                 "data_description": {
-                    "use_lock_central_config": "Selezionare per utilizzare la configurazione di blocco centrale. Deselezionare per utilizzare una configurazione di blocco specifica per questo VTherm"
+                    "use_lock_central_config": "Selezionare per utilizzare la configurazione di blocco centrale. Deselezionare per utilizzare una configurazione di blocco specifica per questo VTherm",
+                    "lock_code": "Il codice PIN per sbloccare il termostato (4 cifre)"
                 }
             },
             "main": {
@@ -294,7 +295,8 @@
                     "heater_cooling_time": "Tempo raffrescamento (min)",
                     "auto_tpi_heating_rate": "Velocità di riscaldamento ({unit}/h)",
                     "auto_tpi_aggressiveness": "Aggressività",
-                    "auto_tpi_enable_advanced_settings": "Abilita paramnetri avanzati"
+                    "auto_tpi_enable_advanced_settings": "Abilita paramnetri avanzati",
+                    "auto_tpi_continuous_kext": "Apprendimento continuo di Kext"
                 },
                 "data_description": {
                     "auto_tpi_learning_type": "Scegliere “Discovery” per l'avvio iniziale (media ponderata, peso 1) o “Regolazione fine” per le regolazioni continue (EWMA, Alpha 0,08).",
@@ -302,7 +304,8 @@
                     "heater_cooling_time": "Tempo di raffreddamento dopo l'arresto (minuti)\n\n| Tipo | Tempo di riscaldamento | Tempo di raffreddamento |\n| :--- | :--- | :--- |\n| Radiatore elettrico | 5 min | 7 min |\n| Radiatore ad acqua | 15 min | 20 min |\n| Riscaldamento a pavimento | 30 min | 45 min |",
                     "auto_tpi_heating_rate": "Capacità di aumento della temperatura del radiatore ({unit} all'ora). Lasciare a 0 per l'apprendimento automatico (bootstrap).",
                     "auto_tpi_aggressiveness": "Fattore di riduzione per i coefficienti appresi (50-100%). Valori inferiori determinano coefficienti più conservativi e riducono il rischio di sovra-riscaldamento.",
-                    "auto_tpi_enable_advanced_settings": "Controlla per accedere alla regolazione fine dei parametri (Alpha, Decadimento, Peso)."
+                    "auto_tpi_enable_advanced_settings": "Controlla per accedere alla regolazione fine dei parametri (Alpha, Decadimento, Peso).",
+                    "auto_tpi_continuous_kext": "Selezionare per attivare la regolazione continua del coefficiente esterno (Kext) al di fuori della sessione AutoTPI."
                 }
             },
             "auto_tpi_avg_settings": {
@@ -320,11 +323,13 @@
                 "description": "Parametri per il metodo EWMA.\n\nRaccomandazioni:\n| Situazione | Alpha (ema_alpha) | Tasso di decadimento (ema_decay_rate) |\n| :--- | :--- | :--- |\n| Apprendimento iniziale | 0,15 | 0,08 |\n| Apprendimento fine | 0,08 | 0,12 |\n| Apprendimento continuo | 0,05 | 0,02 |",
                 "data": {
                     "auto_tpi_ema_alpha": "Alpha",
-                    "auto_tpi_ema_decay_rate": "Tasso di decadimento"
+                    "auto_tpi_ema_decay_rate": "Tasso di decadimento",
+          "auto_tpi_continuous_kext_alpha": "Alpha Apprendimento continuo"
                 },
                 "data_description": {
                     "auto_tpi_ema_alpha": "Fattore di livellamento (0-1). Più alto = adattamento più rapido",
-                    "auto_tpi_ema_decay_rate": "Tasso di diminuzione di Alpha nel tempo (stabilizzazione)"
+                    "auto_tpi_ema_decay_rate": "Tasso di diminuzione di Alpha nel tempo (stabilizzazione)",
+                    "auto_tpi_continuous_kext_alpha": "Fattore di livellamento per l'apprendimento continuo (Alpha). Impostazione predefinita 0,04 (adattamento circa 3-5 giorni)."
                 }
             },
             "sync_device_internal_temp": {
@@ -411,9 +416,9 @@
                     "valve_regulation": "Configurazione della regolazione della valvola",
                     "sync_device_internal_temp": "Sincronizza la temperatura del dispositivo",
                     "lock": "Gestione del blocco",
-                    "finalize": "Fatto",
-                    "configuration_not_complete": "Configurazione non completata",
-                    "heating_failure_detection": "Rilevamento guasti riscaldamento"
+                    "heating_failure_detection": "Rilevamento guasti al riscaldamento",
+                    "finalize": "Finalizza le modifiche",
+                    "configuration_not_complete": "Configurazione non completata"
                 }
             },
             "lock": {
@@ -516,7 +521,8 @@
                     "use_tpi_central_config": "Utilizzare configurazione TPI centralizzata",
                     "minimal_activation_delay": "Ritardo minimo di attivazione",
                     "minimal_deactivation_delay": "Ritardo minimo di disattivazione",
-                    "auto_tpi_mode": "Enable Auto TPI Learning"
+                    "use_tpi_central_config": "Utilizzare la configuration TPI centralizzata",
+                    "auto_tpi_mode": "Abilita Auto apprendimento TPI"
                 },
                 "data_description": {
                     "tpi_coef_int": "Coefficiente da utilizzare per il delta della temperatura interna",
@@ -665,18 +671,6 @@
                     "max_closing_degree": "Valore massimo del grado di chiusura. La valvola non sarà mai chiusa più di questo valore. Impostare a 100 per chiudere completamente la valvola"
                 }
             },
-            "sync_device_internal_temp": {
-                "title": "Synchronize device internal temperature",
-                "description": "Configuration to synchronize the internal temperature of the underlying devices with selected entities",
-                "data": {
-                    "sync_with_calibration": "Apply offset calibration",
-                    "sync_entity_ids": "Entities id used for synchronization"
-                },
-                "data_description": {
-                    "sync_with_calibration": "Check to apply the offset calibration when synchronizing the internal temperature. Uncheck to directly copy the temperature from the selected entities",
-                    "sync_entity_ids": "The list of the entities used to synchronize the internal temperature of the underlying devices. There should be one per underlying device. Should be a calibration entity if checkbox is selected or a temperature entity otherwise. Both are `number` entities."
-                }
-            },
             "auto_tpi_configuration": {
                 "title": "Auto TPI - Configurazione - {name}",
                 "description": "Impostazioni generali per l'apprendimento automatico del TPI.",
@@ -686,7 +680,8 @@
                     "heater_heating_time": "Tempo di riscaldamento (min)",
                     "heater_cooling_time": "Tempo di raffrescamento (min)",
                     "auto_tpi_aggressiveness": "Aggressività",
-                    "auto_tpi_enable_advanced_settings": "Abilita parametri avanzati"
+                    "auto_tpi_enable_advanced_settings": "Abilita parametri avanzati",
+                    "auto_tpi_continuous_kext": "Apprendimento continuo di Kext"
                 },
                 "data_description": {
                     "auto_tpi_learning_type": "Scegliere “Discovery” per l'avvio iniziale (media ponderata, peso 1) o “Fine Tuning” per le regolazioni continue (EWMA, Alpha 0,08).",
@@ -694,7 +689,8 @@
                     "heater_heating_time": "Tempo necessario per raggiungere la piena potenza (minuti)",
                     "heater_cooling_time": "Tempo di raffreddamento dopo l'arresto (minuti)\n\n| Tipo | Tempo di riscaldamento | Tempo di raffreddamento |\n| :--- | :--- | :--- |\n| Radiatore elettrico | 5 min | 7 min |\n| Radiatore ad acqua | 15 min | 20 min |\n| Riscaldamento a pavimento | 30 min | 45 min |",
                     "auto_tpi_aggressiveness": "Fattore di riduzione per i coefficienti appresi (50-100%). Valori inferiori determinano coefficienti più conservativi e riducono il rischio di sovrariscaldamento.",
-                    "auto_tpi_enable_advanced_settings": "Controlla per modificare i parametri dell'algoritmo scelto."
+                    "auto_tpi_enable_advanced_settings": "Controlla per modificare i parametri dell'algoritmo scelto.",
+                    "auto_tpi_continuous_kext": "Selezionare per attivare la regolazione continua del coefficiente esterno (Kext) al di fuori della sessione AutoTPI."
                 }
             },
             "auto_tpi_avg_settings": {
@@ -711,12 +707,26 @@
                 "title": "Auto TPI - EWMA - {name}",
                 "description": "Parametri per il metodo EWMA.\n\nRaccomandazioni:\n| Situazione | Alpha (ema_alpha) | Tasso di decadimento (ema_decay_rate) |\n| :--- | :--- | :--- |\n| Regolazioni significative | 0,15 | 0,08 |\n| Regolazioni di precisione | 0,08 | 0,12 |",
                 "data": {
-                    "auto_tpi_ema_alpha": "Alpha",
-                    "auto_tpi_ema_decay_rate": "Tasso di decadimento"
+                  "auto_tpi_ema_alpha": "Alpha",
+                  "auto_tpi_ema_decay_rate": "Tasso di decadimento",
+                  "auto_tpi_continuous_kext_alpha": "Alfa Apprendimento continuo"
                 },
                 "data_description": {
-                    "auto_tpi_ema_alpha": "Fattore di livellamento (0-1). Più alto = adattamento più rapido",
-                    "auto_tpi_ema_decay_rate": "Tasso di diminuzione di Alpha nel tempo (stabilizzazione)"
+                  "auto_tpi_ema_alpha": "Fattore di livellamento (0-1). Più alto = adattamento più rapido",
+                  "auto_tpi_ema_decay_rate": "Tasso di diminuzione di Alpha nel tempo (stabilizzazione)",
+                  "auto_tpi_continuous_kext_alpha": "Fattore di livellamento per l'apprendimento continuo (Alpha). Impostazione predefinita 0,04 (adattamento circa 3-5 giorni)."
+                }
+              },
+              "sync_device_internal_temp": {
+                "title": "Synchronize device internal temperature",
+                "description": "Configuration to synchronize the internal temperature of the underlying devices with selected entities",
+                "data": {
+                    "sync_with_calibration": "Apply offset calibration",
+                    "sync_entity_ids": "Entities id used for synchronization"
+                },
+                "data_description": {
+                    "sync_with_calibration": "Check to apply the offset calibration when synchronizing the internal temperature. Uncheck to directly copy the temperature from the selected entities",
+                    "sync_entity_ids": "The list of the entities used to synchronize the internal temperature of the underlying devices. There should be one per underlying device. Should be a calibration entity if checkbox is selected or a temperature entity otherwise. Both are `number` entities."
                 }
             },
             "heating_failure_detection": {
