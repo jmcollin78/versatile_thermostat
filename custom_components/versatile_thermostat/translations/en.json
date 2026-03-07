@@ -50,7 +50,7 @@
                     "lock_automations": "Il blocco impedirà i comandi delle automazioni e delle integrazioni (ad es. pianificatore)"
                 },
                 "data_description": {
-                    "use_lock_central_config": "Selezionare per utilizzare la configurazione di blocco centrale. Deselezionare per utilizzare una configurazione di blocco specifica per questo VTherm"
+                    "use_lock_central_config": "Selezionare per utilizzare la configurazione di blocco centrale. Deselezionare per utilizzare una configurazione di blocco specifica per questo VTherm",
                     "lock_code": "Il codice PIN per sbloccare il termostato (4 cifre)"
                 }
             },
@@ -324,7 +324,7 @@
                 "data": {
                     "auto_tpi_ema_alpha": "Alpha",
                     "auto_tpi_ema_decay_rate": "Tasso di decadimento",
-          "auto_tpi_continuous_kext_alpha": "Alpha Apprendimento continuo"
+                    "auto_tpi_continuous_kext_alpha": "Alpha Apprendimento continuo"
                 },
                 "data_description": {
                     "auto_tpi_ema_alpha": "Fattore di livellamento (0-1). Più alto = adattamento più rapido",
@@ -418,7 +418,7 @@
                     "lock": "Gestione del blocco",
                     "heating_failure_detection": "Rilevamento guasti al riscaldamento",
                     "finalize": "Finalizza le modifiche",
-                    "configuration_not_complete": "Configurazione non completata",
+                    "configuration_not_complete": "Configurazione non completata"
                 }
             },
             "lock": {
@@ -521,7 +521,6 @@
                     "use_tpi_central_config": "Utilizzare configurazione TPI centralizzata",
                     "minimal_activation_delay": "Ritardo minimo di attivazione",
                     "minimal_deactivation_delay": "Ritardo minimo di disattivazione",
-                    "use_tpi_central_config": "Utilizzare la configuration TPI centralizzata",
                     "auto_tpi_mode": "Abilita Auto apprendimento TPI"
                 },
                 "data_description": {
@@ -707,17 +706,17 @@
                 "title": "Auto TPI - EWMA - {name}",
                 "description": "Parametri per il metodo EWMA.\n\nRaccomandazioni:\n| Situazione | Alpha (ema_alpha) | Tasso di decadimento (ema_decay_rate) |\n| :--- | :--- | :--- |\n| Regolazioni significative | 0,15 | 0,08 |\n| Regolazioni di precisione | 0,08 | 0,12 |",
                 "data": {
-                  "auto_tpi_ema_alpha": "Alpha",
-                  "auto_tpi_ema_decay_rate": "Tasso di decadimento",
-                  "auto_tpi_continuous_kext_alpha": "Alfa Apprendimento continuo"
+                    "auto_tpi_ema_alpha": "Alpha",
+                    "auto_tpi_ema_decay_rate": "Tasso di decadimento",
+                    "auto_tpi_continuous_kext_alpha": "Alfa Apprendimento continuo"
                 },
                 "data_description": {
-                  "auto_tpi_ema_alpha": "Fattore di livellamento (0-1). Più alto = adattamento più rapido",
-                  "auto_tpi_ema_decay_rate": "Tasso di diminuzione di Alpha nel tempo (stabilizzazione)",
-                  "auto_tpi_continuous_kext_alpha": "Fattore di livellamento per l'apprendimento continuo (Alpha). Impostazione predefinita 0,04 (adattamento circa 3-5 giorni)."
+                    "auto_tpi_ema_alpha": "Fattore di livellamento (0-1). Più alto = adattamento più rapido",
+                    "auto_tpi_ema_decay_rate": "Tasso di diminuzione di Alpha nel tempo (stabilizzazione)",
+                    "auto_tpi_continuous_kext_alpha": "Fattore di livellamento per l'apprendimento continuo (Alpha). Impostazione predefinita 0,04 (adattamento circa 3-5 giorni)."
                 }
-              },
-              "sync_device_internal_temp": {
+            },
+            "sync_device_internal_temp": {
                 "title": "Synchronize device internal temperature",
                 "description": "Configuration to synchronize the internal temperature of the underlying devices with selected entities",
                 "data": {
