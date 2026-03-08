@@ -121,6 +121,7 @@ class UnderlyingEntity:
         Runs the initial state checks when all underlying entities are initialized.
         """
         _LOGGER.debug("%s --------> Underlying state change received: '%s'", self, new_state)
+
         # If not yet initialized and we received a valid initial state, run initial checks
         if not self.is_initialized:
             # Check if we have a valid state for all underlying entities for the first time
@@ -1514,6 +1515,8 @@ class UnderlyingValveRegulation(UnderlyingValve):
     async def check_initial_state(self):
         """Handle initial valve state change and hvac_mode"""
 
+        _LOGGER.warning("%s - Issue_1831 - Starting initial state check for valve regulation underlying", self)
+
         # Initialize valve state and min max opening
         self.init_valve_state_min_max_open()
 
@@ -1539,8 +1542,10 @@ class UnderlyingValveRegulation(UnderlyingValve):
             # await self._climate_underlying.set_hvac_mode(hvac_mode)
             if self._thermostat.is_sleeping:
                 self._percent_open = 100
+                _LOGGER.warning("%s - Issue_1831 - is sleeping, setting percent_open to 100", self)
             else:
                 self._percent_open = self._thermostat.valve_open_percent or self._opening_threshold
+                _LOGGER.warning("%s - Issue_1831 - not sleeping, setting percent_open to %d", self, self._percent_open)
             await self.send_percent_open()
 
         elif not should_be_on and is_on:
@@ -1551,6 +1556,7 @@ class UnderlyingValveRegulation(UnderlyingValve):
                 self._entity_id,
             )
             self._percent_open = self._opening_threshold
+            _LOGGER.warning("%s - Issue_1831 - off and not sleeping, setting percent_open to %d", self, self._percent_open)
             await self.send_percent_open()
             # await self._climate_underlying.set_hvac_mode(hvac_mode)
 
@@ -1584,6 +1590,8 @@ class UnderlyingValveRegulation(UnderlyingValve):
 
         if self.has_closing_degree_entity:
             await self.send_value_to_number(self._closing_degree_entity_id, closing_degree)
+
+        _LOGGER.warning("%s - Issue_1831 - sent opening_degree=%s closing_degree=%s", self, opening_degree, closing_degree)
 
         _LOGGER.debug(
             "%s - valve regulation - I have sent opening_degree=%s closing_degree=%s",
