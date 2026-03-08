@@ -324,7 +324,7 @@
                 "data": {
                     "auto_tpi_ema_alpha": "Alpha",
                     "auto_tpi_ema_decay_rate": "Tasso di decadimento",
-          "auto_tpi_continuous_kext_alpha": "Alpha Apprendimento continuo"
+                    "auto_tpi_continuous_kext_alpha": "Alpha Apprendimento continuo"
                 },
                 "data_description": {
                     "auto_tpi_ema_alpha": "Fattore di livellamento (0-1). Più alto = adattamento più rapido",
@@ -707,17 +707,17 @@
                 "title": "Auto TPI - EWMA - {name}",
                 "description": "Parametri per il metodo EWMA.\n\nRaccomandazioni:\n| Situazione | Alpha (ema_alpha) | Tasso di decadimento (ema_decay_rate) |\n| :--- | :--- | :--- |\n| Regolazioni significative | 0,15 | 0,08 |\n| Regolazioni di precisione | 0,08 | 0,12 |",
                 "data": {
-                  "auto_tpi_ema_alpha": "Alpha",
-                  "auto_tpi_ema_decay_rate": "Tasso di decadimento",
-                  "auto_tpi_continuous_kext_alpha": "Alfa Apprendimento continuo"
+                    "auto_tpi_ema_alpha": "Alpha",
+                    "auto_tpi_ema_decay_rate": "Tasso di decadimento",
+                    "auto_tpi_continuous_kext_alpha": "Alfa Apprendimento continuo"
                 },
                 "data_description": {
-                  "auto_tpi_ema_alpha": "Fattore di livellamento (0-1). Più alto = adattamento più rapido",
-                  "auto_tpi_ema_decay_rate": "Tasso di diminuzione di Alpha nel tempo (stabilizzazione)",
-                  "auto_tpi_continuous_kext_alpha": "Fattore di livellamento per l'apprendimento continuo (Alpha). Impostazione predefinita 0,04 (adattamento circa 3-5 giorni)."
+                    "auto_tpi_ema_alpha": "Fattore di livellamento (0-1). Più alto = adattamento più rapido",
+                    "auto_tpi_ema_decay_rate": "Tasso di diminuzione di Alpha nel tempo (stabilizzazione)",
+                    "auto_tpi_continuous_kext_alpha": "Fattore di livellamento per l'apprendimento continuo (Alpha). Impostazione predefinita 0,04 (adattamento circa 3-5 giorni)."
                 }
-              },
-              "sync_device_internal_temp": {
+            },
+            "sync_device_internal_temp": {
                 "title": "Synchronize device internal temperature",
                 "description": "Configuration to synchronize the internal temperature of the underlying devices with selected entities",
                 "data": {
@@ -730,7 +730,7 @@
                 }
             },
             "heating_failure_detection": {
-                "title": "Rilevamento guasti riscaldamento",
+                "title": "Rilevamento guasti riscaldamento - {name}",
                 "description": "Configura la funzione di rilevamento guasti riscaldamento. Rileva anomalie quando il riscaldamento è previsto ma la temperatura non aumenta, o quando il riscaldamento è spento ma la temperatura continua a salire.",
                 "data": {
                     "use_heating_failure_detection_feature": "Abilita rilevamento guasti riscaldamento",
