@@ -171,7 +171,7 @@ async def test_sensors_over_switch(
         assert off_time_sensor.state_class == SensorStateClass.MEASUREMENT
         assert off_time_sensor.unit_of_measurement == UnitOfTime.SECONDS
 
-    cancel_switchs_cycles(entity)
+    await cancel_switchs_cycles(entity)
 
 
 @pytest.mark.parametrize("expected_lingering_tasks", [True])

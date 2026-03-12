@@ -50,7 +50,7 @@ async def test_check_initial_state_underlying_switch(hass, hvac_mode, last_state
     thermostat.power_manager = power_manager
 
     # Instantiate the UnderlyingSwitch
-    u = UnderlyingSwitch(hass=hass, thermostat=thermostat, switch_entity_id="switch.test", initial_delay_sec=0, keep_alive_sec=0.1)
+    u = UnderlyingSwitch(hass=hass, thermostat=thermostat, switch_entity_id="switch.test", keep_alive_sec=0.1)
 
     # Replace set_hvac_mode with a mock to assert it is invoked by check_initial_state
     u.turn_off = AsyncMock()
