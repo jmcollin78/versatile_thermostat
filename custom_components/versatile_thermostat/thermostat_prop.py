@@ -287,5 +287,5 @@ class ThermostatProp(BaseThermostat[T], Generic[T]):
         need to know the details.
         """
         self._cycle_scheduler = scheduler
-        if self._algo_handler and hasattr(self._algo_handler, "on_scheduler_ready"):
+        if self._algo_handler:
             self._algo_handler.on_scheduler_ready(scheduler)
