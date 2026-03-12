@@ -105,13 +105,23 @@ class CycleScheduler:
         self._states: list[UnderlyingCycleState] = []
         self._penalty: float = 0.0
         self._cycle_start_time: float = 0.0
+        # Guard flag: True while cancel_cycle() is awaiting end callbacks.
+        # Keeps is_cycle_running=True so concurrent start_cycle(force=False) calls
+        # take the update path instead of starting a duplicate full cycle.
+        self._is_cancelling: bool = False
         # Detect valve mode from underlying types
         self._is_valve_mode: bool = self._detect_valve_mode()
 
     @property
     def is_cycle_running(self) -> bool:
-        """Return True if a cycle is currently scheduled."""
-        return self._tick_unsub is not None or self._cycle_end_unsub is not None
+        """Return True if a cycle is currently scheduled or being cancelled.
+
+        The _is_cancelling flag keeps this True during the async
+        _fire_cycle_end_callbacks() yield inside cancel_cycle(), preventing
+        concurrent start_cycle(force=False) callers from bypassing the update
+        path and creating a duplicate cycle.
+        """
+        return self._tick_unsub is not None or self._cycle_end_unsub is not None or self._is_cancelling
 
     @property
     def is_valve_mode(self) -> bool:
@@ -268,7 +278,7 @@ class CycleScheduler:
 
         # Start ticking immediately with is_initial=True to enforce state
         await self._tick(_is_initial=True)
-        
+
         # Also ensure master cycle end is scheduled independently to wrap up the cycle
         self._cycle_end_unsub = async_call_later(self._hass, self._cycle_duration_sec, self._on_master_cycle_end)
 
@@ -435,6 +445,12 @@ class CycleScheduler:
         """Cancel the current cycle if one is running."""
         was_running = self.is_cycle_running
 
+        # Set before cancelling unsubs so that is_cycle_running stays True
+        # throughout this coroutine, even during the async yield below.
+        # This prevents concurrent start_cycle(force=False) callers from
+        # seeing is_cycle_running=False and starting a duplicate full cycle.
+        self._is_cancelling = True
+
         if self._tick_unsub:
             self._tick_unsub()
             self._tick_unsub = None
@@ -457,6 +473,8 @@ class CycleScheduler:
                 self._thermostat, elapsed_sec, realized_e_eff, elapsed_ratio
             )
             # Await directly to guarantee ordering: e_eff callback runs before new cycle starts.
+            # During this await, _is_cancelling=True keeps is_cycle_running=True so any
+            # concurrent start_cycle(force=False) call takes the update path, not full start.
             await self._fire_cycle_end_callbacks(realized_e_eff, elapsed_ratio)
 
         self._states = []
@@ -465,6 +483,8 @@ class CycleScheduler:
         self._current_on_percent = 0.0
         self._current_hvac_mode = None
         self._cycle_start_time = 0.0
+        # Reset only after all state is cleared so the guard stays active until fully done.
+        self._is_cancelling = False
         _LOGGER.debug("%s - Cycle cancelled", self._thermostat)
 
     def _calculate_realized_e_eff(self, elapsed_sec: float) -> float:
