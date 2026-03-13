@@ -452,6 +452,22 @@ class CycleScheduler:
             _from_cycle_end=True,
         )
 
+    def shutdown(self):
+        """Cancel pending timers immediately without firing end-of-cycle callbacks.
+
+        Must be called synchronously when the entity is being removed from HA so
+        that leftover async_call_later handles cannot fire after the new entity
+        (potentially with a different cycle duration) has already started.
+        """
+        if self._tick_unsub:
+            self._tick_unsub()
+            self._tick_unsub = None
+        if self._cycle_end_unsub:
+            self._cycle_end_unsub()
+            self._cycle_end_unsub = None
+        self._is_cancelling = False
+        self._is_starting = False
+
     async def cancel_cycle(self):
         """Cancel the current cycle if one is running."""
         await self._cancel_cycle_impl()
