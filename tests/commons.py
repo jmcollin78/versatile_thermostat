@@ -1504,14 +1504,15 @@ async def do_central_power_refresh(hass):
 
 
 async def wait_for_local_condition(check_condition: Callable[[], bool], timeout: float = 1.0):
-    """Waits that a local condition is satisfied, with a timeout."""
+    """Waits that a local condition is satisfied, with a timeout.
+    Uses short sleeps to give the event loop and executor threads time to process."""
     start_time = asyncio.get_event_loop().time()
 
     while not check_condition():
         if asyncio.get_event_loop().time() - start_time > timeout:
             raise TimeoutError("La condition locale n'a pas été satisfaite.")
 
-        # Le minimum pour laisser l'event loop s'exécuter
+        # Yield to allow both event loop callbacks and executor threads to progress
         await asyncio.sleep(0.1)
 
 

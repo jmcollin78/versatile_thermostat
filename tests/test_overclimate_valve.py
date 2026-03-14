@@ -347,8 +347,9 @@ async def test_over_climate_valve_multi_presence(hass: HomeAssistant, fake_temp_
         assert vtherm.valve_open_percent == 40
 
         # Check the underlying entities have been updated
-        assert fake_underlying_climate1.target_temperature == 19.0
-        assert fake_underlying_climate2.target_temperature == 19.0
+        # Use a longer timeout because the service call uses blocking=False + executor thread
+        await wait_for_local_condition(lambda: fake_underlying_climate1.target_temperature == 19.0, timeout=5)
+        await wait_for_local_condition(lambda: fake_underlying_climate2.target_temperature == 19.0, timeout=5)
         assert fake_opening_degree1.native_value == 40
         assert fake_closing_degree1.native_value == 60
         assert fake_opening_degree2.native_value == 40
