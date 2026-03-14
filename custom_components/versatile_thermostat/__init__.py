@@ -21,6 +21,7 @@ from .base_thermostat import BaseThermostat
 from .const import *  # pylint: disable=wildcard-import, unused-wildcard-import
 
 from .vtherm_api import VersatileThermostatAPI
+from .log_collector import VThermLogHandler, async_export_logs
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -102,6 +103,15 @@ async def async_setup(
         SERVICE_RELOAD,
         _handle_reload,
     )
+
+    # Initialize log collector
+    if "log_handler" not in hass.data[DOMAIN]:
+        vtherm_logger = logging.getLogger("custom_components.versatile_thermostat")
+        log_handler = VThermLogHandler()
+        vtherm_logger.addHandler(log_handler)
+        vtherm_logger.setLevel(logging.DEBUG)
+        hass.data[DOMAIN]["log_handler"] = log_handler
+        _LOGGER.info("VTherm log collector initialized")
 
     return True
 

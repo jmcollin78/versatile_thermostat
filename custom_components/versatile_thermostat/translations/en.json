@@ -1009,6 +1009,24 @@
                     "description": "The optional lock code"
                 }
             }
+        },
+        "download_logs": {
+            "name": "Download logs",
+            "description": "Collect and download filtered logs for a VTherm entity.",
+            "fields": {
+                "log_level": {
+                    "name": "Log level",
+                    "description": "Minimum log level to include"
+                },
+                "period_start": {
+                    "name": "Period start",
+                    "description": "Start of the extraction period"
+                },
+                "period_end": {
+                    "name": "Period end",
+                    "description": "End of the extraction period"
+                }
+            }
         }
     },
     "exceptions": {

@@ -220,3 +220,15 @@ async def async_setup_entry(
         supports_response=SupportsResponse.OPTIONAL,
     )
 
+    platform.async_register_entity_service(
+        SERVICE_DOWNLOAD_LOGS,
+        {
+            vol.Optional("log_level", default="DEBUG"): vol.In(
+                ["DEBUG", "INFO", "WARNING", "ERROR"]
+            ),
+            vol.Optional("period_start"): selector.DateTimeSelector(),
+            vol.Optional("period_end"): selector.DateTimeSelector(),
+        },
+        "service_download_logs",
+    )
+

@@ -2179,6 +2179,30 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
             f"{self} - The recalibrate_valves service is only available for ThermostatClimateValve thermostats."
         )
 
+    async def service_download_logs(
+        self,
+        log_level: str = "DEBUG",
+        period_start: datetime | None = None,
+        period_end: datetime | None = None,
+    ):
+        """Called by the download_logs entity service."""
+        from .log_collector import async_export_logs  # pylint: disable=import-outside-toplevel
+
+        handler = self._hass.data.get(DOMAIN, {}).get("log_handler")
+        if handler is None:
+            _LOGGER.warning("%s - Log collector is not initialized", self._name)
+            return
+
+        await async_export_logs(
+            hass=self._hass,
+            handler=handler,
+            thermostat_name=self._name,
+            entity_id=self.entity_id,
+            log_level=log_level,
+            period_start=period_start,
+            period_end=period_end,
+        )
+
     ##
     ## For testing purpose
     ##
