@@ -13,12 +13,10 @@ from custom_components.versatile_thermostat.log_collector import (
     VThermLogEntry,
     VThermLogHandler,
     _extract_thermostat_hint,
-    _hint_matches_thermostat,
     _format_entry,
     _format_header,
     _cleanup_old_files,
     async_export_logs,
-    LEVEL_MAP,
 )
 
 
