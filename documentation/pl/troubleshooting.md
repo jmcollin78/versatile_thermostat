@@ -12,7 +12,7 @@
   - [Dostosowanie parametrów detekcji otwarcia okna w trybie automatycznym](#dostosowanie-parametrów-detekcji-otwarcia-okna-w-trybie-automatycznym)
   - [Dlaczego _VTherm_ przechodzi w tryb *bezpieczny*?](#dlaczego-vtherm-przechodzi-w-tryb-bezpieczny)
     - [Jak wykryć tryb *bezpieczny*?](#jak-wykryć-tryb-bezpieczny)
-    - [Jak wysłać powiadomienie o wystąpieniu takiej sytuacji?](#jak-zostać-powiadomionym-o-wystąpieniu-takiej-sytuacji)
+    - [Jak wysłać powiadomienie o wystąpieniu takiej sytuacji?](#jak-wysłać-powiadomienie-o-wystąpieniu-takiej-sytuacji)
     - [Jak to naprawić?](#jak-to-naprawić)
   - [Grupa osób jako sensor obecności](#grupa-osób-jako-sensor-obecności)
   - [Aktywacja logów dla _*Versatile Thermostat*_](#aktywacja-logów-dla-versatile-thermostat)
@@ -226,9 +226,11 @@ template: !include templates.yaml
 Czasami konieczne jest włączenie logów, aby doprecyzować przyczyny błędów. Aby to zrobić, do pliku `logger.yaml` dopisz poniższy kod:
 
 ```yaml
-default: xxxx
-logs:
-  custom_components.versatile_thermostat: info
+logger:
+  default: warning
+  logs:
+    custom_components.versatile_thermostat: debug
+
 ```
 Aby ta zmiana została uwzględniona, należy ponownie załadować konfigurację YAML ('**Narzędzia deweloperskie -> YAML -> Przeładuj całą konfigurację YAML**') lub ponownie uruchomić Home Assistant.
 

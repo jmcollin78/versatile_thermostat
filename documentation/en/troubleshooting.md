@@ -228,9 +228,10 @@ template: !include templates.yaml
 Sometimes, you will need to enable logs to fine-tune your analysis. To do this, edit the `logger.yaml` file in your configuration and configure the logs as follows:
 
 ```yaml
-default: xxxx
-logs:
-  custom_components.versatile_thermostat: info
+logger:
+  default: warning
+  logs:
+    custom_components.versatile_thermostat: debug
 ```
 You must reload the YAML configuration (Developer Tools / YAML / Reload all YAML configuration) or restart Home Assistant for this change to take effect.
 

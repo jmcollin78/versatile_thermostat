@@ -230,9 +230,11 @@ template: !include templates.yaml
 Manchmal müssen Sie Protokolle aktivieren, um Ihre Analyse zu verfeinern. Dazu bearbeiten Sie die Datei `logger.yaml` in Ihrer Konfiguration und konfigurieren die Protokolle wie folgt:
 
 ```yaml
-default: xxxx
-logs:
-  custom_components.versatile_thermostat: info
+logger:
+  default: warning
+  logs:
+    custom_components.versatile_thermostat: debug
+
 ```
 Sie müssen die YAML-Konfiguration neu laden (Entwicklertools / YAML / Alle YAML-Konfiguration neu laden) oder den Home Assistant neu starten, damit diese Änderung wirksam wird.
 

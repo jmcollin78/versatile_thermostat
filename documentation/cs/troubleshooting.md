@@ -229,9 +229,11 @@ template: !include templates.yaml
 Někdy budete muset povolit logy pro jemné doladění vaší analýzy. Upravte soubor `logger.yaml` v konfiguraci a nakonfigurujte logy takto:
 
 ```yaml
-default: xxxx
-logs:
-  custom_components.versatile_thermostat: info
+logger:
+  default: warning
+  logs:
+    custom_components.versatile_thermostat: debug
+
 ```
 Musíte znovu načíst YAML konfiguraci (Developer Tools / YAML / Reload all YAML configuration) nebo restartovat Home Assistant, aby se tato změna projevila.
 

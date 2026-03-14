@@ -19,7 +19,7 @@
   - [VTherm ne suit pas les changements de consigne faits directement depuis le sous-jacents (`over_climate`)](#vtherm-ne-suit-pas-les-changements-de-consigne-faits-directement-depuis-le-sous-jacents-over_climate)
   - [VTherm passe tout seul en mode 'clim' ou en mode 'chauffage'](#vtherm-passe-tout-seul-en-mode-clim-ou-en-mode-chauffage)
   - [La détection de fenêtre ouverte n'empêche pas le changement de preset](#la-détection-de-fenêtre-ouverte-nempêche-pas-le-changement-de-preset)
-  - [Erreur stabilization_threshold is an invalid option](#erreur-stabilization_threshold-is-an-invalid-option)
+  - [Erreur stabilization\_threshold is an invalid option](#erreur-stabilization_threshold-is-an-invalid-option)
 
 
 ## Utilisation d'un Heatzy
@@ -217,9 +217,11 @@ template: !include templates.yaml
 Des fois, vous aurez besoin d'activer les logs pour afiner les analyses. Pour cela, éditer le fichier `logger.yaml` de votre configuration et configurer les logs comme suit :
 
 ```yaml
-default: xxxx
-logs:
-  custom_components.versatile_thermostat: info
+logger:
+  default: warning
+  logs:
+    custom_components.versatile_thermostat: debug
+
 ```
 Vous devez recharger la configuration yaml (Outils de dev / Yaml / Toute la configuration Yaml) ou redémarrer Home Assistant pour que ce changement soit pris en compte.
 
