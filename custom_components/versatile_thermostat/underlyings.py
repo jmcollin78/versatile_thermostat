@@ -180,24 +180,6 @@ class UnderlyingEntity:
     async def check_initial_state(self):
         """Prevent the underlying to be on but thermostat is off"""
         return NotImplementedError
-        # is_device_active = self.is_device_active
-        # hvac_mode = self._thermostat.vtherm_hvac_mode
-
-        # if hvac_mode == VThermHvacMode_OFF and is_device_active:
-        #     _LOGGER.info(
-        #         "%s - The hvac mode is OFF, but the underlying device is ON. Turning off device %s",
-        #         self,
-        #         self._entity_id,
-        #     )
-        #     await self.set_hvac_mode(hvac_mode)
-        # elif hvac_mode != VThermHvacMode_OFF and not is_device_active:
-        #     _LOGGER.info(
-        #         "%s - The hvac mode is %s, but the underlying device is not ON. Turning on device %s if needed",
-        #         self,
-        #         hvac_mode,
-        #         self._entity_id,
-        #     )
-        #     await self.set_hvac_mode(hvac_mode)
 
     # override to be able to mock the call
     def call_later(
@@ -838,14 +820,18 @@ class UnderlyingClimate(UnderlyingEntity):
         hvac_action = self.underlying_hvac_action
         if hvac_action is None:
             # simulate hvac action if not provided by underlying climate
-            target = (
-                self.underlying_target_temperature
-                or self._thermostat.target_temperature
-            )
-            current = (
-                self.underlying_current_temperature
-                or self._thermostat.current_temperature
-            )
+            underlying_target = self.underlying_target_temperature
+            underlying_current = self.underlying_current_temperature
+
+            if underlying_target is not None and underlying_current is not None:
+                # Both values come from the underlying device — use them as a consistent pair
+                target = underlying_target
+                current = underlying_current
+            else:
+                # Fall back entirely to VTherm-managed temperatures (room sensor)
+                # This prevents mixing device-internal and room sensor temperatures
+                target = self._thermostat.target_temperature
+                current = self._thermostat.current_temperature
             hvac_mode = self.hvac_mode
 
             _LOGGER.debug(
@@ -1303,7 +1289,7 @@ class UnderlyingValveRegulation(UnderlyingValve):
     async def check_initial_state(self):
         """Handle initial valve state change and hvac_mode"""
 
-        _LOGGER.warning("%s - Issue_1831 - Starting initial state check for valve regulation underlying", self)
+        _LOGGER.info("%s - Issue_1831 - Starting initial state check for valve regulation underlying", self)
 
         # Initialize valve state and min max opening
         self.init_valve_state_min_max_open()
@@ -1319,7 +1305,7 @@ class UnderlyingValveRegulation(UnderlyingValve):
 
         if should_be_on and not is_on:
             _LOGGER.info(
-                "%s - The valve should be active (hvac_mode=%s, sleeping=%s, percent_open=%.0f), but the underlying device is off or below threshold (current_valve_opening=%.0f). Opening valve %s",
+                "%s - Issue_1831 - The valve should be active (hvac_mode=%s, sleeping=%s, percent_open=%.0f), but the underlying device is off or below threshold (current_valve_opening=%.0f). Opening valve %s",
                 self,
                 hvac_mode,
                 self._thermostat.is_sleeping,
@@ -1330,21 +1316,33 @@ class UnderlyingValveRegulation(UnderlyingValve):
             # await self._climate_underlying.set_hvac_mode(hvac_mode)
             if self._thermostat.is_sleeping:
                 self._percent_open = 100
-                _LOGGER.warning("%s - Issue_1831 - is sleeping, setting percent_open to 100", self)
+                _LOGGER.info("%s - Issue_1831 - is sleeping, setting percent_open to 100", self)
+                await self.send_percent_open()
             else:
-                self._percent_open = self._thermostat.valve_open_percent or self._opening_threshold
-                _LOGGER.warning("%s - Issue_1831 - not sleeping, setting percent_open to %d", self, self._percent_open)
-            await self.send_percent_open()
+                calculated_percent = self._thermostat.valve_open_percent
+                if calculated_percent is not None and calculated_percent > 0:
+                    # TPI says heating is needed — respect the calculated value
+                    self._percent_open = calculated_percent
+                    _LOGGER.info("%s - Issue_1831 - TPI says %.0f%% heating needed — opening valve", self, calculated_percent)
+                    await self.send_percent_open()
+                else:
+                    # TPI says 0% (no heating needed) — do not open the valve here.
+                    # The normal startup flow will send the correct 0% command separately.
+                    _LOGGER.info(
+                        "%s - Issue_1831 - Should be on (hvac_mode=%s) but TPI says 0%% or not yet calculated — leaving valve closed to avoid race condition",
+                        self,
+                        hvac_mode,
+                    )
 
         elif not should_be_on and is_on:
             _LOGGER.info(
-                "%s - The hvac mode is OFF and not sleeping, but the underlying device is not at off. Setting to %d%% device %s",
+                "%s - Issue_1831 - The hvac mode is OFF and not sleeping, but the underlying device is not at off. Setting to %d%% device %s",
                 self,
                 self._opening_threshold,
                 self._entity_id,
             )
             self._percent_open = self._opening_threshold
-            _LOGGER.warning("%s - Issue_1831 - off and not sleeping, setting percent_open to %d", self, self._percent_open)
+            _LOGGER.info("%s - Issue_1831 - off and not sleeping, setting percent_open to %d", self, self._percent_open)
             await self.send_percent_open()
             # await self._climate_underlying.set_hvac_mode(hvac_mode)
 
