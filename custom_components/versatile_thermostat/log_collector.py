@@ -353,7 +353,10 @@ async def async_register_log_download_endpoint(hass: HomeAssistant) -> None:
                 _LOGGER.error("Unexpected error serving log file %s: %s", filepath, err)
                 return web.Response(status=500, text=f"Error: {type(err).__name__}: {err}")
 
-    hass.http.register_view(LogDownloadView)
+    if hass.http is not None:
+        hass.http.register_view(LogDownloadView)
+    else:
+        _LOGGER.warning("HTTP server not available, log download endpoint not registered")
 
 
 # ---------------------------------------------------------------------------
