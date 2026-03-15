@@ -115,17 +115,35 @@ class TestVThermLogHandler:
         assert any("from underlying" in m for m in messages)
         assert any("name only" in m for m in messages)
 
-    def test_filter_by_thermostat_no_false_positive(self):
-        """A thermostat named 'Switch' must NOT match 'Multi-switch' logs."""
+    def test_filter_by_thermostat_with_various_prefixes(self):
+        """Logs from EMA, SafetyManager, WindowManager etc. must match."""
+        handler = VThermLogHandler()
+        handler.emit(self._make_record("EMA-Multi-switch - timestamp=..."))
+        handler.emit(self._make_record("SafetyManager-Multi-switch - checking safety"))
+        handler.emit(self._make_record("WindowManager-Multi-switch - Window auto is on"))
+        handler.emit(self._make_record("HeatingFailureDetectionManager-Multi-switch - disabled"))
+        handler.emit(self._make_record("Bureau - should not match"))
+        entries = handler.get_entries(thermostat_name="Multi-switch")
+        messages = [e.message for e in entries]
+        assert any("EMA-Multi-switch" in m for m in messages)
+        assert any("SafetyManager-Multi-switch" in m for m in messages)
+        assert any("WindowManager-Multi-switch" in m for m in messages)
+        assert any("HeatingFailureDetectionManager-Multi-switch" in m for m in messages)
+        assert not any("Bureau" in m for m in messages)
+
+    def test_filter_by_thermostat_no_false_positive_with_prefix(self):
+        """Prefixed logs for 'Multi-switch' must NOT match when searching 'Salon'."""
         handler = VThermLogHandler()
         handler.emit(self._make_record("Multi-switch - msg1"))
         handler.emit(self._make_record("VersatileThermostat-Multi-switch - msg2"))
-        handler.emit(self._make_record("Switch - msg3"))
-        entries = handler.get_entries(thermostat_name="Switch")
+        handler.emit(self._make_record("EMA-Multi-switch - msg3"))
+        handler.emit(self._make_record("Salon - msg4"))
+        entries = handler.get_entries(thermostat_name="Salon")
         hints = [e.thermostat_hint for e in entries]
-        assert "Switch" in hints
+        assert "Salon" in hints
         assert "Multi-switch" not in hints
         assert "VersatileThermostat-Multi-switch" not in hints
+        assert "EMA-Multi-switch" not in hints
 
     def test_filter_by_level(self):
         handler = VThermLogHandler()

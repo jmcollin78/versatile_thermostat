@@ -56,14 +56,15 @@ class WindowOpenDetectionAlgorithm:
         returns the last slope
         """
         if self._last_datetime is None or self._last_temperature is None:
-            _LOGGER.debug("First initialisation")
+            _LOGGER.debug("%s - First initialisation", self)
             self._last_datetime = datetime_measure
             self._last_temperature = temperature
             self._nb_point = self._nb_point + 1
             return None
 
         _LOGGER.debug(
-            "We are already initialized slope=%s last_temp=%0.2f",
+            "%s - We are already initialized slope=%s last_temp=%0.2f",
+            self,
             self._last_slope,
             self._last_temperature,
         )
@@ -73,7 +74,8 @@ class WindowOpenDetectionAlgorithm:
         delta_t = delta_t_sec / 60.0
         if delta_t_sec <= MIN_DELTA_T_SEC:
             _LOGGER.debug(
-                "Delta t is %d < %d which should be not possible. We don't consider this value",
+                "%s - Delta t is %d < %d which should be not possible. We don't consider this value",
+                self,
                 delta_t_sec,
                 MIN_DELTA_T_SEC,
             )
@@ -85,7 +87,8 @@ class WindowOpenDetectionAlgorithm:
         new_slope = delta_temp / delta_t_hour
         if new_slope > MAX_SLOPE_VALUE or new_slope < -MAX_SLOPE_VALUE:
             _LOGGER.debug(
-                "New_slope is abs(%.2f) > %.2f which should be not possible. We don't consider this value",
+                "%s - New_slope is abs(%.2f) > %.2f which should be not possible. We don't consider this value",
+                self,
                 new_slope,
                 MAX_SLOPE_VALUE,
             )
@@ -105,7 +108,8 @@ class WindowOpenDetectionAlgorithm:
 
         self._nb_point = self._nb_point + 1
         _LOGGER.debug(
-            "delta_t=%.3f delta_temp=%.3f new_slope=%.3f last_slope=%s slope=%.3f nb_point=%s",
+            "%s - delta_t=%.3f delta_temp=%.3f new_slope=%.3f last_slope=%s slope=%.3f nb_point=%s",
+            self,
             delta_t,
             delta_temp,
             new_slope,

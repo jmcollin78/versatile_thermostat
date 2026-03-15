@@ -70,23 +70,23 @@ def _extract_thermostat_hint(message: str) -> str | None:
     return match.group(1) if match else None
 
 
-VTHERM_PREFIX = "versatilethermostat-"
-
-
 def _hint_matches_thermostat(hint_lower: str, name_lower: str) -> bool:
     """Check if a log hint belongs to the given thermostat name.
 
-    Matches the 3 known formats:
-      - '{name}'                                (from self._name)
-      - 'VersatileThermostat-{name}'            (from BaseThermostat.__str__)
-      - 'VersatileThermostat-{name}-{entity}'   (from UnderlyingEntity.__str__)
+    Matches generically all formats where the thermostat name appears
+    after a class prefix separated by '-':
+      - '{name}'                                       (exact match)
+      - '{Prefix}-{name}'                              (e.g. EMA-Salon)
+      - '{Prefix}-{name}-{entity}'                     (e.g. VersatileThermostat-Salon-input_boolean.heater1)
     """
     if hint_lower == name_lower:
         return True
-    prefixed = VTHERM_PREFIX + name_lower
-    if hint_lower == prefixed:
+    suffix = "-" + name_lower
+    # '{Prefix}-{name}'
+    if hint_lower.endswith(suffix):
         return True
-    if hint_lower.startswith(prefixed + "-"):
+    # '{Prefix}-{name}-{entity}'
+    if suffix + "-" in hint_lower:
         return True
     return False
 
@@ -226,8 +226,10 @@ def _format_header(
     count: int,
 ) -> str:
     """Build the header block of the export file."""
+    from homeassistant.util import dt as dt_util  # pylint: disable=import-outside-toplevel
+
     sep = "=" * 80
-    now_str = datetime.now(tz=timezone.utc).strftime("%Y-%m-%d %H:%M:%S UTC")
+    now_str = dt_util.utcnow().strftime("%Y-%m-%d %H:%M:%S UTC")
     return (
         f"{sep}\n"
         f"Versatile Thermostat - Log Export\n"
@@ -264,6 +266,7 @@ async def async_export_logs(
     period_end: datetime | str | None = None,
 ) -> None:
     """Filter logs, write export file, send persistent notification."""
+    from homeassistant.util import dt as dt_util  # pylint: disable=import-outside-toplevel
 
     min_level = LEVEL_MAP.get(log_level.upper(), logging.DEBUG)
 
@@ -271,17 +274,19 @@ async def async_export_logs(
     period_start = _parse_to_utc(period_start)
     period_end = _parse_to_utc(period_end)
 
+    # Use dt_util for consistent time reference
+    now_utc = dt_util.utcnow()
+
+    # Apply defaults
+    eff_end = period_end or now_utc
+    eff_start = period_start or (eff_end - timedelta(minutes=60))
+
     entries = handler.get_entries(
         thermostat_name=thermostat_name,
         min_level=min_level,
-        start=period_start,
-        end=period_end,
+        start=eff_start,
+        end=eff_end,
     )
-
-    # Resolve effective time window for header
-    now = datetime.now(tz=timezone.utc)
-    eff_end = period_end or now
-    eff_start = period_start or (eff_end - timedelta(minutes=60))
 
     # Label for the header
     if thermostat_name:
