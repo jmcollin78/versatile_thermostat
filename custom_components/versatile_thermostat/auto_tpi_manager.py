@@ -1,6 +1,7 @@
 """Auto TPI Manager implementing TPI algorithm."""
 
 import logging
+from .log_collector import get_vtherm_logger
 import json
 import os
 import math
@@ -32,7 +33,7 @@ from .const import (
 )
 from .vtherm_api import VersatileThermostatAPI
 
-_LOGGER = logging.getLogger(__name__)
+_LOGGER = get_vtherm_logger(__name__)
 
 STORAGE_VERSION = 8
 STORAGE_KEY_PREFIX = "versatile_thermostat.auto_tpi"

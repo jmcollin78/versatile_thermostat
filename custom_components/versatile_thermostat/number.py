@@ -2,6 +2,7 @@
 
 """ Implements the VersatileThermostat select component """
 import logging
+from .log_collector import get_vtherm_logger
 
 # from homeassistant.const import EVENT_HOMEASSISTANT_START
 from homeassistant.const import EntityCategory
@@ -65,7 +66,7 @@ PRESET_ICON_MAPPING = {
     VThermPresetWithACAway.BOOST + PRESET_TEMP_SUFFIX: "mdi:rocket-launch-outline",
 }
 
-_LOGGER = logging.getLogger(__name__)
+_LOGGER = get_vtherm_logger(__name__)
 
 
 async def async_setup_entry(
@@ -74,12 +75,10 @@ async def async_setup_entry(
     async_add_entities: AddEntitiesCallback,
 ) -> None:
     """Set up the VersatileThermostat selects with config flow."""
-    _LOGGER.debug(
-        "Calling async_setup_entry entry=%s, data=%s", entry.entry_id, entry.data
-    )
-
     unique_id = entry.entry_id
     name = entry.data.get(CONF_NAME)
+    _LOGGER.debug("%s - Calling async_setup_entry entry=%s, data=%s", name, entry.entry_id, entry.data)
+
     vt_type = entry.data.get(CONF_THERMOSTAT_TYPE)
     # is_central_boiler = entry.data.get(CONF_USE_CENTRAL_BOILER_FEATURE)
 

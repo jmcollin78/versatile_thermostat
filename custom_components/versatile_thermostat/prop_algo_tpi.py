@@ -1,10 +1,11 @@
 """ The TPI calculation module """
 # pylint: disable='line-too-long'
 import logging
+from .log_collector import get_vtherm_logger
 
 from .vtherm_hvac_mode import VThermHvacMode, VThermHvacMode_OFF, VThermHvacMode_COOL, VThermHvacMode_SLEEP
 
-_LOGGER = logging.getLogger(__name__)
+_LOGGER = get_vtherm_logger(__name__)
 
 
 

@@ -4,6 +4,7 @@
 """ Implements the VersatileThermostat climate component """
 import math
 import logging
+from .log_collector import get_vtherm_logger
 from typing import Optional
 from datetime import datetime, timedelta
 from functools import partial
@@ -76,7 +77,7 @@ from .vtherm_state import VThermState
 from .vtherm_preset import VThermPreset, HIDDEN_PRESETS, PRESET_AC_SUFFIX
 from .vtherm_hvac_mode import VThermHvacMode, VThermHvacMode_OFF, to_legacy_ha_hvac_mode
 
-_LOGGER = logging.getLogger(__name__)
+_LOGGER = get_vtherm_logger(__name__)
 
 
 class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
@@ -388,7 +389,7 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
 
     async def async_added_to_hass(self):
         """Run when entity about to be added."""
-        _LOGGER.debug("Calling async_added_to_hass")
+        _LOGGER.debug("%s - Calling async_added_to_hass", self)
 
         await super().async_added_to_hass()
 
@@ -668,7 +669,7 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
         )
 
     def __str__(self) -> str:
-        return f"VersatileThermostat-{self.name}"
+        return self.name
 
     def set_hvac_list(self):
         """Set the hvac list depending on ac_mode"""
@@ -703,17 +704,17 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
                 config_id = central_config.entry_id
 
             for key, preset_name in items:
-                _LOGGER.debug("looking for key=%s, preset_name=%s", key, preset_name)
+                _LOGGER.debug("%s - looking for key=%s, preset_name=%s", self, key, preset_name)
                 # removes preset_name frost if heat is not in hvac_modes. vtherm_hvac_modes is initialized when the underlyings are initialized.
                 # So it may be not be ready yet here. In that case, the FROST is added anyway. So it is possible that FROST preset in a COOL only device
                 if len(self.vtherm_hvac_modes) == 0 and key == VThermPreset.FROST and VThermHvacMode_HEAT not in self.vtherm_hvac_modes:
-                    _LOGGER.debug("removing preset_name %s which reserved for HEAT devices", preset_name)
+                    _LOGGER.debug("%s - removing preset_name %s which reserved for HEAT devices", self, preset_name)
                     continue
                 value = vtherm_api.get_temperature_number_value(config_id=config_id, preset_name=preset_name)
                 if value is not None:
                     presets[key] = value
                 else:
-                    _LOGGER.debug("preset_name %s not found in VTherm API", preset_name)
+                    _LOGGER.debug("%s - preset_name %s not found in VTherm API", self, preset_name)
                     presets[key] = self._attr_max_temp if self._ac_mode else self._attr_min_temp
             return presets
 
@@ -745,9 +746,9 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
                 if preset_value is not None and preset_value > 0:
                     self._attr_preset_modes.append(key)
 
-            _LOGGER.debug("After adding presets, preset_modes to %s", self._attr_preset_modes)
+            _LOGGER.debug("%s - After adding presets, preset_modes to %s", self, self._attr_preset_modes)
         else:
-            _LOGGER.debug("No preset_modes")
+            _LOGGER.debug("%s - No preset_modes", self)
 
         if self._motion_manager.is_configured:
             self._attr_preset_modes.append(VThermPreset.ACTIVITY)

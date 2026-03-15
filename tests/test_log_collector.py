@@ -12,6 +12,8 @@ import pytest
 from custom_components.versatile_thermostat.log_collector import (
     VThermLogEntry,
     VThermLogHandler,
+    VThermLogger,
+    get_vtherm_logger,
     _extract_thermostat_hint,
     _format_entry,
     _format_header,
@@ -210,6 +212,99 @@ class TestVThermLogHandler:
             end=datetime.now(tz=timezone.utc),
         )
         assert all("old" != e.message for e in entries if e.thermostat_hint is None)
+
+
+# ---------------------------------------------------------------------------
+# Unit tests: VThermLogger + get_vtherm_logger
+# ---------------------------------------------------------------------------
+
+class TestVThermLogger:
+    """Tests for the VThermLogger subclass and its factory."""
+
+    def _unique_name(self, suffix: str) -> str:
+        """Return a unique logger name to avoid cross-test pollution."""
+        import uuid
+        return f"custom_components.versatile_thermostat._test_{suffix}_{uuid.uuid4().hex[:8]}"
+
+    def test_get_vtherm_logger_returns_vtherm_instance(self):
+        """get_vtherm_logger must return a VThermLogger, not a plain Logger."""
+        name = self._unique_name("type")
+        logger = get_vtherm_logger(name)
+        assert isinstance(logger, VThermLogger)
+
+    def test_get_vtherm_logger_idempotent(self):
+        """Calling get_vtherm_logger twice returns the same instance."""
+        name = self._unique_name("idemp")
+        l1 = get_vtherm_logger(name)
+        l2 = get_vtherm_logger(name)
+        assert l1 is l2
+
+    def test_is_enabled_for_always_true(self):
+        """VThermLogger.isEnabledFor must always return True regardless of level."""
+        name = self._unique_name("enabled")
+        logger = get_vtherm_logger(name)
+        logger.setLevel(logging.WARNING)
+        assert logger.isEnabledFor(logging.DEBUG) is True
+        assert logger.isEnabledFor(logging.INFO) is True
+        assert logger.isEnabledFor(logging.WARNING) is True
+
+    def test_collector_receives_debug_when_level_is_warning(self):
+        """Buffer must receive DEBUG records even when the logger is set to WARNING."""
+        handler = VThermLogHandler()
+        name = self._unique_name("collect_debug")
+        logger = get_vtherm_logger(name)
+        logger.setLevel(logging.WARNING)
+
+        logger.debug("Salon - debug should be collected")
+        logger.warning("Salon - warning should be collected")
+
+        entries = handler.get_entries()
+        messages = [e.message for e in entries]
+        assert any("debug should be collected" in m for m in messages)
+        assert any("warning should be collected" in m for m in messages)
+
+    def test_normal_handlers_respect_effective_level(self):
+        """Normal handlers (not the collector) must NOT receive records below the effective level."""
+        handler = VThermLogHandler()
+        name = self._unique_name("ha_level")
+        logger = get_vtherm_logger(name)
+        logger.setLevel(logging.WARNING)
+        logger.propagate = False  # isolate from root
+
+        # Attach a spy handler to verify what it receives
+        spy = logging.handlers_spy = []
+        class SpyHandler(logging.Handler):
+            def emit(self, record):
+                spy.append(record.levelno)
+        spy_handler = SpyHandler(level=logging.DEBUG)
+        logger.addHandler(spy_handler)
+
+        logger.debug("Salon - should NOT reach spy")
+        logger.info("Salon - should NOT reach spy")
+        logger.warning("Salon - SHOULD reach spy")
+
+        assert logging.DEBUG not in spy
+        assert logging.INFO not in spy
+        assert logging.WARNING in spy
+
+        logger.removeHandler(spy_handler)
+
+    def test_collector_not_registered_before_handler_creation(self):
+        """VThermLogger._collector is None until a VThermLogHandler is instantiated."""
+        original = VThermLogger._collector
+        VThermLogger._collector = None
+        name = self._unique_name("no_collector")
+        logger = get_vtherm_logger(name)
+        logger.setLevel(logging.WARNING)
+        # Must not raise even without a collector
+        logger.debug("Salon - no collector yet")
+        # Restore
+        VThermLogger._collector = original
+
+    def test_handler_sets_collector_on_init(self):
+        """Creating a VThermLogHandler registers it as the class-level collector."""
+        h = VThermLogHandler()
+        assert VThermLogger._collector is h
 
 
 # ---------------------------------------------------------------------------

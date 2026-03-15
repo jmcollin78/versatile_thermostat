@@ -35,26 +35,27 @@ Permettre aux utilisateurs de récupérer les logs passés d'un VTherm spécifiq
 ┌─────────────────────────────────────────────────────────────┐
 │                     Python logging system                    │
 │                                                              │
-│   Logger: "custom_components.versatile_thermostat"           │
+│   VThermLogger (sous-classe Logger, isEnabledFor=True)       │
 │      │                                                       │
-│      ├── (existing handlers: console, HA)                    │
+│      ├── callHandlers → VThermLogHandler (ring buffer)       │
+│      │         ↕ toujours (tous niveaux)                     │
 │      │                                                       │
-│      └── VThermLogHandler  ◄── handler custom ajouté         │
-│              │                                               │
-│              ▼                                               │
+│      └── callHandlers → handlers HA normaux                  │
+│                ↕ uniquement si level ≥ niveau configuré      │
+│                                                              │
 │      VThermLogBuffer (collections.deque, thread-safe)        │
-│      ┌──────────────────────────────────────┐               │
-│      │ LogEntry(timestamp, level, name,     │               │
-│      │         message, thermostat_name)    │               │
-│      │ ...                                  │               │
-│      │ (max 4h OU max N entrées)            │               │
-│      └──────────────────────────────────────┘               │
-└─────────────────────────────────────────────────────────────┘
+│      ┌──────────────────────────────────────┐                │
+│      │ LogEntry(timestamp, level, name,     │                │
+│      │         message, thermostat_hint)    │                │
+│      │ ...                                  │                │
+│      │ (max N heures OU max N entrées)      │                │
+│      └──────────────────────────────────────┘                │
+└──────────────────────────────────────────────────────────────┘
                          │
                          │  Filtrage (thermostat, niveau, période)
                          ▼
-┌─────────────────────────────────────────────────────────────┐
-│              Service: versatile_thermostat.download_logs      │
+┌──────────────────────────────────────────────────────────────┐
+│              Service: versatile_thermostat.download_logs     │
 │                                                              │
 │   Paramètres:                                                │
 │     - entity_id    : climate.xxx (optionnel, tous si absent) │
@@ -69,12 +70,12 @@ Permettre aux utilisateurs de récupérer les logs passés d'un VTherm spécifiq
                          │
                          ▼
 ┌─────────────────────────────────────────────────────────────┐
-│   config/www/versatile_thermostat/                           │
-│     vtherm_logs_<entity>_<timestamp>.log                     │
-│                                                              │
-│   Accessible via: /local/versatile_thermostat/xxx.log        │
-│                                                              │
-│   + Notification persistante avec lien de téléchargement     │
+│   config/www/versatile_thermostat/                          │
+│     vtherm_logs_<entity>_<timestamp>.log                    │
+│                                                             │
+│   Accessible via: /local/versatile_thermostat/xxx.log       │
+│                                                             │
+│   + Notification persistante avec lien de téléchargement    │
 └─────────────────────────────────────────────────────────────┘
 ```
 
@@ -82,13 +83,49 @@ Permettre aux utilisateurs de récupérer les logs passés d'un VTherm spécifiq
 
 ## 4. Composants détaillés
 
-### 4.1 `VThermLogHandler` (logging.Handler)
+### 4.1 `VThermLogger` + `VThermLogHandler`
 
 **Fichier :** `custom_components/versatile_thermostat/log_collector.py`
 
+#### Problème de niveau de log
+
+Le pipeline Python logging standard est :
+```
+logger.debug(msg)
+  → isEnabledFor(DEBUG) ?  ← retourne False si logger configuré à WARNING → record jamais créé
+  → sinon : crée LogRecord → callHandlers() → handler.emit()
+```
+
+Si l'utilisateur configure `custom_components.versatile_thermostat: warning` dans `logger.yaml`, les messages DEBUG ne sont jamais créés et ne peuvent donc pas être capturés.
+
+#### Solution : `VThermLogger` (sous-classe de `logging.Logger`)
+
+```python
+class VThermLogger(logging.Logger):
+    _collector: ClassVar[VThermLogHandler | None] = None
+
+    def isEnabledFor(self, level: int) -> bool:
+        """Always return True so that LogRecords are always created."""
+        return True
+
+    def callHandlers(self, record: logging.LogRecord) -> None:
+        """Send to collector unconditionally; to other handlers only if level allows."""
+        if VThermLogger._collector is not None:
+            VThermLogger._collector.emit(record)          # always → ring buffer
+        if record.levelno >= self.getEffectiveLevel():
+            super().callHandlers(record)                  # only if level OK → HA logs
+
+def get_vtherm_logger(name: str) -> VThermLogger:
+    """Factory : remplace le Logger standard dans le Manager par un VThermLogger."""
+    ...
+```
+
+Tous les modules du composant utilisent `_LOGGER = get_vtherm_logger(__name__)` au lieu de `logging.getLogger(__name__)`.
+
+#### `VThermLogHandler` et `VThermLogEntry`
+
 ```python
 class VThermLogEntry:
-    """A single log entry stored in the ring buffer."""
     timestamp: datetime       # UTC timestamp
     level: int                # logging level (DEBUG=10, INFO=20, ...)
     logger_name: str          # e.g. "custom_components.versatile_thermostat.base_thermostat"
@@ -96,34 +133,26 @@ class VThermLogEntry:
     thermostat_hint: str | None  # extracted thermostat name if found
 
 class VThermLogHandler(logging.Handler):
-    """Custom handler that stores log records in an in-memory ring buffer."""
-
-    def __init__(self, max_age_hours=4, max_entries=100_000):
+    def __init__(self, max_age_hours: int = 4, max_entries: int = 100_000):
+        # Registers itself as VThermLogger._collector on init
+        VThermLogger._collector = self
         ...
 
     def emit(self, record: logging.LogRecord):
-        """Store the record in the buffer (thread-safe)."""
-        ...
+        """Store the record in the buffer (thread-safe). Called directly by VThermLogger."""
 
-    def get_entries(self, thermostat_name=None, min_level=DEBUG,
-                    start=None, end=None):
-        """Return filtered entries from the buffer.
-        start: datetime UTC, defaults to now - 60 min
-        end:   datetime UTC, defaults to now
-        """
-        ...
+    def get_entries(self, thermostat_name=None, min_level=DEBUG, start=None, end=None):
+        """Return filtered entries from the ring buffer."""
 
-    def purge_old_entries(self):
+    def purge(self):
         """Remove entries older than max_age_hours."""
-        ...
 ```
 
 **Points clés :**
-- Le handler est attaché au logger `custom_components.versatile_thermostat` (le logger racine de l'intégration).
-- **Niveau du handler** : `DEBUG` en permanence — il capture tout, indépendamment du niveau configuré dans HA.
-- **Thread-safety** : Utilisation de `threading.Lock` pour protéger le `deque`.
-- **Purge automatique** : À chaque `emit()`, les entrées trop anciennes sont purgées (pas à chaque appel pour limiter le coût, mais toutes les N insertions ou via un timer).
-- **Taille mémoire** : `max_entries=100_000` comme garde-fou (~50 Mo estimé max). Configurable.
+- `VThermLogHandler` ne dépend plus du niveau configuré sur le logger : c'est `VThermLogger.callHandlers()` qui l'appelle directement, avant le filtrage de niveau HA.
+- Le buffer `max_age_hours` est configurable via `configuration.yaml` (voir section 5).
+- **Thread-safety** : `threading.Lock` sur le `deque`.
+- **Purge automatique** : toutes les 1 000 insertions.
 
 ### 4.2 Extraction du nom de thermostat depuis les logs
 
@@ -248,12 +277,19 @@ Generated  : 2025-03-14 10:25:03 UTC
 async_setup() dans __init__.py
       │
       ▼
-Créer VThermLogHandler (singleton via hass.data[DOMAIN])
+Lire vtherm_config = config.get(DOMAIN)  (configuration.yaml)
+      │
+      ▼
+Lire max_age_hours = vtherm_config.get("log_buffer_max_age_hours", 4)
+      │
+      ▼
+Créer VThermLogHandler(max_age_hours=max_age_hours)  →  VThermLogger._collector = handler
       │
       ▼
 Attacher le handler au logger "custom_components.versatile_thermostat"
   → logger.addHandler(log_handler)
-  → logger.setLevel(min(logger.level, DEBUG))  # S'assurer que DEBUG passe
+  → logger.setLevel(DEBUG)   ← garantit que les LogRecords sont créés pour les modules
+                                qui utilisent encore logging.getLogger() directement
       │
       ▼
 Stocker la référence : hass.data[DOMAIN]["log_handler"] = log_handler
@@ -262,24 +298,54 @@ Stocker la référence : hass.data[DOMAIN]["log_handler"] = log_handler
 Enregistrer le service "download_logs"
 ```
 
-**Attention au niveau du logger :**
-Le logger `custom_components.versatile_thermostat` a un niveau effectif qui dépend de la configuration HA (`logger:` dans `configuration.yaml`). Si le niveau est `WARNING`, les messages `DEBUG` et `INFO` ne seront jamais émis et donc jamais capturés.
+**Configuration `configuration.yaml` :**
 
-**Solution :** Forcer le niveau du logger VTherm à `DEBUG` quand le handler est actif. Cela n'impacte PAS les autres handlers (console, fichier HA) car ceux-ci ont leur propre niveau de filtrage. Le handler HA standard filtre indépendamment.
-
-```python
-vtherm_logger = logging.getLogger("custom_components.versatile_thermostat")
-vtherm_logger.setLevel(logging.DEBUG)  # Allow all levels to reach our handler
-log_handler = VThermLogHandler(max_age_hours=4, max_entries=100_000)
-log_handler.setLevel(logging.DEBUG)
-vtherm_logger.addHandler(log_handler)
+```yaml
+versatile_thermostat:
+  log_buffer_max_age_hours: 6   # optionnel, défaut 4
 ```
 
-> **Impact :** Le logging HA standard possède ses propres handlers avec leurs propres niveaux. Abaisser le level du logger parent n'affecte pas le filtrage des handlers existants — chaque handler filtre indépendamment. Cependant, cela signifie que les messages DEBUG seront maintenant créés par Python (même si les handlers HA les ignorent), ce qui a un coût CPU léger.
+L'option accepte un entier positif (heures). Si absente, la valeur par défaut (`DEFAULT_MAX_AGE_HOURS = 4`) est utilisée.
 
 ---
 
-## 6. Gestion de la mémoire
+## 6. Configuration — `log_buffer_max_age_hours`
+
+### Déclaration dans `configuration.yaml`
+
+```yaml
+versatile_thermostat:
+  log_buffer_max_age_hours: 6   # optionnel — entier positif, défaut : 4
+```
+
+| Attribut  | Valeur                                   |
+| --------- | ---------------------------------------- |
+| Clé YAML  | `log_buffer_max_age_hours`               |
+| Constante | `CONF_LOG_BUFFER_MAX_AGE_HOURS`          |
+| Type      | entier positif (`cv.positive_int`)       |
+| Défaut    | `4` (exposé via `DEFAULT_MAX_AGE_HOURS`) |
+| Unité     | heures                                   |
+
+### Effect sur le buffer
+
+Cette valeur contrôle la durée de rétention des entrées dans le ring buffer. Les entrées plus vieilles que `max_age_hours` sont supprimées lors de la purge automatique (toutes les 1 000 insertions).
+
+> **Note :** La durée de rétention du buffer doit être supérieure ou égale à la fenêtre temporelle `period_start`/`period_end` utilisée lors d'un export. Si le buffer ne couvre pas la période demandée, les entrées manquantes ne pourront pas être retrouvées.
+
+### Impact mémoire selon la valeur choisie
+
+| Valeur | Scénario 10 VTherm (~50 logs/min) | Scénario 20 VTherm (~200 logs/min) |
+| ------ | --------------------------------- | ---------------------------------- |
+| 1 h    | ~3 000 entrées — ~1 Mo            | ~12 000 entrées — ~5 Mo            |
+| 4 h    | ~12 000 entrées — ~5 Mo           | ~48 000 entrées — ~20 Mo           |
+| 8 h    | ~24 000 entrées — ~10 Mo          | ~96 000 entrées — ~40 Mo           |
+| 24 h   | ~72 000 entrées — ~30 Mo          | plafonné par `max_entries=100 000` |
+
+Le garde-fou `max_entries=100_000` (~40–50 Mo) s'applique toujours, quelle que soit la durée configurée.
+
+---
+
+## 7. Gestion de la mémoire
 
 ### Estimation de consommation
 
@@ -298,22 +364,22 @@ vtherm_logger.addHandler(log_handler)
 
 ---
 
-## 7. Fichiers impactés
+## 8. Fichiers impactés
 
-| Fichier                | Modification                                                                        |
-| ---------------------- | ----------------------------------------------------------------------------------- |
-| `log_collector.py`     | **Créer** — `VThermLogHandler`, `VThermLogEntry`, logique de filtrage et d'export   |
-| `__init__.py`          | Initialiser le handler dans `async_setup()`, enregistrer le service `download_logs` |
-| `climate.py`           | Enregistrer le service entity-level `download_logs` via la plateforme               |
-| `services.yaml`        | Ajouter la définition du service `download_logs`                                    |
-| `const.py`             | Ajouter `SERVICE_DOWNLOAD_LOGS = "download_logs"`                                   |
-| `strings.json`         | Ajouter les traductions EN pour le service                                          |
-| `translations/fr.json` | Ajouter les traductions FR                                                          |
-| `translations/en.json` | Ajouter les traductions EN                                                          |
-
+| Fichier                | Modification                                                                                          |
+| ---------------------- | ----------------------------------------------------------------------------------------------------- |
+| `log_collector.py`     | `VThermLogger`, `get_vtherm_logger`, `VThermLogHandler`, `VThermLogEntry`, filtrage, export           |
+| `__init__.py`          | Initialiser le handler dans `async_setup()`, lire `log_buffer_max_age_hours`, service `download_logs` |
+| `climate.py`           | Enregistrer le service entity-level `download_logs` via la plateforme                                 |
+| `const.py`             | `CONF_LOG_BUFFER_MAX_AGE_HOURS`, `SERVICE_DOWNLOAD_LOGS`                                              |
+| `*.py` (44 fichiers)   | `_LOGGER = get_vtherm_logger(__name__)` au lieu de `logging.getLogger(__name__)`                      |
+| `services.yaml`        | Ajouter la définition du service `download_logs`                                                      |
+| `strings.json`         | Ajouter les traductions EN pour le service                                                            |
+| `translations/fr.json` | Ajouter les traductions FR                                                                            |
+| `translations/en.json` | Ajouter les traductions EN                                                                            |
 ---
 
-## 8. Tests
+## 9. Tests
 
 | Test                              | Description                                                    |
 | --------------------------------- | -------------------------------------------------------------- |
@@ -325,13 +391,11 @@ vtherm_logger.addHandler(log_handler)
 | `test_log_collector_file_cleanup` | Nettoyage des anciens fichiers dans www/                       |
 
 **Framework :** `pytest` + `pytest-homeassistant-custom-component` (existant dans le projet).
-
 ---
 
-## 9. Limites et évolutions possibles
+## 10. Limites et évolutions possibles
 
 - **Limite** : Les logs DEBUG ne sont capturés que si le handler est actif. Si l'intégration est rechargée, le buffer est vidé.
 - **Limite** : L'extraction du thermostat est pattern-based — les logs qui ne suivent pas `"%s - ..."` ne pourront pas être filtrés par thermostat.
-- **Évolution possible** : Ajouter une option de configuration pour activer/désactiver la capture (économie de mémoire pour les installations légères).
 - **Évolution possible** : Option B (endpoint HTTP custom) pour un contrôle d'accès plus fin.
 - **Évolution possible** : Export en JSON structuré en plus du texte brut.

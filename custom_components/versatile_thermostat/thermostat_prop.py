@@ -2,6 +2,7 @@
 """Base class for proportional thermostats (TPI, SmartPI)."""
 
 import logging
+from .log_collector import get_vtherm_logger
 from typing import Generic
 
 from homeassistant.core import HomeAssistant
@@ -12,7 +13,7 @@ from .underlyings import T
 from .vtherm_hvac_mode import VThermHvacMode_OFF
 from .const import CONF_PROP_FUNCTION
 
-_LOGGER = logging.getLogger(__name__)
+_LOGGER = get_vtherm_logger(__name__)
 
 
 class ThermostatProp(BaseThermostat[T], Generic[T]):

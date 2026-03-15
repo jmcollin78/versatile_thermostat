@@ -3,6 +3,7 @@
 """ Implements the Safety as a Feature Manager"""
 
 import logging
+from .log_collector import get_vtherm_logger
 from typing import Any
 
 from homeassistant.const import (
@@ -25,7 +26,7 @@ from .base_manager import BaseFeatureManager
 from .vtherm_api import VersatileThermostatAPI
 from .vtherm_hvac_mode import VThermHvacMode
 
-_LOGGER = logging.getLogger(__name__)
+_LOGGER = get_vtherm_logger(__name__)
 
 
 class FeatureSafetyManager(BaseFeatureManager):

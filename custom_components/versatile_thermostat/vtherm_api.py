@@ -1,6 +1,7 @@
 """ The API of Versatile Thermostat"""
 
 import logging
+from .log_collector import get_vtherm_logger
 from datetime import datetime
 from homeassistant.core import HomeAssistant
 from homeassistant.config_entries import ConfigEntry
@@ -11,6 +12,7 @@ from homeassistant.components.number import NumberEntity
 
 from .const import (
     DOMAIN,
+    CONF_NAME,
     CONF_AUTO_REGULATION_EXPERT,
     CONF_SHORT_EMA_PARAMS,
     CONF_SAFETY_MODE,
@@ -25,7 +27,7 @@ from .feature_central_boiler_manager import FeatureCentralBoilerManager
 
 VTHERM_API_NAME = "vtherm_api"
 
-_LOGGER = logging.getLogger(__name__)
+_LOGGER = get_vtherm_logger(__name__)
 
 
 class VersatileThermostatAPI:
@@ -96,13 +98,15 @@ class VersatileThermostatAPI:
 
     def add_entry(self, entry: ConfigEntry):
         """Add a new entry"""
-        _LOGGER.debug("Add the entry %s", entry.entry_id)
+        name = entry.data.get(CONF_NAME)
+        _LOGGER.debug("%s - Add the entry %s - %s", name, entry.entry_id, name)
         # Add the entry in hass.data
         VersatileThermostatAPI._hass.data[DOMAIN][entry.entry_id] = entry
 
     def remove_entry(self, entry: ConfigEntry):
         """Remove an entry"""
-        _LOGGER.debug("Remove the entry %s", entry.entry_id)
+        name = entry.data.get(CONF_NAME)
+        _LOGGER.debug("%s - Remove the entry %s - %s", name, entry.entry_id, name)
         VersatileThermostatAPI._hass.data[DOMAIN].pop(entry.entry_id)
         # If not more entries are preset, remove the API
         if (

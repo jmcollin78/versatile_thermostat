@@ -8,9 +8,10 @@
 """
 
 import logging
+from .log_collector import get_vtherm_logger
 from datetime import datetime
 
-_LOGGER = logging.getLogger(__name__)
+_LOGGER = get_vtherm_logger(__name__)
 
 # To filter bad values
 MIN_DELTA_T_SEC = 0  # two temp mesure should be > 0 sec
@@ -26,7 +27,7 @@ MIN_NB_POINT = 4  # do not calculate slope until we have enough point
 class WindowOpenDetectionAlgorithm:
     """The class that implements the algorithm listed above"""
 
-    def __init__(self, alert_threshold, end_alert_threshold) -> None:
+    def __init__(self, alert_threshold, end_alert_threshold, vtherm=None) -> None:
         """Initalize a new algorithm with the both threshold"""
         self._alert_threshold: float = alert_threshold
         self._end_alert_threshold: float = end_alert_threshold
@@ -34,6 +35,7 @@ class WindowOpenDetectionAlgorithm:
         self._last_datetime: datetime = None
         self._last_temperature: float | None = None
         self._nb_point: int = 0
+        self._vtherm = vtherm
 
     def check_age_last_measurement(self, temperature, datetime_now) -> float:
         """ " Check if last measurement is old and add
@@ -144,3 +146,9 @@ class WindowOpenDetectionAlgorithm:
     def last_slope(self) -> float:
         """Return the last calculated slope"""
         return self._last_slope
+
+    def __str__(self) -> str:
+        if self._vtherm and hasattr(self._vtherm, "name"):
+            return f"{self._vtherm.name}-WindowOpenDetectionAlgorithm"
+        else:
+            return f"UnknownVTherm-WindowOpenDetectionAlgorithm"

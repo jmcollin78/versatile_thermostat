@@ -14,7 +14,7 @@ from collections import deque
 from dataclasses import dataclass
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, ClassVar
 
 if TYPE_CHECKING:
     from homeassistant.core import HomeAssistant
@@ -96,6 +96,58 @@ def _short_logger_name(name: str) -> str:
     return name.rsplit(".", 1)[-1]
 
 
+class VThermLogger(logging.Logger):
+    """Logger subclass that always feeds the collector regardless of the effective level.
+
+    isEnabledFor() always returns True so that LogRecords are created for every
+    call (debug, info, …).  In callHandlers(), the record is forwarded to the
+    ring-buffer collector unconditionally, while the normal HA handler chain is
+    only reached when the record level satisfies the configured effective level.
+    This preserves the user's logger.yaml configuration for home-assistant.log
+    while still capturing everything in the in-memory buffer.
+    """
+
+    _collector: ClassVar[VThermLogHandler | None] = None  # set by VThermLogHandler.__init__
+
+    def isEnabledFor(self, level: int) -> bool:  # type: ignore[override]
+        """Always return True so that LogRecords are always created."""
+        return True
+
+    def callHandlers(self, record: logging.LogRecord) -> None:
+        """Send record to collector unconditionally; to other handlers only if level allows."""
+        if VThermLogger._collector is not None:
+            try:
+                VThermLogger._collector.emit(record)
+            except Exception:  # noqa: BLE001
+                pass
+        if record.levelno >= self.getEffectiveLevel():
+            super().callHandlers(record)
+
+
+def get_vtherm_logger(name: str) -> VThermLogger:
+    """Return a VThermLogger for *name*, replacing the standard Logger in the Manager.
+
+    Calls logging.getLogger(name) first so that the Manager sets up the parent
+    chain correctly, then swaps the entry for a VThermLogger while preserving
+    all attributes (level, handlers, parent, propagate, disabled).
+    """
+    manager = logging.Logger.manager
+    existing = manager.loggerDict.get(name)
+    if isinstance(existing, VThermLogger):
+        return existing
+    # Let the Manager create/retrieve the standard Logger (parent chain already set up)
+    std = logging.getLogger(name)
+    if isinstance(std, VThermLogger):
+        return std
+    vl = VThermLogger(name, std.level)
+    vl.parent = std.parent  # type: ignore[assignment]
+    vl.propagate = std.propagate
+    vl.handlers = std.handlers
+    vl.disabled = std.disabled
+    manager.loggerDict[name] = vl
+    return vl
+
+
 @dataclass(slots=True)
 class VThermLogEntry:
     """A single log entry stored in the ring buffer."""
@@ -120,6 +172,8 @@ class VThermLogHandler(logging.Handler):
         self._buffer: deque[VThermLogEntry] = deque(maxlen=max_entries)
         self._lock = threading.Lock()
         self._insert_count = 0
+        # Register this handler as the collector for all VThermLogger instances
+        VThermLogger._collector = self
 
     # --- Handler interface ---------------------------------------------------
 

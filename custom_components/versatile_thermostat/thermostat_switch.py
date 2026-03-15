@@ -2,6 +2,7 @@
 
 """ A climate over switch classe """
 import logging
+from .log_collector import get_vtherm_logger
 from datetime import timedelta
 from homeassistant.core import Event, callback
 from homeassistant.helpers.event import (
@@ -29,7 +30,7 @@ from .thermostat_prop import ThermostatProp
 from .underlyings import UnderlyingSwitch
 from .cycle_scheduler import CycleScheduler
 
-_LOGGER = logging.getLogger(__name__)
+_LOGGER = get_vtherm_logger(__name__)
 
 class ThermostatOverSwitch(ThermostatProp[UnderlyingSwitch]):
     """Representation of a base class for a Versatile Thermostat over a switch."""
@@ -100,21 +101,13 @@ class ThermostatOverSwitch(ThermostatProp[UnderlyingSwitch]):
     @overrides
     async def async_added_to_hass(self):
         """Run when entity about to be added."""
-        _LOGGER.debug("Calling async_added_to_hass")
 
         await super().async_added_to_hass()
 
         # Add listener to all underlying entities
         for switch in self._underlyings:
-            self.async_on_remove(
-                async_track_state_change_event(
-                    self.hass, [switch.entity_id], self._async_switch_changed
-                )
-            )
-            # done in BaseThermostat into async_startup
-            # switch.startup()
+            self.async_on_remove(async_track_state_change_event(self.hass, [switch.entity_id], self._async_switch_changed))
 
-        # self.hass.create_task(self.async_control_heating())
         # Start the control_heating
         # starts a cycle
         self.async_on_remove(

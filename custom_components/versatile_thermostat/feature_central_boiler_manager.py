@@ -1,5 +1,6 @@
 """ This module manages the central boiler feature of the Versatile Thermostat integration. """
 import logging
+from .log_collector import get_vtherm_logger
 from typing import Any
 from datetime import timedelta
 
@@ -17,7 +18,7 @@ from .commons import check_and_extract_service_configuration, write_event_log
 from .base_manager import BaseFeatureManager
 
 
-_LOGGER = logging.getLogger(__name__)
+_LOGGER = get_vtherm_logger(__name__)
 
 
 class FeatureCentralBoilerManager(BaseFeatureManager):
@@ -395,4 +396,4 @@ class FeatureCentralBoilerManager(BaseFeatureManager):
             self._total_power_active_threshold_number_entity.set_native_value(value)
 
     def __str__(self):
-        return f"FeatureCentralBoilerManager-{self._name}"
+        return f"FeatureCentralBoilerManager"

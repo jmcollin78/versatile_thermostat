@@ -1,6 +1,7 @@
 """ A custom data class to manage specific HVAC modes for VTherm. """
 
 import logging
+from .log_collector import get_vtherm_logger
 from homeassistant.components.climate.const import HVACMode
 from homeassistant.const import STATE_UNAVAILABLE, STATE_UNKNOWN
 
@@ -15,7 +16,7 @@ SLEEP = "sleep"
 
 VALID_HVAC_MODES = {OFF, HEAT, COOL, AUTO, DRY, FAN_ONLY, HEAT_COOL, SLEEP, STATE_UNAVAILABLE, STATE_UNKNOWN}
 
-_LOGGER = logging.getLogger(__name__)
+_LOGGER = get_vtherm_logger(__name__)
 
 class VThermHvacMode:
     """
