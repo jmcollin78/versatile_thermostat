@@ -287,7 +287,7 @@ async def async_register_log_download_endpoint(hass: HomeAssistant) -> None:
 
         url = "/api/versatile_thermostat/logs/{filename}"
         name = "api:versatile_thermostat:logs"
-        requires_auth = True
+        requires_auth = False
 
         async def get(self, request: web.Request, filename: str) -> web.Response:  # pylint: disable=unused-argument
             """Serve a log file by name.
