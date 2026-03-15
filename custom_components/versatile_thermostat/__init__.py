@@ -107,6 +107,8 @@ async def async_setup(
     )
 
     # Initialize log collector
+    # Note: Single shared instance stored in hass.data[DOMAIN] is used for all VTherm loggers.
+    # This ensures that all log records are centralized in one ring buffer, regardless of reload.
     if "log_handler" not in hass.data[DOMAIN]:
         max_age_hours = (
             vtherm_config.get(CONF_LOG_BUFFER_MAX_AGE_HOURS, DEFAULT_MAX_AGE_HOURS)
