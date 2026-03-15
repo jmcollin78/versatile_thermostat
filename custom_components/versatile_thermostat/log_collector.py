@@ -17,6 +17,8 @@ from pathlib import Path
 from typing import TYPE_CHECKING, ClassVar
 
 from aiohttp import web
+from homeassistant.components.http.auth import async_sign_path
+from homeassistant.helpers.network import get_url
 
 if TYPE_CHECKING:
     from homeassistant.core import HomeAssistant
@@ -287,7 +289,7 @@ async def async_register_log_download_endpoint(hass: HomeAssistant) -> None:
 
         url = "/api/versatile_thermostat/logs/{filename}"
         name = "api:versatile_thermostat:logs"
-        requires_auth = False
+        requires_auth = True
 
         async def get(self, request: web.Request, filename: str) -> web.Response:  # pylint: disable=unused-argument
             """Serve a log file by name.
@@ -462,16 +464,39 @@ async def async_export_logs(
 
     await hass.async_add_executor_job(_write)
 
-    # Send persistent notification with download link
-    # Use the custom HTTP endpoint which works with reverse proxies
-    download_url = f"/api/versatile_thermostat/logs/{filename}"
+    # Send persistent notification with a signed download link.
+    # requires_auth=True on the view means a normal browser GET would get 401.
+    # async_sign_path generates a time-limited token in the query string so the
+    # link works without an Authorization header.  We also build an absolute URL
+    # so the HA frontend SPA router does not intercept the click.
+    # We use hass.config.external_url / internal_url (user-configured) instead
+    # of get_url() which auto-detects and returns the Docker container IP.
+    raw_path = f"/api/versatile_thermostat/logs/{filename}"
+    try:
+        signed_path = async_sign_path(
+            hass,
+            raw_path,
+            timedelta(hours=OLD_FILE_MAX_AGE_HOURS),
+        )
+    except Exception:  # noqa: BLE001
+        signed_path = raw_path
+    base_url = hass.config.external_url or hass.config.internal_url
+    if not base_url:
+        try:
+            base_url = get_url(hass)
+        except Exception:  # noqa: BLE001
+            base_url = ""
+    # Strip trailing slash if present
+    base_url = base_url.rstrip("/") if base_url else ""
+    download_url = f"{base_url}{signed_path}"
     notif_msg = (
         f"**VTherm Log Export**\n\n"
         f"Thermostat: {label}\n"
         f"Period: {eff_start.strftime('%Y-%m-%d %H:%M')} → {eff_end.strftime('%Y-%m-%d %H:%M')} UTC\n"
         f"Level: {log_level.upper()}\n"
         f"Entries: {len(entries)}\n\n"
-        f"[Download log file]({download_url})"
+        f"Copy/paste the link below into your browser to download the log file:\n\n"
+        f"{download_url}"
     )
 
     await hass.services.async_call(

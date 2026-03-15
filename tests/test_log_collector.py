@@ -386,7 +386,8 @@ class TestAsyncExportLogs:
     """Tests for the full export flow."""
 
     @pytest.mark.asyncio
-    async def test_export_creates_file_and_notification(self, tmp_path):
+    @patch("custom_components.versatile_thermostat.log_collector.async_sign_path", side_effect=lambda _h, path, _t: path + "?authSig=fake")
+    async def test_export_creates_file_and_notification(self, _mock_sign, tmp_path):
         handler = VThermLogHandler()
         # Insert test logs
         record = logging.LogRecord(
@@ -402,6 +403,8 @@ class TestAsyncExportLogs:
 
         hass = MagicMock()
         hass.config.path = lambda p: str(tmp_path / p)
+        hass.config.external_url = "http://localhost:8123"
+        hass.config.internal_url = None
         hass.async_add_executor_job = AsyncMock(side_effect=lambda fn, *a: fn(*a) if not a else fn())
         hass.services.async_call = AsyncMock()
 
@@ -433,10 +436,11 @@ class TestAsyncExportLogs:
         call_args = hass.services.async_call.call_args
         assert call_args[0][0] == "persistent_notification"
         assert call_args[0][1] == "create"
-        assert "Download log file" in call_args[0][2]["message"]
+        assert "Copy/paste" in call_args[0][2]["message"]
 
     @pytest.mark.asyncio
-    async def test_export_all_thermostats(self, tmp_path):
+    @patch("custom_components.versatile_thermostat.log_collector.async_sign_path", side_effect=lambda _h, path, _t: path + "?authSig=fake")
+    async def test_export_all_thermostats(self, _mock_sign, tmp_path):
         handler = VThermLogHandler()
         record = logging.LogRecord(
             name="custom_components.versatile_thermostat.base_thermostat",
@@ -451,6 +455,8 @@ class TestAsyncExportLogs:
 
         hass = MagicMock()
         hass.config.path = lambda p: str(tmp_path / p)
+        hass.config.external_url = "http://localhost:8123"
+        hass.config.internal_url = None
         hass.services.async_call = AsyncMock()
 
         async def run_executor(fn, *args):
@@ -472,11 +478,14 @@ class TestAsyncExportLogs:
         assert "All thermostats" in content
 
     @pytest.mark.asyncio
-    async def test_export_no_entries(self, tmp_path):
+    @patch("custom_components.versatile_thermostat.log_collector.async_sign_path", side_effect=lambda _h, path, _t: path + "?authSig=fake")
+    async def test_export_no_entries(self, _mock_sign, tmp_path):
         handler = VThermLogHandler()
 
         hass = MagicMock()
         hass.config.path = lambda p: str(tmp_path / p)
+        hass.config.external_url = "http://localhost:8123"
+        hass.config.internal_url = None
         hass.services.async_call = AsyncMock()
 
         async def run_executor(fn, *args):
@@ -497,7 +506,8 @@ class TestAsyncExportLogs:
         assert "Entries    : 0" in content
 
     @pytest.mark.asyncio
-    async def test_export_with_period(self, tmp_path):
+    @patch("custom_components.versatile_thermostat.log_collector.async_sign_path", side_effect=lambda _h, path, _t: path + "?authSig=fake")
+    async def test_export_with_period(self, _mock_sign, tmp_path):
         handler = VThermLogHandler()
         now = datetime.now(tz=timezone.utc)
 
@@ -528,6 +538,8 @@ class TestAsyncExportLogs:
 
         hass = MagicMock()
         hass.config.path = lambda p: str(tmp_path / p)
+        hass.config.external_url = "http://localhost:8123"
+        hass.config.internal_url = None
         hass.services.async_call = AsyncMock()
 
         async def run_executor(fn, *args):
