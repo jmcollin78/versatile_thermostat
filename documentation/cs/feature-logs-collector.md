@@ -86,13 +86,14 @@ data:
 
 ## Přijetí a stažení souboru
 
-Po volání akce se zobrazí **trvalé oznámení**:
+Po volání akce se zobrazí **trvalé oznámení** obsahující:
 
-```
-VTherm logs ready: [Download]
-```
+- Shrnutí exportu (termostat, období, úroveň, počet položek)
+- **URL pro stažení** ke zkopírování/vložení do prohlížeče
 
-Kliknutím na **[Download]** stáhnete soubor `.log` pojmenovaný například:
+URL je **absolutní podepsaný odkaz** (s autentizačním tokenem platným 24 hodin). Kvůli omezení frontendu Home Assistant **na odkaz nelze přímo kliknout** v oznámení — musíte jej **zkopírovat a vložit** do nové karty prohlížeče pro spuštění stahování.
+
+Stažený soubor je soubor `.log` pojmenovaný například:
 ```
 vtherm_logs_obyvacak_20250314_102500.log
 ```
@@ -100,6 +101,8 @@ vtherm_logs_obyvacak_20250314_102500.log
 Soubor je dočasně uložen na vašem serveru Home Assistant ve složce dostupné v místní síti (v `config/www/versatile_thermostat/`).
 
 > **Poznámka**: Staré soubory protokolů (> 24h) jsou automaticky odstraněny ze serveru.
+
+> **Důležité**: Aby byla URL pro stažení správná, musíte nakonfigurovat svou interní nebo externí URL v **Nastavení > Systém > Síť** v Home Assistant. Jinak může URL obsahovat interní IP adresu Docker kontejneru.
 
 ## Formát a obsah souboru protokolu
 

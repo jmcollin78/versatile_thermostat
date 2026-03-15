@@ -86,13 +86,14 @@ data:
 
 ## Recevoir et télécharger le fichier
 
-Après l'appel de l'action, une **notification persistante** s'affiche :
+Après l'appel de l'action, une **notification persistante** s'affiche contenant :
 
-```
-VTherm logs ready: [Download]
-```
+- Un résumé de l'export (thermostat, période, niveau, nombre d'entrées)
+- Une **URL de téléchargement** à copier/coller dans votre navigateur
 
-En cliquant sur **[Download]**, vous téléchargez un fichier `.log` nommé par exemple :
+L'URL est un **lien signé absolu** (avec un jeton d'authentification valable 24 heures). En raison d'une limitation du frontend Home Assistant, **le lien ne peut pas être cliqué directement** depuis la notification — vous devez le **copier et le coller** dans un nouvel onglet de navigateur pour déclencher le téléchargement.
+
+Le fichier téléchargé est un fichier `.log` nommé par exemple :
 ```
 vtherm_logs_salon_20250314_102500.log
 ```
@@ -100,6 +101,8 @@ vtherm_logs_salon_20250314_102500.log
 Le fichier est stocké temporairement sur votre serveur Home Assistant dans le dossier accessible sur le réseau local (sous `config/www/versatile_thermostat/`).
 
 > **Note** : Les anciens fichiers de logs (> 24 h) sont automatiquement supprimés du serveur.
+
+> **Important** : Pour que l'URL de téléchargement soit correcte, vous devez configurer votre URL interne ou externe dans **Paramètres > Système > Réseau** dans Home Assistant. Sinon, l'URL peut contenir l'adresse IP interne du conteneur Docker.
 
 ## Format et contenu du fichier de logs
 

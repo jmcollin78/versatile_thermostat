@@ -250,7 +250,8 @@ Appel service download_logs(entity_id=climate.salon, log_level=INFO,
       │
       ▼
 7. Envoyer persistent_notification :
-   "VTherm logs ready: [Download](/api/versatile_thermostat/logs/vtherm_logs_salon_20250314_102500.log)"
+   "VTherm Log Export - Copy/paste the link below into your browser to download the log file:
+    http://<ha_url>/api/versatile_thermostat/logs/vtherm_logs_salon_20250314_102500.log?authSig=..."
 ```
 
 ### 4.5 Endpoint HTTP de téléchargement
@@ -276,9 +277,22 @@ GET /api/versatile_thermostat/logs/vtherm_logs_salon_20250314_102500.log
 - ✅ **Intégration native HA** : hérite du mécanisme d'authentification et de l'architecture HTTP de HA
 
 **Authentification :**
-- `requires_auth = False` : l'endpoint est **accessible sans authentification**
-- Raison : les logs sont générés à la demande (pas de données sensibles pré-existantes)
-- Recommandation : si besoin de sécuriser l'accès, ajouter un reverse proxy avec authentification au niveau du serveur
+- `requires_auth = True` : l'endpoint est **protégé par l'authentification HA**
+- L'accès est autorisé via un **token signé** (`authSig`) ajouté à l'URL au moment de l'export
+- Le token est généré par `async_sign_path()` de `homeassistant.components.http.auth` avec une durée de validité de 24 h (= `OLD_FILE_MAX_AGE_HOURS`)
+- La notification persistante contient l'URL complète (absolue + token signé) que l'utilisateur doit copier/coller dans un navigateur
+- **Note** : le lien ne peut pas être cliqué directement dans la notification HA car le frontend SPA intercepte les clics et tente de router en interne
+
+**Construction de l'URL de téléchargement :**
+1. Le chemin brut est : `/api/versatile_thermostat/logs/{filename}`
+2. `async_sign_path(hass, path, timedelta(hours=24))` ajoute un paramètre `?authSig=<jwt>` au chemin
+3. Le préfixe de base est résolu dans cet ordre :
+   - `hass.config.external_url` (URL externe configurée par l'utilisateur)
+   - `hass.config.internal_url` (URL interne configurée par l'utilisateur)
+   - `get_url(hass)` en fallback (auto-détection, peut retourner l'IP Docker)
+4. L'URL finale est : `{base_url}{signed_path}`
+
+> **Important** : pour que l'URL soit correcte, l'utilisateur doit configurer son URL interne ou externe dans **Paramètres > Système > Réseau** dans Home Assistant.
 
 **Sécurité :**
 - Validation du filename : `^vtherm_logs_[a-z0-9_]+_\d{8}_\d{6}\.log$`

@@ -86,13 +86,14 @@ data:
 
 ## Odbieranie i pobieranie pliku
 
-Po wywołaniu akcji wyświetli się **trwałe powiadomienie**:
+Po wywołaniu akcji wyświetli się **trwałe powiadomienie** zawierające:
 
-```
-VTherm logs ready: [Download]
-```
+- Podsumowanie eksportu (termostat, okres, poziom, liczba wpisów)
+- **URL do pobrania** do skopiowania/wklejenia w przeglądarce
 
-Klikając na **[Download]**, pobierasz plik `.log` o nazwie np.:
+URL jest **absolutnym podpisanym linkiem** (z tokenem uwierzytelniającym ważnym 24 godziny). Z powodu ograniczenia frontendu Home Assistant **nie można kliknąć bezpośrednio na link** w powiadomieniu — należy go **skopiować i wkleić** do nowej karty przeglądarki, aby uruchomić pobieranie.
+
+Pobrany plik to plik `.log` o nazwie np.:
 ```
 vtherm_logs_salon_20250314_102500.log
 ```
@@ -100,6 +101,8 @@ vtherm_logs_salon_20250314_102500.log
 Plik jest tymczasowo przechowywany na serwerze Home Assistant w folderze dostępnym przez sieć lokalną (w `config/www/versatile_thermostat/`).
 
 > **Uwaga**: Stare pliki dzienników (> 24h) są automatycznie usuwane z serwera.
+
+> **Ważne**: Aby URL do pobrania był prawidłowy, musisz skonfigurować swój wewnętrzny lub zewnętrzny URL w **Ustawienia > System > Sieć** w Home Assistant. W przeciwnym razie URL może zawierać wewnętrzny adres IP kontenera Docker.
 
 ## Format i zawartość pliku dziennika
 
