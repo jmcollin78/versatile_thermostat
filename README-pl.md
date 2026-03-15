@@ -14,17 +14,26 @@ w językach : [Angielski](README.md) | [Francuski](README-fr.md) | [Niemiecki](R
 <img src="https://github.com/jmcollin78/versatile_thermostat/blob/main/images/icon.png" />
 </p>
 
-> ![Tip](images/tips.png) Integracja VTherm ma na celu znaczne uproszczenie automatyzacji zarządzania ogrzewaniem. Ponieważ wszystkie typowe zdarzenia związane z ogrzewaniem (obecność w domu, wykrycie aktywności w pomieszczeniu, otwarte okno, wyłączenie zasilania, itp.) są natywnie zarządzane przez termostat, nie musisz zajmować się skomplikowanymi skryptami i automatyzacjami, aby zarządzać termostatami. ;-).
+> ![Tip](images/tips.png) **VTherm** to wysoce konfigurowalny wirtualny termostat, który przekształca każde urządzenie grzewcze (grzejniki, klimatyzatory, pompy ciepła itp.) w inteligentny i adaptacyjny system. Umożliwia on konsolidację i centralne kontrolowanie wielu różnych systemów grzewczych, jednocześnie automatycznie optymalizując zużycie energii. Dzięki zaawansowanym algorytmom (TPI, auto-TPI) i możliwościach uczenia się, termostat dostosowuje się do Twojego domu 🏠 i Twoich zwyczajów, zapewniając optymalny komfort i znaczne zmniejszenie rachunków za ogrzewanie 💰.
+> Integracja termostatyczna ma na celu znaczne uproszczenie automatyzacji zarządzania ogrzewaniem. Ponieważ wszystkie typowe zdarzenia związane z ogrzewaniem (obecność w domu, wykrycie aktywności w pomieszczeniu, otwarte okno, wyłączenie zasilania, itp.) są natywnie zarządzane przez termostat, nie musisz zajmować się skomplikowanymi skryptami i automatyzacjami, aby zarządzać termostatami. 😉
 
 Ten niestandardowy komponent Home Assistanta jest ulepszoną i napisaną całkowicie od nowa wersją komponentu „Awesome Thermostat” (patrz: [Github](https://github.com/dadge/awesome_thermostat)) z dodatkowymi funkcjami.
 
+# Dokumentacja
+Cała dokumentacja jest dostępna na [Versatile Thermostat Web site](https://www.versatile-thermostat.org/).
 
+# Zrzuty ekranu
 Karta integracji VTherm UI (dostępna na [Github](https://github.com/jmcollin78/versatile-thermostat-ui-card)) :
 
 ![Card1](https://github.com/jmcollin78/versatile-thermostat-ui-card/raw/master/assets/1.png) ![Card2](https://github.com/jmcollin78/versatile-thermostat-ui-card/raw/master/assets/7.png)
 
 # Co nowego?
 ![New](images/new-icon.png)
+
+## Release 9.2 - wersja stabilna
+> 1. Nowy sposób zarządzania cyklami ogrzewania/zatrzymania dla VTherm `over_switch`. Obecny algorytm ma dryfę czasową, a pierwsze cykle nie są optymalne. To zaburza TPI i szczególnie auto-TPI. Nowy `Cycle Scheduler` rozwiązuje te trudności. Ta zmiana jest całkowicie przezroczysta dla Ciebie,
+> 2. Kolektor dzienników. Twoje żądania wsparcia często zawodzą ze względu na Twoją zdolność do dostarczenia dzienników w odpowiednim okresie, skoncentrowanych na termostacie z błędem i na właściwym poziomie dziennika. Jest to szczególnie przypadek trudno reprodukowalnych błędów. Kolektor dzienników ma na celu rozwiązanie tej trudności. Zbiera dzienniki dla Ciebie w tle na najdrobniejszym poziomie, a akcja (dawniej usługa) umożliwia ich wyodrębnienie do pliku. Następnie można je pobrać i dołączyć do żądania wsparcia. Analizator dzienników powiązany ze stroną internetową - uruchomiony w wersji 9.1 (patrz poniżej) - dostosowuje się, aby mógł przetwarzać te dzienniki. Więcej informacji na temat kolektora dzienników [tutaj](documentation/pl/feature-logs-collector.md),
+> 3. Stabilizacja wersji 9.x. Wersja główna 9 przyniosła wiele zmian, które spowodowały kilka anomalii. Ta wersja zawiera ostatnie poprawki związane z wersją 9.
 
 ## Release 9.1
 > 1. Nowe logo. Zainspirowane pracami @Krzysztonek (zobacz [tutaj](https://github.com/jmcollin78/versatile_thermostat/pull/1598)), VTherm korzysta z nowej funkcji wprowadzonej w [HA 206.03](https://developers.home-assistant.io/blog/2026/02/24/brands-proxy-api/), aby zmienić swoje logo. Cały zespół ma nadzieję, że przypadnie Wam do gustu. Miłego korzystania!

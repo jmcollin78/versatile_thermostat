@@ -13,9 +13,14 @@ Sprachen: [English](README.md) | [Français](README-fr.md) | [Deutsch](README-de
 <img src="https://github.com/jmcollin78/versatile_thermostat/blob/main/images/icon.png" />
 </p>
 
-> ![Tipp](images/tips.png) Diese Thermostat-Integration zielt darauf ab, Ihre Heizungsmanagement-Automatisierungen erheblich zu vereinfachen. Da alle typischen Heizungsereignisse (niemand zu Hause?, Aktivität in einem Raum erkannt?, Fenster offen?, Stromlastabwurf?) nativ vom Thermostat verwaltet werden, müssen Sie sich nicht mit komplizierten Skripten und Automatisierungen beschäftigen, um Ihre Thermostate zu verwalten. ;-).
+> ![Tipp](images/tips.png) **Versatile Thermostat** ist ein hochgradig konfigurierbarer virtueller Thermostat, der jedes Heizgerät (Heizkörper, Klimaanlagen, Wärmepumpen usw.) in ein intelligentes und adaptives System umwandelt. Er ermöglicht es Ihnen, mehrere verschiedene Heizsysteme zu konsolidieren und zentral zu steuern, während gleichzeitig automatisch Ihren Energieverbrauch optimiert wird. Dank fortschrittlicher Algorithmen (TPI, Auto-TPI) und Lernfähigkeiten passt sich der Thermostat an Ihr Haus 🏠 und Ihre Gewohnheiten an und bietet optimalen Komfort sowie eine signifikante Senkung Ihrer Heizrechnungen 💰.
+> Diese Thermostat-Integration zielt darauf ab, Ihre Heizungsmanagement-Automatisierungen erheblich zu vereinfachen. Da alle typischen Heizungsereignisse (niemand zu Hause?, Aktivität in einem Raum erkannt?, Fenster offen?, Stromlastabwurf?) nativ vom Thermostat verwaltet werden, müssen Sie sich nicht mit komplizierten Skripten und Automatisierungen beschäftigen, um Ihre Thermostate zu verwalten. 😉
 
 Diese benutzerdefinierte Komponente für Home Assistant ist ein Upgrade und eine komplette Neufassung der Komponente "Awesome thermostat" (siehe [Github](https://github.com/dadge/awesome_thermostat)) mit zusätzlichen Funktionen.
+
+# Dokumentation
+
+Die gesamte Dokumentation ist auf der [Versatile Thermostat Web site](https://www.versatile-thermostat.org/) verfügbar.
 
 # Screenshots
 
@@ -25,6 +30,11 @@ Versatile Thermostat UI Card (Verfügbar auf [Github](https://github.com/jmcolli
 
 # Was ist neu?
 ![Neu](images/new-icon.png)
+
+## Release 9.2 - stabile Version
+> 1. Neue Art der Verwaltung von Heiz-/Stoppzyklen für VTherm `over_switch`. Der aktuelle Algorithmus hat einen Zeitdrift, und die ersten Zyklen sind nicht optimal. Dies beeinträchtigt das TPI und insbesondere das Auto-TPI. Der neue `Cycle Scheduler` löst diese Schwierigkeiten. Diese Änderung ist für Sie völlig transparent,
+> 2. Ein Protokollkollektor. Ihre Support-Anfragen scheitern oft an Ihrer Fähigkeit, Protokolle im richtigen Zeitraum bereitzustellen, konzentriert auf den fehlerhaften Thermostat und auf der richtigen Protokollebene. Dies ist besonders bei schwer reproduzierbaren Fehlern der Fall. Der Protokollkollektor soll diese Schwierigkeit lösen. Er sammelt Protokolle für Sie im Hintergrund auf der feinsten Ebene, und eine Aktion (ehemals Dienst) ermöglicht deren Extraktion in eine Datei. Sie können diese dann herunterladen und Ihrer Support-Anfrage beifügen. Der mit der Website verbundene Protokollanalysator – der in Version 9.1 (siehe unten) gestartet wurde – passt sich an, um diese Protokolle verarbeiten zu können. Weitere Informationen zum Protokollkollektor [hier](documentation/de/feature-logs-collector.md),
+> 3. Stabilisierung der Version 9.x. Die Hauptversion 9 brachte viele Änderungen mit sich, die einige Anomalien verursachten. Diese Version bringt die neuesten Korrektionen zur Version 9.
 
 ## Release 9.1
 > 1. Neues Logo. Inspiriert von der Arbeit von @Krzysztonek (siehe [hier](https://github.com/jmcollin78/versatile_thermostat/pull/1598)) nutzt VTherm eine neue Funktion aus [HA 206.03](https://developers.home-assistant.io/blog/2026/02/24/brands-proxy-api/), um sein Logo zu ändern. Das gesamte Team hofft, dass es Ihnen gefällt. Viel Spaß!
