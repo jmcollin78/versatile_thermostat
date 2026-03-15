@@ -105,23 +105,30 @@ class CycleScheduler:
         self._states: list[UnderlyingCycleState] = []
         self._penalty: float = 0.0
         self._cycle_start_time: float = 0.0
-        # Guard flag: True while cancel_cycle() is awaiting end callbacks.
-        # Keeps is_cycle_running=True so concurrent start_cycle(force=False) calls
-        # take the update path instead of starting a duplicate full cycle.
+        # Guard flags to keep is_cycle_running=True during async yield points
+        # where timers are not yet (re-)installed:
+        # _is_cancelling: True while cancel_cycle() awaits _fire_cycle_end_callbacks()
+        # _is_starting:   True while start_cycle() awaits callbacks or device-control
+        #                 operations before the new timers are set
         self._is_cancelling: bool = False
+        self._is_starting: bool = False
         # Detect valve mode from underlying types
         self._is_valve_mode: bool = self._detect_valve_mode()
 
     @property
     def is_cycle_running(self) -> bool:
-        """Return True if a cycle is currently scheduled or being cancelled.
+        """Return True if a cycle is currently scheduled or in a lifecycle transition.
 
-        The _is_cancelling flag keeps this True during the async
-        _fire_cycle_end_callbacks() yield inside cancel_cycle(), preventing
-        concurrent start_cycle(force=False) callers from bypassing the update
-        path and creating a duplicate cycle.
+        _is_cancelling stays True while cancel_cycle() awaits _fire_cycle_end_callbacks(),
+        preventing concurrent start_cycle(force=False) from seeing is_cycle_running=False
+        and starting a duplicate cycle during that window (Race 1).
+
+        _is_starting stays True while start_cycle() has finished cancellation but has not
+        yet finished device-control setup (including _fire_cycle_start_callbacks and
+        _start_cycle_switch/_start_cycle_valve), preventing concurrent start_cycle(force=False)
+        from starting a duplicate cycle during that window (Race 2).
         """
-        return self._tick_unsub is not None or self._cycle_end_unsub is not None or self._is_cancelling
+        return self._tick_unsub is not None or self._cycle_end_unsub is not None or self._is_cancelling or self._is_starting
 
     @property
     def is_valve_mode(self) -> bool:
@@ -206,7 +213,7 @@ class CycleScheduler:
                 self._thermostat,
             )
 
-        await self.cancel_cycle()
+        await self._cancel_cycle_impl()
 
         # Compute realized on_percent after timing constraints (for learning callbacks)
         # This is the actual percentage that will be executed physically
@@ -218,17 +225,21 @@ class CycleScheduler:
         self._current_off_time_sec = off_time_sec
         self._current_on_percent = realized_on_percent
 
-        # Fire cycle start callbacks with realized percent so learners see actual applied power
-        await self._fire_cycle_start_callbacks(
-            on_time_sec, off_time_sec, realized_on_percent, hvac_mode
-        )
+        # _is_starting guards the Race window: after _cancel_cycle_impl() cleared all
+        # timers and flags, but before the new timers are set by _start_cycle_switch() or
+        # _start_cycle_valve(). During this window, is_cycle_running must return True to
+        # prevent concurrent start_cycle(force=False) from starting a duplicate full cycle.
+        self._is_starting = True
+        try:
+            # Fire cycle start callbacks with realized percent so learners see actual applied power
+            await self._fire_cycle_start_callbacks(on_time_sec, off_time_sec, realized_on_percent, hvac_mode)
 
-        if self._is_valve_mode:
-            await self._start_cycle_valve(hvac_mode)
-        else:
-            await self._start_cycle_switch(
-                hvac_mode, on_time_sec, off_time_sec, realized_on_percent
-            )
+            if self._is_valve_mode:
+                await self._start_cycle_valve(hvac_mode)
+            else:
+                await self._start_cycle_switch(hvac_mode, on_time_sec, off_time_sec, realized_on_percent)
+        finally:
+            self._is_starting = False
 
     async def _start_cycle_valve(self, hvac_mode: VThermHvacMode):
         """Valve passthrough: call set_valve_open_percent() on each underlying.
@@ -441,14 +452,32 @@ class CycleScheduler:
             _from_cycle_end=True,
         )
 
+    def shutdown(self):
+        """Cancel pending timers immediately without firing end-of-cycle callbacks.
+
+        Must be called synchronously when the entity is being removed from HA so
+        that leftover async_call_later handles cannot fire after the new entity
+        (potentially with a different cycle duration) has already started.
+        """
+        if self._tick_unsub:
+            self._tick_unsub()
+            self._tick_unsub = None
+        if self._cycle_end_unsub:
+            self._cycle_end_unsub()
+            self._cycle_end_unsub = None
+        self._is_cancelling = False
+        self._is_starting = False
+
     async def cancel_cycle(self):
         """Cancel the current cycle if one is running."""
+        await self._cancel_cycle_impl()
+
+    async def _cancel_cycle_impl(self):
+        """Internal cancel logic, shared by cancel_cycle() and start_cycle()."""
         was_running = self.is_cycle_running
 
-        # Set before cancelling unsubs so that is_cycle_running stays True
-        # throughout this coroutine, even during the async yield below.
-        # This prevents concurrent start_cycle(force=False) callers from
-        # seeing is_cycle_running=False and starting a duplicate full cycle.
+        # Set before unsubscribing so that is_cycle_running stays True
+        # throughout this coroutine, even during the async yield below (Race 1 guard).
         self._is_cancelling = True
 
         if self._tick_unsub:
@@ -464,17 +493,13 @@ class CycleScheduler:
         # Fire end-of-cycle callback for all non-valve cycles that ran long enough.
         # This includes normal ends (via _on_master_cycle_end -> start_cycle(force=True))
         # and mid-cycle interruptions (force restart on setpoint change, etc.).
+        # During this await, _is_cancelling=True keeps is_cycle_running=True so any
+        # concurrent start_cycle(force=False) call takes the update path, not full start.
         if was_running and elapsed_sec > 1.0 and not self._is_valve_mode:
             realized_e_eff = self._calculate_realized_e_eff(elapsed_sec)
             elapsed_ratio = min(1.0, elapsed_sec / self._cycle_duration_sec) if self._cycle_duration_sec > 0 else 1.0
 
-            _LOGGER.debug(
-                "%s - cycle end: elapsed_sec=%.1f, realized_e_eff=%.3f, elapsed_ratio=%.2f",
-                self._thermostat, elapsed_sec, realized_e_eff, elapsed_ratio
-            )
-            # Await directly to guarantee ordering: e_eff callback runs before new cycle starts.
-            # During this await, _is_cancelling=True keeps is_cycle_running=True so any
-            # concurrent start_cycle(force=False) call takes the update path, not full start.
+            _LOGGER.debug("%s - cycle end: elapsed_sec=%.1f, realized_e_eff=%.3f, elapsed_ratio=%.2f", self._thermostat, elapsed_sec, realized_e_eff, elapsed_ratio)
             await self._fire_cycle_end_callbacks(realized_e_eff, elapsed_ratio)
 
         self._states = []

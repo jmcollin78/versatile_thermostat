@@ -438,6 +438,11 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
 
         self.stop_recalculate_later()
 
+        # Cancel scheduler timers so leftover async_call_later handles cannot fire
+        # after the entity has been unloaded (e.g. on cycle duration config change).
+        if self._cycle_scheduler:
+            self._cycle_scheduler.shutdown()
+
         # stop listening for all managers
         for manager in self._managers:
             manager.stop_listening()
