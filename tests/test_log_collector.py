@@ -324,8 +324,8 @@ class TestFormatHelpers:
         )
         line = _format_entry(entry)
         assert "2025-03-14 10:23:45.123" in line
-        assert "[INFO   ]" in line
-        assert "base_thermostat" in line
+        assert "INFO" in line
+        assert "[base_thermostat   ]" in line
         assert "Salon - Temperature is 21°C" in line
 
     def test_format_header(self):
