@@ -22,7 +22,7 @@ from .base_thermostat import BaseThermostat
 from .const import *  # pylint: disable=wildcard-import, unused-wildcard-import
 
 from .vtherm_api import VersatileThermostatAPI
-from .log_collector import VThermLogHandler, async_export_logs, DEFAULT_MAX_AGE_HOURS
+from .log_collector import VThermLogHandler, async_export_logs, async_register_log_download_endpoint, DEFAULT_MAX_AGE_HOURS
 
 _LOGGER = get_vtherm_logger(__name__)
 
@@ -118,6 +118,10 @@ async def async_setup(
         log_handler = VThermLogHandler(max_age_hours=max_age_hours)
         hass.data[DOMAIN]["log_handler"] = log_handler
         _LOGGER.info("VTherm log collector initialized (buffer: %d h)", max_age_hours)
+        
+        # Register the HTTP endpoint for log downloads
+        # This provides a /api/versatile_thermostat/logs/<filename> endpoint
+        await async_register_log_download_endpoint(hass)
 
     return True
 

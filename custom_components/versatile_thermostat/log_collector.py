@@ -16,8 +16,11 @@ from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import TYPE_CHECKING, ClassVar
 
+from aiohttp import web
+
 if TYPE_CHECKING:
     from homeassistant.core import HomeAssistant
+    from homeassistant.components.http import HomeAssistantView
 
 
 def _parse_to_utc(value: datetime | str | None) -> datetime | None:
@@ -261,6 +264,97 @@ class VThermLogHandler(logging.Handler):
 
 
 # ---------------------------------------------------------------------------
+# HTTP Endpoint for log downloads
+# ---------------------------------------------------------------------------
+
+# ---------------------------------------------------------------------------
+# HTTP Endpoint for log downloads
+# ---------------------------------------------------------------------------
+
+
+async def async_register_log_download_endpoint(hass: HomeAssistant) -> None:
+    """Register the HTTP endpoint for log downloads.
+
+    This creates a custom view to serve log files via /api/versatile_thermostat/logs/<filename>
+    instead of using static /local/ paths, which ensures compatibility with reverse proxies
+    and external domain configurations.
+    """
+    from homeassistant.components.http import HomeAssistantView  # pylint: disable=import-outside-toplevel
+
+    # Define the view class here to have proper access to hass
+    class LogDownloadView(HomeAssistantView):
+        """HTTP view for downloading log files."""
+
+        url = "/api/versatile_thermostat/logs/{filename}"
+        name = "api:versatile_thermostat:logs"
+        requires_auth = True
+
+        async def get(self, request: web.Request, filename: str) -> web.Response:  # pylint: disable=unused-argument
+            """Serve a log file by name.
+
+            Args:
+                request: The HTTP request
+                filename: The log filename from the URL pattern
+
+            Returns:
+                HTTP response with file content or 404 if not found.
+            """
+            # Get hass from the request app context
+            hass = request.app["hass"]
+
+            # Validate filename to prevent path traversal attacks
+            # Only allow valid log filenames: vtherm_logs_<name>_<timestamp>.log
+            if not re.match(r"^vtherm_logs_[a-z0-9_]+_\d{8}_\d{6}\.log$", filename):
+                _LOGGER.warning("Attempted to download invalid log filename: %s", filename)
+                return web.Response(status=400, text="Invalid filename")
+
+            log_dir = Path(hass.config.path(LOG_OUTPUT_DIR))
+            filepath = log_dir / filename
+
+            _LOGGER.debug("Download request for log file: %s", filename)
+            _LOGGER.debug("Log directory: %s", log_dir)
+            _LOGGER.debug("Full filepath: %s", filepath)
+
+            # Double-check that file is within the log directory (security)
+            try:
+                filepath.resolve().relative_to(log_dir.resolve())
+            except ValueError:
+                _LOGGER.warning("Attempted to download file outside log directory: %s", filepath)
+                return web.Response(status=400, text="Invalid path")
+
+            if not filepath.exists():
+                _LOGGER.warning("Log file does not exist: %s", filepath)
+                _LOGGER.debug("Directory contents: %s", list(log_dir.glob("*.log")) if log_dir.exists() else "Directory doesn't exist")
+                return web.Response(status=404, text="Log file not found")
+
+            if not filepath.is_file():
+                _LOGGER.warning("Path exists but is not a file: %s", filepath)
+                return web.Response(status=404, text="Not a file")
+
+            try:
+                _LOGGER.debug("Reading log file: %s", filepath)
+                # Use FileResponse which handles streaming and async automatically
+                return web.FileResponse(
+                    filepath,
+                    headers={
+                        "Content-Type": "text/plain; charset=utf-8",
+                        "Content-Disposition": f'attachment; filename="{filename}"',
+                    },
+                )
+            except FileNotFoundError:
+                _LOGGER.warning("Log file was deleted since existence check: %s", filepath)
+                return web.Response(status=404, text="Log file not found")
+            except OSError as err:
+                _LOGGER.error("OS error serving log file %s: %s", filepath, err)
+                return web.Response(status=500, text=f"OS error: {err}")
+            except Exception as err:  # pylint: disable=broad-except
+                _LOGGER.error("Unexpected error serving log file %s: %s", filepath, err)
+                return web.Response(status=500, text=f"Error: {type(err).__name__}: {err}")
+
+    hass.http.register_view(LogDownloadView)
+
+
+# ---------------------------------------------------------------------------
 # Export helpers
 # ---------------------------------------------------------------------------
 
@@ -369,7 +463,8 @@ async def async_export_logs(
     await hass.async_add_executor_job(_write)
 
     # Send persistent notification with download link
-    download_url = f"/local/versatile_thermostat/{filename}"
+    # Use the custom HTTP endpoint which works with reverse proxies
+    download_url = f"/api/versatile_thermostat/logs/{filename}"
     notif_msg = (
         f"**VTherm Log Export**\n\n"
         f"Thermostat: {label}\n"

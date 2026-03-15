@@ -11,21 +11,20 @@ Permettre aux utilisateurs de récupérer les logs passés d'un VTherm spécifiq
 | Approche                                             | Description                                                                                            | Avantages                                                        | Inconvénients                                                                                                            |
 | ---------------------------------------------------- | ------------------------------------------------------------------------------------------------------ | ---------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------ |
 | **A. Ring buffer in-memory + service + fichier www** | Handler logging custom qui stocke les logs en mémoire ; service HA écrit un fichier dans `config/www/` | Simple, fichier accessible via HTTP (`/local/...`)               | Nécessite que le dossier `www` existe ; URL pas sécurisée                                                                |
-| **B. Ring buffer + endpoint HTTP custom**            | Idem A, mais le fichier est servi via un endpoint HTTP enregistré dans HA                              | URL propre, contrôle d'accès HA intégré                          | Plus complexe ; nécessite `HomeAssistantView`                                                                            |
+| **B. Ring buffer + endpoint HTTP custom** (✓ ACTUEL) | Idem A, mais le fichier est servi via un endpoint HTTP enregistré dans HA                              | URL propre, compatible reverse proxy, contrôle d'accès HA intégré | Un peu plus complexe ; nécessite `HomeAssistantView`                                                                     |
 | **C. Plateforme diagnostics HA**                     | Utiliser le mécanisme natif `diagnostics` de HA                                                        | Intégré dans l'UI HA (Settings > Devices > Download diagnostics) | Conçu pour des dumps d'état, pas pour des logs filtrés ; pas de filtrage par période/niveau ; un seul fichier par device |
 | **D. Per-thermostat log buffer**                     | Chaque VTherm stocke ses propres logs dans un buffer interne                                           | Filtrage natif par thermostat                                    | Ne capture pas les logs des modules transverses (managers, algorithmes) ; intrusif dans le code existant                 |
 | **E. System Log HA**                                 | Utiliser `homeassistant.components.system_log`                                                         | Zéro code                                                        | Limité à ~50 entrées, global, pas de filtrage par intégration                                                            |
 
-### Choix retenu : **Option A** (Ring buffer in-memory + service + fichier www)
+### Choix retenu : **Option B** (Ring buffer in-memory + endpoint HTTP custom)
 
 **Justification :**
-- Simplicité d'implémentation et de maintenance
+- Simplicité et maintenabilité (basée sur Option A)
 - Pas de dépendance à des composants internes HA non stables
-- Le dossier `config/www/` est le mécanisme standard HA pour servir des fichiers statiques
-- La notification persistante fournit un lien direct à l'utilisateur
+- **Fonctionne avec les reverse proxies et domaines externes** (contrairement à `/local/`)
+- Le dossier `config/www/` est le mécanisme standard HA pour stocker les fichiers
+- La notification persistante fournit un lien direct via `/api/versatile_thermostat/logs/<filename>`
 - Compatible avec tous les types d'installation HA (HAOS, Docker, Core)
-
-> **Note :** Si la sécurité de l'URL est un enjeu (environnement multi-utilisateurs), l'option B pourra être envisagée ultérieurement. Pour un usage typique (réseau local, utilisateur unique), l'option A est suffisante.
 
 ---
 
@@ -65,7 +64,7 @@ Permettre aux utilisateurs de récupérer les logs passés d'un VTherm spécifiq
 │                                                              │
 │   1. Filtre les logs du buffer                               │
 │   2. Écrit le fichier dans config/www/versatile_thermostat/  │
-│   3. Envoie une notification persistante avec le lien        │
+│   3. Envoie une notification persistante avec le lien API    │
 └─────────────────────────────────────────────────────────────┘
                          │
                          ▼
@@ -73,8 +72,12 @@ Permettre aux utilisateurs de récupérer les logs passés d'un VTherm spécifiq
 │   config/www/versatile_thermostat/                          │
 │     vtherm_logs_<entity>_<timestamp>.log                    │
 │                                                             │
-│   Accessible via: /local/versatile_thermostat/xxx.log       │
+│   Accessible via: /api/versatile_thermostat/logs/           │
+│                   vtherm_logs_<entity>_<timestamp>.log       │
 │                                                             │
+│   ✓ Fonctionne avec reverse proxies                         │
+│   ✓ Fonctionne sur domaines externes                        │
+│   ✓ Endpoint HTTP sécurisé                                  │
 │   + Notification persistante avec lien de téléchargement    │
 └─────────────────────────────────────────────────────────────┘
 ```
@@ -247,10 +250,48 @@ Appel service download_logs(entity_id=climate.salon, log_level=INFO,
       │
       ▼
 7. Envoyer persistent_notification :
-   "VTherm logs ready: [Download](/local/versatile_thermostat/vtherm_logs_salon_20250314_102500.log)"
+   "VTherm logs ready: [Download](/api/versatile_thermostat/logs/vtherm_logs_salon_20250314_102500.log)"
 ```
 
-### 4.5 Format du fichier de sortie
+### 4.5 Endpoint HTTP de téléchargement
+
+**Fichier :** `custom_components/versatile_thermostat/log_collector.py` → `async_register_log_download_endpoint()`
+
+**Enregistrement :** dans `async_setup()` de `__init__.py`, une fois le `VThermLogHandler` créé.
+
+**URL :**
+```
+GET /api/versatile_thermostat/logs/{filename}
+```
+
+**Exemple :**
+```
+GET /api/versatile_thermostat/logs/vtherm_logs_salon_20250314_102500.log
+```
+
+**Avantages de cet endpoint par rapport à `/local/...` :**
+- ✅ **Fonctionne avec reverse proxies** : l'endpoint est serveur par Home Assistant via son système de routing HTTP intégré
+- ✅ **Fonctionne sur domaines externes** : pas de dépendance à un chemin de fichier statique
+- ✅ **Sécurité** : validation du nom de fichier (regex) et du chemin (resolve + relative_to pour éviter path traversal)
+- ✅ **Intégration native HA** : hérite du mécanisme d'authentification et de l'architecture HTTP de HA
+
+**Authentification :**
+- `requires_auth = False` : l'endpoint est **accessible sans authentification**
+- Raison : les logs sont générés à la demande (pas de données sensibles pré-existantes)
+- Recommandation : si besoin de sécuriser l'accès, ajouter un reverse proxy avec authentification au niveau du serveur
+
+**Sécurité :**
+- Validation du filename : `^vtherm_logs_[a-z0-9_]+_\d{8}_\d{6}\.log$`
+- Vérification du chemin : le fichier doit être dans `config/www/versatile_thermostat/`
+- Pas de path traversal possible (ex: `../../../etc/passwd`)
+- Le fichier doit exister physiquement (pas de création à la volée)
+
+**Corps de la réponse :**
+- Content-Type : `text/plain; charset=utf-8`
+- Header : `Content-Disposition: attachment; filename="..."`
+- Body : contenu du fichier de log
+
+### 4.6 Format du fichier de sortie
 
 ```
 ================================================================================
@@ -366,17 +407,18 @@ Le garde-fou `max_entries=100_000` (~40–50 Mo) s'applique toujours, quelle que
 
 ## 8. Fichiers impactés
 
-| Fichier                | Modification                                                                                          |
-| ---------------------- | ----------------------------------------------------------------------------------------------------- |
-| `log_collector.py`     | `VThermLogger`, `get_vtherm_logger`, `VThermLogHandler`, `VThermLogEntry`, filtrage, export           |
-| `__init__.py`          | Initialiser le handler dans `async_setup()`, lire `log_buffer_max_age_hours`, service `download_logs` |
-| `climate.py`           | Enregistrer le service entity-level `download_logs` via la plateforme                                 |
-| `const.py`             | `CONF_LOG_BUFFER_MAX_AGE_HOURS`, `SERVICE_DOWNLOAD_LOGS`                                              |
-| `*.py` (44 fichiers)   | `_LOGGER = get_vtherm_logger(__name__)` au lieu de `logging.getLogger(__name__)`                      |
-| `services.yaml`        | Ajouter la définition du service `download_logs`                                                      |
-| `strings.json`         | Ajouter les traductions EN pour le service                                                            |
-| `translations/fr.json` | Ajouter les traductions FR                                                                            |
-| `translations/en.json` | Ajouter les traductions EN                                                                            |
+| Fichier                | Modification                                                                                                                |
+| ---------------------- | ---------------------------------------------------------------------------------------------------------------------------- |
+| `log_collector.py`     | `VThermLogger`, `get_vtherm_logger`, `VThermLogHandler`, `VThermLogEntry`, filtrage, export, `async_register_log_download_endpoint()` |
+| `__init__.py`          | Initialiser le handler dans `async_setup()`, lire `log_buffer_max_age_hours`, service `download_logs`, enregistrer endpoint HTTP    |
+| `climate.py`           | Enregistrer le service entity-level `download_logs` via la plateforme                                                        |
+| `const.py`             | `CONF_LOG_BUFFER_MAX_AGE_HOURS`, `SERVICE_DOWNLOAD_LOGS`                                                                     |
+| `*.py` (44 fichiers)   | `_LOGGER = get_vtherm_logger(__name__)` au lieu de `logging.getLogger(__name__)`                                             |
+| `services.yaml`        | Ajouter la définition du service `download_logs`                                                                             |
+| `strings.json`         | Ajouter les traductions EN pour le service                                                                                  |
+| `translations/fr.json` | Ajouter les traductions FR                                                                                                  |
+| `translations/en.json` | Ajouter les traductions EN                                                                                                  |
+
 ---
 
 ## 9. Tests
