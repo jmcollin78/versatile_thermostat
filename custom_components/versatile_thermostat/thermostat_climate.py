@@ -1,6 +1,7 @@
 # pylint: disable=line-too-long, too-many-lines, abstract-method
 """ A climate over climate classe """
 import logging
+from .log_collector import get_vtherm_logger
 from typing import Optional
 
 from datetime import timedelta, datetime
@@ -24,7 +25,7 @@ from .underlyings import UnderlyingClimate
 from .feature_auto_start_stop_manager import FeatureAutoStartStopManager
 from .vtherm_hvac_mode import VThermHvacMode
 
-_LOGGER = logging.getLogger(__name__)
+_LOGGER = get_vtherm_logger(__name__)
 
 HVAC_ACTION_ON = [  # pylint: disable=invalid-name
     HVACAction.COOLING,
@@ -540,8 +541,6 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
     @overrides
     async def async_added_to_hass(self):
         """Run when entity about to be added."""
-        _LOGGER.debug("Calling async_added_to_hass")
-
         await super().async_added_to_hass()
 
         # Add listener to all underlying entities

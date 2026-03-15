@@ -2,8 +2,9 @@
 See: https://github.com/jmcollin78/versatile_thermostat/issues/1220 """
 
 import logging
+from .log_collector import get_vtherm_logger
 
-_LOGGER = logging.getLogger(__name__)
+_LOGGER = get_vtherm_logger(__name__)
 
 
 class OpeningClosingDegreeCalculation:

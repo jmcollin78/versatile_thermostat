@@ -7,6 +7,7 @@ without temporal scheduling.
 """
 
 import logging
+from .log_collector import get_vtherm_logger
 from typing import Any, Callable
 
 from homeassistant.core import CALLBACK_TYPE, HomeAssistant
@@ -23,7 +24,7 @@ from .cycle_tick_logic import (
     evaluate_need_off,
     compute_e_eff,
 )
-_LOGGER = logging.getLogger(__name__)
+_LOGGER = get_vtherm_logger(__name__)
 
 
 def calculate_cycle_times(

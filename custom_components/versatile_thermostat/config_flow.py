@@ -6,6 +6,7 @@ from __future__ import annotations
 from typing import Any
 import re
 import logging
+from .log_collector import get_vtherm_logger
 import copy
 from collections.abc import Mapping  # pylint: disable=import-error
 import voluptuous as vol
@@ -27,7 +28,7 @@ from .commons import check_and_extract_service_configuration
 
 COMES_FROM = "comes_from"
 
-_LOGGER = logging.getLogger(__name__)
+_LOGGER = get_vtherm_logger(__name__)
 
 def add_suggested_values_to_schema(
     data_schema: vol.Schema, suggested_values: Mapping[str, Any]

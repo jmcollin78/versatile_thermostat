@@ -1,5 +1,6 @@
 """ This module manages the lock feature of the Versatile Thermostat integration. """
 import logging
+from .log_collector import get_vtherm_logger
 from typing import Any
 
 from homeassistant.core import (
@@ -13,7 +14,7 @@ from .commons_type import ConfigData
 
 from .base_manager import BaseFeatureManager
 
-_LOGGER = logging.getLogger(__name__)
+_LOGGER = get_vtherm_logger(__name__)
 
 class FeatureLockManager(BaseFeatureManager):
     """ The implementation of the Lock Feature Manager for Versatile Thermostat """

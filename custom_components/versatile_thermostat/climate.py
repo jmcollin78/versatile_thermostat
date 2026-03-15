@@ -1,6 +1,7 @@
 """ Implements the VersatileThermostat climate component """
 
 import logging
+from .log_collector import get_vtherm_logger
 
 
 import voluptuous as vol
@@ -31,7 +32,7 @@ from .thermostat_valve import ThermostatOverValve
 from .thermostat_climate_valve import ThermostatOverClimateValve
 from .vtherm_api import VersatileThermostatAPI
 
-_LOGGER = logging.getLogger(__name__)
+_LOGGER = get_vtherm_logger(__name__)
 
 async def async_setup_entry(
     hass: HomeAssistant,
@@ -39,14 +40,11 @@ async def async_setup_entry(
     async_add_entities: AddEntitiesCallback,
 ) -> None:
     """Set up the VersatileThermostat thermostat with config flow."""
-    _LOGGER.debug(
-        "Calling async_setup_entry entry=%s, data=%s", entry.entry_id, entry.data
-    )
-
-    await async_setup_reload_service(hass, DOMAIN, PLATFORMS)
-
     unique_id = entry.entry_id
     name = entry.data.get(CONF_NAME)
+    _LOGGER.debug("%s - Calling async_setup_entry entry=%s, data=%s", name, entry.entry_id, entry.data)
+
+    await async_setup_reload_service(hass, DOMAIN, PLATFORMS)
     vt_type = entry.data.get(CONF_THERMOSTAT_TYPE)
     have_valve_regulation = (
         entry.data.get(CONF_AUTO_REGULATION_MODE) == CONF_AUTO_REGULATION_VALVE
@@ -220,3 +218,14 @@ async def async_setup_entry(
         supports_response=SupportsResponse.OPTIONAL,
     )
 
+    platform.async_register_entity_service(
+        SERVICE_DOWNLOAD_LOGS,
+        {
+            vol.Optional("log_level", default="DEBUG"): vol.In(
+                ["DEBUG", "INFO", "WARNING", "ERROR"]
+            ),
+            vol.Optional("period_start"): selector.DateTimeSelector(),
+            vol.Optional("period_end"): selector.DateTimeSelector(),
+        },
+        "service_download_logs",
+    )

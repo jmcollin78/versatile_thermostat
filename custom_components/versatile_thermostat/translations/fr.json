@@ -1011,6 +1011,24 @@
           "description": "Le code de verrouillage optionnel"
         }
       }
+    },
+    "download_logs": {
+      "name": "Télécharger les logs",
+      "description": "Collecte et télécharge les logs filtrés pour une entité VTherm.",
+      "fields": {
+        "log_level": {
+          "name": "Niveau de log",
+          "description": "Niveau de log minimum à inclure"
+        },
+        "period_start": {
+          "name": "Début de la période",
+          "description": "Début de la période d'extraction"
+        },
+        "period_end": {
+          "name": "Fin de la période",
+          "description": "Fin de la période d'extraction"
+        }
+      }
     }
   },
   "exceptions": {

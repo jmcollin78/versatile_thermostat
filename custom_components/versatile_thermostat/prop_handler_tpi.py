@@ -2,6 +2,7 @@
 """TPI algorithm handler for ThermostatProp."""
 
 import logging
+from .log_collector import get_vtherm_logger
 from typing import Any, TYPE_CHECKING
 from datetime import datetime
 
@@ -19,7 +20,7 @@ from .cycle_scheduler import calculate_cycle_times
 if TYPE_CHECKING:
     from .thermostat_prop import ThermostatProp
 
-_LOGGER = logging.getLogger(__name__)
+_LOGGER = get_vtherm_logger(__name__)
 
 
 class TPIHandler:

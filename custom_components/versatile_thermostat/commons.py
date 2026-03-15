@@ -3,6 +3,7 @@
 # pylint: disable=line-too-long
 
 import logging
+from .log_collector import get_vtherm_logger
 import warnings
 
 from homeassistant.core import HomeAssistant
@@ -11,7 +12,7 @@ from homeassistant.helpers import entity_registry as er
 
 from .const import ServiceConfigurationError, DOMAIN
 
-_LOGGER = logging.getLogger(__name__)
+_LOGGER = get_vtherm_logger(__name__)
 
 
 def round_to_nearest(n: float, x: float) -> float:
@@ -153,8 +154,7 @@ def deprecated(message):
 
 def write_event_log(logger: logging.Logger, vtherm: "BaseThermostat", message: str):
     """Write an event log entry for the thermostat."""
-    logger.info("")
-    logger.info("---------------------> NEW EVENT: %s - %s --------------------------------------------------------------", vtherm, message)
+    logger.info("%s - ---------------------> NEW EVENT: %s --------------------------------------------------------------", vtherm, message)
 
 
 async def cleanup_orphan_entity(

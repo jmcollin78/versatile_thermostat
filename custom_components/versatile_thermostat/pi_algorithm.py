@@ -2,8 +2,9 @@
 """ The PI algorithm implementation """
 
 import logging
+from .log_collector import get_vtherm_logger
 
-_LOGGER = logging.getLogger(__name__)
+_LOGGER = get_vtherm_logger(__name__)
 
 
 class PITemperatureRegulator:

@@ -3,6 +3,7 @@
 """
 
 import logging
+from .log_collector import get_vtherm_logger
 from datetime import datetime
 from typing import Literal
 
@@ -18,7 +19,7 @@ from .const import (
 )
 
 
-_LOGGER = logging.getLogger(__name__)
+_LOGGER = get_vtherm_logger(__name__)
 
 # Some constant to make algorithm depending of level
 DT_MIN = {

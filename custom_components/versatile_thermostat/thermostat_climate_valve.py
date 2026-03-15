@@ -2,6 +2,7 @@
 """ A climate with a direct valve regulation class """
 
 import logging
+from .log_collector import get_vtherm_logger
 import asyncio
 from datetime import datetime
 from typing import Optional
@@ -24,7 +25,7 @@ from .vtherm_hvac_mode import VThermHvacMode, VThermHvacMode_OFF, VThermHvacMode
 
 # from .vtherm_api import VersatileThermostatAPI
 
-_LOGGER = logging.getLogger(__name__)
+_LOGGER = get_vtherm_logger(__name__)
 
 
 class ThermostatOverClimateValve(ThermostatProp[UnderlyingClimate], ThermostatOverClimate):

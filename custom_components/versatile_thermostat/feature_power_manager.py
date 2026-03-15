@@ -3,6 +3,7 @@
 # pylint: disable=line-too-long
 
 import logging
+from .log_collector import get_vtherm_logger
 from typing import Any
 
 from homeassistant.const import (
@@ -23,7 +24,7 @@ from .commons_type import ConfigData
 from .base_manager import BaseFeatureManager
 from .vtherm_api import VersatileThermostatAPI
 
-_LOGGER = logging.getLogger(__name__)
+_LOGGER = get_vtherm_logger(__name__)
 
 
 class FeaturePowerManager(BaseFeatureManager):

@@ -3,6 +3,7 @@
 """ Implements the Heating Failure Detection as a Feature Manager"""
 
 import logging
+from .log_collector import get_vtherm_logger
 from typing import Any
 from datetime import datetime, timedelta
 
@@ -35,7 +36,7 @@ from .commons_type import ConfigData
 from .base_manager import BaseFeatureManager
 from .vtherm_hvac_mode import VThermHvacMode_OFF, VThermHvacMode_HEAT
 
-_LOGGER = logging.getLogger(__name__)
+_LOGGER = get_vtherm_logger(__name__)
 
 
 class FeatureHeatingFailureDetectionManager(BaseFeatureManager):

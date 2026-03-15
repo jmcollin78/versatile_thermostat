@@ -2,6 +2,7 @@
 
 """ Underlying entities classes """
 import logging
+from .log_collector import get_vtherm_logger
 import re
 from typing import Any, Dict, List, Optional, Tuple, TypeVar
 from collections.abc import Callable
@@ -44,7 +45,7 @@ from .keep_alive import IntervalCaller
 from .vtherm_api import VersatileThermostatAPI
 from .underlying_state_manager import UnderlyingStateManager
 
-_LOGGER = logging.getLogger(__name__)
+_LOGGER = get_vtherm_logger(__name__)
 
 class UnderlyingEntityType(StrEnum):
     """All underlying device type"""

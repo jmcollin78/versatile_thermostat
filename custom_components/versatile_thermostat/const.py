@@ -2,6 +2,7 @@
 """Constants for the Versatile Thermostat integration."""
 
 import logging
+from .log_collector import get_vtherm_logger
 import math
 from typing import Literal
 
@@ -34,7 +35,7 @@ from .vtherm_hvac_mode import (
 )  # pylint: disable=unused-import
 from .vtherm_state import VThermState  # pylint: disable=unused-import
 
-_LOGGER = logging.getLogger(__name__)
+_LOGGER = get_vtherm_logger(__name__)
 
 CONFIG_VERSION = 2
 CONFIG_MINOR_VERSION = 3
@@ -192,6 +193,7 @@ CONF_AUTO_TPI_CONTINUOUS_KEXT_ALPHA = "auto_tpi_continuous_kext_alpha"
 CONF_SHORT_EMA_PARAMS = "short_ema_params"
 CONF_SAFETY_MODE = "safety_mode"
 CONF_MAX_ON_PERCENT = "max_on_percent"
+CONF_LOG_BUFFER_MAX_AGE_HOURS = "log_buffer_max_age_hours"
 
 CONF_USE_MAIN_CENTRAL_CONFIG = "use_main_central_config"
 CONF_USE_TPI_CENTRAL_CONFIG = "use_tpi_central_config"
@@ -467,6 +469,7 @@ SERVICE_AUTO_TPI_CALIBRATE_CAPACITY = "auto_tpi_calibrate_capacity"
 SERVICE_SET_TIMED_PRESET = "set_timed_preset"
 SERVICE_CANCEL_TIMED_PRESET = "cancel_timed_preset"
 SERVICE_RECALIBRATE_VALVES = "recalibrate_valves"
+SERVICE_DOWNLOAD_LOGS = "download_logs"
 
 DEFAULT_SAFETY_MIN_ON_PERCENT = 0.5
 DEFAULT_SAFETY_DEFAULT_ON_PERCENT = 0.1

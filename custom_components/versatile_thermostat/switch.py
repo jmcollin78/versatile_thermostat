@@ -2,6 +2,7 @@
 
 """ Implements the VersatileThermostat select component """
 import logging
+from .log_collector import get_vtherm_logger
 from typing import Any
 
 from homeassistant.core import HomeAssistant, callback
@@ -17,7 +18,7 @@ from .base_entity import VersatileThermostatBaseEntity
 
 from .const import *  # pylint: disable=unused-wildcard-import,wildcard-import
 
-_LOGGER = logging.getLogger(__name__)
+_LOGGER = get_vtherm_logger(__name__)
 
 
 async def async_setup_entry(
@@ -26,12 +27,10 @@ async def async_setup_entry(
     async_add_entities: AddEntitiesCallback,
 ) -> None:
     """Set up the VersatileThermostat switches with config flow."""
-    _LOGGER.debug(
-        "Calling async_setup_entry entry=%s, data=%s", entry.entry_id, entry.data
-    )
-
     unique_id = entry.entry_id
     name = entry.data.get(CONF_NAME)
+    _LOGGER.debug("%s - Calling async_setup_entry entry=%s, data=%s", name, entry.entry_id, entry.data)
+
     vt_type = entry.data.get(CONF_THERMOSTAT_TYPE)
     auto_start_stop_feature = entry.data.get(CONF_USE_AUTO_START_STOP_FEATURE)
 

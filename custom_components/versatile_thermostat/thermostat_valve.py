@@ -1,6 +1,7 @@
 # pylint: disable=line-too-long, abstract-method
 """ A climate over switch classe """
 import logging
+from .log_collector import get_vtherm_logger
 from datetime import timedelta, datetime
 
 from homeassistant.helpers.event import (
@@ -21,7 +22,7 @@ from .underlyings import UnderlyingValve
 from .cycle_scheduler import CycleScheduler
 from .vtherm_hvac_mode import VThermHvacMode_OFF
 
-_LOGGER = logging.getLogger(__name__)
+_LOGGER = get_vtherm_logger(__name__)
 
 class ThermostatOverValve(ThermostatProp[UnderlyingValve]):  # pylint: disable=abstract-method
     """Representation of a class for a Versatile Thermostat over a Valve"""
@@ -98,7 +99,6 @@ class ThermostatOverValve(ThermostatProp[UnderlyingValve]):  # pylint: disable=a
     @overrides
     async def async_added_to_hass(self):
         """Run when entity about to be added."""
-        _LOGGER.debug("Calling async_added_to_hass")
 
         await super().async_added_to_hass()
 

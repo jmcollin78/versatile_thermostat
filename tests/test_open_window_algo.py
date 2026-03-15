@@ -15,7 +15,7 @@ async def test_open_window_algo(
 ):
     """Tests the Algo"""
 
-    the_algo = WindowOpenDetectionAlgorithm(60.0, 0.0)
+    the_algo = WindowOpenDetectionAlgorithm(60.0, 0.0, vtherm={"name": "test_algo"})
     assert the_algo.last_slope is None
 
     tz = get_tz(hass)  # pylint: disable=invalid-name

@@ -8,9 +8,10 @@
 """
 
 import logging
+from .log_collector import get_vtherm_logger
 from datetime import datetime
 
-_LOGGER = logging.getLogger(__name__)
+_LOGGER = get_vtherm_logger(__name__)
 
 # To filter bad values
 MIN_DELTA_T_SEC = 0  # two temp mesure should be > 0 sec
@@ -26,7 +27,7 @@ MIN_NB_POINT = 4  # do not calculate slope until we have enough point
 class WindowOpenDetectionAlgorithm:
     """The class that implements the algorithm listed above"""
 
-    def __init__(self, alert_threshold, end_alert_threshold) -> None:
+    def __init__(self, alert_threshold, end_alert_threshold, vtherm=None) -> None:
         """Initalize a new algorithm with the both threshold"""
         self._alert_threshold: float = alert_threshold
         self._end_alert_threshold: float = end_alert_threshold
@@ -34,6 +35,7 @@ class WindowOpenDetectionAlgorithm:
         self._last_datetime: datetime = None
         self._last_temperature: float | None = None
         self._nb_point: int = 0
+        self._vtherm = vtherm
 
     def check_age_last_measurement(self, temperature, datetime_now) -> float:
         """ " Check if last measurement is old and add
@@ -56,14 +58,15 @@ class WindowOpenDetectionAlgorithm:
         returns the last slope
         """
         if self._last_datetime is None or self._last_temperature is None:
-            _LOGGER.debug("First initialisation")
+            _LOGGER.debug("%s - First initialisation", self)
             self._last_datetime = datetime_measure
             self._last_temperature = temperature
             self._nb_point = self._nb_point + 1
             return None
 
         _LOGGER.debug(
-            "We are already initialized slope=%s last_temp=%0.2f",
+            "%s - We are already initialized slope=%s last_temp=%0.2f",
+            self,
             self._last_slope,
             self._last_temperature,
         )
@@ -73,7 +76,8 @@ class WindowOpenDetectionAlgorithm:
         delta_t = delta_t_sec / 60.0
         if delta_t_sec <= MIN_DELTA_T_SEC:
             _LOGGER.debug(
-                "Delta t is %d < %d which should be not possible. We don't consider this value",
+                "%s - Delta t is %d < %d which should be not possible. We don't consider this value",
+                self,
                 delta_t_sec,
                 MIN_DELTA_T_SEC,
             )
@@ -85,7 +89,8 @@ class WindowOpenDetectionAlgorithm:
         new_slope = delta_temp / delta_t_hour
         if new_slope > MAX_SLOPE_VALUE or new_slope < -MAX_SLOPE_VALUE:
             _LOGGER.debug(
-                "New_slope is abs(%.2f) > %.2f which should be not possible. We don't consider this value",
+                "%s - New_slope is abs(%.2f) > %.2f which should be not possible. We don't consider this value",
+                self,
                 new_slope,
                 MAX_SLOPE_VALUE,
             )
@@ -105,7 +110,8 @@ class WindowOpenDetectionAlgorithm:
 
         self._nb_point = self._nb_point + 1
         _LOGGER.debug(
-            "delta_t=%.3f delta_temp=%.3f new_slope=%.3f last_slope=%s slope=%.3f nb_point=%s",
+            "%s - delta_t=%.3f delta_temp=%.3f new_slope=%.3f last_slope=%s slope=%.3f nb_point=%s",
+            self,
             delta_t,
             delta_temp,
             new_slope,
@@ -140,3 +146,9 @@ class WindowOpenDetectionAlgorithm:
     def last_slope(self) -> float:
         """Return the last calculated slope"""
         return self._last_slope
+
+    def __str__(self) -> str:
+        if self._vtherm and hasattr(self._vtherm, "name"):
+            return f"{self._vtherm.name}-WindowOpenDetectionAlgorithm"
+        else:
+            return f"UnknownVTherm-WindowOpenDetectionAlgorithm"

@@ -1,4 +1,13 @@
-default_config:
+# default_config is intentionally NOT used here because it pulls in go2rtc,
+# which requires a Docker binary unavailable in the dev container.
+# Instead, list only the components needed for development:
+frontend:
+config:
+history:
+logbook:
+homeassistant:
+system_health:
+energy:
 
 recorder:
     auto_purge: true
@@ -20,12 +29,7 @@ recorder:
 logger:
     default: warning
     logs:
-        custom_components.versatile_thermostat: debug
-        # custom_components.versatile_thermostat.underlyings: info
-        # custom_components.versatile_thermostat.climate: info
-        # custom_components.versatile_thermostat.base_thermostat: debug
-        custom_components.versatile_thermostat.sensor: info
-        custom_components.versatile_thermostat.binary_sensor: info
+        custom_components.versatile_thermostat: info
 
 # If you need to debug uncommment the line below (doc: https://www.home-assistant.io/integrations/debugpy/)
 debugpy:

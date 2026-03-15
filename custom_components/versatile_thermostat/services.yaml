@@ -410,4 +410,37 @@ recalibrate_valves:
                 number:
                     min: 30
                     max: 300
-                    step: 1
+
+download_logs:
+    name: Download logs
+    description: Collect and download filtered logs for a VTherm entity.
+    target:
+        entity:
+            integration: versatile_thermostat
+            domain:
+                - climate
+    fields:
+        log_level:
+            name: Log level
+            description: Minimum log level to include
+            required: false
+            default: "DEBUG"
+            selector:
+                select:
+                    options:
+                        - "DEBUG"
+                        - "INFO"
+                        - "WARNING"
+                        - "ERROR"
+        period_start:
+            name: Period start
+            description: Start of the extraction period (default is 60 minutes ago)
+            required: false
+            selector:
+                datetime:
+        period_end:
+            name: Period end
+            description: End of the extraction period (default is now)
+            required: false
+            selector:
+                datetime:
