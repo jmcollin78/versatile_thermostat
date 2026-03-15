@@ -125,9 +125,9 @@ Plik zawiera:
 
 Przykładowy wpis:
 ```
-2025-03-14 08:25:12.456 [INFO   ] base_thermostat    | Salon - Current temperature is 20.5°C
-2025-03-14 08:30:00.001 [INFO   ] prop_algo_tpi      | Salon - TPI calculated on_percent=0.45
-2025-03-14 08:30:00.123 [WARNING] safety_manager     | Salon - No temperature update for 35 min
+2025-03-14 08:25:12.456 INFO    [base_thermostat    ] Salon - Current temperature is 20.5°C
+2025-03-14 08:30:00.001 INFO    [prop_algo_tpi      ] Salon - TPI calculated on_percent=0.45
+2025-03-14 08:30:00.123 WARNING [safety_manager     ] Salon - No temperature update for 35 min
 ```
 
 Następnie możesz **analizować ten plik** za pomocą:

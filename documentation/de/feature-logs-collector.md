@@ -125,9 +125,9 @@ Die Datei enthält:
 
 Beispieleintrag:
 ```
-2025-03-14 08:25:12.456 [INFO   ] base_thermostat    | Wohnzimmer - Current temperature is 20.5°C
-2025-03-14 08:30:00.001 [INFO   ] prop_algo_tpi      | Wohnzimmer - TPI calculated on_percent=0.45
-2025-03-14 08:30:00.123 [WARNING] safety_manager     | Wohnzimmer - No temperature update for 35 min
+2025-03-14 08:25:12.456 INFO    [base_thermostat    ] Wohnzimmer - Current temperature is 20.5°C
+2025-03-14 08:30:00.001 INFO    [prop_algo_tpi      ] Wohnzimmer - TPI calculated on_percent=0.45
+2025-03-14 08:30:00.123 WARNING [safety_manager     ] Wohnzimmer - No temperature update for 35 min
 ```
 
 Sie können diese Datei dann **analysieren** mit:

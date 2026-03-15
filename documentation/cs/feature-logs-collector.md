@@ -125,9 +125,9 @@ Soubor obsahuje:
 
 Příklad položky:
 ```
-2025-03-14 08:25:12.456 [INFO   ] base_thermostat    | Obývací pokoj - Current temperature is 20.5°C
-2025-03-14 08:30:00.001 [INFO   ] prop_algo_tpi      | Obývací pokoj - TPI calculated on_percent=0.45
-2025-03-14 08:30:00.123 [WARNING] safety_manager     | Obývací pokoj - No temperature update for 35 min
+2025-03-14 08:25:12.456 INFO    [base_thermostat    ] Obývací pokoj - Current temperature is 20.5°C
+2025-03-14 08:30:00.001 INFO    [prop_algo_tpi      ] Obývací pokoj - TPI calculated on_percent=0.45
+2025-03-14 08:30:00.123 WARNING [safety_manager     ] Obývací pokoj - No temperature update for 35 min
 ```
 
 Potom můžete tento soubor **analyzovat** pomocí:

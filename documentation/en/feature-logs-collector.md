@@ -125,9 +125,9 @@ The file contains:
 
 Example entry:
 ```
-2025-03-14 08:25:12.456 [INFO   ] base_thermostat    | Living Room - Current temperature is 20.5°C
-2025-03-14 08:30:00.001 [INFO   ] prop_algo_tpi      | Living Room - TPI calculated on_percent=0.45
-2025-03-14 08:30:00.123 [WARNING] safety_manager     | Living Room - No temperature update for 35 min
+2025-03-14 08:25:12.456 INFO    [base_thermostat    ] Living Room - Current temperature is 20.5°C
+2025-03-14 08:30:00.001 INFO    [prop_algo_tpi      ] Living Room - TPI calculated on_percent=0.45
+2025-03-14 08:30:00.123 WARNING [safety_manager     ] Living Room - No temperature update for 35 min
 ```
 
 You can then **analyze this file** with:

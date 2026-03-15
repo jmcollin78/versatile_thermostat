@@ -269,7 +269,7 @@ def _format_entry(entry: VThermLogEntry) -> str:
     ts = entry.timestamp.strftime("%Y-%m-%d %H:%M:%S.%f")[:-3]
     level = logging.getLevelName(entry.level).ljust(7)
     short_name = _short_logger_name(entry.logger_name).ljust(18)
-    return f"{ts} [{level}] {short_name} | {entry.message}"
+    return f"{ts} {level} [{short_name}] {entry.message}"
 
 
 def _format_header(
