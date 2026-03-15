@@ -904,7 +904,7 @@ class NbActiveDeviceForBoilerSensor(SensorEntity):
         for entity in self._entities:
             device_actives = entity.device_actives
             _LOGGER.debug(
-                "After examining the device_actives of %s, device_actives is %s",
+                "%s - After examining the device_actives, device_actives is %s",
                 entity.name,
                 device_actives,
             )
@@ -924,7 +924,7 @@ class NbActiveDeviceForBoilerSensor(SensorEntity):
         return self._attr_active_device_ids
 
     def __str__(self):
-        return f"VersatileThermostat-{self.name}"
+        return f"{self.name}"
 
     def cancel_listening_nb_active(self):
         """Cancel the listening of underlying VTherm state changes"""
@@ -1057,7 +1057,7 @@ class TotalPowerActiveDeviceForBoilerSensor(NbActiveDeviceForBoilerSensor):
                 continue
 
             _LOGGER.debug(
-                "After examining the mean_cycle_power of %s, mean_cycle_power is %s",
+                "%s - After examining the mean_cycle_power, mean_cycle_power is %s",
                 entity.name,
                 mean_cycle_power,
             )
@@ -1078,7 +1078,7 @@ class TotalPowerActiveDeviceForBoilerSensor(NbActiveDeviceForBoilerSensor):
         return self._attr_active_device_ids
 
     def __str__(self):
-        return f"VersatileThermostat-{self.name}"
+        return f"{self.name}"
 
     @overrides
     async def async_will_remove_from_hass(self) -> None:

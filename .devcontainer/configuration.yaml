@@ -29,12 +29,7 @@ recorder:
 logger:
     default: warning
     logs:
-        custom_components.versatile_thermostat: debug
-        # custom_components.versatile_thermostat.underlyings: info
-        # custom_components.versatile_thermostat.climate: info
-        # custom_components.versatile_thermostat.base_thermostat: debug
-        custom_components.versatile_thermostat.sensor: info
-        custom_components.versatile_thermostat.binary_sensor: info
+        custom_components.versatile_thermostat: info
 
 # If you need to debug uncommment the line below (doc: https://www.home-assistant.io/integrations/debugpy/)
 debugpy:

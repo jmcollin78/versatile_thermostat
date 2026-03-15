@@ -108,15 +108,12 @@ async def async_setup(
 
     # Initialize log collector
     if "log_handler" not in hass.data[DOMAIN]:
-        vtherm_logger = logging.getLogger("custom_components.versatile_thermostat")
         max_age_hours = (
             vtherm_config.get(CONF_LOG_BUFFER_MAX_AGE_HOURS, DEFAULT_MAX_AGE_HOURS)
             if vtherm_config is not None
             else DEFAULT_MAX_AGE_HOURS
         )
         log_handler = VThermLogHandler(max_age_hours=max_age_hours)
-        vtherm_logger.addHandler(log_handler)
-        vtherm_logger.setLevel(logging.DEBUG)
         hass.data[DOMAIN]["log_handler"] = log_handler
         _LOGGER.info("VTherm log collector initialized (buffer: %d h)", max_age_hours)
 
