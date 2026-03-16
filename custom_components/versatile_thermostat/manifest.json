@@ -2,7 +2,8 @@
   "domain": "versatile_thermostat",
   "name": "Versatile Thermostat",
   "after_dependencies": [
-    "recorder"
+    "recorder",
+    "http"
   ],
   "codeowners": [
     "@jmcollin78"
