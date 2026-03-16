@@ -10,7 +10,7 @@ Aby temu zapobiec, VTherm zapewnia regularne raportowanie wartości odczytywanyc
 
 Problem polega na tym, że niektóre termometry — szczególnie zasilane bateryjnie — wysyłają aktualizacje temperatury tylko wtedy, gdy wartość się zmienia. Zatem całkiem możliwe jest, że przez wiele godzin nie nadejdą żadne aktualizacje temperatury, mimo że termometr działa poprawnie. Poniższe parametry pozwalają na precyzyjne dostrojenie progów aktywacji Trybu Bezpiecznego.
 
-Jeśli Twój termometr posiada atrybut `last seen`, wskazujący czas ostatniego kontaktu, możesz określić go w głównych atrybutach VTherm, aby znacznie ograniczyć fałszywe aktywacje Trybu Bezpiecznego (patrz: [konfiguracja](base-attributes.md#choosing-base-attributes) oraz [rozwiązywanie problemów](troubleshooting.md#why-does-my-versatile-thermostat-switch-to-safety-mode)).
+Jeśli Twój termometr posiada atrybut `last seen`, wskazujący czas ostatniego kontaktu, możesz określić go w głównych atrybutach VTherm, aby znacznie ograniczyć fałszywe aktywacje Trybu Bezpiecznego (patrz: [konfiguracja](base-attributes.md#choosing-base-attributes) oraz [rozwiązywanie problemów](troubleshooting.md#why-is-my-versatile-thermostat-going-into-safety-mode)).
 
 Dla `termostatu na klimacie` z samoregulacją Tryb Bezpieczny jest niedostępny. W takim przypadku nie ma zagrożenia, istnieje jedynie ryzyko błędnej temperatury.
 
