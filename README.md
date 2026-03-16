@@ -13,7 +13,8 @@ languages : [English](README.md) | [Français](README-fr.md) | [Deutsch](README-
 <img src="https://github.com/jmcollin78/versatile_thermostat/blob/main/images/icon.png" />
 </p>
 
-> ![Tip](images/tips.png) This thermostat integration aims to greatly simplify your heating management automations. Since all typical heating events (nobody home?, activity detected in a room?, window open?, power load shedding?), are natively managed by the thermostat, you don’t need to deal with complicated scripts and automations to manage your thermostats. ;-).
+> ![Tip](images/tips.png) **Versatile Thermostat** is a highly configurable virtual thermostat that transforms any heating equipment (radiators, air conditioners, heat pumps, etc.) into an intelligent and adaptive system. It allows you to consolidate and centrally control multiple different heating systems, while automatically optimizing your energy consumption. Thanks to its advanced algorithms (TPI, auto-TPI) and learning capabilities, the thermostat adapts to your home 🏠 and your habits, providing you with optimal comfort and significant reduction in your heating bills 💰.
+> This thermostat integration aims to greatly simplify your heating management automations. Since all typical heating events (nobody home?, activity detected in a room?, window open?, power load shedding?) are natively managed by the thermostat, you don't need to deal with complicated scripts and automations to manage your thermostats. 😉
 
 This custom component for Home Assistant is an upgrade and a complete rewrite of the "Awesome thermostat" component (see [Github](https://github.com/dadge/awesome_thermostat)) with added features.
 
@@ -25,6 +26,11 @@ Versatile Thermostat UI Card (Available on [Github](https://github.com/jmcollin7
 
 # What's New?
 ![New](images/new-icon.png)
+
+## Release 9.2 - stable version
+> 1. New way of managing heating/off cycles for `over_switch` VTherms. The current algorithm has a time drift and the first cycles are not optimal. This disrupts the TPI and especially the auto-TPI. The new `Cycle Scheduler` solves these issues. This change is completely transparent for you,
+> 2. A log collector. Your support requests often fail due to your ability to provide logs, over the right period, targeted at the faulty thermostat and at the right log level. This is especially the case for hard-to-reproduce bugs. The log collector aims to solve this difficulty. It collects logs for you in the background at the finest level and an action (formerly service) allows you to extract them into a file. You can then download them to attach to your support request. The log analyzer associated with the website - launched in 9.1 see below - adapts to be able to digest these logs. More information about the log collector [here](documentation/en/feature-logs-collector.md),
+> 3. stabilization of 9.x. The major version 9 brought many changes that generated some anomalies. This version provides the latest fixes related to this version 9.
 
 ## Release 9.1
 > 1. New logo. Inspired by the work of @Krzysztonek (see [here](https://github.com/jmcollin78/versatile_thermostat/pull/1598)), VTherm benefits from a new feature introduced in [HA 206.03](https://developers.home-assistant.io/blog/2026/02/24/brands-proxy-api/) to change its logo. The whole team hopes you will like it. Enjoy!
@@ -127,6 +133,10 @@ The documentation is now divided into several pages for easier reading and searc
 | ------------------------------------------- | ------------------------------------------- | ------------------------------------------- |
 | ![testimonial 1](images/testimonials-1.png) | ![testimonial 2](images/testimonials-2.png) | ![testimonial 3](images/testimonials-3.png) |
 | ![testimonial 4](images/testimonials-4.png) | ![testimonial 5](images/testimonials-5.png) | ![testimonial 6](images/testimonials-6.png) |
+
+# ⭐ Star history
+
+[![Star History Chart](https://api.star-history.com/svg?repos=jmcollin78/versatile_thermostat&type=Date)](https://star-history.com/#jmcollin78/versatile_thermostat&Date)
 
 Enjoy!
 
