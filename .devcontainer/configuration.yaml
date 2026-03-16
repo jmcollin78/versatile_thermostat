@@ -1,7 +1,6 @@
 # default_config is intentionally NOT used here because it pulls in go2rtc,
 # which requires a Docker binary unavailable in the dev container.
 # Instead, list only the components needed for development:
-frontend:
 config:
 history:
 logbook:

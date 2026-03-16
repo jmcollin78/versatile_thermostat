@@ -4,7 +4,7 @@ import logging
 from .log_collector import get_vtherm_logger
 from datetime import datetime
 from homeassistant.core import HomeAssistant
-from homeassistant.config_entries import ConfigEntry
+from homeassistant.config_entries import ConfigEntry, ConfigEntryState
 
 from homeassistant.helpers.entity_component import EntityComponent
 from homeassistant.components.climate import ClimateEntity, DOMAIN as CLIMATE_DOMAIN
@@ -84,12 +84,18 @@ class VersatileThermostatAPI:
                 config_entry
             ) in VersatileThermostatAPI._hass.config_entries.async_entries(DOMAIN):
                 if (
-                    config_entry.data.get(CONF_THERMOSTAT_TYPE)
-                    == CONF_THERMOSTAT_CENTRAL_CONFIG
+                    config_entry.data.get(CONF_THERMOSTAT_TYPE) == CONF_THERMOSTAT_CENTRAL_CONFIG
+                    and config_entry.disabled_by is None
+                    and config_entry.state
+                    not in (
+                        ConfigEntryState.FAILED_UNLOAD,
+                        ConfigEntryState.SETUP_ERROR,
+                        ConfigEntryState.MIGRATION_ERROR,
+                        ConfigEntryState.SETUP_RETRY,
+                    )
                 ):
                     self._central_configuration = config_entry
                     break
-                    # return self._central_configuration
         return self._central_configuration
 
     def reset_central_config(self):
