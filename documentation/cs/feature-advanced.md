@@ -11,7 +11,7 @@ Aby se tomu zabránilo, _VTherm_ zajišťuje, že teploměry pravidelně hlásí
 
 Výzva spočívá v tom, že některé teploměry—zejména ty na baterie—posílají aktualizace teploty pouze když se hodnota změní. Je zcela možné nedostávat teplotní aktualizace hodiny, aniž by teploměr selhal. Parametry níže umožňují jemné doladění prahových hodnot pro aktivaci Bezpečnostního režimu.
 
-Pokud má váš teploměr atribut `last seen` indikující čas posledního kontaktu, můžete jej specifikovat v hlavních atributech _VTherm_ pro výrazné snížení falešných aktivací Bezpečnostního režimu. Viz [konfigurace](base-attributes.md#choosing-base-attributes) a [řešení problémů](troubleshooting.md#why-does-my-versatile-thermostat-switch-to-safety-mode).
+Pokud má váš teploměr atribut `last seen` indikující čas posledního kontaktu, můžete jej specifikovat v hlavních atributech _VTherm_ pro výrazné snížení falešných aktivací Bezpečnostního režimu. Viz [konfigurace](base-attributes.md#choosing-base-attributes) a [řešení problémů](troubleshooting.md#why-is-my-versatile-thermostat-going-into-safety-mode).
 
 Pro _VTherm_ typu `over_climate`, které se samo-regulují, je Bezpečnostní režim deaktivován. V tomto případě není žádné nebezpečí, pouze riziko nesprávné teploty.
 

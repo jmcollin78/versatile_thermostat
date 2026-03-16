@@ -12,7 +12,7 @@ Um dies zu verhindern, sorgt das _VTherm_ dafür, dass die Thermometer regelmä�
 
 Die Herausforderung besteht darin, dass einige Thermometer - insbesondere batteriebetriebene - nur dann Temperaturaktualisierungen senden, wenn sich der Wert ändert. Es ist durchaus möglich, dass stundenlang keine Temperaturaktualisierungen empfangen werden, ohne dass das Thermometer ausfällt. Die nachstehenden Parameter ermöglichen eine Feinabstimmung der Schwellenwerte für die Aktivierung des Sicherheitsmodus.
 
-Wenn Ihr Thermometer über ein Attribut `Zuletzt gesehen` verfügt, das den Zeitpunkt des letzten Kontakts angibt, können Sie es in den Hauptattributen des _VTherm_ angeben, um falsche Aktivierungen des Sicherheitsmodus stark zu reduzieren. Siehe [Konfiguration](base-attributes.md#choosing-base-attributes) und [Störungsbeseitigung](troubleshooting.md#why-does-my-versatile-thermostat-switch-to-safety-mode).
+Wenn Ihr Thermometer über ein Attribut `Zuletzt gesehen` verfügt, das den Zeitpunkt des letzten Kontakts angibt, können Sie es in den Hauptattributen des _VTherm_ angeben, um falsche Aktivierungen des Sicherheitsmodus stark zu reduzieren. Siehe [Konfiguration](base-attributes.md#choosing-base-attributes) und [Störungsbeseitigung](troubleshooting.md#why-is-my-versatile-thermostat-going-into-safety-mode).
 
 Bei `over_climate`-_VTherms_, die sich selbst regulieren, ist der Sicherheitsmodus deaktiviert. In diesem Fall besteht keine Gefahr, nur das Risiko einer falschen Temperatur.
 
