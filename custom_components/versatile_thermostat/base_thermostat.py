@@ -1660,15 +1660,11 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
         return preset_mode + PRESET_AWAY_SUFFIX
 
     def get_state_date_or_now(self, state: State) -> datetime:
-        """Extract the last_changed state from State or return now if not available"""
-        return (
-            state.last_changed.astimezone(self._current_tz)
-            if isinstance(state.last_changed, datetime)
-            else self.now
-        )
+        """Extract the last_updated state from State or return now if not available"""
+        return state.last_updated.astimezone(self._current_tz) if isinstance(state.last_updated, datetime) else self.now
 
     def get_last_updated_date_or_now(self, state: State) -> datetime:
-        """Extract the last_changed state from State or return now if not available"""
+        """Extract the last_updated state from State or return now if not available"""
         return (
             state.last_updated.astimezone(self._current_tz)
             if isinstance(state.last_updated, datetime)
