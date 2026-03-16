@@ -203,6 +203,8 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 
     if unload_ok := await hass.config_entries.async_unload_platforms(entry, PLATFORMS):
         if api:
+            if entry.data.get(CONF_THERMOSTAT_TYPE) == CONF_THERMOSTAT_CENTRAL_CONFIG:
+                api.reset_central_config()
             api.remove_entry(entry)
             await api.central_boiler_manager.reload_central_boiler_entities_list()
 
