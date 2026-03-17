@@ -950,7 +950,10 @@ class UnderlyingClimate(UnderlyingEntity):
     @property
     def underlying_target_temperature(self) -> float:
         """Get the target_temperature"""
-        return self.get_underlying_attribute("target_temperature")
+        value = self.get_underlying_attribute("target_temperature")
+        if value is not None:
+            return value
+        return self.get_underlying_attribute("temperature")
 
     @property
     def underlying_current_temperature(self) -> float | None:
