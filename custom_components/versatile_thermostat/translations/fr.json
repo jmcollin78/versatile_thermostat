@@ -47,11 +47,13 @@
           "use_lock_central_config": "Utiliser la configuration de verrouillage centrale",
           "lock_code": "Code PIN optionnel (4 chiffres)",
           "lock_users": "Le verrouillage empêchera les commandes des utilisateurs",
-          "lock_automations": "Le verrouillage empêchera les commandes des automatisations et des intégrations (ex: planificateur)"
+          "lock_automations": "Le verrouillage empêchera les commandes des automatisations et des intégrations (ex: planificateur)",
+          "auto_relock_sec": "Délai de re-verrouillage automatique"
         },
         "data_description": {
           "use_lock_central_config": "Cochez pour utiliser la configuration de verrouillage centrale. Décochez pour utiliser une configuration de verrouillage spécifique pour ce VTherm",
-          "lock_code": "Le code pin pour déverouiller le thermostat (4 digits)"
+          "lock_code": "Le code pin pour déverouiller le thermostat (4 digits)",
+          "auto_relock_sec": "Délai en secondes avant le re-verrouillage automatique après un déverrouillage. Mettre 0 pour désactiver. La valeur par défaut est 30 secondes."
         }
       },
       "main": {
@@ -428,11 +430,13 @@
           "use_lock_central_config": "Utiliser la configuration de verrouillage centrale",
           "lock_code": "Code pin optionel (4 chiffres)",
           "lock_users": "Le verrouillage empêchera les commandes des utilisateurs",
-          "lock_automations": "Le verrouillage empêchera les commandes des automatisations et des intégrations (ex: planificateur)"
+          "lock_automations": "Le verrouillage empêchera les commandes des automatisations et des intégrations (ex: planificateur)",
+          "auto_relock_sec": "Délai de re-verrouillage automatique"
         },
         "data_description": {
           "use_lock_central_config": "Cochez pour utiliser la configuration de verrouillage centrale. Décochez pour utiliser une configuration de verrouillage spécifique pour ce VTherm",
-          "lock_code": "Le code PIN pour déverrouiller le thermostat (4 chiffres)"
+          "lock_code": "Le code PIN pour déverrouiller le thermostat (4 chiffres)",
+          "auto_relock_sec": "Délai en secondes avant le re-verrouillage automatique après un déverrouillage. Mettre 0 pour désactiver. La valeur par défaut est 30 secondes."
         }
       },
       "main": {

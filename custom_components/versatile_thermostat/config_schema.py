@@ -467,6 +467,7 @@ STEP_CENTRAL_LOCK_DATA_SCHEMA = vol.Schema(  # pylint: disable=invalid-name
         vol.Optional(CONF_LOCK_CODE): cv.string,
         vol.Optional(CONF_LOCK_USERS, default=True): cv.boolean,
         vol.Optional(CONF_LOCK_AUTOMATIONS, default=True): cv.boolean,
+        vol.Optional(CONF_AUTO_RELOCK_SEC, default=30): vol.Coerce(int),
     }
 )
 

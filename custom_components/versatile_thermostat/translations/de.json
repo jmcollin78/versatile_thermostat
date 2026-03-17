@@ -47,10 +47,12 @@
           "use_lock_central_config": "Zentrale Sperrkonfiguration verwenden",
           "lock_code": "Optionaler PIN-Code (4 Ziffern)",
           "lock_users": "Sperre verhindert Benutzerbefehle",
-          "lock_automations": "Sperre verhindert Befehle von Automatisierungen und Integrationen (z.B. Planer)"
+          "lock_automations": "Sperre verhindert Befehle von Automatisierungen und Integrationen (z.B. Planer)",
+          "auto_relock_sec": "Automatische Wiederverriegelung"
         },
         "data_description": {
-          "use_lock_central_config": "Aktivieren für zentrale Sperrkonfiguration. Deaktivieren für sperrspezifische Konfiguration dieses VTherm"
+          "use_lock_central_config": "Aktivieren für zentrale Sperrkonfiguration. Deaktivieren für sperrspezifische Konfiguration dieses VTherm",
+          "auto_relock_sec": "Verzögerung in Sekunden bevor nach dem Entsperren automatisch wieder verriegelt wird. 0 zum Deaktivieren. Standardwert ist 30 Sekunden."
         }
       },
       "main": {
@@ -423,10 +425,12 @@
           "use_lock_central_config": "Zentrale Sperrkonfiguration verwenden",
           "lock_code": "Optionaler PIN (4 Ziffern)",
           "lock_users": "Sperre verhindert Benutzerbefehle",
-          "lock_automations": "Sperre verhindert Befehle von Automatisierungen und Integrationen (z.B. Planer)"
+          "lock_automations": "Sperre verhindert Befehle von Automatisierungen und Integrationen (z.B. Planer)",
+          "auto_relock_sec": "Automatische Wiederverriegelung"
         },
         "data_description": {
-          "use_lock_central_config": "Aktivieren für zentrale Sperrkonfiguration. Deaktivieren für spezifische Sperrkonfiguration dieses VTherm"
+          "use_lock_central_config": "Aktivieren für zentrale Sperrkonfiguration. Deaktivieren für spezifische Sperrkonfiguration dieses VTherm",
+          "auto_relock_sec": "Verzögerung in Sekunden bevor nach dem Entsperren automatisch wieder verriegelt wird. 0 zum Deaktivieren. Standardwert ist 30 Sekunden."
         }
       },
       "main": {
@@ -677,7 +681,7 @@
           "sync_entity_ids": "Entitie-Liste, die zur Synchronisierung der internen Temperatur der zugeordneten Geräte verwendet werden. Es muss eine pro zugeordnetem Gerät vorhanden sein. Wenn es aktiviert ist, muss eine Kalibrierungsentität vorhanden sein, ansonsten eine Temperaturentity. Beides sind Entities vom Typ `number`."
         }
       },
-       "auto_tpi_configuration": {
+      "auto_tpi_configuration": {
         "title": "Auto TPI - Konfiguration - {name}",
         "description": "Allgemeine Parameter für das Auto-TPI-Lernen.",
         "data": {
@@ -811,13 +815,13 @@
         "auto_start_stop_slow": "Langsam",
         "auto_start_stop_medium": "Mittel",
         "auto_start_stop_fast": "Schnell"
-       }
+      }
     },
     "auto_tpi_calculation_method": {
       "options": {
         "average": "Durchschnitt",
         "ema": "Exponentialer gleitender Durchschnitt (EMA)"
-     }
+      }
     },
     "auto_tpi_learning_type": {
       "options": {

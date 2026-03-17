@@ -15,6 +15,10 @@ You can also configure an optional **Lock Code**:
 
 - **Lock Code**: A 4-digit numeric pincode (e.g., "1234"). If set, this code is required to lock/unlock the thermostat. This is optional and if not configured, no code is required.
 
+You can configure an **Auto-Relock** delay:
+
+- **Auto-Relock Delay (seconds)**: When set to a positive value, the thermostat will automatically re-lock after the specified number of seconds following an unlock. Set to `0` to disable auto-relock. The default is `30` seconds.
+
 You can also choose to use a central configuration for the lock settings.
 
 ## Usage
@@ -46,7 +50,7 @@ data:
 
 The lock state is:
 
-- Visible in the `is_locked`, `lock_users`, and `lock_automations` attributes of the climate entity
+- Visible in the `is_locked`, `lock_users`, `lock_automations`, and `auto_relock_sec` attributes of the climate entity
 - Preserved across Home Assistant restarts (including the pincode if set)
 - Per-thermostat (each thermostat has its own lock and optional pincode)
 

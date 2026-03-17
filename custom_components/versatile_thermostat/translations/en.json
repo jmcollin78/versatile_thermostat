@@ -47,10 +47,12 @@
                     "use_lock_central_config": "Use central lock configuration",
                     "lock_code": "Optional pincode (4 digits)",
                     "lock_users": "Lock will prevent commands from Users",
-                    "lock_automations": "Lock will prevent commands from Automations & integrations (i.e scheduler)"
+                    "lock_automations": "Lock will prevent commands from Automations & integrations (i.e scheduler)",
+                    "auto_relock_sec": "Auto-relock delay"
                 },
                 "data_description": {
-                    "use_lock_central_config": "Check to use the central lock configuration. Uncheck to use a specific lock configuration for this VTherm"
+                    "use_lock_central_config": "Check to use the central lock configuration. Uncheck to use a specific lock configuration for this VTherm",
+                    "auto_relock_sec": "Delay in seconds before automatically re-locking after an unlock. Set to 0 to disable auto-relock. Default is 30 seconds."
                 }
             },
             "main": {
@@ -427,10 +429,12 @@
                     "use_lock_central_config": "Use central lock configuration",
                     "lock_code": "Optional pincode (4 digits)",
                     "lock_users": "Lock will prevent commands from Users",
-                    "lock_automations": "Lock will prevent commands from Automations & integrations (i.e scheduler)"
+                    "lock_automations": "Lock will prevent commands from Automations & integrations (i.e scheduler)",
+                    "auto_relock_sec": "Auto-relock delay"
                 },
                 "data_description": {
-                    "use_lock_central_config": "Check to use the central lock configuration. Uncheck to use a specific lock configuration for this VTherm"
+                    "use_lock_central_config": "Check to use the central lock configuration. Uncheck to use a specific lock configuration for this VTherm",
+                    "auto_relock_sec": "Delay in seconds before automatically re-locking after an unlock. Set to 0 to disable auto-relock. Default is 30 seconds."
                 }
             },
             "main": {

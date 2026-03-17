@@ -46,7 +46,7 @@ data:
 
 L'état de verrouillage est :
 
-- Visible dans les attributs `is_locked`, `lock_users` et `lock_automations` de l'entité climat.
+- Visible dans les attributs `is_locked`, `lock_users`, `lock_automations` et `auto_relock_sec` de l'entité climat.
 - Conservé lors des redémarrages de Home Assistant (y compris le code PIN si défini).
 - Spécifique à chaque thermostat (chaque thermostat a son propre verrou et code PIN optionnel).
 

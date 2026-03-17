@@ -15,6 +15,10 @@ Můžete také nakonfigurovat volitelný **Kód zámku**:
 
 - **Kód zámku**: 4-místný číselný PIN (např. "1234"). Pokud je nastaven, tento kód je vyžadován pro zamknutí/odemknutí termostatu. Toto je volitelné a pokud není nakonfigurováno, není vyžadován žádný kód.
 
+Můžete nakonfigurovat zpoždění **automatického opětovného zamknutí**:
+
+- **Zpoždění automatického opětovného zamknutí (sekundy)**: Pokud je nastavena kladná hodnota, termostat se automaticky znovu zamkne po uplynutí zadaného počtu sekund po odemknutí. Nastavte `0` pro deaktivaci automatického opětovného zamknutí. Výchozí hodnota je `30` sekund.
+
 Můžete si také vybrat použití centrální konfigurace pro nastavení zámku.
 
 ## Použití
@@ -46,7 +50,7 @@ data:
 
 Stav zámku je:
 
-- Viditelný v atributech `is_locked`, `lock_users` a `lock_automations` klimatizační entity
+- Viditelný v atributech `is_locked`, `lock_users`, `lock_automations` a `auto_relock_sec` klimatizační entity
 - Zachován při restartu Home Assistant (včetně PIN kódu pokud nastaveno)
 - Pro každý termostat zvlášť (každý termostat má svůj vlastní zámek a volitelný PIN kód)
 
