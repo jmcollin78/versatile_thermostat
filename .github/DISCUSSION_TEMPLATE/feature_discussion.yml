@@ -1,0 +1,46 @@
+title: "[Feature] "
+labels: ["feature request"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thank you for sharing your suggestion to improve the project!
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: Is your suggestion related to a problem?
+      description: Describe the problem or situation
+      placeholder: "I'm always frustrated when..."
+    validations:
+      required: false
+
+  - type: textarea
+    id: solution
+    attributes:
+      label: Describe the solution you'd like
+      description: A clear and concise description of what you would like to see
+      placeholder: "I would like..."
+    validations:
+      required: false
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Have you considered other solutions?
+      description: Describe any other possibility or feature you have considered
+      placeholder: "An alternative could be..."
+    validations:
+      required: false
+
+  - type: textarea
+    id: context
+    attributes:
+      label: Additional context
+      description: |
+        Add any other information or screenshot that could help.
+        If relevant, add your custom VTherm attributes.
+        See: [here](../../documentation/en/reference.md#custom-attributes)
+      placeholder: "Here is some additional information..."
+    validations:
+      required: false

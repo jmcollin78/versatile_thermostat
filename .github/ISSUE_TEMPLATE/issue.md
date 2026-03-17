@@ -6,10 +6,11 @@ about: Create a report to help us improve
 
 # Read this carefully
 
-> Please read carefully this instructions and fill this form before writing an issue. It helps me to help you.
-> If you choose to not follow this template, you accept to have no answer from the author. The tag on the issue 'Template not respected' means you don't respect this template. Potentially, you will not have a relevant answer.
+I read carefully this instructions and fill this form before writing an issue. Tnhis will help the reader to help me.
 
-<!-- This template will allow the maintainer to be efficient and post the more accurante response as possible. There is many types / modes / configuration possible, so the analysis can be very tricky. If don't follow this template, your issue could be rejected without any message. Please help me to help you. -->
+<!-- If you choose to not follow this template, you accept to have no answer from the author. The tag on the issue 'Template not respected' means you don't respect this template. Potentially, you will not have a relevant answer.
+
+This template will allow the maintainer to be efficient and post the more accurante response as possible. There is many types / modes / configuration possible, so the analysis can be very tricky. If don't follow this template, your issue could be rejected without any message. Please help me to help you. -->
 
 <!-- Before you open a new issue, search through the existing issues to see if others have had the same problem.
 
@@ -21,13 +22,15 @@ Issues not containing the minimum requirements will be closed:
 
 - Issues without a description (using the header is not good enough) will be closed.
 - Issues that don't follow this template could be closed
-
 -->
 
 ## Version of the custom_component
 <!-- If you are not using the newest version, download and try that before opening an issue
-If you are unsure about the version check the manifest.json file.
+If you are unsure about the version open HACS, find the Versatile Thermostat integration and copy/paste the release
 -->
+
+<!-- if it was working with previous release -->
+The issue was not preset in previous release: <!-- give it if you know it -->
 
 ## Configuration
 
@@ -113,10 +116,10 @@ supported_features: 17
 <!-- Please do not send an image but a copy / paste of the attributes in yaml format. Format this piece of text with the </> button -->
 
 ## If it is releveant to regulation performance or optimisation some curves are needed
-To have a great curves demonstrating what you think is a problem, please install and configure what is described here: [Even better with Plotly to tune your Thermostat](#even-better-with-plotly-to-tune-your-thermostat)
+To have a great curves demonstrating what you think is a problem, please install and configure what is described here: [Plotly](https://www.versatile-thermostat.org/en/docs/additions/#regulation-curves-with-plotly-to-fine-tune-your-thermostat)
 
 ## Describe the bug
-A clear and concise description of what the bug is.
+A clear and concise description of what the bug is. Describe your use case, what you observe and what you expect.
 
 I'm trying to:
 <!-- complete the description -->
@@ -127,26 +130,16 @@ And I expect:
 But I observe this ....
 <!-- complete what you observe and why you think it is erroneous. -->
 
-I read the documentation on the README.md and specially the [Troubleshooting](../../documentation/en/troubleshooting.md) page and I don't find any relevant information about this issue.
+I read the documentation on the [Vtherm Web Site](https://www.versatile-thermostat.org/) and specially the [Troubleshooting](https://www.versatile-thermostat.org/en/docs/troubleshooting/) page and I don't find any relevant information about this issue.
+I search on previous issues [here](https://github.com/jmcollin78/versatile_thermostat/issues?q=is%3Aissue) but nothing correspond to my problem.
 
 
 ## Debug log
 
-<!-- To enable debug logs check this https://www.home-assistant.io/components/logger/
-Add the following configuration into your `configuration.yaml` (or `logger.yaml` if you have one) to enable logs:  -->
+I have followed the documentation [here](https://www.versatile-thermostat.org/en/docs/feature-logs-collector/) to extract the logs. The logs have been taken when the bug happens and I put some time before. This period is consistent with the custom attributes copy/pasted above.
 
-```yaml
-logger:
-    default: info
-    logs:
-        custom_components.versatile_thermostat: info
-```
+I try to analyse myself the logs with the [log analyser](https://www.versatile-thermostat.org/en/debugger/) but I don't find any relevant informations.
 
-<!-- You can also switch to debug mode but be careful, in debug mode, the logs are verbose.
-Please copy/paste the releveant logs (around the failure) below: -->
+Here is the log file:
+<!-- upload your log file here-->
 
-```text
-
-Add your logs here.
-
-```
