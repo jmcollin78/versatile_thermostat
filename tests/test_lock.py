@@ -13,6 +13,7 @@ from custom_components.versatile_thermostat.const import (
     CONF_LOCK_USERS,
     CONF_LOCK_AUTOMATIONS,
     CONF_LOCK_CODE,
+    CONF_AUTO_RELOCK_SEC,
     SERVICE_LOCK,
     SERVICE_UNLOCK,
 )
@@ -27,6 +28,7 @@ async def setup_thermostat(
     lock_users: bool,
     lock_automations: bool,
     lock_code: str | None = None,
+    auto_relock_sec: int = 0,
 ):
     """Setup the thermostat with the given lock configuration"""
     entry = MockConfigEntry(
@@ -57,6 +59,7 @@ async def setup_thermostat(
             CONF_LOCK_USERS: lock_users,
             CONF_LOCK_AUTOMATIONS: lock_automations,
             CONF_LOCK_CODE: lock_code,
+            CONF_AUTO_RELOCK_SEC: auto_relock_sec,
         },
     )
 
@@ -270,3 +273,75 @@ async def test_lock_state_persistence(hass: HomeAssistant, skip_hass_states_is_s
     )
     entity.lock_manager.restore_state(old_state)
     assert entity.lock_manager.is_locked is False  # No change on lock state
+
+
+@pytest.mark.parametrize("expected_lingering_tasks", [True])
+@pytest.mark.parametrize("expected_lingering_timers", [True])
+async def test_auto_relock_with_delay(hass: HomeAssistant, skip_hass_states_is_state):
+    """Test that auto-relock triggers after the configured delay when unlocking."""
+    entity = await setup_thermostat(hass, True, True, None, auto_relock_sec=30)
+    assert entity
+    assert entity.lock_manager._auto_relock_sec == 30
+
+    # Lock the thermostat first
+    await hass.services.async_call(
+        DOMAIN,
+        SERVICE_LOCK,
+        {ATTR_ENTITY_ID: "climate.theoverswitchmockname"},
+        blocking=True,
+    )
+    assert entity.lock_manager.is_locked is True
+
+    cancel_mock = MagicMock()
+    with patch(
+        "custom_components.versatile_thermostat.feature_lock_manager.async_call_later",
+        return_value=cancel_mock,
+    ) as mock_call_later:
+        # Unlock should schedule auto-relock
+        await hass.services.async_call(
+            DOMAIN,
+            SERVICE_UNLOCK,
+            {ATTR_ENTITY_ID: "climate.theoverswitchmockname"},
+            blocking=True,
+        )
+        assert entity.lock_manager.is_locked is False
+        mock_call_later.assert_called_once()
+
+        # Simulate timer expiration by calling the callback directly
+        callback = mock_call_later.call_args[0][2]
+
+    callback(None)
+    assert entity.lock_manager.is_locked is True
+    assert entity.lock_manager._cancel_auto_relock is None
+
+
+@pytest.mark.parametrize("expected_lingering_tasks", [True])
+@pytest.mark.parametrize("expected_lingering_timers", [True])
+async def test_auto_relock_disabled_with_zero_delay(hass: HomeAssistant, skip_hass_states_is_state):
+    """Test that auto-relock is not scheduled when auto_relock_sec is 0."""
+    entity = await setup_thermostat(hass, True, True, None, auto_relock_sec=0)
+    assert entity
+    assert entity.lock_manager._auto_relock_sec == 0
+
+    # Lock the thermostat first
+    await hass.services.async_call(
+        DOMAIN,
+        SERVICE_LOCK,
+        {ATTR_ENTITY_ID: "climate.theoverswitchmockname"},
+        blocking=True,
+    )
+    assert entity.lock_manager.is_locked is True
+
+    with patch(
+        "custom_components.versatile_thermostat.feature_lock_manager.async_call_later",
+    ) as mock_call_later:
+        # Unlock should NOT schedule auto-relock when delay is 0
+        await hass.services.async_call(
+            DOMAIN,
+            SERVICE_UNLOCK,
+            {ATTR_ENTITY_ID: "climate.theoverswitchmockname"},
+            blocking=True,
+        )
+        assert entity.lock_manager.is_locked is False
+        mock_call_later.assert_not_called()
+

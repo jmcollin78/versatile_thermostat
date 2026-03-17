@@ -15,6 +15,10 @@ Sie können auch einen optionalen **Sperrcode** konfigurieren:
 
 - **Sperrcode**: Ein 4-stelliger numerischer PIN-Code (z. B. "1234"). Wenn gesetzt, ist dieser Code erforderlich, um den Thermostat zu sperren/zu entsperren. Dies ist optional und wenn nicht konfiguriert, ist kein Code erforderlich.
 
+Sie können eine **automatische Wiederverriegelungs**-Verzögerung konfigurieren:
+
+- **Automatische Wiederverriegelungs-Verzögerung (Sekunden)**: Bei einem positiven Wert verriegelt sich der Thermostat nach dem angegebenen Verzögerungszeitraum nach dem Entsperren automatisch wieder. Auf `0` setzen, um die automatische Wiederverriegelung zu deaktivieren. Der Standardwert ist `30` Sekunden.
+
 Sie können auch eine zentrale Konfiguration für die Sperreinstellungen verwenden.
 
 ## Verwendung
@@ -46,7 +50,7 @@ data:
 
 Der Sperrzustand ist:
 
-- Sichtbar in den Attributen `is_locked`, `lock_users` und `lock_automations` der Klimaentität
+- Sichtbar in den Attributen `is_locked`, `lock_users`, `lock_automations` und `auto_relock_sec` der Klimaentität
 - Wird bei Neustarts von Home Assistant beibehalten (einschließlich PIN-Code, falls gesetzt)
 - Pro Thermostat (jeder Thermostat hat seine eigene Sperre und optionalen PIN-Code)
 

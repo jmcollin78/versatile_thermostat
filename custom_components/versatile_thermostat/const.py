@@ -144,6 +144,7 @@ CONF_FAILURE_DETECTION_ENABLE_TEMPLATE = "failure_detection_enable_template"
 CONF_LOCK_CODE = "lock_code"
 CONF_LOCK_USERS = "lock_users"
 CONF_LOCK_AUTOMATIONS = "lock_automations"
+CONF_AUTO_RELOCK_SEC = "auto_relock_sec"
 
 CONF_VSWITCH_ON_CMD_LIST = "vswitch_on_command"
 CONF_VSWITCH_OFF_CMD_LIST = "vswitch_off_command"

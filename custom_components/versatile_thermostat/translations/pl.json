@@ -44,10 +44,12 @@
           "use_lock_central_config": "Użyj centralnej konfiguracji blokady",
           "lock_code": "Opcjonalny kod PIN (4 cyfry)",
           "lock_users": "Blokada uniemożliwi wykonywanie poleceń użytkowników",
-          "lock_automations": "Blokada uniemożliwi wykonywanie poleceń przez automatyzacje i integracje (np. harmonogram)"
+          "lock_automations": "Blokada uniemożliwi wykonywanie poleceń przez automatyzacje i integracje (np. harmonogram)",
+          "auto_relock_sec": "Automatyczne ponowne zablokowanie"
         },
         "data_description": {
-          "use_lock_central_config": "Zaznacz, aby używać centralnej konfiguracji blokady. Odznacz, aby używać konfiguracji blokady dedykowanej dla tego termostatu VTherm"
+          "use_lock_central_config": "Zaznacz, aby używać centralnej konfiguracji blokady. Odznacz, aby używać konfiguracji blokady dedykowanej dla tego termostatu VTherm",
+          "auto_relock_sec": "Opóźnienie w sekundach przed automatycznym ponownym zablokowaniem po odblokowaniu. Ustaw 0, aby wyłączyć. Domyślna wartość to 30 sekund."
         }
       },
       "main": {
@@ -381,10 +383,12 @@
           "use_lock_central_config": "Użyj centralnej konfiguracji blokady",
           "lock_code": "Opcjonalny kod PIN (4 cyfry)",
           "lock_users": "Blokada uniemożliwi polecenia użytkowników",
-          "lock_automations": "Blokada uniemożliwi polecenia z automatyzacji i integracji (np. harmonogram)"
+          "lock_automations": "Blokada uniemożliwi polecenia z automatyzacji i integracji (np. harmonogram)",
+          "auto_relock_sec": "Automatyczne ponowne zablokowanie"
         },
         "data_description": {
-          "use_lock_central_config": "Zaznacz aby używać centralnej konfiguracji blokady. Odznacz aby używać konfiguracji blokady specyficznej dla tego VTherm"
+          "use_lock_central_config": "Zaznacz aby używać centralnej konfiguracji blokady. Odznacz aby używać konfiguracji blokady specyficznej dla tego VTherm",
+          "auto_relock_sec": "Opóźnienie w sekundach przed automatycznym ponownym zablokowaniem po odblokowaniu. Ustaw 0, aby wyłączyć. Domyślna wartość to 30 sekund."
         }
       },
       "main": {
