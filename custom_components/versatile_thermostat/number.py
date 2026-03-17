@@ -244,7 +244,7 @@ class ActivateBoilerPowerThresholdNumber(NumberEntity, RestoreEntity):  # pylint
         self._attr_value = self._attr_native_value = 0  # default value
         self._attr_native_min_value = 0
         self._attr_native_max_value = 10000  # for people who works in Watts
-        self._attr_step = 1  # default value
+        self._attr_native_step = 0.1
         self._attr_mode = NumberMode.AUTO
 
     @property
@@ -272,18 +272,18 @@ class ActivateBoilerPowerThresholdNumber(NumberEntity, RestoreEntity):  # pylint
         old_state: CoreState = await self.async_get_last_state()
         _LOGGER.debug("%s - Calling async_added_to_hass old_state is %s", self, old_state)
         if old_state is not None:
-            self._attr_value = self._attr_native_value = int(float(old_state.state))
+            self._attr_value = self._attr_native_value = float(old_state.state)
 
     @overrides
     def set_native_value(self, value: float) -> None:
         """Change the value"""
-        int_value = int(value)
-        old_value = int(self._attr_native_value)
+        float_value = float(value)
+        old_value = float(self._attr_native_value)
 
-        if int_value == old_value:
+        if float_value == old_value:
             return
 
-        self._attr_value = self._attr_native_value = int_value
+        self._attr_value = self._attr_native_value = float_value
         self.hass.create_task(VersatileThermostatAPI.get_vtherm_api(self._hass).central_boiler_manager.refresh_central_boiler_custom_attributes())
 
     def __str__(self):
