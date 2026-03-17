@@ -199,7 +199,7 @@
         "data_description": {
           "motion_sensor_entity_id": "Id d'entité du détecteur de mouvement",
           "motion_delay": "Délai avant activation lorsqu'un mouvement est détecté (secondes)",
-          "motion_off_delai": "Délai avant désactivation lorsqu'aucun mouvement n'est détecté (secondes)",
+          "motion_off_delay": "Délai avant désactivation lorsqu'aucun mouvement n'est détecté (secondes)",
           "motion_preset": "Preset à utiliser si mouvement détecté",
           "no_motion_preset": "Preset à utiliser si pas de mouvement détecté",
           "use_motion_central_config": "Cochez pour utiliser la configuration centrale du mouvement. Décochez et saisissez les attributs pour utiliser une configuration spécifique du mouvement"
@@ -579,8 +579,8 @@
         },
         "data_description": {
           "motion_sensor_entity_id": "Id d'entité du détecteur de mouvement",
-          "motion_delay": "Délai avant activation lorsqu'un mouvement est détecté (secondss)",
-          "motion_off_delai": "Délai avant désactivation lorsqu'aucun mouvement n'est détecté (secondes)",
+          "motion_delay": "Délai avant activation lorsqu'un mouvement est détecté (secondes)",
+          "motion_off_delay": "Délai avant désactivation lorsqu'aucun mouvement n'est détecté (secondes)",
           "motion_preset": "Preset à utiliser si mouvement détecté",
           "no_motion_preset": "Preset à utiliser si pas de mouvement détecté",
           "use_motion_central_config": "Cochez pour utiliser la configuration centrale du mouvement. Décochez et saisissez les attributs pour utiliser une configuration spécifique du mouvement"
