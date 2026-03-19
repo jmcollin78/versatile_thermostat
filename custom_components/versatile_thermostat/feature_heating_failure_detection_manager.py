@@ -334,7 +334,7 @@ class FeatureHeatingFailureDetectionManager(BaseFeatureManager):
         """Diagnose the root cause of a failure by checking valve underlyings.
 
         For thermostats with valve underlyings (over_valve or over_climate_valve),
-        compares the commanded state (should_device_be_active) with the real state
+        compares the requested state (should_device_be_active) with the real state
         (is_device_active) to determine if a stuck valve is the cause.
 
         Args:
@@ -369,14 +369,14 @@ class FeatureHeatingFailureDetectionManager(BaseFeatureManager):
                 stuck_valves.append({
                     "entity_id": under.entity_id,
                     "type": "valve_stuck_closed",
-                    "commanded": "open",
+                    "requested": "open",
                     "actual": "closed",
                 })
             elif not should_active and is_active:
                 stuck_valves.append({
                     "entity_id": under.entity_id,
                     "type": "valve_stuck_open",
-                    "commanded": "closed",
+                    "requested": "closed",
                     "actual": "open",
                 })
 

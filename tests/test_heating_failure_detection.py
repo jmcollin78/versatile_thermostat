@@ -1026,7 +1026,7 @@ async def test_diagnose_root_cause_valve_stuck_closed(hass: HomeAssistant):
     assert result["root_cause_entity_id"] == "number.trv_living_room"
     assert len(result["root_cause_details"]) == 1
     assert result["root_cause_details"][0]["type"] == "valve_stuck_closed"
-    assert result["root_cause_details"][0]["commanded"] == "open"
+    assert result["root_cause_details"][0]["requested"] == "open"
     assert result["root_cause_details"][0]["actual"] == "closed"
 
 
@@ -1052,7 +1052,7 @@ async def test_diagnose_root_cause_valve_stuck_open(hass: HomeAssistant):
     assert result["root_cause_entity_id"] == "number.trv_bedroom"
     assert len(result["root_cause_details"]) == 1
     assert result["root_cause_details"][0]["type"] == "valve_stuck_open"
-    assert result["root_cause_details"][0]["commanded"] == "closed"
+    assert result["root_cause_details"][0]["requested"] == "closed"
     assert result["root_cause_details"][0]["actual"] == "open"
 
 
