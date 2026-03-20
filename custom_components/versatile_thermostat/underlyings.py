@@ -1380,7 +1380,7 @@ class UnderlyingValveRegulation(UnderlyingValve):
         if self.has_closing_degree_entity:
             await self.send_value_to_number(self._closing_degree_entity_id, closing_degree)
 
-        _LOGGER.warning("%s - Issue_1831 - sent opening_degree=%s closing_degree=%s", self, opening_degree, closing_degree)
+        _LOGGER.info("%s - Issue_1831 - sent opening_degree=%s closing_degree=%s", self, opening_degree, closing_degree)
 
         _LOGGER.debug(
             "%s - valve regulation - I have sent opening_degree=%s closing_degree=%s",
