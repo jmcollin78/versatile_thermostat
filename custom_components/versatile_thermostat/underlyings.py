@@ -284,6 +284,24 @@ class UnderlyingEntity:
         state = self._state_manager.get_state(self._entity_id)
         return state.last_changed if state else None
 
+    async def check_and_repair(self) -> bool:
+        """Check if the underlying device state matches the desired state and repair if needed.
+        Returns True if a repair was performed."""
+        should_be_active = self.should_device_be_active
+        is_active = self.is_device_active
+
+        if should_be_active is None or is_active is None:
+            return False
+
+        if should_be_active == is_active:
+            return False
+
+        if should_be_active:
+            await self.turn_on()
+        else:
+            await self.turn_off()
+        return True
+
 
 # ----------------------------------------------------------------
 # UnderlyingSwitch
@@ -1238,6 +1256,22 @@ class UnderlyingValve(UnderlyingEntity):
     def last_sent_opening_value(self) -> int | None:
         """Return the last sent value to the valve"""
         return self._last_sent_opening_value
+
+    @overrides
+    async def check_and_repair(self) -> bool:
+        """Check if the valve opening matches the last sent value and repair if needed.
+        Returns True if a repair was performed."""
+        last_sent = self._last_sent_opening_value
+        current = self.current_valve_opening
+
+        if last_sent is None or current is None:
+            return False
+
+        if abs(current - last_sent) <= 0.5:
+            return False
+
+        await self.send_percent_open()
+        return True
 
     @property
     def current_valve_opening(self) -> float | None:

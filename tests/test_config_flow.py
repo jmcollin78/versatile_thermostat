@@ -506,6 +506,7 @@ async def test_user_config_flow_over_climate(
         CONF_SAFETY_DELAY_MIN: 5,
         CONF_SAFETY_MIN_ON_PERCENT: 0.4,
         CONF_SAFETY_DEFAULT_ON_PERCENT: 0.3,
+        CONF_REPAIR_INCORRECT_STATE: False,
     } | MOCK_DEFAULT_FEATURE_CONFIG | {
         CONF_USE_MAIN_CENTRAL_CONFIG: False,
         CONF_USE_PRESETS_CENTRAL_CONFIG: False,
@@ -756,6 +757,7 @@ async def test_user_config_flow_over_climate_auto_start_stop(
         CONF_SAFETY_DELAY_MIN: 5,
         CONF_SAFETY_MIN_ON_PERCENT: 0.4,
         CONF_SAFETY_DEFAULT_ON_PERCENT: 0.3,
+        CONF_REPAIR_INCORRECT_STATE: False,
     } | MOCK_DEFAULT_FEATURE_CONFIG | {
         CONF_USE_MAIN_CENTRAL_CONFIG: False,
         CONF_USE_TPI_CENTRAL_CONFIG: False,
@@ -1020,6 +1022,7 @@ async def test_user_config_flow_over_switch_bug_552_tpi(
             CONF_SAFETY_DELAY_MIN: 5,
             CONF_SAFETY_MIN_ON_PERCENT: 0.4,
             CONF_SAFETY_DEFAULT_ON_PERCENT: 0.3,
+            CONF_REPAIR_INCORRECT_STATE: False,
             CONF_USE_MAIN_CENTRAL_CONFIG: False,
             CONF_USE_TPI_CENTRAL_CONFIG: False,
             CONF_USE_PRESETS_CENTRAL_CONFIG: False,
@@ -1489,6 +1492,7 @@ async def test_user_config_flow_over_climate_valve(
         CONF_SAFETY_DELAY_MIN: 5,
         CONF_SAFETY_MIN_ON_PERCENT: 0.4,
         CONF_SAFETY_DEFAULT_ON_PERCENT: 0.3,
+        CONF_REPAIR_INCORRECT_STATE: False,
     } | MOCK_DEFAULT_FEATURE_CONFIG | {
         CONF_USE_MAIN_CENTRAL_CONFIG: False,
         CONF_USE_PRESETS_CENTRAL_CONFIG: False,
