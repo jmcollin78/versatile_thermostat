@@ -39,7 +39,6 @@
                 "azuretools.vscode-docker",
                 "huizhou.githd",
                 "github.copilot",
-                "github.copilot-chat",
                 "openai.chatgpt",
                 "bierner.markdown-mermaid"
             ],
