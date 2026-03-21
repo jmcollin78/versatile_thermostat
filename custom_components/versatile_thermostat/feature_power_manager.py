@@ -302,7 +302,10 @@ class FeaturePowerManager(BaseFeatureManager):
             return None
 
         if self._vtherm.proportional_algorithm:
-            return float(round_to_nearest(self._device_power * self._vtherm.proportional_algorithm.on_percent, 0.01))
+            algo_on_percent = self._vtherm.proportional_algorithm.on_percent
+            if algo_on_percent is None:
+                return None
+            return float(round_to_nearest(self._device_power * algo_on_percent, 0.01))
 
         if self._vtherm.is_over_climate:
             return self._device_power if self._vtherm.is_device_active else 0.0

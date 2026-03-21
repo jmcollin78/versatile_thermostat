@@ -207,8 +207,13 @@ class ThermostatOverValve(ThermostatProp[UnderlyingValve]):  # pylint: disable=a
                 self.vtherm_hvac_mode or VThermHvacMode_OFF,
             )
 
+        current_on_percent = self.safe_on_percent
+        if current_on_percent is None:
+            # Temperature not yet available; preserve the current valve position.
+            return
+
         new_valve_percent = round(
-            max(0, min(self.safe_on_percent, 1)) * 100
+            max(0, min(current_on_percent, 1)) * 100
         )
 
         # Issue 533 - don't filter with dtemp if valve should be close. Else it will never close

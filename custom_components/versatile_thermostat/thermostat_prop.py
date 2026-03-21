@@ -63,14 +63,21 @@ class ThermostatProp(BaseThermostat[T], Generic[T]):
         return self._prop_algorithm
 
     @property
-    def on_percent(self) -> float:
+    def on_percent(self) -> float | None:
         """Returns the percentage the heater must be ON
-        In safety mode this value is overridden with the _default_on_percent
+        In safety mode this value is overridden with the _default_on_percent.
+        Returns None when the temperature sensor was not available at the last
+        calculation. Callers must treat None as "temperature unknown — keep
+        the current switch state unchanged".
         """
         if self._safety_state:
             val = self._safety_default_on_percent
         elif self._prop_algorithm:
             val = self._prop_algorithm.on_percent
+            if val is None:
+                # Temperature was not available at last calculation.
+                # Propagate None so callers can skip touching the switch.
+                return None
         else:
             val = 0
 
@@ -83,8 +90,8 @@ class ThermostatProp(BaseThermostat[T], Generic[T]):
         # Only if the value has been modified by safety or clamping
         if self._prop_algorithm and hasattr(self._prop_algorithm, "update_realized_power"):
             # Get what the algorithm proposes
-            algo_percent = self._prop_algorithm.on_percent if self._prop_algorithm else 0
-            if val != algo_percent:
+            algo_percent = self._prop_algorithm.on_percent
+            if algo_percent is not None and val != algo_percent:
                 self._prop_algorithm.update_realized_power(val)
 
         return val
