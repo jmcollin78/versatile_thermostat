@@ -1292,7 +1292,7 @@ class UnderlyingValveRegulation(UnderlyingValve):
     async def check_initial_state(self):
         """Handle initial valve state change and hvac_mode"""
 
-        _LOGGER.info("%s - Issue_1831 - Starting initial state check for valve regulation underlying", self)
+        _LOGGER.debug("%s - Starting initial state check for valve regulation underlying", self)
 
         # Initialize valve state and min max opening
         self.init_valve_state_min_max_open()
@@ -1307,8 +1307,8 @@ class UnderlyingValveRegulation(UnderlyingValve):
         is_on = device_valve_opening is not None and device_valve_opening > self._opening_threshold
 
         if should_be_on and not is_on:
-            _LOGGER.info(
-                "%s - Issue_1831 - The valve should be active (hvac_mode=%s, sleeping=%s, percent_open=%.0f), but the underlying device is off or below threshold (current_valve_opening=%.0f). Opening valve %s",
+            _LOGGER.debug(
+                "%s - The valve should be active (hvac_mode=%s, sleeping=%s, percent_open=%.0f), but the underlying device is off or below threshold (current_valve_opening=%.0f). Opening valve %s",
                 self,
                 hvac_mode,
                 self._thermostat.is_sleeping,
@@ -1319,33 +1319,33 @@ class UnderlyingValveRegulation(UnderlyingValve):
             # await self._climate_underlying.set_hvac_mode(hvac_mode)
             if self._thermostat.is_sleeping:
                 self._percent_open = 100
-                _LOGGER.info("%s - Issue_1831 - is sleeping, setting percent_open to 100", self)
+                _LOGGER.debug("%s - is sleeping, setting percent_open to 100", self)
                 await self.send_percent_open()
             else:
                 calculated_percent = self._thermostat.valve_open_percent
                 if calculated_percent is not None and calculated_percent > 0:
                     # TPI says heating is needed — respect the calculated value
                     self._percent_open = calculated_percent
-                    _LOGGER.info("%s - Issue_1831 - TPI says %.0f%% heating needed — opening valve", self, calculated_percent)
+                    _LOGGER.debug("%s - TPI says %.0f%% heating needed — opening valve", self, calculated_percent)
                     await self.send_percent_open()
                 else:
                     # TPI says 0% (no heating needed) — do not open the valve here.
                     # The normal startup flow will send the correct 0% command separately.
-                    _LOGGER.info(
-                        "%s - Issue_1831 - Should be on (hvac_mode=%s) but TPI says 0%% or not yet calculated — leaving valve closed to avoid race condition",
+                    _LOGGER.debug(
+                        "%s - Should be on (hvac_mode=%s) but TPI says 0%% or not yet calculated — leaving valve closed to avoid race condition",
                         self,
                         hvac_mode,
                     )
 
         elif not should_be_on and is_on:
-            _LOGGER.info(
-                "%s - Issue_1831 - The hvac mode is OFF and not sleeping, but the underlying device is not at off. Setting to %d%% device %s",
+            _LOGGER.debug(
+                "%s - The hvac mode is OFF and not sleeping, but the underlying device is not at off. Setting to %d%% device %s",
                 self,
                 self._opening_threshold,
                 self._entity_id,
             )
             self._percent_open = self._opening_threshold
-            _LOGGER.info("%s - Issue_1831 - off and not sleeping, setting percent_open to %d", self, self._percent_open)
+            _LOGGER.debug("%s - off and not sleeping, setting percent_open to %d", self, self._percent_open)
             await self.send_percent_open()
             # await self._climate_underlying.set_hvac_mode(hvac_mode)
 
@@ -1379,8 +1379,6 @@ class UnderlyingValveRegulation(UnderlyingValve):
 
         if self.has_closing_degree_entity:
             await self.send_value_to_number(self._closing_degree_entity_id, closing_degree)
-
-        _LOGGER.warning("%s - Issue_1831 - sent opening_degree=%s closing_degree=%s", self, opening_degree, closing_degree)
 
         _LOGGER.debug(
             "%s - valve regulation - I have sent opening_degree=%s closing_degree=%s",
