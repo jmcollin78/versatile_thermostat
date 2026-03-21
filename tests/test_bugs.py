@@ -1054,3 +1054,122 @@ async def test_bug_activity_preset_temperature_change(
 
         assert entity._presets["boost"] == 22.0
         assert entity.target_temperature == 22.0  # <-- Same bug for boost sub-preset
+
+
+@pytest.mark.parametrize("expected_lingering_tasks", [True])
+@pytest.mark.parametrize("expected_lingering_timers", [True])
+async def test_bug_1884(
+    hass: HomeAssistant,
+    skip_hass_states_is_state,
+    skip_send_event,
+):
+    """Test that an underlying switch which was ON before HA restart is not
+    spuriously turned off when the temperature sensor is unavailable at startup.
+
+    Scenario:
+    1. Before HA restart: VTherm was in HEAT mode and the switch was ON (heating).
+    2. HA restarts: the temperature sensor is unavailable.
+    3. VTherm starts with the restored HEAT/COMFORT state.
+    4. Bug: on_percent=0 (no temperature data) causes turn_off on the active switch.
+    5. Temperature becomes available.
+    6. Bug: switch is turned back ON → unwanted OFF/ON cycle damages sensitive equipment.
+    """
+    now = datetime.now(tz=get_tz(hass))
+
+    # Pre-condition: switch was ON before HA restart
+    hass.states.async_set("switch.mock_switch", STATE_ON)
+    # Temperature sensor is unavailable at startup (HA restart scenario)
+    hass.states.async_set("sensor.mock_temp_sensor", STATE_UNAVAILABLE)
+    # External temperature sensor is available
+    hass.states.async_set("sensor.mock_ext_temp_sensor", "10.0")
+    await hass.async_block_till_done()
+
+    entry = MockConfigEntry(
+        domain=DOMAIN,
+        title="TheOverSwitchMockName",
+        unique_id="uniqueId",
+        data={
+            CONF_NAME: "TheOverSwitchMockName",
+            CONF_THERMOSTAT_TYPE: CONF_THERMOSTAT_SWITCH,
+            CONF_TEMP_SENSOR: "sensor.mock_temp_sensor",
+            CONF_EXTERNAL_TEMP_SENSOR: "sensor.mock_ext_temp_sensor",
+            CONF_CYCLE_MIN: 5,
+            CONF_TEMP_MIN: 15,
+            CONF_TEMP_MAX: 30,
+            "eco_temp": 17,
+            "comfort_temp": 19,
+            "boost_temp": 21,
+            CONF_USE_WINDOW_FEATURE: False,
+            CONF_USE_MOTION_FEATURE: False,
+            CONF_USE_POWER_FEATURE: False,
+            CONF_USE_PRESENCE_FEATURE: False,
+            CONF_UNDERLYING_LIST: ["switch.mock_switch"],
+            CONF_PROP_FUNCTION: PROPORTIONAL_FUNCTION_TPI,
+            CONF_TPI_COEF_INT: 0.3,
+            CONF_TPI_COEF_EXT: 0.01,
+            CONF_MINIMAL_ACTIVATION_DELAY: 30,
+            CONF_MINIMAL_DEACTIVATION_DELAY: 0,
+            CONF_SAFETY_DELAY_MIN: 60,
+            CONF_SAFETY_MIN_ON_PERCENT: 0.3,
+            CONF_SAFETY_DEFAULT_ON_PERCENT: 0.1,
+            CONF_DEVICE_POWER: 200,
+        },
+    )
+
+    # Simulate a previously saved thermostat state: HEAT mode with COMFORT preset
+    # Use MagicMock so that .state holds an HVACMode enum instance (not a plain string),
+    # which is required for from_ha_hvac_mode() to resolve the mode correctly.
+    mock_previous_state = MagicMock()
+    mock_previous_state.state = HVACMode.HEAT
+    mock_previous_state.attributes = {
+        "preset_mode": VThermPreset.COMFORT,
+        "temperature": 19.0,
+    }
+
+    with patch(
+        "homeassistant.helpers.restore_state.RestoreEntity.async_get_last_state",
+        return_value=mock_previous_state,
+    ), patch(
+        "custom_components.versatile_thermostat.cycle_scheduler.async_call_later",
+        return_value=MagicMock(),
+    ), patch(
+        "custom_components.versatile_thermostat.underlyings.UnderlyingSwitch.turn_off",
+        new_callable=AsyncMock,
+    ) as mock_turn_off, patch(
+        "custom_components.versatile_thermostat.underlyings.UnderlyingSwitch.turn_on",
+        new_callable=AsyncMock,
+        return_value=True,
+    ) as mock_turn_on:
+        entity: ThermostatOverSwitch = await create_thermostat(hass, entry, "climate.theoverswitchmockname")
+        assert entity
+        await wait_for_local_condition(lambda: entity.is_ready is True)
+        await hass.async_block_till_done()
+
+        # VTherm should have restored HEAT mode from previous state
+        assert entity.hvac_mode == VThermHvacMode_HEAT
+
+        # --- Bug 1884 evidence ---
+        # At startup, temp is unavailable → on_percent=0 → turn_off is called
+        # on the active switch. This assertion FAILS with the current bug.
+        assert mock_turn_off.call_count == 0, (
+            f"Bug 1884: underlying switch was spuriously turned off " f"{mock_turn_off.call_count} time(s) during startup when the " "temperature sensor was unavailable"
+        )
+
+        # Now the temperature sensor becomes available (temp=18, target=19 → heating needed)
+        mock_turn_off.reset_mock()
+        mock_turn_on.reset_mock()
+
+        await send_temperature_change_event(entity, 18.0, now)
+        await hass.async_block_till_done()
+
+        # The key fix: no spurious OFF/ON cycle should have occurred.
+        # After temperature arrives, the cycle scheduler takes over.
+        # Since the device was already active and target_is_on=True, the
+        # scheduler correctly keeps it on without an explicit turn_on call.
+        assert mock_turn_off.call_count == 0, "Bug 1884: spurious turn_off after temperature became available"
+        # Confirm that the thermostat is now in a proper heating state
+        assert entity.hvac_mode == VThermHvacMode_HEAT
+        assert entity.on_percent is not None, "on_percent should be a float once temperature is available"
+        assert entity.on_percent > 0, f"on_percent should be > 0 (temp=18 < target=19), got {entity.on_percent}"
+
+    entity.remove_thermostat()

@@ -189,7 +189,6 @@ class TPIHandler:
             _LOGGER.info("%s - DEBUG: Before load_data - int=%.3f, ext=%.3f", t, t.tpi_coef_int, t.tpi_coef_ext)
             await self._auto_tpi_manager.async_load_data()
 
-
             # If we have learned parameters, apply them
             learned_params = self._auto_tpi_manager.get_calculated_params()
             if learned_params:
@@ -340,6 +339,17 @@ class TPIHandler:
             on_percent = 0
             if t.prop_algorithm:
                 on_percent = t.on_percent
+                if on_percent is None:
+                    # Temperature sensor was not yet available at the last
+                    # recalculate() call (e.g. HA restart before sensor comes
+                    # back online). Preserve the current switch state instead of
+                    # turning it off with on_percent=0 (bug 1884).
+                    _LOGGER.info(
+                        "%s - on_percent is None (temperature unavailable). " "Skipping cycle to preserve current switch state.",
+                        t,
+                    )
+                    return
+
                 on_time_sec, off_time_sec, forced_by_timing = calculate_cycle_times(
                     on_percent,
                     t.cycle_min,
@@ -381,8 +391,6 @@ class TPIHandler:
             "minimal_activation_delay_sec": t.minimal_activation_delay,
             "minimal_deactivation_delay_sec": t.minimal_deactivation_delay,
         })
-
-
 
     async def _async_update_tpi_config_entry(self):
         """Update the config entry with current TPI parameters."""
