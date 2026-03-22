@@ -203,7 +203,7 @@ class UnderlyingEntity:
         try:
             response: ServiceResponse = await self._hass.services.async_call(domain, service, service_data, blocking, context, target, return_response)
 
-            self._last_command_sent_datetime = dt_util.utcnow()
+            self._last_command_sent_datetime = self._thermostat.now
             return response
         except Exception as err:
             _LOGGER.error("Error calling service %s.%s: %s. The underlying will not change its state.", domain, service, err)
@@ -739,7 +739,7 @@ class UnderlyingClimate(UnderlyingEntity):
             self._cancel_set_fan_mode_later = None
 
         delay: float = 2.0
-        now = dt_util.utcnow()
+        now = self._thermostat.now
         last_command_sent = self._last_command_sent_datetime
 
         if now > last_command_sent + timedelta(seconds=delay):
