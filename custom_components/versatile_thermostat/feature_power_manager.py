@@ -178,7 +178,8 @@ class FeaturePowerManager(BaseFeatureManager):
             if self._vtherm.is_over_climate:
                 power_consumption_max = self._device_power
             else:
-                on_percent = self._vtherm.safe_on_percent
+                # if on_percent is not defined, we consider that the device can consume all its power in the worst case
+                on_percent = self._vtherm.safe_on_percent if self._vtherm.safe_on_percent is not None else 1
 
                 power_consumption_max = max(
                     self._device_power / self._vtherm.nb_underlying_entities,
@@ -211,7 +212,8 @@ class FeaturePowerManager(BaseFeatureManager):
             if self._vtherm.is_over_climate:
                 power_consumption_max = self._device_power
             else:
-                on_percent = self._vtherm.safe_on_percent
+                # if on_percent is not defined, we consider that the device can consume all its power in the worst case
+                on_percent = self._vtherm.safe_on_percent if self._vtherm.safe_on_percent is not None else 1
 
                 power_consumption_max = max(
                     self._device_power / self._vtherm.nb_underlying_entities,

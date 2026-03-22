@@ -107,21 +107,29 @@ class FeatureRepairIncorrectStateManager(BaseFeatureManager):
 
         # Stop if the maximum consecutive repair count is reached
         if self._consecutive_repair_count >= REPAIR_MAX_ATTEMPTS:
-            _LOGGER.warning(
-                "%s - RepairIncorrectStateManager: maximum repair attempts (%d) "
-                "reached. Stopped attempting repairs to avoid infinite loop.",
+            _LOGGER.error(
+                "%s - RepairIncorrectStateManager: maximum repair attempts (%d) " "reached. Stopped attempting repairs to avoid infinite loop.",
                 self._vtherm.name,
                 REPAIR_MAX_ATTEMPTS,
             )
-            return False
+            self._consecutive_repair_count += 1
+            if self._consecutive_repair_count >= 2 * REPAIR_MAX_ATTEMPTS:
+                _LOGGER.info(
+                    "%s - RepairIncorrectStateManager: consecutive repair count has doubled the max attempts, resetting the counter to allow new repair attempts.",
+                    self._vtherm.name,
+                )
+                self._consecutive_repair_count = 0
+            else:
+                return False
 
         repaired = False
-        for underlying in self._vtherm.underlyings:
+        # build a list of underlying to repair as the vtherm.underlyings concatened to the list of vtherm.underlyings_valve_regulation if it exists
+        for underlying in self._vtherm.all_underlying_entities:
+            _LOGGER.debug("%s - RepairIncorrectStateManager: checking underlying %s for state discrepancies", self._vtherm.name, underlying.entity_id)
             repaired_this = await underlying.check_and_repair()
             if repaired_this:
-                _LOGGER.info(
-                    "%s - RepairIncorrectStateManager: underlying %s was repaired. "
-                    "Consecutive repairs so far: %d",
+                _LOGGER.warning(
+                    "%s - RepairIncorrectStateManager: underlying %s was repaired. Consecutive repairs so far: %d",
                     self._vtherm.name,
                     underlying.entity_id,
                     self._consecutive_repair_count + 1,

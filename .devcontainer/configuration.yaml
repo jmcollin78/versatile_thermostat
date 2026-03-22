@@ -28,7 +28,7 @@ recorder:
 logger:
     default: warning
     logs:
-        custom_components.versatile_thermostat: info
+        custom_components.versatile_thermostat: debug
 
 # If you need to debug uncommment the line below (doc: https://www.home-assistant.io/integrations/debugpy/)
 debugpy:
@@ -49,6 +49,7 @@ versatile_thermostat:
         precision: 3
     safety_mode:
         check_outdoor_sensor: false
+    log_buffer_max_age_hours: 1
 
 input_number:
     fake_temperature_sensor1:

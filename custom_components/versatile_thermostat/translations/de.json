@@ -240,12 +240,14 @@
           "safety_delay_min": "Maximale Zeitspanne zwischen zwei Temperaturmessungen",
           "safety_min_on_percent": "Mindestprozentsatz der Leistung",
           "safety_default_on_percent": "Prozentuale Leistungsaufnahme im Sicherheitsmodus",
+          "repair_incorrect_state": "Fehlerhafte Zustand reparieren",
           "use_advanced_central_config": "Erweiterte zentrale Konfiguration verwenden"
         },
         "data_description": {
           "safety_delay_min": "Maximal zulässige Zeitspanne in Minuten zwischen zwei Temperaturmessungen. Nach Ablauf dieser Zeitspanne schaltet der Thermostat in den Sicherheitsmodus.",
           "safety_min_on_percent": "Mindestprozentsatz für die Heizleistung, unterhalb dessen die Sicherheitsvoreinstellung niemals aktiviert wird.",
           "safety_default_on_percent": "Standardwert für den Heizungsprozentsatz im Sicherheitsmodus. 0 schaltet den Heizkörper im Sicherheitsmodus aus.",
+          "repair_incorrect_state": "Repariert automatisch den fehlerhaften Zustand der zugrunde liegenden Entitäten, wenn dieser erkannt wird. Die Funktion sendet den gewünschten Befehl erneut, wenn der Zustand des zugrunde liegenden Geräts nicht den erwarteten Zustand erfüllt.",
           "use_advanced_central_config": "Wenn aktiviert wird die zentrale erweiterte Konfiguration verwendet. Deaktivieren und Attribute eingeben um eine spezifische erweiterte Konfiguration zu verwenden."
         }
       },
@@ -620,6 +622,7 @@
           "safety_delay_min": "Maximale Zeitspanne zwischen zwei Temperaturmessungen",
           "safety_min_on_percent": "Mindestleistungsanteil in Prozent",
           "safety_default_on_percent": "Prozentuale Leistungsaufnahme im Sicherheitsmodus",
+          "repair_incorrect_state": "Fehlerhafte Zustand reparieren",
           "use_advanced_central_config": "Erweiterte zentrale Konfiguration verwenden"
         },
         "data_description": {
@@ -628,6 +631,7 @@
           "safety_delay_min": "Maximal zulässige Zeitspanne in Minuten zwischen zwei Temperaturmessungen. Nach Ablauf dieser Zeitspanne schaltet der Thermostat in den Sicherheitsmodus.",
           "safety_min_on_percent": "Mindestprozentsatz für die Heizleistung, unter der die Sicherheitsvoreinstellung niemals aktiviert wird.",
           "safety_default_on_percent": "Standardwert der Heizleistung in Prozent im Sicherheitsmodus. Auf 0 setzen, um den Heizkörper im Sicherheitsmodus auszuschalten.",
+          "repair_incorrect_state": "Repariert automatisch den fehlerhaften Zustand der zugrunde liegenden Entitäten, wenn dieser erkannt wird. Die Funktion sendet den gewünschten Befehl erneut, wenn der Zustand des zugrunde liegenden Geräts nicht den erwarteten Zustand erfüllt.",
           "use_advanced_central_config": "Aktivieren, um die erweiterte zentrale Konfiguration zu verwenden. Deaktivieren und Attribute eingeben, wenn eine separate erweiterte Konfiguration verwendet werden soll."
         }
       },
