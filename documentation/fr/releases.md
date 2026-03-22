@@ -2,6 +2,18 @@
 
 ![Nouveau](images/new-icon.png)
 
+
+## Release 8.6
+> 1. ajout du paramètre `max_opening_degrees` pour les VTherms de type `over_climate_valve` permettant de limiter le pourcentage d'ouverture maximal de chaque vanne afin de contrôler le débit d'eau chaude et optimiser la consommation d'énergie (ou autre cas d'usage).
+> 2. ajout de la fonction de recalibrage des vannes d'un _VTherm_ `over_climate_valve` permettant de forcer une ouverture maximale puis une fermeture maximale pour tenter de recalibrer un _TRV_. Plus d'informations [ici](documentation/fr/feature-recalibrate-valves.md).
+
+## Release 8.5
+> 1. ajout de la détection d'anomalie de chauffe pour les VTherms utilisant l'algorithme TPI. Cette fonction détecte deux types d'anomalies :
+>    - **anomalie de chauffage** : le radiateur chauffe fortement (on_percent élevé) mais la température n'augmente pas,
+>    - **anomalie de refroidissement** : le radiateur ne chauffe pas (on_percent à 0) mais la température continue d'augmenter.
+>
+> Ces anomalies peuvent indiquer une fenêtre ouverte, un radiateur défaillant ou une source de chaleur externe. La fonctionnalité envoie des événements qui peuvent être utilisés pour déclencher des automatisations (notifications, alertes, etc.). Plus d'informations [ici](documentation/fr/feature-heating-failure-detection.md).
+
 ## Release 8.4
 > 1. ajout de l'auto TPI (expérimental). Cette nouvelle fonction permet de calculer automatiquement les meilleurs coefficients pour l'algorithme du TPI. Plus d'informations [ici](documentation/fr/feature-autotpi.md)
 > 2. ajout d'une fonction de synchronisation des températures d'un équipement piloté en mode `over_climate`. Suivant, les fonctionnalités de votre équipement, _VTherm_ peut contrôler une entité de calibrage de l'offset ou directement une entité de température externe. Plus d'informations [ici](documentation/fr/feature-sync_device_temp.md)

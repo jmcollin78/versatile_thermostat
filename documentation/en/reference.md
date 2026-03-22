@@ -2,6 +2,12 @@
 
 - [Reference Documentation](#reference-documentation)
   - [Parameter Summary](#parameter-summary)
+- [Expert Mode Configuration](#expert-mode-configuration)
+  - [Expert Mode Self-regulation Parameters](#expert-mode-self-regulation-parameters)
+  - [Disable Outdoor Sensor Check in Safety Mode](#disable-outdoor-sensor-check-in-safety-mode)
+  - [Maximum Heating Power Limit](#maximum-heating-power-limit)
+  - [Automatic Window Opening Detection Parameters](#automatic-window-opening-detection-parameters)
+  - [Log File Retention (Log Buffer)](#log-file-retention-log-buffer)
 - [Sensors](#sensors)
 - [Actions (Services)](#actions-services)
   - [Force Presence/Occupation](#force-presenceoccupation)
@@ -82,6 +88,150 @@
 | ``used_by_controls_central_boiler``       | Indicates if the VTherm controls the central boiler        | X             | X                   | X            | -                       |
 | ``use_auto_start_stop_feature``           | Indicates if the auto start/stop feature is enabled        | -             | X                   | -            | -                       |
 | ``auto_start_stop_level``                 | The detection level for auto start/stop                    | -             | X                   | -            | -                       |
+
+# Expert Mode Configuration
+
+Versatile Thermostat allows you to configure advanced parameters directly in the `configuration.yaml` file. These parameters are reserved for advanced users and provide fine control over thermostat behavior.
+
+## Expert Mode Self-regulation Parameters
+
+When a _VTherm_ of type `over_climate` uses **Expert** mode for self-regulation, you can declare the regulation parameters directly in your `configuration.yaml`. This allows you to precisely fine-tune the regulation behavior.
+
+To use this feature, add the following lines to your `configuration.yaml`:
+
+```yaml
+versatile_thermostat:
+  auto_regulation_expert:
+    kp: 0.6
+    ki: 0.1
+    k_ext: 0.0
+    offset_max: 10
+    accumulated_error_threshold: 80
+    overheat_protection: true
+```
+
+The parameters are as follows:
+
+| Parameter | Description | Type | Example |
+| --- | --- | --- | --- |
+| `kp` | Proportional factor applied to the raw temperature error (difference between target temperature and actual temperature) | Float | 0.6 |
+| `ki` | Integral factor applied to the accumulation of errors over time | Float | 0.1 |
+| `k_ext` | Factor applied to the difference between indoor and outdoor temperature. Allows compensation for external variations | Float | 0.0 |
+| `offset_max` | Maximum correction (offset) that regulation can apply to the setpoint | Float | 10 |
+| `accumulated_error_threshold` | Maximum threshold for error accumulation. Prevents infinite error accumulation | Float | 80 |
+| `overheat_protection` | Activates overheat protection by limiting positive corrections (optional) | Boolean | true |
+
+> ![Important](images/tips.png) _*Important Note*_
+>
+> - These parameters apply to **all _VTherms_ in Expert mode** on the system. It is not possible to have different configurations for different thermostats.
+> - **Home Assistant must be restarted** for changes to take effect (or you can reload the Versatile Thermostat integration via Developer Tools).
+> - Consult the [self-regulation documentation](self-regulation.md#self-regulation-in-expert-mode) for examples of predefined configurations.
+
+## Disable Outdoor Sensor Check in Safety Mode
+
+By default, safety mode checks that the **outdoor temperature sensor** regularly sends data. However, if your outdoor sensor is absent or not critical to your installation, you can disable this check.
+
+To do this, add the following lines to your `configuration.yaml`:
+
+```yaml
+versatile_thermostat:
+  safety_mode:
+    check_outdoor_sensor: false
+```
+
+| Parameter | Description | Type | Default |
+| --- | --- | --- | --- |
+| `check_outdoor_sensor` | If `true`, lack of outdoor sensor data will trigger safety mode. If `false`, only the indoor sensor will be checked | Boolean | true |
+
+> ![Important](images/tips.png) _*Important Note*_
+>
+> - This modification applies to **all _VTherms_** on the system
+> - It affects detection for all thermostats simultaneously
+> - **Home Assistant must be restarted** for changes to take effect
+
+## Maximum Heating Power Limit
+
+The `max_on_percent` parameter allows you to globally limit the maximum heating power for your entire installation. This can be useful for respecting electrical constraints or regulating system load.
+
+To configure this limit, add the following line to your `configuration.yaml`:
+
+```yaml
+versatile_thermostat:
+  max_on_percent: 0.9
+```
+
+| Parameter | Description | Type | Range | Default |
+| --- | --- | --- | --- | --- |
+| `max_on_percent` | Maximum percentage of heating power allowed. `1.0` = 100% power, `0.9` = 90%, etc. | Float | 0.0 to 1.0 | 1.0 |
+
+**Usage examples**:
+- `0.8`: limits heating to 80% of capacity
+- `0.5`: limits to 50% (useful in case of electrical overload)
+- `1.0`: no limitation (default behavior)
+
+> ![Important](images/tips.png) _*Important Note*_
+>
+> - This limitation applies to **all _VTherms_** on the system
+> - It is applied immediately without restart
+> - It affects the maximum power calculated on each cycle
+
+## Automatic Window Opening Detection Parameters
+
+When using automatic window opening detection (based on temperature drop), you can fine-tune the temperature smoothing parameters to improve detection.
+
+To configure these parameters, add the following lines to your `configuration.yaml`:
+
+```yaml
+versatile_thermostat:
+  short_ema_params:
+    max_alpha: 0.5
+    halflife_sec: 300
+    precision: 2
+```
+
+| Parameter | Description | Type | Range | Default |
+| --- | --- | --- | --- | --- |
+| `max_alpha` | Maximum smoothing factor (alpha) for the exponential moving average. Controls sensitivity to rapid temperature changes | Float | 0.0 to 1.0 | 0.5 |
+| `halflife_sec` | Half-life duration in seconds for the moving average calculation. Determines how quickly old values lose weight | Integer | > 0 | 300 |
+| `precision` | Number of decimal places retained in the moving average calculation | Integer | > 0 | 2 |
+
+**Parameter meanings**:
+- **`max_alpha`**: a higher value makes detection more reactive to sudden changes (faster detection but more sensitive to false positives)
+- **`halflife_sec`**: a shorter duration makes the algorithm forget old values more quickly (faster detection)
+- **`precision`**: controls calculation rounding (rarely needs adjustment)
+
+> ![Warning](images/tips.png) _*These parameters are sensitive*_
+>
+> - These parameters affect automatic window opening detection
+> - They apply to **all _VTherms_** on the system
+> - Only adjust them if you encounter detection problems (false positives or missed detections)
+> - Consult the [troubleshooting section](troubleshooting.md#adjust-window-opening-detection-parameters-in-automatic-mode) for more details
+
+## Log File Retention (Log Buffer)
+
+Versatile Thermostat maintains internal logs for troubleshooting. You can configure the retention duration of these logs.
+
+To configure this duration, add the following line to your `configuration.yaml`:
+
+```yaml
+versatile_thermostat:
+  log_buffer_max_age_hours: 24
+```
+
+| Parameter | Description | Type | Range | Default |
+| --- | --- | --- | --- | --- |
+| `log_buffer_max_age_hours` | Maximum log retention duration in hours. Logs older than this will be automatically deleted | Integer | > 0 | 24 |
+
+**Usage examples**:
+- `12`: retains logs from the last 12 hours
+- `24`: retains logs for 24 hours (1 day)
+- `72`: retains logs for 72 hours (3 days) for extended troubleshooting
+
+> ![Important](images/tips.png) _*Memory Management*_
+>
+> - A longer duration consumes more memory
+> - This configuration affects **all _VTherms_** on the system
+> - Logs are useful for troubleshooting via the log download endpoint
 
 # Sensors
 

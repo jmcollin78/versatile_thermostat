@@ -2,6 +2,17 @@
 
 ![Neu](images/new-icon.png)
 
+## Release 8.6
+> 1. Hinzufügen des Parameters `max_opening_degrees` für `over_climate_valve` VTherms, der es ermöglicht, den maximalen Öffnungsgrad jedes Ventils zu begrenzen, um den Heißwasserdurchfluss zu steuern und den Energieverbrauch zu optimieren.
+> 2. Hinzufügen einer Ventil-Neukalibrierungsfunktion für ein _VTherm_ `over_climate_valve`, mit der ein maximales Öffnen und anschließend ein maximales Schließen erzwungen werden kann, um eine Neukalibrierung eines TRV zu versuchen. Weitere Informationen [hier](documentation/de/feature-recalibrate-valves.md).
+
+## Release 8.5
+> 1. Hinzufügen der Erkennung von Heizungsstörungen für VTherms, die den TPI-Algorithmus verwenden. Diese Funktion erkennt zwei Arten von Anomalien:
+>    - **Heizungsstörung**: Der Heizkörper heizt stark (hohes on_percent), aber die Temperatur steigt nicht,
+>    - **Kühlungsstörung**: Der Heizkörper heizt nicht (on_percent bei 0), aber die Temperatur steigt weiter.
+>
+> Diese Anomalien können auf ein offenes Fenster, einen defekten Heizkörper oder eine externe Wärmequelle hinweisen. Die Funktion sendet Ereignisse, die zum Auslösen von Automatisierungen (Benachrichtigungen, Warnungen usw.) verwendet werden können. Weitere Informationen [hier](documentation/de/feature-heating-failure-detection.md).
+
 ## Release 8.4
 1. Hinzufügen der automatischen TPI-Funktion (experimental). Diese neue Funktion dient dazu, automatisch die besten Koeffizienten für den TPI-Algorithmus zu berechnen. Weitere Informationen gibt es [hier](documentation/en/feature-autotpi.md).
 2. added a temperature synchronization function for a device controlled in `over_climate` mode. Depending on your device's capabilities, _VTherm_ can control an offset calibration entity or directly an external temperature entity. More information [here](documentation/de/feature-sync_device_temp.md)

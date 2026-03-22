@@ -2,6 +2,12 @@
 
 - [Referenzdokumentation](#referenzdokumentation)
   - [Parameterübersicht](#parameterübersicht)
+- [Expertenmodus-Konfiguration](#expertenmodus-konfiguration)
+  - [Expertenmodus-Selbstregulierungsparameter](#expertenmodus-selbstregulierungsparameter)
+  - [Außensensorprüfung im Sicherheitsmodus deaktivieren](#außensensorprüfung-im-sicherheitsmodus-deaktivieren)
+  - [Maximale Heizleistungsgrenze](#maximale-heizleistungsgrenze)
+  - [Parameter zur automatischen Detektion von Fensteröffnungen](#parameter-zur-automatischen-detektion-von-fensteröffnungen)
+  - [Protokollspeicherung (Log Buffer)](#protokollspeicherung-log-buffer)
 - [Sensoren](#sensoren)
 - [Aktionen (Services)](#aktionen-services)
   - [Präsenz/Belegung erzwingen](#präsenzbelegung-erzwingen)
@@ -81,7 +87,149 @@
 | ``used_by_controls_central_boiler``       | Zeigt an, ob VTherm den Zentralheizungskessel steuert                             | X             | X                  | X            | -                        |
 | ``use_auto_start_stop_feature``           | Zeigt an, ob die automatische Start-/Stopp-Funktion aktiviert ist.                | -             | X                  | -            | -                        |
 | ``auto_start_stop_level``                 | Die Erkennungsstufe der Start-Stopp-Automatik                                     | -             | X                  | -            | -                        |
+# Expertenmodus-Konfiguration
 
+Versatile Thermostat ermöglicht die Konfiguration erweiterter Parameter direkt in der `configuration.yaml`-Datei. Diese Parameter sind für fortgeschrittene Benutzer reserviert und ermöglichen eine präzise Kontrolle über das Thermostverhalten.
+
+## Expertenmodus-Selbstregulierungsparameter
+
+Wenn ein _VTherm_ vom Typ `over_climate` den **Expertenmodus** für die Selbstregulierung verwendet, können Sie die Regulierungsparameter direkt in Ihrer `configuration.yaml` deklarieren. Dies ermöglicht Ihnen, das Regulierungsverhalten präzise abzustimmen.
+
+Um diese Funktion zu nutzen, fügen Sie die folgenden Zeilen in Ihre `configuration.yaml` ein:
+
+```yaml
+versatile_thermostat:
+  auto_regulation_expert:
+    kp: 0.6
+    ki: 0.1
+    k_ext: 0.0
+    offset_max: 10
+    accumulated_error_threshold: 80
+    overheat_protection: true
+```
+
+Die Parameter sind wie folgt:
+
+| Parameter                     | Beschreibung                                                                                                                            | Typ             | Beispiel |
+| ----------------------------- | --------------------------------------------------------------------------------------------------------------------------------------- | --------------- | -------- |
+| `kp`                          | Proportionalfaktor angewendet auf den rohen Temperaturfehler (Unterschied zwischen Solltemperatur und tatsächlicher Temperatur)         | Dezimalzahl     | 0.6      |
+| `ki`                          | Integralfaktor angewendet auf die Akkumulation von Fehlern im Laufe der Zeit                                                            | Dezimalzahl     | 0.1      |
+| `k_ext`                       | Faktor angewendet auf die Differenz zwischen Innentemperatur und Außentemperatur. Ermöglicht die Kompensation von externen Schwankungen | Dezimalzahl     | 0.0      |
+| `offset_max`                  | Maximale Korrektur (Offset), die die Regelung auf den Sollwert anwenden kann                                                            | Dezimalzahl     | 10       |
+| `accumulated_error_threshold` | Maximaler Schwellwert für die Fehlerakkumulation. Verhindert eine unendliche Fehlerakkumulation                                         | Dezimalzahl     | 80       |
+| `overheat_protection`         | Aktiviert Überhitzungsschutz durch Begrenzung positiver Korrektionen (optional)                                                         | Boolescher Wert | true     |
+
+> ![Wichtig](images/tips.png) _*Wichtiger Hinweis*_
+>
+> - Diese Parameter gelten für **alle _VTherms_ im Expertenmodus** auf dem System. Es ist nicht möglich, unterschiedliche Konfigurationen für verschiedene Thermostate zu haben.
+> - **Home Assistant muss neu gestartet werden**, damit die Änderungen wirksam werden (oder Sie können die Versatile Thermostat-Integration über Entwicklertools neu laden).
+> - Konsultieren Sie die [Selbstregulierungsdokumentation](self-regulation.md#selbstregulierung-im-expertenmodus) für Beispiele vordefinierter Konfigurationen.
+
+## Außensensorprüfung im Sicherheitsmodus deaktivieren
+
+Standardmäßig prüft der Sicherheitsmodus, dass der **Außentemperatursensor** regelmäßig Daten sendet. Wenn Ihr Außensensor jedoch nicht vorhanden oder nicht kritisch für Ihre Installation ist, können Sie diese Prüfung deaktivieren.
+
+Fügen Sie dazu die folgenden Zeilen in Ihre `configuration.yaml` ein:
+
+```yaml
+versatile_thermostat:
+  safety_mode:
+    check_outdoor_sensor: false
+```
+
+| Parameter              | Beschreibung                                                                                                                  | Typ             | Standard |
+| ---------------------- | ----------------------------------------------------------------------------------------------------------------------------- | --------------- | -------- |
+| `check_outdoor_sensor` | Falls `true`, aktiviert das Fehlen von Außensensordaten den Sicherheitsmodus. Falls `false`, wird nur der Innensensor geprüft | Boolescher Wert | true     |
+
+> ![Wichtig](images/tips.png) _*Wichtiger Hinweis*_
+>
+> - Diese Änderung gilt für **alle _VTherms_** auf dem System
+> - Sie betrifft die Erkennung für alle Thermostate gleichzeitig
+> - **Home Assistant muss neu gestartet werden**, damit die Änderungen wirksam werden
+
+## Maximale Heizleistungsgrenze
+
+Mit dem Parameter `max_on_percent` können Sie die maximale Heizleistung für Ihre gesamte Installation global begrenzen. Dies kann nützlich sein, um elektrische Einschränkungen zu beachten oder die Systemlast zu regulieren.
+
+Um diese Grenze zu konfigurieren, fügen Sie die folgende Zeile in Ihre `configuration.yaml` ein:
+
+```yaml
+versatile_thermostat:
+  max_on_percent: 0.9
+```
+
+| Parameter        | Beschreibung                                                                                | Typ         | Bereich     | Standard |
+| ---------------- | ------------------------------------------------------------------------------------------- | ----------- | ----------- | -------- |
+| `max_on_percent` | Maximaler Prozentsatz der zulässigen Heizleistung. `1.0` = 100% Leistung, `0.9` = 90%, etc. | Dezimalzahl | 0.0 bis 1.0 | 1.0      |
+
+**Verwendungsbeispiele**:
+- `0.8`: begrenzt die Heizung auf 80% der Kapazität
+- `0.5`: begrenzt auf 50% (nützlich bei Stromüberlas)
+- `1.0`: keine Begrenzung (Standard)
+
+> ![Wichtig](images/tips.png) _*Wichtiger Hinweis*_
+>
+> - Diese Begrenzung gilt für **alle _VTherms_** auf dem System
+> - Sie wird sofort ohne Neustart angewendet
+> - Sie beeinflusst die maximale in jedem Zyklus berechnete Leistung
+
+## Parameter zur automatischen Detektion von Fensteröffnungen
+
+Bei Verwendung der automatischen Fensteröffnungserkennung (basierend auf Temperaturabfall) können Sie die Parameter der Temperaturglättung optimieren, um die Erkennung zu verbessern.
+
+Um diese Parameter zu konfigurieren, fügen Sie die folgenden Zeilen in Ihre `configuration.yaml` ein:
+
+```yaml
+versatile_thermostat:
+  short_ema_params:
+    max_alpha: 0.5
+    halflife_sec: 300
+    precision: 2
+```
+
+| Parameter      | Beschreibung                                                                                                                                | Typ         | Bereich     | Standard |
+| -------------- | ------------------------------------------------------------------------------------------------------------------------------------------- | ----------- | ----------- | -------- |
+| `max_alpha`    | Maximaler Glättungsfaktor (Alpha) für den exponentiellen Durchschnitt. Steuert die Empfindlichkeit gegenüber schnellen Temperaturänderungen | Dezimalzahl | 0.0 bis 1.0 | 0.5      |
+| `halflife_sec` | Halbwertsdauer in Sekunden für die Berechnung des gleitenden Durchschnitts. Bestimmt, wie schnell alte Werte an Gewicht verlieren           | Ganze Zahl  | > 0         | 300      |
+| `precision`    | Anzahl der Dezimalstellen in der Berechnung des gleitenden Durchschnitts                                                                    | Ganze Zahl  | > 0         | 2        |
+
+**Parameterbedeutungen**:
+- **`max_alpha`**: Ein höherer Wert macht die Erkennung reaktiver auf plötzliche Änderungen (schnellere Erkennung, aber empfindlicher für Fehlalarme)
+- **`halflife_sec`**: Eine kürzere Dauer lässt den Algorithmus alte Werte schneller vergessen (schnellere Erkennung)
+- **`precision`**: Steuert die Berechnungsrundung (seltenes Anpassungsbedarf)
+
+> ![Warnung](images/tips.png) _*Diese Parameter sind empfindlich*_
+>
+> - Diese Parameter beeinflussen die automatische Fensteröffnungserkennung
+> - Sie gelten für **alle _VTherms_** auf dem System
+> - Passen Sie sie nur an, wenn Sie Erkennungsprobleme haben (Fehlalarme oder Nicht-Erkennung)
+> - Konsultieren Sie den [Abschnitt Fehlerbehebung](troubleshooting.md#einstellen-der-parameter-für-die-fensteröffnungserkennung-im-automodus) für weitere Details
+
+## Protokollspeicherung (Log Buffer)
+
+Versatile Thermostat verwaltet interne Protokolle zur Fehlerbehebung. Sie können die Beibehaltungsdauer dieser Protokolle konfigurieren.
+
+Um diese Dauer zu konfigurieren, fügen Sie die folgende Zeile in Ihre `configuration.yaml` ein:
+
+```yaml
+versatile_thermostat:
+  log_buffer_max_age_hours: 24
+```
+
+| Parameter                  | Beschreibung                                                                                  | Typ        | Bereich | Standard |
+| -------------------------- | --------------------------------------------------------------------------------------------- | ---------- | ------- | -------- |
+| `log_buffer_max_age_hours` | Maximale Protokollspeicherungsdauer in Stunden. Ältere Protokolle werden automatisch gelöscht | Ganze Zahl | > 0     | 24       |
+
+**Verwendungsbeispiele**:
+- `12`: behält Protokolle der letzten 12 Stunden bei
+- `24`: behält Protokolle für 24 Stunden (1 Tag)
+- `72`: behält Protokolle für 72 Stunden (3 Tage) für erweiterte Fehlerbehebung
+
+> ![Wichtig](images/tips.png) _*Speicherverwaltung*_
+>
+> - Eine längere Dauer verbraucht mehr Speicher
+> - Diese Konfiguration betrifft **alle _VTherms_** auf dem System
+> - Protokolle sind nützlich zur Fehlerbehebung über den Endpunkt zum Herunterladen von Protokollen
 # Sensoren
 
 Mit dem Thermostat sind Sensoren verfügbar, die die Anzeige von Warnmeldungen und des internen Status des Thermostats ermöglichen. Sie sind in den Entitäten des mit dem Thermostat verbundenen Geräts verfügbar:

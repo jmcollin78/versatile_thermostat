@@ -2,6 +2,12 @@
 
 - [Documentation de référence](#documentation-de-référence)
   - [Synthèse des paramètres](#synthèse-des-paramètres)
+- [Configuration en mode Expert](#configuration-en-mode-expert)
+  - [Paramètres de l'auto-régulation en mode Expert](#paramètres-de-lauto-régulation-en-mode-expert)
+  - [Désactivation de la vérification du capteur extérieur en mode sécurité](#désactivation-de-la-vérification-du-capteur-extérieur-en-mode-sécurité)
+  - [Limite maximale de puissance de chauffe](#limite-maximale-de-puissance-de-chauffe)
+  - [Paramètres de détection automatique d'ouverture de fenêtre](#paramètres-de-détection-automatique-douverture-de-fenêtre)
+  - [Rétention des fichiers journaux (Log Buffer)](#rétention-des-fichiers-journaux-log-buffer)
 - [Capteurs](#capteurs)
 - [Actions (services)](#actions-services)
   - [Forcer la présence/occupation](#forcer-la-présenceoccupation)
@@ -81,6 +87,150 @@
 | ``used_by_controls_central_boiler``       | Indique si le VTherm contrôle la chaudière centrale                               | X             | X                   | X            | -                        |
 | ``use_auto_start_stop_feature``           | Indique si la fonction de démarrage/extinction automatique est activée            | -             | X                   | -            | -                        |
 | ``auto_start_stop_level``                 | Le niveau de détection de l'auto start/stop                                       | -             | X                   | -            | -                        |
+
+# Configuration en mode Expert
+
+Versatile Thermostat permet de configurer des paramètres avancés directement dans le fichier `configuration.yaml`. Ces paramètres sont réservés aux utilisateurs avancés et donnent un contrôle fin sur le comportement du thermostat.
+
+## Paramètres de l'auto-régulation en mode Expert
+
+Lorsqu'un _VTherm_ de type `over_climate` utilise le mode **Expert** pour l'auto-régulation, vous pouvez déclarer les paramètres de régulation directement dans votre `configuration.yaml`. Cela vous permet d'affiner précisément le comportement de la régulation.
+
+Pour utiliser cette fonctionnalité, ajoutez les lignes suivantes dans votre `configuration.yaml` :
+
+```yaml
+versatile_thermostat:
+  auto_regulation_expert:
+    kp: 0.6
+    ki: 0.1
+    k_ext: 0.0
+    offset_max: 10
+    accumulated_error_threshold: 80
+    overheat_protection: true
+```
+
+Les paramètres sont les suivants :
+
+| Paramètre                     | Description                                                                                                                                | Type           | Exemple |
+| ----------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------ | -------------- | ------- |
+| `kp`                          | Facteur proportionnel appliqué à l'erreur brute de température (différence entre la température cible et la température réelle)            | Nombre décimal | 0.6     |
+| `ki`                          | Facteur intégral appliqué à l'accumulation des erreurs au fil du temps                                                                     | Nombre décimal | 0.1     |
+| `k_ext`                       | Facteur appliqué à la différence entre la température intérieure et la température extérieure. Permet de compenser les variations externes | Nombre décimal | 0.0     |
+| `offset_max`                  | Correction maximale (offset) que la régulation peut appliquer à la consigne                                                                | Nombre décimal | 10      |
+| `accumulated_error_threshold` | Seuil maximum d'accumulation d'erreur. Évite une accumulation infinie de l'erreur                                                          | Nombre décimal | 80      |
+| `overheat_protection`         | Active la protection contre la surchauffe en limitant les corrections positives (optionnel)                                                | Booléen        | true    |
+
+> ![Important](images/tips.png) _*Remarque importante*_
+>
+> - Ces paramètres s'appliquent à **tous les _VTherms_ en mode Expert** du système. Il n'est pas possible d'avoir des configurations différentes pour différents thermostats.
+> - **Home Assistant doit être redémarré** pour que les changements prennent effet (ou vous pouvez recharger l'intégration Versatile Thermostat via les Outils de développement).
+> - Consultez la [documentation de l'auto-régulation](self-regulation.md#lauto-régulation-en-mode-expert) pour des exemples de configurations prédéfinies.
+
+## Désactivation de la vérification du capteur extérieur en mode sécurité
+
+Par défaut, le mode sécurité vérifie que le **capteur de température extérieur** envoie régulièrement des données. Cependant, si votre capteur extérieur est absent ou non critique pour votre installation, vous pouvez désactiver cette vérification.
+
+Pour cela, ajoutez les lignes suivantes dans votre `configuration.yaml` :
+
+```yaml
+versatile_thermostat:
+  safety_mode:
+    check_outdoor_sensor: false
+```
+
+| Paramètre              | Description                                                                                                                           | Type    | Défaut |
+| ---------------------- | ------------------------------------------------------------------------------------------------------------------------------------- | ------- | ------ |
+| `check_outdoor_sensor` | Si `true`, le manque de données du capteur extérieur déclenchera le mode sécurité. Si `false`, seul le capteur intérieur sera vérifié | Booléen | true   |
+
+> ![Important](images/tips.png) _*Remarque importante*_
+>
+> - Cette modification s'applique à **tous les _VTherms_** du système
+> - Elle affecte la détection pour tous les thermostats en même temps
+> - **Home Assistant doit être redémarré** pour que les changements prennent effet
+
+## Limite maximale de puissance de chauffe
+
+Le paramètre `max_on_percent` permet de limiter globalement la puissance maximale de chauffage pour toute l'installation. Cela peut être utile pour respecter des contraintes électriques ou réguler la charge du système.
+
+Pour configurer cette limite, ajoutez la ligne suivante dans votre `configuration.yaml` :
+
+```yaml
+versatile_thermostat:
+  max_on_percent: 0.9
+```
+
+| Paramètre        | Description                                                                                               | Type           | Plage     | Défaut |
+| ---------------- | --------------------------------------------------------------------------------------------------------- | -------------- | --------- | ------ |
+| `max_on_percent` | Pourcentage maximal de puissance autorisé pour le chauffage. `1.0` = 100% de puissance, `0.9` = 90%, etc. | Nombre décimal | 0.0 à 1.0 | 1.0    |
+
+**Exemples d'utilisation** :
+- `0.8` : limite le chauffage à 80% de sa capacité
+- `0.5` : limite à 50% (utile en cas de surcharge électrique)
+- `1.0` : pas de limitation (comportement par défaut)
+
+> ![Important](images/tips.png) _*Remarque importante*_
+>
+> - Cette limitation s'applique à **tous les _VTherms_** du système
+> - Elle est appliquée immédiatement sans redémarrage
+> - Elle affecte la puissance maximale calculée à chaque cycle
+
+## Paramètres de détection automatique d'ouverture de fenêtre
+
+Lorsque vous utilisez la détection automatique d'ouverture de fenêtre (basée sur la chute de température), vous pouvez affiner les paramètres de lissage de la température pour améliorer la détection.
+
+Pour configurer ces paramètres, ajoutez les lignes suivantes dans votre `configuration.yaml` :
+
+```yaml
+versatile_thermostat:
+  short_ema_params:
+    max_alpha: 0.5
+    halflife_sec: 300
+    precision: 2
+```
+
+| Paramètre      | Description                                                                                                                                   | Type           | Plage     | Défaut |
+| -------------- | --------------------------------------------------------------------------------------------------------------------------------------------- | -------------- | --------- | ------ |
+| `max_alpha`    | Facteur de lissage maximum (alpha) pour la moyenne mobile exponentielle. Contrôle la sensibilité aux changements rapides de température       | Nombre décimal | 0.0 à 1.0 | 0.5    |
+| `halflife_sec` | Durée de demi-vie en secondes pour le calcul de la moyenne mobile. Détermine la rapidité avec laquelle les anciennes valeurs perdent du poids | Nombre entier  | > 0       | 300    |
+| `precision`    | Nombre de chiffres après la virgule conservés dans le calcul de la moyenne mobile                                                             | Nombre entier  | > 0       | 2      |
+
+**Signification des paramètres** :
+- **`max_alpha`** : une valeur plus élevée rend la détection plus réactive aux changements brusques (détection plus rapide mais plus sensible aux faux positifs)
+- **`halflife_sec`** : une durée plus courte rend l'algorithme plus rapide pour oublier les anciennes valeurs (détection plus rapide)
+- **`precision`** : contrôle l'arrondi des calculs (rarement besoin de le modifier)
+
+> ![Attention](images/tips.png) _*Ces paramètres sont sensibles*_
+>
+> - Ces paramètres affectent la détection automatique d'ouverture de fenêtre
+> - Ils s'appliquent à **tous les _VTherms_** du système
+> - Ne les ajustez que si vous rencontrez des problèmes avec la détection (faux positifs ou non-détection)
+> - Consultez la [section dépannage](troubleshooting.md#ajuster-les-paramètres-de-détection-d'ouverture-de-fenêtre-en-mode-automatique) pour plus de détails
+
+## Rétention des fichiers journaux (Log Buffer)
+
+Versatile Thermostat conserve des logs internes pour le dépannage. Vous pouvez configurer la durée de rétention de ces logs.
+
+Pour configurer cette durée, ajoutez la ligne suivante dans votre `configuration.yaml` :
+
+```yaml
+versatile_thermostat:
+  log_buffer_max_age_hours: 24
+```
+
+| Paramètre                  | Description                                                                                               | Type          | Plage | Défaut |
+| -------------------------- | --------------------------------------------------------------------------------------------------------- | ------------- | ----- | ------ |
+| `log_buffer_max_age_hours` | Durée maximale de conservation des logs en heures. Les logs plus anciens seront automatiquement supprimés | Nombre entier | > 0   | 24     |
+
+**Exemples d'utilisation** :
+- `12` : conserve les logs des 12 dernières heures
+- `24` : conserve les logs de 24 heures (1 jour)
+- `72` : conserve les logs de 72 heures (3 jours) pour un dépannage plus long
+
+> ![Important](images/tips.png) _*Gestion de la mémoire*_
+>
+> - Une durée plus longue consomme plus de mémoire
+> - Cette configuration affecte **tous les _VTherms_** du système
+> - Les logs sont utiles pour le dépannage via l'endpoint de téléchargement des logs
 
 # Capteurs
 

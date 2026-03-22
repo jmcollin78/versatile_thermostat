@@ -31,6 +31,14 @@ Versatile Thermostat UI Card (Verfügbar auf [Github](https://github.com/jmcolli
 # Was ist neu?
 ![Neu](images/new-icon.png)
 
+## Release 9.3
+> 1. **Erkennung feststeckender Ventile**: Wesentliche Verbesserung der Heizungsfehlererkennung. Wenn eine Anomalie bei VTherms vom Typ `over_climate_valve` erkannt wird, diagnostiziert der Thermostat nun, ob das Problem durch ein feststeckendes TRV-Ventil (offen oder geschlossen feststeckend) verursacht wird, indem der befohlene Zustand mit dem tatsächlichen Zustand verglichen wird. Diese Information - `root_cause` - wird im Anomalieereignis gesendet und ermöglicht es Ihnen, angemessene Maßnahmen zu ergreifen (Benachrichtigung, Ventilwiederherstellung usw.). Weitere Informationen [hier](documentation/de/feature-heating-failure-detection.md),
+> 2. **Automatisches Erneut-Verriegeln nach Entsperrung**: Der Parameter `auto_relock_sec` wurde zur Verriegelungsfunktion hinzugefügt. Wenn konfiguriert, verriegelt sich der Thermostat nach der angegebenen Anzahl von Sekunden nach einer Entsperrung automatisch wieder. Sie können diese Funktion vollständig deaktivieren, indem Sie sie auf 0 setzen. Standardmäßig ist die automatische Wiederverriegelung auf 30 Sekunden eingestellt, um die Sicherheit zu verbessern. Weitere Informationen [hier](documentation/de/feature-lock.md),
+> 3. **Befehlswiederholung**: Neue Funktionalität zur automatischen Erkennung und Behebung von Diskrepanzen zwischen dem gewünschten Zustand des Thermostats und dem tatsächlichen Zustand der zugrunde liegenden Geräte. Wenn ein Befehl nicht ordnungsgemäß auf das Gerät angewendet wird, wird er erneut gesendet. Dies verbessert die Systemzuverlässigkeit in instabilen Umgebungen oder mit unzuverlässigen Geräten. Weitere Informationen [hier](documentation/de/feature-advanced.md),
+> 4. **Wiederherstellung des zeitgesteuerten Voreinstellung nach Neustart**: Die konfigurierte zeitgesteuerte Voreinstellung wird nun nach einem Thermostat- oder Home Assistant-Neustart korrekt wiederhergestellt. Diese Voreinstellung funktioniert nach dem Neustart weiterhin normal. Weitere Informationen [hier](documentation/de/feature-timed-preset.md),
+> 5. **Erhöhte Genauigkeit der Leistungssteuerung**: Die Aktivierungsschwelle des Kessels (`power_activation_threshold`) akzeptiert nun Dezimalwerte (0,1, 0,5 usw.) für eine feinere Kontrolle der Aktivierungsleistung. Dies bietet mehr Flexibilität zur Optimierung Ihres Energieverbrauchs. Weitere Informationen [hier](documentation/de/feature-power.md),
+> 6. **Verbesserungen der Sensorzuverlässigkeit**: Bessere Unterstützung zur Bestimmung der Verfügbarkeit von Temperatursensoren mithilfe der `last_updated`-Metadaten von Home Assistant, verbesserte Erkennung von Sensorsignalverlust,
+
 ## Release 9.2 - stabile Version
 > 1. Neue Art der Verwaltung von Heiz-/Stoppzyklen für VTherm `over_switch`. Der aktuelle Algorithmus hat einen Zeitdrift, und die ersten Zyklen sind nicht optimal. Dies beeinträchtigt das TPI und insbesondere das Auto-TPI. Der neue `Cycle Scheduler` löst diese Schwierigkeiten. Diese Änderung ist für Sie völlig transparent,
 > 2. Ein Protokollkollektor. Ihre Support-Anfragen scheitern oft an Ihrer Fähigkeit, Protokolle im richtigen Zeitraum bereitzustellen, konzentriert auf den fehlerhaften Thermostat und auf der richtigen Protokollebene. Dies ist besonders bei schwer reproduzierbaren Fehlern der Fall. Der Protokollkollektor soll diese Schwierigkeit lösen. Er sammelt Protokolle für Sie im Hintergrund auf der feinsten Ebene, und eine Aktion (ehemals Dienst) ermöglicht deren Extraktion in eine Datei. Sie können diese dann herunterladen und Ihrer Support-Anfrage beifügen. Der mit der Website verbundene Protokollanalysator – der in Version 9.1 (siehe unten) gestartet wurde – passt sich an, um diese Protokolle verarbeiten zu können. Weitere Informationen zum Protokollkollektor [hier](documentation/de/feature-logs-collector.md),
@@ -41,17 +49,6 @@ Versatile Thermostat UI Card (Verfügbar auf [Github](https://github.com/jmcolli
 > 2. Eine von @bontiv erstellte Website löst eine der größten Herausforderungen von VTherm: die Dokumentation. Diese Website ermöglicht es außerdem, Ihre Logs zu analysieren! Geben Sie Ihre Logs (im Debug-Modus) ein, und Sie können sie analysieren, auf einen Thermostat zoomen, einen Zeitraum auswählen, interessante Elemente filtern usw. Entdecken Sie diese erste Version hier: [Versatile Thermostat Web site](https://www.versatile-thermostat.org/). Ein großes Dankeschön an @bontiv für diese großartige Umsetzung.
 > 3. Offizielle Veröffentlichung der Auto-TPI-Funktion. Diese Funktion berechnet die optimalen Werte der Koeffizienten für den [TPI](documentation/fr/algorithms.md#lalgorithme-tpi). Hervorzuheben ist die unglaubliche Arbeit von @KipK und @gael1980 zu diesem Thema. Lesen Sie unbedingt die Dokumentation, wenn Sie diese Funktion verwenden möchten.
 > 4. VTherm basiert nun auf dem von den zugrunde liegenden Geräten in HA gemeldeten Status. Solange nicht alle zugrunde liegenden Geräte einen bekannten Status in HA haben, bleibt VTherm deaktiviert.
-
-## Release 8.6
-> 1. Hinzufügen des Parameters `max_opening_degrees` für `over_climate_valve` VTherms, der es ermöglicht, den maximalen Öffnungsgrad jedes Ventils zu begrenzen, um den Heißwasserdurchfluss zu steuern und den Energieverbrauch zu optimieren.
-> 2. Hinzufügen einer Ventil-Neukalibrierungsfunktion für ein _VTherm_ `over_climate_valve`, mit der ein maximales Öffnen und anschließend ein maximales Schließen erzwungen werden kann, um eine Neukalibrierung eines TRV zu versuchen. Weitere Informationen [hier](documentation/de/feature-recalibrate-valves.md).
-
-## Release 8.5
-> 1. Hinzufügen der Erkennung von Heizungsstörungen für VTherms, die den TPI-Algorithmus verwenden. Diese Funktion erkennt zwei Arten von Anomalien:
->    - **Heizungsstörung**: Der Heizkörper heizt stark (hohes on_percent), aber die Temperatur steigt nicht,
->    - **Kühlungsstörung**: Der Heizkörper heizt nicht (on_percent bei 0), aber die Temperatur steigt weiter.
->
-> Diese Anomalien können auf ein offenes Fenster, einen defekten Heizkörper oder eine externe Wärmequelle hinweisen. Die Funktion sendet Ereignisse, die zum Auslösen von Automatisierungen (Benachrichtigungen, Warnungen usw.) verwendet werden können. Weitere Informationen [hier](documentation/de/feature-heating-failure-detection.md).
 
 Weitere Informationen [hier](documentation/de/feature-central-boiler.md).
 
