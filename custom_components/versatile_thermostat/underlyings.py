@@ -34,6 +34,7 @@ from homeassistant.components.climate import (
 from homeassistant.components.number import SERVICE_SET_VALUE
 
 from homeassistant.helpers.event import async_call_later
+from homeassistant.util import dt as dt_util
 from homeassistant.util.unit_conversion import TemperatureConverter
 
 from .opening_degree_algorithm import OpeningClosingDegreeCalculation
@@ -82,7 +83,7 @@ class UnderlyingEntity:
         self._entity_id: str = entity_id
         self._hvac_mode: VThermHvacMode | None = None
         self._on_cycle_start_callbacks: list[Callable] = []
-        self._last_command_sent_datetime: datetime = datetime.fromtimestamp(0)
+        self._last_command_sent_datetime: datetime = dt_util.utc_from_timestamp(0)
         # Use UnderlyingStateManager to track underlying entity state
         self._state_manager: UnderlyingStateManager = UnderlyingStateManager(self._hass, on_change=self._underlying_changed)
         self._is_initialized: bool = False
@@ -202,7 +203,7 @@ class UnderlyingEntity:
         try:
             response: ServiceResponse = await self._hass.services.async_call(domain, service, service_data, blocking, context, target, return_response)
 
-            self._last_command_sent_datetime = self._thermostat.now
+            self._last_command_sent_datetime = dt_util.utcnow()
             return response
         except Exception as err:
             _LOGGER.error("Error calling service %s.%s: %s. The underlying will not change its state.", domain, service, err)
@@ -738,7 +739,10 @@ class UnderlyingClimate(UnderlyingEntity):
             self._cancel_set_fan_mode_later = None
 
         delay: float = 2.0
-        if self._thermostat.now > self._last_command_sent_datetime + timedelta(seconds=delay):
+        now = dt_util.utcnow()
+        last_command_sent = self._last_command_sent_datetime
+
+        if now > last_command_sent + timedelta(seconds=delay):
             await self.hass_services_async_call(
                 CLIMATE_DOMAIN,
                 SERVICE_SET_FAN_MODE,
