@@ -241,12 +241,14 @@
           "safety_delay_min": "Délai maximal entre 2 mesures de températures",
           "safety_min_on_percent": "Pourcentage minimal de puissance",
           "safety_default_on_percent": "Pourcentage de puissance a utiliser en mode securité",
+          "repair_incorrect_state": "Réparer l'état incorrect",
           "use_advanced_central_config": "Utiliser la configuration centrale avancée"
         },
         "data_description": {
           "safety_delay_min": "Délai maximal autorisé en minutes entre 2 mesures de températures. Au-dessus de ce délai, le thermostat se mettra en position de sécurité",
           "safety_min_on_percent": "Seuil minimal de pourcentage de chauffage en-dessous duquel le préréglage sécurité ne sera jamais activé",
           "safety_default_on_percent": "Valeur par défaut pour le pourcentage de chauffage en mode sécurité. Mettre 0 pour éteindre le radiateur en mode sécurité",
+          "repair_incorrect_state": "Réparer automatiquement l'état incorrect des entités sous-jacentes lorsqu'elles sont détectées. La fonction renverra la commande souhaitée si l'état du dispositif sous-jacent ne correspond pas à l'état attendu.",
           "use_advanced_central_config": "Cochez pour utiliser la configuration centrale avancée. Décochez et saisissez les attributs pour utiliser une configuration spécifique avancée"
         }
       },
@@ -626,6 +628,7 @@
           "safety_delay_min": "Délai maximal entre 2 mesures de températures",
           "safety_min_on_percent": "Pourcentage minimal de puissance",
           "safety_default_on_percent": "Pourcentage de puissance a utiliser en mode securité",
+          "repair_incorrect_state": "Réparer l'état incorrect",
           "use_advanced_central_config": "Utiliser la configuration centrale avancée"
         },
         "data_description": {
@@ -634,6 +637,7 @@
           "safety_delay_min": "Délai maximal autorisé en minutes entre 2 mesures de températures. Au-dessus de ce délai, le thermostat se mettra en position de sécurité",
           "safety_min_on_percent": "Seuil minimal de pourcentage de chauffage en-dessous duquel le préréglage sécurité ne sera jamais activé",
           "safety_default_on_percent": "Valeur par défaut pour le pourcentage de chauffage en mode sécurité. Mettre 0 pour éteindre le radiateur en mode sécurité",
+          "repair_incorrect_state": "Réparer automatiquement l'état incorrect des entités sous-jacentes lorsqu'elles sont détectées. La fonction renverra la commande souhaitée si l'état du dispositif sous-jacent ne correspond pas à l'état attendu.",
           "use_advanced_central_config": "Cochez pour utiliser la configuration centrale avancée. Décochez et saisissez les attributs pour utiliser une configuration spécifique avancée"
         }
       },

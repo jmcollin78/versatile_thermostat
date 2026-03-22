@@ -237,12 +237,14 @@
           "safety_delay_min": "Zwłoka trybu bezpiecznego (w min.)",
           "safety_min_on_percent": "Minimalny procent mocy do przejścia w tryb bezpieczny",
           "safety_default_on_percent": "Procent mocy do użycia trybu bezpiecznego",
+          "repair_incorrect_state": "Napraw nieprawidłowy stan",
           "use_advanced_central_config": "Użyj zaawansowanej konfiguracji centralnej"
         },
         "data_description": {
           "safety_delay_min": "Maksymalna dopuszczalna zwłoka (w min.) między dwoma pomiarami temperatury. Powyżej tej zwłoki termostat przełączy się w stan wyłączenia trybu bezpiecznego.",
           "safety_min_on_percent": "Minimalna wartość procentowa ogrzewania dla załączenia trybu bezpiecznego. Poniżej tej wartości termostat nie załączy trybu bezpiecznego.",
           "safety_default_on_percent": "Domyślna wartość procentowa mocy grzewczej w trybie bezpiecznym. Ustaw na 0, aby wyłączyć ogrzewanie w bezpiecznym presecie",
+          "repair_incorrect_state": "Automatycznie napraw nieprawidłowy stan jednostek bazowych po wykryciu. Funkcja ponownie wyśle żądane polecenie, jeśli stan urządzenia bazowego nie odpowiada oczekiwanemu stanowi.",
           "use_advanced_central_config": "Wybierz, aby użyć zaawansowanej konfiguracji centralnej. Wyłącz wybór, aby użyć konfiguracji zaawansowanej dedykowanej dla tego termostatu"
         }
       },
@@ -578,6 +580,7 @@
           "safety_delay_min": "Zwłoka trybu bezpiecznego (w min.)",
           "safety_min_on_percent": "Minimalny procent mocy do przejścia w tryb bezpieczny",
           "safety_default_on_percent": "Procent mocy do użycia trybu bezpiecznego",
+          "repair_incorrect_state": "Napraw nieprawidłowy stan",
           "use_advanced_central_config": "Użyj zaawansowanej konfiguracji centralnej"
         },
         "data_description": {
@@ -586,6 +589,7 @@
           "safety_delay_min": "Maksymalna dopuszczalna zwłoka (w min.) między dwoma pomiarami temperatury. Powyżej tej zwłoki termostat przełączy się w stan wyłączenia trybu bezpiecznego.",
           "safety_min_on_percent": "Minimalna wartość procentowa ogrzewania dla załączenia trybu bezpiecznego. Poniżej tej wartości termostat nie załączy trybu bezpiecznego.",
           "safety_default_on_percent": "Domyślna wartość procentowa mocy grzewczej w trybie bezpiecznym. Ustaw na 0, aby wyłączyć ogrzewanie w bezpiecznym presecie",
+          "repair_incorrect_state": "Automatycznie napraw nieprawidłowy stan jednostek bazowych po wykryciu. Funkcja ponownie wyśle żądane polecenie, jeśli stan urządzenia bazowego nie odpowiada oczekiwanemu stanowi.",
           "use_advanced_central_config": "Wybierz, aby użyć zaawansowanej konfiguracji centralnej. Wyłącz wybór, aby użyć konfiguracji zaawansowanej dedykowanej dla tego termostatu"
         }
       },

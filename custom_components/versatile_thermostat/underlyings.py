@@ -284,6 +284,26 @@ class UnderlyingEntity:
         state = self._state_manager.get_state(self._entity_id)
         return state.last_changed if state else None
 
+    async def check_and_repair(self) -> bool:
+        """Check if the underlying device state matches the desired state and repair if needed.
+        Returns True if a repair was performed."""
+        should_be_active = self.should_device_be_active
+        is_active = self.is_device_active
+
+        _LOGGER.debug("%s - Checking if underlying state needs repair. should_be_on=%s, is_on=%s", self, should_be_active, is_active)
+
+        if should_be_active is None or is_active is None:
+            return False
+
+        if should_be_active == is_active:
+            return False
+
+        if should_be_active:
+            await self.turn_on()
+        else:
+            await self.turn_off()
+        return True
+
 
 # ----------------------------------------------------------------
 # UnderlyingSwitch
@@ -507,6 +527,27 @@ class UnderlyingSwitch(UnderlyingEntity):
             return HVACAction.OFF
 
         return HVACAction.HEATING if self.should_device_be_active is True else HVACAction.OFF
+
+    async def check_and_repair(self) -> bool:
+        """Check if the underlying device state matches the desired state and repair if needed.
+        Returns True if a repair was performed."""
+        should_be_on = self._is_on_part_running
+        is_on = self.is_device_active
+
+        _LOGGER.debug("%s - Checking if underlying switch state needs repair. should_be_on=%s, is_on=%s", self, should_be_on, is_on)
+
+        if should_be_on is None or is_on is None:
+            return False
+
+        if should_be_on == is_on:
+            return False
+
+        if should_be_on:
+            await self.turn_on()
+            return True
+        else:
+            await self.turn_off()
+            return True
 
 
 # ----------------------------------------------------------------
@@ -981,19 +1022,6 @@ class UnderlyingClimate(UnderlyingEntity):
             return None
         return state.attributes.get(attribute_name, None)
 
-    # Not used and there is no action to start. To be removed
-    # def turn_aux_heat_on(self) -> None:
-    #     """Turn auxiliary heater on."""
-    #     if not self.is_initialized:
-    #         return None
-    #     return self._underlying_climate.turn_aux_heat_on()
-    #
-    # def turn_aux_heat_off(self) -> None:
-    #     """Turn auxiliary heater on."""
-    #     if not self.is_initialized:
-    #         return None
-    #     return self._underlying_climate.turn_aux_heat_off()
-
     @overrides
     def clamp_sent_value(self, value) -> float:
         """Try to adapt the target temp value to the min_temp / max_temp found
@@ -1041,6 +1069,24 @@ class UnderlyingClimate(UnderlyingEntity):
         self._min_sync_entity = min_sync_entity
         self._max_sync_entity = max_sync_entity
         self._step_sync_entity = step_sync_entity
+
+    async def check_and_repair(self) -> bool:
+        """Check if the underlying device state matches the desired state and repair if needed.
+        Returns True if a repair was performed."""
+        hvac_mode = self._thermostat.vtherm_hvac_mode
+
+        under_hvac_mode = self.hvac_mode
+
+        _LOGGER.debug("%s - Checking if underlying climate state needs repair. hvac_mode=%s, under_hvac_mode=%s", self, hvac_mode, under_hvac_mode)
+
+        if hvac_mode is None or under_hvac_mode is None:
+            return False
+
+        if str(hvac_mode) == str(under_hvac_mode):
+            return False
+
+        await self.set_hvac_mode(hvac_mode)
+        return True
 
     @property
     def min_sync_entity(self) -> float:
@@ -1238,6 +1284,24 @@ class UnderlyingValve(UnderlyingEntity):
     def last_sent_opening_value(self) -> int | None:
         """Return the last sent value to the valve"""
         return self._last_sent_opening_value
+
+    @overrides
+    async def check_and_repair(self) -> bool:
+        """Check if the valve opening matches the last sent value and repair if needed.
+        Returns True if a repair was performed."""
+        last_sent = self._last_sent_opening_value
+        current = self.current_valve_opening
+
+        if last_sent is None or current is None:
+            return False
+
+        _LOGGER.debug("%s - Checking if underlying valve state needs repair. last_sent=%s, current=%s", self, last_sent, current)
+
+        if abs(current - last_sent) <= 0.5:
+            return False
+
+        await self.send_percent_open()
+        return True
 
     @property
     def current_valve_opening(self) -> float | None:

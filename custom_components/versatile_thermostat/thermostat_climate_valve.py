@@ -418,6 +418,12 @@ class ThermostatOverClimateValve(ThermostatProp[UnderlyingClimate], ThermostatOv
 
     @overrides
     @property
+    def all_underlying_entities(self) -> list | None:
+        """Returns all underlying entities for controling the central boiler"""
+        return self._underlyings + self._underlyings_valve_regulation
+
+    @overrides
+    @property
     def is_sleeping(self) -> bool:
         """True if the thermostat is in sleep mode"""
         return self.vtherm_hvac_mode == VThermHvacMode_SLEEP
@@ -436,14 +442,6 @@ class ThermostatOverClimateValve(ThermostatProp[UnderlyingClimate], ThermostatOv
         """
         write_event_log(_LOGGER, self, "Calling SERVICE_SET_HVAC_MODE_SLEEP")
         await self.async_set_hvac_mode(hvac_mode=VThermHvacMode_SLEEP)
-
-    # #1654 no more needed now
-    # @overrides
-    # async def _check_initial_state(self):
-    #    """Check the initial state of the thermostat and its underlyings"""
-    #    await super()._check_initial_state()
-    #    for under in self._underlyings_valve_regulation:
-    #        await under.check_initial_state(self.vtherm_hvac_mode)
 
     @overrides
     def choose_auto_fan_mode(self, auto_fan_mode: str):

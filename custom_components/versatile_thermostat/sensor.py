@@ -1038,10 +1038,10 @@ class TotalPowerActiveDeviceForBoilerSensor(NbActiveDeviceForBoilerSensor):
                 return
 
             _LOGGER.debug(
-                "%s - calculating the total power of active underlying device for boiler activation. change change from %s to %s",
+                "%s - calculating the total power of active underlying device for boiler activation. mean_power_cycle change from %s to %s",
                 self,
-                old_state,
-                new_state,
+                old_mean_cycle_power,
+                new_mean_cycle_power,
             )
         else:
             _LOGGER.debug(
