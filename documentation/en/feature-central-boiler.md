@@ -51,6 +51,8 @@ On the next page, you can provide the configuration for the actions (e.g., servi
 
 The first parameter specifies a delay in seconds before activating the boiler. The default value is 0, meaning the boiler is activated immediately as soon as a threshold is crossed. If you need to allow time for the valves to open (for example), set a positive value in seconds. Some valves for underfloor heating systems may take several minutes to open, and it could be harmful to activate the boiler pump before the valves are fully open.
 
+The second parameter corresponds to the **keep-alive delay** in seconds. This parameter allows you to periodically resend the boiler activation command to ensure the boiler remains turned on. For example, if a boiler command is not properly received or if the boiler turns off on its own, the same command will be sent again at regular intervals. The default value is 0, which means keep-alive is disabled. If you want to enable this feature, set a positive value in seconds (for example, 60 to resend the command every minute). This parameter is optional and can be left at 0 if you don't need it.
+
 The actions (e.g., services) are configured as described on the page:
 1. The general format is `entity_id/service_id[/attribute:value]` (where `/attribute:value` is optional).
 2. `entity_id` is the name of the entity controlling the boiler in the form `domain.entity_name`. For example: `switch.chaudiere` for a boiler controlled by a switch, or `climate.chaudière` for a boiler controlled by a thermostat, or any other entity that allows boiler control (there is no limitation). You can also toggle inputs (`helpers`) such as `input_boolean` or `input_number`.

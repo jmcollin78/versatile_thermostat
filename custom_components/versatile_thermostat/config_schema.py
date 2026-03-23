@@ -138,6 +138,9 @@ STEP_CENTRAL_BOILER_SCHEMA = vol.Schema(
         ),
         vol.Optional(CONF_CENTRAL_BOILER_ACTIVATION_SRV, default=""): str,
         vol.Optional(CONF_CENTRAL_BOILER_DEACTIVATION_SRV, default=""): str,
+        vol.Optional(CONF_KEEP_ALIVE_BOILER_DELAY_SEC, default=DEFAULT_KEEP_ALIVE_BOILER_DELAY_SEC): selector.NumberSelector(
+            selector.NumberSelectorConfig(min=0, max=3600, step=10, mode=selector.NumberSelectorMode.BOX, unit_of_measurement="s")
+        ),
     }
 )
 

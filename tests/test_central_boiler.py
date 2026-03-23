@@ -1413,3 +1413,160 @@ async def test_central_boiler_cancel_delayed_activation(hass: HomeAssistant):
 
                 # Verify boiler is still off
                 assert manager._is_on is False
+
+
+async def test_central_boiler_keep_alive_disabled(hass: HomeAssistant):
+    """Test that keep-alive is not activated when delay is 0"""
+    from custom_components.versatile_thermostat.feature_central_boiler_manager import FeatureCentralBoilerManager
+
+    api_mock = MagicMock()
+    manager = FeatureCentralBoilerManager(hass, api_mock)
+    manager._name = "TestCentralBoilerManager"
+
+    # Mock the central boiler entity
+    boiler_entity_mock = MagicMock()
+    boiler_entity_mock.entity_id = "binary_sensor.central_boiler"
+    manager._central_boiler_entity = boiler_entity_mock
+
+    entry_infos = {
+        CONF_CENTRAL_BOILER_ACTIVATION_SRV: "switch.boiler/switch.turn_on",
+        CONF_CENTRAL_BOILER_DEACTIVATION_SRV: "switch.boiler/switch.turn_off",
+        CONF_CENTRAL_BOILER_ACTIVATION_DELAY_SEC: 0,
+        CONF_KEEP_ALIVE_BOILER_DELAY_SEC: 0,  # Keep-alive disabled
+    }
+    manager.post_init(entry_infos)
+
+    assert manager._keep_alive_boiler_delay_sec == 0
+    assert manager._time_interval_listener_cancel is None
+
+
+async def test_central_boiler_keep_alive_enabled(hass: HomeAssistant):
+    """Test that keep-alive works with configured delay"""
+    from custom_components.versatile_thermostat.feature_central_boiler_manager import FeatureCentralBoilerManager
+
+    api_mock = MagicMock()
+    manager = FeatureCentralBoilerManager(hass, api_mock)
+    manager._name = "TestCentralBoilerManager"
+
+    # Mock the central boiler entity
+    boiler_entity_mock = MagicMock()
+    boiler_entity_mock.entity_id = "binary_sensor.central_boiler"
+    manager._central_boiler_entity = boiler_entity_mock
+
+    entry_infos = {
+        CONF_CENTRAL_BOILER_ACTIVATION_SRV: "switch.boiler/switch.turn_on",
+        CONF_CENTRAL_BOILER_DEACTIVATION_SRV: "switch.boiler/switch.turn_off",
+        CONF_CENTRAL_BOILER_ACTIVATION_DELAY_SEC: 0,
+        CONF_KEEP_ALIVE_BOILER_DELAY_SEC: 60,  # Keep-alive enabled with 60 seconds delay
+    }
+    manager.post_init(entry_infos)
+
+    assert manager._keep_alive_boiler_delay_sec == 60
+    assert manager._last_activated_service is None
+
+    # Start listening to set up the keep-alive interval listener
+    captured_listener_cancel = None
+
+    def mock_async_track_time_interval(hass_arg, callback, interval):
+        nonlocal captured_listener_cancel
+        captured_listener_cancel = MagicMock(return_value=None)
+        return captured_listener_cancel
+
+    manager.call_service = MagicMock(return_value=None)
+    manager._is_ready = True
+    manager._is_on = False
+
+    with patch("custom_components.versatile_thermostat.feature_central_boiler_manager.async_track_time_interval", side_effect=mock_async_track_time_interval):
+        with patch("custom_components.versatile_thermostat.feature_central_boiler_manager.async_track_state_change_event", return_value=MagicMock()):
+            await manager.start_listening()
+
+    # Verify that the time interval listener was registered
+    assert captured_listener_cancel is not None
+
+
+async def test_central_boiler_keep_alive_resends_command(hass: HomeAssistant):
+    """Test that keep-alive resends the last command periodically"""
+    from custom_components.versatile_thermostat.feature_central_boiler_manager import FeatureCentralBoilerManager
+    from unittest.mock import AsyncMock
+
+    api_mock = MagicMock()
+    manager = FeatureCentralBoilerManager(hass, api_mock)
+    manager._name = "TestCentralBoilerManager"
+
+    # Mock the central boiler entity
+    boiler_entity_mock = MagicMock()
+    boiler_entity_mock.entity_id = "binary_sensor.central_boiler"
+    manager._central_boiler_entity = boiler_entity_mock
+
+    entry_infos = {
+        CONF_CENTRAL_BOILER_ACTIVATION_SRV: "switch.boiler/switch.turn_on",
+        CONF_CENTRAL_BOILER_DEACTIVATION_SRV: "switch.boiler/switch.turn_off",
+        CONF_CENTRAL_BOILER_ACTIVATION_DELAY_SEC: 0,
+        CONF_KEEP_ALIVE_BOILER_DELAY_SEC: 60,
+    }
+    manager.post_init(entry_infos)
+
+    # Mock call_service as an async mock
+    manager.call_service = AsyncMock()
+    manager._is_ready = True
+    manager._is_on = True
+
+    # Set up a last activated service (simulating a previous activation)
+    manager._last_activated_service = {
+        "service_domain": "switch",
+        "service_name": "turn_on",
+        "entity_id": "switch.boiler",
+        "data": {},
+    }
+
+    # No delayed activation pending
+    manager._call_later_handle = None
+
+    # Call the keep-alive function
+    await manager._keep_alive_boiler(None)
+
+    # Verify that call_service was called with the last service
+    manager.call_service.assert_called_once_with(manager._last_activated_service)
+
+
+async def test_central_boiler_keep_alive_respects_delayed_activation(hass: HomeAssistant):
+    """Test that keep-alive does not trigger during delayed activation"""
+    from custom_components.versatile_thermostat.feature_central_boiler_manager import FeatureCentralBoilerManager
+
+    api_mock = MagicMock()
+    manager = FeatureCentralBoilerManager(hass, api_mock)
+    manager._name = "TestCentralBoilerManager"
+
+    # Mock the central boiler entity
+    boiler_entity_mock = MagicMock()
+    boiler_entity_mock.entity_id = "binary_sensor.central_boiler"
+    manager._central_boiler_entity = boiler_entity_mock
+
+    entry_infos = {
+        CONF_CENTRAL_BOILER_ACTIVATION_SRV: "switch.boiler/switch.turn_on",
+        CONF_CENTRAL_BOILER_DEACTIVATION_SRV: "switch.boiler/switch.turn_off",
+        CONF_CENTRAL_BOILER_ACTIVATION_DELAY_SEC: 10,
+        CONF_KEEP_ALIVE_BOILER_DELAY_SEC: 60,
+    }
+    manager.post_init(entry_infos)
+
+    manager.call_service = MagicMock(return_value=None)
+    manager._is_ready = True
+    manager._is_on = False
+
+    # Set up a last activated service
+    manager._last_activated_service = {
+        "service_domain": "switch",
+        "service_name": "turn_on",
+        "entity_id": "switch.boiler",
+        "data": {},
+    }
+
+    # Simulate a delayed activation pending
+    manager._call_later_handle = MagicMock()
+
+    # Call the keep-alive function
+    await manager._keep_alive_boiler(None)
+
+    # Verify that call_service was NOT called (due to pending delayed activation)
+    manager.call_service.assert_not_called()
