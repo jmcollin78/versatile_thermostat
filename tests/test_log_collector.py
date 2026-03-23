@@ -562,3 +562,61 @@ class TestAsyncExportLogs:
         content = files[0].read_text()
         assert "recent entry" in content
         assert "old entry" not in content
+
+    @pytest.mark.asyncio
+    @patch("custom_components.versatile_thermostat.log_collector.async_sign_path", side_effect=lambda _h, path, _t: path + "?authSig=fake")
+    async def test_export_with_config_entry(self, _mock_sign, tmp_path):
+        """Test that config_entry is included in the export header when provided."""
+        now = datetime.now(tz=timezone.utc)
+        handler = VThermLogHandler()
+
+        # Add a test log entry
+        record = logging.LogRecord(
+            name="custom_components.versatile_thermostat.base_thermostat",
+            level=logging.INFO,
+            pathname="",
+            lineno=0,
+            msg="Test log message",
+            args=(),
+            exc_info=None,
+        )
+        record.created = now.timestamp()
+        handler.emit(record)
+
+        hass = MagicMock()
+        hass.config.path = lambda p: str(tmp_path / p)
+        hass.config.external_url = "http://localhost:8123"
+        hass.config.internal_url = None
+        hass.services.async_call = AsyncMock()
+
+        async def run_executor(fn, *args):
+            return fn(*args) if args else fn()
+        hass.async_add_executor_job = run_executor
+
+        # Test config entry - use simple types only to avoid serialization issues
+        config_entry = {
+            "name": "TestThermostat",
+            "temp_sensor": "sensor.temp",
+            "ac_mode": False,
+            "cycle_min": 5,
+        }
+
+        await async_export_logs(
+            hass=hass,
+            handler=handler,
+            thermostat_name="Salon",
+            entity_id="climate.salon",
+            log_level="DEBUG",
+            config_entry=config_entry,
+        )
+
+        output_dir = tmp_path / "www" / "versatile_thermostat"
+        files = list(output_dir.glob("vtherm_logs_salon_*.log"))
+        assert len(files) == 1
+        content = files[0].read_text()
+
+        # Verify configuration is in the header
+        assert "Configuration:" in content
+        assert "TestThermostat" in content
+        assert "sensor.temp" in content
+        assert "false" in content.lower()  # ac_mode: false shown in JSON
