@@ -257,12 +257,14 @@
                 "data": {
                     "central_boiler_activation_service": "Command to turn-on",
                     "central_boiler_deactivation_service": "Command to turn-off",
-                    "central_boiler_activation_delay_sec": "Activation delay (seconds)"
+                    "central_boiler_activation_delay_sec": "Activation delay (seconds)",
+                    "keep_alive_boiler_delay_sec": "Keep-alive delay (seconds)"
                 },
                 "data_description": {
                     "central_boiler_activation_service": "Command to turn-on the central boiler formatted like entity_id/service_name[/attribut:valeur]",
                     "central_boiler_deactivation_service": "Command to turn-off the central boiler formatted like entity_id/service_name[/attribut:valeur]",
-                    "central_boiler_activation_delay_sec": "Delay in seconds before activating the central boiler when it needs to be turned on"
+                    "central_boiler_activation_delay_sec": "Delay in seconds before activating the central boiler when it needs to be turned on",
+                    "keep_alive_boiler_delay_sec": "Delay in seconds to periodically resend the boiler command if keep-alive is enabled. Set to 0 to disable keep-alive."
                 }
             },
             "valve_regulation": {
@@ -645,12 +647,14 @@
                 "data": {
                     "central_boiler_activation_service": "Command to turn-on",
                     "central_boiler_deactivation_service": "Command to turn-off",
-                    "central_boiler_activation_delay_sec": "Activation delay (seconds)"
+                    "central_boiler_activation_delay_sec": "Activation delay (seconds)",
+                    "keep_alive_boiler_delay_sec": "Keep-alive delay (seconds)"
                 },
                 "data_description": {
                     "central_boiler_activation_service": "Command to turn-on the central boiler formatted like entity_id/service_name[/attribut:valeur]",
                     "central_boiler_deactivation_service": "Command to turn-off the central boiler formatted like entity_id/service_name[/attribut:valeur]",
-                    "central_boiler_activation_delay_sec": "Delay in seconds before activating the central boiler when it needs to be turned on"
+                    "central_boiler_activation_delay_sec": "Delay in seconds before activating the central boiler when it needs to be turned on",
+                    "keep_alive_boiler_delay_sec": "Delay in seconds to periodically resend the boiler command if keep-alive is enabled. Set to 0 to disable keep-alive."
                 }
             },
             "valve_regulation": {

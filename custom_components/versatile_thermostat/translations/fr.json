@@ -258,12 +258,14 @@
         "data": {
           "central_boiler_activation_service": "Commande pour allumer",
           "central_boiler_deactivation_service": "Commande pour éteindre",
-          "central_boiler_activation_delay_sec": "Délai d'activation (en secondes)"
+          "central_boiler_activation_delay_sec": "Délai d'activation (en secondes)",
+          "keep_alive_boiler_delay_sec": "Délai du maintien actif (en secondes)"
         },
         "data_description": {
           "central_boiler_activation_service": "Commande à éxecuter pour allumer la chaudière centrale au format entity_id/service_name[/attribut:valeur]",
           "central_boiler_deactivation_service": "Commande à éxecuter pour éteindre la chaudière centrale au format entity_id/service_name[/attribut:valeur]",
-          "central_boiler_activation_delay_sec": "Délai en secondes avant d'activer la chaudière centrale après qu'un VTherm ait demandé l'allumage"
+          "central_boiler_activation_delay_sec": "Délai en secondes avant d'activer la chaudière centrale après qu'un VTherm ait demandé l'allumage",
+          "keep_alive_boiler_delay_sec": "Délai en secondes pour relancer périodiquement la commande de la chaudière si le maintien actif est activé. Mettre 0 pour désactiver."
         }
       },
       "valve_regulation": {
@@ -647,12 +649,14 @@
         "data": {
           "central_boiler_activation_service": "Commande pour allumer",
           "central_boiler_deactivation_service": "Commande pour éteindre",
-          "central_boiler_activation_delay_sec": "Délai d'activation (en secondes)"
+          "central_boiler_activation_delay_sec": "Délai d'activation (en secondes)",
+          "keep_alive_boiler_delay_sec": "Délai du maintien actif (en secondes)"
         },
         "data_description": {
           "central_boiler_activation_service": "Commande à éxecuter pour allumer la chaudière centrale au format entity_id/service_name[/attribut:valeur]",
           "central_boiler_deactivation_service": "Commande à éxecuter pour éteindre la chaudière centrale au format entity_id/service_name[/attribut:valeur]",
-          "central_boiler_activation_delay_sec": "Délai en secondes avant d'activer la chaudière centrale après qu'un VTherm ait demandé l'allumage"
+          "central_boiler_activation_delay_sec": "Délai en secondes avant d'activer la chaudière centrale après qu'un VTherm ait demandé l'allumage",
+          "keep_alive_boiler_delay_sec": "Délai en secondes pour relancer périodiquement la commande de la chaudière si le maintien actif est activé. Mettre 0 pour désactiver."
         }
       },
       "valve_regulation": {

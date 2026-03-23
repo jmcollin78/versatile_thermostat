@@ -256,12 +256,14 @@
                 "data": {
                     "central_boiler_activation_service": "Comando per accendere",
                     "central_boiler_deactivation_service": "Comando per spegnere",
-                    "central_boiler_activation_delay_sec": "Ritardo di attivazione (in secondi)"
+                    "central_boiler_activation_delay_sec": "Ritardo di attivazione (in secondi)",
+                    "keep_alive_boiler_delay_sec": "Ritardo keep-alive (secondi)"
                 },
                 "data_description": {
                     "central_boiler_activation_service": "Comando per accendere la caldaia centralizzata formattato come entity_id/nome_servizio[/attributo:valore]",
                     "central_boiler_deactivation_service": "Comando per spegnere la caldaia centralizzata formattato come entity_id/nome_servizio[/attributo:valore]",
-                    "central_boiler_activation_delay_sec": "Ritardo in secondi prima di attivare la caldaia centralizzata dopo che un VTherm ha richiesto l'accensione"
+                    "central_boiler_activation_delay_sec": "Ritardo in secondi prima di attivare la caldaia centralizzata dopo che un VTherm ha richiesto l'accensione",
+                    "keep_alive_boiler_delay_sec": "Ritardo in secondi per inviare periodicamente il comando della caldaia se keep-alive è abilitato. Impostare su 0 per disabilitare keep-alive."
                 }
             },
             "valve_regulation": {
@@ -643,12 +645,14 @@
                 "data": {
                     "central_boiler_activation_service": "Comando per accendere",
                     "central_boiler_deactivation_service": "Comando per spegnere",
-                    "central_boiler_activation_delay_sec": "Ritardo di attivazione (in secondi)"
+                    "central_boiler_activation_delay_sec": "Ritardo di attivazione (in secondi)",
+                    "keep_alive_boiler_delay_sec": "Ritardo keep-alive (secondi)"
                 },
                 "data_description": {
                     "central_boiler_activation_service": "Comando per accendere la caldaia centralizzata formattato come entity_id/nome_servizio[/attributo:valore]",
                     "central_boiler_deactivation_service": "Comando per spegnere la caldaia centralizzata formattato come entity_id/nome_servizio[/attributo:valore]",
-                    "central_boiler_activation_delay_sec": "Ritardo in secondi prima di attivare la caldaia centralizzata dopo che un VTherm ha richiesto l'accensione"
+                    "central_boiler_activation_delay_sec": "Ritardo in secondi prima di attivare la caldaia centralizzata dopo che un VTherm ha richiesto l'accensione",
+                    "keep_alive_boiler_delay_sec": "Ritardo in secondi per inviare periodicamente il comando della caldaia se keep-alive è abilitato. Impostare su 0 per disabilitare keep-alive."
                 }
             },
             "valve_regulation": {

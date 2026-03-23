@@ -254,12 +254,14 @@
         "data": {
           "central_boiler_activation_service": "Polecenie załączenia",
           "central_boiler_deactivation_service": "Polecenie wyłączenia",
-          "central_boiler_activation_delay_sec": "Opóźnienie załączenia (w sekundach)"
+          "central_boiler_activation_delay_sec": "Opóźnienie załączenia (w sekundach)",
+          "keep_alive_boiler_delay_sec": "Opóźnienie keep-alive (sekundy)"
         },
         "data_description": {
           "central_boiler_activation_service": "Polecenie załączenia kotła centralnego w formacie: id_encji/nazwa_polecenia[/atrybut:wartość]",
           "central_boiler_deactivation_service": "Polecenie wyłączenia kotła centralnego w formacie: id_encji/nazwa_polecenia[/atrybut:wartość]",
-          "central_boiler_activation_delay_sec": "Opóźnienie (w sekundach) przed załączeniem kotła centralnego po tym, jak VTherm zażądał włączenia"
+          "central_boiler_activation_delay_sec": "Opóźnienie (w sekundach) przed załączeniem kotła centralnego po tym, jak VTherm zażądał włączenia",
+          "keep_alive_boiler_delay_sec": "Opóźnienie w sekundach do okresowego ponownego wysłania polecenia kotła, jeśli keep-alive jest włączony. Ustaw na 0, aby wyłączyć keep-alive."
         }
       },
       "valve_regulation": {
@@ -599,12 +601,14 @@
         "data": {
           "central_boiler_activation_service": "Polecenie załączenia",
           "central_boiler_deactivation_service": "Polecenie wyłączenia",
-          "central_boiler_activation_delay_sec": "Opóźnienie załączenia (w sekundach)"
+          "central_boiler_activation_delay_sec": "Opóźnienie załączenia (w sekundach)",
+          "keep_alive_boiler_delay_sec": "Opóźnienie keep-alive (sekundy)"
         },
         "data_description": {
           "central_boiler_activation_service": "Polecenie załączenia kotła centralnego w formacie: `id_encji/nazwa_polecenia[/atrybut:wartość]`",
           "central_boiler_deactivation_service": "Polecenie wyłączenia kotła centralnego w formacie: `id_encji/nazwa_polecenia[/atrybut:wartość]`",
-          "central_boiler_activation_delay_sec": "Opóźnienie (w sekundach) przed załączeniem kotła centralnego po tym, jak VTherm zażądał włączenia"
+          "central_boiler_activation_delay_sec": "Opóźnienie (w sekundach) przed załączeniem kotła centralnego po tym, jak VTherm zażądał włączenia",
+          "keep_alive_boiler_delay_sec": "Opóźnienie w sekundach do okresowego ponownego wysłania polecenia kotła, jeśli keep-alive jest włączony. Ustaw na 0, aby wyłączyć keep-alive."
         }
       },
       "valve_regulation": {
