@@ -621,6 +621,10 @@ class UnderlyingClimate(UnderlyingEntity):
         if state is None:
             return None
 
+        # Issue 1890 - unavailable/unknown entities should not be counted as active
+        if state.state in [STATE_UNAVAILABLE, STATE_UNKNOWN]:
+            return None
+
         # Issue 1779 - if no hvac_action is available use a fake hvac_action based on temperature
         hvac_action = state.attributes.get("hvac_action", None)
         if not hvac_action:
