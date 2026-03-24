@@ -1415,6 +1415,113 @@ async def test_central_boiler_cancel_delayed_activation(hass: HomeAssistant):
                 assert manager._is_on is False
 
 
+@pytest.mark.parametrize("expected_lingering_tasks", [True])
+@pytest.mark.parametrize("expected_lingering_timers", [True])
+async def test_central_boiler_excludes_offline_climate(
+    hass: HomeAssistant,
+    init_central_config_with_boiler_fixture,
+):
+    """Test that an offline climate entity is NOT counted as active for boiler decisions.
+    Issue #1890 - When a climate entity goes unavailable, is_device_active should return
+    None instead of True, so it is excluded from the active device count.
+
+    Steps:
+    1. Create a VTherm with a climate underlying, used by central boiler
+    2. Start heating - verify boiler turns on
+    3. Set climate to unavailable - verify boiler turns off
+    4. Set climate back online and heating - verify boiler turns on again
+    """
+
+    api = VersatileThermostatAPI.get_vtherm_api(hass)
+
+    climate1 = MockClimate(hass, "climate1", "theClimate1")
+    await register_mock_entity(hass, climate1, CLIMATE_DOMAIN)
+
+    switch_pompe_chaudiere = MockSwitch(hass, "pompe_chaudiere", "SwitchPompeChaudiere")
+    await register_mock_entity(hass, switch_pompe_chaudiere, SWITCH_DOMAIN)
+    assert switch_pompe_chaudiere.is_on is False
+
+    entry = MockConfigEntry(
+        domain=DOMAIN,
+        title="TheOverClimateMockName",
+        unique_id="uniqueId",
+        data={
+            CONF_NAME: "TheOverClimateMockName",
+            CONF_THERMOSTAT_TYPE: CONF_THERMOSTAT_CLIMATE,
+            CONF_TEMP_SENSOR: "sensor.mock_temp_sensor",
+            CONF_EXTERNAL_TEMP_SENSOR: "sensor.mock_ext_temp_sensor",
+            CONF_CYCLE_MIN: 5,
+            CONF_TEMP_MIN: 8,
+            CONF_TEMP_MAX: 18,
+            CONF_USE_WINDOW_FEATURE: False,
+            CONF_USE_MOTION_FEATURE: False,
+            CONF_USE_POWER_FEATURE: False,
+            CONF_USE_PRESENCE_FEATURE: False,
+            CONF_UNDERLYING_LIST: [climate1.entity_id],
+            CONF_MINIMAL_ACTIVATION_DELAY: 30,
+            CONF_MINIMAL_DEACTIVATION_DELAY: 0,
+            CONF_SAFETY_DELAY_MIN: 5,
+            CONF_SAFETY_MIN_ON_PERCENT: 0.3,
+            CONF_SAFETY_DEFAULT_ON_PERCENT: 0.1,
+            CONF_USE_MAIN_CENTRAL_CONFIG: True,
+            CONF_USE_PRESETS_CENTRAL_CONFIG: False,
+            CONF_USE_ADVANCED_CENTRAL_CONFIG: True,
+            CONF_USED_BY_CENTRAL_BOILER: True,
+        },
+    )
+
+    entity: ThermostatOverClimate = await create_thermostat(hass, entry, "climate.theoverclimatemockname", temps=default_temperatures)
+    assert entity
+
+    api.central_boiler_manager._set_nb_active_device_threshold(1)
+
+    nb_device_active_sensor = search_entity(hass, "sensor.nb_device_active_for_boiler", "sensor")
+    assert nb_device_active_sensor is not None
+
+    boiler_binary_sensor: CentralBoilerBinarySensor = search_entity(
+        hass, "binary_sensor.central_configuration_central_boiler", "binary_sensor"
+    )
+    assert boiler_binary_sensor is not None
+
+    tz = get_tz(hass)
+    now: datetime = datetime.now(tz=tz)
+
+    await send_temperature_change_event(entity, 10, now)
+    await entity.async_set_hvac_mode(VThermHvacMode_HEAT)
+    await entity.async_set_preset_mode(VThermPreset.COMFORT)
+
+    # 1. Climate is heating - boiler should be ON
+    climate1.set_hvac_mode(VThermHvacMode_HEAT)
+    climate1.set_hvac_action(HVACAction.HEATING)
+    climate1.async_write_ha_state()
+    await asyncio.sleep(0.5)
+
+    assert entity.device_actives == ["climate.climate1"]
+    assert api.central_boiler_manager.nb_active_device_for_boiler == 1
+    assert boiler_binary_sensor.state == STATE_ON
+
+    # 2. Climate goes OFFLINE - boiler should turn OFF
+    climate1.set_hvac_mode(STATE_UNAVAILABLE)
+    climate1.async_write_ha_state()
+    await asyncio.sleep(0.5)
+
+    assert entity.device_actives == []
+    assert api.central_boiler_manager.nb_active_device_for_boiler == 0
+    assert boiler_binary_sensor.state == STATE_OFF
+
+    # 3. Climate comes back online and heating - boiler should turn ON again
+    climate1.set_hvac_mode(VThermHvacMode_HEAT)
+    climate1.set_hvac_action(HVACAction.HEATING)
+    climate1.async_write_ha_state()
+    await asyncio.sleep(0.5)
+
+    assert entity.device_actives == ["climate.climate1"]
+    assert api.central_boiler_manager.nb_active_device_for_boiler == 1
+    assert boiler_binary_sensor.state == STATE_ON
+
+    entity.remove_thermostat()
+
+
 async def test_central_boiler_keep_alive_disabled(hass: HomeAssistant):
     """Test that keep-alive is not activated when delay is 0"""
     from custom_components.versatile_thermostat.feature_central_boiler_manager import FeatureCentralBoilerManager
