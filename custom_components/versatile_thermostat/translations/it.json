@@ -33,8 +33,8 @@
                     "sync_device_internal_temp": "Sincronizza la temperatura del dispositivo",
                     "lock": "Blocco",
                     "heating_failure_detection": "Rilevamento guasto riscaldamento",
-                    "auto_tpi_configuration": "Auto TPI - Configuration",
-                    "auto_tpi_avg_settings": "Auto TPI - Weighted Average",
+                    "auto_tpi_configuration": "Auto TPI - Configurazione",
+                    "auto_tpi_avg_settings": "Auto TPI - Media ponderata",
                     "auto_tpi_ema_settings": "Auto TPI - EWMA",
                     "finalize": "Fatto",
                     "configuration_not_complete": "Configurazione non completata"
@@ -47,11 +47,13 @@
                     "use_lock_central_config": "Utilizzare la configurazione di blocco centrale",
                     "lock_code": "PIN opzionale (4 cifre)",
                     "lock_users": "Il blocco impedirà i comandi degli utenti",
-                    "lock_automations": "Il blocco impedirà i comandi delle automazioni e delle integrazioni (ad es. pianificatore)"
+                    "lock_automations": "Il blocco impedirà i comandi delle automazioni e delle integrazioni (ad es. pianificatore)",
+                    "auto_relock_sec": "Ritardo di riattivazione automatica del blocco"
                 },
                 "data_description": {
                     "use_lock_central_config": "Selezionare per utilizzare la configurazione di blocco centrale. Deselezionare per utilizzare una configurazione di blocco specifica per questo VTherm",
-                    "lock_code": "Il codice PIN per sbloccare il termostato (4 cifre)"
+                    "lock_code": "Il codice PIN per sbloccare il termostato (4 cifre)",
+                    "auto_relock_sec": "Tempo in secondi prima del ri-blocco automatico dopo uno sblocco. Impostare 0 per disattivare. Il valore predefinito è 30 secondi."
                 }
             },
             "main": {
@@ -373,8 +375,8 @@
         },
         "error": {
             "unknown": "Errore inatteso",
-            "unknown_entity": "Entity id sconosciuto",
-            "window_open_detection_method": "È necessario utilizzare un solo metodo di rilevamento delle finestre aperte. Utilizzare il sensore della finestra o il rilevamento automatico tramite soglia di temperatura, ma non entrambi",
+            "unknown_entity": "entity id sconosciuto",
+            "window_open_detection_method": "È necessario utilizzare un solo metodo di rilevamento delle finestre aperte. Utilizzare il sensore della finestra o il rilevamento automatico tramite soglia di temperatura, ma non entrambi.",
             "no_central_config": "Non è possibile selezionare “usa configurazione centralizzata” perché non è stata trovata alcuna configurazione centralizzata. È necessario creare un Versatile Thermostat di tipo “Configurazione centralizzata” per poterlo utilizzare.",
             "service_configuration_format": "Il formato della configurazione del servizio è errato",
             "valve_regulation_nb_entities_incorrect": "Il numero di entità della valvola per la regolazione delle valvole deve essere pari al numero dei sottostanti",
@@ -398,7 +400,7 @@
                     "thermostat_type": "Tipo di termostato"
                 },
                 "data_description": {
-                    "thermostat_type": "È possibile un solo tipo di configurazione centralizzata"
+                    "thermostat_type": "È possibile un solo tipo di configurazione centralizzata."
                 }
             },
             "menu": {
@@ -432,11 +434,13 @@
                     "use_lock_central_config": "Utilizzare la configurazione di blocco centrale",
                     "lock_code": "PIN opzionale (4 cifre)",
                     "lock_users": "Il blocco impedirà i comandi degli utenti",
-                    "lock_automations": "Il blocco impedirà i comandi delle automazioni e delle integrazioni (ad es. pianificatore)"
+                    "lock_automations": "Il blocco impedirà i comandi delle automazioni e delle integrazioni (ad es. pianificatore)",
+                    "auto_relock_sec": "Ritardo di riattivazione automatica del blocco"
                 },
                 "data_description": {
                     "use_lock_central_config": "Selezionare per utilizzare la configurazione di blocco centrale. Deselezionare per utilizzare una configurazione di blocco specifica per questo VTherm",
-                    "lock_code": "Il codice PIN per sbloccare il termostato (4 cifre)"
+                    "lock_code": "Il codice PIN per sbloccare il termostato (4 cifre)",
+                    "auto_relock_sec": "Tempo in secondi prima del ri-blocco automatico dopo uno sblocco. Impostare 0 per disattivare. Il valore predefinito è 30 secondi."
                 }
             },
             "main": {
@@ -455,7 +459,7 @@
                     "device_power": "Potenza del dispositivo",
                     "use_central_mode": "Abilita il controllo tramite entità centralizzata (richiede configurazione centralizzata). Seleziona per abilitare il controllo di VTherm con le entità central_mode selezionate.",
                     "use_main_central_config": "Utilizzare configurazione principale centralizzata aggiuntiva. Selezionare per utilizzare la configurazione principale centralizzata (temperatura esterna, min, max, passo, ...).",
-                    "used_by_controls_central_boiler": "Utilizzato dalla caldaia centralizzata. Selezionare se questo VTherm deve avere il controllo sulla caldaia centralizzata"
+                    "used_by_controls_central_boiler": "Utilizzato dalla caldaia centralizzata. Selezionare se questo VTherm deve avere il controllo sulla caldaia centralizzata."
                 },
                 "data_description": {
                     "cycle_min": "Durata minima di un ciclo di riscaldamento/raffreddamento in minuti per evitare commutazioni troppo frequenti",
@@ -475,7 +479,7 @@
                     "use_motion_feature": "Utilizzare rilevamento del movimento",
                     "use_power_feature": "Utilizzare gestione energia",
                     "use_presence_feature": "Usare rilevamento presenza",
-                    "use_central_boiler_feature": "Utilizza una caldaia centralizzata. Selezionare questa opzione per aggiungere un controllo alla caldaia centralizzata. Dopo aver selezionato questa casella di controllo, sarà necessario configurare il VTherm che avrà il controllo della caldaia centralizzata. Se un VTherm richiede il riscaldamento, la caldaia verrà accesa. Se nessun VTherm richiede il riscaldamento, la caldaia verrà spenta. I comandi per accendere/spegnere la caldaia centrale sono riportati nella pagina di configurazione corrispondente",
+                    "use_central_boiler_feature": "Utilizza una caldaia centralizzata. Selezionare questa opzione per aggiungere un controllo alla caldaia centralizzata. Dopo aver selezionato questa casella di controllo, sarà necessario configurare il VTherm che avrà il controllo della caldaia centralizzata. Se un VTherm richiede il riscaldamento, la caldaia verrà accesa. Se nessun VTherm richiede il riscaldamento, la caldaia verrà spenta. I comandi per accendere/spegnere la caldaia centrale sono riportati nella pagina di configurazione corrispondente.",
                     "use_auto_start_stop_feature": "Usa la funzione auto start and stop",
                     "use_heating_failure_detection_feature": "Usa rilevamento guasti riscaldamento"
                 }
@@ -485,9 +489,9 @@
                 "description": "Attributi delle entità collegate",
                 "data": {
                     "underlying_entity_ids": "Dispositivo(i) da controllare",
-                    "heater_keep_alive": "Intervallo di mantenimento della connessione in secondi",
+                    "heater_keep_alive": "intervallo di mantenimento della connessione in secondi",
                     "proportional_function": "Algoritmo",
-                    "ac_mode": "Modo AC",
+                    "ac_mode": "Modo AC ?",
                     "sync_device_internal_temp": "Sincronizzare la temperatura interna del dispositivo",
                     "auto_regulation_mode": "Auto-regolazione",
                     "auto_regulation_dtemp": "Regulazione soglia",
@@ -566,7 +570,7 @@
                     "window_auto_open_threshold": "Valore consigliato: tra 3 e 10. Lasciare vuoto se non si utilizza il rilevamento automatico dell'apertura della finestra",
                     "window_auto_close_threshold": "Valore consigliato: 0. Lasciare vuoto se non si utilizza il rilevamento automatico dell'apertura della finestra",
                     "window_auto_max_duration": "Valore consigliato: 60 (1 ora). Lasciare vuoto se non si utilizza il rilevamento automatico dell'apertura della finestra",
-                    "use_window_central_config": "Selezionare per utilizzare la configurazione avanzata centrale. Deselezionare per utilizzare una configurazione avanzata specifica per questo VTherm.",
+                    "use_window_central_config": "Selezionare per utilizzare la configurazione avanzata centrale. Deselezionare per utilizzare una configurazione avanzata specifica per questo VTherm..",
                     "window_action": "Azione da eseguire se la finestra viene rilevata come aperta"
                 }
             },
@@ -603,7 +607,7 @@
                     "power_sensor_entity_id": "Entity id del sensore di potenza",
                     "max_power_sensor_entity_id": "Entity id del ensore della potenza massima",
                     "power_temp": "Temperature per la distribuzione della potenza",
-                    "use_power_central_config": "Selezionare per utilizzare la configurazione centralizzata della potenza. Deselezionare per utilizzare una configurazione specifica per questo VTherm.."
+                    "use_power_central_config": "Selezionare per utilizzare la configurazione centralizzata della potenza. Deselezionare per utilizzare una configurazione specifica per questo VTherm."
                 }
             },
             "presence": {
@@ -762,7 +766,7 @@
         },
         "error": {
             "unknown": "Errore inatteso",
-            "unknown_entity": "Entity id sconosciuto",
+            "unknown_entity": "entity id sconosciuto",
             "window_open_detection_method": "È necessario utilizzare un solo metodo di rilevamento delle finestre aperte. Utilizzare il sensore della finestra o il rilevamento automatico tramite soglia di temperatura, ma non entrambi.",
             "no_central_config": "Non è possibile selezionare “usa configurazione centralizzata” perché non è stata trovata alcuna configurazione centralizzata. È necessario creare un Versatile Thermostat di tipo “Configurazione centralizzata” per poterlo utilizzare.",
             "service_configuration_format": "Il formato della configurazione del servizio è errato",
@@ -771,7 +775,7 @@
             "min_opening_degrees_format": "È richiesto un elenco di numeri interi positivi separati da virgola. Esempio: 20, 25, 30",
             "max_opening_degrees_format": "È previsto un elenco di numeri interi positivi tra 0 e 100 separati da virgola. Esempio: 80, 85, 90",
             "min_max_opening_degrees_inconsistent": "Per ogni dispositivo sottostante, max_opening_degrees deve essere strettamente maggiore di min_opening_degrees. Verificare la configurazione.",
-            "vswitch_configuration_incorrect": "La configurazione della personalizzazione dei comandi non è corretta. È obbligatoria per i sottostanti non switch e il formato deve essere ‘nome_servizio[/attributo:valore]’. Maggiori informazioni nel file README"
+            "vswitch_configuration_incorrect": "La configurazione della personalizzazione dei comandi non è corretta. È obbligatoria per i sottostanti non switch e il formato deve essere ‘nome_servizio[/attributo:valore]’. Maggiori informazioni nel file README."
         },
         "abort": {
             "already_configured": "Device is already configured"
@@ -887,7 +891,7 @@
         },
         "number": {
             "frost_temp": {
-                "name": "Antigelo"
+                "name": "Antigelo "
             },
             "eco_temp": {
                 "name": "Eco"
