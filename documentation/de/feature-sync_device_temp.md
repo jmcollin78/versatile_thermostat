@@ -1,106 +1,106 @@
-# Internal Device Temperature Synchronization
+# Synchronisierung der internen Gerätetemperatur
 
-- [Internal Device Temperature Synchronization](#internal-device-temperature-synchronization)
-  - [Principle](#principle)
-  - [Prerequisites](#prerequisites)
-  - [Configuration](#configuration)
-  - [Synchronization Mode](#synchronization-mode)
-    - [Mode 1: Using a Calibration Entity](#mode-1-using-a-calibration-entity)
-      - [Mode 2: Direct Copy of External Temperature](#mode-2-direct-copy-of-external-temperature)
+- [Synchronisierung der internen Gerätetemperatur](#synchronisierung-der-interne-gerätetemperatur)
+  - [Grundsatz](#grundsatz)
+  - [Voraussetzungen](#voraussetzungen)
+  - [Konfiguration](#Konfiguration)
+  - [Synchronisationsmodus](#synchronisationsmodus)
+    - [Modus 1: Verwendung einer Kalibrierungsentity](#modus-1-verwendung-einer-kalibrierungsentity)
+      - [Modus 2: Direkte Übernahme einer externen Temperatur](#modus-2-direkte-übernahme-einer-externen-temperatur)
 
-## Principle
+## Grundsatz
 
-This function allows synchronizing the internal temperature of underlying devices in two different ways for a `over_climate` type VTherm. Basically, it allows using a remote thermometer if your device supports it. It is particularly useful for thermostatic radiator valves (TRV) that have their own integrated temperature sensor. It will greatly improve the internal regulation of underlying `over_climate` type devices that support it.
+Diese Funktion ermöglicht es, die Innentemperatur von Geräten des Typs `over_climate` auf zwei verschiedene Arten zu synchronisieren. Im Grunde genommen ermöglicht sie die Verwendung eines Fernthermometers, sofern Ihr Gerät dies unterstützt. Dies ist besonders nützlich für thermostatische Heizkörperventile (TRV), die über einen eigenen integrierten Temperatursensor verfügen. Dadurch wird die interne Regelung von Geräten des Typs `over_climate`, die diese Funktion unterstützen, erheblich verbessert.
 
-The two available synchronization modes are:
-1. Mode 1 - **Use calibration offset**: VTherm uses the device's internal calibration offset entity to compensate for the difference with the room temperature,
-2. Mode 2 - **Synchronize temperature directly with the device**: VTherm sends the room temperature directly to the device so that it uses it in its own regulation.
+Die beiden verfügbaren Synchronisationsmodi sind:
+1. Modus 1 – **Kalibrierungs-Offset verwenden**: VTherm nutzt den internen Kalibrierungs-Offset des Geräts, um die Abweichung zur Raumtemperatur auszugleichen.
+2. Modus 2 – **Temperatur direkt mit dem Gerät synchronisieren**: VTherm übermittelt die Raumtemperatur direkt an das Gerät, damit dieses sie für seine eigene Regelung nutzen kann.
 
-The choice will depend on what your underlying device can do.
-For example:
-1. the Sonoff TRVZB can do both. You will use either the calibration offset via the exposed entity with a compass, or the named external temperature (`external_temperature_input`). Be careful to set the `sensor_select` option to `external` in this case,
-2. the Aqara W600 only has the calibration entity (the icon is a compass by default)
+Die Wahl hängt davon ab, welche Funktionen das verbundene Gerät bietet.
+Beispiele:
+1. Der Sonoff TRVZB kann beides. Sie verwenden entweder den Kalibrierungs-Offset über die freigegebene Entität mit einem Kompass oder die benannte externe Temperatur (`external_temperature_input`). Achten Sie darauf, die Option `sensor_select` in diesem Fall auf `external` zu setzen.
+2. Der Aqara W600 verfügt nur über die Kalibrierungs-Entität (das Icon ist standardmäßig ein Kompass).
 
-## Prerequisites
+## Voraussetzungen
 
-This function requires:
-1. a `over_climate` type VTherm,
-2. for mode 1: a device that supports the `local_temperature_calibration` entity or equivalent allowing to calibrate its internal temperature,
-3. for mode 2: a device that supports the `external_temperature_input` entity or equivalent.
+Diese Funktion erfordert:
+1. einen VTherm vom Typ `over_climate`,
+2. für Modus 1: ein Gerät, das die Entity `local_temperature_calibration` oder eine gleichwertige Funktion unterstützt, mit der die interne Temperatur kalibriert werden kann,
+3. für Modus 2: ein Gerät, das die Entity `external_temperature_input` oder eine gleichwertige Funktion unterstützt.
 
-> ![Tip](images/tips.png) _*Notes*_
-> - This function is not available for `over_switch` or `over_valve` type VTherms which do not have an underlying climate device.
-> - Check your devices' compatibility to choose the right mode.
+> ![Tip](images/tips.png) _*Hinweis*_
+> - Diese Funktion ist nicht verfügbar für VTherms vom Typ `over_switch` oder `over_valve`, denen kein Klimagerät zugeordnet ist.
+> - Überprüfen Sie die Kompatibilität Ihrer Geräte, um den richtigen Modus auszuwählen.
 
-## Configuration
+## Konfiguration
 
-The configuration of this function is done in two steps.
+Die Konfiguration dieser Funktion erfolgt in zwei Schritten.
 
-In the underlying configuration, you indicate that your devices are equipped with one of the 2 internal temperature synchronization functions by checking the appropriate option:
+In der zugeordneten Konfiguration wid angegeben, dass das Gerät mit einer der beiden internen Temperatursynchronisationsfunktionen ausgestattet ist, indem entsprechende Option aktiviert wird:
 
 ![image](images/config-synchronize-device-temp.png)
 
-This adds a menu called `Synchronisation de la température de l'appareil` that must be configured:
+Dadurch wird ein Menü namens `Synchronisation der Gerätetemperatur` hinzugefügt, das konfiguriert werden muss:
 
 ![image](images/config-synchro.png)
 
-You must check the `Application d'un calibrage` option to choose option 1. Otherwise option 2 will be applied.
-Then you provide the list of entities to control:
-1. either the list of `local_temperature_calibration` entities if you are in case 1,
-2. or the list of `external_temperature_input` entities if you are in case 2.
+Um Option 1 auszuwählen, muss `Offset-Kalibrierung anwenden` aktivieren werden. Andernfalls wird Option 2 benutzt.
+Anschließend geben Sie die Liste der zu steuernden Elemente an:
+1. entweder die Liste der Elemente vom Typ `local_temperature_calibration`, wenn Sie sich in Fall 1 befinden,
+2. oder die Liste der Elemente vom Typ `external_temperature_input`, wenn Sie sich in Fall 2 befinden.
 
-The entities must be in the order of declaration of the underlying devices and there must be the same number.
+Die Entitäten müssen in der Reihenfolge der Deklaration der zugeordneten Geräte aufgeführt sein, und ihre Anzahl muss übereinstimmen.
 
-> ![Tip](images/tips.png) _*Notes*_
-> - The two modes are mutually exclusive. You can only activate one at a time.
-> - It is not possible to mix two synchronization methods within the same _VTherm_. You must use 2 _VTherms_ if you need to.
-> - In the case of method 2, your device may need additional configuration. Since this configuration is device-dependent, it is not handled by _VTherm_. For example, on the Sonoff TRVZB, the `select.xxx_sensor_select` option must be set to `external`.
+> ![Tip](images/tips.png) _*Hinweis*_
+> - Die beiden Modi schließen sich gegenseitig aus. Es kann jeweils nur einer aktiviert werden.
+> - Es ist nicht möglich, zwei Synchronisationsmethoden innerhalb desselben _VTherm_ zu kombinieren. Bei Bedarf bitte zwei _VTherms_ benutzen.
+> - Bei Methode 2 muss das Gerät möglicherweise zusätzlich konfiguriert werden. Da diese Konfiguration geräteabhängig ist, wird sie nicht von _VTherm_ übernommen. Beim Sonoff TRVZB muss beispielsweise die Option `select.xxx_sensor_select` auf `external` gesetzt werden.
 
-## Synchronization Mode
+## Synchronisationsmodus
 
-### Mode 1: Using a Calibration Entity
+### Modus 1: Verwendung einer Kalibrierungsentity
 
-In this method, you must provide the `number` entity that allows calibrating the temperature offset of your device. This entity is generally named `local_temperature_calibration` or `temperature_calibration_offset`.
-
-VTherm:
-1. retrieves the device's internal temperature,
-2. calculates the necessary offset: `offset = room_temperature - internal_temperature`,
-3. sends this offset to the provided calibration entity via the `number.set_value` service.
-
-**Example**:
-- Room temperature (external sensor): 19°C
-- TRV internal temperature: 21°C
-- Calculated offset: 19°C - 21°C = -2°C
-- The -2°C offset is added to the current offset and is sent to the `number.salon_trv_local_temperature_calibration` entity
-
-**Advantages**:
-- The device regulates with the actual room temperature,
-- Avoids oscillations due to compensation,
-- Works with all devices exposing a calibration `number` entity,
-- The calibration is sent each time a new temperature is received from the room sensor independently of the _VTherm_ calculation cycle.
-
-#### Mode 2: Direct Copy of External Temperature
-
-In this method, VTherm directly sends the room temperature to the device using the `external_temperature_input` entity or equivalent.
+Bei dieser Methode wird eine `number`-Entity benötigt, mit der der Temperatur-Offset des Geräts kalibriert werden kann. Diese Entität trägt in der Regel den Namen `local_temperature_calibration` oder `temperature_calibration_offset`.
 
 VTherm:
-1. retrieves the room temperature from its external sensor,
-2. calls `number.set_value` with the room temperature as value
+1. ruft die Innentemperatur des Geräts ab,
+2. berechnet den erforderlichen Offset: `offset = Raumtemperatur - Innentemperatur`,
+3. sendet diesen Offset über den Dienst `number.set_value` an die angegebene Kalibrierungsinstanz.
 
-**Example**:
-- VTherm target temperature: 20°C
-- Room temperature: 19°C
-- VTherm sends: `number.set_value(19)` on the `external_temperature_input` entity
-- The device directly receives the room temperature
+**Beispiel**:
+- Raumtemperatur (externer Sensor): 19 °C
+- Innentemperatur des Thermostatventils: 21 °C
+- Berechnete Abweichung: 19 °C – 21 °C = –2 °C
+- Die Abweichung von –2 °C wird zur aktuellen Abweichung addiert und an die `number.salon_trv_local_temperature_calibration`-Entity gesendet
 
-**Advantages**:
-- Simplest method,
-- Works with certain devices that accept the `external_temperature_input` parameter,
-- The device can directly use this temperature for its regulation,
-- The temperature is sent each time a new temperature is received from the room sensor independently of the _VTherm_ calculation cycle.
+**Vorteile**:
+- Das Gerät passt sich an die tatsächliche Raumtemperatur an,
+- Vermeidet Schwankungen durch Ausgleich,
+- Funktioniert mit allen Geräten, die eine Kalibrierungs-`number`-Entity bereitstellen,
+- Die Kalibrierung wird jedes Mal gesendet, wenn eine neue Temperatur vom Raumsensor empfangen wird, unabhängig vom Berechnungszyklus von _VTherm_.
+
+#### Modus 2: Direkte Übernahme einer externen Temperatur
+
+Bei dieser Methode übermittelt VTherm die Raumtemperatur direkt an das Gerät mittels der `external_temperature_input`-Entity oder einer gleichwertigen Funktion.
+
+VTherm:
+1. ruft die Raumtemperatur von seinem externen Sensor ab,
+2. ruft `number.set_value` mit der Raumtemperatur als Wert auf
+
+**Beispiel**:
+- VTherm-Solltemperatur: 20 °C
+- Raumtemperatur: 19 °C
+- VTherm sendet: `number.set_value(19)` an die Entität `external_temperature_input`
+- Das Gerät empfängt die Raumtemperatur direkt
+
+**Vorteile**:
+- Einfachste Methode,
+- Funktioniert mit bestimmten Geräten, die den Parameter `external_temperature_input` unterstützen,
+- Das Gerät kann diese Temperatur direkt für seine Regelung verwenden,
+- Die Temperatur wird jedes Mal gesendet, wenn eine neue Temperatur vom Raumsensor empfangen wird, unabhängig vom Berechnungszyklus von _VTherm_.
 
 
-**Disadvantages**:
-- **Few devices support this method**: few devices have this option,
-- Mainly works with certain specific Zigbee devices (e.g., Sonoff TRVZB),
-- The use of this temperature is often related to another configuration.
+**Nachteile**:
+- **Nur wenige Geräte unterstützen diese Methode**: denn nur wenige Geräte verfügen über diese Option,
+- Funktioniert hauptsächlich mit bestimmten Zigbee-Geräten (z.B. Sonoff TRVZB),
+- Die Verwendung dieser Temperatur ist oft mit einer anderen Konfiguration verbunden.
