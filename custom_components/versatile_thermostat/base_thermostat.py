@@ -2219,6 +2219,7 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
             log_level=log_level,
             period_start=period_start,
             period_end=period_end,
+            config_entry=self._entry_infos,
         )
 
     ##

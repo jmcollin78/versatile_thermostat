@@ -257,12 +257,14 @@
         "data": {
           "central_boiler_activation_service": "Befehl zum Einschalten",
           "central_boiler_deactivation_service": "Befehl zum Ausschalten",
-          "central_boiler_activation_delay_sec": "Verzögerung bei der Aktivierung (Sekunden)"
+          "central_boiler_activation_delay_sec": "Verzögerung bei der Aktivierung (Sekunden)",
+          "keep_alive_boiler_delay_sec": "Verzögerung für Keep-Alive (Sekunden)"
         },
         "data_description": {
           "central_boiler_activation_service": "Befehl zum Einschalten des Zentralheizungskessels, im Format: entity_id/service_name[/attribut:wert]",
           "central_boiler_deactivation_service": "Befehl zum Ausschalten des Zentralheizungskessels, Format: entity_id/service_name[/attribut:wert]",
-          "central_boiler_activation_delay_sec": "Verzögerung in Sekunden vor der Aktivierung des Zentralheizungskessels, wenn dieser eingeschaltet werden soll"
+          "central_boiler_activation_delay_sec": "Verzögerung in Sekunden vor der Aktivierung des Zentralheizungskessels, wenn dieser eingeschaltet werden soll",
+          "keep_alive_boiler_delay_sec": "Verzögerung in Sekunden zum Weiterleiten des Kesselbefehls, wenn Keep-Alive aktiviert ist. Setzen Sie auf 0, um Keep-Alive zu deaktivieren."
         }
       },
       "valve_regulation": {
@@ -641,12 +643,14 @@
         "data": {
           "central_boiler_activation_service": "Einschaltbefehl",
           "central_boiler_deactivation_service": "Ausschaltbefehl",
-          "central_boiler_activation_delay_sec": "Verzögerung bei der Aktivierung (Sekunden)"
+          "central_boiler_activation_delay_sec": "Verzögerung bei der Aktivierung (Sekunden)",
+          "keep_alive_boiler_delay_sec": "Verzögerung für Keep-Alive (Sekunden)"
         },
         "data_description": {
           "central_boiler_activation_service": "Befehl zum Einschalten des Zentralheizungskessels, im Format: entity_id/service_name[/attribut:wert]",
           "central_boiler_deactivation_service": "Befehl zum Ausschalten des Zentralheizungskessels, Format: entity_id/service_name[/attribut:wert]",
-          "central_boiler_activation_delay_sec": "Verzögerung in Sekunden vor der Aktivierung des Zentralheizungskessels, wenn dieser eingeschaltet werden soll"
+          "central_boiler_activation_delay_sec": "Verzögerung in Sekunden vor der Aktivierung des Zentralheizungskessels, wenn dieser eingeschaltet werden soll",
+          "keep_alive_boiler_delay_sec": "Verzögerung in Sekunden zum Weiterleiten des Kesselbefehls, wenn Keep-Alive aktiviert ist. Setzen Sie auf 0, um Keep-Alive zu deaktivieren."
         }
       },
       "valve_regulation": {

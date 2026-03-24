@@ -38,6 +38,10 @@ Na další stránce můžete poskytnout konfiguraci pro akce (např. služby), k
 
 ![Přidat centrální kotel](images/config-central-boiler-2.png)
 
+První parametr určuje zpoždění v sekundách před aktivací kotla. Výchozí hodnota je 0, což znamená, že se kotel aktivuje okamžitě, jakmile je překročen práh. Pokud potřebujete ventilům čas na otevření (například), nastavte kladnou hodnotu v sekundách. Některé ventily pro systémy podlahového vytápění se mohou otevírat několik minut a mohlo by být škodlivé aktivovat čerpadlo kotle před tím, než se ventily zcela otevřou.
+
+Druhý parametr odpovídá **zpoždění keep-alive** v sekundách. Tento parametr umožňuje pravidelně opakovat příkaz aktivace kotla, aby bylo zajištěno, že kotel zůstane zapnutý. Pokud se příkaz na kotel neoprávněně neobjeví nebo se kotel sám vypne, bude stejný příkaz odeslán v pravidelných intervalech. Výchozí hodnota je 0, což znamená, že keep-alive je zakázáno. Pokud chcete tuto funkci aktivovat, nastavte kladnou hodnotu v sekundách (například 60 pro opětovné odeslání příkazu každou minutu). Tento parametr je volitelný a lze jej ponechat na 0, pokud jej nepotřebujete.
+
 Akce (např. služby) se konfigurují podle popisu na stránce:
 1. Obecný formát je `entity_id/service_id[/attribute:value]` (kde `/attribute:value` je volitelné).
 2. `entity_id` je název entity ovládající kotel ve formě `domain.entity_name`. Například: `switch.chaudiere` pro kotel ovládaný spínačem, nebo `climate.chaudière` pro kotel ovládaný termostatem, nebo jakákoli jiná entita, která umožňuje ovládání kotle (není žádné omezení). Můžete také přepínat vstupy (`helpers`) jako `input_boolean` nebo `input_number`.

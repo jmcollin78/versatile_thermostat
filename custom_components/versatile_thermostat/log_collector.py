@@ -377,13 +377,15 @@ def _format_header(
     end: datetime,
     level_name: str,
     count: int,
+    config_entry: dict | None = None,
 ) -> str:
     """Build the header block of the export file."""
+    import json
     from homeassistant.util import dt as dt_util  # pylint: disable=import-outside-toplevel
 
     sep = "=" * 80
     now_str = dt_util.utcnow().strftime("%Y-%m-%d %H:%M:%S UTC")
-    return (
+    header = (
         f"{sep}\n"
         f"Versatile Thermostat - Log Export\n"
         f"Thermostat : {thermostat_label}\n"
@@ -391,8 +393,13 @@ def _format_header(
         f"Level      : {level_name} and above\n"
         f"Entries    : {count}\n"
         f"Generated  : {now_str}\n"
-        f"{sep}\n"
     )
+
+    if config_entry:
+        header += f"\nConfiguration:\n" f"{json.dumps(config_entry, indent=2, default=str)}\n"
+
+    header += f"{sep}\n"
+    return header
 
 
 def _cleanup_old_files(directory: Path, max_age_hours: int = OLD_FILE_MAX_AGE_HOURS) -> None:
@@ -417,6 +424,7 @@ async def async_export_logs(
     log_level: str = "DEBUG",
     period_start: datetime | str | None = None,
     period_end: datetime | str | None = None,
+    config_entry: dict | None = None,
 ) -> None:
     """Filter logs, write export file, send persistent notification."""
     from homeassistant.util import dt as dt_util  # pylint: disable=import-outside-toplevel
@@ -447,7 +455,7 @@ async def async_export_logs(
     else:
         label = "All thermostats"
 
-    header = _format_header(label, eff_start, eff_end, log_level.upper(), len(entries))
+    header = _format_header(label, eff_start, eff_end, log_level.upper(), len(entries), config_entry)
     body = "\n".join(_format_entry(e) for e in entries)
     content = header + "\n" + body + "\n"
 
