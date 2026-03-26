@@ -110,6 +110,7 @@
                     "auto_regulation_periode_min": "Regulation minimum period",
                     "auto_regulation_use_device_temp": "Use internal temperature of the underlying",
                     "inverse_switch_command": "Inverse switch command",
+                    "allow_manual_override": "Allow Manual Override",
                     "auto_fan_mode": "Auto fan mode",
                     "on_command_text": "Turn on command customization",
                     "vswitch_on_command": "Optional turn on commands",
@@ -127,6 +128,7 @@
                     "auto_regulation_periode_min": "Duration in minutes between two regulation update",
                     "auto_regulation_use_device_temp": "Use the eventual internal temperature sensor of the underlying to speedup the self-regulation (not needed in most cases)",
                     "inverse_switch_command": "For switch with pilot wire and diode you may need to inverse the command",
+                    "allow_manual_override": "If the switch state is changed manually, then overrides VTherm",
                     "auto_fan_mode": "Automatically activate fan when huge heating/cooling is necessary",
                     "on_command_text": "For underlying of type `select` or `climate` you have to customize the commands."
                 }
@@ -496,6 +498,7 @@
                     "auto_regulation_periode_min": "Regulation minimum period",
                     "auto_regulation_use_device_temp": "Use internal temperature of the underlying",
                     "inverse_switch_command": "Inverse switch command",
+                    "allow_manual_override": "Allow Manual Override",
                     "auto_fan_mode": "Auto fan mode",
                     "on_command_text": "Turn on command customization",
                     "vswitch_on_command": "Optional turn on commands",
@@ -513,6 +516,7 @@
                     "auto_regulation_periode_min": "Duration in minutes between two regulation update",
                     "auto_regulation_use_device_temp": "Use the eventual internal temperature sensor of the underlying to speedup the self-regulation (not needed in most cases)",
                     "inverse_switch_command": "For switch with pilot wire and diode you may need to inverse the command",
+                    "allow_manual_override": "If the switch state is changed manually, then overrides VTherm",
                     "auto_fan_mode": "Automatically activate fan when huge heating/cooling is necessary",
                     "on_command_text": "For underlying of type `select` or `climate` you have to customize the commands."
                 }

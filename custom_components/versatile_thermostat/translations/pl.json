@@ -107,6 +107,7 @@
           "auto_regulation_periode_min": "Minimalny okres regulacji",
           "auto_regulation_use_device_temp": "Użyj temperatury wewnętrznej urządzenia",
           "inverse_switch_command": "Polecenie odwrócenia przełącznika",
+          "allow_manual_override": "Zezwól na ręczne sterowanie",
           "auto_fan_mode": "Tryb autowentylacji",
           "on_command_text": "Dostosowanie polecenia załączenia",
           "vswitch_on_command": "Opcjonalne polecenia załączenia",
@@ -124,6 +125,7 @@
           "auto_regulation_periode_min": "Czas (w min.) między dwiema aktualizacjami regulacji",
           "auto_regulation_use_device_temp": "Użyj ewentualnego wewnętrznego czujnika temperatury urządzenia, aby przyspieszyć autoregulację (w większości przypadków nie jest to konieczne)",
           "inverse_switch_command": "W przypadku przełącznika z przewodem sterującym może być konieczne odwrócenie kolejności poleceń",
+          "allow_manual_override": "Jeśli stan przełącznika zostanie zmieniony ręcznie, przejmuje kontrolę nad VTherm",
           "auto_fan_mode": "Automatycznie uruchom wentylator, gdy konieczne jest intensywne ogrzewanie/chłodzenie",
           "on_command_text": "W przypadku typu `select` lub `climate` należy dostosować polecenia sterujące."
         }
@@ -450,6 +452,7 @@
           "auto_regulation_periode_min": "Minimalny okres regulacji",
           "auto_regulation_use_device_temp": "Użyj temperatury wewnętrznej z urządzenia",
           "inverse_switch_command": "Polecenie odwrócenia przełącznika",
+          "allow_manual_override": "Zezwól na ręczne sterowanie",
           "auto_fan_mode": "Tryb autowentylacji",
           "on_command_text": "Dostosowanie polecenia załączenia",
           "vswitch_on_command": "Opcjonalne polecenia załączenia",
@@ -467,6 +470,7 @@
           "auto_regulation_periode_min": "Czas (w min.) między dwiema aktualizacjami regulacji",
           "auto_regulation_use_device_temp": "Użyj ewentualnego wewnętrznego sensora temperatury urządzenia, aby przyspieszyć autoregulację (w większości przypadków nie jest to konieczne)",
           "inverse_switch_command": "W przypadku przełącznika z przewodem sterującym może być konieczna odwrotna kolejność polecenia",
+          "allow_manual_override": "Jeśli stan przełącznika zostanie zmieniony ręcznie, przejmuje kontrolę nad VTherm",
           "auto_fan_mode": "Automatycznie aktywuj wentylator, gdy konieczne jest intensywne ogrzewanie/chłodzenie",
           "on_command_text": "W przypadku typu `select` lub `climate` należy dostosować polecenia."
         }

@@ -31,7 +31,13 @@ from homeassistant.helpers import condition
 from .const import *  # pylint: disable=wildcard-import, unused-wildcard-import
 from .commons import write_event_log
 from .commons_type import ConfigData
-from .vtherm_hvac_mode import VThermHvacMode
+from .vtherm_hvac_mode import (
+    VThermHvacMode,
+    VThermHvacMode_OFF,
+    VThermHvacMode_COOL,
+    VThermHvacMode_HEAT,
+    VThermHvacMode_FAN_ONLY,
+)
 
 from .base_manager import BaseFeatureManager
 from .open_window_algorithm import WindowOpenDetectionAlgorithm
@@ -253,13 +259,50 @@ class FeatureWindowManager(BaseFeatureManager):
         self._window_state = new_state
         if old_state != new_state:
             if self._vtherm.auto_start_stop_manager:
-                # because window may have an impact on auto-start/stop
                 await self._vtherm.auto_start_stop_manager.refresh_state()
+
+            # When window opens and VTherm is already OFF but device is
+            # active (manual override), apply window_action directly.
+            if (
+                new_state == STATE_ON
+                and not bypass
+                and not self._is_window_bypass
+                and self._vtherm.vtherm_hvac_mode == VThermHvacMode_OFF
+                and self._vtherm.is_device_active
+            ):
+                await self._apply_window_action_on_manual_override()
+                # Ensure the updated window_state is visible in HA attributes even
+                # when the underlying switch was already off (no state-change event
+                # would fire, so we must push the write ourselves).
+                self._vtherm.update_custom_attributes()
+                self._vtherm.async_write_ha_state()
+                return True
+
             self._vtherm.requested_state.force_changed()
             await self._vtherm.update_states(True)
             return True
 
         return False
+
+    async def _apply_window_action_on_manual_override(self):
+        """Apply the configured window_action when VTherm is OFF but
+        the underlying device is active due to a manual override."""
+        window_action = self._window_action or CONF_WINDOW_TURN_OFF
+        _LOGGER.info(
+            "%s - Window open while VTherm OFF but device active (manual override). "
+            "Applying window_action=%s.",
+            self, window_action,
+        )
+
+        if window_action == CONF_WINDOW_TURN_OFF:
+            await self._vtherm.async_underlying_entity_turn_off()
+        elif window_action == CONF_WINDOW_FAN_ONLY:
+            await self._vtherm.async_set_hvac_mode(VThermHvacMode_FAN_ONLY)
+        elif window_action in (CONF_WINDOW_ECO_TEMP, CONF_WINDOW_FROST_TEMP):
+            mode_to_use = VThermHvacMode_COOL if self._vtherm.ac_mode else VThermHvacMode_HEAT
+            await self._vtherm.async_set_hvac_mode(mode_to_use)
+            self._vtherm.requested_state.force_changed()
+            await self._vtherm.update_states(True)
 
     async def manage_window_auto(self, in_cycle=False) -> callable:
         """The management of the window auto feature

@@ -74,6 +74,7 @@
 | ``auto_regulation_dtemp``                 | Práh auto-regulace                                           | -             | X                 | -            | -                       |
 | ``auto_regulation_period_min``            | Minimální období auto-regulace                               | -             | X                 | -            | -                       |
 | ``inverse_switch_command``                | Invertovat příkaz spínače (pro spínače s pilotem)            | X             | -                 | -            | -                       |
+| ``allow_manual_override``                 | Povolit ruční ovládání podkladového spínače                  | X             | -                 | -            | -                       |
 | ``auto_fan_mode``                         | Automatický režim ventilátoru                                | -             | X                 | -            | -                       |
 | ``auto_regulation_use_device_temp``       | Použití vnitřní teploty podkladového zařízení                | -             | X                 | -            | -                       |
 | ``use_central_boiler_feature``            | Přidat ovládání centrálního kotle                            | -             | -                 | -            | X                       |

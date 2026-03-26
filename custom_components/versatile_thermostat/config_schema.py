@@ -157,6 +157,7 @@ STEP_THERMOSTAT_SWITCH = vol.Schema(  # pylint: disable=invalid-name
         ),
         vol.Optional(CONF_AC_MODE, default=False): cv.boolean,
         vol.Optional(CONF_INVERSE_SWITCH, default=False): cv.boolean,
+        vol.Optional(CONF_ALLOW_MANUAL_OVERRIDE, default=False): cv.boolean,
         vol.Optional("on_command_text"): vol.In([]),
         vol.Optional(CONF_VSWITCH_ON_CMD_LIST): selector.TextSelector(selector.TextSelectorConfig(type=selector.TextSelectorType.TEXT, multiple=True)),
         vol.Optional("off_command_text"): vol.In([]),

@@ -110,6 +110,7 @@
           "auto_regulation_periode_min": "Mindestzeitraum Regelung",
           "auto_regulation_use_device_temp": "Interne Bezugstemperatur ausgleichen",
           "inverse_switch_command": "Umgekehrter Schalterbefehl",
+          "allow_manual_override": "Manuelle Übersteuerung zulassen",
           "auto_fan_mode": "Automatischer Lüftermodus",
           "on_command_text": "Anpassung Einschaltbefehl",
           "vswitch_on_command": "Einschaltbefehl (optional)",
@@ -127,6 +128,7 @@
           "auto_regulation_periode_min": "Dauer in Minuten zwischen zwei Regelungsaktualisierungen",
           "auto_regulation_use_device_temp": "Geräteinnentemperatur ausgleichen, zur Selbstregulierungsbeschleunigung (in den meisten Fällen nicht erforderlich)",
           "inverse_switch_command": "Schaltersteuerung umkehren für Installationen mit Pilotdraht und Diode.",
+          "allow_manual_override": "Wenn der Schalterzustand manuell geändert wird, übersteuert er VTherm",
           "auto_fan_mode": "Automatisch Belüftung bei großen Abweichungen",
           "on_command_text": "Für verknüpfte Geräte des Typs `select` oder `climate` müssen die Befehle angepasst werden."
         }
@@ -492,6 +494,7 @@
           "auto_regulation_periode_min": "Minimale Regelzeit",
           "auto_regulation_use_device_temp": "Ausgleich der Innentemperatur vom Gerät",
           "inverse_switch_command": "Umgekehrter Schaltbefehl",
+          "allow_manual_override": "Manuelle Übersteuerung zulassen",
           "auto_fan_mode": "Automatischer Lüfterbetrieb",
           "on_command_text": "Anpassung der Einschaltsteuerung",
           "vswitch_on_command": "Einschaltbefehl (optional)",
@@ -509,6 +512,7 @@
           "auto_regulation_periode_min": "Dauer in Minuten zwischen zwei Regelungsaktualisierungen",
           "auto_regulation_use_device_temp": "Ausgleich der eventuell vorhandenen Innentemperatur vom zugeordneten Gerät benutzen, zur Beschleunigung der Selbstregulierung (ist in den meisten Fällen nicht erforderlich)",
           "inverse_switch_command": "Kehrt die Schaltersteuerung bei Installationen mit Pilotdraht und Diode um.",
+          "allow_manual_override": "Wenn der Schalterzustand manuell geändert wird, übersteuert er VTherm",
           "auto_fan_mode": "Aktiviert die Belüftung automatisch bei großen Abweichugnen.",
           "on_command_text": "Für zugeordnete Geräte des Typs `select` oder `climate`."
         }

@@ -115,6 +115,7 @@
           "auto_regulation_periode_min": "Regulačné minimálne obdobie",
           "auto_regulation_use_device_temp": "Použite vnútornú teplotu podkladu",
           "inverse_switch_command": "Inverzný prepínací príkaz",
+          "allow_manual_override": "Povoliť manuálne ovládanie",
           "auto_fan_mode": "Režim automatického ventilátora"
         },
         "data_description": {
@@ -139,6 +140,7 @@
           "auto_regulation_periode_min": "Trvanie v minútach medzi dvoma aktualizáciami predpisov",
           "auto_regulation_use_device_temp": "Na urýchlenie samoregulácie použite prípadný vnútorný snímač teploty podkladu (vo väčšine prípadov nie je potrebné)",
           "inverse_switch_command": "V prípade spínača s pilotným vodičom a diódou možno budete musieť príkaz invertovať",
+          "allow_manual_override": "Ak je stav spínača zmenený manuálne, prepíše VTherm",
           "auto_fan_mode": "Automaticky aktivujte ventilátor, keď je potrebné veľké vykurovanie/chladenie"
         }
       },
@@ -443,6 +445,7 @@
           "auto_regulation_periode_min": "Regulačné minimálne obdobie",
           "auto_regulation_use_device_temp": "Použite vnútornú teplotu podkladu",
           "inverse_switch_command": "Inverzný prepínací príkaz",
+          "allow_manual_override": "Povoliť manuálne ovládanie",
           "auto_fan_mode": "Režim automatického ventilátora"
         },
         "data_description": {
@@ -467,6 +470,7 @@
           "auto_regulation_periode_min": "Trvanie v minútach medzi dvoma aktualizáciami predpisov",
           "auto_regulation_use_device_temp": "Na urýchlenie samoregulácie použite prípadný vnútorný snímač teploty podkladu (vo väčšine prípadov nie je potrebné)",
           "inverse_switch_command": "V prípade spínača s pilotným vodičom a diódou možno budete musieť príkaz invertovať",
+          "allow_manual_override": "Ak je stav spínača zmenený manuálne, prepíše VTherm",
           "auto_fan_mode": "Automaticky aktivujte ventilátor, keď je potrebné veľké vykurovanie/chladenie"
         }
       },

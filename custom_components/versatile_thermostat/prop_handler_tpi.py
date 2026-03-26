@@ -333,7 +333,10 @@ class TPIHandler:
             _LOGGER.debug("%s - End of cycle (HVAC_MODE_OFF)", t)
             t._on_time_sec = 0
             t._off_time_sec = int(t.cycle_min * 60)
-            if t.is_device_active:
+            allow_override = getattr(t, "_allow_manual_override", False)
+            is_window = t.hvac_off_reason == HVAC_OFF_REASON_WINDOW_DETECTION
+            should_force_off = not allow_override or is_window
+            if t.is_device_active and should_force_off:
                 await t.async_underlying_entity_turn_off()
         else:
             on_percent = 0

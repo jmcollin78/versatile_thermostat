@@ -79,6 +79,7 @@
 | ``auto_regulation_dtemp``                 | Auto-regulation threshold                                  | -             | X                   | -            | -                       |
 | ``auto_regulation_period_min``            | Minimum auto-regulation period                             | -             | X                   | -            | -                       |
 | ``inverse_switch_command``                | Inverse the switch command (for switches with pilot wire)  | X             | -                   | -            | -                       |
+| ``allow_manual_override``                 | Allow manual override of the underlying switch             | X             | -                   | -            | -                       |
 | ``auto_fan_mode``                         | Automatic fan mode                                         | -             | X                   | -            | -                       |
 | ``auto_regulation_use_device_temp``       | Use of internal temperature of the underlying device       | -             | X                   | -            | -                       |
 | ``use_central_boiler_feature``            | Add central boiler control                                 | -             | -                   | -            | X                       |

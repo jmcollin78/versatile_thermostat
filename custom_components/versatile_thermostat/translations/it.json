@@ -111,6 +111,7 @@
                     "auto_regulation_periode_min": "Periodo minimo di regolazione",
                     "auto_regulation_use_device_temp": "Utilizzare la temperatura interna del sottostante",
                     "inverse_switch_command": "Invertire il comando di commutazione",
+                    "allow_manual_override": "Consenti controllo manuale",
                     "auto_fan_mode": " Modo Auto fan",
                     "on_command_text": "Personalizzazione comando di accensione",
                     "vswitch_on_command": "Comando di accensione opzionale",
@@ -128,6 +129,7 @@
                     "auto_regulation_periode_min": "Durata in minuti tra due aggiornamenti della regolazione",
                     "auto_regulation_use_device_temp": "Utilizzare l'eventuale sensore di temperatura interno del sottostante per accelerare l'autoregolazione (non necessario nella maggior parte dei casi)",
                     "inverse_switch_command": "Per gli interruttori con filo pilota e diodo potrebbe essere necessario invertire il comando",
+                    "allow_manual_override": "Se lo stato dell'interruttore viene modificato manualmente, sovrascrive VTherm",
                     "auto_fan_mode": "Attivare automaticamente la ventilazione quando è necessario un riscaldamento/raffreddamento intenso",
                     "on_command_text": "Per i sottostanti di tipo “select” o “climate” è necessario personalizzare i comandi."
                 }
@@ -498,6 +500,7 @@
                     "auto_regulation_periode_min": "Periodo minimo di regulazione",
                     "auto_regulation_use_device_temp": "Utilizzare la temperatura interna del sottostante",
                     "inverse_switch_command": "Invertire il comando di commutazione",
+                    "allow_manual_override": "Consenti controllo manuale",
                     "auto_fan_mode": "Modo Auto fan",
                     "on_command_text": "Personalizzazione comando di accensione",
                     "vswitch_on_command": "Comando di accensione opzionale",
@@ -515,6 +518,7 @@
                     "auto_regulation_periode_min": "Durata in minuti tra due aggiornamenti della regolazione",
                     "auto_regulation_use_device_temp": "Utilizzare l'eventuale sensore di temperatura interno del sottostante per accelerare l'autoregolazione (non necessario nella maggior parte dei casi)",
                     "inverse_switch_command": "Per gli interruttori con filo pilota e diodo potrebbe essere necessario invertire il comando",
+                    "allow_manual_override": "Se lo stato dell'interruttore viene modificato manualmente, sovrascrive VTherm",
                     "auto_fan_mode": "Attivare automaticamente la ventilazione quando è necessario un riscaldamento/raffreddamento intenso",
                     "on_command_text": "Per i sottostanti di tipo “select” o “climate” è necessario personalizzare i comandi."
                 }

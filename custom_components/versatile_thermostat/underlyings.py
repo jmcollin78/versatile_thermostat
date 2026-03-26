@@ -365,7 +365,14 @@ class UnderlyingSwitch(UnderlyingEntity):
         """Set the HVACmode. Returns true if something have change"""
 
         if hvac_mode == VThermHvacMode_OFF:
-            if self.is_device_active:
+            skip = getattr(self._thermostat, "_skip_turn_off_on_next_hvac_off", False)
+            if skip:
+                self._thermostat._skip_turn_off_on_next_hvac_off = False
+                _LOGGER.debug(
+                    "%s - Skipping automatic turn_off for %s (manual override takeover)",
+                    self._thermostat, self._entity_id,
+                )
+            elif self.is_device_active:
                 await self.turn_off()
 
         if self.hvac_mode != hvac_mode:

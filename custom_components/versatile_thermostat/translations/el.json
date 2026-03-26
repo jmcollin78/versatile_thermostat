@@ -67,6 +67,7 @@
           "auto_regulation_dtemp": "Όριο ρύθμισης",
           "auto_regulation_periode_min": "Ελάχιστη περίοδος ρύθμισης",
           "inverse_switch_command": "Αντίστροφη εντολή διακόπτη",
+          "allow_manual_override": "Επιτρέψτε χειροκίνητο έλεγχο",
           "auto_fan_mode": "Auto fan mode"
         },
         "data_description": {
@@ -89,6 +90,7 @@
           "auto_regulation_dtemp": "Το όριο σε ° κάτω από το οποίο η αλλαγή θερμοκρασίας δεν θα αποστέλλεται",
           "auto_regulation_periode_min": "Διάρκεια σε λεπτά μεταξύ δύο ενημερώσεων ρύθμισης",
           "inverse_switch_command": "Για διακόπτη με πιλοτικό καλώδιο και δίοδο μπορεί να χρειαστεί να αντιστρέψετε την εντολή",
+          "allow_manual_override": "Αν η κατάσταση του διακόπτη αλλάξει χειροκίνητα, υπερισχύει του VTherm",
           "auto_fan_mode": "Automatically activate fan when huge heating/cooling is necessary"
         }
       },
@@ -319,6 +321,7 @@
           "auto_regulation_dtemp": "Όριο ρύθμισης",
           "auto_regulation_periode_min": "Ελάχιστη περίοδος ρύθμισης",
           "inverse_switch_command": "Αντίστροφη εντολή διακόπτη",
+          "allow_manual_override": "Επιτρέψτε χειροκίνητο έλεγχο",
           "auto_fan_mode": "Auto fan mode"
         },
         "data_description": {
@@ -341,6 +344,7 @@
           "auto_regulation_dtemp": "Το κατώφλι σε °C κάτω από το οποίο η αλλαγή της θερμοκρασίας δεν θα αποστέλλεται",
           "auto_regulation_periode_min": "Διάρκεια σε λεπτά μεταξύ δύο ενημερώσεων ρύθμισης",
           "inverse_switch_command": "Για διακόπτες με πιλοτικό καλώδιο και δίοδο μπορεί να χρειαστεί να αντιστραφεί η εντολή",
+          "allow_manual_override": "Αν η κατάσταση του διακόπτη αλλάξει χειροκίνητα, υπερισχύει του VTherm",
           "auto_fan_mode": "Automatically activate fan when huge heating/cooling is necessary"
         }
       },

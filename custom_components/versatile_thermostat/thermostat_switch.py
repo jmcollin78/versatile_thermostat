@@ -10,6 +10,7 @@ from homeassistant.helpers.event import (
     async_track_time_interval,
     EventStateChangedData,
 )
+from homeassistant.const import STATE_ON, STATE_OFF
 from homeassistant.core import HomeAssistant
 from .vtherm_hvac_mode import VThermHvacMode_OFF
 
@@ -17,6 +18,7 @@ from .const import (
     CONF_UNDERLYING_LIST,
     CONF_HEATER_KEEP_ALIVE,
     CONF_INVERSE_SWITCH,
+    CONF_ALLOW_MANUAL_OVERRIDE,
     CONF_VSWITCH_ON_CMD_LIST,
     CONF_VSWITCH_OFF_CMD_LIST,
     PROPORTIONAL_FUNCTION_TPI,
@@ -49,6 +51,8 @@ class ThermostatOverSwitch(ThermostatProp[UnderlyingSwitch]):
         self._is_inversed: bool | None = None
         self._lst_vswitch_on: list[str] = []
         self._lst_vswitch_off: list[str] = []
+        self._allow_manual_override: bool = False
+        self._skip_turn_off_on_next_hvac_off: bool = False
         super().__init__(hass, unique_id, name, config_entry)
 
     @property
@@ -68,6 +72,7 @@ class ThermostatOverSwitch(ThermostatProp[UnderlyingSwitch]):
         super().post_init(config_entry)
 
         self._is_inversed = config_entry.get(CONF_INVERSE_SWITCH) is True
+        self._allow_manual_override = config_entry.get(CONF_ALLOW_MANUAL_OVERRIDE) is True
 
         lst_switches = config_entry.get(CONF_UNDERLYING_LIST)
         self._lst_vswitch_on = config_entry.get(CONF_VSWITCH_ON_CMD_LIST, [])
@@ -212,9 +217,54 @@ class ThermostatOverSwitch(ThermostatProp[UnderlyingSwitch]):
         write_event_log(_LOGGER, self, f"Underlying switch state changed from {old_state.state if old_state else None} to {new_state.state if new_state else None}")
         if new_state is None:
             return
-        # #1654 - nno more needed now
-        # if old_state is None:
-        #     self.hass.create_task(self._check_initial_state())
+
+        if self._allow_manual_override and old_state is not None:
+            entity_id = event.data.get("entity_id")
+            underlying = self.find_underlying_by_entity_id(entity_id)
+            if underlying and isinstance(underlying, UnderlyingSwitch):
+                inv = underlying.is_inversed
+                is_off = new_state.state == (STATE_ON if inv else STATE_OFF)
+                was_on = old_state.state == (STATE_OFF if inv else STATE_ON)
+                is_on = new_state.state == (STATE_OFF if inv else STATE_ON)
+                was_off = old_state.state == (STATE_ON if inv else STATE_OFF)
+
+                # Window-open priority: window action always wins regardless of VTherm state.
+                # If the switch is turned ON while the window is open, enforce window action.
+                if (
+                    is_on and was_off
+                    and self.window_manager is not None
+                    and self.window_manager.window_state == STATE_ON
+                ):
+                    _LOGGER.info(
+                        "%s - Switch %s turned ON manually while window is open. "
+                        "Enforcing window action.",
+                        self, entity_id,
+                    )
+                    self.hass.create_task(
+                        self.window_manager._apply_window_action_on_manual_override()
+                    )
+                    return
+
+                if self.vtherm_hvac_mode != VThermHvacMode_OFF:
+                    # UC1: Switch turned OFF while VTherm expected it ON
+                    if is_off and was_on and underlying._is_on_part_running:
+                        _LOGGER.info(
+                            "%s - Switch %s turned OFF manually while in ON cycle. Turning VTherm OFF.",
+                            self, entity_id,
+                        )
+                        self.hass.create_task(self.async_set_hvac_mode(VThermHvacMode_OFF))
+                        return
+
+                    # UC3: Switch turned ON while VTherm is active but idle
+                    if is_on and was_off and not underlying._is_on_part_running:
+                        _LOGGER.info(
+                            "%s - Switch %s turned ON manually while VTherm idle. "
+                            "Turning VTherm OFF (manual takeover).",
+                            self, entity_id,
+                        )
+                        self._skip_turn_off_on_next_hvac_off = True
+                        self.hass.create_task(self.async_set_hvac_mode(VThermHvacMode_OFF))
+                        return
 
         self.calculate_hvac_action()
         self.update_custom_attributes()

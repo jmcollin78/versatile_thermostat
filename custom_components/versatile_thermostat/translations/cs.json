@@ -108,6 +108,7 @@
           "auto_regulation_periode_min": "Minimální perioda regulace",
           "auto_regulation_use_device_temp": "Použít vnitřní teplotu podřízeného zařízení",
           "inverse_switch_command": "Invertovat příkaz spínače",
+          "allow_manual_override": "Povolit ruční ovládání",
           "auto_fan_mode": "Automatický režim ventilátoru",
           "on_command_text": "Přizpůsobení příkazu zapnutí",
           "vswitch_on_command": "Volitelné příkazy zapnutí",
@@ -125,6 +126,7 @@
           "auto_regulation_periode_min": "Doba v minutách mezi dvěma aktualizacemi regulace",
           "auto_regulation_use_device_temp": "Použít případný vnitřní teplotní senzor podřízeného zařízení pro zrychlení samoregulace (ve většině případů není potřeba)",
           "inverse_switch_command": "Pro spínače s pilotem a diodou možná budete muset invertovat příkaz",
+          "allow_manual_override": "Pokud je stav spínače změněn ručně, přepíše VTherm",
           "auto_fan_mode": "Automaticky aktivovat ventilátor při nutnosti velkého vytápění/chlazení",
           "on_command_text": "Pro podřízená zařízení typu `select` nebo `climate` musíte přizpůsobit příkazy."
         }
@@ -441,6 +443,7 @@
           "auto_regulation_periode_min": "Minimální perioda regulace",
           "auto_regulation_use_device_temp": "Použít vnitřní teplotu podřízeného zařízení",
           "inverse_switch_command": "Invertovat příkaz spínače",
+          "allow_manual_override": "Povolit ruční ovládání",
           "auto_fan_mode": "Automatický režim ventilátoru",
           "on_command_text": "Přizpůsobení příkazu zapnutí",
           "vswitch_on_command": "Volitelné příkazy zapnutí",
@@ -458,6 +461,7 @@
           "auto_regulation_periode_min": "Doba v minutách mezi dvěma aktualizacemi regulace",
           "auto_regulation_use_device_temp": "Použít případný vnitřní teplotní senzor podřízeného zařízení pro zrychlení samoregulace (ve většině případů není potřeba)",
           "inverse_switch_command": "Pro spínače s pilotem a diodou možná budete muset invertovat příkaz",
+          "allow_manual_override": "Pokud je stav spínače změněn ručně, přepíše VTherm",
           "auto_fan_mode": "Automaticky aktivovat ventilátor při nutnosti velkého vytápění/chlazení",
           "on_command_text": "Pro podřízená zařízení typu `select` nebo `climate` musíte přizpůsobit příkazy."
         }

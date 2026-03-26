@@ -111,6 +111,7 @@
           "auto_regulation_periode_min": "Période minimale de régulation",
           "auto_regulation_use_device_temp": "Compenser la température interne du sous-jacent",
           "inverse_switch_command": "Inverser la commande",
+          "allow_manual_override": "Autoriser le contrôle manuel",
           "auto_fan_mode": " Auto ventilation mode",
           "on_command_text": "Personnalisation des commandes d'allumage",
           "vswitch_on_command": "Commande d'allumage (optionnel)",
@@ -128,6 +129,7 @@
           "auto_regulation_periode_min": "La durée en minutes entre deux mise à jour faites par la régulation",
           "auto_regulation_use_device_temp": "Compenser la temperature interne du sous-jacent pour accélérer l'auto-régulation (n'est pas nécessaire dans la plupart des cas)",
           "inverse_switch_command": "Inverse la commande du switch pour une installation avec fil pilote et diode",
+          "allow_manual_override": "Si l'état de l'interrupteur est modifié manuellement, il prend le contrôle sur VTherm",
           "auto_fan_mode": "Active la ventilation automatiquement en cas d'écart important",
           "on_command_text": "Pour les sous-jacents de type `select` ou `climate` vous devez personnaliser les commandes."
         }
@@ -498,6 +500,7 @@
           "auto_regulation_periode_min": "Période minimale de régulation",
           "auto_regulation_use_device_temp": "Compenser la température interne du sous-jacent",
           "inverse_switch_command": "Inverser la commande",
+          "allow_manual_override": "Autoriser le contrôle manuel",
           "auto_fan_mode": "Auto ventilation mode",
           "on_command_text": "Personnalisation des commandes d'allumage",
           "vswitch_on_command": "Commande d'allumage (optionnel)",
@@ -515,6 +518,7 @@
           "auto_regulation_periode_min": "La durée en minutes entre deux mise à jour faites par la régulation",
           "auto_regulation_use_device_temp": "Compenser la temperature interne du sous-jacent pour accélérer l'auto-régulation (n'est pas nécessaire dans la plupart des cas)",
           "inverse_switch_command": "Inverse la commande du switch pour une installation avec fil pilote et diode",
+          "allow_manual_override": "Si l'état de l'interrupteur est modifié manuellement, il prend le contrôle sur VTherm",
           "auto_fan_mode": "Active la ventilation automatiquement en cas d'écart important",
           "on_command_text": "Pour les sous-jacents de type `select` ou `climate`"
         }
