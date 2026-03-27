@@ -259,6 +259,9 @@ class ThermostatOverClimateValve(ThermostatProp[UnderlyingClimate], ThermostatOv
             new_valve_percent = 100
         else:
             on_percent = self.safe_on_percent
+            if on_percent is None:
+                # Temperature not yet available; preserve the current valve position.
+                return
             new_valve_percent = round(max(0, min(on_percent, 1)) * 100)
 
             # Issue 533 - don't filter with dtemp if valve should be close. Else it will never close
