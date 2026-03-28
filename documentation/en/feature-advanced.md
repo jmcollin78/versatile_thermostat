@@ -1,4 +1,3 @@
-````markdown
 # Advanced Configuration
 
 - [Advanced Configuration](#advanced-configuration)
@@ -245,5 +244,3 @@ The `consecutive_repair_count` counter allows you to:
 6. **Counter reset**: The counter automatically resets as soon as equipment returns to the correct state, allowing new attempts in case of intermittent issues.
 
 7. **Regular retry**: after 5 failed repair attempts, repair pauses to avoid infinite loops. It resumes after 10 cycles without repair, allowing new attempts in case of intermittent problems.
-
-````
