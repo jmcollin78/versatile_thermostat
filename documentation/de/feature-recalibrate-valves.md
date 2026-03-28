@@ -1,4 +1,3 @@
-````markdown
 # Ventilkalibrierung (Dienst recalibrate_valves)
 
 - [Ventilkalibrierung (Dienst recalibrate_valves)](#ventilkalibrierung-dienst-recalibrate_valves)
@@ -114,5 +113,3 @@ action:
 >
 > - Testen Sie die Kalibrierung zunächst an einem einzelnen VTherm und prüfen Sie Protokolle und `number` Werte, bevor Sie sie auf mehrere Geräte anwenden.
 > - Stellen Sie `delay_seconds` so ein, dass das physische Ventil die Position erreichen kann (60 s ist ein guter Anfang für die meisten Ventile).
-
-````

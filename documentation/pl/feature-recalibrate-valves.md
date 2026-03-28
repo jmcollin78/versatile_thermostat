@@ -1,4 +1,3 @@
-````markdown
 # Kalibracja zaworów (usługa recalibrate_valves)
 
 - [Kalibracja zaworów (usługa recalibrate_valves)](#kalibracja-zawor%C3%B3w-us%C5%82uga-recalibrate_valves)
@@ -114,5 +113,3 @@ action:
 >
 > - Przetestuj kalibrację na jednym VTherm przed uruchomieniem jej na wielu urządzeniach i sprawdź logi oraz wartości `number`.
 > - Ustaw `delay_seconds` tak, aby fizyczny zawór miał czas osiągnąć pozycję (60 s to rozsądny początek dla większości zaworów).
-
-````
