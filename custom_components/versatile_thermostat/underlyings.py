@@ -122,7 +122,7 @@ class UnderlyingEntity:
         `new_state` may be None when the entity is removed/unavailable.
         Runs the initial state checks when all underlying entities are initialized.
         """
-        _LOGGER.debug("%s --------> Underlying state change received: '%s'", self, new_state)
+        _LOGGER.debug("%s - --------> Underlying state change received: '%s'", self, new_state)
 
         # If not yet initialized and we received a valid initial state, run initial checks
         if not self.is_initialized:
@@ -206,7 +206,7 @@ class UnderlyingEntity:
             self._last_command_sent_datetime = self._thermostat.now
             return response
         except Exception as err:
-            _LOGGER.error("Error calling service %s.%s: %s. The underlying will not change its state.", domain, service, err)
+            _LOGGER.error("%s - Error calling service %s.%s: %s. The underlying will not change its state.", self, domain, service, err)
 
     def clamp_sent_value(self, value) -> float:
         """capping of the value send to the underlying eqt"""
@@ -422,8 +422,8 @@ class UnderlyingSwitch(UnderlyingEntity):
         if state is None or state.state == STATE_UNAVAILABLE:
             if timer.is_ready():
                 _LOGGER.warning(
-                    "Entity %s is not available (state: %s). Will keep trying "
-                    "keep alive calls, but won't log this condition every time.",
+                    "%s - Entity %s is not available (state: %s). Will keep trying " "keep alive calls, but won't log this condition every time.",
+                    self,
                     self._entity_id,
                     state.state if state else "None",
                 )
@@ -431,7 +431,8 @@ class UnderlyingSwitch(UnderlyingEntity):
             if timer.in_progress:
                 timer.reset()
                 _LOGGER.warning(
-                    "Entity %s has recovered (state: %s).",
+                    "%s - Entity %s has recovered (state: %s).",
+                    self,
                     self._entity_id,
                     state.state,
                 )
@@ -633,15 +634,6 @@ class UnderlyingClimate(UnderlyingEntity):
 
         # The device is active if hvac_mode is not OFF/IDLE and hvac_action is not OFF/IDLE. hvac_action could be None because it is not always implemented by all climate entities
         return state.state != HVACMode.OFF and (hvac_action not in [HVACAction.IDLE, HVACAction.OFF])
-
-        # old code - if self.is_initialized:
-        # return self.hvac_mode != VThermHvacMode_OFF and self.hvac_action not in [
-        # HVACAction.IDLE,
-        # HVACAction.OFF,
-        # None,
-        # ]
-        # else:
-        # return None
 
     async def check_initial_state(self):
         """Prevent the underlying to be on but thermostat is off"""

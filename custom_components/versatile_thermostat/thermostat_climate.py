@@ -709,13 +709,13 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
             "%s - Underlying climate %s have changed. new_hvac_mode is %s (vs %s), new_hvac_action=%s (vs %s), new_target_temp=%s (vs %s), new_fan_mode=%s (vs %s)",
             self,
             under.entity_id,
-            new_hvac_mode,
+            new_hvac_mode if new_hvac_mode is not None else "<no change>",
             self.vtherm_hvac_mode,
-            new_hvac_action,
+            new_hvac_action if new_hvac_action is not None else "<no change>",
             self.hvac_action,
-            new_target_temp,
+            new_target_temp if new_target_temp is not None else "<no change>",
             self.target_temperature,
-            new_fan_mode,
+            new_fan_mode if new_fan_mode is not None else "<no change>",
             self.fan_mode,
         )
 
