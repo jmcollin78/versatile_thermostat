@@ -1597,6 +1597,21 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
         self.calculate_hvac_action()
         self.update_custom_attributes()
         self.async_write_ha_state()
+
+        # For each manager display the manager state in debug and send an event with the manager state
+        current_state = self._state_manager.current_state.to_dict()
+        current_state["room_temperature"] = self.current_temperature
+        current_state["outdoor_temperature"] = self.current_outdoor_temperature
+        current_state["hvac_action"] = str(self.hvac_action)
+        current_state["power_percent"] = self.power_percent
+        manager_states = {}
+        for manager in self._managers:
+            try:
+                manager_states[manager.__class__.__name__] = manager.is_detected
+            except RuntimeError as e:
+                _LOGGER.error("%s - Error while getting is_detected state of manager %s: %s", self, manager.__class__.__name__, e)
+
+        _LOGGER.debug("%s - End of cycle. current_state: %s, managers_states: %s", self, current_state, manager_states)
         return True
 
     async def _control_heating_specific(self, force=False):

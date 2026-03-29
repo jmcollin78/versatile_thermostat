@@ -121,6 +121,11 @@ class FeatureCentralBoilerManager(BaseFeatureManager):
         """Return True if the central boiler is on. Return None if the state is unknown (at startup for example)"""
         return self._is_on
 
+    @property
+    def is_detected(self) -> bool:
+        """Return True if the central boiler is detected"""
+        return self._is_on if self._is_on is not None else False
+
     async def calculate_central_boiler_state(self, _):
         """Calculate the central boiler state depending on all VTherm that
         controls this central boiler"""

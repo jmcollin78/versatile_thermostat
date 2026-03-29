@@ -53,6 +53,7 @@ class FeatureCentralPowerManager(BaseFeatureManager):
         self._started_vtherm_total_power: float = 0
         # Not used now
         self._last_shedding_date = None
+        self._state = False
 
     def post_init(self, entry_infos: ConfigData):
         """Gets the configuration parameters"""
@@ -243,6 +244,9 @@ class FeatureCentralPowerManager(BaseFeatureManager):
             vtherm.requested_state.force_changed()
             await vtherm.update_states(force=True)
         self._last_shedding_date = self._vtherm_api.now
+
+        # calculate a state as true if one of the VTherm is in shedding
+        self._state = any(vtherm.power_manager.is_overpowering_detected for vtherm in vtherms_sorted)
         _LOGGER.debug("%s - -------- End of calculate_shedding", self)
 
     def get_climate_components_entities(self) -> list:
@@ -331,6 +335,11 @@ class FeatureCentralPowerManager(BaseFeatureManager):
     def started_vtherm_total_power(self) -> float | None:
         """Return the started_vtherm_total_power"""
         return self._started_vtherm_total_power
+
+    @property
+    def is_detected(self) -> bool:
+        """True if the central power management is detected"""
+        return self._state
 
     def __str__(self):
         return "CentralPowerManager"

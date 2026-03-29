@@ -61,6 +61,11 @@ class FeatureLockManager(BaseFeatureManager):
         """Return True if the thermostat is locked."""
         return self._is_locked
 
+    @property
+    def is_detected(self) -> bool:
+        """Return the overall state of the feature manager based on failure states"""
+        return self.is_locked
+
     def check_is_locked(self, function_name: str) -> bool:
         """Check if the thermostat is locked."""
         context = getattr(self._vtherm, "_context", None)

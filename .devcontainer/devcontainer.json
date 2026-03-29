@@ -25,7 +25,6 @@
                 // "ms-python.vscode-pylance",
                 "ms-python.isort",
                 "ms-python.black-formatter",
-                "visualstudioexptteam.vscodeintellicode",
                 "redhat.vscode-yaml",
                 "github.vscode-pull-request-github",
                 "ryanluker.vscode-coverage-gutters",
@@ -39,7 +38,6 @@
                 "azuretools.vscode-docker",
                 "huizhou.githd",
                 "github.copilot",
-                "openai.chatgpt",
                 "bierner.markdown-mermaid"
             ],
             "settings": {

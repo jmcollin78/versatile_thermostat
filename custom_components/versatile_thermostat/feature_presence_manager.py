@@ -2,8 +2,6 @@
 
 # pylint: disable=line-too-long
 
-import logging
-from .log_collector import get_vtherm_logger
 from typing import Any
 
 from homeassistant.const import (
@@ -24,6 +22,7 @@ from homeassistant.helpers.event import (
     EventStateChangedData,
 )
 
+from .log_collector import get_vtherm_logger
 from .const import *  # pylint: disable=wildcard-import, unused-wildcard-import
 from .commons import write_event_log
 from .commons_type import ConfigData
@@ -166,6 +165,11 @@ class FeaturePresenceManager(BaseFeatureManager):
             STATE_NOT_HOME,
             STATE_OFF,
         ]
+
+    @property
+    def is_detected(self) -> bool:
+        """Return the overall state of the feature manager based on presence states"""
+        return not self.is_absence_detected
 
     @property
     def presence_sensor_entity_id(self) -> bool:
