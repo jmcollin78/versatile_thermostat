@@ -1,4 +1,3 @@
-````markdown
 # Erweiterte Konfiguration
 
 - [Erweiterte Konfiguration](#erweiterte-konfiguration)
@@ -245,5 +244,3 @@ Der Zähler `consecutive_repair_count` ermöglicht es Ihnen:
 6. **Zähler zurücksetzen**: Der Zähler wird automatisch zurückgesetzt, sobald die Geräte den korrekten Zustand wieder erreichen, was neue Versuche bei intermittierenden Problemen ermöglicht.
 
 7. **Regelmäßige Wiederholung**: Nach 5 fehlgeschlagenen Reparaturversuchen wird die Reparatur unterbrochen, um Endlosschleifen zu vermeiden. Sie wird nach 10 Zyklen ohne Reparatur wiederaufgenommen und ermöglicht neue Versuche bei intermittierenden Problemen.
-
-````

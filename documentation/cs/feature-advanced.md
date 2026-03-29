@@ -1,4 +1,3 @@
-````markdown
 # Pokročilá konfigurace
 
 - [Pokročilá konfigurace](#pokročilá-konfigurace)
@@ -245,5 +244,3 @@ Počitadlo `consecutive_repair_count` vám umožní:
 6. **Resetování počitadla**: Počitadlo se automaticky resetuje, jakmile se zařízení vrátí do správného stavu, což umožňuje nové pokusy v případě přerušovaných problémů.
 
 7. **Běžné opakování**: Po 5 neúspěšných pokusech o opravu se oprava pozastaví, aby se zabránilo nekonečným smyčkám. Obnoví se po 10 cyklech bez opravy, což umožňuje nové pokusy v případě přerušovaných problémů.
-
-````

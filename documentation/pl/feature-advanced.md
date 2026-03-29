@@ -1,4 +1,3 @@
-````markdown
 # Konfiguracja zaawansowana
 
 - [Konfiguracja zaawansowana](#konfiguracja-zaawansowana)
@@ -245,5 +244,3 @@ Licznik `consecutive_repair_count` pozwala ci:
 6. **Resetowanie licznika**: Licznik automatycznie resetuje się, gdy urządzenia powracają do prawidłowego stanu, umożliwiając nowe próby w przypadku przerywających się problemów.
 
 7. **Regularne ponowienie**: Po 5 nieudanych próbach naprawy, naprawa wstrzymuje się, aby uniknąć pętli nieskończonych. Wznawia się po 10 cyklach bez naprawy, umożliwiając nowe próby w przypadku przerywających się problemów.
-
-````
