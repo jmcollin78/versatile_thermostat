@@ -313,5 +313,10 @@ class FeatureSafetyManager(BaseFeatureManager):
         """Returns the safety safety_default_on_percent"""
         return self._safety_default_on_percent
 
+    @property
+    def is_detected(self) -> bool:
+        """Return the overall state of the feature manager based on safety states"""
+        return self.is_safety_detected
+
     def __str__(self):
         return f"SafetyManager-{self.name}"

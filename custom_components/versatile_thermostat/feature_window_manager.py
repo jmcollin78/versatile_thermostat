@@ -2,8 +2,6 @@
 
 # pylint: disable=line-too-long
 
-import logging
-from .log_collector import get_vtherm_logger
 from typing import Any
 from datetime import timedelta
 
@@ -28,6 +26,7 @@ from homeassistant.helpers.event import (
 from homeassistant.exceptions import ConditionError
 from homeassistant.helpers import condition
 
+from .log_collector import get_vtherm_logger
 from .const import *  # pylint: disable=wildcard-import, unused-wildcard-import
 from .commons import write_event_log
 from .commons_type import ConfigData
@@ -476,6 +475,11 @@ class FeatureWindowManager(BaseFeatureManager):
         if not self._window_auto_algo:
             return None
         return self._window_auto_algo.last_slope
+
+    @property
+    def is_detected(self) -> bool:
+        """Return the overall state of the feature manager based on window state"""
+        return self.is_window_detected
 
     def __str__(self):
         return f"WindowManager-{self.name}"

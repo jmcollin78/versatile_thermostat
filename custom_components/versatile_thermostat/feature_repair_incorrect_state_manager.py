@@ -2,8 +2,6 @@
 
 """Implements the Repair Incorrect State feature as a Feature Manager"""
 
-import logging
-from .log_collector import get_vtherm_logger
 from typing import Any
 from datetime import datetime, timezone
 
@@ -16,6 +14,7 @@ from .const import (
     REPAIR_MIN_DELAY_AFTER_INIT_SEC,
     overrides,
 )
+from .log_collector import get_vtherm_logger
 from .commons_type import ConfigData
 from .base_manager import BaseFeatureManager
 
@@ -125,7 +124,7 @@ class FeatureRepairIncorrectStateManager(BaseFeatureManager):
         repaired = False
         # build a list of underlying to repair as the vtherm.underlyings concatened to the list of vtherm.underlyings_valve_regulation if it exists
         for underlying in self._vtherm.all_underlying_entities:
-            _LOGGER.debug("%s - RepairIncorrectStateManager: checking underlying %s for state discrepancies", self._vtherm.name, underlying.entity_id)
+            _LOGGER.debug("%s - RepairIncorrectStateManager: checking underlying %s for state discrepancies", self, underlying.entity_id)
             repaired_this = await underlying.check_and_repair()
             if repaired_this:
                 _LOGGER.warning(
@@ -161,3 +160,11 @@ class FeatureRepairIncorrectStateManager(BaseFeatureManager):
                     }
                 }
             )
+
+    @property
+    def is_detected(self) -> bool:
+        """Return the overall state of the feature manager based on repair attempts"""
+        return self._consecutive_repair_count > 0
+
+    def __str__(self):
+        return f"RepairIncorrectStateManager-{self.name}"

@@ -2,8 +2,6 @@
 
 # pylint: disable=line-too-long
 
-import logging
-from .log_collector import get_vtherm_logger
 from datetime import datetime, timedelta
 from typing import Any
 
@@ -13,6 +11,7 @@ from homeassistant.core import (
 )
 from homeassistant.helpers.event import async_track_point_in_time
 
+from .log_collector import get_vtherm_logger
 from .const import *  # pylint: disable=wildcard-import, unused-wildcard-import
 from .commons_type import ConfigData
 
@@ -303,6 +302,11 @@ class FeatureTimedPresetManager(BaseFeatureManager):
     def is_configured(self) -> bool:
         """Return True - timed preset feature is always available."""
         return True
+
+    @property
+    def is_detected(self) -> bool:
+        """Return the overall state of the feature manager based on timed preset states"""
+        return self.is_timed_preset_active
 
     def __str__(self):
         return f"TimedPresetManager-{self.name}"

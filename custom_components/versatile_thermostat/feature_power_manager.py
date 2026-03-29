@@ -2,8 +2,6 @@
 
 # pylint: disable=line-too-long
 
-import logging
-from .log_collector import get_vtherm_logger
 from typing import Any
 
 from homeassistant.const import (
@@ -17,6 +15,7 @@ from homeassistant.core import (
     HomeAssistant,
 )
 
+from .log_collector import get_vtherm_logger
 from .const import *  # pylint: disable=wildcard-import, unused-wildcard-import
 from .commons import write_event_log, round_to_nearest
 from .commons_type import ConfigData
@@ -286,6 +285,11 @@ class FeaturePowerManager(BaseFeatureManager):
     def is_overpowering_detected(self) -> bool:
         """Return True if the Vtherm is in overpowering state"""
         return self._overpowering_state == STATE_ON
+
+    @property
+    def is_detected(self) -> bool:
+        """Return the overall state of the feature manager based on detection states"""
+        return self.is_overpowering_detected
 
     @property
     def power_temperature(self) -> float | None:

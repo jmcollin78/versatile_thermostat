@@ -64,3 +64,8 @@ class BaseFeatureManager:
     def hass(self) -> HomeAssistant:
         """The HA instance"""
         return self._hass
+
+    @property
+    def is_detected(self) -> bool:
+        """True if the FeatureManager is detected. Should be implemented by the child class"""
+        raise NotImplementedError()

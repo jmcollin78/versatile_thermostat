@@ -567,6 +567,11 @@ class FeatureHeatingFailureDetectionManager(BaseFeatureManager):
         return self._heating_failure_state == STATE_ON or self._cooling_failure_state == STATE_ON
 
     @property
+    def is_detected(self) -> bool:
+        """Return the overall state of the feature manager based on failure states"""
+        return self.is_failure_detected
+
+    @property
     def is_heating_failure_detected(self) -> bool:
         """Returns True if a heating failure is detected"""
         return self._heating_failure_state == STATE_ON
