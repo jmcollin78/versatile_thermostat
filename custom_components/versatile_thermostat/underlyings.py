@@ -46,6 +46,8 @@ from .keep_alive import IntervalCaller
 from .vtherm_api import VersatileThermostatAPI
 from .underlying_state_manager import UnderlyingStateManager
 
+resend_delay_sec = 2
+
 _LOGGER = get_vtherm_logger(__name__)
 
 class UnderlyingEntityType(StrEnum):
@@ -574,6 +576,7 @@ class UnderlyingClimate(UnderlyingEntity):
         )
         self._last_sent_temperature: Optional[float] = None
         self._cancel_set_fan_mode_later: Optional[Callable[[], None]] = None
+        self._cancel_set_temperature_later: Optional[Callable[[], None]] = None
         self._min_sync_entity: float = None
         self._max_sync_entity: float = None
         self._step_sync_entity: float = None
@@ -605,7 +608,28 @@ class UnderlyingClimate(UnderlyingEntity):
             data,
         )
 
+        # if restart the climate, then resend the target temperature 2 sec later for lazy SonoffTRVZB
+        if hvac_mode in (VThermHvacMode_HEAT, VThermHvacMode_COOL):
+
+            async def callback_resend_temp(_):
+                await self.set_temperature(self._thermostat.target_temperature, None, None)
+
+            if self._cancel_set_temperature_later:
+                self._cancel_set_temperature_later()
+            self._cancel_set_temperature_later = async_call_later(self._hass, resend_delay_sec, callback_resend_temp)
+
         return True
+
+    @overrides
+    def remove_entity(self):
+        """Remove the entity"""
+        if self._cancel_set_fan_mode_later:
+            self._cancel_set_fan_mode_later()
+            self._cancel_set_fan_mode_later = None
+        if self._cancel_set_temperature_later:
+            self._cancel_set_temperature_later()
+            self._cancel_set_temperature_later = None
+        super().remove_entity()
 
     @property
     def should_device_be_active(self):
@@ -734,7 +758,7 @@ class UnderlyingClimate(UnderlyingEntity):
             self._cancel_set_fan_mode_later()
             self._cancel_set_fan_mode_later = None
 
-        delay: float = 2.0
+        delay: float = resend_delay_sec
         now = self._thermostat.now
         last_command_sent = self._last_command_sent_datetime
 
