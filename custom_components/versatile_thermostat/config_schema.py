@@ -138,6 +138,9 @@ STEP_CENTRAL_BOILER_SCHEMA = vol.Schema(
         ),
         vol.Optional(CONF_CENTRAL_BOILER_ACTIVATION_SRV, default=""): str,
         vol.Optional(CONF_CENTRAL_BOILER_DEACTIVATION_SRV, default=""): str,
+        vol.Optional(CONF_KEEP_ALIVE_BOILER_DELAY_SEC, default=DEFAULT_KEEP_ALIVE_BOILER_DELAY_SEC): selector.NumberSelector(
+            selector.NumberSelectorConfig(min=0, max=3600, step=10, mode=selector.NumberSelectorMode.BOX, unit_of_measurement="s")
+        ),
     }
 )
 
@@ -447,6 +450,7 @@ STEP_CENTRAL_ADVANCED_DATA_SCHEMA = vol.Schema(  # pylint: disable=invalid-name
             CONF_SAFETY_DEFAULT_ON_PERCENT,
             default=DEFAULT_SAFETY_DEFAULT_ON_PERCENT,
         ): vol.Coerce(float),
+        vol.Optional(CONF_REPAIR_INCORRECT_STATE, default=False): cv.boolean,
     }
 )
 
@@ -467,6 +471,7 @@ STEP_CENTRAL_LOCK_DATA_SCHEMA = vol.Schema(  # pylint: disable=invalid-name
         vol.Optional(CONF_LOCK_CODE): cv.string,
         vol.Optional(CONF_LOCK_USERS, default=True): cv.boolean,
         vol.Optional(CONF_LOCK_AUTOMATIONS, default=True): cv.boolean,
+        vol.Optional(CONF_AUTO_RELOCK_SEC, default=30): vol.Coerce(int),
     }
 )
 

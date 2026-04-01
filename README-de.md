@@ -13,9 +13,14 @@ Sprachen: [English](README.md) | [Français](README-fr.md) | [Deutsch](README-de
 <img src="https://github.com/jmcollin78/versatile_thermostat/blob/main/images/icon.png" />
 </p>
 
-> ![Tipp](images/tips.png) Diese Thermostat-Integration zielt darauf ab, Ihre Heizungsmanagement-Automatisierungen erheblich zu vereinfachen. Da alle typischen Heizungsereignisse (niemand zu Hause?, Aktivität in einem Raum erkannt?, Fenster offen?, Stromlastabwurf?) nativ vom Thermostat verwaltet werden, müssen Sie sich nicht mit komplizierten Skripten und Automatisierungen beschäftigen, um Ihre Thermostate zu verwalten. ;-).
+> ![Tipp](images/tips.png) **Versatile Thermostat** ist ein hochgradig konfigurierbarer virtueller Thermostat, der jedes Heizgerät (Heizkörper, Klimaanlagen, Wärmepumpen usw.) in ein intelligentes und adaptives System umwandelt. Er ermöglicht es, mehrere verschiedene Heizsysteme zu stabilisieren und zentral zu steuern, während gleichzeitig automatisch der Energieverbrauch optimiert wird. Dank fortschrittlicher Algorithmen (TPI, Auto-TPI) und Lernfähigkeiten passt sich der Thermostat an Ihr Haus 🏠 und Ihre Gewohnheiten an und bietet optimalen Komfort sowie eine signifikante Senkung Ihrer Heizrechnungen 💰.
+> Diese Thermostat-Integration zielt darauf ab, Ihre Heizungsmanagement-Automatisierungen erheblich zu vereinfachen. Da alle typischen Heizungsereignisse (niemand zu Hause?, Aktivität in einem Raum erkannt?, Fenster offen?, Stromlastabwurf?) nativ vom Thermostat verwaltet werden, müssen Sie sich nicht mit komplizierten Skripten und Automatisierungen beschäftigen, um Ihre Thermostate zu verwalten. 😉
 
 Diese benutzerdefinierte Komponente für Home Assistant ist ein Upgrade und eine komplette Neufassung der Komponente "Awesome thermostat" (siehe [Github](https://github.com/dadge/awesome_thermostat)) mit zusätzlichen Funktionen.
+
+# Dokumentation
+
+Die gesamte Dokumentation ist auf der [Versatile Thermostat Web site](https://www.versatile-thermostat.org/) verfügbar.
 
 # Screenshots
 
@@ -26,22 +31,24 @@ Versatile Thermostat UI Card (Verfügbar auf [Github](https://github.com/jmcolli
 # Was ist neu?
 ![Neu](images/new-icon.png)
 
+## Release 9.3
+> 1. **Erkennung feststeckender Ventile**: Wesentliche Verbesserung der Heizungsfehlererkennung. Wenn eine Anomalie bei VTherms vom Typ `over_climate_valve` erkannt wird, diagnostiziert der Thermostat nun, ob das Problem durch ein feststeckendes TRV-Ventil (offen oder geschlossen feststeckend) verursacht wird, indem der Sollzustand mit dem Istzustand verglichen wird. Diese Information - `root_cause` - wird im Anomalieereignis gesendet und ermöglicht es Ihnen, angemessene Maßnahmen zu ergreifen (Benachrichtigung, Ventilwiederherstellung usw.). Weitere Informationen [hier](documentation/de/feature-heating-failure-detection.md),
+> 2. **Automatisches Erneut-Verriegeln nach Entsperrung**: Der Parameter `auto_relock_sec` wurde zur Verriegelungsfunktion hinzugefügt. Wenn konfiguriert, verriegelt sich der Thermostat nach der angegebenen Anzahl von Sekunden nach einer Entsperrung automatisch wieder. Diese Funktion kann vollständig deaktiviert werden, indem sie auf 0 gesetzt wird. Standardmäßig ist die automatische Wiederverriegelung auf 30 Sekunden eingestellt, um die Sicherheit zu verbessern. Weitere Informationen [hier](documentation/de/feature-lock.md),
+> 3. **Befehlswiederholung**: Neue Funktionalität zur automatischen Erkennung und Behebung von Unstimmigkeiten zwischen dem Sollzustand des Thermostats und dem Istzustand der verknüpften Geräte. Wenn ein Befehl nicht ordnungsgemäß auf das Gerät angewendet wird, wird er erneut gesendet. Dies verbessert die Systemzuverlässigkeit in instabilen Umgebungen oder mit unzuverlässigen Geräten. Weitere Informationen [hier](documentation/de/feature-advanced.md),
+> 4. **Wiederherstellung des zeitgesteuerten Voreinstellung nach Neustart**: Die konfigurierte zeitgesteuerte Voreinstellung wird nun nach einem Thermostat- oder Home Assistant-Neustart korrekt wiederhergestellt. Diese Voreinstellung funktioniert nach dem Neustart weiterhin normal. Weitere Informationen [hier](documentation/de/feature-timed-preset.md),
+> 5. **Erhöhte Genauigkeit der Leistungssteuerung**: Die Aktivierungsschwelle des Kessels (`power_activation_threshold`) akzeptiert nun Dezimalwerte (0,1, 0,5 usw.) für eine feinere Kontrolle der Aktivierungsleistung. Dies bietet mehr Flexibilität zur Optimierung des Energieverbrauchs. Weitere Informationen [hier](documentation/de/feature-power.md),
+> 6. **Verbesserungen der Sensorzuverlässigkeit**: Bessere Unterstützung zur Bestimmung der Verfügbarkeit von Temperatursensoren mithilfe der `last_updated`-Metadaten von Home Assistant, verbesserte Erkennung von Sensorsignalverlust,
+
+## Release 9.2 - stabile Version
+> 1. Neue Art der Verwaltung von Heiz-/Stoppzyklen für VTherm `over_switch`. Der aktuelle Algorithmus hat einen Zeitdrift, und die ersten Zyklen sind nicht optimal. Dies beeinträchtigt das TPI und insbesondere das Auto-TPI. Der neue `Cycle Scheduler` löst diese Schwierigkeiten. Diese Änderung ist völlig transparent,
+> 2. Ein Protokollkollektor. Support-Anfragen scheitern oft an der Möglichkweit, Protokolle im richtigen Zeitraum bereitzustellen, konzentriert auf den fehlerhaften Thermostat und auf der richtigen Protokollebene. Dies ist besonders bei schwer reproduzierbaren Fehlern der Fall. Der Protokollkollektor soll diese Schwierigkeit lösen. Er sammelt Protokolle im Hintergrund auf der niedrigsten Ebene, und eine Aktion (ehemals Dienst) ermöglicht deren Export in eine Datei. Diese kann dann heruntergeladen und der Support-Anfrage beigefügt werden. Der mit der Website verbundene Protokollanalysator – der in Version 9.1 (siehe unten) gestartet wurde – passt sich an, um diese Protokolle verarbeiten zu können. Weitere Informationen zum Protokollkollektor [hier](documentation/de/feature-logs-collector.md),
+> 3. Stabilisierung der Version 9.x. Die Hauptversion 9 brachte viele Änderungen mit sich, die einige Anomalien verursachten. Diese Version bringt die neuesten Korrektionen zur Version 9.
+
 ## Release 9.1
 > 1. Neues Logo. Inspiriert von der Arbeit von @Krzysztonek (siehe [hier](https://github.com/jmcollin78/versatile_thermostat/pull/1598)) nutzt VTherm eine neue Funktion aus [HA 206.03](https://developers.home-assistant.io/blog/2026/02/24/brands-proxy-api/), um sein Logo zu ändern. Das gesamte Team hofft, dass es Ihnen gefällt. Viel Spaß!
 > 2. Eine von @bontiv erstellte Website löst eine der größten Herausforderungen von VTherm: die Dokumentation. Diese Website ermöglicht es außerdem, Ihre Logs zu analysieren! Geben Sie Ihre Logs (im Debug-Modus) ein, und Sie können sie analysieren, auf einen Thermostat zoomen, einen Zeitraum auswählen, interessante Elemente filtern usw. Entdecken Sie diese erste Version hier: [Versatile Thermostat Web site](https://www.versatile-thermostat.org/). Ein großes Dankeschön an @bontiv für diese großartige Umsetzung.
 > 3. Offizielle Veröffentlichung der Auto-TPI-Funktion. Diese Funktion berechnet die optimalen Werte der Koeffizienten für den [TPI](documentation/fr/algorithms.md#lalgorithme-tpi). Hervorzuheben ist die unglaubliche Arbeit von @KipK und @gael1980 zu diesem Thema. Lesen Sie unbedingt die Dokumentation, wenn Sie diese Funktion verwenden möchten.
-> 4. VTherm basiert nun auf dem von den zugrunde liegenden Geräten in HA gemeldeten Status. Solange nicht alle zugrunde liegenden Geräte einen bekannten Status in HA haben, bleibt VTherm deaktiviert.
-
-## Release 8.6
-> 1. Hinzufügen des Parameters `max_opening_degrees` für `over_climate_valve` VTherms, der es ermöglicht, den maximalen Öffnungsgrad jedes Ventils zu begrenzen, um den Heißwasserdurchfluss zu steuern und den Energieverbrauch zu optimieren.
-> 2. Hinzufügen einer Ventil-Neukalibrierungsfunktion für ein _VTherm_ `over_climate_valve`, mit der ein maximales Öffnen und anschließend ein maximales Schließen erzwungen werden kann, um eine Neukalibrierung eines TRV zu versuchen. Weitere Informationen [hier](documentation/de/feature-recalibrate-valves.md).
-
-## Release 8.5
-> 1. Hinzufügen der Erkennung von Heizungsstörungen für VTherms, die den TPI-Algorithmus verwenden. Diese Funktion erkennt zwei Arten von Anomalien:
->    - **Heizungsstörung**: Der Heizkörper heizt stark (hohes on_percent), aber die Temperatur steigt nicht,
->    - **Kühlungsstörung**: Der Heizkörper heizt nicht (on_percent bei 0), aber die Temperatur steigt weiter.
->
-> Diese Anomalien können auf ein offenes Fenster, einen defekten Heizkörper oder eine externe Wärmequelle hinweisen. Die Funktion sendet Ereignisse, die zum Auslösen von Automatisierungen (Benachrichtigungen, Warnungen usw.) verwendet werden können. Weitere Informationen [hier](documentation/de/feature-heating-failure-detection.md).
+> 4. VTherm basiert nun auf dem von den verbundenen Geräten in HA gemeldeten Status. Solange nicht alle zugeordnete Geräte einen bekannten Status in HA haben, bleibt VTherm deaktiviert.
 
 Weitere Informationen [hier](documentation/de/feature-central-boiler.md).
 
@@ -91,9 +98,9 @@ Die Dokumentation ist jetzt auf mehrere Seiten aufgeteilt, um das Lesen und Such
 18. [Erkennung von Heizungsstörungen](documentation/de/feature-heating-failure-detection.md)
 19. [Selbstregulierung](documentation/de/self-regulation.md)
 20. [Auto-TPI-Lernen](documentation/de/feature-autotpi.md)
-21. [Lock / Unlock](documentation/en/feature-lock.md)
-22. [Temperature synchronisation](documentation/en/feature-sync_device_temp.md)
-23. [Timed preset](documentation/en/feature-timed-preset.md)
+21. [Lock / Unlock](documentation/de/feature-lock.md)
+22. [Temperatur synchronisieren](documentation/de/feature-sync_device_temp.md)
+23. [Zeitsteuerung](documentation/de/feature-timed-preset.md)
 24. [Algorithmen](documentation/de/algorithms.md)
 25. [Referenzdokumentation](documentation/de/reference.md)
 26. [Tuning-Beispiele](documentation/de/tuning-examples.md)
@@ -122,11 +129,11 @@ Die Dokumentation ist jetzt auf mehrere Seiten aufgeteilt, um das Lesen und Such
 
 ![image](documentation/en/images/results-over-climate-2.png)
 
-# Some comments on the integration
+# Einige Anmerkungen zur Integration
 |                                             |                                             |                                             |
 | ------------------------------------------- | ------------------------------------------- | ------------------------------------------- |
-| ![testimonial 1](images/testimonials-1.png) | ![testimonial 2](images/testimonials-2.png) | ![testimonial 3](images/testimonials-3.png) |
-| ![testimonial 4](images/testimonials-4.png) | ![testimonial 5](images/testimonials-5.png) | ![testimonial 6](images/testimonials-6.png) |
+| ![Kundenmeinung 1](images/testimonials-1.png) | ![Kundenmeinung 2](images/testimonials-2.png) | ![Kundenmeinung 3](images/testimonials-3.png) |
+| ![Kundenmeinung 4](images/testimonials-4.png) | ![Kundenmeinung 5](images/testimonials-5.png) | ![Kundenmeinung 6](images/testimonials-6.png) |
 
 Viel Spaß!
 

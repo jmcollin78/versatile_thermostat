@@ -47,10 +47,12 @@
                     "use_lock_central_config": "Use central lock configuration",
                     "lock_code": "Optional pincode (4 digits)",
                     "lock_users": "Lock will prevent commands from Users",
-                    "lock_automations": "Lock will prevent commands from Automations & integrations (i.e scheduler)"
+                    "lock_automations": "Lock will prevent commands from Automations & integrations (i.e scheduler)",
+                    "auto_relock_sec": "Auto-relock delay"
                 },
                 "data_description": {
-                    "use_lock_central_config": "Check to use the central lock configuration. Uncheck to use a specific lock configuration for this VTherm"
+                    "use_lock_central_config": "Check to use the central lock configuration. Uncheck to use a specific lock configuration for this VTherm",
+                    "auto_relock_sec": "Delay in seconds before automatically re-locking after an unlock. Set to 0 to disable auto-relock. Default is 30 seconds."
                 }
             },
             "main": {
@@ -238,12 +240,14 @@
                     "safety_delay_min": "Safety delay (in minutes)",
                     "safety_min_on_percent": "Minimum power percent to enable safety mode",
                     "safety_default_on_percent": "Power percent to use in safety mode",
+                    "repair_incorrect_state": "Repair incorrect state",
                     "use_advanced_central_config": "Use central advanced configuration"
                 },
                 "data_description": {
                     "safety_delay_min": "Maximum allowed delay in minutes between two temperature measurements. Above this delay the thermostat will turn to a safety off state",
                     "safety_min_on_percent": "Minimum heating percent value for safety preset activation. Below this amount of power percent the thermostat won't go into safety preset",
                     "safety_default_on_percent": "The default heating power percent value in safety preset. Set to 0 to switch off heater in safety preset",
+                    "repair_incorrect_state": "Automatically repair incorrect state of underlying entities when detected. The feature will re-send the desired command if the underlying device state doesn't match the expected state.",
                     "use_advanced_central_config": "Check to use the central advanced configuration. Uncheck to use a specific advanced configuration for this VTherm"
                 }
             },
@@ -253,12 +257,14 @@
                 "data": {
                     "central_boiler_activation_service": "Command to turn-on",
                     "central_boiler_deactivation_service": "Command to turn-off",
-                    "central_boiler_activation_delay_sec": "Activation delay (seconds)"
+                    "central_boiler_activation_delay_sec": "Activation delay (seconds)",
+                    "keep_alive_boiler_delay_sec": "Keep-alive delay (seconds)"
                 },
                 "data_description": {
                     "central_boiler_activation_service": "Command to turn-on the central boiler formatted like entity_id/service_name[/attribut:valeur]",
                     "central_boiler_deactivation_service": "Command to turn-off the central boiler formatted like entity_id/service_name[/attribut:valeur]",
-                    "central_boiler_activation_delay_sec": "Delay in seconds before activating the central boiler when it needs to be turned on"
+                    "central_boiler_activation_delay_sec": "Delay in seconds before activating the central boiler when it needs to be turned on",
+                    "keep_alive_boiler_delay_sec": "Delay in seconds to periodically resend the boiler command if keep-alive is enabled. Set to 0 to disable keep-alive."
                 }
             },
             "valve_regulation": {
@@ -427,10 +433,12 @@
                     "use_lock_central_config": "Use central lock configuration",
                     "lock_code": "Optional pincode (4 digits)",
                     "lock_users": "Lock will prevent commands from Users",
-                    "lock_automations": "Lock will prevent commands from Automations & integrations (i.e scheduler)"
+                    "lock_automations": "Lock will prevent commands from Automations & integrations (i.e scheduler)",
+                    "auto_relock_sec": "Auto-relock delay"
                 },
                 "data_description": {
-                    "use_lock_central_config": "Check to use the central lock configuration. Uncheck to use a specific lock configuration for this VTherm"
+                    "use_lock_central_config": "Check to use the central lock configuration. Uncheck to use a specific lock configuration for this VTherm",
+                    "auto_relock_sec": "Delay in seconds before automatically re-locking after an unlock. Set to 0 to disable auto-relock. Default is 30 seconds."
                 }
             },
             "main": {
@@ -620,6 +628,7 @@
                     "safety_delay_min": "Safety delay (in minutes)",
                     "safety_min_on_percent": "Minimum power percent to enable safety mode",
                     "safety_default_on_percent": "Power percent to use in safety mode",
+                    "repair_incorrect_state": "Repair incorrect state",
                     "use_advanced_central_config": "Use central advanced configuration"
                 },
                 "data_description": {
@@ -628,6 +637,7 @@
                     "safety_delay_min": "Maximum allowed delay in minutes between two temperature measurements. Above this delay the thermostat will turn to a safety off state",
                     "safety_min_on_percent": "Minimum heating percent value for safety preset activation. Below this amount of power percent the thermostat won't go into safety preset",
                     "safety_default_on_percent": "The default heating power percent value in safety preset. Set to 0 to switch off heater in safety preset",
+                    "repair_incorrect_state": "Automatically repair incorrect state of underlying entities when detected. The feature will re-send the desired command if the underlying device state doesn't match the expected state.",
                     "use_advanced_central_config": "Check to use the central advanced configuration. Uncheck to use a specific advanced configuration for this VTherm"
                 }
             },
@@ -637,12 +647,14 @@
                 "data": {
                     "central_boiler_activation_service": "Command to turn-on",
                     "central_boiler_deactivation_service": "Command to turn-off",
-                    "central_boiler_activation_delay_sec": "Activation delay (seconds)"
+                    "central_boiler_activation_delay_sec": "Activation delay (seconds)",
+                    "keep_alive_boiler_delay_sec": "Keep-alive delay (seconds)"
                 },
                 "data_description": {
                     "central_boiler_activation_service": "Command to turn-on the central boiler formatted like entity_id/service_name[/attribut:valeur]",
                     "central_boiler_deactivation_service": "Command to turn-off the central boiler formatted like entity_id/service_name[/attribut:valeur]",
-                    "central_boiler_activation_delay_sec": "Delay in seconds before activating the central boiler when it needs to be turned on"
+                    "central_boiler_activation_delay_sec": "Delay in seconds before activating the central boiler when it needs to be turned on",
+                    "keep_alive_boiler_delay_sec": "Delay in seconds to periodically resend the boiler command if keep-alive is enabled. Set to 0 to disable keep-alive."
                 }
             },
             "valve_regulation": {
@@ -1007,6 +1019,24 @@
                 "code": {
                     "name": "Lock code",
                     "description": "The optional lock code"
+                }
+            }
+        },
+        "download_logs": {
+            "name": "Download logs",
+            "description": "Collect and download filtered logs for a VTherm entity.",
+            "fields": {
+                "log_level": {
+                    "name": "Log level",
+                    "description": "Minimum log level to include"
+                },
+                "period_start": {
+                    "name": "Period start",
+                    "description": "Start of the extraction period"
+                },
+                "period_end": {
+                    "name": "Period end",
+                    "description": "End of the extraction period"
                 }
             }
         }

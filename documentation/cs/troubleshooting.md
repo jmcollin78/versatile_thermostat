@@ -224,18 +224,32 @@ template: !include templates.yaml
 ...
 ```
 
-## Povolení logů pro Versatile Thermostat
+## Aktivace protokolů Versatile Thermostat
 
-Někdy budete muset povolit logy pro jemné doladění vaší analýzy. Upravte soubor `logger.yaml` v konfiguraci a nakonfigurujte logy takto:
+### Použití log-collector (doporučená metoda)
+
+Chcete-li sbírat a analyzovat protokoly Versatile Thermostat, **důrazně se doporučuje používat integrovanou funkci stažení protokolů** (log-collector). Tato metoda:
+- ✅ Shromažďuje protokoly **nezávisle na úrovni konfigurované v Home Assistant**
+- ✅ Neovlivňuje výkon Home Assistant
+- ✅ Umožňuje filtrování podle období, termostatu a úrovně závažnosti
+- ✅ Poskytuje snadno analyzovatelný soubor ke stažení
+
+Podívejte se na úplnou dokumentaci: [Stažení starších protokolů - Diagnostika a řešení problémů](feature-logs-collector.md)
+
+### Aktivace protokolů v Home Assistant (stará metoda)
+
+Pokud potřebujete pokročilejší režim ladění, můžete aktivovat protokoly na úrovni Home Assistant úpravou souboru `logger.yaml`:
 
 ```yaml
-default: xxxx
-logs:
-  custom_components.versatile_thermostat: info
+logger:
+  default: warning
+  logs:
+    custom_components.versatile_thermostat: debug
 ```
-Musíte znovu načíst YAML konfiguraci (Developer Tools / YAML / Reload all YAML configuration) nebo restartovat Home Assistant, aby se tato změna projevila.
 
-Pozor, v debug režimu je Versatile Thermostat velmi podrobný a může rychle zpomalit Home Assistant nebo nasytit váš pevný disk. Pokud přepnete do debug režimu pro analýzu anomálií, udělejte to pouze po dobu potřebnou k reprodukci chyby a debug režim okamžitě poté zakažte.
+Chcete-li, aby se tato změna projevila, musíte znovu načíst konfiguraci YAML (Developer Tools / YAML / All Configuration) nebo restartovat Home Assistant.
+
+⚠️ **Upozornění**: V režimu ladění je Versatile Thermostat velmi podrobný a může zpomalit Home Assistant nebo zaneprázdnit váš pevný disk. Tento přístup je doporučen pouze pro pokročilé ladění v krátké době. **Ve všech normálních případech raději používejte log-collector.**
 
 ## VTherm nesleduje změny setpointu provedené přímo na podkladovém zařízení (`over_climate`)
 

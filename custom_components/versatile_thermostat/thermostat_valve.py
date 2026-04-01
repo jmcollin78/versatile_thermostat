@@ -1,6 +1,7 @@
 # pylint: disable=line-too-long, abstract-method
 """ A climate over switch classe """
 import logging
+from .log_collector import get_vtherm_logger
 from datetime import timedelta, datetime
 
 from homeassistant.helpers.event import (
@@ -18,8 +19,10 @@ from .const import *  # pylint: disable=wildcard-import, unused-wildcard-import
 from .commons import write_event_log
 
 from .underlyings import UnderlyingValve
+from .cycle_scheduler import CycleScheduler
+from .vtherm_hvac_mode import VThermHvacMode_OFF
 
-_LOGGER = logging.getLogger(__name__)
+_LOGGER = get_vtherm_logger(__name__)
 
 class ThermostatOverValve(ThermostatProp[UnderlyingValve]):  # pylint: disable=abstract-method
     """Representation of a class for a Versatile Thermostat over a Valve"""
@@ -82,12 +85,20 @@ class ThermostatOverValve(ThermostatProp[UnderlyingValve]):  # pylint: disable=a
                 UnderlyingValve(hass=self._hass, thermostat=self, valve_entity_id=valve)
             )
 
+        self._bind_scheduler(CycleScheduler(
+            hass=self._hass,
+            thermostat=self,
+            underlyings=self._underlyings,
+            cycle_duration_sec=self._cycle_min * 60,
+            min_activation_delay=self.minimal_activation_delay,
+            min_deactivation_delay=self.minimal_deactivation_delay,
+        ))
+
         self._should_relaunch_control_heating = False
 
     @overrides
     async def async_added_to_hass(self):
         """Run when entity about to be added."""
-        _LOGGER.debug("Calling async_added_to_hass")
 
         await super().async_added_to_hass()
 
@@ -196,8 +207,13 @@ class ThermostatOverValve(ThermostatProp[UnderlyingValve]):  # pylint: disable=a
                 self.vtherm_hvac_mode or VThermHvacMode_OFF,
             )
 
+        current_on_percent = self.safe_on_percent
+        if current_on_percent is None:
+            # Temperature not yet available; preserve the current valve position.
+            return
+
         new_valve_percent = round(
-            max(0, min(self.safe_on_percent, 1)) * 100
+            max(0, min(current_on_percent, 1)) * 100
         )
 
         # Issue 533 - don't filter with dtemp if valve should be close. Else it will never close
@@ -225,9 +241,8 @@ class ThermostatOverValve(ThermostatProp[UnderlyingValve]):  # pylint: disable=a
 
         self._valve_open_percent = new_valve_percent
 
-        # is in start_cycle now which is called by control_heating
-        # for under in self._underlyings:
-        #    under.set_valve_open_percent()
+        # Valve open percent is sent to underlyings by CycleScheduler
+        # in start_cycle (called from control_heating)
 
         self._last_calculation_timestamp = now
 

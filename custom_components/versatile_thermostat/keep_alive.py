@@ -8,6 +8,7 @@ the keep_alive setting of Home Assistant's Generic Thermostat integration:
 """
 
 import logging
+from .log_collector import get_vtherm_logger
 from collections.abc import Awaitable, Callable
 from datetime import timedelta, datetime
 from time import monotonic
@@ -16,7 +17,7 @@ from homeassistant.core import HomeAssistant, CALLBACK_TYPE
 from homeassistant.helpers.event import async_track_time_interval
 
 
-_LOGGER = logging.getLogger(__name__)
+_LOGGER = get_vtherm_logger(__name__)
 
 
 class BackoffTimer:
@@ -124,7 +125,7 @@ class IntervalCaller:
         async def callback(_time: datetime):
             try:
                 _LOGGER.debug(
-                    "Calling keep-alive action '%s' (%ss interval)",
+                    "IntervalCaller - Calling keep-alive action '%s' (%ss interval)",
                     action.__name__,
                     self._interval_sec,
                 )

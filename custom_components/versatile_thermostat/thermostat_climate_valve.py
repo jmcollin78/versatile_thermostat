@@ -2,6 +2,7 @@
 """ A climate with a direct valve regulation class """
 
 import logging
+from .log_collector import get_vtherm_logger
 import asyncio
 from datetime import datetime
 from typing import Optional
@@ -16,6 +17,7 @@ from .underlyings import UnderlyingValveRegulation, UnderlyingClimate
 from .base_thermostat import ConfigData
 from .thermostat_climate import ThermostatOverClimate
 from .thermostat_prop import ThermostatProp
+from .cycle_scheduler import CycleScheduler
 
 from .const import *  # pylint: disable=wildcard-import, unused-wildcard-import
 from .commons import write_event_log
@@ -23,7 +25,7 @@ from .vtherm_hvac_mode import VThermHvacMode, VThermHvacMode_OFF, VThermHvacMode
 
 # from .vtherm_api import VersatileThermostatAPI
 
-_LOGGER = logging.getLogger(__name__)
+_LOGGER = get_vtherm_logger(__name__)
 
 
 class ThermostatOverClimateValve(ThermostatProp[UnderlyingClimate], ThermostatOverClimate):
@@ -118,6 +120,15 @@ class ThermostatOverClimateValve(ThermostatProp[UnderlyingClimate], ThermostatOv
                 opening_threshold=self._opening_threshold_degree,
             )
             self._underlyings_valve_regulation.append(under)
+
+        self._bind_scheduler(CycleScheduler(
+            hass=self._hass,
+            thermostat=self,
+            underlyings=self._underlyings_valve_regulation,
+            cycle_duration_sec=self._cycle_min * 60,
+            min_activation_delay=self.minimal_activation_delay,
+            min_deactivation_delay=self.minimal_deactivation_delay,
+        ))
 
     async def init_underlyings_completed(self, under_entity_id: Optional[str] = None):
         """Called when an underlying is fully initialized
@@ -248,6 +259,9 @@ class ThermostatOverClimateValve(ThermostatProp[UnderlyingClimate], ThermostatOv
             new_valve_percent = 100
         else:
             on_percent = self.safe_on_percent
+            if on_percent is None:
+                # Temperature not yet available; preserve the current valve position.
+                return
             new_valve_percent = round(max(0, min(on_percent, 1)) * 100)
 
             # Issue 533 - don't filter with dtemp if valve should be close. Else it will never close
@@ -407,6 +421,12 @@ class ThermostatOverClimateValve(ThermostatProp[UnderlyingClimate], ThermostatOv
 
     @overrides
     @property
+    def all_underlying_entities(self) -> list | None:
+        """Returns all underlying entities for controling the central boiler"""
+        return self._underlyings + self._underlyings_valve_regulation
+
+    @overrides
+    @property
     def is_sleeping(self) -> bool:
         """True if the thermostat is in sleep mode"""
         return self.vtherm_hvac_mode == VThermHvacMode_SLEEP
@@ -425,14 +445,6 @@ class ThermostatOverClimateValve(ThermostatProp[UnderlyingClimate], ThermostatOv
         """
         write_event_log(_LOGGER, self, "Calling SERVICE_SET_HVAC_MODE_SLEEP")
         await self.async_set_hvac_mode(hvac_mode=VThermHvacMode_SLEEP)
-
-    # #1654 no more needed now
-    # @overrides
-    # async def _check_initial_state(self):
-    #    """Check the initial state of the thermostat and its underlyings"""
-    #    await super()._check_initial_state()
-    #    for under in self._underlyings_valve_regulation:
-    #        await under.check_initial_state(self.vtherm_hvac_mode)
 
     @overrides
     def choose_auto_fan_mode(self, auto_fan_mode: str):

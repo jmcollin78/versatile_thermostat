@@ -3,6 +3,7 @@
 """ Implements the Heating Failure Detection as a Feature Manager"""
 
 import logging
+from .log_collector import get_vtherm_logger
 from typing import Any
 from datetime import datetime, timedelta
 
@@ -35,7 +36,7 @@ from .commons_type import ConfigData
 from .base_manager import BaseFeatureManager
 from .vtherm_hvac_mode import VThermHvacMode_OFF, VThermHvacMode_HEAT
 
-_LOGGER = logging.getLogger(__name__)
+_LOGGER = get_vtherm_logger(__name__)
 
 
 class FeatureHeatingFailureDetectionManager(BaseFeatureManager):
@@ -44,6 +45,11 @@ class FeatureHeatingFailureDetectionManager(BaseFeatureManager):
     This feature detects:
     1. Heating failure: high on_percent but temperature not increasing
     2. Cooling failure: on_percent at 0 but temperature still increasing
+
+    When a failure is detected on a thermostat with valve underlyings,
+    root cause analysis is performed by comparing each underlying's
+    should_device_be_active (commanded state) vs is_device_active (real state)
+    to determine if the failure is caused by a stuck valve.
     """
 
     unrecorded_attributes = frozenset(
@@ -324,12 +330,90 @@ class FeatureHeatingFailureDetectionManager(BaseFeatureManager):
         self._high_power_start_time = None
         self._zero_power_start_time = None
 
+    def _diagnose_root_cause(self, failure_type: str) -> dict[str, Any]:
+        """Diagnose the root cause of a failure by checking valve underlyings.
+
+        For thermostats with valve underlyings (over_valve or over_climate_valve),
+        compares the requested state (should_device_be_active) with the real state
+        (is_device_active) to determine if a stuck valve is the cause.
+
+        Args:
+            failure_type: "heating" or "cooling"
+
+        Returns:
+            A dict with root_cause, root_cause_entity_id, and root_cause_details
+        """
+        result = {
+            "root_cause": "not_identified",
+            "root_cause_entity_id": None,
+            "root_cause_details": [],
+        }
+
+        if not hasattr(self._vtherm, '_underlyings'):
+            return result
+
+        from .underlyings import UnderlyingValve
+
+        stuck_valves = []
+        for under in self._vtherm._underlyings:
+            if not isinstance(under, UnderlyingValve):
+                continue
+
+            should_active = under.should_device_be_active
+            is_active = under.is_device_active
+
+            if should_active is None or is_active is None:
+                continue
+
+            if should_active and not is_active:
+                stuck_valves.append({
+                    "entity_id": under.entity_id,
+                    "type": "valve_stuck_closed",
+                    "requested": "open",
+                    "actual": "closed",
+                })
+            elif not should_active and is_active:
+                stuck_valves.append({
+                    "entity_id": under.entity_id,
+                    "type": "valve_stuck_open",
+                    "requested": "closed",
+                    "actual": "open",
+                })
+
+        if stuck_valves:
+            if failure_type == "heating":
+                valve_stuck_type = "valve_stuck_closed"
+            else:
+                valve_stuck_type = "valve_stuck_open"
+
+            matching = [v for v in stuck_valves if v["type"] == valve_stuck_type]
+            if matching:
+                result["root_cause"] = valve_stuck_type
+                result["root_cause_entity_id"] = matching[0]["entity_id"]
+                result["root_cause_details"] = matching
+            else:
+                result["root_cause"] = stuck_valves[0]["type"]
+                result["root_cause_entity_id"] = stuck_valves[0]["entity_id"]
+                result["root_cause_details"] = stuck_valves
+
+        return result
+
     def _send_heating_failure_event(self, event_type: str, on_percent: float, temp_diff: float, current_temp: float):
         """Send a heating failure event"""
         is_enabled_by_template = self._is_detection_enabled_by_template()
+
+        root_cause_info = self._diagnose_root_cause("heating") if event_type == "heating_failure_start" else {
+            "root_cause": "not_identified",
+            "root_cause_entity_id": None,
+            "root_cause_details": [],
+        }
+
         # Log the event
         if event_type == "heating_failure_start":
-            write_event_log(_LOGGER, self._vtherm, f"Heating failure detected: on_percent={on_percent*100:.0f}%, temp_diff={temp_diff:.2f}°")
+            write_event_log(
+                _LOGGER, self._vtherm,
+                f"Heating failure detected: on_percent={on_percent*100:.0f}%, temp_diff={temp_diff:.2f}°, root_cause={root_cause_info['root_cause']}"
+            )
         else:
             write_event_log(
                 _LOGGER, self._vtherm, f"Heating failure ended: on_percent={on_percent*100:.0f}%, temp_diff={temp_diff:.2f}°, template_enabled={is_enabled_by_template}"
@@ -347,15 +431,28 @@ class FeatureHeatingFailureDetectionManager(BaseFeatureManager):
                 "threshold": self._heating_failure_threshold,
                 "detection_delay_min": self._heating_failure_detection_delay,
                 "is_enabled_by_template": is_enabled_by_template,
+                "root_cause": root_cause_info["root_cause"],
+                "root_cause_entity_id": root_cause_info["root_cause_entity_id"],
+                "root_cause_details": root_cause_info["root_cause_details"],
             },
         )
 
     def _send_cooling_failure_event(self, event_type: str, on_percent: float, temp_diff: float, current_temp: float):
         """Send a cooling failure event"""
         is_enabled_by_template = self._is_detection_enabled_by_template()
+
+        root_cause_info = self._diagnose_root_cause("cooling") if event_type == "cooling_failure_start" else {
+            "root_cause": "not_identified",
+            "root_cause_entity_id": None,
+            "root_cause_details": [],
+        }
+
         # Log the event
         if event_type == "cooling_failure_start":
-            write_event_log(_LOGGER, self._vtherm, f"Cooling failure detected: on_percent={on_percent*100:.0f}%, temp_diff=+{temp_diff:.2f}°")
+            write_event_log(
+                _LOGGER, self._vtherm,
+                f"Cooling failure detected: on_percent={on_percent*100:.0f}%, temp_diff=+{temp_diff:.2f}°, root_cause={root_cause_info['root_cause']}"
+            )
         else:
             write_event_log(
                 _LOGGER, self._vtherm, f"Cooling failure ended: on_percent={on_percent*100:.0f}%, temp_diff={temp_diff:.2f}°, template_enabled={is_enabled_by_template}"
@@ -373,6 +470,9 @@ class FeatureHeatingFailureDetectionManager(BaseFeatureManager):
                 "threshold": self._cooling_failure_threshold,
                 "detection_delay_min": self._heating_failure_detection_delay,
                 "is_enabled_by_template": is_enabled_by_template,
+                "root_cause": root_cause_info["root_cause"],
+                "root_cause_entity_id": root_cause_info["root_cause_entity_id"],
+                "root_cause_details": root_cause_info["root_cause_details"],
             },
         )
 
@@ -398,6 +498,12 @@ class FeatureHeatingFailureDetectionManager(BaseFeatureManager):
                 template_str = self._failure_detection_enable_template.template
                 template_enabled = self._is_detection_enabled_by_template()
 
+            root_cause_info = {}
+            if self._heating_failure_state == STATE_ON:
+                root_cause_info = self._diagnose_root_cause("heating")
+            elif self._cooling_failure_state == STATE_ON:
+                root_cause_info = self._diagnose_root_cause("cooling")
+
             extra_state_attributes.update(
                 {
                     "heating_failure_detection_manager": {
@@ -411,6 +517,8 @@ class FeatureHeatingFailureDetectionManager(BaseFeatureManager):
                         "is_detection_enabled_by_template": template_enabled,
                         "heating_tracking": heating_tracking_info,
                         "cooling_tracking": cooling_tracking_info,
+                        "root_cause": root_cause_info.get("root_cause"),
+                        "root_cause_entity_id": root_cause_info.get("root_cause_entity_id"),
                     }
                 }
             )
@@ -457,6 +565,11 @@ class FeatureHeatingFailureDetectionManager(BaseFeatureManager):
     def is_failure_detected(self) -> bool:
         """Returns True if any failure is currently detected"""
         return self._heating_failure_state == STATE_ON or self._cooling_failure_state == STATE_ON
+
+    @property
+    def is_detected(self) -> bool:
+        """Return the overall state of the feature manager based on failure states"""
+        return self.is_failure_detected
 
     @property
     def is_heating_failure_detected(self) -> bool:

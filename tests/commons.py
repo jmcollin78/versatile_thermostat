@@ -1358,12 +1358,12 @@ async def send_climate_change_event_with_temperature(
     # return ret
 
 
-def cancel_switchs_cycles(entity: BaseThermostat):
+async def cancel_switchs_cycles(entity: BaseThermostat):
     """This method will cancel all running cycle on all underlying switch entity"""
     if entity.is_over_climate:
         return
-    for under in entity._underlyings:
-        under._cancel_cycle()
+    if entity.cycle_scheduler:
+        await entity.cycle_scheduler.cancel_cycle()
 
 
 async def set_climate_preset_temp(
@@ -1504,14 +1504,15 @@ async def do_central_power_refresh(hass):
 
 
 async def wait_for_local_condition(check_condition: Callable[[], bool], timeout: float = 1.0):
-    """Waits that a local condition is satisfied, with a timeout."""
+    """Waits that a local condition is satisfied, with a timeout.
+    Uses short sleeps to give the event loop and executor threads time to process."""
     start_time = asyncio.get_event_loop().time()
 
     while not check_condition():
         if asyncio.get_event_loop().time() - start_time > timeout:
             raise TimeoutError("La condition locale n'a pas été satisfaite.")
 
-        # Le minimum pour laisser l'event loop s'exécuter
+        # Yield to allow both event loop callbacks and executor threads to progress
         await asyncio.sleep(0.1)
 
 

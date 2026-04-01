@@ -2,7 +2,18 @@
 
 ![New](images/new-icon.png)
 
-## Wydanie 8.42.
+## Wydanie 8.6
+> 1. Dodanie parametru `max_opening_degrees` dla termostatów VTherm typu `over_climate_valve` pozwalającego ograniczyć maksymalny procent otwarcia każdego zaworu w celu kontrolowania przepływu gorącej wody i optymalizacji zużycia energii.
+> 2. Dodanie funkcji ponownej kalibracji zaworów dla _VTherm_ `over_climate_valve`, pozwalającej wymusić maksymalne otwarcie, a następnie maksymalne zamknięcie w celu próby ponownej kalibracji TRV. Więcej informacji [tutaj](documentation/pl/feature-recalibrate-valves.md).
+
+## Wydanie 8.5
+> 1. Dodanie wykrywania awarii ogrzewania dla termostatów VTherm używających algorytmu TPI. Ta funkcja wykrywa dwa typy anomalii:
+>    - **awaria ogrzewania**: grzejnik mocno grzeje (wysoki on_percent), ale temperatura nie rośnie,
+>    - **awaria chłodzenia**: grzejnik nie grzeje (on_percent równe 0), ale temperatura nadal rośnie.
+>
+> Anomalie te mogą wskazywać na otwarte okno, uszkodzony grzejnik lub zewnętrzne źródło ciepła. Funkcja wysyła zdarzenia, które mogą być używane do wyzwalania automatyzacji (powiadomienia, alerty itp.). Więcej informacji [tutaj](documentation/pl/feature-heating-failure-detection.md).
+
+## Wydanie 8.4
 > 1. Dodanie eksperymentalnej funkcji automatyzacji algorytmu TPI. Ta nowa funkcja pozwala na automatyczne obliczanie najlepszych współczynników dla algorytmu TPI. Więcej informacji znajdziesz [tutaj](documentation/pl/feature-autotpi.md).
 > 2. Dodanie funkcji synchronizacji temperatury dla urządzenia sterowanego w trybie `na_klimacie`. W zależności od możliwości urządzenia, _VTherm_ może sterować jednostką kalibracji offsetu lub bezpośrednio zewnętrzną encją temperatury. Więcej informacji znajduje się [tutaj](documentation/pl/feature-sync_device_temp.md).
 > 3. Dodanie funkcji _**presetu czasowego**_, która umożliwia wybranie presetu na z góry określony czas i powrót do poprzedniego po upływie wkazanego opóźnienia. Nowa funkcja jest szczegółowo opisana [tutaj](documentation/pl/feature-timed-preset.md).

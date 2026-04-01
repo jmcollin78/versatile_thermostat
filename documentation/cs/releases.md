@@ -2,6 +2,17 @@
 
 ![New](images/new-icon.png)
 
+## Release 8.6
+> 1. přidán parametr `max_opening_degrees` pro VTherms typu `over_climate_valve` umožňující omezit maximální procento otevření každého ventilu pro řízení průtoku horké vody a optimalizaci spotřeby energie.
+> 2. přidána funkce překalibrace ventilů pro _VTherm_ `over_climate_valve`, která umožňuje vynutit maximální otevření a poté maximální zavření za účelem pokusu o překalibraci TRV. Více informací [zde](documentation/cs/feature-recalibrate-valves.md).
+
+## Release 8.5
+> 1. přidána detekce poruchy vytápění pro VTherms používající algoritmus TPI. Tato funkce detekuje dva typy anomálií:
+>    - **porucha vytápění**: radiátor silně topí (vysoké on_percent), ale teplota nestoupá,
+>    - **porucha chlazení**: radiátor netopí (on_percent na 0), ale teplota stále stoupá.
+>
+> Tyto anomálie mohou naznačovat otevřené okno, vadný radiátor nebo externí zdroj tepla. Funkce odesílá události, které lze použít ke spuštění automatizací (oznámení, výstrahy atd.). Více informací [zde](documentation/cs/feature-heating-failure-detection.md).
+
 ## Release 8.4
 > 1. added auto TPI (experimental). This new feature allows automatically calculating the best coefficients for the TPI algorithm. More information [zde](documentation/cs/feature-autotpi.md)
 > 2. added a temperature synchronization function for a device controlled in `over_climate` mode. Depending on your device's capabilities, _VTherm_ can control an offset calibration entity or directly an external temperature entity. More information [zde](documentation/cs/feature-sync_device_temp.md),

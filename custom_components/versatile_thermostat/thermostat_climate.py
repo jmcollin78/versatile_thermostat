@@ -1,6 +1,7 @@
 # pylint: disable=line-too-long, too-many-lines, abstract-method
 """ A climate over climate classe """
 import logging
+from .log_collector import get_vtherm_logger
 from typing import Optional
 
 from datetime import timedelta, datetime
@@ -24,7 +25,7 @@ from .underlyings import UnderlyingClimate
 from .feature_auto_start_stop_manager import FeatureAutoStartStopManager
 from .vtherm_hvac_mode import VThermHvacMode
 
-_LOGGER = logging.getLogger(__name__)
+_LOGGER = get_vtherm_logger(__name__)
 
 HVAC_ACTION_ON = [  # pylint: disable=invalid-name
     HVACAction.COOLING,
@@ -540,8 +541,6 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
     @overrides
     async def async_added_to_hass(self):
         """Run when entity about to be added."""
-        _LOGGER.debug("Calling async_added_to_hass")
-
         await super().async_added_to_hass()
 
         # Add listener to all underlying entities
@@ -710,13 +709,13 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
             "%s - Underlying climate %s have changed. new_hvac_mode is %s (vs %s), new_hvac_action=%s (vs %s), new_target_temp=%s (vs %s), new_fan_mode=%s (vs %s)",
             self,
             under.entity_id,
-            new_hvac_mode,
+            new_hvac_mode if new_hvac_mode is not None else "<no change>",
             self.vtherm_hvac_mode,
-            new_hvac_action,
+            new_hvac_action if new_hvac_action is not None else "<no change>",
             self.hvac_action,
-            new_target_temp,
+            new_target_temp if new_target_temp is not None else "<no change>",
             self.target_temperature,
-            new_fan_mode,
+            new_fan_mode if new_fan_mode is not None else "<no change>",
             self.fan_mode,
         )
 
@@ -778,13 +777,18 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
                         return
 
                 _LOGGER.debug(
-                    "%s - All underlyings have the same hvac_mode, so VTherm will send the new hvac mode %s",
+                    "%s - All underlyings have the same hvac_mode '%s'",
                     self,
                     new_hvac_mode,
                 )
             changes = True
             # We follow the underlying hvac_mode change
             if self._follow_underlying_temp_change:
+                _LOGGER.debug(
+                    "%s - Follow is 'on'. Changing hvac_mode for all underlying to '%s'",
+                    self,
+                    new_hvac_mode,
+                )
                 self.requested_state.set_hvac_mode(new_hvac_mode)
 
         # A quick win to known if it has change by using the self._attr_fan_mode and not only underlying[0].fan_mode

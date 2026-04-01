@@ -961,3 +961,396 @@ async def test_template_ends_failure_when_disabled(hass: HomeAssistant):
         mock_event.assert_called_once()
         call_args = mock_event.call_args[0]
         assert call_args[0] == "heating_failure_end"
+
+
+# ========================================================================
+# PART 4: Root cause analysis tests
+# ========================================================================
+
+
+async def test_diagnose_root_cause_no_underlyings(hass: HomeAssistant):
+    """Test root cause diagnosis when vtherm has no underlyings"""
+
+    fake_vtherm = MagicMock(spec=BaseThermostat)
+    type(fake_vtherm).name = PropertyMock(return_value="the name")
+
+    manager = FeatureHeatingFailureDetectionManager(fake_vtherm, hass)
+    manager.post_init({CONF_USE_HEATING_FAILURE_DETECTION_FEATURE: True})
+
+    # No _underlyings attribute
+    del fake_vtherm._underlyings
+
+    result = manager._diagnose_root_cause("heating")
+    assert result["root_cause"] == "not_identified"
+    assert result["root_cause_entity_id"] is None
+    assert result["root_cause_details"] == []
+
+
+async def test_diagnose_root_cause_no_valve_underlyings(hass: HomeAssistant):
+    """Test root cause diagnosis when vtherm has non-valve underlyings (e.g. switch)"""
+
+    fake_vtherm = MagicMock(spec=BaseThermostat)
+    type(fake_vtherm).name = PropertyMock(return_value="the name")
+
+    # Mock underlyings with a non-valve entity (e.g. a switch)
+    fake_switch = MagicMock()
+    fake_vtherm._underlyings = [fake_switch]
+
+    manager = FeatureHeatingFailureDetectionManager(fake_vtherm, hass)
+    manager.post_init({CONF_USE_HEATING_FAILURE_DETECTION_FEATURE: True})
+
+    result = manager._diagnose_root_cause("heating")
+    assert result["root_cause"] == "not_identified"
+    assert result["root_cause_entity_id"] is None
+
+
+async def test_diagnose_root_cause_valve_stuck_closed(hass: HomeAssistant):
+    """Test root cause diagnosis detects valve stuck closed (heating failure)"""
+    from custom_components.versatile_thermostat.underlyings import UnderlyingValve
+
+    fake_vtherm = MagicMock(spec=BaseThermostat)
+    type(fake_vtherm).name = PropertyMock(return_value="the name")
+
+    # Mock a valve underlying: should be active but isn't (stuck closed)
+    fake_valve = MagicMock(spec=UnderlyingValve)
+    type(fake_valve).entity_id = PropertyMock(return_value="number.trv_living_room")
+    type(fake_valve).should_device_be_active = PropertyMock(return_value=True)
+    type(fake_valve).is_device_active = PropertyMock(return_value=False)
+    fake_vtherm._underlyings = [fake_valve]
+
+    manager = FeatureHeatingFailureDetectionManager(fake_vtherm, hass)
+    manager.post_init({CONF_USE_HEATING_FAILURE_DETECTION_FEATURE: True})
+
+    result = manager._diagnose_root_cause("heating")
+    assert result["root_cause"] == "valve_stuck_closed"
+    assert result["root_cause_entity_id"] == "number.trv_living_room"
+    assert len(result["root_cause_details"]) == 1
+    assert result["root_cause_details"][0]["type"] == "valve_stuck_closed"
+    assert result["root_cause_details"][0]["requested"] == "open"
+    assert result["root_cause_details"][0]["actual"] == "closed"
+
+
+async def test_diagnose_root_cause_valve_stuck_open(hass: HomeAssistant):
+    """Test root cause diagnosis detects valve stuck open (cooling failure)"""
+    from custom_components.versatile_thermostat.underlyings import UnderlyingValve
+
+    fake_vtherm = MagicMock(spec=BaseThermostat)
+    type(fake_vtherm).name = PropertyMock(return_value="the name")
+
+    # Mock a valve underlying: should NOT be active but is (stuck open)
+    fake_valve = MagicMock(spec=UnderlyingValve)
+    type(fake_valve).entity_id = PropertyMock(return_value="number.trv_bedroom")
+    type(fake_valve).should_device_be_active = PropertyMock(return_value=False)
+    type(fake_valve).is_device_active = PropertyMock(return_value=True)
+    fake_vtherm._underlyings = [fake_valve]
+
+    manager = FeatureHeatingFailureDetectionManager(fake_vtherm, hass)
+    manager.post_init({CONF_USE_HEATING_FAILURE_DETECTION_FEATURE: True})
+
+    result = manager._diagnose_root_cause("cooling")
+    assert result["root_cause"] == "valve_stuck_open"
+    assert result["root_cause_entity_id"] == "number.trv_bedroom"
+    assert len(result["root_cause_details"]) == 1
+    assert result["root_cause_details"][0]["type"] == "valve_stuck_open"
+    assert result["root_cause_details"][0]["requested"] == "closed"
+    assert result["root_cause_details"][0]["actual"] == "open"
+
+
+async def test_diagnose_root_cause_valve_ok(hass: HomeAssistant):
+    """Test root cause returns not_identified when valve states match"""
+    from custom_components.versatile_thermostat.underlyings import UnderlyingValve
+
+    fake_vtherm = MagicMock(spec=BaseThermostat)
+    type(fake_vtherm).name = PropertyMock(return_value="the name")
+
+    # Mock a valve underlying: states match (no stuck valve)
+    fake_valve = MagicMock(spec=UnderlyingValve)
+    type(fake_valve).entity_id = PropertyMock(return_value="number.trv_kitchen")
+    type(fake_valve).should_device_be_active = PropertyMock(return_value=True)
+    type(fake_valve).is_device_active = PropertyMock(return_value=True)
+    fake_vtherm._underlyings = [fake_valve]
+
+    manager = FeatureHeatingFailureDetectionManager(fake_vtherm, hass)
+    manager.post_init({CONF_USE_HEATING_FAILURE_DETECTION_FEATURE: True})
+
+    result = manager._diagnose_root_cause("heating")
+    assert result["root_cause"] == "not_identified"
+    assert result["root_cause_entity_id"] is None
+
+
+async def test_diagnose_root_cause_valve_none_state(hass: HomeAssistant):
+    """Test root cause skips valves with None state"""
+    from custom_components.versatile_thermostat.underlyings import UnderlyingValve
+
+    fake_vtherm = MagicMock(spec=BaseThermostat)
+    type(fake_vtherm).name = PropertyMock(return_value="the name")
+
+    # Mock a valve underlying with None is_device_active (unavailable)
+    fake_valve = MagicMock(spec=UnderlyingValve)
+    type(fake_valve).entity_id = PropertyMock(return_value="number.trv_unavailable")
+    type(fake_valve).should_device_be_active = PropertyMock(return_value=True)
+    type(fake_valve).is_device_active = PropertyMock(return_value=None)
+    fake_vtherm._underlyings = [fake_valve]
+
+    manager = FeatureHeatingFailureDetectionManager(fake_vtherm, hass)
+    manager.post_init({CONF_USE_HEATING_FAILURE_DETECTION_FEATURE: True})
+
+    result = manager._diagnose_root_cause("heating")
+    assert result["root_cause"] == "not_identified"
+
+
+async def test_diagnose_root_cause_multiple_valves(hass: HomeAssistant):
+    """Test root cause with multiple valves, one stuck"""
+    from custom_components.versatile_thermostat.underlyings import UnderlyingValve
+
+    fake_vtherm = MagicMock(spec=BaseThermostat)
+    type(fake_vtherm).name = PropertyMock(return_value="the name")
+
+    # Valve 1: OK
+    fake_valve_ok = MagicMock(spec=UnderlyingValve)
+    type(fake_valve_ok).entity_id = PropertyMock(return_value="number.trv_ok")
+    type(fake_valve_ok).should_device_be_active = PropertyMock(return_value=True)
+    type(fake_valve_ok).is_device_active = PropertyMock(return_value=True)
+
+    # Valve 2: Stuck closed
+    fake_valve_stuck = MagicMock(spec=UnderlyingValve)
+    type(fake_valve_stuck).entity_id = PropertyMock(return_value="number.trv_stuck")
+    type(fake_valve_stuck).should_device_be_active = PropertyMock(return_value=True)
+    type(fake_valve_stuck).is_device_active = PropertyMock(return_value=False)
+
+    fake_vtherm._underlyings = [fake_valve_ok, fake_valve_stuck]
+
+    manager = FeatureHeatingFailureDetectionManager(fake_vtherm, hass)
+    manager.post_init({CONF_USE_HEATING_FAILURE_DETECTION_FEATURE: True})
+
+    result = manager._diagnose_root_cause("heating")
+    assert result["root_cause"] == "valve_stuck_closed"
+    assert result["root_cause_entity_id"] == "number.trv_stuck"
+
+
+async def test_heating_failure_event_includes_root_cause(hass: HomeAssistant):
+    """Test that heating failure events include root cause information"""
+    from custom_components.versatile_thermostat.underlyings import UnderlyingValve
+
+    now = datetime.now()
+    fake_vtherm = MagicMock(spec=BaseThermostat)
+    type(fake_vtherm).name = PropertyMock(return_value="the name")
+    type(fake_vtherm).now = PropertyMock(return_value=now)
+    type(fake_vtherm).current_temperature = PropertyMock(return_value=20.0)
+    type(fake_vtherm).target_temperature = PropertyMock(return_value=22.0)
+    type(fake_vtherm).has_prop = PropertyMock(return_value=True)
+    type(fake_vtherm).on_percent = PropertyMock(return_value=0.95)
+    type(fake_vtherm).vtherm_hvac_mode = PropertyMock(return_value=VThermHvacMode_HEAT)
+
+    fake_requested_state = MagicMock()
+    fake_requested_state.hvac_mode = VThermHvacMode_HEAT
+    type(fake_vtherm).requested_state = PropertyMock(return_value=fake_requested_state)
+
+    # Mock a stuck closed valve
+    fake_valve = MagicMock(spec=UnderlyingValve)
+    type(fake_valve).entity_id = PropertyMock(return_value="number.trv_living_room")
+    type(fake_valve).should_device_be_active = PropertyMock(return_value=True)
+    type(fake_valve).is_device_active = PropertyMock(return_value=False)
+    fake_vtherm._underlyings = [fake_valve]
+
+    manager = FeatureHeatingFailureDetectionManager(fake_vtherm, hass)
+    manager.post_init({
+        CONF_USE_HEATING_FAILURE_DETECTION_FEATURE: True,
+        CONF_HEATING_FAILURE_THRESHOLD: 0.9,
+        CONF_HEATING_FAILURE_DETECTION_DELAY: 15,
+        CONF_TEMPERATURE_CHANGE_TOLERANCE: 0.5,
+    })
+
+    # Step 1: Initialize tracking
+    result = await manager.refresh_state()
+    assert result is False
+
+    # Step 2: Start high power tracking
+    later1 = now + timedelta(minutes=1)
+    type(fake_vtherm).now = PropertyMock(return_value=later1)
+    result = await manager.refresh_state()
+    assert result is False
+    assert manager._high_power_start_time == later1
+
+    # Step 3: After delay, temperature hasn't increased -> failure with root cause
+    later2 = now + timedelta(minutes=17)
+    type(fake_vtherm).now = PropertyMock(return_value=later2)
+
+    result = await manager.refresh_state()
+    assert result is True
+    assert manager.is_heating_failure_detected is True
+
+    # Verify root cause in the event
+    event_call = fake_vtherm.send_event.call_args
+    event_data = event_call[0][1]
+    assert event_data["root_cause"] == "valve_stuck_closed"
+    assert event_data["root_cause_entity_id"] == "number.trv_living_room"
+    assert len(event_data["root_cause_details"]) == 1
+
+
+async def test_cooling_failure_event_includes_root_cause(hass: HomeAssistant):
+    """Test that cooling failure events include root cause for stuck open valve"""
+    from custom_components.versatile_thermostat.underlyings import UnderlyingValve
+
+    now = datetime.now()
+    fake_vtherm = MagicMock(spec=BaseThermostat)
+    type(fake_vtherm).name = PropertyMock(return_value="the name")
+    type(fake_vtherm).now = PropertyMock(return_value=now)
+    type(fake_vtherm).current_temperature = PropertyMock(return_value=22.0)
+    type(fake_vtherm).target_temperature = PropertyMock(return_value=20.0)
+    type(fake_vtherm).has_prop = PropertyMock(return_value=True)
+    type(fake_vtherm).on_percent = PropertyMock(return_value=0.0)
+    type(fake_vtherm).vtherm_hvac_mode = PropertyMock(return_value=VThermHvacMode_HEAT)
+
+    fake_requested_state = MagicMock()
+    fake_requested_state.hvac_mode = VThermHvacMode_HEAT
+    type(fake_vtherm).requested_state = PropertyMock(return_value=fake_requested_state)
+
+    # Mock a stuck open valve
+    fake_valve = MagicMock(spec=UnderlyingValve)
+    type(fake_valve).entity_id = PropertyMock(return_value="number.trv_bedroom")
+    type(fake_valve).should_device_be_active = PropertyMock(return_value=False)
+    type(fake_valve).is_device_active = PropertyMock(return_value=True)
+    fake_vtherm._underlyings = [fake_valve]
+
+    manager = FeatureHeatingFailureDetectionManager(fake_vtherm, hass)
+    manager.post_init({
+        CONF_USE_HEATING_FAILURE_DETECTION_FEATURE: True,
+        CONF_COOLING_FAILURE_THRESHOLD: 0.0,
+        CONF_HEATING_FAILURE_DETECTION_DELAY: 15,
+        CONF_TEMPERATURE_CHANGE_TOLERANCE: 0.5,
+    })
+
+    # Step 1: Initialize tracking
+    result = await manager.refresh_state()
+    assert result is False
+
+    # Step 2: Start zero power tracking
+    later1 = now + timedelta(minutes=1)
+    type(fake_vtherm).now = PropertyMock(return_value=later1)
+    result = await manager.refresh_state()
+    assert result is False
+
+    # Step 3: After delay, temperature keeps rising -> cooling failure with root cause
+    later2 = now + timedelta(minutes=17)
+    type(fake_vtherm).now = PropertyMock(return_value=later2)
+    type(fake_vtherm).current_temperature = PropertyMock(return_value=23.0)
+
+    result = await manager.refresh_state()
+    assert result is True
+    assert manager.is_cooling_failure_detected is True
+
+    # Verify root cause in the event
+    event_call = fake_vtherm.send_event.call_args
+    event_data = event_call[0][1]
+    assert event_data["root_cause"] == "valve_stuck_open"
+    assert event_data["root_cause_entity_id"] == "number.trv_bedroom"
+
+
+async def test_failure_event_not_identified_without_valves(hass: HomeAssistant):
+    """Test that failure events show not_identified when no valve underlyings"""
+
+    now = datetime.now()
+    fake_vtherm = MagicMock(spec=BaseThermostat)
+    type(fake_vtherm).name = PropertyMock(return_value="the name")
+    type(fake_vtherm).now = PropertyMock(return_value=now)
+    type(fake_vtherm).current_temperature = PropertyMock(return_value=20.0)
+    type(fake_vtherm).target_temperature = PropertyMock(return_value=22.0)
+    type(fake_vtherm).has_prop = PropertyMock(return_value=True)
+    type(fake_vtherm).on_percent = PropertyMock(return_value=0.95)
+    type(fake_vtherm).vtherm_hvac_mode = PropertyMock(return_value=VThermHvacMode_HEAT)
+
+    fake_requested_state = MagicMock()
+    fake_requested_state.hvac_mode = VThermHvacMode_HEAT
+    type(fake_vtherm).requested_state = PropertyMock(return_value=fake_requested_state)
+
+    # No valve underlyings (switch-based thermostat)
+    fake_switch = MagicMock()
+    fake_vtherm._underlyings = [fake_switch]
+
+    manager = FeatureHeatingFailureDetectionManager(fake_vtherm, hass)
+    manager.post_init({
+        CONF_USE_HEATING_FAILURE_DETECTION_FEATURE: True,
+        CONF_HEATING_FAILURE_THRESHOLD: 0.9,
+        CONF_HEATING_FAILURE_DETECTION_DELAY: 15,
+        CONF_TEMPERATURE_CHANGE_TOLERANCE: 0.5,
+    })
+
+    # Step 1: Initialize tracking
+    await manager.refresh_state()
+
+    # Step 2: Start high power tracking
+    later1 = now + timedelta(minutes=1)
+    type(fake_vtherm).now = PropertyMock(return_value=later1)
+    await manager.refresh_state()
+
+    # Step 3: After delay, temperature hasn't increased -> failure without root cause
+    later2 = now + timedelta(minutes=17)
+    type(fake_vtherm).now = PropertyMock(return_value=later2)
+
+    result = await manager.refresh_state()
+    assert result is True
+
+    # Verify root cause is not_identified
+    event_call = fake_vtherm.send_event.call_args
+    event_data = event_call[0][1]
+    assert event_data["root_cause"] == "not_identified"
+    assert event_data["root_cause_entity_id"] is None
+
+
+async def test_custom_attributes_include_root_cause(hass: HomeAssistant):
+    """Test that custom attributes include root cause when failure detected"""
+    from custom_components.versatile_thermostat.underlyings import UnderlyingValve
+
+    fake_vtherm = MagicMock(spec=BaseThermostat)
+    type(fake_vtherm).name = PropertyMock(return_value="the name")
+    type(fake_vtherm).now = PropertyMock(return_value=datetime.now())
+    type(fake_vtherm).current_temperature = PropertyMock(return_value=20.0)
+
+    # Mock a stuck open valve
+    fake_valve = MagicMock(spec=UnderlyingValve)
+    type(fake_valve).entity_id = PropertyMock(return_value="number.trv_stuck")
+    type(fake_valve).should_device_be_active = PropertyMock(return_value=False)
+    type(fake_valve).is_device_active = PropertyMock(return_value=True)
+    fake_vtherm._underlyings = [fake_valve]
+
+    manager = FeatureHeatingFailureDetectionManager(fake_vtherm, hass)
+    manager.post_init({
+        CONF_USE_HEATING_FAILURE_DETECTION_FEATURE: True,
+        CONF_HEATING_FAILURE_DETECTION_DELAY: 15,
+    })
+
+    # Simulate active cooling failure
+    manager._cooling_failure_state = STATE_ON
+
+    custom_attrs = {}
+    manager.add_custom_attributes(custom_attrs)
+
+    mgr_attrs = custom_attrs["heating_failure_detection_manager"]
+    assert mgr_attrs["root_cause"] == "valve_stuck_open"
+    assert mgr_attrs["root_cause_entity_id"] == "number.trv_stuck"
+
+
+async def test_custom_attributes_no_root_cause_when_no_failure(hass: HomeAssistant):
+    """Test that custom attributes show no root cause when no failure"""
+
+    fake_vtherm = MagicMock(spec=BaseThermostat)
+    type(fake_vtherm).name = PropertyMock(return_value="the name")
+    type(fake_vtherm).now = PropertyMock(return_value=datetime.now())
+    type(fake_vtherm).current_temperature = PropertyMock(return_value=20.0)
+
+    manager = FeatureHeatingFailureDetectionManager(fake_vtherm, hass)
+    manager.post_init({
+        CONF_USE_HEATING_FAILURE_DETECTION_FEATURE: True,
+        CONF_HEATING_FAILURE_DETECTION_DELAY: 15,
+    })
+
+    manager._heating_failure_state = STATE_OFF
+    manager._cooling_failure_state = STATE_OFF
+
+    custom_attrs = {}
+    manager.add_custom_attributes(custom_attrs)
+
+    mgr_attrs = custom_attrs["heating_failure_detection_manager"]
+    assert mgr_attrs["root_cause"] is None
+    assert mgr_attrs["root_cause_entity_id"] is None

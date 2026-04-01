@@ -1,10 +1,11 @@
 """ The TPI calculation module """
 # pylint: disable='line-too-long'
 import logging
+from .log_collector import get_vtherm_logger
 
 from .vtherm_hvac_mode import VThermHvacMode, VThermHvacMode_OFF, VThermHvacMode_COOL, VThermHvacMode_SLEEP
 
-_LOGGER = logging.getLogger(__name__)
+_LOGGER = get_vtherm_logger(__name__)
 
 
 
@@ -66,6 +67,10 @@ class TpiAlgorithm:
         self._tpi_threshold_low = tpi_threshold_low
         self._tpi_threshold_high = tpi_threshold_high
         self._apply_threshold = tpi_threshold_low != 0.0 and tpi_threshold_high != 0.0
+        # True once calculate() has been called with a valid temperature.
+        # When False, on_percent returns None so the cycle scheduler
+        # does not touch an already-active switch at startup.
+        self._temperature_available: bool = False
 
     def calculate(
         self,
@@ -85,7 +90,9 @@ class TpiAlgorithm:
                 current_temp,
             )
             self._calculated_on_percent = 0
+            self._temperature_available = False
         else:
+            self._temperature_available = True
             if hvac_mode == VThermHvacMode_COOL:
                 delta_temp = current_temp - target_temp
                 delta_ext_temp = ext_current_temp - target_temp if ext_current_temp is not None else 0
@@ -185,12 +192,15 @@ class TpiAlgorithm:
             )
 
     @property
-    def on_percent(self) -> float:
+    def on_percent(self) -> float | None:
         """Returns the percentage the heater must be ON.
-        Note: This returns the calculated value clamped to [0,1]
-        It DOES NOT reflect safety overrides matching the behavior of calculated_on_percent previously.
-        Use calculated_on_percent for consistency or check ThermostatProp.on_percent for effective value.
+        Returns None when no valid temperature was available at the last calculate() call.
+        In that case callers should preserve the current switch state rather than forcing it off.
+        Note: This does NOT reflect safety overrides.
+        Use calculated_on_percent for display or check ThermostatProp.on_percent for the effective value.
         """
+        if not self._temperature_available:
+            return None
         return round(self._calculated_on_percent, 2)
 
     @property

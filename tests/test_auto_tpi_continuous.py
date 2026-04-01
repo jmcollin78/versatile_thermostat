@@ -73,7 +73,7 @@ async def test_should_learn_continuous_basics(manager):
     manager.state.last_state = "heat"
     manager.state.last_order = 20.0
     manager._current_temp_out = 0.0 # DeltaOut = 20 > 1.0
-    
+
     # Should be True
     assert manager._should_learn() is True
 
@@ -86,22 +86,22 @@ async def test_should_learn_continuous_disabled(manager):
 async def test_perform_learning_continuous_kext_skips_indoor(manager):
     """Test that indoor learning is skipped when only continuous kext is active."""
     manager.state.autolearn_enabled = False # Main learning OFF
-    
+
     # Setup for Indoor Learning Success
     manager.state.last_state = "heat"
     manager.state.last_order = 20.0
     manager.state.last_temp_in = 19.0
     manager.state.coeff_indoor_heat = 0.5
-    manager.state.last_power = 0.5 
+    manager.state.last_power = 0.5
     manager.state.max_capacity_heat = 2.0
-    
+
     # Current state (Rise = 0.2, TargetDiff = 1.0)
-    current_temp_in = 19.2 
+    current_temp_in = 19.2
     current_temp_out = 0.0
     manager._current_target_temp = 20.0 # Match last_order
-    
+
     await manager._perform_learning(current_temp_in, current_temp_out)
-    
+
     # Indoor coeff should NOT change
     assert manager.state.coeff_indoor_heat == 0.5
     assert "learned_indoor" not in manager.state.last_learning_status
@@ -109,19 +109,19 @@ async def test_perform_learning_continuous_kext_skips_indoor(manager):
 async def test_perform_learning_continuous_kext_allows_outdoor(manager):
     """Test that outdoor learning IS performed when only continuous kext is active."""
     manager.state.autolearn_enabled = False # Main learning OFF
-    
+
     manager.state.last_state = "heat"
     manager.state.last_order = 20.0
     manager.state.last_temp_in = 19.5
     manager.state.coeff_outdoor_heat = 0.01
-    manager.state.last_power = 0.5 
-    
-    current_temp_in = 19.5 
+    manager.state.last_power = 0.5
+
+    current_temp_in = 19.5
     current_temp_out = 0.0
     manager._current_target_temp = 20.0 # Match last_order
-    
+
     await manager._perform_learning(current_temp_in, current_temp_out)
-    
+
     assert "learned_outdoor" in manager.state.last_learning_status
     assert manager.state.coeff_outdoor_heat != 0.01
 
@@ -130,64 +130,38 @@ async def test_filtered_state_hides_indoor_counters(manager):
     manager.state.autolearn_enabled = False
     manager.state.coeff_indoor_autolearn = 100
     manager.state.coeff_outdoor_autolearn = 50
-    
+
     state = manager.get_filtered_state()
-    
+
     assert "coeff_indoor_autolearn" not in state
     assert "coeff_outdoor_autolearn" in state
 
 async def test_on_cycle_completed_triggers_perform_learning(manager):
-    """Test that on_cycle_completed calls process_cycle which triggers learning."""
-    manager.state.autolearn_enabled = False
+    """Test that on_cycle_completed triggers learning when conditions are met."""
     manager.state.last_state = "heat"
     manager.state.coeff_outdoor_autolearn = 10
     manager.state.previous_state = "heat"
     manager.state.last_order = 20.0
-    manager.state.last_params = {"hvac_mode": "heat", "on_percent": 0.5, "on_time_sec": 150, "off_time_sec": 150}
     manager.state.last_power = 0.5
-    
+
     # Required for validation
-    manager.state.max_capacity_heat = 10.0 
+    manager.state.max_capacity_heat = 10.0
     manager.state.capacity_heat_learn_count = 10
     manager._current_hvac_mode = "heat"
-    
+
     manager._current_target_temp = 20.0
     manager._current_temp_in = 19.0
     manager._current_temp_out = 0.0
-    
-    # Start cycle to set correct state
-    manager.state.cycle_active = True
-    # Ensure the cycle duration is >= cycle_min (5 min) so it completes
-    start_time = datetime.now(timezone.utc) - timedelta(minutes=6)
-    manager._cycle_start_date = start_time
-    manager.state.cycle_start_date = start_time
-    manager._current_cycle_params = {"hvac_mode": "heat", "on_percent": 0.5, "on_time_sec": 150, "off_time_sec": 150} # Essential for confirmation
-    
-    # Check for cycle boundary: elapsed_sec >= cycle_min * 60
-    # elapsed = 6 min > 5 min. Should complete.
+
+    # Start a cycle via the new callback mechanism
+    start_time = datetime.now(timezone.utc)
+    await manager.on_cycle_started(on_time_sec=150, off_time_sec=150, on_percent=0.5, hvac_mode="heat")
+
+    # Backdate cycle_start_date so elapsed >= cycle_min (5 min) when on_cycle_completed is called
+    manager.state.cycle_start_date = start_time - timedelta(minutes=6)
 
     # We patch _perform_learning to verify it is called
     with patch.object(manager, "_perform_learning", wraps=manager._perform_learning) as mock_perform:
-        # params return for data_provider (Closing cycle params)
-        params = {"on_time_sec": 150, "off_time_sec": 150, "hvac_mode": "heat"}
-        
-        # We need to simulate the "current" time being later
-        current_time = datetime.now(timezone.utc)
-        
-        # Call process_cycle directly or via on_cycle_completed if that's exposed
-        # on_cycle_completed calls process_learning_completion but NOT _perform_learning directly.
-        # process_cycle(timestamp, data_provider, event_sender)
-        # data_provider returns the params
-        async def mock_data_provider():
-            return params
-            
-        async def mock_event_sender(p):
-            pass
+        await manager.on_cycle_completed()
 
-        await manager.process_cycle(
-            datetime.now(timezone.utc),
-            mock_data_provider,
-            mock_event_sender
-        )
-        
         mock_perform.assert_called_once()

@@ -2,6 +2,7 @@
 
 """ Implements the VersatileThermostat select component """
 import logging
+from .log_collector import get_vtherm_logger
 
 # from homeassistant.const import EVENT_HOMEASSISTANT_START
 from homeassistant.const import EntityCategory
@@ -65,7 +66,7 @@ PRESET_ICON_MAPPING = {
     VThermPresetWithACAway.BOOST + PRESET_TEMP_SUFFIX: "mdi:rocket-launch-outline",
 }
 
-_LOGGER = logging.getLogger(__name__)
+_LOGGER = get_vtherm_logger(__name__)
 
 
 async def async_setup_entry(
@@ -74,12 +75,10 @@ async def async_setup_entry(
     async_add_entities: AddEntitiesCallback,
 ) -> None:
     """Set up the VersatileThermostat selects with config flow."""
-    _LOGGER.debug(
-        "Calling async_setup_entry entry=%s, data=%s", entry.entry_id, entry.data
-    )
-
     unique_id = entry.entry_id
     name = entry.data.get(CONF_NAME)
+    _LOGGER.debug("%s - Calling async_setup_entry entry=%s, data=%s", name, entry.entry_id, entry.data)
+
     vt_type = entry.data.get(CONF_THERMOSTAT_TYPE)
     # is_central_boiler = entry.data.get(CONF_USE_CENTRAL_BOILER_FEATURE)
 
@@ -245,7 +244,7 @@ class ActivateBoilerPowerThresholdNumber(NumberEntity, RestoreEntity):  # pylint
         self._attr_value = self._attr_native_value = 0  # default value
         self._attr_native_min_value = 0
         self._attr_native_max_value = 10000  # for people who works in Watts
-        self._attr_step = 1  # default value
+        self._attr_native_step = 0.1
         self._attr_mode = NumberMode.AUTO
 
     @property
@@ -273,18 +272,18 @@ class ActivateBoilerPowerThresholdNumber(NumberEntity, RestoreEntity):  # pylint
         old_state: CoreState = await self.async_get_last_state()
         _LOGGER.debug("%s - Calling async_added_to_hass old_state is %s", self, old_state)
         if old_state is not None:
-            self._attr_value = self._attr_native_value = int(float(old_state.state))
+            self._attr_value = self._attr_native_value = float(old_state.state)
 
     @overrides
     def set_native_value(self, value: float) -> None:
         """Change the value"""
-        int_value = int(value)
-        old_value = int(self._attr_native_value)
+        float_value = float(value)
+        old_value = float(self._attr_native_value)
 
-        if int_value == old_value:
+        if float_value == old_value:
             return
 
-        self._attr_value = self._attr_native_value = int_value
+        self._attr_value = self._attr_native_value = float_value
         self.hass.create_task(VersatileThermostatAPI.get_vtherm_api(self._hass).central_boiler_manager.refresh_central_boiler_custom_attributes())
 
     def __str__(self):

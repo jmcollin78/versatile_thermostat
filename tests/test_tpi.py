@@ -8,7 +8,7 @@ from homeassistant.components.climate import ClimateEntityFeature
 from custom_components.versatile_thermostat.base_thermostat import BaseThermostat
 from custom_components.versatile_thermostat.prop_algo_tpi import TpiAlgorithm
 from custom_components.versatile_thermostat.const import PROPORTIONAL_FUNCTION_TPI
-from custom_components.versatile_thermostat.timing_utils import calculate_cycle_times
+from custom_components.versatile_thermostat.cycle_scheduler import calculate_cycle_times
 from .commons import *  # pylint: disable=wildcard-import, unused-wildcard-import
 
 
@@ -106,11 +106,15 @@ async def test_tpi_calculation(
     assert on_sec == 0
     assert off_sec == 300
 
-    # If target_temp or current_temp are None, _calculated_on_percent is set to 0.
+    # When current_temp is None, on_percent returns None (temperature unavailable).
+    # calculated_on_percent is still 0 (used for display). Callers must treat None
+    # as "temperature unknown — preserve current switch state" (see bug 1884).
     tpi_algo.calculate(15, None, 7, 0, VThermHvacMode_OFF)
-    assert tpi_algo.on_percent == 0
+    assert tpi_algo.on_percent is None
     assert tpi_algo.calculated_on_percent == 0
-    on_sec, off_sec, _ = calculate_cycle_times(tpi_algo.on_percent, entity.cycle_min, entity.minimal_activation_delay, entity.minimal_deactivation_delay)
+    # When passing on_percent to calculate_cycle_times, use 0 as fallback since
+    # the scheduler skips the cycle when on_percent is None.
+    on_sec, off_sec, _ = calculate_cycle_times(tpi_algo.on_percent or 0, entity.cycle_min, entity.minimal_activation_delay, entity.minimal_deactivation_delay)
     assert on_sec == 0
     assert off_sec == 300
 

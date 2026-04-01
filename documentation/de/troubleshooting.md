@@ -15,7 +15,9 @@
     - [Wie kann ich benachrichtigt werden, wenn dies geschieht?](#wie-kann-ich-benachrichtigt-werden-wenn-dies-geschieht)
     - [Wie kann man das beheben?](#wie-kann-man-das-beheben)
   - [Eine Personengruppe als Anwesenheitssensor verwenden](#eine-personengruppe-als-anwesenheitssensor-verwenden)
-  - [Aktivieren von Protokollen für das Versatile Thermostat](#aktivieren-von-protokollen-für-das-versatile-thermostat)
+  - [Aktivieren von Versatile Thermostat-Protokollen](#aktivieren-von-versatile-thermostat-protokollen)
+    - [Log-Collector verwenden (empfohlene Methode)](#log-collector-verwenden-empfohlene-methode)
+    - [Aktivierung von Protokollen in Home Assistant (alte Methode)](#aktivierung-von-protokollen-in-home-assistant-alte-methode)
   - [VTherm verfolgt keine Sollwertänderungen, die direkt am zugehörigen Gerät vorgenommen werden (`over_climate`)](#vtherm-verfolgt-keine-sollwertänderungen-die-direkt-am-zugehörigen-gerät-vorgenommen-werden-over_climate)
   - [VTherm schaltet automatisch in den Modus 'Kühlen' oder 'Heizen' um](#vtherm-schaltet-automatisch-in-den-modus-kühlen-oder-heizen-um)
   - [Erkennung von offenen Fenstern verhindert keine Änderungen der Voreinstellungen](#erkennung-von-offenen-fenstern-verhindert-keine-änderungen-der-voreinstellungen)
@@ -225,18 +227,32 @@ template: !include templates.yaml
 ...
 ```
 
-## Aktivieren von Protokollen für das Versatile Thermostat
+## Aktivieren von Versatile Thermostat-Protokollen
 
-Manchmal müssen Sie Protokolle aktivieren, um Ihre Analyse zu verfeinern. Dazu bearbeiten Sie die Datei `logger.yaml` in Ihrer Konfiguration und konfigurieren die Protokolle wie folgt:
+### Log-Collector verwenden (empfohlene Methode)
+
+Um Versatile Thermostat-Protokolle zu sammeln und zu analysieren, **wird es dringend empfohlen, die integrierte Log-Download-Funktion** (log-collector) zu verwenden. Diese Methode:
+- ✅ Erfasst Protokolle **unabhängig von der in Home Assistant konfigurierten Stufe**
+- ✅ Beeinträchtigt die Home Assistant-Leistung nicht
+- ✅ Ermöglicht Filterung nach Zeitraum, Thermostat und Schweregrad
+- ✅ Bietet eine leicht zu analysierende herunterladbare Datei
+
+Siehe die vollständige Dokumentation: [Frühere Protokolle herunterladen - Diagnose und Fehlerbehebung](feature-logs-collector.md)
+
+### Aktivierung von Protokollen in Home Assistant (alte Methode)
+
+Wenn Sie einen erweiterten Debugging-Modus benötigen, können Sie Protokolle auf Home Assistant-Ebene aktivieren, indem Sie die `logger.yaml`-Datei bearbeiten:
 
 ```yaml
-default: xxxx
-logs:
-  custom_components.versatile_thermostat: info
+logger:
+  default: warning
+  logs:
+    custom_components.versatile_thermostat: debug
 ```
+
 Sie müssen die YAML-Konfiguration neu laden (Entwicklertools / YAML / Alle YAML-Konfiguration neu laden) oder den Home Assistant neu starten, damit diese Änderung wirksam wird.
 
-Seien Sie vorsichtig, im Debug-Modus ist Versatile Thermostat sehr gesprächig und kann den Home Assistant schnell verlangsamen oder Ihre Festplatte überlasten. Wenn Sie zur Analyse von Anomalien in den Fehlersuchmodus wechseln, tun Sie dies nur für die Zeit, die zur Reproduktion des Fehlers erforderlich ist, und deaktivieren Sie den Fehlersuchmodus unmittelbar danach.
+⚠️ **Warnung**: Im Debug-Modus ist Versatile Thermostat sehr ausführlich und kann Home Assistant verlangsamen oder die Festplatte überlasten. Dieser Ansatz wird nur für erweitertes Debugging über einen kurzen Zeitraum empfohlen. **Bevorzugen Sie den log-collector in allen normalen Fällen.**
 
 ## VTherm verfolgt keine Sollwertänderungen, die direkt am zugehörigen Gerät vorgenommen werden (`over_climate`)
 

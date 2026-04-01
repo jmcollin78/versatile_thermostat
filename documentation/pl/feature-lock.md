@@ -15,6 +15,10 @@ Możesz również skonfigurować opcjonalny **Kod blokady**:
 
 - **Kod blokady**: 4-cyfrowy numeryczny `kod PIN` (np. '1234'). Jeśli kod został ustawiony, wówczas będzie on wymagany do blokowania i odblokowywania termostatu. Jest to opcjonalna funkcjonalność, zatem w przypadku braku jej konfiguracji, żaden kod nie będzie wymagany.
 
+Możesz skonfigurować opóźnienie **automatycznego ponownego zablokowania**:
+
+- **Opóźnienie automatycznego ponownego zablokowania (sekundy)**: Gdy ustawiona jest wartość dodatnia, termostat automatycznie ponownie się zablokuje po upływie określonej liczby sekund po odblokowaniu. Ustaw `0`, aby wyłączyć automatyczne ponowne blokowanie. Domyślna wartość to `30` sekund.
+
 Możesz również wybrać centralną konfigurację dla ustawień blokady.
 
 ## Sposoby użycia
@@ -46,7 +50,7 @@ data:
 
 Stan blokady jest:
 
-- Widoczny w atrybutach `is_locked`, `lock_users` i `lock_automations` encji klimatyzacji (`climate`)
+- Widoczny w atrybutach `is_locked`, `lock_users`, `lock_automations` i `auto_relock_sec` encji klimatyzacji (`climate`)
 - Zachowywany po ponownym uruchomieniu Home Assistanta (w tym kod PIN, jeśli został wcześniej ustawiony)
 - Indywidualny dla każdego termostatu (każdy termostat ma swoją własną blokadę i opcjonalny kod PIN)
 

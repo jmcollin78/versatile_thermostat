@@ -1,6 +1,7 @@
 """ A base class for all VTherm entities"""
 
 import logging
+from .log_collector import get_vtherm_logger
 from datetime import timedelta
 from homeassistant.core import HomeAssistant, callback, Event
 from homeassistant.components.climate import ClimateEntity
@@ -16,7 +17,7 @@ from .const import DOMAIN, DEVICE_MANUFACTURER
 
 from .base_thermostat import BaseThermostat
 
-_LOGGER = logging.getLogger(__name__)
+_LOGGER = get_vtherm_logger(__name__)
 
 
 class VersatileThermostatBaseEntity(Entity):
@@ -70,7 +71,7 @@ class VersatileThermostatBaseEntity(Entity):
             for entity in list(component.entities):
                 # _LOGGER.debug("Device_info is %s", entity.device_info)
                 if entity.device_info == self.device_info:
-                    _LOGGER.debug("Found %s!", entity)
+                    # _LOGGER.debug("Found %s!", entity)
                     return entity
         except KeyError:
             pass
@@ -125,3 +126,9 @@ class VersatileThermostatBaseEntity(Entity):
         if not self.my_climate:
             return EntityCategory.DIAGNOSTIC
         return None
+
+    def __str__(self) -> str:
+        if self._my_climate is not None:
+            return f"{self._my_climate}-{self.__class__.__name__}"
+        else:
+            return f"UnknownVTherm-{self.__class__.__name__}"

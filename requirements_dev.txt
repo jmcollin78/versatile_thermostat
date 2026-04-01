@@ -1,1 +1,22 @@
 homeassistant==2026.3.1
+
+# Home Assistant frontend (required by the frontend component)
+home-assistant-frontend
+
+# Debugger support (used by the debugpy integration)
+debugpy
+
+# Colorized output used by `hass --script check_config`
+colorlog==6.10.1
+
+# JPEG acceleration (required by the camera component)
+# Use 1.x for libjpeg-turbo 2.x compatibility.
+pyturbojpeg<2.0
+
+hassil
+home-assistant-intents
+mutagen
+ha-ffmpeg
+pymicro_vad
+pyspeex_noise
+radios

@@ -12,7 +12,7 @@
   - [Dostosowanie parametrów detekcji otwarcia okna w trybie automatycznym](#dostosowanie-parametrów-detekcji-otwarcia-okna-w-trybie-automatycznym)
   - [Dlaczego _VTherm_ przechodzi w tryb *bezpieczny*?](#dlaczego-vtherm-przechodzi-w-tryb-bezpieczny)
     - [Jak wykryć tryb *bezpieczny*?](#jak-wykryć-tryb-bezpieczny)
-    - [Jak wysłać powiadomienie o wystąpieniu takiej sytuacji?](#jak-zostać-powiadomionym-o-wystąpieniu-takiej-sytuacji)
+    - [Jak wysłać powiadomienie o wystąpieniu takiej sytuacji?](#jak-wysłać-powiadomienie-o-wystąpieniu-takiej-sytuacji)
     - [Jak to naprawić?](#jak-to-naprawić)
   - [Grupa osób jako sensor obecności](#grupa-osób-jako-sensor-obecności)
   - [Aktywacja logów dla _*Versatile Thermostat*_](#aktywacja-logów-dla-versatile-thermostat)
@@ -221,18 +221,32 @@ template: !include templates.yaml
 ...
 ```
 
-## Aktywacja logów dla _*Versatile Thermostat*_
+## Włączenie dzienników Versatile Thermostat
 
-Czasami konieczne jest włączenie logów, aby doprecyzować przyczyny błędów. Aby to zrobić, do pliku `logger.yaml` dopisz poniższy kod:
+### Użyj log-collector (zalecana metoda)
+
+Aby zbierać i analizować dzienniki Versatile Thermostat, **zdecydowanie zaleca się korzystanie ze zintegrowanej funkcji pobierania dzienników** (log-collector). Ta metoda:
+- ✅ Zbiera dzienniki **niezależnie od poziomu skonfigurowanego w Home Assistant**
+- ✅ Nie wpływa na wydajność Home Assistant
+- ✅ Umożliwia filtrowanie według okresu, termostatu i poziomu ważności
+- ✅ Zapewnia łatwo analizowalny plik do pobrania
+
+Zapoznaj się z pełną dokumentacją: [Pobieranie starszych dzienników - Diagnostyka i rozwiązywanie problemów](feature-logs-collector.md)
+
+### Włącz dzienniki w Home Assistant (stara metoda)
+
+Jeśli potrzebujesz bardziej zaawansowanego trybu debugowania, możesz włączyć dzienniki na poziomie Home Assistant, edytując plik `logger.yaml`:
 
 ```yaml
-default: xxxx
-logs:
-  custom_components.versatile_thermostat: info
+logger:
+  default: warning
+  logs:
+    custom_components.versatile_thermostat: debug
 ```
-Aby ta zmiana została uwzględniona, należy ponownie załadować konfigurację YAML ('**Narzędzia deweloperskie -> YAML -> Przeładuj całą konfigurację YAML**') lub ponownie uruchomić Home Assistant.
 
-⚠️ **Uwaga**: w trybie debugowania integracja _Versatile Thermostat_ działa dość ślamazarnie i może szybko spowolnić Home Assistant lub przeciążyć dysk twardy. Jeśli przełączysz się w tryb debugowania w celu analizy problemów, zrób to tylko na czas potrzebny do odtworzenia błędu i natychmiast wyłącz tryb debugowania.
+Musisz przeładować konfigurację YAML (Developer Tools / YAML / All Configuration) lub uruchomić ponownie Home Assistant, aby ta zmiana weszła w życie.
+
+⚠️ **Ostrzeżenie**: W trybie debugowania Versatile Thermostat jest bardzo szczegółowy i może spowalniać Home Assistant lub przepełnić dysk twardy. To podejście jest zalecane tylko dla zaawansowanego debugowania przez krótki czas. **W każdym normalnym przypadku wolisz log-collector.**
 
 ## _VTherm_ nie śledzi zmian wartości zadanych wprowadzanych bezpośrednio na urządzeniu bazowym (`termostat na klimacie`)
 

@@ -1,23 +1,26 @@
-""" This module manages the central boiler feature of the Versatile Thermostat integration. """
-import logging
-from typing import Any
+"""This module manages the central boiler feature of the Versatile Thermostat integration."""
+
 from datetime import timedelta
+from typing import Any
 
 from homeassistant.core import (
     HomeAssistant,
     HomeAssistantError,
 )
-
 from homeassistant.helpers.entity import Entity
-from homeassistant.helpers.event import async_track_state_change_event, async_call_later
-
-from .const import *  # pylint: disable=wildcard-import, unused-wildcard-import
-from .commons import check_and_extract_service_configuration, write_event_log
+from homeassistant.helpers.event import (
+    async_call_later,
+    async_track_state_change_event,
+    async_track_time_interval,
+)
 
 from .base_manager import BaseFeatureManager
+from .commons import check_and_extract_service_configuration, write_event_log
+from .const import *  # pylint: disable=wildcard-import, unused-wildcard-import
+from .log_collector import get_vtherm_logger
 
 
-_LOGGER = logging.getLogger(__name__)
+_LOGGER = get_vtherm_logger(__name__)
 
 
 class FeatureCentralBoilerManager(BaseFeatureManager):
@@ -43,6 +46,12 @@ class FeatureCentralBoilerManager(BaseFeatureManager):
         self._activation_delay_sec: int = 0
         self._call_later_handle = None
 
+        # Keep-alive tracking
+        self._keep_alive_boiler_state_enabled: bool = False
+        self._keep_alive_boiler_delay_sec: int = 0
+        self._time_interval_listener_cancel = None
+        self._last_activated_service: dict | None = None
+
     @overrides
     def post_init(self, entry_infos: dict):
         """Reinit of the manager"""
@@ -53,7 +62,10 @@ class FeatureCentralBoilerManager(BaseFeatureManager):
             entry_infos.get(CONF_CENTRAL_BOILER_DEACTIVATION_SRV)
         )
         self._activation_delay_sec = entry_infos.get(CONF_CENTRAL_BOILER_ACTIVATION_DELAY_SEC, 0)
+        self._keep_alive_boiler_delay_sec = entry_infos.get(CONF_KEEP_ALIVE_BOILER_DELAY_SEC, DEFAULT_KEEP_ALIVE_BOILER_DELAY_SEC)
+        self._last_activated_service = None
         self._is_configured = bool(self._service_activate or self._service_deactivate)
+        self._keep_alive_boiler_state_enabled = self._keep_alive_boiler_delay_sec > 0 and self._is_configured
 
     @overrides
     async def start_listening(self, force: bool = False):
@@ -74,6 +86,22 @@ class FeatureCentralBoilerManager(BaseFeatureManager):
                 boiler_entity_ids,
             )
             self.add_listener(listener_cancel)
+
+            # Add periodic keep-alive if delay is configured
+            if self._keep_alive_boiler_state_enabled:
+                interval_listener_cancel = async_track_time_interval(
+                    self._hass,
+                    self._keep_alive_boiler,
+                    timedelta(seconds=self._keep_alive_boiler_delay_sec),
+                )
+                self._time_interval_listener_cancel = interval_listener_cancel
+                self.add_listener(interval_listener_cancel)
+                _LOGGER.debug(
+                    "%s - Keep-alive boiler enabled (every %d seconds)",
+                    self,
+                    self._keep_alive_boiler_delay_sec,
+                )
+
             await self.calculate_central_boiler_state(None)
         else:
             _LOGGER.debug("%s - no VTherm could controls the central boiler", self)
@@ -92,6 +120,11 @@ class FeatureCentralBoilerManager(BaseFeatureManager):
     def is_on(self) -> bool | None:
         """Return True if the central boiler is on. Return None if the state is unknown (at startup for example)"""
         return self._is_on
+
+    @property
+    def is_detected(self) -> bool:
+        """Return True if the central boiler is detected"""
+        return self._is_on if self._is_on is not None else False
 
     async def calculate_central_boiler_state(self, _):
         """Calculate the central boiler state depending on all VTherm that
@@ -124,6 +157,8 @@ class FeatureCentralBoilerManager(BaseFeatureManager):
                 await self.call_service(self._service_activate)
                 _LOGGER.info("%s - central boiler have been turned on after delay", self)
                 self._is_on = True
+                if self._keep_alive_boiler_state_enabled:
+                    self._last_activated_service = self._service_activate
                 _send_vtherm_event(
                     data={"central_boiler": True},
                 )
@@ -183,6 +218,8 @@ class FeatureCentralBoilerManager(BaseFeatureManager):
                     await self.call_service(self._service_deactivate)
                     _LOGGER.info("%s - central boiler have been turned off", self)
                     self._is_on = active
+                    if self._keep_alive_boiler_state_enabled:
+                        self._last_activated_service = self._service_deactivate
                     _send_vtherm_event(
                         data={"central_boiler": active},
                     )
@@ -195,11 +232,43 @@ class FeatureCentralBoilerManager(BaseFeatureManager):
                     err,
                 )
 
+    async def _keep_alive_boiler(self, _=None):
+        """Send keep-alive command to maintain boiler state (called periodically if delay is configured)"""
+        if self._keep_alive_boiler_delay_sec <= 0:
+            return
+
+        # If we have a pending activation (after delay), don't send keep-alive yet
+        if self._call_later_handle is not None:
+            return
+
+        # Send keep-alive command for the last activated service
+        if self._last_activated_service:
+            try:
+                await self.call_service(self._last_activated_service)
+                entity_id = self._last_activated_service.get("entity_id", "unknown")
+                _LOGGER.debug(
+                    "%s - Keep-alive boiler command sent (entity %s)",
+                    self,
+                    entity_id,
+                )
+            except HomeAssistantError as err:
+                _LOGGER.warning(
+                    "%s - Failed to send keep-alive command: %s",
+                    self,
+                    err,
+                )
+
     async def call_service(self, service_config: dict):
         """Make a call to a service if correctly configured"""
         if not service_config:
             return
 
+        _LOGGER.debug(
+            "%s - Calling central boiler service %s with data %s",
+            self,
+            f"{service_config['service_domain']}.{service_config['service_name']}",
+            service_config.get("data", {}),
+        )
         await self._hass.services.async_call(
             service_config["service_domain"],
             service_config["service_name"],
@@ -243,6 +312,7 @@ class FeatureCentralBoilerManager(BaseFeatureManager):
                         "total_power_active_for_boiler_threshold": self.total_power_active_for_boiler_threshold,
                         "service_activate": self._service_activate,
                         "service_deactivate": self._service_deactivate,
+                        "keep_alive_boiler_delay_sec": self._keep_alive_boiler_delay_sec,
                     }
                 }
             )
@@ -395,4 +465,4 @@ class FeatureCentralBoilerManager(BaseFeatureManager):
             self._total_power_active_threshold_number_entity.set_native_value(value)
 
     def __str__(self):
-        return f"FeatureCentralBoilerManager-{self._name}"
+        return "FeatureCentralBoilerManager"

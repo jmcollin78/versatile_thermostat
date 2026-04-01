@@ -2,7 +2,6 @@
 
 # pylint: disable=line-too-long
 
-import logging
 from typing import Any
 from datetime import timedelta
 
@@ -27,6 +26,7 @@ from homeassistant.helpers.event import (
 from homeassistant.exceptions import ConditionError
 from homeassistant.helpers import condition
 
+from .log_collector import get_vtherm_logger
 from .const import *  # pylint: disable=wildcard-import, unused-wildcard-import
 from .commons import write_event_log
 from .commons_type import ConfigData
@@ -35,7 +35,7 @@ from .vtherm_hvac_mode import VThermHvacMode
 from .base_manager import BaseFeatureManager
 from .open_window_algorithm import WindowOpenDetectionAlgorithm
 
-_LOGGER = logging.getLogger(__name__)
+_LOGGER = get_vtherm_logger(__name__)
 
 
 class FeatureWindowManager(BaseFeatureManager):
@@ -116,6 +116,7 @@ class FeatureWindowManager(BaseFeatureManager):
         self._window_auto_algo = WindowOpenDetectionAlgorithm(
             alert_threshold=self._window_auto_open_threshold,
             end_alert_threshold=self._window_auto_close_threshold,
+            vtherm=self._vtherm,
         )
 
         if self._is_window_auto_configured or (
@@ -200,16 +201,14 @@ class FeatureWindowManager(BaseFeatureManager):
                 long_enough = False
 
             if not long_enough:
-                _LOGGER.debug(
-                    "Window delay condition is not satisfied. Ignore window event"
-                )
+                _LOGGER.debug("%s - Window delay condition is not satisfied. Ignore window event", self)
                 self._window_state = old_state.state or STATE_OFF
                 return
 
             _LOGGER.debug("%s - Window delay condition is satisfied", self)
 
             if self._window_state == new_state.state:
-                _LOGGER.debug("%s - no change in window state. Forget the event")
+                _LOGGER.debug("%s - no change in window state. Forget the event", self)
                 return
 
             _LOGGER.debug("%s - Window ByPass is : %s", self, self._is_window_bypass)
@@ -476,6 +475,11 @@ class FeatureWindowManager(BaseFeatureManager):
         if not self._window_auto_algo:
             return None
         return self._window_auto_algo.last_slope
+
+    @property
+    def is_detected(self) -> bool:
+        """Return the overall state of the feature manager based on window state"""
+        return self.is_window_detected
 
     def __str__(self):
         return f"WindowManager-{self.name}"

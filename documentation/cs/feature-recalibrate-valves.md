@@ -1,4 +1,3 @@
-````markdown
 # Kalibrace ventilů (služba recalibrate_valves)
 
 - [Kalibrace ventilů (služba recalibrate_valves)](#kalibrace-ventil%C5%AF-slu%C5%BEba-recalibrate_valves)
@@ -114,5 +113,3 @@ action:
 >
 > - Otestujte kalibraci nejprve na jednom VTherm a zkontrolujte logy a hodnoty `number` před spuštěním pro více zařízení.
 > - Nastavte `delay_seconds` na dostatečnou dobu, aby fyzický ventil dosáhl pozice (60 s je rozumný začátek pro většinu ventilů).
-
-````

@@ -44,11 +44,13 @@
           "use_lock_central_config": "Použít centrální konfiguraci zamknutí",
           "lock_code": "Volitelný PIN (4 číslice)",
           "lock_users": "Zamknutí zabrání příkazům uživatelů",
-          "lock_automations": "Zamknutí zabrání příkazům z automatizací a integrací (např. plánovač)"
+          "lock_automations": "Zamknutí zabrání příkazům z automatizací a integrací (např. plánovač)",
+          "auto_relock_sec": "Automatické opětovné zamknutí"
         },
         "data_description": {
           "use_lock_central_config": "Zaškrtněte pro použití centrální konfigurace zamknutí. Odškrtněte pro použití konfigurace zamknutí specifické pro tento VTherm",
-          "lock_code": "PIN kód pro odemknutí termostatu (4 číslice)"
+          "lock_code": "PIN kód pro odemknutí termostatu (4 číslice)",
+          "auto_relock_sec": "Prodleva v sekundách před automatickým opětovným zamknutím po odemknutí. Nastavte 0 pro deaktivaci. Výchozí hodnota je 30 sekund."
         }
       },
       "main": {
@@ -228,6 +230,7 @@
           "safety_delay_min": "Bezpečnostní zpoždění (v minutách)",
           "safety_min_on_percent": "Minimální procento výkonu pro povolení bezpečnostního režimu",
           "safety_default_on_percent": "Procento výkonu k použití v bezpečnostním režimu",
+          "repair_incorrect_state": "Opravit nesprávný stav",
           "use_advanced_central_config": "Použít centrální pokročilou konfiguraci"
         },
         "data_description": {
@@ -236,6 +239,7 @@
           "safety_delay_min": "Maximální povolené zpoždění v minutách mezi dvěma měřeními teploty. Nad tímto zpožděním se termostat přepne do bezpečnostního vypnutého stavu",
           "safety_min_on_percent": "Minimální hodnota procenta vytápění pro aktivaci bezpečnostní předvolby. Pod tímto množstvím procent výkonu se termostat nepřepne do bezpečnostní předvolby",
           "safety_default_on_percent": "Výchozí hodnota procenta výkonu vytápění v bezpečnostní předvolbě. Nastavte na 0 pro vypnutí ohřívače v bezpečnostní předvolbě",
+          "repair_incorrect_state": "Automaticky opravit nesprávný stav základních entit při zjištění. Funkce znovu pošle požadovaný příkaz, pokud stav základní entity neodpovídá očekávanému stavu.",
           "use_advanced_central_config": "Zaškrtněte pro použití centrální pokročilé konfigurace. Odšrkněte pro použití specifické pokročilé konfigurace pro tento VTherm"
         }
       },
@@ -245,12 +249,14 @@
         "data": {
           "central_boiler_activation_service": "Příkaz pro zapnutí",
           "central_boiler_deactivation_service": "Příkaz pro vypnutí",
-          "central_boiler_activation_delay_sec": "Zpoždění aktivace (v sekundách)"
+          "central_boiler_activation_delay_sec": "Zpoždění aktivace (v sekundách)",
+          "keep_alive_boiler_delay_sec": "Zpoždění keep-alive (sekundy)"
         },
         "data_description": {
           "central_boiler_activation_service": "Příkaz pro zapnutí centrálního kotle naformátovaný jako entity_id/service_name[/attribut:hodnota]",
           "central_boiler_deactivation_service": "Příkaz pro vypnutí centrálního kotle naformátovaný jako entity_id/service_name[/attribut:hodnota]",
-          "central_boiler_activation_delay_sec": "Zpoždění aktivace (v sekundách) před zapnutím centrálního kotle, když je potřeba jej zapnout"
+          "central_boiler_activation_delay_sec": "Zpoždění aktivace (v sekundách) před zapnutím centrálního kotle, když je potřeba jej zapnout",
+          "keep_alive_boiler_delay_sec": "Zpoždění v sekundách pro periodické opakování příkazu kotle, pokud je keep-alive povoleno. Nastavte na 0, aby se keep-alive zakázal."
         }
       },
       "valve_regulation": {
@@ -371,11 +377,13 @@
         "data": {
           "use_lock_central_config": "Použít centrální konfiguraci zamknutí",
           "lock_users": "Zamknutí zabrání příkazům uživatelů",
-          "lock_automations": "Zamknutí zabrání příkazům z automatizací a integrací (např. plánovač)"
+          "lock_automations": "Zamknutí zabrání příkazům z automatizací a integrací (např. plánovač)",
+          "auto_relock_sec": "Automatické opětovné zamknutí"
         },
         "data_description": {
           "use_lock_central_config": "Zaškrtněte pro použití centrální konfigurace zamknutí. Odškrtněte pro použití konfigurace zamknutí specifické pro tento VTherm",
-          "lock_code": "PIN kód pro odemknutí termostatu (4 číslice)"
+          "lock_code": "PIN kód pro odemknutí termostatu (4 číslice)",
+          "auto_relock_sec": "Prodleva v sekundách před automatickým opětovným zamknutím po odemknutí. Nastavte 0 pro deaktivaci. Výchozí hodnota je 30 sekund."
         }
       },
       "main": {
@@ -554,6 +562,7 @@
           "safety_delay_min": "Bezpečnostní zpoždění (v minutách)",
           "safety_min_on_percent": "Minimální procento výkonu pro povolení bezpečnostního režimu",
           "safety_default_on_percent": "Procento výkonu k použití v bezpečnostním režimu",
+          "repair_incorrect_state": "Opravit nesprávný stav",
           "use_advanced_central_config": "Použít centrální pokročilou konfiguraci"
         },
         "data_description": {
@@ -562,6 +571,7 @@
           "safety_delay_min": "Maximální povolené zpoždění v minutách mezi dvěma měřeními teploty. Nad tímto zpožděním se termostat přepne do bezpečnostního vypnutého stavu",
           "safety_min_on_percent": "Minimální hodnota procenta vytápění pro aktivaci bezpečnostní předvolby. Pod tímto množstvím procent výkonu se termostat nepřepne do bezpečnostní předvolby",
           "safety_default_on_percent": "Výchozí hodnota procenta výkonu vytápění v bezpečnostní předvolbě. Nastavte na 0 pro vypnutí ohřívače v bezpečnostní předvolbě",
+          "repair_incorrect_state": "Automaticky opravit nesprávný stav základních entit při zjištění. Funkce znovu pošle požadovaný příkaz, pokud stav základní entity neodpovídá očekávanému stavu.",
           "use_advanced_central_config": "Zaškrtněte pro použití centrální pokročilé konfigurace. Odšrkněte pro použití specifické pokročilé konfigurace pro tento VTherm"
         }
       },
@@ -571,12 +581,14 @@
         "data": {
           "central_boiler_activation_service": "Příkaz pro zapnutí",
           "central_boiler_deactivation_service": "Příkaz pro vypnutí",
-          "central_boiler_activation_delay_sec": "Zpoždění aktivace (v sekundách)"
+          "central_boiler_activation_delay_sec": "Zpoždění aktivace (v sekundách)",
+          "keep_alive_boiler_delay_sec": "Zpoždění keep-alive (sekundy)"
         },
         "data_description": {
           "central_boiler_activation_service": "Příkaz pro zapnutí centrálního kotle naformátovaný jako entity_id/service_name[/attribut:hodnota]",
           "central_boiler_deactivation_service": "Příkaz pro vypnutí centrálního kotle naformátovaný jako entity_id/service_name[/attribut:hodnota]",
-          "central_boiler_activation_delay_sec": "Zpoždění aktivace (v sekundách) před zapnutím centrálního kotle, když je potřeba jej zapnout"
+          "central_boiler_activation_delay_sec": "Zpoždění aktivace (v sekundách) před zapnutím centrálního kotle, když je potřeba jej zapnout",
+          "keep_alive_boiler_delay_sec": "Zpoždění v sekundách pro periodické opakování příkazu kotle, pokud je keep-alive povoleno. Nastavte na 0, aby se keep-alive zakázal."
         }
       },
       "valve_regulation": {

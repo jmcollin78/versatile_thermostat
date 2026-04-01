@@ -1,10 +1,10 @@
-# Zeitgesteuertes Preset
+# Zeitgesteuerte Voreinstellung
 
-- [Zeitgesteuertes Preset](#zeitgesteuertes-preset)
+- [Zeitgesteuerte Voreinstellung](#zeitgesteuerte-voreinstellung)
   - [Zweck](#zweck)
   - [Funktionsweise](#funktionsweise)
-  - [Zeitgesteuertes Preset aktivieren](#zeitgesteuertes-preset-aktivieren)
-  - [Zeitgesteuertes Preset abbrechen](#zeitgesteuertes-preset-abbrechen)
+  - [Zeitgesteuerte Voreinstellung aktivieren](#zeitgesteuerte-voreinstellung-aktivieren)
+  - [Zeitgesteuerte Voreinstellung abbrechen](#zeitgesteuerte-voreinstellung-abbrechen)
   - [Benutzerdefinierte Attribute](#benutzerdefinierte-attribute)
   - [Ereignisse](#ereignisse)
   - [Automatisierungsbeispiele](#automatisierungsbeispiele)
@@ -14,30 +14,30 @@
 
 ## Zweck
 
-Die Funktion des zeitgesteuerten Presets ermöglicht es, ein Preset für einen _VTherm_ für eine bestimmte Dauer zu erzwingen. Nach Ablauf dieser Dauer wird das ursprüngliche Preset (das in `requested_state` definierte) automatisch wiederhergestellt.
+Die Funktion der zeitgesteuerten Voreinstellung ermöglicht es, eine Vorgabe für einen _VTherm_ für eine bestimmte Dauer zu erzwingen. Nach Ablauf dieser Dauer wird die ursprüngliche Vorgabe (das in `requested_state` definierte) automatisch wiederhergestellt.
 
 Diese Funktion ist in mehreren Szenarien nützlich:
-- **Heiz-Boost**: Temperatur vorübergehend erhöhen (z.B. Komfort-Preset) für 30 Minuten, wenn Sie nach Hause kommen
-- **Gästemodus**: Ein wärmeres Preset für einige Stunden aktivieren, wenn Sie Gäste empfangen
-- **Trocknung**: Ein hohes Preset für eine begrenzte Zeit erzwingen, um das Trocknen eines Raumes zu beschleunigen
-- **Gelegentliche Einsparungen**: Vorübergehend ein Eco-Preset während einer kurzen Abwesenheit erzwingen
+- **Heiz-Boost**: Temperatur vorübergehend erhöhen (z.B. Komfort-Vorgabe) für 30 Minuten, wenn Sie nach Hause kommen
+- **Gästemodus**: Eine wärmere Vorgabe für einige Stunden aktivieren, wenn Sie Gäste empfangen
+- **Trocknung**: Eine hohe Vorgabe für eine begrenzte Zeit erzwingen, um das Trocknen eines Raumes zu beschleunigen
+- **Gelegentliche Einsparungen**: Vorübergehend ein Eco-Vorgabe während einer kurzen Abwesenheit erzwingen
 
 ## Funktionsweise
 
-1. Sie rufen den Dienst `versatile_thermostat.set_timed_preset` mit einem Preset und einer Dauer auf
-2. Der _VTherm_ wechselt sofort zum angegebenen Preset
+1. Sie rufen den Dienst `versatile_thermostat.set_timed_preset` mit einem Vorgabewert und einer Dauer auf
+2. Der _VTherm_ wechselt sofort zum angegebenen Vorgabewert
 3. Ein Timer wird für die angegebene Dauer gestartet
-4. Nach Ablauf des Timers stellt der _VTherm_ automatisch das ursprüngliche Preset wieder her
+4. Nach Ablauf des Timers stellt der _VTherm_ automatisch den ursprünglichen Vorgabewert wieder her
 5. Bei jeder Änderung wird ein `versatile_thermostat_timed_preset_event`-Ereignis ausgelöst
 
 > ![Tip](images/tips.png) _*Hinweise*_
-> - Das zeitgesteuerte Preset hat eine mittlere Priorität: Es wird nach Sicherheits- und Leistungsprüfungen (Lastabwurf) angewendet, aber vor anderen Funktionen (Anwesenheit, Bewegung usw.)
-> - Wenn Sie das Preset manuell ändern, während ein zeitgesteuertes Preset aktiv ist, wird der Timer abgebrochen
+> - Die zeitgesteuerte Voreinstellung hat eine mittlere Priorität: Es wird nach Sicherheits- und Leistungsprüfungen (Lastabwurf) angewandt, aber noch vor anderen Funktionen (Anwesenheit, Bewegung usw.)
+> - Wenn Sie den Vorgabewert manuell ändern, während eine zeitgesteuerte Voreinstellung aktiv ist, wird der Timer abgebrochen
 > - Die maximale Dauer beträgt 1440 Minuten (24 Stunden)
 
-## Zeitgesteuertes Preset aktivieren
+## Zeitgesteuerte Voreinstellung aktivieren
 
-Um ein zeitgesteuertes Preset zu aktivieren, verwenden Sie den Dienst `versatile_thermostat.set_timed_preset`:
+Um eine zeitgesteuerte Vorgabe zu aktivieren, verwenden Sie den Dienst `versatile_thermostat.set_timed_preset`:
 
 ```yaml
 service: versatile_thermostat.set_timed_preset
@@ -52,9 +52,9 @@ Parameter:
 - `preset`: Der Name des zu aktivierenden Presets. Muss ein gültiges, auf dem _VTherm_ konfiguriertes Preset sein (z.B. `eco`, `comfort`, `boost`, `frost` usw.)
 - `duration_minutes`: Die Dauer in Minuten (zwischen 1 und 1440)
 
-## Zeitgesteuertes Preset abbrechen
+## Zeitgesteuerte Voreinstellung abbrechen
 
-Um ein zeitgesteuertes Preset vor Ablauf seiner Dauer abzubrechen, verwenden Sie den Dienst `versatile_thermostat.cancel_timed_preset`:
+Um eine zeitgesteuerte Vorgabe vor Ablauf seiner Dauer abzubrechen, verwenden Sie den Dienst `versatile_thermostat.cancel_timed_preset`:
 
 ```yaml
 service: versatile_thermostat.cancel_timed_preset
@@ -62,11 +62,11 @@ target:
   entity_id: climate.mein_thermostat
 ```
 
-Wenn Sie ein zeitgesteuertes Preset abbrechen, wird das ursprüngliche Preset sofort wiederhergestellt.
+Sobald eine zeitgesteuerte Vorgabe abgebrochen wird, wird die ursprüngliche Vorgabe sofort wiederhergestellt.
 
 ## Benutzerdefinierte Attribute
 
-Wenn ein zeitgesteuertes Preset aktiv ist, sind die folgenden Attribute im Abschnitt `timed_preset_manager` der _VTherm_-Attribute verfügbar:
+Wenn eine zeitgesteuerte Preset aktiv ist, sind die folgenden Attribute im Abschnitt `timed_preset_manager` der _VTherm_-Attribute verfügbar:
 
 | Attribut                | Bedeutung                                                                        |
 | ----------------------- | -------------------------------------------------------------------------------- |

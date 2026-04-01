@@ -254,14 +254,7 @@ async def test_cycle_lifecycle(manager):
     manager.state.cycle_start_date = datetime.now(timezone.utc) - timedelta(minutes=5)
 
     # 2. Complete Cycle
-    await manager.on_cycle_completed(
-        new_params={},
-        prev_params={
-            "on_time_sec": 150,
-            "off_time_sec": 150,
-            "hvac_mode": "heat"
-        }
-    )
+    await manager.on_cycle_completed()
     
     assert manager.state.cycle_active is False
     assert manager.state.total_cycles == 1
@@ -571,12 +564,20 @@ async def test_auto_tpi_realized_power_integration(
     await send_temperature_change_event(entity, 19.98, now)
     await send_ext_temperature_change_event(entity, 20.0, now) # No external contribution
     
-    # Trigger calculation
-    # Note: control_heating calls _get_tpi_data which updates realized power
     await entity.async_control_heating()
     
     assert entity.on_percent == 0.01 # The requested power is still 1%
-    assert manager.state.last_power == 0.0 # But realized power is 0%
+    
+    # 1% is below the minimal activation delay (10%), so e_eff is 0.0
+    # Bypass scheduler tick loops, just spoof cycle validation variables
+    from homeassistant.util import dt as dt_util
+    
+    manager.state.cycle_start_date = dt_util.now() - timedelta(minutes=5)
+    manager.state.current_cycle_params = {"on_time_sec": 0, "off_time_sec": 300}
+    manager.state.cycle_active = True
+    
+    await manager.on_cycle_completed(0.0) 
+    assert manager.state.last_power == 0.0 # Realized power is 0%
     
     # ---------------------------------------------------------
     # Case 2: Minimal Deactivation Delay (Forced ON)
@@ -591,6 +592,13 @@ async def test_auto_tpi_realized_power_integration(
     await entity.async_control_heating()
     
     assert abs(entity.on_percent - 0.95) < 0.001 # Requested 95%
+    
+    # 95% means 5% off which is below min deactivation delay (10%), so e_eff is 1.0 (forced ON)
+    manager.state.cycle_start_date = dt_util.now() - timedelta(minutes=5)
+    manager.state.current_cycle_params = {"on_time_sec": 300, "off_time_sec": 0}
+    manager.state.cycle_active = True
+    
+    await manager.on_cycle_completed(1.0)
     assert manager.state.last_power == 1.0 # Realized 100%
     
     # ---------------------------------------------------------
@@ -608,4 +616,11 @@ async def test_auto_tpi_realized_power_integration(
     await entity.async_control_heating()
     
     assert entity.on_percent == 0.5 # Clamped
+    
+    # 50% is not forced by min delays, so e_eff equals clamped requested on_percent
+    manager.state.cycle_start_date = dt_util.now() - timedelta(minutes=5)
+    manager.state.current_cycle_params = {"on_time_sec": 150, "off_time_sec": 150}
+    manager.state.cycle_active = True
+    
+    await manager.on_cycle_completed(0.5)
     assert manager.state.last_power == 0.5 # Realized matches clamped

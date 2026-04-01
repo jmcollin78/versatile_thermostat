@@ -3,10 +3,11 @@
 and maybe some others feature"""
 
 import logging
+from .log_collector import get_vtherm_logger
 import math
 from datetime import datetime, tzinfo
 
-_LOGGER = logging.getLogger(__name__)
+_LOGGER = get_vtherm_logger(__name__)
 
 MIN_TIME_DECAY_SEC = 0
 

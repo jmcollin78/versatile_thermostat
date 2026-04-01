@@ -4,6 +4,7 @@ This class manages both the current and the requested state of a VTherm.
 """
 
 import logging
+from .log_collector import get_vtherm_logger
 from typing import Optional, TYPE_CHECKING, Any
 from .const import (
     HVAC_OFF_REASON_SAFETY,
@@ -35,7 +36,7 @@ from .vtherm_state import VThermState
 from .vtherm_hvac_mode import VThermHvacMode_OFF, VThermHvacMode_FAN_ONLY, VThermHvacMode_COOL, VThermHvacMode_HEAT, VThermHvacMode_SLEEP
 from .vtherm_preset import VThermPreset
 
-_LOGGER = logging.getLogger(__name__)
+_LOGGER = get_vtherm_logger(__name__)
 
 if TYPE_CHECKING:
     from .base_thermostat import BaseThermostat

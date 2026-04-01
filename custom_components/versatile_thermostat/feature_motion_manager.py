@@ -2,7 +2,6 @@
 
 # pylint: disable=line-too-long
 
-import logging
 from typing import Any
 from datetime import timedelta
 
@@ -26,6 +25,7 @@ from homeassistant.helpers.event import (
 from homeassistant.exceptions import ConditionError
 from homeassistant.helpers import condition
 
+from .log_collector import get_vtherm_logger
 from .vtherm_preset import VThermPreset
 
 from .const import *  # pylint: disable=wildcard-import, unused-wildcard-import
@@ -34,7 +34,7 @@ from .commons_type import ConfigData
 
 from .base_manager import BaseFeatureManager
 
-_LOGGER = logging.getLogger(__name__)
+_LOGGER = get_vtherm_logger(__name__)
 
 
 class FeatureMotionManager(BaseFeatureManager):
@@ -307,27 +307,32 @@ class FeatureMotionManager(BaseFeatureManager):
         ]
 
     @property
-    def motion_sensor_entity_id(self) -> bool:
-        """Return true if the motion is configured and motion sensor is OFF"""
+    def is_detected(self) -> bool:
+        """Return the overall state of the feature manager based on motion states"""
+        return self.is_motion_detected
+
+    @property
+    def motion_sensor_entity_id(self) -> str | None:
+        """Return the entity ID of the motion sensor."""
         return self._motion_sensor_entity_id
 
     @property
-    def motion_delay_sec(self) -> bool:
+    def motion_delay_sec(self) -> int:
         """Return the motion delay"""
         return self._motion_delay_sec
 
     @property
-    def motion_off_delay_sec(self) -> bool:
+    def motion_off_delay_sec(self) -> int:
         """Return motion delay off"""
         return self._motion_off_delay_sec
 
     @property
-    def motion_preset(self) -> bool:
+    def motion_preset(self) -> str | None:
         """Return motion preset"""
         return self._motion_preset
 
     @property
-    def no_motion_preset(self) -> bool:
+    def no_motion_preset(self) -> str | None:
         """Return no motion preset"""
         return self._no_motion_preset
 

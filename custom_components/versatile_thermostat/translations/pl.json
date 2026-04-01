@@ -44,10 +44,12 @@
           "use_lock_central_config": "Użyj centralnej konfiguracji blokady",
           "lock_code": "Opcjonalny kod PIN (4 cyfry)",
           "lock_users": "Blokada uniemożliwi wykonywanie poleceń użytkowników",
-          "lock_automations": "Blokada uniemożliwi wykonywanie poleceń przez automatyzacje i integracje (np. harmonogram)"
+          "lock_automations": "Blokada uniemożliwi wykonywanie poleceń przez automatyzacje i integracje (np. harmonogram)",
+          "auto_relock_sec": "Automatyczne ponowne zablokowanie"
         },
         "data_description": {
-          "use_lock_central_config": "Zaznacz, aby używać centralnej konfiguracji blokady. Odznacz, aby używać konfiguracji blokady dedykowanej dla tego termostatu VTherm"
+          "use_lock_central_config": "Zaznacz, aby używać centralnej konfiguracji blokady. Odznacz, aby używać konfiguracji blokady dedykowanej dla tego termostatu VTherm",
+          "auto_relock_sec": "Opóźnienie w sekundach przed automatycznym ponownym zablokowaniem po odblokowaniu. Ustaw 0, aby wyłączyć. Domyślna wartość to 30 sekund."
         }
       },
       "main": {
@@ -235,12 +237,14 @@
           "safety_delay_min": "Zwłoka trybu bezpiecznego (w min.)",
           "safety_min_on_percent": "Minimalny procent mocy do przejścia w tryb bezpieczny",
           "safety_default_on_percent": "Procent mocy do użycia trybu bezpiecznego",
+          "repair_incorrect_state": "Napraw nieprawidłowy stan",
           "use_advanced_central_config": "Użyj zaawansowanej konfiguracji centralnej"
         },
         "data_description": {
           "safety_delay_min": "Maksymalna dopuszczalna zwłoka (w min.) między dwoma pomiarami temperatury. Powyżej tej zwłoki termostat przełączy się w stan wyłączenia trybu bezpiecznego.",
           "safety_min_on_percent": "Minimalna wartość procentowa ogrzewania dla załączenia trybu bezpiecznego. Poniżej tej wartości termostat nie załączy trybu bezpiecznego.",
           "safety_default_on_percent": "Domyślna wartość procentowa mocy grzewczej w trybie bezpiecznym. Ustaw na 0, aby wyłączyć ogrzewanie w bezpiecznym presecie",
+          "repair_incorrect_state": "Automatycznie napraw nieprawidłowy stan jednostek bazowych po wykryciu. Funkcja ponownie wyśle żądane polecenie, jeśli stan urządzenia bazowego nie odpowiada oczekiwanemu stanowi.",
           "use_advanced_central_config": "Wybierz, aby użyć zaawansowanej konfiguracji centralnej. Wyłącz wybór, aby użyć konfiguracji zaawansowanej dedykowanej dla tego termostatu"
         }
       },
@@ -250,12 +254,14 @@
         "data": {
           "central_boiler_activation_service": "Polecenie załączenia",
           "central_boiler_deactivation_service": "Polecenie wyłączenia",
-          "central_boiler_activation_delay_sec": "Opóźnienie załączenia (w sekundach)"
+          "central_boiler_activation_delay_sec": "Opóźnienie załączenia (w sekundach)",
+          "keep_alive_boiler_delay_sec": "Opóźnienie keep-alive (sekundy)"
         },
         "data_description": {
           "central_boiler_activation_service": "Polecenie załączenia kotła centralnego w formacie: id_encji/nazwa_polecenia[/atrybut:wartość]",
           "central_boiler_deactivation_service": "Polecenie wyłączenia kotła centralnego w formacie: id_encji/nazwa_polecenia[/atrybut:wartość]",
-          "central_boiler_activation_delay_sec": "Opóźnienie (w sekundach) przed załączeniem kotła centralnego po tym, jak VTherm zażądał włączenia"
+          "central_boiler_activation_delay_sec": "Opóźnienie (w sekundach) przed załączeniem kotła centralnego po tym, jak VTherm zażądał włączenia",
+          "keep_alive_boiler_delay_sec": "Opóźnienie w sekundach do okresowego ponownego wysłania polecenia kotła, jeśli keep-alive jest włączony. Ustaw na 0, aby wyłączyć keep-alive."
         }
       },
       "valve_regulation": {
@@ -381,10 +387,12 @@
           "use_lock_central_config": "Użyj centralnej konfiguracji blokady",
           "lock_code": "Opcjonalny kod PIN (4 cyfry)",
           "lock_users": "Blokada uniemożliwi polecenia użytkowników",
-          "lock_automations": "Blokada uniemożliwi polecenia z automatyzacji i integracji (np. harmonogram)"
+          "lock_automations": "Blokada uniemożliwi polecenia z automatyzacji i integracji (np. harmonogram)",
+          "auto_relock_sec": "Automatyczne ponowne zablokowanie"
         },
         "data_description": {
-          "use_lock_central_config": "Zaznacz aby używać centralnej konfiguracji blokady. Odznacz aby używać konfiguracji blokady specyficznej dla tego VTherm"
+          "use_lock_central_config": "Zaznacz aby używać centralnej konfiguracji blokady. Odznacz aby używać konfiguracji blokady specyficznej dla tego VTherm",
+          "auto_relock_sec": "Opóźnienie w sekundach przed automatycznym ponownym zablokowaniem po odblokowaniu. Ustaw 0, aby wyłączyć. Domyślna wartość to 30 sekund."
         }
       },
       "main": {
@@ -574,6 +582,7 @@
           "safety_delay_min": "Zwłoka trybu bezpiecznego (w min.)",
           "safety_min_on_percent": "Minimalny procent mocy do przejścia w tryb bezpieczny",
           "safety_default_on_percent": "Procent mocy do użycia trybu bezpiecznego",
+          "repair_incorrect_state": "Napraw nieprawidłowy stan",
           "use_advanced_central_config": "Użyj zaawansowanej konfiguracji centralnej"
         },
         "data_description": {
@@ -582,6 +591,7 @@
           "safety_delay_min": "Maksymalna dopuszczalna zwłoka (w min.) między dwoma pomiarami temperatury. Powyżej tej zwłoki termostat przełączy się w stan wyłączenia trybu bezpiecznego.",
           "safety_min_on_percent": "Minimalna wartość procentowa ogrzewania dla załączenia trybu bezpiecznego. Poniżej tej wartości termostat nie załączy trybu bezpiecznego.",
           "safety_default_on_percent": "Domyślna wartość procentowa mocy grzewczej w trybie bezpiecznym. Ustaw na 0, aby wyłączyć ogrzewanie w bezpiecznym presecie",
+          "repair_incorrect_state": "Automatycznie napraw nieprawidłowy stan jednostek bazowych po wykryciu. Funkcja ponownie wyśle żądane polecenie, jeśli stan urządzenia bazowego nie odpowiada oczekiwanemu stanowi.",
           "use_advanced_central_config": "Wybierz, aby użyć zaawansowanej konfiguracji centralnej. Wyłącz wybór, aby użyć konfiguracji zaawansowanej dedykowanej dla tego termostatu"
         }
       },
@@ -591,12 +601,14 @@
         "data": {
           "central_boiler_activation_service": "Polecenie załączenia",
           "central_boiler_deactivation_service": "Polecenie wyłączenia",
-          "central_boiler_activation_delay_sec": "Opóźnienie załączenia (w sekundach)"
+          "central_boiler_activation_delay_sec": "Opóźnienie załączenia (w sekundach)",
+          "keep_alive_boiler_delay_sec": "Opóźnienie keep-alive (sekundy)"
         },
         "data_description": {
           "central_boiler_activation_service": "Polecenie załączenia kotła centralnego w formacie: `id_encji/nazwa_polecenia[/atrybut:wartość]`",
           "central_boiler_deactivation_service": "Polecenie wyłączenia kotła centralnego w formacie: `id_encji/nazwa_polecenia[/atrybut:wartość]`",
-          "central_boiler_activation_delay_sec": "Opóźnienie (w sekundach) przed załączeniem kotła centralnego po tym, jak VTherm zażądał włączenia"
+          "central_boiler_activation_delay_sec": "Opóźnienie (w sekundach) przed załączeniem kotła centralnego po tym, jak VTherm zażądał włączenia",
+          "keep_alive_boiler_delay_sec": "Opóźnienie w sekundach do okresowego ponownego wysłania polecenia kotła, jeśli keep-alive jest włączony. Ustaw na 0, aby wyłączyć keep-alive."
         }
       },
       "valve_regulation": {

@@ -2,7 +2,8 @@
   "domain": "versatile_thermostat",
   "name": "Versatile Thermostat",
   "after_dependencies": [
-    "recorder"
+    "recorder",
+    "http"
   ],
   "codeowners": [
     "@jmcollin78"
@@ -20,6 +21,6 @@
     "scipy"
   ],
   "ssdp": [],
-  "version": "9.1.0",
+  "version": "9.3.0",
   "zeroconf": []
 }

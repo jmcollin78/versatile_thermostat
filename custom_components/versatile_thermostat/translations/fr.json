@@ -47,11 +47,13 @@
           "use_lock_central_config": "Utiliser la configuration de verrouillage centrale",
           "lock_code": "Code PIN optionnel (4 chiffres)",
           "lock_users": "Le verrouillage empêchera les commandes des utilisateurs",
-          "lock_automations": "Le verrouillage empêchera les commandes des automatisations et des intégrations (ex: planificateur)"
+          "lock_automations": "Le verrouillage empêchera les commandes des automatisations et des intégrations (ex: planificateur)",
+          "auto_relock_sec": "Délai de re-verrouillage automatique"
         },
         "data_description": {
           "use_lock_central_config": "Cochez pour utiliser la configuration de verrouillage centrale. Décochez pour utiliser une configuration de verrouillage spécifique pour ce VTherm",
-          "lock_code": "Le code pin pour déverouiller le thermostat (4 digits)"
+          "lock_code": "Le code pin pour déverouiller le thermostat (4 digits)",
+          "auto_relock_sec": "Délai en secondes avant le re-verrouillage automatique après un déverrouillage. Mettre 0 pour désactiver. La valeur par défaut est 30 secondes."
         }
       },
       "main": {
@@ -199,7 +201,7 @@
         "data_description": {
           "motion_sensor_entity_id": "Id d'entité du détecteur de mouvement",
           "motion_delay": "Délai avant activation lorsqu'un mouvement est détecté (secondes)",
-          "motion_off_delai": "Délai avant désactivation lorsqu'aucun mouvement n'est détecté (secondes)",
+          "motion_off_delay": "Délai avant désactivation lorsqu'aucun mouvement n'est détecté (secondes)",
           "motion_preset": "Preset à utiliser si mouvement détecté",
           "no_motion_preset": "Preset à utiliser si pas de mouvement détecté",
           "use_motion_central_config": "Cochez pour utiliser la configuration centrale du mouvement. Décochez et saisissez les attributs pour utiliser une configuration spécifique du mouvement"
@@ -239,12 +241,14 @@
           "safety_delay_min": "Délai maximal entre 2 mesures de températures",
           "safety_min_on_percent": "Pourcentage minimal de puissance",
           "safety_default_on_percent": "Pourcentage de puissance a utiliser en mode securité",
+          "repair_incorrect_state": "Réparer l'état incorrect",
           "use_advanced_central_config": "Utiliser la configuration centrale avancée"
         },
         "data_description": {
           "safety_delay_min": "Délai maximal autorisé en minutes entre 2 mesures de températures. Au-dessus de ce délai, le thermostat se mettra en position de sécurité",
           "safety_min_on_percent": "Seuil minimal de pourcentage de chauffage en-dessous duquel le préréglage sécurité ne sera jamais activé",
           "safety_default_on_percent": "Valeur par défaut pour le pourcentage de chauffage en mode sécurité. Mettre 0 pour éteindre le radiateur en mode sécurité",
+          "repair_incorrect_state": "Réparer automatiquement l'état incorrect des entités sous-jacentes lorsqu'elles sont détectées. La fonction renverra la commande souhaitée si l'état du dispositif sous-jacent ne correspond pas à l'état attendu.",
           "use_advanced_central_config": "Cochez pour utiliser la configuration centrale avancée. Décochez et saisissez les attributs pour utiliser une configuration spécifique avancée"
         }
       },
@@ -254,12 +258,14 @@
         "data": {
           "central_boiler_activation_service": "Commande pour allumer",
           "central_boiler_deactivation_service": "Commande pour éteindre",
-          "central_boiler_activation_delay_sec": "Délai d'activation (en secondes)"
+          "central_boiler_activation_delay_sec": "Délai d'activation (en secondes)",
+          "keep_alive_boiler_delay_sec": "Délai du maintien actif (en secondes)"
         },
         "data_description": {
           "central_boiler_activation_service": "Commande à éxecuter pour allumer la chaudière centrale au format entity_id/service_name[/attribut:valeur]",
           "central_boiler_deactivation_service": "Commande à éxecuter pour éteindre la chaudière centrale au format entity_id/service_name[/attribut:valeur]",
-          "central_boiler_activation_delay_sec": "Délai en secondes avant d'activer la chaudière centrale après qu'un VTherm ait demandé l'allumage"
+          "central_boiler_activation_delay_sec": "Délai en secondes avant d'activer la chaudière centrale après qu'un VTherm ait demandé l'allumage",
+          "keep_alive_boiler_delay_sec": "Délai en secondes pour relancer périodiquement la commande de la chaudière si le maintien actif est activé. Mettre 0 pour désactiver."
         }
       },
       "valve_regulation": {
@@ -428,11 +434,13 @@
           "use_lock_central_config": "Utiliser la configuration de verrouillage centrale",
           "lock_code": "Code pin optionel (4 chiffres)",
           "lock_users": "Le verrouillage empêchera les commandes des utilisateurs",
-          "lock_automations": "Le verrouillage empêchera les commandes des automatisations et des intégrations (ex: planificateur)"
+          "lock_automations": "Le verrouillage empêchera les commandes des automatisations et des intégrations (ex: planificateur)",
+          "auto_relock_sec": "Délai de re-verrouillage automatique"
         },
         "data_description": {
           "use_lock_central_config": "Cochez pour utiliser la configuration de verrouillage centrale. Décochez pour utiliser une configuration de verrouillage spécifique pour ce VTherm",
-          "lock_code": "Le code PIN pour déverrouiller le thermostat (4 chiffres)"
+          "lock_code": "Le code PIN pour déverrouiller le thermostat (4 chiffres)",
+          "auto_relock_sec": "Délai en secondes avant le re-verrouillage automatique après un déverrouillage. Mettre 0 pour désactiver. La valeur par défaut est 30 secondes."
         }
       },
       "main": {
@@ -579,8 +587,8 @@
         },
         "data_description": {
           "motion_sensor_entity_id": "Id d'entité du détecteur de mouvement",
-          "motion_delay": "Délai avant activation lorsqu'un mouvement est détecté (secondss)",
-          "motion_off_delai": "Délai avant désactivation lorsqu'aucun mouvement n'est détecté (secondes)",
+          "motion_delay": "Délai avant activation lorsqu'un mouvement est détecté (secondes)",
+          "motion_off_delay": "Délai avant désactivation lorsqu'aucun mouvement n'est détecté (secondes)",
           "motion_preset": "Preset à utiliser si mouvement détecté",
           "no_motion_preset": "Preset à utiliser si pas de mouvement détecté",
           "use_motion_central_config": "Cochez pour utiliser la configuration centrale du mouvement. Décochez et saisissez les attributs pour utiliser une configuration spécifique du mouvement"
@@ -622,6 +630,7 @@
           "safety_delay_min": "Délai maximal entre 2 mesures de températures",
           "safety_min_on_percent": "Pourcentage minimal de puissance",
           "safety_default_on_percent": "Pourcentage de puissance a utiliser en mode securité",
+          "repair_incorrect_state": "Réparer l'état incorrect",
           "use_advanced_central_config": "Utiliser la configuration centrale avancée"
         },
         "data_description": {
@@ -630,6 +639,7 @@
           "safety_delay_min": "Délai maximal autorisé en minutes entre 2 mesures de températures. Au-dessus de ce délai, le thermostat se mettra en position de sécurité",
           "safety_min_on_percent": "Seuil minimal de pourcentage de chauffage en-dessous duquel le préréglage sécurité ne sera jamais activé",
           "safety_default_on_percent": "Valeur par défaut pour le pourcentage de chauffage en mode sécurité. Mettre 0 pour éteindre le radiateur en mode sécurité",
+          "repair_incorrect_state": "Réparer automatiquement l'état incorrect des entités sous-jacentes lorsqu'elles sont détectées. La fonction renverra la commande souhaitée si l'état du dispositif sous-jacent ne correspond pas à l'état attendu.",
           "use_advanced_central_config": "Cochez pour utiliser la configuration centrale avancée. Décochez et saisissez les attributs pour utiliser une configuration spécifique avancée"
         }
       },
@@ -639,12 +649,14 @@
         "data": {
           "central_boiler_activation_service": "Commande pour allumer",
           "central_boiler_deactivation_service": "Commande pour éteindre",
-          "central_boiler_activation_delay_sec": "Délai d'activation (en secondes)"
+          "central_boiler_activation_delay_sec": "Délai d'activation (en secondes)",
+          "keep_alive_boiler_delay_sec": "Délai du maintien actif (en secondes)"
         },
         "data_description": {
           "central_boiler_activation_service": "Commande à éxecuter pour allumer la chaudière centrale au format entity_id/service_name[/attribut:valeur]",
           "central_boiler_deactivation_service": "Commande à éxecuter pour éteindre la chaudière centrale au format entity_id/service_name[/attribut:valeur]",
-          "central_boiler_activation_delay_sec": "Délai en secondes avant d'activer la chaudière centrale après qu'un VTherm ait demandé l'allumage"
+          "central_boiler_activation_delay_sec": "Délai en secondes avant d'activer la chaudière centrale après qu'un VTherm ait demandé l'allumage",
+          "keep_alive_boiler_delay_sec": "Délai en secondes pour relancer périodiquement la commande de la chaudière si le maintien actif est activé. Mettre 0 pour désactiver."
         }
       },
       "valve_regulation": {
@@ -1009,6 +1021,24 @@
         "code": {
           "name": "Code de verrouillage",
           "description": "Le code de verrouillage optionnel"
+        }
+      }
+    },
+    "download_logs": {
+      "name": "Télécharger les logs",
+      "description": "Collecte et télécharge les logs filtrés pour une entité VTherm.",
+      "fields": {
+        "log_level": {
+          "name": "Niveau de log",
+          "description": "Niveau de log minimum à inclure"
+        },
+        "period_start": {
+          "name": "Début de la période",
+          "description": "Début de la période d'extraction"
+        },
+        "period_end": {
+          "name": "Fin de la période",
+          "description": "Fin de la période d'extraction"
         }
       }
     }

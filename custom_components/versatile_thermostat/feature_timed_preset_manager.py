@@ -2,7 +2,6 @@
 
 # pylint: disable=line-too-long
 
-import logging
 from datetime import datetime, timedelta
 from typing import Any
 
@@ -12,6 +11,7 @@ from homeassistant.core import (
 )
 from homeassistant.helpers.event import async_track_point_in_time
 
+from .log_collector import get_vtherm_logger
 from .const import *  # pylint: disable=wildcard-import, unused-wildcard-import
 from .commons_type import ConfigData
 
@@ -21,7 +21,7 @@ from .base_manager import BaseFeatureManager
 from .vtherm_preset import VThermPreset
 
 
-_LOGGER = logging.getLogger(__name__)
+_LOGGER = get_vtherm_logger(__name__)
 
 
 class FeatureTimedPresetManager(BaseFeatureManager):
@@ -43,6 +43,7 @@ class FeatureTimedPresetManager(BaseFeatureManager):
 
         self._is_timed_preset_active: bool = False
         self._timed_preset: VThermPreset | None = None
+        self._original_preset: VThermPreset | None = None
         self._timed_preset_end_time: datetime | None = None
         self._cancel_timer: Any | None = None
 
@@ -75,6 +76,7 @@ class FeatureTimedPresetManager(BaseFeatureManager):
 
         end_time_str = manager_attr.get("end_time")
         preset_str = manager_attr.get("preset")
+        original_preset_str = manager_attr.get("original_preset")
 
         if not end_time_str or not preset_str:
             return
@@ -87,7 +89,12 @@ class FeatureTimedPresetManager(BaseFeatureManager):
             # 3. Re-populate internal manager variables
             self._is_timed_preset_active = True
             self._timed_preset = VThermPreset(preset_str)
+            self._original_preset = VThermPreset(original_preset_str) if original_preset_str else None
             self._timed_preset_end_time = end_time
+
+            # Restore the original preset so it is correctly applied when the timer ends
+            if self._original_preset is not None:
+                self._vtherm.requested_state.set_preset(self._original_preset)
 
             # 4. Reschedule the expiration task if time remains
             if end_time > now:
@@ -140,6 +147,9 @@ class FeatureTimedPresetManager(BaseFeatureManager):
 
         # Cancel any existing timer
         self._cancel_timed_preset_timer()
+
+        # Capture the original preset before overriding it
+        self._original_preset = self._vtherm.requested_state.preset
 
         # Store the timed preset information
         self._timed_preset = preset
@@ -208,9 +218,14 @@ class FeatureTimedPresetManager(BaseFeatureManager):
         # Cancel the timer if still active
         self._cancel_timed_preset_timer()
 
+        # Restore the original preset explicitly (handles the post-restart case)
+        if self._original_preset is not None:
+            self._vtherm.requested_state.set_preset(self._original_preset)
+
         # Reset state
         self._is_timed_preset_active = False
         self._timed_preset = None
+        self._original_preset = None
         self._timed_preset_end_time = None
 
         write_event_log(
@@ -250,6 +265,7 @@ class FeatureTimedPresetManager(BaseFeatureManager):
                 "timed_preset_manager": {
                     "is_active": self._is_timed_preset_active,
                     "preset": str(self._timed_preset) if self._timed_preset else None,
+                    "original_preset": str(self._original_preset) if self._original_preset else None,
                     "end_time": self._timed_preset_end_time.isoformat() if self._timed_preset_end_time else None,
                     "remaining_time_min": self.remaining_time_min,
                 }
@@ -286,6 +302,11 @@ class FeatureTimedPresetManager(BaseFeatureManager):
     def is_configured(self) -> bool:
         """Return True - timed preset feature is always available."""
         return True
+
+    @property
+    def is_detected(self) -> bool:
+        """Return the overall state of the feature manager based on timed preset states"""
+        return self.is_timed_preset_active
 
     def __str__(self):
         return f"TimedPresetManager-{self.name}"

@@ -381,10 +381,15 @@ async def test_restore_state_with_active_timed_preset(hass: HomeAssistant):
         "timed_preset_manager": {
             "is_active": True,
             "preset": str(VThermPreset.BOOST),
+            "original_preset": str(VThermPreset.COMFORT),
             "end_time": end_time.isoformat(),
             "remaining_time_min": 30,
         }
     }
+
+    # Mock requested_state so we can verify set_preset is called
+    mock_requested_state = MagicMock()
+    vtherm.requested_state = mock_requested_state
 
     # Mock async_track_point_in_time
     with patch(
@@ -400,6 +405,9 @@ async def test_restore_state_with_active_timed_preset(hass: HomeAssistant):
         assert manager.is_timed_preset_active is True
         assert manager.timed_preset == VThermPreset.BOOST
         assert manager.timed_preset_end_time == end_time
+
+        # Verify original_preset was restored on requested_state
+        mock_requested_state.set_preset.assert_called_once_with(VThermPreset.COMFORT)
 
         # Verify the timer was scheduled
         mock_track.assert_called_once()
@@ -425,10 +433,15 @@ async def test_restore_state_with_expired_timed_preset(hass: HomeAssistant):
         "timed_preset_manager": {
             "is_active": True,
             "preset": str(VThermPreset.BOOST),
+            "original_preset": str(VThermPreset.ECO),
             "end_time": end_time.isoformat(),
             "remaining_time_min": 0,
         }
     }
+
+    # Mock requested_state so we can verify set_preset is called
+    mock_requested_state = MagicMock()
+    vtherm.requested_state = mock_requested_state
 
     with patch(
         "custom_components.versatile_thermostat.feature_timed_preset_manager.async_track_point_in_time"
@@ -440,6 +453,9 @@ async def test_restore_state_with_expired_timed_preset(hass: HomeAssistant):
         assert manager.is_timed_preset_active is True
         assert manager.timed_preset == VThermPreset.BOOST
         assert manager.timed_preset_end_time == end_time
+
+        # Verify original_preset was restored on requested_state even for expired presets
+        mock_requested_state.set_preset.assert_called_once_with(VThermPreset.ECO)
 
         # Timer should not be scheduled for expired presets
         mock_track.assert_not_called()

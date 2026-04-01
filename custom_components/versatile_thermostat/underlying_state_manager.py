@@ -9,12 +9,13 @@ entity.
 """
 from typing import List, Optional, Callable, Any
 import logging
+from .log_collector import get_vtherm_logger
 
 from homeassistant.core import HomeAssistant, State
 from homeassistant.const import STATE_UNAVAILABLE, STATE_UNKNOWN
 from homeassistant.helpers.event import async_track_state_change_event
 
-_LOGGER = logging.getLogger(__name__)
+_LOGGER = get_vtherm_logger(__name__)
 
 
 class UnknownEntity(Exception):

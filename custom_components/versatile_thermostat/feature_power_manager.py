@@ -2,7 +2,6 @@
 
 # pylint: disable=line-too-long
 
-import logging
 from typing import Any
 
 from homeassistant.const import (
@@ -16,6 +15,7 @@ from homeassistant.core import (
     HomeAssistant,
 )
 
+from .log_collector import get_vtherm_logger
 from .const import *  # pylint: disable=wildcard-import, unused-wildcard-import
 from .commons import write_event_log, round_to_nearest
 from .commons_type import ConfigData
@@ -23,7 +23,7 @@ from .commons_type import ConfigData
 from .base_manager import BaseFeatureManager
 from .vtherm_api import VersatileThermostatAPI
 
-_LOGGER = logging.getLogger(__name__)
+_LOGGER = get_vtherm_logger(__name__)
 
 
 class FeaturePowerManager(BaseFeatureManager):
@@ -177,7 +177,8 @@ class FeaturePowerManager(BaseFeatureManager):
             if self._vtherm.is_over_climate:
                 power_consumption_max = self._device_power
             else:
-                on_percent = self._vtherm.safe_on_percent
+                # if on_percent is not defined, we consider that the device can consume all its power in the worst case
+                on_percent = self._vtherm.safe_on_percent if self._vtherm.safe_on_percent is not None else 1
 
                 power_consumption_max = max(
                     self._device_power / self._vtherm.nb_underlying_entities,
@@ -210,7 +211,8 @@ class FeaturePowerManager(BaseFeatureManager):
             if self._vtherm.is_over_climate:
                 power_consumption_max = self._device_power
             else:
-                on_percent = self._vtherm.safe_on_percent
+                # if on_percent is not defined, we consider that the device can consume all its power in the worst case
+                on_percent = self._vtherm.safe_on_percent if self._vtherm.safe_on_percent is not None else 1
 
                 power_consumption_max = max(
                     self._device_power / self._vtherm.nb_underlying_entities,
@@ -285,6 +287,11 @@ class FeaturePowerManager(BaseFeatureManager):
         return self._overpowering_state == STATE_ON
 
     @property
+    def is_detected(self) -> bool:
+        """Return the overall state of the feature manager based on detection states"""
+        return self.is_overpowering_detected
+
+    @property
     def power_temperature(self) -> float | None:
         """Return the power temperature"""
         return self._power_temp
@@ -301,7 +308,10 @@ class FeaturePowerManager(BaseFeatureManager):
             return None
 
         if self._vtherm.proportional_algorithm:
-            return float(round_to_nearest(self._device_power * self._vtherm.proportional_algorithm.on_percent, 0.01))
+            algo_on_percent = self._vtherm.proportional_algorithm.on_percent
+            if algo_on_percent is None:
+                return None
+            return float(round_to_nearest(self._device_power * algo_on_percent, 0.01))
 
         if self._vtherm.is_over_climate:
             return self._device_power if self._vtherm.is_device_active else 0.0

@@ -16,10 +16,12 @@
     - [Comment réparer ?](#comment-réparer-)
   - [Utilisation d'un groupe de personnes comme capteur de présence](#utilisation-dun-groupe-de-personnes-comme-capteur-de-présence)
   - [Activer les logs du Versatile Thermostat](#activer-les-logs-du-versatile-thermostat)
+    - [Utiliser le log-collector (méthode recommandée)](#utiliser-le-log-collector-méthode-recommandée)
+    - [Activer les logs dans Home Assistant (ancienne méthode)](#activer-les-logs-dans-home-assistant-ancienne-méthode)
   - [VTherm ne suit pas les changements de consigne faits directement depuis le sous-jacents (`over_climate`)](#vtherm-ne-suit-pas-les-changements-de-consigne-faits-directement-depuis-le-sous-jacents-over_climate)
   - [VTherm passe tout seul en mode 'clim' ou en mode 'chauffage'](#vtherm-passe-tout-seul-en-mode-clim-ou-en-mode-chauffage)
   - [La détection de fenêtre ouverte n'empêche pas le changement de preset](#la-détection-de-fenêtre-ouverte-nempêche-pas-le-changement-de-preset)
-  - [Erreur stabilization_threshold is an invalid option](#erreur-stabilization_threshold-is-an-invalid-option)
+  - [Erreur stabilization\_threshold is an invalid option](#erreur-stabilization_threshold-is-an-invalid-option)
 
 
 ## Utilisation d'un Heatzy
@@ -214,16 +216,31 @@ template: !include templates.yaml
 ```
 
 ## Activer les logs du Versatile Thermostat
-Des fois, vous aurez besoin d'activer les logs pour afiner les analyses. Pour cela, éditer le fichier `logger.yaml` de votre configuration et configurer les logs comme suit :
+
+### Utiliser le log-collector (méthode recommandée)
+
+Pour collecter et analyser les logs du Versatile Thermostat, **il est vivement recommandé d'utiliser la fonction de téléchargement de logs intégrée** (log-collector). Cette méthode :
+- ✅ Collecte les logs **indépendamment du niveau configuré dans Home Assistant**
+- ✅ N'affecte pas les performances de Home Assistant
+- ✅ Permet de filtrer par période, thermostat, et niveau de gravité
+- ✅ Fournit un fichier téléchargeable facile à analyser
+
+Consultez la documentation complète : [Télécharger les logs passés - Diagnostic et dépannage](feature-logs-collector.md)
+
+### Activer les logs dans Home Assistant (ancienne méthode)
+
+Si vous avez besoin d'un mode de débogage plus avancé, vous pouvez activer les logs au niveau de Home Assistant en éditant le fichier `logger.yaml` :
 
 ```yaml
-default: xxxx
-logs:
-  custom_components.versatile_thermostat: info
+logger:
+  default: warning
+  logs:
+    custom_components.versatile_thermostat: debug
 ```
-Vous devez recharger la configuration yaml (Outils de dev / Yaml / Toute la configuration Yaml) ou redémarrer Home Assistant pour que ce changement soit pris en compte.
 
-Attention, en mode debug Versatile Thermostat est très verbeux et peut vite ralentir Home Assistant ou saturer votre disque dur. Si vous passez en mode debug pour une analyse d'anomalie il faut s'y mettre juste le temps de reproduire le bug et désactiver le mode debug juste après.
+Vous devez recharger la configuration YAML (Outils de développement / YAML / Toute la configuration YAML) ou redémarrer Home Assistant pour que ce changement soit pris en compte.
+
+⚠️ **Attention** : En mode debug, Versatile Thermostat est très verbeux et peut ralentir Home Assistant ou saturer votre disque dur. Cette approche n'est recommandée que pour un débogage avancé sur une courte durée. **Préférez le log-collector dans tous les cas normaux.**
 
 ## VTherm ne suit pas les changements de consigne faits directement depuis le sous-jacents (`over_climate`)
 

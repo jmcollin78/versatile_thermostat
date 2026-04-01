@@ -506,6 +506,7 @@ async def test_user_config_flow_over_climate(
         CONF_SAFETY_DELAY_MIN: 5,
         CONF_SAFETY_MIN_ON_PERCENT: 0.4,
         CONF_SAFETY_DEFAULT_ON_PERCENT: 0.3,
+        CONF_REPAIR_INCORRECT_STATE: False,
     } | MOCK_DEFAULT_FEATURE_CONFIG | {
         CONF_USE_MAIN_CENTRAL_CONFIG: False,
         CONF_USE_PRESETS_CENTRAL_CONFIG: False,
@@ -756,6 +757,7 @@ async def test_user_config_flow_over_climate_auto_start_stop(
         CONF_SAFETY_DELAY_MIN: 5,
         CONF_SAFETY_MIN_ON_PERCENT: 0.4,
         CONF_SAFETY_DEFAULT_ON_PERCENT: 0.3,
+        CONF_REPAIR_INCORRECT_STATE: False,
     } | MOCK_DEFAULT_FEATURE_CONFIG | {
         CONF_USE_MAIN_CENTRAL_CONFIG: False,
         CONF_USE_TPI_CENTRAL_CONFIG: False,
@@ -1020,6 +1022,7 @@ async def test_user_config_flow_over_switch_bug_552_tpi(
             CONF_SAFETY_DELAY_MIN: 5,
             CONF_SAFETY_MIN_ON_PERCENT: 0.4,
             CONF_SAFETY_DEFAULT_ON_PERCENT: 0.3,
+            CONF_REPAIR_INCORRECT_STATE: False,
             CONF_USE_MAIN_CENTRAL_CONFIG: False,
             CONF_USE_TPI_CENTRAL_CONFIG: False,
             CONF_USE_PRESETS_CENTRAL_CONFIG: False,
@@ -1489,6 +1492,7 @@ async def test_user_config_flow_over_climate_valve(
         CONF_SAFETY_DELAY_MIN: 5,
         CONF_SAFETY_MIN_ON_PERCENT: 0.4,
         CONF_SAFETY_DEFAULT_ON_PERCENT: 0.3,
+        CONF_REPAIR_INCORRECT_STATE: False,
     } | MOCK_DEFAULT_FEATURE_CONFIG | {
         CONF_USE_MAIN_CENTRAL_CONFIG: False,
         CONF_USE_PRESETS_CENTRAL_CONFIG: False,
@@ -1693,3 +1697,65 @@ async def test_user_config_flow_valve_min_max_opening_degrees_error(hass: HomeAs
     assert result["type"] == FlowResultType.MENU
     assert result["step_id"] == "menu"
     assert result.get("errors") is None
+
+
+@pytest.mark.parametrize("expected_lingering_tasks", [True])
+@pytest.mark.parametrize("expected_lingering_timers", [True])
+async def test_central_config_hidden_when_exists(hass: HomeAssistant, init_vtherm_api):
+    """When a central configuration already exists, it should not appear as an option
+    in the first step of the ConfigFlow. When it is deleted, it should reappear."""
+
+    # 1. First flow: central config option should be available (no central config yet)
+    result = await hass.config_entries.flow.async_init(DOMAIN, context={"source": SOURCE_USER})
+    assert result["type"] == FlowResultType.FORM
+    assert result["step_id"] == SOURCE_USER
+
+    schema_keys = [str(k) for k in result["data_schema"].schema.keys()]
+    assert CONF_THERMOSTAT_TYPE in schema_keys
+
+    # Retrieve options for thermostat_type
+    type_selector = result["data_schema"].schema[CONF_THERMOSTAT_TYPE]
+    available_options = [opt for opt in type_selector.config["options"]]
+    assert CONF_THERMOSTAT_CENTRAL_CONFIG in available_options
+
+    # Cancel this flow
+    hass.config_entries.flow.async_abort(result["flow_id"])
+
+    # 2. Create a central configuration
+    central_config_entry = await create_central_config(hass, FULL_CENTRAL_CONFIG)
+    assert central_config_entry is not None
+
+    # 3. New flow: central config option should now be hidden
+    result2 = await hass.config_entries.flow.async_init(DOMAIN, context={"source": SOURCE_USER})
+    assert result2["type"] == FlowResultType.FORM
+    assert result2["step_id"] == SOURCE_USER
+
+    type_selector2 = result2["data_schema"].schema[CONF_THERMOSTAT_TYPE]
+    available_options2 = [opt for opt in type_selector2.config["options"]]
+    assert CONF_THERMOSTAT_CENTRAL_CONFIG not in available_options2
+
+    hass.config_entries.flow.async_abort(result2["flow_id"])
+
+    # 4. Delete the central configuration
+    api = VersatileThermostatAPI.get_vtherm_api(hass)
+    central_entry = None
+    for entry in hass.config_entries.async_entries(DOMAIN):
+        if entry.data.get(CONF_THERMOSTAT_TYPE) == CONF_THERMOSTAT_CENTRAL_CONFIG:
+            central_entry = entry
+            break
+    assert central_entry is not None
+    await hass.config_entries.async_remove(central_entry.entry_id)
+
+    # Cache must have been reset
+    assert api.find_central_configuration() is None
+
+    # 5. New flow: central config option should be available again
+    result3 = await hass.config_entries.flow.async_init(DOMAIN, context={"source": SOURCE_USER})
+    assert result3["type"] == FlowResultType.FORM
+    assert result3["step_id"] == SOURCE_USER
+
+    type_selector3 = result3["data_schema"].schema[CONF_THERMOSTAT_TYPE]
+    available_options3 = [opt for opt in type_selector3.config["options"]]
+    assert CONF_THERMOSTAT_CENTRAL_CONFIG in available_options3
+
+    hass.config_entries.flow.async_abort(result3["flow_id"])

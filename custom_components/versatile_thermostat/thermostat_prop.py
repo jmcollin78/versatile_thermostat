@@ -2,7 +2,8 @@
 """Base class for proportional thermostats (TPI, SmartPI)."""
 
 import logging
-from typing import Generic, Any
+from .log_collector import get_vtherm_logger
+from typing import Generic
 
 from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import ServiceValidationError
@@ -12,7 +13,7 @@ from .underlyings import T
 from .vtherm_hvac_mode import VThermHvacMode_OFF
 from .const import CONF_PROP_FUNCTION
 
-_LOGGER = logging.getLogger(__name__)
+_LOGGER = get_vtherm_logger(__name__)
 
 
 class ThermostatProp(BaseThermostat[T], Generic[T]):
@@ -62,14 +63,21 @@ class ThermostatProp(BaseThermostat[T], Generic[T]):
         return self._prop_algorithm
 
     @property
-    def on_percent(self) -> float:
+    def on_percent(self) -> float | None:
         """Returns the percentage the heater must be ON
-        In safety mode this value is overridden with the _default_on_percent
+        In safety mode this value is overridden with the _default_on_percent.
+        Returns None when the temperature sensor was not available at the last
+        calculation. Callers must treat None as "temperature unknown — keep
+        the current switch state unchanged".
         """
         if self._safety_state:
             val = self._safety_default_on_percent
         elif self._prop_algorithm:
             val = self._prop_algorithm.on_percent
+            if val is None:
+                # Temperature was not available at last calculation.
+                # Propagate None so callers can skip touching the switch.
+                return None
         else:
             val = 0
 
@@ -82,8 +90,8 @@ class ThermostatProp(BaseThermostat[T], Generic[T]):
         # Only if the value has been modified by safety or clamping
         if self._prop_algorithm and hasattr(self._prop_algorithm, "update_realized_power"):
             # Get what the algorithm proposes
-            algo_percent = self._prop_algorithm.on_percent if self._prop_algorithm else 0
-            if val != algo_percent:
+            algo_percent = self._prop_algorithm.on_percent
+            if algo_percent is not None and val != algo_percent:
                 self._prop_algorithm.update_realized_power(val)
 
         return val
@@ -277,15 +285,15 @@ class ThermostatProp(BaseThermostat[T], Generic[T]):
                 allow_kint_boost=allow_kint_boost,
                 allow_kext_overshoot=allow_kext_overshoot,
             )
-    async def _on_prop_cycle_start(self, params: dict[str, Any]):
-        """Called by Algorithm Handler when a new cycle starts.
 
-        Args:
-            params: Dictionary containing cycle parameters (on_time, off_time, etc.)
+    def _bind_scheduler(self, scheduler) -> None:
+        """Store the CycleScheduler and notify the algo handler.
+
+        Called by concrete subclasses (ThermostatOverSwitch, etc.) immediately
+        after CycleScheduler construction. The handler registers whatever
+        callbacks it needs via on_scheduler_ready() — the thermostat does not
+        need to know the details.
         """
-        await self._fire_cycle_start_callbacks(
-            params.get("on_time_sec", 0),
-            params.get("off_time_sec", 0),
-            params.get("on_percent", 0),
-            params.get("hvac_mode", "stop")
-        )
+        self._cycle_scheduler = scheduler
+        if self._algo_handler:
+            self._algo_handler.on_scheduler_ready(scheduler)

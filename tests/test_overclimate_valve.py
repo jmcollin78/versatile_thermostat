@@ -347,12 +347,12 @@ async def test_over_climate_valve_multi_presence(hass: HomeAssistant, fake_temp_
         assert vtherm.valve_open_percent == 40
 
         # Check the underlying entities have been updated
-        assert fake_underlying_climate1.target_temperature == 19.0
-        assert fake_underlying_climate2.target_temperature == 19.0
-        assert fake_opening_degree1.native_value == 40
-        assert fake_closing_degree1.native_value == 60
-        assert fake_opening_degree2.native_value == 40
-        assert fake_closing_degree2.native_value == 60
+        await wait_for_local_condition(lambda: fake_underlying_climate1.target_temperature == 19.0)
+        await wait_for_local_condition(lambda: fake_underlying_climate2.target_temperature == 19.0)
+        await wait_for_local_condition(lambda: fake_opening_degree1.native_value == 40)
+        await wait_for_local_condition(lambda: fake_closing_degree1.native_value == 60)
+        await wait_for_local_condition(lambda: fake_opening_degree2.native_value == 40)
+        await wait_for_local_condition(lambda: fake_closing_degree2.native_value == 60)
 
         assert vtherm.nb_device_actives >= 2 # should be 2 but when run in // with the first test it give 3
 
@@ -370,12 +370,12 @@ async def test_over_climate_valve_multi_presence(hass: HomeAssistant, fake_temp_
         assert vtherm.valve_open_percent == 0
 
         # Check the underlying entities have been updated
-        assert fake_underlying_climate1.target_temperature == 17.2
-        assert fake_underlying_climate2.target_temperature == 17.2
-        assert fake_opening_degree1.native_value == 0
-        assert fake_closing_degree1.native_value == 100
-        assert fake_opening_degree2.native_value == 0
-        assert fake_closing_degree2.native_value == 100
+        await wait_for_local_condition(lambda: fake_underlying_climate1.target_temperature == 17.2)
+        await wait_for_local_condition(lambda: fake_underlying_climate2.target_temperature == 17.2)
+        await wait_for_local_condition(lambda: fake_opening_degree1.native_value == 0)
+        await wait_for_local_condition(lambda: fake_closing_degree1.native_value == 100)
+        await wait_for_local_condition(lambda: fake_opening_degree2.native_value == 0)
+        await wait_for_local_condition(lambda: fake_closing_degree2.native_value == 100)
 
         assert vtherm.nb_device_actives == 0
 
