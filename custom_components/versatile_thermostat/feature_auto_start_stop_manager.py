@@ -20,6 +20,10 @@ from .auto_start_stop_algorithm import (
     AutoStartStopDetectionAlgorithm,
 )
 
+from homeassistant.core import callback
+from homeassistant.components.climate import HVACMode
+from .const import HVAC_OFF_REASON_AUTO_START_STOP
+
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -242,6 +246,56 @@ class FeatureAutoStartStopManager(BaseFeatureManager):
                     }
                 }
             )
+
+    @callback
+    def restore_state(self, old_state) -> None:
+        """Restore the auto start/stop state after a Home Assistant restart.
+
+        When the VTherm was stopped by the auto start/stop algorithm before
+        the restart, re-apply:
+          - hvac_off_reason  on the parent VTherm (so it stays off)
+          - saved_hvac_mode  on the parent VTherm (so it can restart correctly)
+
+        Without this, the parent VTherm sees hvac_off_reason=None at startup
+        and immediately transitions back to heat while the underlying stays off.
+
+        Same pattern as FeatureWindowManager and FeatureTimedPresetManager (#1722).
+        """
+        if old_state is None:
+            return
+
+        manager_attr = old_state.attributes.get("auto_start_stop_manager")
+        if not manager_attr:
+            _LOGGER.debug(
+                "%s - restore_state: no auto_start_stop_manager attribute, skipping",
+                self,
+            )
+            return
+
+        hvac_off_reason = old_state.attributes.get("hvac_off_reason")
+        if hvac_off_reason != HVAC_OFF_REASON_AUTO_START_STOP:
+            _LOGGER.debug(
+                "%s - restore_state: hvac_off_reason='%s' is not auto_start_stop, skipping",
+                self,
+                hvac_off_reason,
+            )
+            return
+
+        _LOGGER.info(
+            "%s - restore_state: restoring hvac_off_reason=%s after restart",
+            self,
+            HVAC_OFF_REASON_AUTO_START_STOP,
+        )
+        self._vtherm.hvac_off_reason = HVAC_OFF_REASON_AUTO_START_STOP
+
+        saved_hvac_mode = old_state.attributes.get("saved_hvac_mode")
+        if saved_hvac_mode:
+            _LOGGER.info(
+                "%s - restore_state: restoring saved_hvac_mode=%s after restart",
+                self,
+                saved_hvac_mode,
+            )
+            self._vtherm.saved_hvac_mode = HVACMode(saved_hvac_mode)
 
     @property
     def is_auto_stop_detected(self) -> bool:
