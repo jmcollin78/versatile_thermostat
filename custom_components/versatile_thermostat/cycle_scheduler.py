@@ -7,6 +7,7 @@ without temporal scheduling.
 """
 
 import logging
+import time
 from .log_collector import get_vtherm_logger
 from typing import Any, Callable
 
@@ -189,6 +190,24 @@ class CycleScheduler:
         self._thermostat._off_time_sec = off_time_sec
 
         if self.is_cycle_running and not force:
+            if self._is_valve_mode:
+                # Valve mode must keep the current master-cycle window for
+                # learning callbacks, but the physical valve command still has
+                # to follow each new regulation result immediately.
+                _LOGGER.debug(
+                    "%s - Valve cycle already running, applying immediate update: "
+                    "on_time=%.0f, off_time=%.0f, on_percent=%.2f",
+                    self._thermostat,
+                    on_time_sec,
+                    off_time_sec,
+                    on_percent,
+                )
+                self._current_hvac_mode = hvac_mode
+                self._current_on_time_sec = on_time_sec
+                self._current_off_time_sec = off_time_sec
+                self._current_on_percent = on_percent
+                await self._apply_valve_command(hvac_mode, on_time_sec, off_time_sec)
+                return
             if self._current_on_time_sec > 0:
                 # A real cycle is actively running — don't interrupt it.
                 # Just update stored params so the next auto-repeat uses them.
@@ -242,16 +261,38 @@ class CycleScheduler:
         finally:
             self._is_starting = False
 
+    async def _apply_valve_command(
+        self,
+        hvac_mode: VThermHvacMode,
+        on_time_sec: float,
+        off_time_sec: float,
+    ) -> None:
+        """Apply the latest valve command to all underlyings immediately."""
+        for under in self._underlyings:
+            under._on_time_sec = on_time_sec
+            under._off_time_sec = off_time_sec
+            under._hvac_mode = hvac_mode
+            await under.set_valve_open_percent()
+
     async def _start_cycle_valve(self, hvac_mode: VThermHvacMode):
         """Valve passthrough: call set_valve_open_percent() on each underlying.
 
         Valves don't need temporal ON/OFF scheduling. They just need
-        their open percentage updated. No master cycle repeat is needed
-        because control_heating is called periodically by async_track_time_interval.
+        their open percentage updated. A master cycle window is still kept so
+        cycle callbacks remain available to SmartPI in valve-based setups.
         """
-        for under in self._underlyings:
-            under._hvac_mode = hvac_mode
-            await under.set_valve_open_percent()
+        await self._apply_valve_command(
+            hvac_mode,
+            self._current_on_time_sec,
+            self._current_off_time_sec,
+        )
+
+        self._cycle_start_time = time.time()
+        self._cycle_end_unsub = async_call_later(
+            self._hass,
+            self._cycle_duration_sec,
+            self._on_master_cycle_end,
+        )
 
     async def _start_cycle_switch(
         self,
@@ -301,7 +342,6 @@ class CycleScheduler:
         with natural wrap-around for smooth load distribution.
         """
         self._penalty = 0.0
-        import time
         self._cycle_start_time = time.time()
 
         n = len(self._underlyings)
@@ -328,7 +368,6 @@ class CycleScheduler:
         to avoid floating-point drift, and the is_device_active check is skipped so
         the desired state is always enforced unconditionally on the first tick.
         """
-        import time
         from homeassistant.util import dt as dt_util
         now = time.time()
         current_t = 0.0 if _is_initial else (now - self._cycle_start_time)
@@ -488,15 +527,14 @@ class CycleScheduler:
             self._cycle_end_unsub()
             self._cycle_end_unsub = None
 
-        import time
         elapsed_sec = time.time() - self._cycle_start_time if self._cycle_start_time > 0 else 0
 
-        # Fire end-of-cycle callback for all non-valve cycles that ran long enough.
+        # Fire end-of-cycle callback for cycles that ran long enough.
         # This includes normal ends (via _on_master_cycle_end -> start_cycle(force=True))
         # and mid-cycle interruptions (force restart on setpoint change, etc.).
         # During this await, _is_cancelling=True keeps is_cycle_running=True so any
         # concurrent start_cycle(force=False) call takes the update path, not full start.
-        if was_running and elapsed_sec > 1.0 and not self._is_valve_mode:
+        if was_running and elapsed_sec > 1.0:
             realized_e_eff = self._calculate_realized_e_eff(elapsed_sec)
             elapsed_ratio = min(1.0, elapsed_sec / self._cycle_duration_sec) if self._cycle_duration_sec > 0 else 1.0
 
@@ -517,6 +555,12 @@ class CycleScheduler:
         """Calculate the actual effective power applied over the given elapsed time."""
         if not self._underlyings or elapsed_sec <= 0:
             return 0.0
+
+        if self._is_valve_mode:
+            # Valve mode applies one constant opening command over the full
+            # master cycle window, so the realized effective power is the
+            # current cycle command itself.
+            return max(0.0, min(1.0, self._current_on_percent))
 
         # When _states is empty the cycle ran at either 0% or 100% (no tick scheduling).
         # Infer from _current_on_time_sec: if it covers the full duration, e_eff = 1.0.
@@ -567,9 +611,14 @@ class CycleScheduler:
 
     async def _fire_cycle_end_callbacks(self, e_eff: float, elapsed_ratio: float = 1.0):
         """Fire all registered cycle end callbacks with e_eff and elapsed_ratio."""
+        cycle_duration_min = self._cycle_duration_sec / 60.0
         for callback in self._on_cycle_end_callbacks:
             try:
-                await callback(e_eff=e_eff, elapsed_ratio=elapsed_ratio)
+                await callback(
+                    e_eff=e_eff,
+                    elapsed_ratio=elapsed_ratio,
+                    cycle_duration_min=cycle_duration_min,
+                )
             except Exception as ex:
                 _LOGGER.warning(
                     "%s - Error calling cycle end callback %s: %s",
