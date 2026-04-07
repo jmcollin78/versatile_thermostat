@@ -137,6 +137,7 @@ class FeaturePowerManager(BaseFeatureManager):
         current_power = vtherm_api.central_power_manager.current_power
         current_max_power = vtherm_api.central_power_manager.current_max_power
         started_vtherm_total_power = vtherm_api.central_power_manager.started_vtherm_total_power
+        current_vtherm_started_power = vtherm_api.central_power_manager.get_started_vtherm_power(self._vtherm_power_key)
         if (
             current_power is None
             or current_max_power is None
@@ -156,15 +157,26 @@ class FeaturePowerManager(BaseFeatureManager):
         )
 
         power_consumption_max = self.calculate_power_consumption_max()
+        additional_power = max(
+            0,
+            power_consumption_max - current_vtherm_started_power,
+        )
 
-        ret = (current_power + started_vtherm_total_power + power_consumption_max) < current_max_power
+        ret = (
+            current_power
+            + started_vtherm_total_power
+            - current_vtherm_started_power
+            + power_consumption_max
+        ) < current_max_power
         if not ret:
             _LOGGER.info(
-                "%s - there is not enough power available power=%.3f, max_power=%.3f started_power=%.3f heater power=%.3f",
+                "%s - there is not enough power available power=%.3f, max_power=%.3f started_power=%.3f current_vtherm_started_power=%.3f additional_power=%.3f heater power=%.3f",
                 self,
                 current_power,
                 current_max_power,
                 started_vtherm_total_power,
+                current_vtherm_started_power,
+                additional_power,
                 self._device_power,
             )
 
@@ -196,7 +208,10 @@ class FeaturePowerManager(BaseFeatureManager):
 
         power_consumption_max = self.calculate_power_consumption_max()
 
-        vtherm_api.central_power_manager.add_started_vtherm_total_power(power_consumption_max)
+        vtherm_api.central_power_manager.set_started_vtherm_power(
+            self._vtherm_power_key,
+            power_consumption_max,
+        )
 
     def sub_power_consumption_to_central_power_manager(self):
         """
@@ -206,20 +221,10 @@ class FeaturePowerManager(BaseFeatureManager):
         if not self._is_configured or not vtherm_api.central_power_manager.is_configured:
             return
 
-        power_consumption_max = 0
-        if self._vtherm.is_device_active:
-            if self._vtherm.is_over_climate:
-                power_consumption_max = self._device_power
-            else:
-                # if on_percent is not defined, we consider that the device can consume all its power in the worst case
-                on_percent = self._vtherm.safe_on_percent if self._vtherm.safe_on_percent is not None else 1
-
-                power_consumption_max = max(
-                    self._device_power / self._vtherm.nb_underlying_entities,
-                    self._device_power * on_percent,
-                )
-
-        vtherm_api.central_power_manager.add_started_vtherm_total_power(-power_consumption_max)
+        vtherm_api.central_power_manager.set_started_vtherm_power(
+            self._vtherm_power_key,
+            0,
+        )
 
     async def set_overpowering(self, overpowering: bool, power_consumption_max: float = 0):
         """Force the overpowering state for the VTherm"""
@@ -317,6 +322,11 @@ class FeaturePowerManager(BaseFeatureManager):
             return self._device_power if self._vtherm.is_device_active else 0.0
 
         return None
+
+    @property
+    def _vtherm_power_key(self) -> str:
+        """Return a stable key for temporary power reservations."""
+        return getattr(self._vtherm, "entity_id", None) or self._vtherm.name
 
     def __str__(self):
         return f"PowerManager-{self.name}"
