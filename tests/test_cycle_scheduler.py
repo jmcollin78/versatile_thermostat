@@ -5,6 +5,7 @@ from unittest.mock import MagicMock, AsyncMock, patch, call
 from homeassistant.core import HomeAssistant
 
 from custom_components.versatile_thermostat.cycle_scheduler import CycleScheduler
+from custom_components.versatile_thermostat.underlyings import UnderlyingEntityType
 from custom_components.versatile_thermostat.vtherm_hvac_mode import (
     VThermHvacMode_HEAT,
     VThermHvacMode_COOL,
@@ -17,14 +18,16 @@ from custom_components.versatile_thermostat.vtherm_hvac_mode import (
 # ─────────────────────────────────────────────
 
 
-def make_underlying(name="R1", active=False):
-    """Create a mock UnderlyingSwitch."""
+def make_underlying(name="R1", active=False, entity_type=UnderlyingEntityType.SWITCH):
+    """Create a mock underlying entity."""
     under = MagicMock()
     under.turn_on = AsyncMock(return_value=True)
     under.turn_off = AsyncMock()
+    under.set_valve_open_percent = AsyncMock()
     under.is_device_active = active
     under.min_activation_delay_sec = 0
     under.min_deactivation_delay_sec = 0
+    under.entity_type = entity_type
     
     # Mock last_change to return a large elapsed time (e.g. 1000 seconds)
     import datetime
@@ -301,6 +304,52 @@ class TestCycleSchedulerCallbacks:
         await scheduler._on_master_cycle_end(None)
 
         cb_end.assert_called_once()
+
+    @pytest.mark.asyncio
+    @pytest.mark.parametrize(
+        ("entity_type", "expected_class"),
+        [
+            (UnderlyingEntityType.VALVE, "thermostat_over_valve"),
+            (UnderlyingEntityType.VALVE_REGULATION, "thermostat_over_climate_valve"),
+        ],
+    )
+    @patch("custom_components.versatile_thermostat.cycle_scheduler.async_call_later")
+    async def test_cycle_end_callback_fired_in_valve_mode(
+        self,
+        mock_call_later,
+        entity_type,
+        expected_class,
+    ):
+        """Valve-based schedulers must keep cycle callbacks active for SmartPI."""
+        import time as _time
+
+        mock_call_later.return_value = MagicMock()
+
+        hass = make_hass()
+        thermostat = make_thermostat()
+        valve = make_underlying("V1", active=False, entity_type=entity_type)
+        scheduler = CycleScheduler(hass, thermostat, [valve], 600)
+
+        assert scheduler.is_valve_mode is True, expected_class
+
+        cb_end = AsyncMock()
+        scheduler.register_cycle_end_callback(cb_end)
+
+        await scheduler.start_cycle(VThermHvacMode_HEAT, 0.4, force=True)
+
+        valve.set_valve_open_percent.assert_awaited_once()
+        assert scheduler.is_cycle_running is True
+        assert mock_call_later.call_count == 1
+        assert mock_call_later.call_args_list[0][0][1] == 600
+
+        scheduler._cycle_start_time = _time.time() - 300
+        await scheduler.cancel_cycle()
+
+        cb_end.assert_awaited_once()
+        kwargs = cb_end.await_args.kwargs
+        assert kwargs["e_eff"] == pytest.approx(0.4)
+        assert kwargs["elapsed_ratio"] == pytest.approx(0.5, rel=1e-4)
+        assert kwargs["cycle_duration_min"] == pytest.approx(10.0)
 
     @pytest.mark.asyncio
     @patch("custom_components.versatile_thermostat.cycle_scheduler.async_call_later")
