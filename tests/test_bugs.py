@@ -950,6 +950,86 @@ async def test_bug_1777(mock_call_later, hass):
     assert fake_thermostat.incremente_energy.call_count == 1
 
 
+@patch("custom_components.versatile_thermostat.cycle_scheduler.async_call_later")
+async def test_bug_1921_keep_active_cycle_when_next_repeat_becomes_zero(mock_call_later, hass):
+    """A pending 0% next cycle must not cancel an already-running physical cycle."""
+    mock_cancel = MagicMock()
+    mock_call_later.return_value = mock_cancel
+
+    fake_thermostat = MagicMock()
+    fake_thermostat.incremente_energy = MagicMock()
+    fake_thermostat.minimal_activation_delay = 480
+    fake_thermostat.minimal_deactivation_delay = 480
+
+    under = MagicMock()
+
+    async def turn_on_side_effect():
+        under.is_device_active = True
+
+    async def turn_off_side_effect():
+        under.is_device_active = False
+
+    under.turn_on = AsyncMock(side_effect=turn_on_side_effect)
+    under.turn_off = AsyncMock(side_effect=turn_off_side_effect)
+    under.is_device_active = False
+    under._should_be_on = False
+    under._on_time_sec = 0
+    under._off_time_sec = 0
+    under._hvac_mode = None
+    under.last_change = None
+
+    scheduler = CycleScheduler(
+        hass,
+        fake_thermostat,
+        [under],
+        1800,
+        min_activation_delay=480,
+        min_deactivation_delay=480,
+    )
+
+    # 1. Start a real running cycle (0.28 * 1800 = 504s).
+    await scheduler.start_cycle(VThermHvacMode_HEAT, 0.28, False)
+
+    assert under.is_device_active is True
+    assert scheduler._active_on_time_sec == 504
+    assert scheduler._current_on_time_sec == 504
+
+    # 2. A temperature update lowers the next repeat below min_on.
+    # 0.26 * 1800 = 468s, so timing constraints clamp the next repeat to 0s.
+    await scheduler.start_cycle(VThermHvacMode_HEAT, 0.26, False)
+
+    assert under.is_device_active is True
+    assert scheduler._active_on_time_sec == 504
+    assert scheduler._current_on_time_sec == 0
+
+    # 3. Another update before the current cycle ends must still preserve
+    # the active 504s cycle. Before the fix, this second call replaced the
+    # cycle because _current_on_time_sec was already 0.
+    under.turn_on.reset_mock()
+    under.turn_off.reset_mock()
+    mock_call_later.reset_mock()
+
+    await scheduler.start_cycle(VThermHvacMode_HEAT, 0.26, False)
+
+    assert under.is_device_active is True
+    assert scheduler._active_on_time_sec == 504
+    assert scheduler._current_on_time_sec == 0
+    assert under.turn_on.await_count == 0
+    assert under.turn_off.await_count == 0
+    assert mock_call_later.call_count == 0
+
+    # 4. The pending 0% value must only apply when the master cycle ends.
+    under.turn_off.reset_mock()
+    mock_call_later.reset_mock()
+    await scheduler._on_master_cycle_end(None)
+
+    assert under.is_device_active is False
+    assert scheduler._active_on_time_sec == 0
+    assert scheduler._current_on_time_sec == 0
+    assert under.turn_off.await_count == 1
+    assert fake_thermostat.incremente_energy.call_count == 1
+
+
 @pytest.mark.parametrize("expected_lingering_tasks", [True])
 @pytest.mark.parametrize("expected_lingering_timers", [True])
 async def test_bug_activity_preset_temperature_change(

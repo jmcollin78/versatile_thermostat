@@ -120,3 +120,6 @@ htmlcov
 .agent
 
 dev_tests/
+entities.json
+.codex
+mempalace.yaml
