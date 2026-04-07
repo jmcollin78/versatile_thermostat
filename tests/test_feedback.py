@@ -1,6 +1,7 @@
 # pylint: disable=wildcard-import, unused-wildcard-import, protected-access, unused-argument, line-too-long
 
-from unittest.mock import MagicMock, patch
+from types import SimpleNamespace
+from unittest.mock import AsyncMock, MagicMock, patch
 import pytest
 
 from homeassistant.core import HomeAssistant, CoreState
@@ -9,6 +10,7 @@ from homeassistant.const import STATE_ON, STATE_OFF
 from custom_components.versatile_thermostat.thermostat_prop import ThermostatProp
 from custom_components.versatile_thermostat.prop_algo_tpi import TpiAlgorithm
 from custom_components.versatile_thermostat.const import *
+from custom_components.versatile_thermostat.vtherm_hvac_mode import VThermHvacMode_OFF
 
 from .commons import *
 
@@ -151,3 +153,31 @@ async def test_feedback_timing(hass: HomeAssistant, mock_prop_thermostat):
     
     # Verify feedback was sent with 1.0 (realized percent)
     entity._prop_algorithm.update_realized_power.assert_called_with(1.0)
+
+
+@pytest.mark.asyncio
+async def test_tpi_off_cancels_running_cycle_even_if_underlying_is_already_off():
+    """HVAC OFF must cancel the master cycle even during an already-off PWM phase."""
+    from custom_components.versatile_thermostat.prop_handler_tpi import TPIHandler
+
+    thermostat = SimpleNamespace(
+        vtherm_hvac_mode=VThermHvacMode_OFF,
+        cycle_min=5,
+        is_device_active=False,
+        cycle_scheduler=SimpleNamespace(
+            is_cycle_running=True,
+            cancel_cycle=AsyncMock(),
+        ),
+        async_underlying_entity_turn_off=AsyncMock(),
+        _on_time_sec=None,
+        _off_time_sec=None,
+    )
+
+    handler = TPIHandler(thermostat)
+
+    await handler.control_heating(force=True)
+
+    assert thermostat._on_time_sec == 0
+    assert thermostat._off_time_sec == 300
+    thermostat.cycle_scheduler.cancel_cycle.assert_awaited_once()
+    thermostat.async_underlying_entity_turn_off.assert_not_awaited()
