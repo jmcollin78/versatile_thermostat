@@ -104,6 +104,14 @@ class CycleScheduler:
         self._current_on_time_sec: float = 0
         self._current_off_time_sec: float = 0
         self._current_on_percent: float = 0
+        # Active cycle parameters describe what is physically being executed
+        # right now. They intentionally differ from _current_* when a running
+        # cycle receives non-forced updates that should only apply to the next
+        # repeat at cycle end.
+        self._active_hvac_mode: VThermHvacMode | None = None
+        self._active_on_time_sec: float = 0
+        self._active_off_time_sec: float = 0
+        self._active_on_percent: float = 0
         self._states: list[UnderlyingCycleState] = []
         self._penalty: float = 0.0
         self._cycle_start_time: float = 0.0
@@ -158,6 +166,32 @@ class CycleScheduler:
         """Register a callback to be called at the end of each master cycle."""
         self._on_cycle_end_callbacks.append(callback)
 
+    def _set_pending_cycle(
+        self,
+        hvac_mode: VThermHvacMode | None,
+        on_time_sec: float,
+        off_time_sec: float,
+        on_percent: float,
+    ) -> None:
+        """Store parameters that the next cycle repeat must use."""
+        self._current_hvac_mode = hvac_mode
+        self._current_on_time_sec = on_time_sec
+        self._current_off_time_sec = off_time_sec
+        self._current_on_percent = on_percent
+
+    def _set_active_cycle(
+        self,
+        hvac_mode: VThermHvacMode | None,
+        on_time_sec: float,
+        off_time_sec: float,
+        on_percent: float,
+    ) -> None:
+        """Store parameters of the master cycle currently being executed."""
+        self._active_hvac_mode = hvac_mode
+        self._active_on_time_sec = on_time_sec
+        self._active_off_time_sec = off_time_sec
+        self._active_on_percent = on_percent
+
     async def start_cycle(
         self,
         hvac_mode: VThermHvacMode,
@@ -202,29 +236,24 @@ class CycleScheduler:
                     off_time_sec,
                     on_percent,
                 )
-                self._current_hvac_mode = hvac_mode
-                self._current_on_time_sec = on_time_sec
-                self._current_off_time_sec = off_time_sec
-                self._current_on_percent = on_percent
+                self._set_pending_cycle(hvac_mode, on_time_sec, off_time_sec, on_percent)
+                self._set_active_cycle(hvac_mode, on_time_sec, off_time_sec, on_percent)
                 await self._apply_valve_command(hvac_mode, on_time_sec, off_time_sec)
                 return
-            if self._current_on_time_sec > 0:
+            if self._active_on_time_sec > 0:
                 # A real cycle is actively running — don't interrupt it.
                 # Just update stored params so the next auto-repeat uses them.
                 _LOGGER.debug(
                     "%s - Cycle already running (on_time=%.0fs), skipping (force=%s). "
                     "Updating params for next repeat: on_time=%.0f, off_time=%.0f, on_percent=%.2f",
                     self._thermostat,
-                    self._current_on_time_sec,
+                    self._active_on_time_sec,
                     force,
                     on_time_sec,
                     off_time_sec,
                     on_percent,
                 )
-                self._current_hvac_mode = hvac_mode
-                self._current_on_time_sec = on_time_sec
-                self._current_off_time_sec = off_time_sec
-                self._current_on_percent = on_percent
+                self._set_pending_cycle(hvac_mode, on_time_sec, off_time_sec, on_percent)
                 return
             # Current cycle is idle (on_time=0, device off).
             # Cancel it and allow a real cycle to start.
@@ -240,10 +269,8 @@ class CycleScheduler:
         realized_on_percent = on_time_sec / self._cycle_duration_sec if self._cycle_duration_sec > 0 else 0.0
 
         # Store current cycle parameters for repeat
-        self._current_hvac_mode = hvac_mode
-        self._current_on_time_sec = on_time_sec
-        self._current_off_time_sec = off_time_sec
-        self._current_on_percent = realized_on_percent
+        self._set_pending_cycle(hvac_mode, on_time_sec, off_time_sec, realized_on_percent)
+        self._set_active_cycle(hvac_mode, on_time_sec, off_time_sec, realized_on_percent)
 
         # _is_starting guards the Race window: after _cancel_cycle_impl() cleared all
         # timers and flags, but before the new timers are set by _start_cycle_switch() or
@@ -505,6 +532,8 @@ class CycleScheduler:
         if self._cycle_end_unsub:
             self._cycle_end_unsub()
             self._cycle_end_unsub = None
+        self._set_pending_cycle(None, 0, 0, 0.0)
+        self._set_active_cycle(None, 0, 0, 0.0)
         self._is_cancelling = False
         self._is_starting = False
 
@@ -542,10 +571,8 @@ class CycleScheduler:
             await self._fire_cycle_end_callbacks(realized_e_eff, elapsed_ratio)
 
         self._states = []
-        self._current_on_time_sec = 0
-        self._current_off_time_sec = 0
-        self._current_on_percent = 0.0
-        self._current_hvac_mode = None
+        self._set_pending_cycle(None, 0, 0, 0.0)
+        self._set_active_cycle(None, 0, 0, 0.0)
         self._cycle_start_time = 0.0
         # Reset only after all state is cleared so the guard stays active until fully done.
         self._is_cancelling = False
@@ -560,12 +587,12 @@ class CycleScheduler:
             # Valve mode applies one constant opening command over the full
             # master cycle window, so the realized effective power is the
             # current cycle command itself.
-            return max(0.0, min(1.0, self._current_on_percent))
+            return max(0.0, min(1.0, self._active_on_percent))
 
         # When _states is empty the cycle ran at either 0% or 100% (no tick scheduling).
-        # Infer from _current_on_time_sec: if it covers the full duration, e_eff = 1.0.
+        # Infer from _active_on_time_sec: if it covers the full duration, e_eff = 1.0.
         if not self._states:
-            if self._current_on_time_sec >= self._cycle_duration_sec:
+            if self._active_on_time_sec >= self._cycle_duration_sec:
                 return 1.0
             return 0.0
 
