@@ -144,6 +144,73 @@ async def test_power_feature_manager(
             assert power_consumption_max == 1234
 
 
+async def test_power_feature_manager_reserves_startup_power_only_once_for_multi_underlyings(
+    hass: HomeAssistant,
+):
+    """A multi-underlying VTherm must reserve its startup power only once.
+
+    This prevents false shedding when several underlyings start during the same
+    startup sequence before Home Assistant has updated their states.
+    """
+
+    fake_vtherm = MagicMock(spec=BaseThermostat)
+    fake_vtherm.entity_id = "climate.theoverswitchmockname"
+    type(fake_vtherm).name = PropertyMock(return_value="the name")
+    type(fake_vtherm).is_device_active = PropertyMock(return_value=False)
+    type(fake_vtherm).is_over_climate = PropertyMock(return_value=False)
+    type(fake_vtherm).nb_underlying_entities = PropertyMock(return_value=4)
+    type(fake_vtherm).safe_on_percent = PropertyMock(return_value=1.0)
+    fake_vtherm.async_get_last_state = AsyncMock(return_value=None)
+
+    vtherm_api: VersatileThermostatAPI = VersatileThermostatAPI.get_vtherm_api(hass)
+    power_manager = FeaturePowerManager(fake_vtherm, hass)
+
+    vtherm_api.find_central_configuration = MagicMock()
+    vtherm_api.central_power_manager.post_init(
+        {
+            CONF_POWER_SENSOR: "sensor.the_power_sensor",
+            CONF_MAX_POWER_SENSOR: "sensor.the_max_power_sensor",
+            CONF_USE_POWER_FEATURE: True,
+            CONF_PRESET_POWER: 13,
+        }
+    )
+    vtherm_api.central_power_manager._current_power = 50
+    vtherm_api.central_power_manager._current_max_power = 160
+
+    power_manager.post_init(
+        {
+            CONF_USE_POWER_FEATURE: True,
+            CONF_PRESET_POWER: 10,
+            CONF_DEVICE_POWER: 100,
+        }
+    )
+
+    await power_manager.start_listening()
+
+    ret, power_consumption_max = await power_manager.check_power_available()
+    assert ret is True
+    assert power_consumption_max == 100
+
+    power_manager.add_power_consumption_to_central_power_manager()
+    assert vtherm_api.central_power_manager.started_vtherm_total_power == 100
+
+    # Simulate the next underlying starting before HA has reflected the first ON state.
+    ret, power_consumption_max = await power_manager.check_power_available()
+    assert ret is True
+    assert power_consumption_max == 100
+
+    power_manager.add_power_consumption_to_central_power_manager()
+    assert vtherm_api.central_power_manager.started_vtherm_total_power == 100
+
+    type(fake_vtherm).is_device_active = PropertyMock(return_value=True)
+    power_manager.sub_power_consumption_to_central_power_manager()
+    assert vtherm_api.central_power_manager.started_vtherm_total_power == 0
+
+    # Releasing the reservation multiple times must stay idempotent as well.
+    power_manager.sub_power_consumption_to_central_power_manager()
+    assert vtherm_api.central_power_manager.started_vtherm_total_power == 0
+
+
 @pytest.mark.parametrize(
     "current_overpowering_state, is_overpowering, new_overpowering_state, msg_sent",
     [
