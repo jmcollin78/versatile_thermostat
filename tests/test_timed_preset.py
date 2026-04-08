@@ -57,6 +57,7 @@ async def test_timed_preset_manager_set_timed_preset(hass: HomeAssistant):
     assert manager.is_timed_preset_active is True
     assert manager.timed_preset == VThermPreset.BOOST
     assert manager.timed_preset_end_time == now + timedelta(minutes=30)
+    vtherm.requested_state.set_preset.assert_called_once_with(VThermPreset.BOOST)
 
     # Check that events were sent
     vtherm.send_event.assert_called_once()
@@ -64,6 +65,7 @@ async def test_timed_preset_manager_set_timed_preset(hass: HomeAssistant):
     assert call_args[1]["data"]["type"] == "start"
     assert call_args[1]["data"]["preset"] == str(VThermPreset.BOOST)
     assert call_args[1]["data"]["duration_minutes"] == 30
+    assert call_args[1]["data"]["original_preset"] == str(VThermPreset.ECO)
 
     # Check that vtherm was updated
     vtherm.requested_state.force_changed.assert_called_once()
@@ -136,6 +138,7 @@ async def test_timed_preset_manager_cancel_timed_preset(hass: HomeAssistant):
     assert manager.is_timed_preset_active is False
     assert manager.timed_preset is None
     assert manager.timed_preset_end_time is None
+    vtherm.requested_state.set_preset.assert_called_with(VThermPreset.ECO)
 
     # Check that events were sent
     vtherm.send_event.assert_called_once()
@@ -406,8 +409,8 @@ async def test_restore_state_with_active_timed_preset(hass: HomeAssistant):
         assert manager.timed_preset == VThermPreset.BOOST
         assert manager.timed_preset_end_time == end_time
 
-        # Verify original_preset was restored on requested_state
-        mock_requested_state.set_preset.assert_called_once_with(VThermPreset.COMFORT)
+        # Verify the timed preset is restored on requested_state while it is active
+        mock_requested_state.set_preset.assert_called_once_with(VThermPreset.BOOST)
 
         # Verify the timer was scheduled
         mock_track.assert_called_once()
@@ -454,8 +457,8 @@ async def test_restore_state_with_expired_timed_preset(hass: HomeAssistant):
         assert manager.timed_preset == VThermPreset.BOOST
         assert manager.timed_preset_end_time == end_time
 
-        # Verify original_preset was restored on requested_state even for expired presets
-        mock_requested_state.set_preset.assert_called_once_with(VThermPreset.ECO)
+        # Requested preset should not be overwritten when the timed preset already expired
+        mock_requested_state.set_preset.assert_not_called()
 
         # Timer should not be scheduled for expired presets
         mock_track.assert_not_called()

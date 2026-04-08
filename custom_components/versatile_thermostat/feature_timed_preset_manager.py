@@ -92,12 +92,11 @@ class FeatureTimedPresetManager(BaseFeatureManager):
             self._original_preset = VThermPreset(original_preset_str) if original_preset_str else None
             self._timed_preset_end_time = end_time
 
-            # Restore the original preset so it is correctly applied when the timer ends
-            if self._original_preset is not None:
-                self._vtherm.requested_state.set_preset(self._original_preset)
-
             # 4. Reschedule the expiration task if time remains
             if end_time > now:
+                # While the timed preset is active, requested_state must carry it so
+                # other managers like auto start/stop recalculate from the forced preset.
+                self._vtherm.requested_state.set_preset(self._timed_preset)
                 _LOGGER.info("%s - Resuming timed preset %s. Reverting at %s", self, preset_str, end_time)
                 self._cancel_timer = async_track_point_in_time(
                     self._hass,
@@ -156,6 +155,10 @@ class FeatureTimedPresetManager(BaseFeatureManager):
         self._timed_preset_end_time = self._vtherm.now + timedelta(minutes=duration_minutes)
         self._is_timed_preset_active = True
 
+        # Keep requested_state aligned with the timed preset while it is active so
+        # state recalculation uses the forced preset even if HVAC is currently off.
+        self._vtherm.requested_state.set_preset(preset)
+
         # Schedule the end of timed preset
         self._cancel_timer = async_track_point_in_time(
             self._hass,
@@ -178,7 +181,7 @@ class FeatureTimedPresetManager(BaseFeatureManager):
                 "preset": str(preset),
                 "duration_minutes": duration_minutes,
                 "end_time": self._timed_preset_end_time.isoformat(),
-                "original_preset": str(self._vtherm.requested_state.preset),
+                "original_preset": str(self._original_preset),
             },
         )
 
