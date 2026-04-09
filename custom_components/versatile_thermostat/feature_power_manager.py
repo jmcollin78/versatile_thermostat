@@ -121,7 +121,9 @@ class FeaturePowerManager(BaseFeatureManager):
                 }
             )
 
-    async def check_power_available(self, reservation_key: str | None = None) -> bool:
+    async def check_power_available(
+        self, reservation_key: str | None = None
+    ) -> tuple[bool, float]:
         """Check if the Vtherm can be started considering overpowering.
         Returns True if no overpowering conditions are found.
         If True the vtherm power is written into the temporay vtherm started
@@ -134,11 +136,12 @@ class FeaturePowerManager(BaseFeatureManager):
         ):
             return True, 0
 
+        effective_reservation_key = reservation_key or self._default_power_reservation_key
         current_power = vtherm_api.central_power_manager.current_power
         current_max_power = vtherm_api.central_power_manager.current_max_power
         started_vtherm_total_power = vtherm_api.central_power_manager.started_vtherm_total_power
         current_started_power = vtherm_api.central_power_manager.get_started_vtherm_power(
-            reservation_key or self._default_power_reservation_key
+            effective_reservation_key
         )
         if (
             current_power is None
@@ -176,22 +179,37 @@ class FeaturePowerManager(BaseFeatureManager):
                 current_started_power,
                 startup_power,
                 self._device_power,
-                reservation_key,
+                effective_reservation_key,
             )
 
         return ret, startup_power
 
     def calculate_underlying_startup_power(self) -> float:
-        """Calculate the incremental startup power for a single underlying."""
+        """Calculate the incremental startup power for a single underlying.
+
+        This is the power to *reserve* between two power sensor measurements
+        when a new underlying is about to be turned on. It is deliberately
+        distinct from ``calculate_power_consumption_max()`` (used for global
+        shedding decisions) and intentionally ignores ``on_percent``: startup
+        is an instantaneous decision, not a cycle-average one.
+        """
         if not self._device_power:
             return 0
 
+        # over_climate and mono-underlying over_switch: if the device is
+        # already active, its load is already reflected in current_power, so
+        # no additional reservation is needed (returning device_power here
+        # would double-count the load between two sensor refreshes).
         if self._vtherm.is_over_climate:
             return 0 if self._vtherm.is_device_active else self._device_power
 
         if self._vtherm.nb_underlying_entities <= 1:
             return 0 if self._vtherm.is_device_active else self._device_power
 
+        # Multi-underlying over_switch: each underlying contributes an
+        # independent incremental slice, regardless of whether the VTherm is
+        # globally "active". Starting a 2nd underlying while the 1st is on
+        # must still reserve its own device_power/n slice.
         return self._device_power / self._vtherm.nb_underlying_entities
 
     def calculate_power_consumption_max(self) -> float:
