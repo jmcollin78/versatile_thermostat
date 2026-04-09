@@ -83,6 +83,7 @@ class UnderlyingEntity:
         self._thermostat: Any = thermostat
         self._type: UnderlyingEntityType = entity_type
         self._entity_id: str = entity_id
+        self._power_reservation_key = entity_id
         self._hvac_mode: VThermHvacMode | None = None
         self._on_cycle_start_callbacks: list[Callable] = []
         self._last_command_sent_datetime: datetime = dt_util.utc_from_timestamp(0)
@@ -102,6 +103,11 @@ class UnderlyingEntity:
     def entity_id(self):
         """The entity id represented by this class"""
         return self._entity_id
+
+    @property
+    def power_reservation_key(self) -> str:
+        """Return the stable power reservation key for this underlying."""
+        return self._power_reservation_key
 
     @property
     def entity_type(self) -> UnderlyingEntityType:
@@ -218,7 +224,9 @@ class UnderlyingEntity:
         """Check that a underlying can be turned on, else
         activate the overpowering state of the VTherm associated.
         Returns True if the check is ok (no overpowering needed)"""
-        ret, _ = await self._thermostat.power_manager.check_power_available()
+        ret, _ = await self._thermostat.power_manager.check_power_available(
+            self.power_reservation_key
+        )
         if not ret:
             _LOGGER.debug("%s - overpowering is detected", self)
             await self._thermostat.power_manager.set_overpowering(True)
@@ -480,7 +488,9 @@ class UnderlyingSwitch(UnderlyingEntity):
         # This may fails if called after shutdown
         try:
             try:
-                self._thermostat.power_manager.sub_power_consumption_to_central_power_manager()
+                self._thermostat.power_manager.sub_power_consumption_to_central_power_manager(
+                    self.power_reservation_key
+                )
                 _LOGGER.debug("%s - Sending command %s with data=%s", self, command, data)
                 await self._hass.services.async_call(self._domain, command, data)
                 self._is_on_part_running = False
@@ -506,7 +516,9 @@ class UnderlyingSwitch(UnderlyingEntity):
         data = self._on_command.get("data")
         try:
             try:
-                self._thermostat.power_manager.add_power_consumption_to_central_power_manager()
+                self._thermostat.power_manager.add_power_consumption_to_central_power_manager(
+                    self.power_reservation_key
+                )
                 _LOGGER.debug("%s - Sending command %s with data=%s", self, command, data)
                 await self._hass.services.async_call(self._domain, command, data)
                 self._is_on_part_running = True
