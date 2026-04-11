@@ -121,7 +121,9 @@ class FeaturePowerManager(BaseFeatureManager):
                 }
             )
 
-    async def check_power_available(self) -> bool:
+    async def check_power_available(
+        self, reservation_key: str | None = None
+    ) -> tuple[bool, float]:
         """Check if the Vtherm can be started considering overpowering.
         Returns True if no overpowering conditions are found.
         If True the vtherm power is written into the temporay vtherm started
@@ -134,10 +136,13 @@ class FeaturePowerManager(BaseFeatureManager):
         ):
             return True, 0
 
+        effective_reservation_key = reservation_key or self._default_power_reservation_key
         current_power = vtherm_api.central_power_manager.current_power
         current_max_power = vtherm_api.central_power_manager.current_max_power
         started_vtherm_total_power = vtherm_api.central_power_manager.started_vtherm_total_power
-        current_vtherm_started_power = vtherm_api.central_power_manager.get_started_vtherm_power(self._vtherm_power_key)
+        current_started_power = vtherm_api.central_power_manager.get_started_vtherm_power(
+            effective_reservation_key
+        )
         if (
             current_power is None
             or current_max_power is None
@@ -156,31 +161,56 @@ class FeaturePowerManager(BaseFeatureManager):
             self._device_power,
         )
 
-        power_consumption_max = self.calculate_power_consumption_max()
-        additional_power = max(
-            0,
-            power_consumption_max - current_vtherm_started_power,
-        )
+        startup_power = self.calculate_underlying_startup_power()
 
         ret = (
             current_power
             + started_vtherm_total_power
-            - current_vtherm_started_power
-            + power_consumption_max
+            - current_started_power
+            + startup_power
         ) < current_max_power
         if not ret:
             _LOGGER.info(
-                "%s - there is not enough power available power=%.3f, max_power=%.3f started_power=%.3f current_vtherm_started_power=%.3f additional_power=%.3f heater power=%.3f",
+                "%s - there is not enough power available power=%.3f, max_power=%.3f started_power=%.3f current_started_power=%.3f startup_power=%.3f heater power=%.3f reservation_key=%s",
                 self,
                 current_power,
                 current_max_power,
                 started_vtherm_total_power,
-                current_vtherm_started_power,
-                additional_power,
+                current_started_power,
+                startup_power,
                 self._device_power,
+                effective_reservation_key,
             )
 
-        return ret, power_consumption_max
+        return ret, startup_power
+
+    def calculate_underlying_startup_power(self) -> float:
+        """Calculate the incremental startup power for a single underlying.
+
+        This is the power to *reserve* between two power sensor measurements
+        when a new underlying is about to be turned on. It is deliberately
+        distinct from ``calculate_power_consumption_max()`` (used for global
+        shedding decisions) and intentionally ignores ``on_percent``: startup
+        is an instantaneous decision, not a cycle-average one.
+        """
+        if not self._device_power:
+            return 0
+
+        # over_climate and mono-underlying over_switch: if the device is
+        # already active, its load is already reflected in current_power, so
+        # no additional reservation is needed (returning device_power here
+        # would double-count the load between two sensor refreshes).
+        if self._vtherm.is_over_climate:
+            return 0 if self._vtherm.is_device_active else self._device_power
+
+        if self._vtherm.nb_underlying_entities <= 1:
+            return 0 if self._vtherm.is_device_active else self._device_power
+
+        # Multi-underlying over_switch: each underlying contributes an
+        # independent incremental slice, regardless of whether the VTherm is
+        # globally "active". Starting a 2nd underlying while the 1st is on
+        # must still reserve its own device_power/n slice.
+        return self._device_power / self._vtherm.nb_underlying_entities
 
     def calculate_power_consumption_max(self) -> float:
         """Calculate the maximum power consumption"""
@@ -198,7 +228,10 @@ class FeaturePowerManager(BaseFeatureManager):
                 )
         return power_consumption_max
 
-    def add_power_consumption_to_central_power_manager(self):
+    def add_power_consumption_to_central_power_manager(
+        self,
+        reservation_key: str | None = None,
+    ):
         """
         Add the current power consumption to the central power manager.
         """
@@ -206,14 +239,17 @@ class FeaturePowerManager(BaseFeatureManager):
         if not self._is_configured or not vtherm_api.central_power_manager.is_configured:
             return
 
-        power_consumption_max = self.calculate_power_consumption_max()
+        startup_power = self.calculate_underlying_startup_power()
 
         vtherm_api.central_power_manager.set_started_vtherm_power(
-            self._vtherm_power_key,
-            power_consumption_max,
+            reservation_key or self._default_power_reservation_key,
+            startup_power,
         )
 
-    def sub_power_consumption_to_central_power_manager(self):
+    def sub_power_consumption_to_central_power_manager(
+        self,
+        reservation_key: str | None = None,
+    ):
         """
         Substract the current power consumption to the central power manager.
         """
@@ -222,7 +258,7 @@ class FeaturePowerManager(BaseFeatureManager):
             return
 
         vtherm_api.central_power_manager.set_started_vtherm_power(
-            self._vtherm_power_key,
+            reservation_key or self._default_power_reservation_key,
             0,
         )
 
@@ -324,8 +360,8 @@ class FeaturePowerManager(BaseFeatureManager):
         return None
 
     @property
-    def _vtherm_power_key(self) -> str:
-        """Return a stable key for temporary power reservations."""
+    def _default_power_reservation_key(self) -> str:
+        """Return a stable fallback key for temporary power reservations."""
         return getattr(self._vtherm, "entity_id", None) or self._vtherm.name
 
     def __str__(self):

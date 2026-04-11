@@ -144,14 +144,10 @@ async def test_power_feature_manager(
             assert power_consumption_max == 1234
 
 
-async def test_power_feature_manager_reserves_startup_power_only_once_for_multi_underlyings(
+async def test_power_feature_manager_reserves_startup_power_per_underlying_for_multi_underlyings(
     hass: HomeAssistant,
 ):
-    """A multi-underlying VTherm must reserve its startup power only once.
-
-    This prevents false shedding when several underlyings start during the same
-    startup sequence before Home Assistant has updated their states.
-    """
+    """A multi-underlying VTherm must reserve startup power per underlying."""
 
     fake_vtherm = MagicMock(spec=BaseThermostat)
     fake_vtherm.entity_id = "climate.theoverswitchmockname"
@@ -159,7 +155,7 @@ async def test_power_feature_manager_reserves_startup_power_only_once_for_multi_
     type(fake_vtherm).is_device_active = PropertyMock(return_value=False)
     type(fake_vtherm).is_over_climate = PropertyMock(return_value=False)
     type(fake_vtherm).nb_underlying_entities = PropertyMock(return_value=4)
-    type(fake_vtherm).safe_on_percent = PropertyMock(return_value=1.0)
+    type(fake_vtherm).safe_on_percent = PropertyMock(return_value=0.1)
     fake_vtherm.async_get_last_state = AsyncMock(return_value=None)
 
     vtherm_api: VersatileThermostatAPI = VersatileThermostatAPI.get_vtherm_api(hass)
@@ -174,40 +170,46 @@ async def test_power_feature_manager_reserves_startup_power_only_once_for_multi_
             CONF_PRESET_POWER: 13,
         }
     )
-    vtherm_api.central_power_manager._current_power = 50
-    vtherm_api.central_power_manager._current_max_power = 160
+    vtherm_api.central_power_manager._current_power = 730
+    vtherm_api.central_power_manager._current_max_power = 1000
 
     power_manager.post_init(
         {
             CONF_USE_POWER_FEATURE: True,
             CONF_PRESET_POWER: 10,
-            CONF_DEVICE_POWER: 100,
+            CONF_DEVICE_POWER: 1000,
         }
     )
 
     await power_manager.start_listening()
 
-    ret, power_consumption_max = await power_manager.check_power_available()
+    ret, power_consumption_max = await power_manager.check_power_available("switch.one")
     assert ret is True
-    assert power_consumption_max == 100
+    assert power_consumption_max == 250
 
-    power_manager.add_power_consumption_to_central_power_manager()
-    assert vtherm_api.central_power_manager.started_vtherm_total_power == 100
+    power_manager.add_power_consumption_to_central_power_manager("switch.one")
+    assert vtherm_api.central_power_manager.started_vtherm_total_power == 250
+    assert len(vtherm_api.central_power_manager._started_vtherm_total_power_by_id) == 1  # pylint: disable=protected-access
 
-    # Simulate the next underlying starting before HA has reflected the first ON state.
-    ret, power_consumption_max = await power_manager.check_power_available()
+    # Re-checking the same underlying must stay idempotent.
+    ret, power_consumption_max = await power_manager.check_power_available("switch.one")
     assert ret is True
-    assert power_consumption_max == 100
+    assert power_consumption_max == 250
 
-    power_manager.add_power_consumption_to_central_power_manager()
-    assert vtherm_api.central_power_manager.started_vtherm_total_power == 100
+    power_manager.add_power_consumption_to_central_power_manager("switch.one")
+    assert vtherm_api.central_power_manager.started_vtherm_total_power == 250
+    assert len(vtherm_api.central_power_manager._started_vtherm_total_power_by_id) == 1  # pylint: disable=protected-access
 
-    type(fake_vtherm).is_device_active = PropertyMock(return_value=True)
-    power_manager.sub_power_consumption_to_central_power_manager()
+    # A distinct underlying must be denied because only one 250W slice is available.
+    ret, power_consumption_max = await power_manager.check_power_available("switch.two")
+    assert ret is False
+    assert power_consumption_max == 250
+
+    power_manager.sub_power_consumption_to_central_power_manager("switch.one")
     assert vtherm_api.central_power_manager.started_vtherm_total_power == 0
 
     # Releasing the reservation multiple times must stay idempotent as well.
-    power_manager.sub_power_consumption_to_central_power_manager()
+    power_manager.sub_power_consumption_to_central_power_manager("switch.one")
     assert vtherm_api.central_power_manager.started_vtherm_total_power == 0
 
 

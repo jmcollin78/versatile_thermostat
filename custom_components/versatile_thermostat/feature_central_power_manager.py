@@ -295,26 +295,21 @@ class FeatureCentralPowerManager(BaseFeatureManager):
         vtherms.sort(key=cmp_to_key(cmp_temps))
         return vtherms
 
-    def add_started_vtherm_total_power(self, started_power: float):
-        """Add the power into the _started_vtherm_total_power which holds all VTherm started after
-        the last power measurement"""
-        self.set_started_vtherm_power("__legacy__", self.get_started_vtherm_power("__legacy__") + started_power)
+    def get_started_vtherm_power(self, reservation_key: str) -> float:
+        """Return the reserved started power for a given underlying key."""
+        return self._started_vtherm_total_power_by_id.get(reservation_key, 0.0)
 
-    def get_started_vtherm_power(self, vtherm_id: str) -> float:
-        """Return the reserved started power for a given VTherm."""
-        return self._started_vtherm_total_power_by_id.get(vtherm_id, 0.0)
-
-    def set_started_vtherm_power(self, vtherm_id: str, started_power: float):
-        """Set the temporary reserved power for a given VTherm.
+    def set_started_vtherm_power(self, reservation_key: str, started_power: float):
+        """Set the temporary reserved power for a given underlying key.
 
         This reservation is used between two power sensor measurements to avoid
-        allowing several thermostats to start simultaneously based on the same
+        allowing several underlyings to start simultaneously based on the same
         stale sensor reading.
         """
         if started_power > 0:
-            self._started_vtherm_total_power_by_id[vtherm_id] = started_power
+            self._started_vtherm_total_power_by_id[reservation_key] = started_power
         else:
-            self._started_vtherm_total_power_by_id.pop(vtherm_id, None)
+            self._started_vtherm_total_power_by_id.pop(reservation_key, None)
 
         _LOGGER.debug(
             "%s - started_vtherm_total_power is now %s (%s)",
