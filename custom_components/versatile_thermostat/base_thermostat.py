@@ -3,16 +3,12 @@
 # pylint: disable=invalid-name
 """ Implements the VersatileThermostat climate component """
 import math
-import logging
-from vtherm_api.log_collector import get_vtherm_logger
-from typing import Optional
-from datetime import datetime, timedelta
-from functools import partial
-
-from homeassistant.components.recorder import history, get_instance
-from homeassistant.util import dt as dt_util
-from typing import Any, Generic
+from typing import Optional, Any, Generic
+from datetime import datetime
 from collections.abc import Callable
+
+from vtherm_api.log_collector import get_vtherm_logger
+from homeassistant.util import dt as dt_util
 
 from homeassistant.exceptions import ServiceValidationError
 from homeassistant.core import (
