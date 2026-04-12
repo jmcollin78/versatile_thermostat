@@ -1,7 +1,7 @@
 """ Implements a base Feature Manager for Versatile Thermostat """
 
 import logging
-from .log_collector import get_vtherm_logger
+from vtherm_api.log_collector import get_vtherm_logger
 from typing import Any
 
 from homeassistant.core import CALLBACK_TYPE, HomeAssistant

@@ -2,7 +2,7 @@
 
 """ Underlying entities classes """
 import logging
-from .log_collector import get_vtherm_logger
+from vtherm_api.log_collector import get_vtherm_logger
 import re
 from typing import Any, Dict, List, Optional, Tuple, TypeVar
 from collections.abc import Callable
@@ -43,7 +43,7 @@ from .opening_degree_algorithm import OpeningClosingDegreeCalculation
 from .const import *  # pylint: disable=wildcard-import, unused-wildcard-import
 from .vtherm_hvac_mode import VThermHvacMode, to_legacy_ha_hvac_mode
 from .keep_alive import IntervalCaller
-from .vtherm_api import VersatileThermostatAPI
+from .vtherm_central_api import VersatileThermostatAPI
 from .underlying_state_manager import UnderlyingStateManager
 
 resend_delay_sec = 2

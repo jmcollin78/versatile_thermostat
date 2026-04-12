@@ -1,7 +1,7 @@
 """ A base class for all VTherm entities"""
 
 import logging
-from .log_collector import get_vtherm_logger
+from vtherm_api.log_collector import get_vtherm_logger
 from datetime import timedelta
 from homeassistant.core import HomeAssistant, callback, Event
 from homeassistant.components.climate import ClimateEntity

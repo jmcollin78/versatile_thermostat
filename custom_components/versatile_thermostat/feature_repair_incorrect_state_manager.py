@@ -14,7 +14,7 @@ from .const import (
     REPAIR_MIN_DELAY_AFTER_INIT_SEC,
     overrides,
 )
-from .log_collector import get_vtherm_logger
+from vtherm_api.log_collector import get_vtherm_logger
 from .commons_type import ConfigData
 from .base_manager import BaseFeatureManager
 

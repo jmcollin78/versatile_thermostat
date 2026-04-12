@@ -1,7 +1,7 @@
 """ This module manages the lock feature of the Versatile Thermostat integration. """
 import logging
 from datetime import timedelta
-from .log_collector import get_vtherm_logger
+from vtherm_api.log_collector import get_vtherm_logger
 from typing import Any
 
 from homeassistant.core import (

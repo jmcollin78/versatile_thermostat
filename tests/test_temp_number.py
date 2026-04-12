@@ -18,7 +18,7 @@ from custom_components.versatile_thermostat.thermostat_switch import (
     ThermostatOverSwitch,
 )
 from custom_components.versatile_thermostat.const import NowClass
-from custom_components.versatile_thermostat.vtherm_api import VersatileThermostatAPI
+from custom_components.versatile_thermostat.vtherm_central_api import VersatileThermostatAPI
 from custom_components.versatile_thermostat.vtherm_preset import PRESET_AC_SUFFIX
 
 from .commons import *

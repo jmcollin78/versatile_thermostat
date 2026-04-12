@@ -2,7 +2,7 @@
 # pylint: disable=unused-argument, line-too-long
 
 import logging
-from .log_collector import get_vtherm_logger
+from vtherm_api.log_collector import get_vtherm_logger
 
 from homeassistant.core import (
     HomeAssistant,
@@ -23,7 +23,7 @@ from homeassistant.config_entries import ConfigEntry
 
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
-from .vtherm_api import VersatileThermostatAPI
+from .vtherm_central_api import VersatileThermostatAPI
 from .base_entity import VersatileThermostatBaseEntity
 from .const import (
     DOMAIN,

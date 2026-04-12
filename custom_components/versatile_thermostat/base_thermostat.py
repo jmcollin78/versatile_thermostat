@@ -4,7 +4,7 @@
 """ Implements the VersatileThermostat climate component """
 import math
 import logging
-from .log_collector import get_vtherm_logger
+from vtherm_api.log_collector import get_vtherm_logger
 from typing import Optional
 from datetime import datetime, timedelta
 from functools import partial
@@ -57,7 +57,7 @@ from .commons_type import ConfigData
 
 from .config_schema import *  # pylint: disable=wildcard-import, unused-wildcard-import
 
-from .vtherm_api import VersatileThermostatAPI
+from .vtherm_central_api import VersatileThermostatAPI
 from .underlyings import UnderlyingEntity, T
 
 from .ema import ExponentialMovingAverage
@@ -2219,7 +2219,7 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
         period_end: datetime | None = None,
     ):
         """Called by the download_logs entity service."""
-        from .log_collector import async_export_logs  # pylint: disable=import-outside-toplevel
+        from vtherm_api.log_collector import async_export_logs  # pylint: disable=import-outside-toplevel
 
         handler = self._hass.data.get(DOMAIN, {}).get("log_handler")
         if handler is None:

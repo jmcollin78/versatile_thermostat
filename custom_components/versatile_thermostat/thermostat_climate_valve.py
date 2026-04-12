@@ -2,7 +2,7 @@
 """ A climate with a direct valve regulation class """
 
 import logging
-from .log_collector import get_vtherm_logger
+from vtherm_api.log_collector import get_vtherm_logger
 import asyncio
 from datetime import datetime
 from typing import Optional
@@ -23,7 +23,7 @@ from .const import *  # pylint: disable=wildcard-import, unused-wildcard-import
 from .commons import write_event_log
 from .vtherm_hvac_mode import VThermHvacMode, VThermHvacMode_OFF, VThermHvacMode_SLEEP
 
-# from .vtherm_api import VersatileThermostatAPI
+# from .vtherm_central_api import VersatileThermostatAPI
 
 _LOGGER = get_vtherm_logger(__name__)
 

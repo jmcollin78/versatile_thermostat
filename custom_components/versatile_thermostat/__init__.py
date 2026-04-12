@@ -6,7 +6,7 @@ from typing import Dict
 
 import asyncio
 import logging
-from .log_collector import get_vtherm_logger
+from vtherm_api.log_collector import get_vtherm_logger
 import voluptuous as vol
 import homeassistant.helpers.config_validation as cv
 
@@ -17,12 +17,12 @@ from homeassistant.core import HomeAssistant, CoreState, callback
 from homeassistant.helpers.service import async_register_admin_service
 from homeassistant.const import UnitOfTemperature
 
+from vtherm_api.log_collector import VThermLogHandler, async_export_logs, async_register_log_download_endpoint, DEFAULT_MAX_AGE_HOURS
 from .base_thermostat import BaseThermostat
 
 from .const import *  # pylint: disable=wildcard-import, unused-wildcard-import
 
-from .vtherm_api import VersatileThermostatAPI
-from .log_collector import VThermLogHandler, async_export_logs, async_register_log_download_endpoint, DEFAULT_MAX_AGE_HOURS
+from .vtherm_central_api import VersatileThermostatAPI
 
 _LOGGER = get_vtherm_logger(__name__)
 
@@ -118,7 +118,7 @@ async def async_setup(
         log_handler = VThermLogHandler(max_age_hours=max_age_hours)
         hass.data[DOMAIN]["log_handler"] = log_handler
         _LOGGER.info("VTherm log collector initialized (buffer: %d h)", max_age_hours)
-        
+
         # Register the HTTP endpoint for log downloads
         # This provides a /api/versatile_thermostat/logs/<filename> endpoint
         await async_register_log_download_endpoint(hass)

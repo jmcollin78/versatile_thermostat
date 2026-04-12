@@ -1,7 +1,7 @@
 """Auto TPI Manager implementing TPI algorithm."""
 
 import logging
-from .log_collector import get_vtherm_logger
+from vtherm_api.log_collector import get_vtherm_logger
 import json
 import os
 import math
@@ -31,7 +31,7 @@ from .const import (
     CONF_AUTO_TPI_HEATING_POWER,
     CONF_AUTO_TPI_COOLING_POWER,
 )
-from .vtherm_api import VersatileThermostatAPI
+from .vtherm_central_api import VersatileThermostatAPI
 
 _LOGGER = get_vtherm_logger(__name__)
 

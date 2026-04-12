@@ -1,7 +1,7 @@
 # pylint: disable=line-too-long, abstract-method
 """ A climate over switch classe """
 import logging
-from .log_collector import get_vtherm_logger
+from vtherm_api.log_collector import get_vtherm_logger
 from datetime import timedelta, datetime
 
 from homeassistant.helpers.event import (

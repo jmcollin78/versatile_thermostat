@@ -1,13 +1,11 @@
 """ The TPI calculation module """
 # pylint: disable='line-too-long'
 import logging
-from .log_collector import get_vtherm_logger
+from vtherm_api.log_collector import get_vtherm_logger
 
 from .vtherm_hvac_mode import VThermHvacMode, VThermHvacMode_OFF, VThermHvacMode_COOL, VThermHvacMode_SLEEP
 
 _LOGGER = get_vtherm_logger(__name__)
-
-
 
 
 def is_number(value):
@@ -128,7 +126,7 @@ class TpiAlgorithm:
                         self._calculated_on_percent = 1
                     if self._calculated_on_percent < 0:
                         self._calculated_on_percent = 0
-                    
+
                     if self._max_on_percent is not None and self._calculated_on_percent > self._max_on_percent:
                         self._calculated_on_percent = self._max_on_percent
                 else:
@@ -138,8 +136,6 @@ class TpiAlgorithm:
                     )
                     self._calculated_on_percent = 0
 
-
-
         _LOGGER.debug(
             "%s - heating percent calculated for current_temp %.1f, ext_current_temp %.1f and target_temp %.1f is %.2f",  # pylint: disable=line-too-long
             self._vtherm_entity_id,
@@ -148,7 +144,6 @@ class TpiAlgorithm:
             target_temp if target_temp else -9999.0,
             self._calculated_on_percent,
         )
-
 
     def update_parameters(
         self,
@@ -229,4 +224,3 @@ class TpiAlgorithm:
     def tpi_threshold_high(self) -> float:
         """Returns the TPI threshold high"""
         return self._tpi_threshold_high
-

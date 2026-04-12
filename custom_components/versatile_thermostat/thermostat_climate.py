@@ -1,7 +1,7 @@
 # pylint: disable=line-too-long, too-many-lines, abstract-method
 """ A climate over climate classe """
 import logging
-from .log_collector import get_vtherm_logger
+from vtherm_api.log_collector import get_vtherm_logger
 from typing import Optional
 
 from datetime import timedelta, datetime
@@ -20,7 +20,7 @@ from .pi_algorithm import PITemperatureRegulator
 
 from .const import *  # pylint: disable=wildcard-import, unused-wildcard-import
 
-from .vtherm_api import VersatileThermostatAPI
+from .vtherm_central_api import VersatileThermostatAPI
 from .underlyings import UnderlyingClimate
 from .feature_auto_start_stop_manager import FeatureAutoStartStopManager
 from .vtherm_hvac_mode import VThermHvacMode

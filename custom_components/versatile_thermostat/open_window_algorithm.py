@@ -8,7 +8,7 @@
 """
 
 import logging
-from .log_collector import get_vtherm_logger
+from vtherm_api.log_collector import get_vtherm_logger
 from datetime import datetime
 
 _LOGGER = get_vtherm_logger(__name__)

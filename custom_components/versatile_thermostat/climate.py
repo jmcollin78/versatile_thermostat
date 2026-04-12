@@ -1,7 +1,7 @@
 """ Implements the VersatileThermostat climate component """
 
 import logging
-from .log_collector import get_vtherm_logger
+from vtherm_api.log_collector import get_vtherm_logger
 
 
 import voluptuous as vol
@@ -30,7 +30,7 @@ from .thermostat_switch import ThermostatOverSwitch
 from .thermostat_climate import ThermostatOverClimate
 from .thermostat_valve import ThermostatOverValve
 from .thermostat_climate_valve import ThermostatOverClimateValve
-from .vtherm_api import VersatileThermostatAPI
+from .vtherm_central_api import VersatileThermostatAPI
 
 _LOGGER = get_vtherm_logger(__name__)
 

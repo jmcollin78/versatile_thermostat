@@ -2,7 +2,7 @@
 """TPI algorithm handler for ThermostatProp."""
 
 import logging
-from .log_collector import get_vtherm_logger
+from vtherm_api.log_collector import get_vtherm_logger
 from typing import Any, TYPE_CHECKING
 from datetime import datetime
 
@@ -12,7 +12,7 @@ from .prop_algo_tpi import TpiAlgorithm
 from .auto_tpi_manager import AutoTpiManager
 from .const import *  # pylint: disable=wildcard-import, unused-wildcard-import
 from .vtherm_hvac_mode import VThermHvacMode_OFF, VThermHvacMode_HEAT, VThermHvacMode_COOL
-from .vtherm_api import VersatileThermostatAPI
+from .vtherm_central_api import VersatileThermostatAPI
 from .commons import write_event_log
 from .const import EventType
 from .cycle_scheduler import calculate_cycle_times

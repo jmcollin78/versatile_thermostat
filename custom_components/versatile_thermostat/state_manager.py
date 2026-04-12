@@ -4,7 +4,7 @@ This class manages both the current and the requested state of a VTherm.
 """
 
 import logging
-from .log_collector import get_vtherm_logger
+from vtherm_api.log_collector import get_vtherm_logger
 from typing import Optional, TYPE_CHECKING, Any
 from .const import (
     HVAC_OFF_REASON_SAFETY,

@@ -11,7 +11,7 @@ from homeassistant.core import (
 )
 from homeassistant.helpers.event import async_track_point_in_time
 
-from .log_collector import get_vtherm_logger
+from vtherm_api.log_collector import get_vtherm_logger
 from .const import *  # pylint: disable=wildcard-import, unused-wildcard-import
 from .commons_type import ConfigData
 

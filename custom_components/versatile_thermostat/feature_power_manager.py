@@ -15,13 +15,13 @@ from homeassistant.core import (
     HomeAssistant,
 )
 
-from .log_collector import get_vtherm_logger
+from vtherm_api.log_collector import get_vtherm_logger
 from .const import *  # pylint: disable=wildcard-import, unused-wildcard-import
 from .commons import write_event_log, round_to_nearest
 from .commons_type import ConfigData
 
 from .base_manager import BaseFeatureManager
-from .vtherm_api import VersatileThermostatAPI
+from .vtherm_central_api import VersatileThermostatAPI
 
 _LOGGER = get_vtherm_logger(__name__)
 

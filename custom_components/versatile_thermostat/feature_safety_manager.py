@@ -20,9 +20,9 @@ from .commons import write_event_log
 from .commons_type import ConfigData
 
 from .base_manager import BaseFeatureManager
-from .vtherm_api import VersatileThermostatAPI
+from .vtherm_central_api import VersatileThermostatAPI
 from .vtherm_hvac_mode import VThermHvacMode
-from .log_collector import get_vtherm_logger
+from vtherm_api.log_collector import get_vtherm_logger
 
 _LOGGER = get_vtherm_logger(__name__)
 

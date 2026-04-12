@@ -5,8 +5,7 @@ from __future__ import annotations
 
 from typing import Any
 import re
-import logging
-from .log_collector import get_vtherm_logger
+from vtherm_api.log_collector import get_vtherm_logger
 import copy
 from collections.abc import Mapping  # pylint: disable=import-error
 import voluptuous as vol
@@ -23,7 +22,7 @@ from homeassistant.data_entry_flow import FlowHandler, FlowResult
 
 from .const import *  # pylint: disable=wildcard-import, unused-wildcard-import
 from .config_schema import *  # pylint: disable=wildcard-import, unused-wildcard-import
-from .vtherm_api import VersatileThermostatAPI
+from .vtherm_central_api import VersatileThermostatAPI
 from .commons import check_and_extract_service_configuration
 
 COMES_FROM = "comes_from"

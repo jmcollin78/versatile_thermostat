@@ -3,7 +3,7 @@
 """ Implements the Heating Failure Detection as a Feature Manager"""
 
 import logging
-from .log_collector import get_vtherm_logger
+from vtherm_api.log_collector import get_vtherm_logger
 from typing import Any
 from datetime import datetime, timedelta
 

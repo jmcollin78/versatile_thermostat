@@ -25,7 +25,7 @@ from homeassistant.helpers.event import (
 from homeassistant.exceptions import ConditionError
 from homeassistant.helpers import condition
 
-from .log_collector import get_vtherm_logger
+from vtherm_api.log_collector import get_vtherm_logger
 from .vtherm_preset import VThermPreset
 
 from .const import *  # pylint: disable=wildcard-import, unused-wildcard-import
