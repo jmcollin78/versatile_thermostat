@@ -2,7 +2,7 @@
 
 """ Implements the VersatileThermostat select component """
 import logging
-from .log_collector import get_vtherm_logger
+from vtherm_api.log_collector import get_vtherm_logger
 
 from homeassistant.core import HomeAssistant
 
@@ -16,7 +16,7 @@ from custom_components.versatile_thermostat.base_thermostat import (
     ConfigData,
 )
 
-from custom_components.versatile_thermostat.vtherm_api import VersatileThermostatAPI
+from custom_components.versatile_thermostat.vtherm_central_api import VersatileThermostatAPI
 
 from .const import (
     DOMAIN,

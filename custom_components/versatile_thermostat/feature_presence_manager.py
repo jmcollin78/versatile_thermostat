@@ -22,7 +22,7 @@ from homeassistant.helpers.event import (
     EventStateChangedData,
 )
 
-from .log_collector import get_vtherm_logger
+from vtherm_api.log_collector import get_vtherm_logger
 from .const import *  # pylint: disable=wildcard-import, unused-wildcard-import
 from .commons import write_event_log
 from .commons_type import ConfigData

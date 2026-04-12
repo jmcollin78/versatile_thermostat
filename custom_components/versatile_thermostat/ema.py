@@ -3,7 +3,7 @@
 and maybe some others feature"""
 
 import logging
-from .log_collector import get_vtherm_logger
+from vtherm_api.log_collector import get_vtherm_logger
 import math
 from datetime import datetime, tzinfo
 

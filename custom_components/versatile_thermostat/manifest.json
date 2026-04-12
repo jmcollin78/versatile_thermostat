@@ -18,7 +18,8 @@
   "quality_scale": "silver",
   "requirements": [
     "numpy",
-    "scipy"
+    "scipy",
+    "git+https://github.com/jmcollin78/vtherm_api.git@main#egg=vtherm_api"
   ],
   "ssdp": [],
   "version": "9.3.3",

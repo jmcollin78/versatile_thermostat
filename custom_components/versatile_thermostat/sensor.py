@@ -1,7 +1,7 @@
 # pylint: disable=unused-argument
 """ Implements the VersatileThermostat sensors component """
 import logging
-from .log_collector import get_vtherm_logger
+from vtherm_api.log_collector import get_vtherm_logger
 import math
 from collections.abc import Callable
 
@@ -35,7 +35,7 @@ from homeassistant.components.climate import (
 
 
 from .base_thermostat import BaseThermostat
-from .vtherm_api import VersatileThermostatAPI
+from .vtherm_central_api import VersatileThermostatAPI
 from .base_entity import VersatileThermostatBaseEntity
 from .commons import cleanup_orphan_entity
 from .const import (

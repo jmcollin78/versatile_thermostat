@@ -3,7 +3,7 @@
 # pylint: disable=line-too-long
 
 import logging
-from .log_collector import get_vtherm_logger
+from vtherm_api.log_collector import get_vtherm_logger
 import warnings
 
 from homeassistant.core import HomeAssistant

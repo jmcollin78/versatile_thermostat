@@ -2,7 +2,6 @@
 """Constants for the Versatile Thermostat integration."""
 
 import logging
-from .log_collector import get_vtherm_logger
 import math
 from typing import Literal
 
@@ -16,6 +15,10 @@ from homeassistant.const import CONF_NAME, Platform
 from homeassistant.components.climate.const import ClimateEntityFeature  # pylint: disable=unused-import
 from homeassistant.exceptions import HomeAssistantError
 from homeassistant.util import dt as dt_util
+
+
+from vtherm_api.const import DOMAIN, VTHERM_API_NAME, DEVICE_MANUFACTURER, DEVICE_MODEL
+from vtherm_api.log_collector import get_vtherm_logger
 
 PROPORTIONAL_FUNCTION_TPI = "tpi"
 

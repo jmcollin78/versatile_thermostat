@@ -8,7 +8,7 @@ the keep_alive setting of Home Assistant's Generic Thermostat integration:
 """
 
 import logging
-from .log_collector import get_vtherm_logger
+from vtherm_api.log_collector import get_vtherm_logger
 from collections.abc import Awaitable, Callable
 from datetime import timedelta, datetime
 from time import monotonic

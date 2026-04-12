@@ -17,7 +17,7 @@ from homeassistant.helpers.event import (
 from .base_manager import BaseFeatureManager
 from .commons import check_and_extract_service_configuration, write_event_log
 from .const import *  # pylint: disable=wildcard-import, unused-wildcard-import
-from .log_collector import get_vtherm_logger
+from vtherm_api.log_collector import get_vtherm_logger
 
 
 _LOGGER = get_vtherm_logger(__name__)

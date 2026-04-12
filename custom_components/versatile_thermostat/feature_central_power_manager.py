@@ -1,7 +1,7 @@
 """ Implements a central Power Feature Manager for Versatile Thermostat """
 
 import logging
-from .log_collector import get_vtherm_logger
+from vtherm_api.log_collector import get_vtherm_logger
 
 from typing import Any
 from functools import cmp_to_key

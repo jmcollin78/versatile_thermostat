@@ -2,7 +2,7 @@
 
 """ Implements the VersatileThermostat select component """
 import logging
-from .log_collector import get_vtherm_logger
+from vtherm_api.log_collector import get_vtherm_logger
 
 # from homeassistant.const import EVENT_HOMEASSISTANT_START
 from homeassistant.const import EntityCategory
@@ -23,7 +23,7 @@ from homeassistant.helpers.restore_state import RestoreEntity
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.util import slugify
 
-from .vtherm_api import VersatileThermostatAPI
+from .vtherm_central_api import VersatileThermostatAPI
 from .base_entity import VersatileThermostatBaseEntity
 
 from .const import (

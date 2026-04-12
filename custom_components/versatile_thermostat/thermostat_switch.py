@@ -2,7 +2,7 @@
 
 """ A climate over switch classe """
 import logging
-from .log_collector import get_vtherm_logger
+from vtherm_api.log_collector import get_vtherm_logger
 from datetime import timedelta
 from homeassistant.core import Event, callback
 from homeassistant.helpers.event import (

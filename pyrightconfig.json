@@ -2,6 +2,7 @@
     "include": [
         "custom_components/versatile_thermostat/**",
         "homeassistant/**",
+        "vtherm_api/**",
         "tests/**",
     ],
     "reportShadowedImports": false,

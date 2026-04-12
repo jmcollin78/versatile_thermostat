@@ -2,7 +2,7 @@
 """Base class for proportional thermostats (TPI, SmartPI)."""
 
 import logging
-from .log_collector import get_vtherm_logger
+from vtherm_api.log_collector import get_vtherm_logger
 from typing import Generic
 
 from homeassistant.core import HomeAssistant

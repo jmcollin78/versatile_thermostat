@@ -35,7 +35,7 @@ from custom_components.versatile_thermostat.config_flow import (
 )
 
 from custom_components.versatile_thermostat.const import *
-from custom_components.versatile_thermostat.vtherm_api import VersatileThermostatAPI
+from custom_components.versatile_thermostat.vtherm_central_api import VersatileThermostatAPI
 from custom_components.versatile_thermostat.base_thermostat import BaseThermostat
 from custom_components.versatile_thermostat.vtherm_hvac_mode import *
 

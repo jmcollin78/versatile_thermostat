@@ -8,7 +8,7 @@ without temporal scheduling.
 
 import logging
 import time
-from .log_collector import get_vtherm_logger
+from vtherm_api.log_collector import get_vtherm_logger
 from typing import Any, Callable
 
 from homeassistant.core import CALLBACK_TYPE, HomeAssistant

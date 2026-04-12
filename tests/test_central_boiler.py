@@ -32,7 +32,7 @@ from custom_components.versatile_thermostat.thermostat_climate import (
     ThermostatOverClimate,
 )
 
-from custom_components.versatile_thermostat.vtherm_api import VersatileThermostatAPI
+from custom_components.versatile_thermostat.vtherm_central_api import VersatileThermostatAPI
 from custom_components.versatile_thermostat.binary_sensor import (
     CentralBoilerBinarySensor,
 )

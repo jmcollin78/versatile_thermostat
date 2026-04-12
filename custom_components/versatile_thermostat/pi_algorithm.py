@@ -2,7 +2,7 @@
 """ The PI algorithm implementation """
 
 import logging
-from .log_collector import get_vtherm_logger
+from vtherm_api.log_collector import get_vtherm_logger
 
 _LOGGER = get_vtherm_logger(__name__)
 
@@ -68,7 +68,7 @@ class PITemperatureRegulator:
         if time_delta > 2.0:
             # When the HVAC mode is off (by on/off or manual change), the PI algorithm is not run. time_delta can be
             # very high and broke the algo.
-            
+
             # It should never be higher than 1 on normal run but sometime the asyncio have a small latency on system
             # with low performance. Allowing a value a little over 1 give a better response.
 
