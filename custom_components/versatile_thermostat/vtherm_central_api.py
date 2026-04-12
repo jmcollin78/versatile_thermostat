@@ -1,9 +1,8 @@
 """ The API of Versatile Thermostat"""
 
 from vtherm_api.log_collector import get_vtherm_logger
-from datetime import datetime
-from homeassistant.core import HomeAssistant
-from homeassistant.config_entries import ConfigEntry, ConfigEntryState
+from vtherm_api.vtherm_api import VThermAPI
+from homeassistant.config_entries import ConfigEntryState
 
 from homeassistant.helpers.entity_component import EntityComponent
 from homeassistant.components.climate import ClimateEntity, DOMAIN as CLIMATE_DOMAIN
@@ -18,44 +17,21 @@ from .const import (
     CONF_THERMOSTAT_TYPE,
     CONF_THERMOSTAT_CENTRAL_CONFIG,
     CONF_MAX_ON_PERCENT,
-    NowClass,
 )
 
 from .feature_central_power_manager import FeatureCentralPowerManager
 from .feature_central_boiler_manager import FeatureCentralBoilerManager
 
-VTHERM_API_NAME = "vtherm_api"
-
 _LOGGER = get_vtherm_logger(__name__)
 
 
-class VersatileThermostatAPI:
+class VersatileThermostatAPI(VThermAPI):
     """The VersatileThermostatAPI"""
-
-    _hass: HomeAssistant = None
-
-    @classmethod
-    def get_vtherm_api(cls, hass=None):
-        """Get the eventual VTherm API class instance or
-        instantiate it if it doesn't exists"""
-        if hass is not None:
-            VersatileThermostatAPI._hass = hass
-
-        if VersatileThermostatAPI._hass is None:
-            return None
-
-        domain = VersatileThermostatAPI._hass.data.get(DOMAIN)
-        if not domain:
-            VersatileThermostatAPI._hass.data.setdefault(DOMAIN, {})
-
-        ret = VersatileThermostatAPI._hass.data.get(DOMAIN).get(VTHERM_API_NAME)
-        if ret is None:
-            ret = VersatileThermostatAPI()
-            VersatileThermostatAPI._hass.data[DOMAIN][VTHERM_API_NAME] = ret
-        return ret
 
     def __init__(self) -> None:
         _LOGGER.debug("building a VersatileThermostatAPI")
+
+        super().__init__()
 
         self._expert_params = None
         self._short_ema_params = None
@@ -100,33 +76,6 @@ class VersatileThermostatAPI:
     def reset_central_config(self):
         """Reset the central configuration"""
         self._central_configuration = None
-
-    def add_entry(self, entry: ConfigEntry):
-        """Add a new entry"""
-        name = entry.data.get(CONF_NAME)
-        _LOGGER.debug("%s - Add the entry %s - %s", name, entry.entry_id, name)
-        # Add the entry in hass.data
-        VersatileThermostatAPI._hass.data[DOMAIN][entry.entry_id] = entry
-
-    def remove_entry(self, entry: ConfigEntry):
-        """Remove an entry"""
-        name = entry.data.get(CONF_NAME)
-        _LOGGER.debug("%s - Remove the entry %s - %s", name, entry.entry_id, name)
-        VersatileThermostatAPI._hass.data[DOMAIN].pop(entry.entry_id)
-        # If not more entries are preset, remove the API
-        if (
-            len(
-                [
-                    val
-                    for val in VersatileThermostatAPI._hass.data[DOMAIN].values()
-                    if isinstance(val, ConfigEntry)
-                ]
-            )
-            == 0
-        ):
-            _LOGGER.debug("No more entries-> Remove the API from DOMAIN")
-            if DOMAIN in VersatileThermostatAPI._hass.data:
-                VersatileThermostatAPI._hass.data.pop(DOMAIN)
 
     def set_global_config(self, config):
         """Read the global configuration from configuration.yaml file"""
@@ -235,17 +184,6 @@ class VersatileThermostatAPI:
                     self._central_mode_select.state, old_central_mode
                 )
 
-    @classmethod
-    def reset_vtherm_api(cls):
-        """Reset the VTherm API instance and related data."""
-        if VersatileThermostatAPI._hass is None:
-            return
-
-        # Remove the API instance from hass.data
-        if DOMAIN in VersatileThermostatAPI._hass.data:
-            VersatileThermostatAPI._hass.data[DOMAIN].pop(VTHERM_API_NAME, None)
-        VersatileThermostatAPI._hass = None
-
     @property
     def self_regulation_expert(self):
         """Get the self regulation params"""
@@ -275,11 +213,6 @@ class VersatileThermostatAPI:
             return None
 
     @property
-    def hass(self):
-        """Get the HomeAssistant object"""
-        return VersatileThermostatAPI._hass
-
-    @property
     def central_power_manager(self) -> any:
         """Returns the central power manager"""
         return self._central_power_manager
@@ -288,18 +221,3 @@ class VersatileThermostatAPI:
     def central_boiler_manager(self) -> any:
         """Returns the central boiler manager"""
         return self._central_boiler_manager
-
-    @property
-    def name(self) -> str:
-        """Get the name of the API"""
-        return "VThermAPI"
-
-    # For testing purpose
-    def _set_now(self, now: datetime):
-        """Set the now timestamp. This is only for tests purpose"""
-        self._now = now
-
-    @property
-    def now(self) -> datetime:
-        """Get now. The local datetime or the overloaded _set_now date"""
-        return self._now if self._now is not None else NowClass.get_now(self._hass)
