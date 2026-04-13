@@ -2,6 +2,7 @@
 
 from vtherm_api.log_collector import get_vtherm_logger
 from vtherm_api.vtherm_api import VThermAPI
+from homeassistant.config_entries import ConfigEntry
 from homeassistant.config_entries import ConfigEntryState
 
 from homeassistant.helpers.entity_component import EntityComponent
@@ -183,6 +184,24 @@ class VersatileThermostatAPI(VThermAPI):
                 await entity.check_central_mode(
                     self._central_mode_select.state, old_central_mode
                 )
+
+    def add_entry(self, entry: ConfigEntry):
+        """Add a new entry"""
+        name = entry.data.get(CONF_NAME)
+        _LOGGER.debug("%s - Add the entry %s - %s", name, entry.entry_id, name)
+        # Add the entry in hass.data
+        VThermAPI._hass.data[DOMAIN][entry.entry_id] = entry
+
+    def remove_entry(self, entry: ConfigEntry):
+        """Remove an entry"""
+        name = entry.data.get(CONF_NAME)
+        _LOGGER.debug("%s - Remove the entry %s - %s", name, entry.entry_id, name)
+        VThermAPI._hass.data[DOMAIN].pop(entry.entry_id)
+        # If not more entries are preset, remove the API
+        if len([val for val in VThermAPI._hass.data[DOMAIN].values() if isinstance(val, ConfigEntry)]) == 0:
+            _LOGGER.debug("No more entries-> Remove the API from DOMAIN")
+            if DOMAIN in VThermAPI._hass.data:
+                VThermAPI._hass.data.pop(DOMAIN)
 
     @property
     def self_regulation_expert(self):

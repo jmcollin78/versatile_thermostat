@@ -47,6 +47,8 @@ from homeassistant.const import (
     STATE_UNKNOWN,
 )
 
+from vtherm_api.interfaces import InterfaceThermostat, InterfaceFeatureManager
+
 from .const import *  # pylint: disable=wildcard-import, unused-wildcard-import
 from .commons import write_event_log
 from .commons_type import ConfigData
@@ -77,7 +79,7 @@ from .vtherm_hvac_mode import VThermHvacMode, VThermHvacMode_OFF, to_legacy_ha_h
 _LOGGER = get_vtherm_logger(__name__)
 
 
-class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
+class BaseThermostat(ClimateEntity, RestoreEntity, InterfaceThermostat, Generic[T]):
     """Representation of a base class for all Versatile Thermostat device."""
 
     # breaking change with 2024.12 climate workaround

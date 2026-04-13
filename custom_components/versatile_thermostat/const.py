@@ -17,7 +17,7 @@ from homeassistant.exceptions import HomeAssistantError
 from homeassistant.util import dt as dt_util
 
 
-from vtherm_api.const import DOMAIN, VTHERM_API_NAME, DEVICE_MANUFACTURER, DEVICE_MODEL, get_tz, NowClass
+from vtherm_api.const import DOMAIN, VTHERM_API_NAME, DEVICE_MANUFACTURER, DEVICE_MODEL, get_tz, NowClass, EventType
 from vtherm_api.log_collector import get_vtherm_logger
 
 PROPORTIONAL_FUNCTION_TPI = "tpi"
