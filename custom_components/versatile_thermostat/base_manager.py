@@ -5,7 +5,6 @@ from typing import Any
 from homeassistant.core import CALLBACK_TYPE, HomeAssistant
 
 from vtherm_api.log_collector import get_vtherm_logger
-from vtherm_api.interfaces import InterfaceFeatureManager
 
 from .const import *  # pylint: disable=wildcard-import, unused-wildcard-import
 from .commons_type import ConfigData
@@ -15,7 +14,7 @@ from .config_schema import *  # pylint: disable=wildcard-import, unused-wildcard
 _LOGGER = get_vtherm_logger(__name__)
 
 
-class BaseFeatureManager(InterfaceFeatureManager):
+class BaseFeatureManager:
     """A base class for all feature"""
 
     def __init__(self, vtherm: Any, hass: HomeAssistant, name: str = None):
