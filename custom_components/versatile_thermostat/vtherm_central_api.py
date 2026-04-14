@@ -89,7 +89,7 @@ class VersatileThermostatAPI(VThermAPI):
         if self._short_ema_params:
             _LOGGER.debug("We have found short ema params %s", self._short_ema_params)
 
-        self._safety_mode = config.get(CONF_SAFokETY_MODE)
+        self._safety_mode = config.get(CONF_SAFETY_MODE)
         if self._safety_mode:
             _LOGGER.debug("We have found safet_mode params %s", self._safety_mode)
 
