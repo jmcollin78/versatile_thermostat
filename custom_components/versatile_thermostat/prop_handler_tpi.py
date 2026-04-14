@@ -300,8 +300,9 @@ class TPIHandler:
             "hvac_mode": str(t.vtherm_hvac_mode),
         }
 
-    async def control_heating(self, force=False):
+    async def control_heating(self, timestamp=None, force=False):
         """TPI-specific control heating logic."""
+        del timestamp
         t = self._thermostat
 
         # Feed the Auto TPI manager

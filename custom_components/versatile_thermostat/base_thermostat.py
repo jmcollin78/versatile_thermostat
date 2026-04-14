@@ -1594,7 +1594,7 @@ class BaseThermostat(ClimateEntity, RestoreEntity, InterfaceThermostat, Generic[
 
         previous_hvac_action = self.hvac_action
         # Call specific control heating
-        await self._control_heating_specific(force)
+        await self._control_heating_specific(timestamp, force)
 
         # Check for heating/cooling failures (only for TPI VTherms)
         await self._heating_failure_detection_manager.refresh_state()
@@ -1630,8 +1630,8 @@ class BaseThermostat(ClimateEntity, RestoreEntity, InterfaceThermostat, Generic[
         _LOGGER.debug("%s - End of cycle. current_state: %s, managers_states: %s", self, current_state, manager_states)
         return True
 
-    async def _control_heating_specific(self, force=False):
-        """To be overridden by subclasses"""
+    async def _control_heating_specific(self, timestamp=None, force=False):
+        """To be overridden by subclasses."""
         pass
 
     def reset_last_change_time_from_vtherm(self, old_preset_mode: VThermPreset | None = None):  # pylint: disable=unused-argument
