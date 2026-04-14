@@ -57,9 +57,7 @@ class VersatileThermostatAPI(VThermAPI):
     def find_central_configuration(self):
         """Search for a central configuration"""
         if not self._central_configuration:
-            for (
-                config_entry
-            ) in self.hass.config_entries.async_entries(DOMAIN):
+            for config_entry in self.hass.config_entries.async_entries(DOMAIN):
                 if (
                     config_entry.data.get(CONF_THERMOSTAT_TYPE) == CONF_THERMOSTAT_CENTRAL_CONFIG
                     and config_entry.disabled_by is None
@@ -91,7 +89,7 @@ class VersatileThermostatAPI(VThermAPI):
         if self._short_ema_params:
             _LOGGER.debug("We have found short ema params %s", self._short_ema_params)
 
-        self._safety_mode = config.get(CONF_SAFETY_MODE)
+        self._safety_mode = config.get(CONF_SAFokETY_MODE)
         if self._safety_mode:
             _LOGGER.debug("We have found safet_mode params %s", self._safety_mode)
 

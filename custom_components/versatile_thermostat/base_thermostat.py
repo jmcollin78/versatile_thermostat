@@ -1833,6 +1833,7 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
             "configuration": {
                 "ac_mode": self._ac_mode,
                 "type": self.vtherm_type,
+                "proportional_function": self.proportional_function,
                 "is_controlled_by_central_mode": self.is_controlled_by_central_mode,
                 "target_temperature_step": self.target_temperature_step,
                 "timezone": str(self._current_tz),
