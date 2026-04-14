@@ -957,6 +957,15 @@ class BaseThermostat(ClimateEntity, RestoreEntity, InterfaceThermostat, Generic[
         return self._power_manager
 
     @property
+    def is_overpowering_detected(self) -> bool:
+        """Return True when power shedding is currently active."""
+        return (
+            self._power_manager.is_overpowering_detected
+            if self._power_manager is not None
+            else False
+        )
+
+    @property
     def presence_manager(self) -> FeaturePresenceManager | None:
         """Get the presence manager"""
         return self._presence_manager
@@ -1583,6 +1592,7 @@ class BaseThermostat(ClimateEntity, RestoreEntity, InterfaceThermostat, Generic[
 
             return True
 
+        previous_hvac_action = self.hvac_action
         # Call specific control heating
         await self._control_heating_specific(force)
 
@@ -1593,8 +1603,16 @@ class BaseThermostat(ClimateEntity, RestoreEntity, InterfaceThermostat, Generic[
         await self._repair_incorrect_state_manager.check_and_repair()
 
         self.calculate_hvac_action()
-        self.update_custom_attributes()
-        self.async_write_ha_state()
+        should_publish = True
+        algo_handler = getattr(self, "_algo_handler", None)
+        if algo_handler and hasattr(algo_handler, "should_publish_intermediate"):
+            should_publish = algo_handler.should_publish_intermediate()
+            if not should_publish and previous_hvac_action != self.hvac_action:
+                should_publish = True
+
+        if should_publish:
+            self.update_custom_attributes()
+            self.async_write_ha_state()
 
         # For each manager display the manager state in debug and send an event with the manager state
         current_state = self._state_manager.current_state.to_dict()

@@ -11,7 +11,7 @@ from homeassistant.exceptions import ServiceValidationError
 from .base_thermostat import BaseThermostat, ConfigData
 from .underlyings import T
 from .vtherm_hvac_mode import VThermHvacMode_OFF
-from .const import CONF_PROP_FUNCTION
+from .const import CONF_PROP_FUNCTION, PROPORTIONAL_FUNCTION_TPI
 
 _LOGGER = get_vtherm_logger(__name__)
 
@@ -154,7 +154,25 @@ class ThermostatProp(BaseThermostat[T], Generic[T]):
         """
         # Import here to avoid circular imports
         from .prop_handler_tpi import TPIHandler  # pylint: disable=import-outside-toplevel
-        self._algo_handler = TPIHandler(self)
+        from .vtherm_central_api import VersatileThermostatAPI  # pylint: disable=import-outside-toplevel
+
+        if self._proportional_function == PROPORTIONAL_FUNCTION_TPI:
+            self._algo_handler = TPIHandler(self)
+        else:
+            api = VersatileThermostatAPI.get_vtherm_api(self.hass)
+            factory = (
+                api.get_prop_algorithm(self._proportional_function)
+                if api is not None and hasattr(api, "get_prop_algorithm")
+                else None
+            )
+
+            if factory is not None:
+                self._algo_handler = factory.create(self)
+            else:
+                raise ValueError(
+                    f"{self} - Unknown proportional function: {self._proportional_function}"
+                )
+
         self._algo_handler.init_algorithm()
 
     async def async_added_to_hass(self):
@@ -188,6 +206,8 @@ class ThermostatProp(BaseThermostat[T], Generic[T]):
                 self._cur_ext_temp,
                 self.last_temperature_slope,
                 self.vtherm_hvac_mode or VThermHvacMode_OFF,
+                power_shedding=self.is_overpowering_detected,
+                off_reason=self.hvac_off_reason,
             )
 
     async def _control_heating_specific(self, force=False):
@@ -205,7 +225,7 @@ class ThermostatProp(BaseThermostat[T], Generic[T]):
     def update_custom_attributes(self):
         """Update custom attributes."""
         super().update_custom_attributes()
-        if self._algo_handler:
+        if self._algo_handler and hasattr(self._algo_handler, "update_attributes"):
             self._algo_handler.update_attributes()
 
     # =========================================================================
