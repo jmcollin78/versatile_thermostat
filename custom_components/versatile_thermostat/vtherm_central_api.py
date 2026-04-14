@@ -33,6 +33,7 @@ class VersatileThermostatAPI(VThermAPI):
         _LOGGER.debug("building a VersatileThermostatAPI")
 
         super().__init__()
+        hass = self.hass
 
         self._expert_params = None
         self._short_ema_params = None
@@ -42,8 +43,8 @@ class VersatileThermostatAPI(VThermAPI):
         # A dict that will store all Number entities which holds the temperature
         self._number_temperatures = dict()
         self._max_on_percent = None
-        self._central_power_manager = FeatureCentralPowerManager(VersatileThermostatAPI._hass, self)
-        self._central_boiler_manager = FeatureCentralBoilerManager(VersatileThermostatAPI._hass, self)
+        self._central_power_manager = FeatureCentralPowerManager(hass, self)
+        self._central_boiler_manager = FeatureCentralBoilerManager(hass, self)
 
         # the current time (for testing purpose)
         self._now = None
@@ -58,7 +59,7 @@ class VersatileThermostatAPI(VThermAPI):
         if not self._central_configuration:
             for (
                 config_entry
-            ) in VersatileThermostatAPI._hass.config_entries.async_entries(DOMAIN):
+            ) in self.hass.config_entries.async_entries(DOMAIN):
                 if (
                     config_entry.data.get(CONF_THERMOSTAT_TYPE) == CONF_THERMOSTAT_CENTRAL_CONFIG
                     and config_entry.disabled_by is None
@@ -190,18 +191,18 @@ class VersatileThermostatAPI(VThermAPI):
         name = entry.data.get(CONF_NAME)
         _LOGGER.debug("%s - Add the entry %s - %s", name, entry.entry_id, name)
         # Add the entry in hass.data
-        VThermAPI._hass.data[DOMAIN][entry.entry_id] = entry
+        self.hass.data[DOMAIN][entry.entry_id] = entry
 
     def remove_entry(self, entry: ConfigEntry):
         """Remove an entry"""
         name = entry.data.get(CONF_NAME)
         _LOGGER.debug("%s - Remove the entry %s - %s", name, entry.entry_id, name)
-        VThermAPI._hass.data[DOMAIN].pop(entry.entry_id)
+        self.hass.data[DOMAIN].pop(entry.entry_id)
         # If not more entries are preset, remove the API
-        if len([val for val in VThermAPI._hass.data[DOMAIN].values() if isinstance(val, ConfigEntry)]) == 0:
+        if len([val for val in self.hass.data[DOMAIN].values() if isinstance(val, ConfigEntry)]) == 0:
             _LOGGER.debug("No more entries-> Remove the API from DOMAIN")
-            if DOMAIN in VThermAPI._hass.data:
-                VThermAPI._hass.data.pop(DOMAIN)
+            if DOMAIN in self.hass.data:
+                self.hass.data.pop(DOMAIN)
 
     @property
     def self_regulation_expert(self):
