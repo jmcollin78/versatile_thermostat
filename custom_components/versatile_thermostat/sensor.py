@@ -287,7 +287,9 @@ class OnPercentSensor(VersatileThermostatBaseEntity, SensorEntity):
 
         raw_on_percent = (
             self.my_climate.proportional_algorithm.on_percent
-            if self.my_climate and self.my_climate.has_prop
+            if self.my_climate
+            and self.my_climate.has_prop
+            and self.my_climate.proportional_algorithm is not None
             else None
         )
         if raw_on_percent is None:
