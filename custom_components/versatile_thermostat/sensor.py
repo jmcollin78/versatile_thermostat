@@ -102,7 +102,18 @@ async def async_setup_entry(
             ]:
                 entities.append(MeanPowerSensor(hass, unique_id, name, entry.data))
 
-        if entry.data.get(CONF_PROP_FUNCTION) == PROPORTIONAL_FUNCTION_TPI:
+        is_tpi_capable = entry.data.get(CONF_THERMOSTAT_TYPE) in [
+            CONF_THERMOSTAT_SWITCH,
+            CONF_THERMOSTAT_VALVE,
+        ] or (
+            entry.data.get(CONF_THERMOSTAT_TYPE) == CONF_THERMOSTAT_CLIMATE
+            and have_valve_regulation
+        )
+        has_proportional_algorithm = (
+            is_tpi_capable and entry.data.get(CONF_PROP_FUNCTION) is not None
+        )
+
+        if has_proportional_algorithm:
             entities.append(OnPercentSensor(hass, unique_id, name, entry.data))
             entities.append(OnTimeSensor(hass, unique_id, name, entry.data))
             entities.append(OffTimeSensor(hass, unique_id, name, entry.data))
@@ -120,12 +131,6 @@ async def async_setup_entry(
             entities.append(
                 RegulatedTemperatureSensor(hass, unique_id, name, entry.data)
             )
-
-        # Check if thermostat is TPI-capable (can use TPI algorithm)
-        is_tpi_capable = entry.data.get(CONF_THERMOSTAT_TYPE) in [
-            CONF_THERMOSTAT_SWITCH,
-            CONF_THERMOSTAT_VALVE,
-        ] or (entry.data.get(CONF_THERMOSTAT_TYPE) == CONF_THERMOSTAT_CLIMATE and have_valve_regulation)
 
         # Add Auto TPI Sensor only if:
         # 1. Thermostat is TPI-capable
