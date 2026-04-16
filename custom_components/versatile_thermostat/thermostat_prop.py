@@ -202,6 +202,8 @@ class ThermostatProp(BaseThermostat[T], Generic[T]):
         if self._algo_handler is None:
             if not self._init_algorithm_handler(raise_if_missing=True):
                 return
+            if self._cycle_scheduler is not None:
+                self._algo_handler.on_scheduler_ready(self._cycle_scheduler)
             # Catch up on the lifecycle call that was skipped at entity creation.
             await self._algo_handler.async_added_to_hass()
 
