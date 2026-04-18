@@ -26,9 +26,9 @@ if [ -f ${PWD}/.devcontainer/automations.yaml ]; then
 fi
 
 # Overwrite lovelace if provided
-if [ -f ${PWD}/.devcontainer/lovelace ]; then
-    rm -f ${PWD}/config/.storage/lovelace
-    ln -s ${PWD}/.devcontainer/lovelace ${PWD}/config/.storage/lovelace
+if [ -f ${PWD}/.devcontainer/lovelace.lovelace ]; then
+    rm -f ${PWD}/config/.storage/lovelace.lovelace
+    ln -s ${PWD}/.devcontainer/lovelace.lovelace ${PWD}/config/.storage/lovelace.lovelace
 fi
 
 
