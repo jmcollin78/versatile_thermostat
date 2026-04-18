@@ -724,11 +724,11 @@ class VersatileThermostatBaseConfigFlow(FlowHandler):
 
         if self._infos[CONF_THERMOSTAT_TYPE] == CONF_THERMOSTAT_SWITCH:
             return await self.generic_step(
-                "type", STEP_THERMOSTAT_SWITCH, user_input, self.async_step_menu
+                "type", build_step_thermostat_switch_schema(), user_input, self.async_step_menu
             )
         elif self._infos[CONF_THERMOSTAT_TYPE] == CONF_THERMOSTAT_VALVE:
             return await self.generic_step(
-                "type", STEP_THERMOSTAT_VALVE, user_input, self.async_step_menu
+                "type", build_step_thermostat_valve_schema(), user_input, self.async_step_menu
             )
         else:
             return await self.generic_step(
@@ -775,7 +775,7 @@ class VersatileThermostatBaseConfigFlow(FlowHandler):
             "Into ConfigFlow.async_step_valve_regulation user_input=%s", user_input
         )
 
-        schema = STEP_VALVE_REGULATION
+        schema = build_step_valve_regulation_schema()
         self._infos[COMES_FROM] = None
         next_step = self.async_step_menu
 

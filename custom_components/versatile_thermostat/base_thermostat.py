@@ -47,8 +47,6 @@ from homeassistant.const import (
     STATE_UNKNOWN,
 )
 
-from vtherm_api.interfaces import InterfaceThermostat, InterfaceFeatureManager
-
 from .const import *  # pylint: disable=wildcard-import, unused-wildcard-import
 from .commons import write_event_log
 from .commons_type import ConfigData
@@ -79,7 +77,7 @@ from .vtherm_hvac_mode import VThermHvacMode, VThermHvacMode_OFF, to_legacy_ha_h
 _LOGGER = get_vtherm_logger(__name__)
 
 
-class BaseThermostat(ClimateEntity, RestoreEntity, InterfaceThermostat, Generic[T]):
+class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
     """Representation of a base class for all Versatile Thermostat device."""
 
     # breaking change with 2024.12 climate workaround
@@ -957,6 +955,15 @@ class BaseThermostat(ClimateEntity, RestoreEntity, InterfaceThermostat, Generic[
         return self._power_manager
 
     @property
+    def is_overpowering_detected(self) -> bool:
+        """Return True when power shedding is currently active."""
+        return (
+            self._power_manager.is_overpowering_detected
+            if self._power_manager is not None
+            else False
+        )
+
+    @property
     def presence_manager(self) -> FeaturePresenceManager | None:
         """Get the presence manager"""
         return self._presence_manager
@@ -1583,8 +1590,9 @@ class BaseThermostat(ClimateEntity, RestoreEntity, InterfaceThermostat, Generic[
 
             return True
 
+        previous_hvac_action = self.hvac_action
         # Call specific control heating
-        await self._control_heating_specific(force)
+        await self._control_heating_specific(timestamp, force)
 
         # Check for heating/cooling failures (only for TPI VTherms)
         await self._heating_failure_detection_manager.refresh_state()
@@ -1593,8 +1601,16 @@ class BaseThermostat(ClimateEntity, RestoreEntity, InterfaceThermostat, Generic[
         await self._repair_incorrect_state_manager.check_and_repair()
 
         self.calculate_hvac_action()
-        self.update_custom_attributes()
-        self.async_write_ha_state()
+        should_publish = True
+        algo_handler = getattr(self, "_algo_handler", None)
+        if algo_handler and hasattr(algo_handler, "should_publish_intermediate"):
+            should_publish = algo_handler.should_publish_intermediate()
+            if not should_publish and previous_hvac_action != self.hvac_action:
+                should_publish = True
+
+        if should_publish:
+            self.update_custom_attributes()
+            self.async_write_ha_state()
 
         # For each manager display the manager state in debug and send an event with the manager state
         current_state = self._state_manager.current_state.to_dict()
@@ -1612,8 +1628,8 @@ class BaseThermostat(ClimateEntity, RestoreEntity, InterfaceThermostat, Generic[
         _LOGGER.debug("%s - End of cycle. current_state: %s, managers_states: %s", self, current_state, manager_states)
         return True
 
-    async def _control_heating_specific(self, force=False):
-        """To be overridden by subclasses"""
+    async def _control_heating_specific(self, timestamp=None, force=False):
+        """To be overridden by subclasses."""
         pass
 
     def reset_last_change_time_from_vtherm(self, old_preset_mode: VThermPreset | None = None):  # pylint: disable=unused-argument
@@ -1817,6 +1833,7 @@ class BaseThermostat(ClimateEntity, RestoreEntity, InterfaceThermostat, Generic[
             "configuration": {
                 "ac_mode": self._ac_mode,
                 "type": self.vtherm_type,
+                "proportional_function": self.proportional_function,
                 "is_controlled_by_central_mode": self.is_controlled_by_central_mode,
                 "target_temperature_step": self.target_temperature_step,
                 "timezone": str(self._current_tz),

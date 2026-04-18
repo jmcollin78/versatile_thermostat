@@ -77,6 +77,7 @@ class TpiAlgorithm:
         ext_current_temp: float | None,
         slope: float | None,
         hvac_mode: VThermHvacMode,
+        **kwargs,
     ):
         """Do the calculation of the duration"""
         if target_temp is None or current_temp is None:
