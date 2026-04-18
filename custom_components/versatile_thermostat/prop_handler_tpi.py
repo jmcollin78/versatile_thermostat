@@ -229,6 +229,10 @@ class TPIHandler:
             scheduler.register_cycle_start_callback(self._auto_tpi_manager.on_cycle_started)
             scheduler.register_cycle_end_callback(self._auto_tpi_manager.on_cycle_completed)
 
+    def should_publish_intermediate(self) -> bool:
+        """TPI always publishes the current control iteration."""
+        return True
+
     def _is_central_boiler_off(self) -> bool:
         """Check if the central boiler is configured but currently off."""
         t = self._thermostat
@@ -296,8 +300,9 @@ class TPIHandler:
             "hvac_mode": str(t.vtherm_hvac_mode),
         }
 
-    async def control_heating(self, force=False):
+    async def control_heating(self, timestamp=None, force=False):
         """TPI-specific control heating logic."""
+        del timestamp
         t = self._thermostat
 
         # Feed the Auto TPI manager

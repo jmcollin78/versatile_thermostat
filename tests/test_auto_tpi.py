@@ -309,7 +309,7 @@ async def test_service_calibrate_capacity(mock_vtherm_for_capacity):
     # Mock the dependency call to history.get_significant_states in BaseThermostat
     # and the config update on the instance. The patch for _async_update_tpi_config_entry must make it awaitable.
     # The new=AsyncMock() is crucial to make the patched method awaitable for the side_effect function
-    with patch("custom_components.versatile_thermostat.base_thermostat.history.get_significant_states") as mock_get_history, \
+    with patch("custom_components.versatile_thermostat.auto_tpi_manager.history.get_significant_states") as mock_get_history, \
          patch.object(vtherm, "_async_update_tpi_config_entry", new=AsyncMock()) as mock_update_config:
         
         # history.get_significant_states is called, it should return a mockable result (even though the inner calculation is mocked)

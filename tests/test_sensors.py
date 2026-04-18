@@ -1,6 +1,6 @@
 # pylint: disable=wildcard-import, unused-wildcard-import, protected-access, unused-argument, line-too-long
 
-""" Test the normal start of a Thermostat """
+"""Test the normal start of a Thermostat."""
 from datetime import timedelta, datetime
 
 from unittest.mock import PropertyMock
@@ -27,6 +27,71 @@ from custom_components.versatile_thermostat.sensor import (
 )
 
 from .commons import *  # pylint: disable=wildcard-import, unused-wildcard-import
+
+
+class FakeExternalPropAlgorithm:
+    """Minimal proportional algorithm used to test external factories."""
+
+    def __init__(self, on_percent: float) -> None:
+        """Initialize the fake algorithm."""
+        self.on_percent = on_percent
+
+    def calculate(self, *args, **kwargs):
+        """No-op calculation for tests."""
+        return
+
+    def update_realized_power(self, power_percent: float):
+        """Keep the latest realized power for tests."""
+        self.on_percent = power_percent
+
+
+class FakeExternalPropHandler:
+    """Minimal handler used to emulate an external proportional plugin."""
+
+    def __init__(self, thermostat: BaseThermostat) -> None:
+        """Initialize the fake handler."""
+        self._thermostat = thermostat
+        self.auto_tpi_manager = None
+
+    def init_algorithm(self) -> None:
+        """Attach a fake proportional algorithm to the thermostat."""
+        self._thermostat.prop_algorithm = FakeExternalPropAlgorithm(0.5)
+        self._thermostat._on_time_sec = 150
+        self._thermostat._off_time_sec = 150
+
+    async def async_added_to_hass(self) -> None:
+        """No-op async hook for tests."""
+        return
+
+    async def async_startup(self) -> None:
+        """No-op async hook for tests."""
+        return
+
+    def remove(self) -> None:
+        """No-op remove hook for tests."""
+        return
+
+    async def control_heating(self, timestamp=None, force=False) -> None:
+        """No-op control hook for tests."""
+        return
+
+    async def on_state_changed(self) -> None:
+        """No-op state hook for tests."""
+        return
+
+    def on_scheduler_ready(self, scheduler) -> None:
+        """No-op scheduler hook for tests."""
+        return
+
+
+class FakeExternalPropFactory:
+    """Minimal factory used to emulate an external proportional plugin."""
+
+    name = "smartpi"
+
+    def create(self, thermostat: BaseThermostat) -> FakeExternalPropHandler:
+        """Create the fake handler."""
+        return FakeExternalPropHandler(thermostat)
 
 
 @pytest.mark.parametrize("expected_lingering_tasks", [True])
@@ -173,6 +238,82 @@ async def test_sensors_over_switch(
         assert off_time_sensor.device_class == SensorDeviceClass.DURATION
         assert off_time_sensor.state_class == SensorStateClass.MEASUREMENT
         assert off_time_sensor.unit_of_measurement == UnitOfTime.SECONDS
+
+    await cancel_switchs_cycles(entity)
+
+
+@pytest.mark.parametrize("expected_lingering_tasks", [True])
+@pytest.mark.parametrize("expected_lingering_timers", [True])
+async def test_external_proportional_sensors_over_switch(
+    hass: HomeAssistant,
+    skip_hass_states_is_state,
+    skip_turn_on_off_heater,
+    skip_send_event,
+    fake_underlying_switch: MockSwitch,
+):
+    """Test proportional sensors with an external proportional algorithm."""
+
+    api = VersatileThermostatAPI.get_vtherm_api(hass)
+    api.register_prop_algorithm(FakeExternalPropFactory())
+
+    entry = MockConfigEntry(
+        domain=DOMAIN,
+        title="TheExternalPropMockName",
+        unique_id="externalPropUniqueId",
+        data={
+            CONF_NAME: "TheExternalPropMockName",
+            CONF_THERMOSTAT_TYPE: CONF_THERMOSTAT_SWITCH,
+            CONF_TEMP_SENSOR: "sensor.mock_temp_sensor",
+            CONF_EXTERNAL_TEMP_SENSOR: "sensor.mock_ext_temp_sensor",
+            CONF_CYCLE_MIN: 5,
+            CONF_TEMP_MIN: 15,
+            CONF_TEMP_MAX: 30,
+            "eco_temp": 17,
+            "comfort_temp": 18,
+            "boost_temp": 19,
+            CONF_USE_WINDOW_FEATURE: False,
+            CONF_USE_MOTION_FEATURE: False,
+            CONF_USE_POWER_FEATURE: False,
+            CONF_USE_PRESENCE_FEATURE: False,
+            CONF_UNDERLYING_LIST: ["switch.mock_switch"],
+            CONF_PROP_FUNCTION: "smartpi",
+            CONF_MINIMAL_ACTIVATION_DELAY: 30,
+            CONF_MINIMAL_DEACTIVATION_DELAY: 0,
+            CONF_SAFETY_DELAY_MIN: 5,
+            CONF_SAFETY_MIN_ON_PERCENT: 0.3,
+            CONF_DEVICE_POWER: 200,
+        },
+    )
+
+    entity: BaseThermostat = await create_thermostat(
+        hass, entry, "climate.theexternalpropmockname"
+    )
+    assert entity
+    assert entity.proportional_function == "smartpi"
+
+    on_percent_sensor: OnPercentSensor = search_entity(
+        hass, "sensor.theexternalpropmockname_power_percent", "sensor"
+    )
+    assert on_percent_sensor
+
+    on_time_sensor: OnTimeSensor = search_entity(
+        hass, "sensor.theexternalpropmockname_on_time", "sensor"
+    )
+    assert on_time_sensor
+
+    off_time_sensor: OffTimeSensor = search_entity(
+        hass, "sensor.theexternalpropmockname_off_time", "sensor"
+    )
+    assert off_time_sensor
+
+    await on_percent_sensor.async_my_climate_changed()
+    assert on_percent_sensor.state == 50.0
+
+    await on_time_sensor.async_my_climate_changed()
+    assert on_time_sensor.state == 150.0
+
+    await off_time_sensor.async_my_climate_changed()
+    assert off_time_sensor.state == 150.0
 
     await cancel_switchs_cycles(entity)
 
