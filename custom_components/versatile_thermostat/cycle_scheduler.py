@@ -341,6 +341,9 @@ class CycleScheduler:
                 if under.is_device_active:
                     await under.turn_off()
                 under._should_be_on = False
+            # Keep a real master-cycle start time so the next automatic restart
+            # reports a full elapsed_ratio instead of looking interrupted with 0 s elapsed.
+            self._cycle_start_time = time.time()
             # Schedule next cycle evaluation
             self._cycle_end_unsub = async_call_later(self._hass, self._cycle_duration_sec, self._on_master_cycle_end)
             return
@@ -350,6 +353,8 @@ class CycleScheduler:
             for under in self._underlyings:
                 await under.turn_on()
                 under._should_be_on = True
+            # Keep a real master-cycle start time for the same reason as 0% cycles.
+            self._cycle_start_time = time.time()
             # Schedule next cycle evaluation
             self._cycle_end_unsub = async_call_later(self._hass, self._cycle_duration_sec, self._on_master_cycle_end)
             return
