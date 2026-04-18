@@ -19,7 +19,7 @@
   "requirements": [
     "numpy",
     "scipy",
-    "git+https://github.com/jmcollin78/vtherm_api.git@main#egg=vtherm_api"
+    "git+https://github.com/jmcollin78/vtherm_api.git@main"
   ],
   "ssdp": [],
   "version": "9.3.3",
