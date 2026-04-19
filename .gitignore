@@ -113,6 +113,9 @@ custom_components/localtuya
 custom_components/vtherm_api
 custom_components/vtherm_smartpi
 custom_components/vtherm_climate_replication
+custom_components/vtherm_hysteresis
+custom_components/heating-simulator
+custom_components/auto-tpi-learning-card
 
 .coverage
 htmlcov
