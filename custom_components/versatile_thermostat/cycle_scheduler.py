@@ -192,6 +192,25 @@ class CycleScheduler:
         self._active_off_time_sec = off_time_sec
         self._active_on_percent = on_percent
 
+    @staticmethod
+    def _same_cycle_request(
+        hvac_mode_a: VThermHvacMode | None,
+        on_time_sec_a: float,
+        off_time_sec_a: float,
+        on_percent_a: float,
+        hvac_mode_b: VThermHvacMode | None,
+        on_time_sec_b: float,
+        off_time_sec_b: float,
+        on_percent_b: float,
+    ) -> bool:
+        """Return True when two cycle requests are effectively identical."""
+        return (
+            hvac_mode_a == hvac_mode_b
+            and on_time_sec_a == on_time_sec_b
+            and off_time_sec_a == off_time_sec_b
+            and abs(on_percent_a - on_percent_b) <= 1e-9
+        )
+
     async def start_cycle(
         self,
         hvac_mode: VThermHvacMode,
@@ -217,6 +236,7 @@ class CycleScheduler:
             self.min_activation_delay,
             self.min_deactivation_delay,
         )
+        realized_on_percent = on_time_sec / self._cycle_duration_sec if self._cycle_duration_sec > 0 else 0.0
 
         # Always update thermostat timing attributes immediately so sensors
         # reflect the latest computed value, even when the cycle returns early.
@@ -234,10 +254,10 @@ class CycleScheduler:
                     self._thermostat,
                     on_time_sec,
                     off_time_sec,
-                    on_percent,
+                    realized_on_percent,
                 )
-                self._set_pending_cycle(hvac_mode, on_time_sec, off_time_sec, on_percent)
-                self._set_active_cycle(hvac_mode, on_time_sec, off_time_sec, on_percent)
+                self._set_pending_cycle(hvac_mode, on_time_sec, off_time_sec, realized_on_percent)
+                self._set_active_cycle(hvac_mode, on_time_sec, off_time_sec, realized_on_percent)
                 await self._apply_valve_command(hvac_mode, on_time_sec, off_time_sec)
                 return
             if self._active_on_time_sec > 0:
@@ -251,22 +271,35 @@ class CycleScheduler:
                     force,
                     on_time_sec,
                     off_time_sec,
-                    on_percent,
+                    realized_on_percent,
                 )
-                self._set_pending_cycle(hvac_mode, on_time_sec, off_time_sec, on_percent)
+                self._set_pending_cycle(hvac_mode, on_time_sec, off_time_sec, realized_on_percent)
                 return
             # Current cycle is idle (on_time=0, device off).
-            # Cancel it and allow a real cycle to start.
+            # Keep it running if the requested idle cycle is unchanged; otherwise
+            # cancel it and allow the new cycle to start immediately.
+            if self._same_cycle_request(
+                self._active_hvac_mode,
+                self._active_on_time_sec,
+                self._active_off_time_sec,
+                self._active_on_percent,
+                hvac_mode,
+                on_time_sec,
+                off_time_sec,
+                realized_on_percent,
+            ):
+                _LOGGER.debug(
+                    "%s - Current cycle is idle and unchanged, keeping existing cycle",
+                    self._thermostat,
+                )
+                self._set_pending_cycle(hvac_mode, on_time_sec, off_time_sec, realized_on_percent)
+                return
             _LOGGER.debug(
-                "%s - Current cycle is idle (on_time=0), replacing with new cycle",
+                "%s - Current cycle is idle (on_time=0), replacing with changed cycle",
                 self._thermostat,
             )
 
         await self._cancel_cycle_impl()
-
-        # Compute realized on_percent after timing constraints (for learning callbacks)
-        # This is the actual percentage that will be executed physically
-        realized_on_percent = on_time_sec / self._cycle_duration_sec if self._cycle_duration_sec > 0 else 0.0
 
         # Store current cycle parameters for repeat
         self._set_pending_cycle(hvac_mode, on_time_sec, off_time_sec, realized_on_percent)
@@ -341,6 +374,9 @@ class CycleScheduler:
                 if under.is_device_active:
                     await under.turn_off()
                 under._should_be_on = False
+            # Keep a real master-cycle start time so the next automatic restart
+            # reports a full elapsed_ratio instead of looking interrupted with 0 s elapsed.
+            self._cycle_start_time = time.time()
             # Schedule next cycle evaluation
             self._cycle_end_unsub = async_call_later(self._hass, self._cycle_duration_sec, self._on_master_cycle_end)
             return
@@ -350,6 +386,8 @@ class CycleScheduler:
             for under in self._underlyings:
                 await under.turn_on()
                 under._should_be_on = True
+            # Keep a real master-cycle start time for the same reason as 0% cycles.
+            self._cycle_start_time = time.time()
             # Schedule next cycle evaluation
             self._cycle_end_unsub = async_call_later(self._hass, self._cycle_duration_sec, self._on_master_cycle_end)
             return
