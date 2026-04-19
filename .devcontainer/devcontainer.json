@@ -32,7 +32,11 @@
         // the climate-replication plugin
         "source=${localEnv:VTHERM_PROJECTS_HOME}/vtherm_climate_replication/custom_components/vtherm_climate_replication,target=/workspaces/versatile_thermostat/custom_components/vtherm_climate_replication,type=bind",
         // the Smart PI plugin
-        "source=${localEnv:VTHERM_PROJECTS_HOME}/vtherm_smartpi/custom_components/vtherm_smartpi,target=/workspaces/versatile_thermostat/custom_components/vtherm_smartpi,type=bind"
+        "source=${localEnv:VTHERM_PROJECTS_HOME}/vtherm_smartpi/custom_components/vtherm_smartpi,target=/workspaces/versatile_thermostat/custom_components/vtherm_smartpi,type=bind",
+        // the heating simulator from Caiussererus
+        "source=${localEnv:VTHERM_PROJECTS_HOME}/heating-simulator,target=/workspaces/versatile_thermostat/custom_components/heating_simulator,type=bind",
+        // the vtherm_hysteresis VTherm plugin
+        "source=${localEnv:VTHERM_PROJECTS_HOME}/vtherm_hysteresis/custom_components/vtherm_hysteresis,target=/workspaces/versatile_thermostat/custom_components/vtherm_hysteresis,type=bind"
     ],
     "customizations": {
         "vscode": {
