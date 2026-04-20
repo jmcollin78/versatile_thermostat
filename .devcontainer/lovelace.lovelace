@@ -3109,7 +3109,7 @@
                       "type": "entities",
                       "entities": [
                         {
-                          "entity": "input_number.fake_temperature_sensor1"
+                          "entity": "sensor.rad_r1c1_room_temperature"
                         },
                         {
                           "entity": "input_number.fake_external_temperature_sensor1"
