@@ -20,3 +20,5 @@ ha-ffmpeg
 pymicro_vad
 pyspeex_noise
 radios
+
+vtherm_api>=0.2.0

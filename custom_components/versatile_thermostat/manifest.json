@@ -18,7 +18,8 @@
   "quality_scale": "silver",
   "requirements": [
     "numpy",
-    "scipy"
+    "scipy",
+    "vtherm_api>=0.2.0"
   ],
   "ssdp": [],
   "version": "9.3.3",
