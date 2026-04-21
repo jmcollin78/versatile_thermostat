@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+    <dict>
+        <key>Label</key>
+        <string>environment.vtherm</string>
+
+        <key>ProgramArguments</key>
+        <array>
+            <string>/bin/launchctl</string>
+            <string>setenv</string>
+            <string>VTHERM_PROJECTS_HOME</string>
+            <string>/Users/jmcollin/SugarSync/Projets/home-assistant</string>
+        </array>
+
+        <key>RunAtLoad</key>
+        <true/>
+    </dict>
+</plist>
