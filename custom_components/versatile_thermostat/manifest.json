@@ -19,7 +19,7 @@
   "requirements": [
     "numpy",
     "scipy",
-    "vtherm_api"
+    "vtherm_api>=0.2.1"
   ],
   "ssdp": [],
   "version": "10.0.0",
