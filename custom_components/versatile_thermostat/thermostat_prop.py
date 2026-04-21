@@ -1,6 +1,7 @@
 # pylint: disable=line-too-long, abstract-method
 """Base class for proportional thermostats (TPI, SmartPI)."""
 
+import inspect
 import logging
 from vtherm_api.log_collector import get_vtherm_logger
 from typing import Generic
@@ -245,8 +246,34 @@ class ThermostatProp(BaseThermostat[T], Generic[T]):
         if self._algo_handler:
             # External proportional plugins may need to react to temperature
             # crossings even when VT logical state did not change.
-            await self._algo_handler.on_state_changed()
+            await self._notify_handler_state_changed(changed)
         return changed
+
+    async def _notify_handler_state_changed(self, changed: bool) -> None:
+        """Notify the handler with the richest supported state-change payload."""
+        on_state_changed = getattr(self._algo_handler, "on_state_changed", None)
+        if on_state_changed is None:
+            return
+
+        try:
+            signature = inspect.signature(on_state_changed)
+        except (TypeError, ValueError):
+            await on_state_changed()
+            return
+
+        supports_changed = any(
+            parameter.kind in (
+                inspect.Parameter.POSITIONAL_ONLY,
+                inspect.Parameter.POSITIONAL_OR_KEYWORD,
+                inspect.Parameter.VAR_POSITIONAL,
+            )
+            for parameter in signature.parameters.values()
+        )
+
+        if supports_changed:
+            await on_state_changed(changed)
+        else:
+            await on_state_changed()
 
     def update_custom_attributes(self):
         """Update custom attributes."""

@@ -378,7 +378,7 @@ class TPIHandler:
                 force,
             )
 
-    async def on_state_changed(self):
+    async def on_state_changed(self, changed: bool = True):
         """Handle state changes."""
         # Cycle management is now passive, no need to start/stop loop
         pass

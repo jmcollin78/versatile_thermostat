@@ -53,6 +53,7 @@ class FakeExternalPropHandler:
         """Initialize the fake handler."""
         self._thermostat = thermostat
         self.auto_tpi_manager = None
+        self.state_change_calls = 0
 
     def init_algorithm(self) -> None:
         """Attach a fake proportional algorithm to the thermostat."""
@@ -78,6 +79,7 @@ class FakeExternalPropHandler:
 
     async def on_state_changed(self) -> None:
         """No-op state hook for tests."""
+        self.state_change_calls += 1
         return
 
     def on_scheduler_ready(self, scheduler) -> None:
@@ -96,11 +98,22 @@ class FakeExternalPropFactory:
 
 
 @pytest.mark.asyncio
-async def test_thermostat_prop_notifies_external_handler_on_temperature_refresh() -> None:
-    """External handlers must receive state refreshes even without VT state changes."""
+async def test_thermostat_prop_passes_changed_flag_to_external_handler() -> None:
+    """External handlers receive the state-change flag."""
+    class ChangedAwareFakeExternalPropHandler(FakeExternalPropHandler):
+        """Handler used to capture the propagated changed flag."""
+
+        def __init__(self, thermostat: BaseThermostat) -> None:
+            """Initialize the fake handler."""
+            super().__init__(thermostat)
+            self.received_changed = None
+
+        async def on_state_changed(self, changed: bool = True) -> None:
+            """Store the changed flag for assertions."""
+            self.received_changed = changed
+
     entity = object.__new__(ThermostatProp)
-    entity._algo_handler = FakeExternalPropHandler(entity)
-    entity._algo_handler.on_state_changed = AsyncMock()
+    entity._algo_handler = ChangedAwareFakeExternalPropHandler(entity)
 
     with patch(
         "custom_components.versatile_thermostat.thermostat_prop.BaseThermostat.update_states",
@@ -109,7 +122,23 @@ async def test_thermostat_prop_notifies_external_handler_on_temperature_refresh(
         changed = await ThermostatProp.update_states(entity, force=False)
 
     assert changed is False
-    entity._algo_handler.on_state_changed.assert_awaited_once()
+    assert entity._algo_handler.received_changed is False
+
+
+@pytest.mark.asyncio
+async def test_thermostat_prop_keeps_legacy_external_handler_signature() -> None:
+    """External handlers without the changed argument remain supported."""
+    entity = object.__new__(ThermostatProp)
+    entity._algo_handler = FakeExternalPropHandler(entity)
+
+    with patch(
+        "custom_components.versatile_thermostat.thermostat_prop.BaseThermostat.update_states",
+        AsyncMock(return_value=False),
+    ):
+        changed = await ThermostatProp.update_states(entity, force=False)
+
+    assert changed is False
+    assert entity._algo_handler.state_change_calls == 1
 
 
 @pytest.mark.parametrize("expected_lingering_tasks", [True])
