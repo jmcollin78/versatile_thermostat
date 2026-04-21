@@ -801,18 +801,15 @@ async def test_update_central_boiler_state_simple_valve(
 
     # 1. start a valve
     await send_temperature_change_event(entity, 10, now)
-    # Wait for state event propagation
-    await asyncio.sleep(0.5)
+    await wait_for_local_condition(lambda: entity.hvac_action == HVACAction.HEATING, 10)
+    await wait_for_local_condition(lambda: entity.device_actives == ["number.valve1"], 10)
+    await wait_for_local_condition(lambda: api.central_boiler_manager.nb_active_device_for_boiler == 1, 10)
+    await wait_for_local_condition(lambda: boiler_binary_sensor.state == STATE_ON, 10)
+    await wait_for_local_condition(lambda: nb_device_active_sensor.state == 1, 10)
+    await wait_for_local_condition(lambda: total_power_active_sensor.state == 1500, 10)
 
-    assert entity.hvac_action == HVACAction.HEATING
     assert entity.device_actives == ["number.valve1"]
-
-    assert api.central_boiler_manager.nb_active_device_for_boiler == 1
-    assert boiler_binary_sensor.state == STATE_ON
-
-    assert nb_device_active_sensor.state == 1
     assert nb_device_active_sensor.active_device_ids == ["number.valve1"]
-    assert total_power_active_sensor.state == 1500
     assert total_power_active_sensor.active_device_ids == ["number.valve1"]
 
     # 2. stop a heater
@@ -820,19 +817,14 @@ async def test_update_central_boiler_state_simple_valve(
     # Change the valve value to 0
     valve1.set_native_value(0)
     valve1.async_write_ha_state()
-    # Wait for state event propagation
-    await asyncio.sleep(0.5)
+    await wait_for_local_condition(lambda: entity.hvac_action == HVACAction.IDLE, 10)
+    await wait_for_local_condition(lambda: entity.device_actives == [], 10)
+    await wait_for_local_condition(lambda: api.central_boiler_manager.nb_active_device_for_boiler == 0, 10)
+    await wait_for_local_condition(lambda: boiler_binary_sensor.state == STATE_OFF, 10)
+    await wait_for_local_condition(lambda: nb_device_active_sensor.state == 0, 10)
+    await wait_for_local_condition(lambda: total_power_active_sensor.state == 0, 10)
 
-    assert entity.hvac_action == HVACAction.IDLE
-    assert entity.device_actives == []
-
-    assert api.central_boiler_manager.nb_active_device_for_boiler == 0
-    assert boiler_binary_sensor.state == STATE_OFF
-
-    assert nb_device_active_sensor.state == 0
     assert nb_device_active_sensor.active_device_ids == []
-
-    assert total_power_active_sensor.state == 0
     assert total_power_active_sensor.active_device_ids == []
 
     entity.remove_thermostat()
@@ -1215,26 +1207,24 @@ async def test_update_central_boiler_state_simple_climate_valve_regulation(
     # in Boost setpoint is 21°C
     fake_temp_sensor.set_native_value(19.5)
     await hass.async_block_till_done()
-    await asyncio.sleep(0.1)
     # await send_temperature_change_event(entity, 19.5, now)
 
     # we have to simulate the climate also else the test don't work
     fake_underlying_climate.set_hvac_mode(VThermHvacMode_HEAT)
     fake_underlying_climate.set_hvac_action(HVACAction.HEATING)
-    # Wait for state event propagation
     await hass.async_block_till_done()
-    await asyncio.sleep(0.1)
+    await wait_for_local_condition(lambda: entity.hvac_action == HVACAction.HEATING, 10)
+    await wait_for_local_condition(lambda: entity.device_actives == ["number.mock_opening_degree"], 10)
+    await wait_for_local_condition(lambda: nb_device_active_sensor.state == 1, 10)
+    await wait_for_local_condition(lambda: total_power_active_sensor.state == 1125, 10)
+    await wait_for_local_condition(lambda: api.central_boiler_manager.nb_active_device_for_boiler == 1, 10)
+    await wait_for_local_condition(lambda: boiler_binary_sensor.state == STATE_ON, 10)
 
-    assert entity.hvac_action == HVACAction.HEATING
-    assert entity.device_actives == ["number.mock_opening_degree"]
-
-    assert nb_device_active_sensor.state == 1
     assert nb_device_active_sensor.active_device_ids == [
         "number.mock_opening_degree",
     ]
 
     assert entity.on_percent == 0.75  # (21-19.5)*0.3 + (21-18)*0.1 = 0.75
-    assert total_power_active_sensor.state == 1125  # on_percent is 75% x 1500W = 1125W
     assert total_power_active_sensor.active_device_ids == [
         "number.mock_opening_degree",
     ]
@@ -1242,14 +1232,11 @@ async def test_update_central_boiler_state_simple_climate_valve_regulation(
     assert api.central_boiler_manager.is_nb_active_active_for_boiler_exceeded is False
     assert api.central_boiler_manager.is_total_power_active_for_boiler_exceeded is True
 
-    assert api.central_boiler_manager.nb_active_device_for_boiler == 1
-    assert boiler_binary_sensor.state == STATE_ON
-
     # 2. stop a climate
 
     # await send_temperature_change_event(entity, 25, now)
     fake_temp_sensor.set_native_value(25)
-    await asyncio.sleep(0.1)
+    await hass.async_block_till_done()
 
     fake_underlying_climate.set_hvac_mode(VThermHvacMode_HEAT)
     fake_underlying_climate.set_hvac_action(HVACAction.IDLE)
@@ -1258,16 +1245,13 @@ async def test_update_central_boiler_state_simple_climate_valve_regulation(
     await hass.async_block_till_done()
 
     # The underlying is idle but the valve are closed -> OFF
-    await wait_for_local_condition(lambda: entity.hvac_action == HVACAction.OFF)
+    await wait_for_local_condition(lambda: entity.hvac_action == HVACAction.OFF, 10)
+    await wait_for_local_condition(lambda: api.central_boiler_manager.nb_active_device_for_boiler == 0, 10)
+    await wait_for_local_condition(lambda: boiler_binary_sensor.state == STATE_OFF, 10)
+    await wait_for_local_condition(lambda: nb_device_active_sensor.state == 0, 10)
+    await wait_for_local_condition(lambda: total_power_active_sensor.state == 0, 10)
     assert entity.device_actives == []
-
-    assert api.central_boiler_manager.nb_active_device_for_boiler == 0
-    assert boiler_binary_sensor.state == STATE_OFF
-
-    assert nb_device_active_sensor.state == 0
     assert nb_device_active_sensor.active_device_ids == []
-
-    assert total_power_active_sensor.state == 0
     assert total_power_active_sensor.active_device_ids == []
 
     entity.remove_thermostat()

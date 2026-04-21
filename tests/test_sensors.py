@@ -3,7 +3,7 @@
 """Test the normal start of a Thermostat."""
 from datetime import timedelta, datetime
 
-from unittest.mock import PropertyMock
+from unittest.mock import AsyncMock, PropertyMock, patch
 
 from homeassistant.core import HomeAssistant
 
@@ -16,6 +16,7 @@ from homeassistant.const import UnitOfTime, UnitOfPower, UnitOfEnergy, PERCENTAG
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from custom_components.versatile_thermostat.base_thermostat import BaseThermostat
+from custom_components.versatile_thermostat.thermostat_prop import ThermostatProp
 from custom_components.versatile_thermostat.sensor import (
     EnergySensor,
     MeanPowerSensor,
@@ -52,6 +53,7 @@ class FakeExternalPropHandler:
         """Initialize the fake handler."""
         self._thermostat = thermostat
         self.auto_tpi_manager = None
+        self.state_change_calls = 0
 
     def init_algorithm(self) -> None:
         """Attach a fake proportional algorithm to the thermostat."""
@@ -75,8 +77,10 @@ class FakeExternalPropHandler:
         """No-op control hook for tests."""
         return
 
-    async def on_state_changed(self) -> None:
+    async def on_state_changed(self, changed: bool) -> None:
         """No-op state hook for tests."""
+        del changed
+        self.state_change_calls += 1
         return
 
     def on_scheduler_ready(self, scheduler) -> None:
@@ -92,6 +96,50 @@ class FakeExternalPropFactory:
     def create(self, thermostat: BaseThermostat) -> FakeExternalPropHandler:
         """Create the fake handler."""
         return FakeExternalPropHandler(thermostat)
+
+
+@pytest.mark.asyncio
+async def test_thermostat_prop_passes_changed_flag_to_external_handler() -> None:
+    """External handlers receive the state-change flag."""
+    class ChangedAwareFakeExternalPropHandler(FakeExternalPropHandler):
+        """Handler used to capture the propagated changed flag."""
+
+        def __init__(self, thermostat: BaseThermostat) -> None:
+            """Initialize the fake handler."""
+            super().__init__(thermostat)
+            self.received_changed = None
+
+        async def on_state_changed(self, changed: bool) -> None:
+            """Store the changed flag for assertions."""
+            self.received_changed = changed
+
+    entity = object.__new__(ThermostatProp)
+    entity._algo_handler = ChangedAwareFakeExternalPropHandler(entity)
+
+    with patch(
+        "custom_components.versatile_thermostat.thermostat_prop.BaseThermostat.update_states",
+        AsyncMock(return_value=False),
+    ):
+        changed = await ThermostatProp.update_states(entity, force=False)
+
+    assert changed is False
+    assert entity._algo_handler.received_changed is False
+
+
+@pytest.mark.asyncio
+async def test_thermostat_prop_passes_changed_true_to_external_handler() -> None:
+    """External handlers receive True when VT reports a state change."""
+    entity = object.__new__(ThermostatProp)
+    entity._algo_handler = AsyncMock()
+
+    with patch(
+        "custom_components.versatile_thermostat.thermostat_prop.BaseThermostat.update_states",
+        AsyncMock(return_value=True),
+    ):
+        changed = await ThermostatProp.update_states(entity, force=False)
+
+    assert changed is True
+    entity._algo_handler.on_state_changed.assert_awaited_once_with(True)
 
 
 @pytest.mark.parametrize("expected_lingering_tasks", [True])
