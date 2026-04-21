@@ -3,7 +3,7 @@
 """Test the normal start of a Thermostat."""
 from datetime import timedelta, datetime
 
-from unittest.mock import PropertyMock
+from unittest.mock import AsyncMock, PropertyMock, patch
 
 from homeassistant.core import HomeAssistant
 
@@ -16,6 +16,7 @@ from homeassistant.const import UnitOfTime, UnitOfPower, UnitOfEnergy, PERCENTAG
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from custom_components.versatile_thermostat.base_thermostat import BaseThermostat
+from custom_components.versatile_thermostat.thermostat_prop import ThermostatProp
 from custom_components.versatile_thermostat.sensor import (
     EnergySensor,
     MeanPowerSensor,
@@ -92,6 +93,23 @@ class FakeExternalPropFactory:
     def create(self, thermostat: BaseThermostat) -> FakeExternalPropHandler:
         """Create the fake handler."""
         return FakeExternalPropHandler(thermostat)
+
+
+@pytest.mark.asyncio
+async def test_thermostat_prop_notifies_external_handler_on_temperature_refresh() -> None:
+    """External handlers must receive state refreshes even without VT state changes."""
+    entity = object.__new__(ThermostatProp)
+    entity._algo_handler = FakeExternalPropHandler(entity)
+    entity._algo_handler.on_state_changed = AsyncMock()
+
+    with patch(
+        "custom_components.versatile_thermostat.thermostat_prop.BaseThermostat.update_states",
+        AsyncMock(return_value=False),
+    ):
+        changed = await ThermostatProp.update_states(entity, force=False)
+
+    assert changed is False
+    entity._algo_handler.on_state_changed.assert_awaited_once()
 
 
 @pytest.mark.parametrize("expected_lingering_tasks", [True])
