@@ -259,10 +259,12 @@ class CycleScheduler:
                     off_time_sec,
                     realized_on_percent,
                 )
-                self._set_pending_cycle(hvac_mode, on_time_sec, off_time_sec, realized_on_percent)
-                self._set_active_cycle(hvac_mode, on_time_sec, off_time_sec, realized_on_percent)
-                await self._apply_valve_command(hvac_mode, on_time_sec, off_time_sec)
-                self._append_valve_cycle_trace(realized_on_percent)
+                await self._update_running_valve_cycle(
+                    hvac_mode,
+                    on_time_sec,
+                    off_time_sec,
+                    realized_on_percent,
+                )
                 return
             if self._active_on_time_sec > 0:
                 # A real cycle is actively running — don't interrupt it.
@@ -324,6 +326,53 @@ class CycleScheduler:
                 await self._start_cycle_switch(hvac_mode, on_time_sec, off_time_sec, realized_on_percent)
         finally:
             self._is_starting = False
+
+    async def apply_valve_update(
+        self,
+        hvac_mode: VThermHvacMode,
+        on_percent: float,
+    ) -> None:
+        """Apply a deferred valve recompute without running a full control cycle."""
+        if not self._is_valve_mode:
+            return
+
+        cycle_min = self._cycle_duration_sec / 60
+        on_time_sec, off_time_sec, _ = calculate_cycle_times(
+            on_percent,
+            cycle_min,
+            self.min_activation_delay,
+            self.min_deactivation_delay,
+        )
+        realized_on_percent = on_time_sec / self._cycle_duration_sec if self._cycle_duration_sec > 0 else 0.0
+
+        self._thermostat._on_time_sec = on_time_sec
+        self._thermostat._off_time_sec = off_time_sec
+        self._set_pending_cycle(hvac_mode, on_time_sec, off_time_sec, realized_on_percent)
+
+        if self.is_cycle_running:
+            await self._update_running_valve_cycle(
+                hvac_mode,
+                on_time_sec,
+                off_time_sec,
+                realized_on_percent,
+            )
+            return
+
+        self._set_active_cycle(hvac_mode, on_time_sec, off_time_sec, realized_on_percent)
+        await self._apply_valve_command(hvac_mode, on_time_sec, off_time_sec)
+
+    async def _update_running_valve_cycle(
+        self,
+        hvac_mode: VThermHvacMode,
+        on_time_sec: float,
+        off_time_sec: float,
+        on_percent: float,
+    ) -> None:
+        """Apply a valve update while preserving the current master-cycle window."""
+        self._set_pending_cycle(hvac_mode, on_time_sec, off_time_sec, on_percent)
+        self._set_active_cycle(hvac_mode, on_time_sec, off_time_sec, on_percent)
+        await self._apply_valve_command(hvac_mode, on_time_sec, off_time_sec)
+        self._append_valve_cycle_trace(on_percent)
 
     async def _apply_valve_command(
         self,
