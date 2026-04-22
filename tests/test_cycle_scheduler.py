@@ -352,6 +352,39 @@ class TestCycleSchedulerCallbacks:
         assert kwargs["cycle_duration_min"] == pytest.approx(10.0)
 
     @pytest.mark.asyncio
+    @patch("custom_components.versatile_thermostat.cycle_scheduler.time.time")
+    @patch("custom_components.versatile_thermostat.cycle_scheduler.async_call_later")
+    async def test_valve_mid_cycle_update_contributes_to_realized_power(
+        self,
+        mock_call_later,
+        mock_time,
+    ):
+        """Valve e_eff must reflect the real average of applied mid-cycle commands."""
+        mock_call_later.return_value = MagicMock()
+        mock_time.side_effect = [1000.0, 1300.0, 1600.0]
+
+        hass = make_hass()
+        thermostat = make_thermostat()
+        valve = make_underlying("V1", active=False, entity_type=UnderlyingEntityType.VALVE)
+        scheduler = CycleScheduler(hass, thermostat, [valve], 600)
+
+        cb_end = AsyncMock()
+        scheduler.register_cycle_end_callback(cb_end)
+
+        await scheduler.start_cycle(VThermHvacMode_HEAT, 0.2, force=True)
+        await scheduler.start_cycle(VThermHvacMode_HEAT, 0.6, force=False)
+        await scheduler.cancel_cycle()
+
+        assert valve.set_valve_open_percent.await_count == 2
+        assert scheduler._valve_cycle_trace == []
+
+        cb_end.assert_awaited_once()
+        kwargs = cb_end.await_args.kwargs
+        assert kwargs["e_eff"] == pytest.approx(0.4)
+        assert kwargs["elapsed_ratio"] == pytest.approx(1.0)
+        assert kwargs["cycle_duration_min"] == pytest.approx(10.0)
+
+    @pytest.mark.asyncio
     @patch("custom_components.versatile_thermostat.cycle_scheduler.async_call_later")
     async def test_callback_error_does_not_break_cycle(self, mock_call_later):
         """An error in a callback should not prevent the cycle from starting."""
