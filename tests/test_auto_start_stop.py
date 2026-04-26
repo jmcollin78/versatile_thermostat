@@ -345,8 +345,6 @@ async def test_auto_start_stop_reset_switch_delay(hass: HomeAssistant):
     assert algo.last_switch_date == now  # Switch date updated
 
 
-@pytest.mark.parametrize("expected_lingering_tasks", [True])
-@pytest.mark.parametrize("expected_lingering_timers", [True])
 async def test_auto_start_stop_none_vtherm(
     hass: HomeAssistant, skip_hass_states_is_state
 ):
@@ -427,9 +425,9 @@ async def test_auto_start_stop_none_vtherm(
         is None
     )
 
+    vtherm.remove_thermostat()
 
-@pytest.mark.parametrize("expected_lingering_tasks", [True])
-@pytest.mark.parametrize("expected_lingering_timers", [True])
+
 async def test_auto_start_stop_medium_heat_vtherm(
     hass: HomeAssistant, skip_hass_states_is_state
 ):
@@ -534,7 +532,7 @@ async def test_auto_start_stop_medium_heat_vtherm(
     ) as mock_send_event:
         vtherm._set_now(now)
         await send_temperature_change_event(vtherm, 19, now, False)
-        await wait_for_local_condition(lambda: vtherm.auto_start_stop_manager._auto_start_stop_algo.accumulated_error == 0)
+        await wait_for_local_condition(lambda: vtherm.auto_start_stop_manager._auto_start_stop_algo.accumulated_error == 0, timeout=3.0, hass=hass)
 
         # VTherm should still be heating
         assert vtherm.hvac_mode == VThermHvacMode_HEAT
@@ -550,7 +548,7 @@ async def test_auto_start_stop_medium_heat_vtherm(
     ) as mock_send_event:
         vtherm._set_now(now)
         await send_temperature_change_event(vtherm, 20, now, False)
-        await wait_for_local_condition(lambda: vtherm.auto_start_stop_manager._auto_start_stop_algo.accumulated_error == -2.5)
+        await wait_for_local_condition(lambda: vtherm.auto_start_stop_manager._auto_start_stop_algo.accumulated_error == -2.5, timeout=3.0, hass=hass)
 
         # VTherm should still be heating
         assert vtherm.hvac_mode == VThermHvacMode_HEAT
@@ -568,7 +566,7 @@ async def test_auto_start_stop_medium_heat_vtherm(
     ) as mock_send_event:
         vtherm._set_now(now)
         await send_temperature_change_event(vtherm, 21, now, False)
-        await wait_for_local_condition(lambda: vtherm.hvac_mode == VThermHvacMode_OFF)
+        await wait_for_local_condition(lambda: vtherm.hvac_mode == VThermHvacMode_OFF, timeout=3.0, hass=hass)
 
         # VTherm should have been stopped
         assert vtherm.hvac_mode == VThermHvacMode_OFF
@@ -619,7 +617,7 @@ async def test_auto_start_stop_medium_heat_vtherm(
     ) as mock_send_event:
         vtherm._set_now(now)
         await send_temperature_change_event(vtherm, 19.5, now, False)
-        await wait_for_local_condition(lambda: vtherm.hvac_mode == VThermHvacMode_OFF)
+        await wait_for_local_condition(lambda: vtherm.hvac_mode == VThermHvacMode_OFF, timeout=3.0, hass=hass)
 
         # accumulated_error = .... capped to -5
         assert (
@@ -681,9 +679,9 @@ async def test_auto_start_stop_medium_heat_vtherm(
             ]
         )
 
+    vtherm.remove_thermostat()
 
-@pytest.mark.parametrize("expected_lingering_tasks", [True])
-@pytest.mark.parametrize("expected_lingering_timers", [True])
+
 async def test_auto_start_stop_fast_ac_vtherm(
     hass: HomeAssistant, skip_hass_states_is_state
 ):
@@ -800,7 +798,7 @@ async def test_auto_start_stop_fast_ac_vtherm(
     ) as mock_send_event:
         vtherm._set_now(now)
         await send_temperature_change_event(vtherm, 23, now, True)
-        await wait_for_local_condition(lambda: vtherm.hvac_mode == VThermHvacMode_OFF)
+        await wait_for_local_condition(lambda: vtherm.hvac_mode == VThermHvacMode_OFF, timeout=3.0, hass=hass)
 
         # VTherm should have been stopped
         assert vtherm.hvac_mode == VThermHvacMode_OFF
@@ -850,7 +848,7 @@ async def test_auto_start_stop_fast_ac_vtherm(
     ) as mock_send_event:
         vtherm._set_now(now)
         await send_temperature_change_event(vtherm, 25.5, now, True)
-        await wait_for_local_condition(lambda: vtherm.hvac_mode == VThermHvacMode_OFF)
+        await wait_for_local_condition(lambda: vtherm.hvac_mode == VThermHvacMode_OFF, timeout=3.0, hass=hass)
 
         # accumulated_error = 2/2 + target - current = -1 x 20 min / 2 capped to 2
         assert (
@@ -911,9 +909,9 @@ async def test_auto_start_stop_fast_ac_vtherm(
             ]
         )
 
+    vtherm.remove_thermostat()
 
-@pytest.mark.parametrize("expected_lingering_tasks", [True])
-@pytest.mark.parametrize("expected_lingering_timers", [True])
+
 async def test_auto_start_stop_medium_heat_vtherm_preset_change(
     hass: HomeAssistant, skip_hass_states_is_state
 ):
@@ -1013,7 +1011,7 @@ async def test_auto_start_stop_medium_heat_vtherm_preset_change(
         vtherm._set_now(now)
         await send_temperature_change_event(vtherm, 19, now, False)
 
-        await wait_for_local_condition(lambda: vtherm.hvac_mode == VThermHvacMode_OFF)
+        await wait_for_local_condition(lambda: vtherm.hvac_mode == VThermHvacMode_OFF, timeout=3.0, hass=hass)
 
         # VTherm should have been stopped
         assert vtherm.hvac_mode == VThermHvacMode_OFF
@@ -1071,7 +1069,7 @@ async def test_auto_start_stop_medium_heat_vtherm_preset_change(
     ) as mock_send_event:
         vtherm._set_now(now)
         await vtherm.async_set_preset_mode(VThermPreset.BOOST)
-        await wait_for_local_condition(lambda: vtherm.target_temperature == 21)
+        await wait_for_local_condition(lambda: vtherm.target_temperature == 21, timeout=3.0, hass=hass)
 
         assert vtherm.auto_start_stop_manager._auto_start_stop_algo.accumulated_error == 2
 
@@ -1110,9 +1108,9 @@ async def test_auto_start_stop_medium_heat_vtherm_preset_change(
             ]
         )
 
+    vtherm.remove_thermostat()
 
-@pytest.mark.parametrize("expected_lingering_tasks", [True])
-@pytest.mark.parametrize("expected_lingering_timers", [True])
+
 async def test_auto_start_stop_medium_heat_vtherm_preset_change_enable_false(
     hass: HomeAssistant, skip_hass_states_is_state
 ):
@@ -1239,9 +1237,9 @@ async def test_auto_start_stop_medium_heat_vtherm_preset_change_enable_false(
         # a message should have been sent
         assert mock_send_event.call_count == 0
 
+    vtherm.remove_thermostat()
 
-@pytest.mark.parametrize("expected_lingering_tasks", [True])
-@pytest.mark.parametrize("expected_lingering_timers", [True])
+
 async def test_auto_start_stop_fast_heat_window(
     hass: HomeAssistant, skip_hass_states_is_state
 ):
@@ -1350,7 +1348,7 @@ async def test_auto_start_stop_fast_heat_window(
     ) as mock_send_event:
         vtherm._set_now(now)
         await send_temperature_change_event(vtherm, 21, now, False)
-        await wait_for_local_condition(lambda: vtherm.hvac_mode == VThermHvacMode_OFF)
+        await wait_for_local_condition(lambda: vtherm.hvac_mode == VThermHvacMode_OFF, timeout=3.0, hass=hass)
 
         # VTherm should no more be heating
         assert vtherm.hvac_mode == VThermHvacMode_OFF
@@ -1372,7 +1370,7 @@ async def test_auto_start_stop_fast_heat_window(
 
         await try_function(None)
 
-        await wait_for_local_condition(lambda: vtherm.hvac_mode == VThermHvacMode_OFF)
+        await wait_for_local_condition(lambda: vtherm.hvac_mode == VThermHvacMode_OFF, timeout=3.0, hass=hass)
 
         # Window takes precedence in the the hvac_off_reason
         assert vtherm.hvac_mode == VThermHvacMode_OFF
@@ -1397,7 +1395,7 @@ async def test_auto_start_stop_fast_heat_window(
 
         await try_function(None)
 
-        await wait_for_local_condition(lambda: vtherm.hvac_mode == VThermHvacMode_OFF)
+        await wait_for_local_condition(lambda: vtherm.hvac_mode == VThermHvacMode_OFF, timeout=3.0, hass=hass)
 
         # The VTherm should stay off because the reason of off is auto-start-stop
         assert vtherm.hvac_mode == VThermHvacMode_OFF
@@ -1408,9 +1406,9 @@ async def test_auto_start_stop_fast_heat_window(
 
         assert vtherm.window_state == STATE_OFF
 
+    vtherm.remove_thermostat()
 
-@pytest.mark.parametrize("expected_lingering_tasks", [True])
-@pytest.mark.parametrize("expected_lingering_timers", [True])
+
 async def test_auto_start_stop_fast_heat_window_mixed(
     hass: HomeAssistant, skip_hass_states_is_state
 ):
@@ -1526,7 +1524,7 @@ async def test_auto_start_stop_fast_heat_window_mixed(
 
         await try_function(None)
 
-        await wait_for_local_condition(lambda: vtherm.hvac_mode == VThermHvacMode_OFF)
+        await wait_for_local_condition(lambda: vtherm.hvac_mode == VThermHvacMode_OFF, timeout=3.0, hass=hass)
 
         # Nothing should have change (window event is ignoed as we are already OFF)
         assert vtherm.hvac_mode == VThermHvacMode_OFF
@@ -1546,7 +1544,7 @@ async def test_auto_start_stop_fast_heat_window_mixed(
     ) as mock_send_event:
         vtherm._set_now(now)
         await send_temperature_change_event(vtherm, 21, now, True)
-        await wait_for_local_condition(lambda: vtherm.hvac_mode == VThermHvacMode_OFF)
+        await wait_for_local_condition(lambda: vtherm.hvac_mode == VThermHvacMode_OFF, timeout=3.0, hass=hass)
 
         # VTherm should no more be heating
         assert vtherm.hvac_mode == VThermHvacMode_OFF
@@ -1587,7 +1585,7 @@ async def test_auto_start_stop_fast_heat_window_mixed(
         )
 
         await try_function(None)
-        await wait_for_local_condition(lambda: vtherm.hvac_mode == VThermHvacMode_OFF)
+        await wait_for_local_condition(lambda: vtherm.hvac_mode == VThermHvacMode_OFF, timeout=3.0, hass=hass)
 
         # The VTherm should turn on and off again due to auto-start-stop
         assert vtherm.hvac_mode == VThermHvacMode_OFF
@@ -1597,9 +1595,9 @@ async def test_auto_start_stop_fast_heat_window_mixed(
         assert vtherm.window_state == STATE_OFF
         assert mock_send_event.call_count == 0
 
+    vtherm.remove_thermostat()
 
-@pytest.mark.parametrize("expected_lingering_tasks", [True])
-@pytest.mark.parametrize("expected_lingering_timers", [True])
+
 async def test_auto_start_stop_disable_vtherm_off(
     hass: HomeAssistant, skip_hass_states_is_state
 ):
@@ -1689,7 +1687,7 @@ async def test_auto_start_stop_disable_vtherm_off(
         vtherm._set_now(now)
         await send_temperature_change_event(vtherm, 26, now, False)
 
-        await wait_for_local_condition(lambda: vtherm.hvac_mode == VThermHvacMode_OFF)
+        await wait_for_local_condition(lambda: vtherm.hvac_mode == VThermHvacMode_OFF, timeout=3.0, hass=hass)
 
         # VTherm should have been stopped
         assert vtherm.hvac_mode == VThermHvacMode_OFF
@@ -1701,7 +1699,7 @@ async def test_auto_start_stop_disable_vtherm_off(
 
     with patch("custom_components.versatile_thermostat.base_thermostat.BaseThermostat.send_event") as mock_send_event:
         enable_entity.turn_off()
-        await wait_for_local_condition(lambda: enable_entity.state == STATE_OFF)
+        await wait_for_local_condition(lambda: enable_entity.state == STATE_OFF, timeout=3.0, hass=hass)
 
         # VTherm should be heating
         assert vtherm.vtherm_hvac_mode == VThermHvacMode_HEAT
@@ -1736,3 +1734,5 @@ async def test_auto_start_stop_disable_vtherm_off(
             ],
             any_order=True,
         )
+
+    vtherm.remove_thermostat()
