@@ -69,6 +69,14 @@ class FeatureAutoStartStopManager(BaseFeatureManager):
             self._auto_start_stop_level = AUTO_START_STOP_LEVEL_NONE
             self._is_configured = False
 
+        # Initialize the enable flag synchronously so the manager is operational
+        # without having to wait for the AutoStartStopEnable switch's
+        # async_added_to_hass callback (which is racy under test load).
+        # The switch's async_added_to_hass will later override this value
+        # from the persisted state if needed.
+        # This must mirror the default in switch.AutoStartStopEnable.
+        self._is_auto_start_stop_enabled = self._auto_start_stop_level != AUTO_START_STOP_LEVEL_NONE
+
         # Instanciate the auto start stop algo
         self._auto_start_stop_algo = AutoStartStopDetectionAlgorithm(
             self._auto_start_stop_level, self.name
