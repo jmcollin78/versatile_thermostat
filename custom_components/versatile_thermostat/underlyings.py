@@ -1,8 +1,6 @@
 # pylint: disable=unused-argument, line-too-long, too-many-lines, broad-exception-caught
 
-""" Underlying entities classes """
-import logging
-from vtherm_api.log_collector import get_vtherm_logger
+"""Underlying entities classes"""
 import re
 from typing import Any, Dict, List, Optional, Tuple, TypeVar
 from collections.abc import Callable
@@ -35,13 +33,13 @@ from homeassistant.components.number import SERVICE_SET_VALUE
 
 from homeassistant.helpers.event import async_call_later
 from homeassistant.util import dt as dt_util
-from homeassistant.util.unit_conversion import TemperatureConverter
 
+from vtherm_api.log_collector import get_vtherm_logger
 from .opening_degree_algorithm import OpeningClosingDegreeCalculation
 
 
 from .const import *  # pylint: disable=wildcard-import, unused-wildcard-import
-from .vtherm_hvac_mode import VThermHvacMode, to_legacy_ha_hvac_mode
+from .vtherm_hvac_mode import VThermHvacMode, from_ha_hvac_mode, to_legacy_ha_hvac_mode
 from .keep_alive import IntervalCaller
 from .vtherm_central_api import VersatileThermostatAPI
 from .underlying_state_manager import UnderlyingStateManager
@@ -599,11 +597,11 @@ class UnderlyingClimate(UnderlyingEntity):
         if state is None:
             return False
 
-        if state.state == to_ha_hvac_mode(hvac_mode):
+        if state.state == to_ha_hvac_mode(hvac_mode) and self._hvac_mode == hvac_mode:
             _LOGGER.debug(
                 "%s - hvac_mode is already is requested state %s. Do not send any command",
                 self,
-                state.state,
+                hvac_mode,
             )
             return False
 
@@ -673,7 +671,11 @@ class UnderlyingClimate(UnderlyingEntity):
 
     async def check_initial_state(self):
         """Prevent the underlying to be on but thermostat is off"""
-        is_device_active = self._state_manager.get_state(self._entity_id).state not in [HVACMode.OFF, STATE_UNAVAILABLE, STATE_UNKNOWN]
+        underlying_state = self._state_manager.get_state(self._entity_id)
+        underlying_hvac_mode = from_ha_hvac_mode(underlying_state.state) if underlying_state else None
+        self._hvac_mode = underlying_hvac_mode
+
+        is_device_active = underlying_state.state not in [HVACMode.OFF, STATE_UNAVAILABLE, STATE_UNKNOWN]
         hvac_mode = self._thermostat.vtherm_hvac_mode
 
         if hvac_mode == VThermHvacMode_OFF and is_device_active:

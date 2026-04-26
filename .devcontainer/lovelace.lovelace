@@ -1076,7 +1076,7 @@
                       "entity": "binary_sensor.thermostat_climate_2_presence_state"
                     },
                     {
-                      "entity": "binary_sensor.versatile_thermostat_thermostat_climate_2_safety_state"
+                      "entity": "binary_sensor.thermostat_climate_2_safety_state"
                     },
                     {
                       "entity": "binary_sensor.thermostat_climate_2_window_state"

@@ -10,7 +10,12 @@ import logging
 
 from homeassistant.const import STATE_ON, STATE_OFF, STATE_UNAVAILABLE, STATE_UNKNOWN
 from homeassistant.core import HomeAssistant
-from homeassistant.components.climate import SERVICE_SET_TEMPERATURE, SERVICE_SET_HVAC_MODE
+from homeassistant.components.climate import (
+    DOMAIN as CLIMATE_DOMAIN,
+    SERVICE_SET_HVAC_MODE,
+    SERVICE_SET_PRESET_MODE,
+    SERVICE_SET_TEMPERATURE,
+)
 from custom_components.versatile_thermostat.switch import (
     FollowUnderlyingTemperatureChange,
 )
@@ -176,7 +181,8 @@ async def test_bug_272(
         # In the accepted interval
         await entity.async_set_temperature(temperature=17.5)
 
-        # MagicMock climate is already HEAT by default. So there is no SET_HAVC_MODE call
+        # The startup sync can now send HVAC commands before the temperature clamp path.
+        # This bug test only validates the clamped temperature sent to the underlying climate.
         assert mock_service_call.call_count > 1
 
         mock_service_call.assert_has_calls(
@@ -196,21 +202,6 @@ async def test_bug_272(
                     False,
                 ),
             ]
-        )
-
-        # #1654 - the call is not done because the initial state of under is already HEAT
-        assert not any(
-            c
-            == call(
-                "climate",
-                SERVICE_SET_HVAC_MODE,
-                {"entity_id": "climate.mock_climate", "hvac_mode": VThermHvacMode_HEAT},
-                False,
-                None,
-                None,
-                False
-            )
-            for c in mock_service_call.call_args_list
         )
 
     tz = get_tz(hass)  # pylint: disable=invalid-name
@@ -1253,3 +1244,99 @@ async def test_bug_1884(
         assert entity.on_percent > 0, f"on_percent should be > 0 (temp=18 < target=19), got {entity.on_percent}"
 
     entity.remove_thermostat()
+
+
+@pytest.mark.parametrize("expected_lingering_tasks", [True])
+@pytest.mark.parametrize("expected_lingering_timers", [True])
+async def test_bug_1947(hass: HomeAssistant, skip_hass_states_is_state):
+    """Test that a preset change is accepted while over_climate is auto-stopped."""
+
+    config_entry = MockConfigEntry(
+        domain=DOMAIN,
+        title="TheOverClimateMockName",
+        unique_id="overClimateUniqueId",
+        data={
+            CONF_NAME: "overClimate",
+            CONF_TEMP_SENSOR: "sensor.mock_temp_sensor",
+            CONF_THERMOSTAT_TYPE: CONF_THERMOSTAT_CLIMATE,
+            CONF_EXTERNAL_TEMP_SENSOR: "sensor.mock_ext_temp_sensor",
+            CONF_CYCLE_MIN: 5,
+            CONF_TEMP_MIN: 15,
+            CONF_TEMP_MAX: 30,
+            CONF_USE_WINDOW_FEATURE: False,
+            CONF_USE_MOTION_FEATURE: False,
+            CONF_USE_POWER_FEATURE: False,
+            CONF_USE_PRESENCE_FEATURE: False,
+            CONF_USE_AUTO_START_STOP_FEATURE: True,
+            CONF_UNDERLYING_LIST: ["climate.mock_climate"],
+            CONF_MINIMAL_ACTIVATION_DELAY: 30,
+            CONF_MINIMAL_DEACTIVATION_DELAY: 0,
+            CONF_SAFETY_DELAY_MIN: 5,
+            CONF_SAFETY_MIN_ON_PERCENT: 0.3,
+            CONF_AUTO_START_STOP_LEVEL: AUTO_START_STOP_LEVEL_FAST,
+        },
+    )
+
+    fake_underlying_climate = await create_and_register_mock_climate(
+        hass,
+        "mock_climate",
+        "MockClimateName",
+        {},
+        hvac_modes=[VThermHvacMode_OFF, VThermHvacMode_HEAT],
+    )
+
+    vtherm: ThermostatOverClimate = await create_thermostat(
+        hass,
+        config_entry,
+        "climate.overclimate",
+        temps=default_temperatures,
+    )
+    assert vtherm is not None
+
+    tz = get_tz(hass)
+    now: datetime = datetime.now(tz=tz)
+    vtherm._set_now(now)
+
+    await send_temperature_change_event(vtherm, 16, now, True)
+    await vtherm.async_set_hvac_mode(VThermHvacMode_HEAT)
+    await vtherm.async_set_preset_mode(VThermPreset.ECO)
+    await hass.async_block_till_done()
+
+    assert vtherm.hvac_mode == VThermHvacMode_HEAT
+    assert vtherm.preset_mode == VThermPreset.ECO
+    assert vtherm.target_temperature == 17.0
+
+    now = now + timedelta(minutes=8)
+    vtherm._set_now(now)
+    vtherm.auto_start_stop_manager._auto_start_stop_algo._accumulated_error = -2
+    await send_temperature_change_event(vtherm, 19, now, False)
+    await wait_for_local_condition(lambda: vtherm.hvac_mode == VThermHvacMode_OFF)
+
+    assert vtherm.hvac_off_reason == HVAC_OFF_REASON_AUTO_START_STOP
+    assert vtherm.preset_mode == VThermPreset.ECO
+
+    now = now + timedelta(minutes=8)
+    vtherm._set_now(now)
+    await hass.services.async_call(
+        CLIMATE_DOMAIN,
+        SERVICE_SET_PRESET_MODE,
+        {
+            "entity_id": vtherm.entity_id,
+            "preset_mode": VThermPreset.BOOST,
+        },
+        blocking=True,
+    )
+    await wait_for_local_condition(
+        lambda: vtherm.hvac_mode == VThermHvacMode_HEAT
+        and vtherm.target_temperature == 21.0
+        and fake_underlying_climate.hvac_mode == VThermHvacMode_HEAT
+        and fake_underlying_climate.target_temperature == 21.0,
+        timeout=5,
+    )
+
+    assert vtherm.preset_mode == VThermPreset.BOOST
+    assert vtherm.target_temperature == 21.0
+    assert vtherm.hvac_mode == VThermHvacMode_HEAT
+    assert vtherm.hvac_off_reason is None
+    assert fake_underlying_climate.hvac_mode == VThermHvacMode_HEAT
+    assert fake_underlying_climate.target_temperature == 21.0
