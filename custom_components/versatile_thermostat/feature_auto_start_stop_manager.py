@@ -3,11 +3,13 @@
 # pylint: disable=line-too-long
 
 import logging
+from datetime import datetime
 from vtherm_api.log_collector import get_vtherm_logger
 from typing import Any
 
 from homeassistant.core import (
     HomeAssistant,
+    callback,
 )
 
 from .const import *  # pylint: disable=wildcard-import, unused-wildcard-import
@@ -197,30 +199,52 @@ class FeatureAutoStartStopManager(BaseFeatureManager):
 
             self._vtherm.update_custom_attributes()
 
-        # if self._vtherm.hvac_mode == VThermHvacMode_OFF and self._vtherm.hvac_off_reason == HVAC_OFF_REASON_AUTO_START_STOP:
-        #    _LOGGER.debug(
-        #        "%s - the vtherm is off cause auto-start/stop and enable have been set to false -> starts the VTherm"
-        #    )
-        #    self.hass.create_task(self._vtherm.async_turn_on())
-        #
-        #    # Send an event
-        #    self._vtherm.send_event(
-        #        event_type=EventType.AUTO_START_STOP_EVENT,
-        #        data={
-        #            "type": "start",
-        #            "name": self.name,
-        #            "cause": "Auto start stop disabled",
-        #            "hvac_mode": self._vtherm.hvac_mode,
-        #            "saved_hvac_mode": self._vtherm.requested_state.hvac_mode,
-        #            "target_temperature": self._vtherm.target_temperature,
-        #            "current_temperature": self._vtherm.current_temperature,
-        #            "temperature_slope": round(self._vtherm.last_temperature_slope or 0, 3),
-        #            "accumulated_error": self._auto_start_stop_algo.accumulated_error,
-        #            "accumulated_error_threshold": self._auto_start_stop_algo.accumulated_error_threshold,
-        #        },
-        #    )
-        #
-        # self._vtherm.update_custom_attributes()
+    @callback
+    @overrides
+    def restore_state(self, old_state) -> None:
+        """Restore the auto start/stop manager state after a Home Assistant restart.
+
+        Restores:
+        - _is_auto_stop_detected: so the VTherm stays off if it was auto-stopped
+        - algo._accumulated_error: so the algorithm continues from where it left off
+        - algo._last_switch_date: to prevent rapid ON/OFF switching after restart
+        - algo._last_should_be_off: kept in sync with _is_auto_stop_detected
+        """
+        if old_state is None:
+            return
+
+        manager_attr = old_state.attributes.get("auto_start_stop_manager")
+        if not manager_attr:
+            return
+
+        # Restore the manager-level detected state
+        self._is_auto_stop_detected = bool(manager_attr.get("is_auto_stop_detected", False))
+
+        # Restore algorithm intermediate state
+        if self._auto_start_stop_algo is not None:
+            accumulated_error = manager_attr.get("auto_start_stop_accumulated_error")
+            if accumulated_error is not None:
+                self._auto_start_stop_algo._accumulated_error = float(accumulated_error)
+
+            last_switch_date_raw = manager_attr.get("auto_start_stop_last_switch_date")
+            if last_switch_date_raw is not None:
+                if isinstance(last_switch_date_raw, str):
+                    try:
+                        self._auto_start_stop_algo._last_switch_date = datetime.fromisoformat(last_switch_date_raw)
+                    except (ValueError, TypeError) as err:
+                        _LOGGER.warning("%s - restore_state: could not parse last_switch_date '%s': %s", self, last_switch_date_raw, err)
+                else:
+                    self._auto_start_stop_algo._last_switch_date = last_switch_date_raw
+
+            # Keep algo's internal flag in sync with the manager state
+            self._auto_start_stop_algo._last_should_be_off = self._is_auto_stop_detected
+
+        _LOGGER.info(
+            "%s - restore_state: is_auto_stop_detected=%s, accumulated_error=%s",
+            self,
+            self._is_auto_stop_detected,
+            manager_attr.get("auto_start_stop_accumulated_error"),
+        )
 
     def add_custom_attributes(self, extra_state_attributes: dict[str, Any]):
         """Add some custom attributes"""
