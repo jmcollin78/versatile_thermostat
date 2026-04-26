@@ -18,7 +18,6 @@ from .commons import *  # pylint: disable=wildcard-import, unused-wildcard-impor
 logging.getLogger().setLevel(logging.DEBUG)
 
 
-@pytest.mark.skip(reason="Disabled because it fails sometimes in CI")
 async def test_auto_start_stop_algo_slow_heat_off(hass: HomeAssistant):
     """Testing directly the algorithm in Slow level"""
     algo: AutoStartStopDetectionAlgorithm = AutoStartStopDetectionAlgorithm(
@@ -127,7 +126,6 @@ async def test_auto_start_stop_algo_slow_heat_off(hass: HomeAssistant):
     assert algo.last_switch_date == last_now
 
 
-@pytest.mark.skip(reason="Disabled because it fails sometimes in CI")
 async def test_auto_start_stop_too_fast_change(hass: HomeAssistant):
     """Testing directly the algorithm in Slow level"""
     algo: AutoStartStopDetectionAlgorithm = AutoStartStopDetectionAlgorithm(
@@ -222,7 +220,6 @@ async def test_auto_start_stop_too_fast_change(hass: HomeAssistant):
     assert algo.last_switch_date == now
 
 
-@pytest.mark.skip(reason="Disabled because it fails sometimes in CI")
 async def test_auto_start_stop_algo_medium_cool_off(hass: HomeAssistant):
     """Testing directly the algorithm in Slow level"""
     algo: AutoStartStopDetectionAlgorithm = AutoStartStopDetectionAlgorithm(
@@ -350,7 +347,6 @@ async def test_auto_start_stop_reset_switch_delay(hass: HomeAssistant):
 
 @pytest.mark.parametrize("expected_lingering_tasks", [True])
 @pytest.mark.parametrize("expected_lingering_timers", [True])
-@pytest.mark.skip(reason="Disabled because it fails sometimes in CI")
 async def test_auto_start_stop_none_vtherm(
     hass: HomeAssistant, skip_hass_states_is_state
 ):
@@ -405,28 +401,19 @@ async def test_auto_start_stop_none_vtherm(
         },
     )
 
-    fake_underlying_climate = MockClimate(
-        hass=hass,
-        unique_id="mock_climate",
-        name="mock_climate",
-        hvac_modes=[VThermHvacMode_OFF, VThermHvacMode_COOL, VThermHvacMode_HEAT],
+    await create_and_register_mock_climate(hass, "mock_climate", "mock_climate", {}, hvac_modes=[VThermHvacMode_OFF, VThermHvacMode_COOL, VThermHvacMode_HEAT])
+
+    vtherm: ThermostatOverClimate = await create_thermostat(
+        hass, config_entry, "climate.overclimate"
     )
 
-    with patch(
-        "custom_components.versatile_thermostat.underlyings.UnderlyingClimate.find_underlying_climate",
-        return_value=fake_underlying_climate,
-    ):
-        vtherm: ThermostatOverClimate = await create_thermostat(
-            hass, config_entry, "climate.overclimate"
-        )
+    assert vtherm is not None
 
-        assert vtherm is not None
-
-        # Initialize all temps
-        await set_all_climate_preset_temp(hass, vtherm, temps, "overclimate")
-        # Check correct initialization of auto_start_stop attributes
-        assert vtherm._attr_extra_state_attributes.get("auto_start_stop_level") is None
-        assert vtherm._attr_extra_state_attributes.get("auto_start_stop_dtmin") is None
+    # Initialize all temps
+    await set_all_climate_preset_temp(hass, vtherm, temps, "overclimate")
+    # Check correct initialization of auto_start_stop attributes
+    assert vtherm._attr_extra_state_attributes.get("auto_start_stop_level") is None
+    assert vtherm._attr_extra_state_attributes.get("auto_start_stop_dtmin") is None
 
     # 1. Vtherm auto-start/stop should be in NONE mode
     assert (
@@ -443,7 +430,6 @@ async def test_auto_start_stop_none_vtherm(
 
 @pytest.mark.parametrize("expected_lingering_tasks", [True])
 @pytest.mark.parametrize("expected_lingering_timers", [True])
-@pytest.mark.skip(reason="This test sometimes fails in CI only")
 async def test_auto_start_stop_medium_heat_vtherm(
     hass: HomeAssistant, skip_hass_states_is_state
 ):
@@ -498,30 +484,21 @@ async def test_auto_start_stop_medium_heat_vtherm(
         },
     )
 
-    fake_underlying_climate = MockClimate(
-        hass=hass,
-        unique_id="mock_climate",
-        name="mock_climate",
-        hvac_modes=[VThermHvacMode_OFF, VThermHvacMode_COOL, VThermHvacMode_HEAT],
+    await create_and_register_mock_climate(hass, "mock_climate", "mock_climate", {}, hvac_modes=[VThermHvacMode_OFF, VThermHvacMode_COOL, VThermHvacMode_HEAT])
+
+    vtherm: ThermostatOverClimate = await create_thermostat(
+        hass, config_entry, "climate.overclimate"
     )
 
-    with patch(
-        "custom_components.versatile_thermostat.underlyings.UnderlyingClimate.find_underlying_climate",
-        return_value=fake_underlying_climate,
-    ):
-        vtherm: ThermostatOverClimate = await create_thermostat(
-            hass, config_entry, "climate.overclimate"
-        )
+    assert vtherm is not None
 
-        assert vtherm is not None
+    # Initialize all temps
+    await set_all_climate_preset_temp(hass, vtherm, temps, "overclimate")
 
-        # Initialize all temps
-        await set_all_climate_preset_temp(hass, vtherm, temps, "overclimate")
+    # Check correct initialization of auto_start_stop attributes
+    assert vtherm._attr_extra_state_attributes["auto_start_stop_manager"]["auto_start_stop_level"] == AUTO_START_STOP_LEVEL_MEDIUM
 
-        # Check correct initialization of auto_start_stop attributes
-        assert vtherm._attr_extra_state_attributes["auto_start_stop_manager"]["auto_start_stop_level"] == AUTO_START_STOP_LEVEL_MEDIUM
-
-        assert vtherm._attr_extra_state_attributes["auto_start_stop_manager"]["auto_start_stop_dtmin"] == 15
+    assert vtherm._attr_extra_state_attributes["auto_start_stop_manager"]["auto_start_stop_dtmin"] == 15
 
     # 1. Vtherm auto-start/stop should be in MEDIUM mode and an enable entity should exists
     assert (
@@ -707,7 +684,6 @@ async def test_auto_start_stop_medium_heat_vtherm(
 
 @pytest.mark.parametrize("expected_lingering_tasks", [True])
 @pytest.mark.parametrize("expected_lingering_timers", [True])
-@pytest.mark.skip(reason="Disabled because it fails sometimes in CI")
 async def test_auto_start_stop_fast_ac_vtherm(
     hass: HomeAssistant, skip_hass_states_is_state
 ):
@@ -762,30 +738,21 @@ async def test_auto_start_stop_fast_ac_vtherm(
         },
     )
 
-    fake_underlying_climate = MockClimate(
-        hass=hass,
-        unique_id="mock_climate",
-        name="mock_climate",
-        hvac_modes=[VThermHvacMode_OFF, VThermHvacMode_COOL, VThermHvacMode_HEAT],
+    await create_and_register_mock_climate(hass, "mock_climate", "mock_climate", {}, hvac_modes=[VThermHvacMode_OFF, VThermHvacMode_COOL, VThermHvacMode_HEAT])
+
+    vtherm: ThermostatOverClimate = await create_thermostat(
+        hass, config_entry, "climate.overclimate"
     )
 
-    with patch(
-        "custom_components.versatile_thermostat.underlyings.UnderlyingClimate.find_underlying_climate",
-        return_value=fake_underlying_climate,
-    ):
-        vtherm: ThermostatOverClimate = await create_thermostat(
-            hass, config_entry, "climate.overclimate"
-        )
+    assert vtherm is not None
 
-        assert vtherm is not None
+    # Initialize all temps
+    await set_all_climate_preset_temp(hass, vtherm, temps, "overclimate")
 
-        # Initialize all temps
-        await set_all_climate_preset_temp(hass, vtherm, temps, "overclimate")
+    # Check correct initialization of auto_start_stop attributes
+    assert vtherm._attr_extra_state_attributes["auto_start_stop_manager"]["auto_start_stop_level"] == AUTO_START_STOP_LEVEL_FAST
 
-        # Check correct initialization of auto_start_stop attributes
-        assert vtherm._attr_extra_state_attributes["auto_start_stop_manager"]["auto_start_stop_level"] == AUTO_START_STOP_LEVEL_FAST
-
-        assert vtherm._attr_extra_state_attributes["auto_start_stop_manager"]["auto_start_stop_dtmin"] == 7
+    assert vtherm._attr_extra_state_attributes["auto_start_stop_manager"]["auto_start_stop_dtmin"] == 7
 
     # 1. Vtherm auto-start/stop should be in MEDIUM mode
     assert (
@@ -947,7 +914,6 @@ async def test_auto_start_stop_fast_ac_vtherm(
 
 @pytest.mark.parametrize("expected_lingering_tasks", [True])
 @pytest.mark.parametrize("expected_lingering_timers", [True])
-@pytest.mark.skip(reason="This test sometimes fails in CI only")
 async def test_auto_start_stop_medium_heat_vtherm_preset_change(
     hass: HomeAssistant, skip_hass_states_is_state
 ):
@@ -1002,30 +968,21 @@ async def test_auto_start_stop_medium_heat_vtherm_preset_change(
         },
     )
 
-    fake_underlying_climate = MockClimate(
-        hass=hass,
-        unique_id="mock_climate",
-        name="mock_climate",
-        hvac_modes=[VThermHvacMode_OFF, VThermHvacMode_COOL, VThermHvacMode_HEAT],
+    await create_and_register_mock_climate(hass, "mock_climate", "mock_climate", {}, hvac_modes=[VThermHvacMode_OFF, VThermHvacMode_COOL, VThermHvacMode_HEAT])
+
+    vtherm: ThermostatOverClimate = await create_thermostat(
+        hass, config_entry, "climate.overclimate"
     )
 
-    with patch(
-        "custom_components.versatile_thermostat.underlyings.UnderlyingClimate.find_underlying_climate",
-        return_value=fake_underlying_climate,
-    ):
-        vtherm: ThermostatOverClimate = await create_thermostat(
-            hass, config_entry, "climate.overclimate"
-        )
+    assert vtherm is not None
 
-        assert vtherm is not None
+    # Initialize all temps
+    await set_all_climate_preset_temp(hass, vtherm, temps, "overclimate")
 
-        # Initialize all temps
-        await set_all_climate_preset_temp(hass, vtherm, temps, "overclimate")
+    # Check correct initialization of auto_start_stop attributes
+    assert vtherm._attr_extra_state_attributes["auto_start_stop_manager"]["auto_start_stop_level"] == AUTO_START_STOP_LEVEL_FAST
 
-        # Check correct initialization of auto_start_stop attributes
-        assert vtherm._attr_extra_state_attributes["auto_start_stop_manager"]["auto_start_stop_level"] == AUTO_START_STOP_LEVEL_FAST
-
-        assert vtherm._attr_extra_state_attributes["auto_start_stop_manager"]["auto_start_stop_dtmin"] == 7
+    assert vtherm._attr_extra_state_attributes["auto_start_stop_manager"]["auto_start_stop_dtmin"] == 7
 
     # 1. Vtherm auto-start/stop should be in MEDIUM mode
     assert (
@@ -1156,7 +1113,6 @@ async def test_auto_start_stop_medium_heat_vtherm_preset_change(
 
 @pytest.mark.parametrize("expected_lingering_tasks", [True])
 @pytest.mark.parametrize("expected_lingering_timers", [True])
-@pytest.mark.skip(reason="Disabled because it fails sometimes in CI")
 async def test_auto_start_stop_medium_heat_vtherm_preset_change_enable_false(
     hass: HomeAssistant, skip_hass_states_is_state
 ):
@@ -1211,30 +1167,21 @@ async def test_auto_start_stop_medium_heat_vtherm_preset_change_enable_false(
         },
     )
 
-    fake_underlying_climate = MockClimate(
-        hass=hass,
-        unique_id="mock_climate",
-        name="mock_climate",
-        hvac_modes=[VThermHvacMode_OFF, VThermHvacMode_COOL, VThermHvacMode_HEAT],
+    await create_and_register_mock_climate(hass, "mock_climate", "mock_climate", {}, hvac_modes=[VThermHvacMode_OFF, VThermHvacMode_COOL, VThermHvacMode_HEAT])
+
+    vtherm: ThermostatOverClimate = await create_thermostat(
+        hass, config_entry, "climate.overclimate"
     )
 
-    with patch(
-        "custom_components.versatile_thermostat.underlyings.UnderlyingClimate.find_underlying_climate",
-        return_value=fake_underlying_climate,
-    ):
-        vtherm: ThermostatOverClimate = await create_thermostat(
-            hass, config_entry, "climate.overclimate"
-        )
+    assert vtherm is not None
 
-        assert vtherm is not None
+    # Initialize all temps
+    await set_all_climate_preset_temp(hass, vtherm, temps, "overclimate")
 
-        # Initialize all temps
-        await set_all_climate_preset_temp(hass, vtherm, temps, "overclimate")
+    # Check correct initialization of auto_start_stop attributes
+    assert vtherm._attr_extra_state_attributes["auto_start_stop_manager"]["auto_start_stop_level"] == AUTO_START_STOP_LEVEL_FAST
 
-        # Check correct initialization of auto_start_stop attributes
-        assert vtherm._attr_extra_state_attributes["auto_start_stop_manager"]["auto_start_stop_level"] == AUTO_START_STOP_LEVEL_FAST
-
-        assert vtherm._attr_extra_state_attributes["auto_start_stop_manager"]["auto_start_stop_dtmin"] == 7
+    assert vtherm._attr_extra_state_attributes["auto_start_stop_manager"]["auto_start_stop_dtmin"] == 7
 
     # 1. Vtherm auto-start/stop should be in FAST mode and enable should be on
     await wait_for_local_condition(lambda: vtherm._attr_extra_state_attributes["auto_start_stop_manager"].get("auto_start_stop_enable") is True)
@@ -1295,7 +1242,6 @@ async def test_auto_start_stop_medium_heat_vtherm_preset_change_enable_false(
 
 @pytest.mark.parametrize("expected_lingering_tasks", [True])
 @pytest.mark.parametrize("expected_lingering_timers", [True])
-@pytest.mark.skip(reason="Disabled because it fails sometimes in CI")
 async def test_auto_start_stop_fast_heat_window(
     hass: HomeAssistant, skip_hass_states_is_state
 ):
@@ -1351,30 +1297,21 @@ async def test_auto_start_stop_fast_heat_window(
         },
     )
 
-    fake_underlying_climate = MockClimate(
-        hass=hass,
-        unique_id="mock_climate",
-        name="mock_climate",
-        hvac_modes=[VThermHvacMode_OFF, VThermHvacMode_COOL, VThermHvacMode_HEAT],
+    await create_and_register_mock_climate(hass, "mock_climate", "mock_climate", {}, hvac_modes=[VThermHvacMode_OFF, VThermHvacMode_COOL, VThermHvacMode_HEAT])
+
+    vtherm: ThermostatOverClimate = await create_thermostat(
+        hass, config_entry, "climate.overclimate"
     )
 
-    with patch(
-        "custom_components.versatile_thermostat.underlyings.UnderlyingClimate.find_underlying_climate",
-        return_value=fake_underlying_climate,
-    ):
-        vtherm: ThermostatOverClimate = await create_thermostat(
-            hass, config_entry, "climate.overclimate"
-        )
+    assert vtherm is not None
 
-        assert vtherm is not None
+    # Initialize all temps
+    await set_all_climate_preset_temp(hass, vtherm, temps, "overclimate")
 
-        # Initialize all temps
-        await set_all_climate_preset_temp(hass, vtherm, temps, "overclimate")
+    # Check correct initialization of auto_start_stop attributes
+    assert vtherm._attr_extra_state_attributes["auto_start_stop_manager"]["auto_start_stop_level"] == AUTO_START_STOP_LEVEL_FAST
 
-        # Check correct initialization of auto_start_stop attributes
-        assert vtherm._attr_extra_state_attributes["auto_start_stop_manager"]["auto_start_stop_level"] == AUTO_START_STOP_LEVEL_FAST
-
-        assert vtherm._attr_extra_state_attributes["auto_start_stop_manager"]["auto_start_stop_dtmin"] == 7
+    assert vtherm._attr_extra_state_attributes["auto_start_stop_manager"]["auto_start_stop_dtmin"] == 7
 
     # 1. Vtherm auto-start/stop should be in MEDIUM mode and an enable entity should exists
     assert (
@@ -1474,7 +1411,6 @@ async def test_auto_start_stop_fast_heat_window(
 
 @pytest.mark.parametrize("expected_lingering_tasks", [True])
 @pytest.mark.parametrize("expected_lingering_timers", [True])
-@pytest.mark.skip(reason="Disabled because it fails sometimes in CI")
 async def test_auto_start_stop_fast_heat_window_mixed(
     hass: HomeAssistant, skip_hass_states_is_state
 ):
@@ -1532,30 +1468,21 @@ async def test_auto_start_stop_fast_heat_window_mixed(
         },
     )
 
-    fake_underlying_climate = MockClimate(
-        hass=hass,
-        unique_id="mock_climate",
-        name="mock_climate",
-        hvac_modes=[VThermHvacMode_OFF, VThermHvacMode_COOL, VThermHvacMode_HEAT],
+    await create_and_register_mock_climate(hass, "mock_climate", "mock_climate", {}, hvac_modes=[VThermHvacMode_OFF, VThermHvacMode_COOL, VThermHvacMode_HEAT])
+
+    vtherm: ThermostatOverClimate = await create_thermostat(
+        hass, config_entry, "climate.overclimate"
     )
 
-    with patch(
-        "custom_components.versatile_thermostat.underlyings.UnderlyingClimate.find_underlying_climate",
-        return_value=fake_underlying_climate,
-    ):
-        vtherm: ThermostatOverClimate = await create_thermostat(
-            hass, config_entry, "climate.overclimate"
-        )
+    assert vtherm is not None
 
-        assert vtherm is not None
+    # Initialize all temps
+    await set_all_climate_preset_temp(hass, vtherm, temps, "overclimate")
 
-        # Initialize all temps
-        await set_all_climate_preset_temp(hass, vtherm, temps, "overclimate")
+    # Check correct initialization of auto_start_stop attributes
+    assert vtherm._attr_extra_state_attributes["auto_start_stop_manager"]["auto_start_stop_level"] == AUTO_START_STOP_LEVEL_FAST
 
-        # Check correct initialization of auto_start_stop attributes
-        assert vtherm._attr_extra_state_attributes["auto_start_stop_manager"]["auto_start_stop_level"] == AUTO_START_STOP_LEVEL_FAST
-
-        assert vtherm._attr_extra_state_attributes["auto_start_stop_manager"]["auto_start_stop_dtmin"] == 7
+    assert vtherm._attr_extra_state_attributes["auto_start_stop_manager"]["auto_start_stop_dtmin"] == 7
 
     # 1. Vtherm auto-start/stop should be in MEDIUM mode and an enable entity should exists
     assert (
@@ -1673,7 +1600,6 @@ async def test_auto_start_stop_fast_heat_window_mixed(
 
 @pytest.mark.parametrize("expected_lingering_tasks", [True])
 @pytest.mark.parametrize("expected_lingering_timers", [True])
-@pytest.mark.skip(reason="Disabled because it fails sometimes in CI")
 async def test_auto_start_stop_disable_vtherm_off(
     hass: HomeAssistant, skip_hass_states_is_state
 ):
@@ -1716,36 +1642,27 @@ async def test_auto_start_stop_disable_vtherm_off(
         },
     )
 
-    fake_underlying_climate = MockClimate(
-        hass=hass,
-        unique_id="mock_climate",
-        name="mock_climate",
-        hvac_modes=[VThermHvacMode_OFF, VThermHvacMode_COOL, VThermHvacMode_HEAT],
-    )
+    await create_and_register_mock_climate(hass, "mock_climate", "mock_climate", {}, hvac_modes=[VThermHvacMode_OFF, VThermHvacMode_COOL, VThermHvacMode_HEAT])
 
     tz = get_tz(hass)  # pylint: disable=invalid-name
     now: datetime = datetime.now(tz=tz)
 
-    with patch(
-        "custom_components.versatile_thermostat.underlyings.UnderlyingClimate.find_underlying_climate",
-        return_value=fake_underlying_climate,
-    ):
-        vtherm: ThermostatOverClimate = await create_thermostat(
-            hass, config_entry, "climate.overclimate"
-        )
+    vtherm: ThermostatOverClimate = await create_thermostat(
+        hass, config_entry, "climate.overclimate"
+    )
 
-        assert vtherm is not None
+    assert vtherm is not None
 
-        # Initialize all temps
-        await set_all_climate_preset_temp(hass, vtherm, temps, "overclimate")
+    # Initialize all temps
+    await set_all_climate_preset_temp(hass, vtherm, temps, "overclimate")
 
-        # Check correct initialization of auto_start_stop attributes
-        assert (
-            vtherm._attr_extra_state_attributes["is_auto_start_stop_configured"] is True
-        )
-        assert vtherm._attr_extra_state_attributes["auto_start_stop_manager"]["auto_start_stop_level"] == AUTO_START_STOP_LEVEL_FAST
+    # Check correct initialization of auto_start_stop attributes
+    assert (
+        vtherm._attr_extra_state_attributes["is_auto_start_stop_configured"] is True
+    )
+    assert vtherm._attr_extra_state_attributes["auto_start_stop_manager"]["auto_start_stop_level"] == AUTO_START_STOP_LEVEL_FAST
 
-        assert vtherm._attr_extra_state_attributes["auto_start_stop_manager"]["auto_start_stop_dtmin"] == 7
+    assert vtherm._attr_extra_state_attributes["auto_start_stop_manager"]["auto_start_stop_dtmin"] == 7
 
     # 1. Vtherm auto-start/stop should be in FAST mode and enable should be on
     vtherm._set_now(now)
