@@ -116,6 +116,7 @@ custom_components/vtherm_climate_replication
 custom_components/vtherm_hysteresis
 custom_components/heating-simulator
 custom_components/auto-tpi-learning-card
+custom_components/heating-simulator
 
 .coverage
 htmlcov
