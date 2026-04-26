@@ -1503,17 +1503,20 @@ async def do_central_power_refresh(hass):
     return await hass.async_block_till_done()
 
 
-async def wait_for_local_condition(check_condition: Callable[[], bool], timeout: float = 1.0):
+async def wait_for_local_condition(check_condition: Callable[[], bool], timeout: float = 2.0, hass=None):
     """Waits that a local condition is satisfied, with a timeout.
-    Uses short sleeps to give the event loop and executor threads time to process."""
+    Uses short sleeps and optional hass.async_block_till_done() to process pending HA callbacks."""
     start_time = asyncio.get_event_loop().time()
 
     while not check_condition():
         if asyncio.get_event_loop().time() - start_time > timeout:
             raise TimeoutError("La condition locale n'a pas été satisfaite.")
 
+        # Flush all pending HA callbacks if hass is provided
+        if hass is not None:
+            await hass.async_block_till_done()
         # Yield to allow both event loop callbacks and executor threads to progress
-        await asyncio.sleep(0.1)
+        await asyncio.sleep(0.05)
 
 
 default_climate_attributes = {
