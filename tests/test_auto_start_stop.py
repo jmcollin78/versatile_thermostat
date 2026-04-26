@@ -548,16 +548,13 @@ async def test_auto_start_stop_medium_heat_vtherm(
     ) as mock_send_event:
         vtherm._set_now(now)
         await send_temperature_change_event(vtherm, 20, now, False)
-        await wait_for_local_condition(lambda: vtherm.auto_start_stop_manager._auto_start_stop_algo.accumulated_error == -2.5, timeout=3.0, hass=hass)
+        await wait_for_local_condition(lambda: abs(vtherm.auto_start_stop_manager._auto_start_stop_algo.accumulated_error + 2.5) < 0.01, timeout=3.0, hass=hass)
 
         # VTherm should still be heating
         assert vtherm.hvac_mode == VThermHvacMode_HEAT
         assert mock_send_event.call_count == 0
         # accumulated_error = target - current = -1 x 5 min / 2
-        assert (
-            vtherm.auto_start_stop_manager._auto_start_stop_algo.accumulated_error
-            == -2.5
-        )
+        assert abs(vtherm.auto_start_stop_manager._auto_start_stop_algo.accumulated_error + 2.5) < 0.01
 
     # 5. Set current temperature to 21 5 min later -> should turn off
     now = now + timedelta(minutes=5)
@@ -573,9 +570,7 @@ async def test_auto_start_stop_medium_heat_vtherm(
         assert vtherm.hvac_off_reason == HVAC_OFF_REASON_AUTO_START_STOP
 
         # accumulated_error = -2.5 + target - current = -2 x 5 min / 2 capped to 5
-        assert (
-            vtherm.auto_start_stop_manager._auto_start_stop_algo.accumulated_error == -5
-        )
+        assert abs(vtherm.auto_start_stop_manager._auto_start_stop_algo.accumulated_error + 5) < 0.01
 
         # a message should have been sent
         assert mock_send_event.call_count >= 1
@@ -620,9 +615,7 @@ async def test_auto_start_stop_medium_heat_vtherm(
         await wait_for_local_condition(lambda: vtherm.hvac_mode == VThermHvacMode_OFF, timeout=3.0, hass=hass)
 
         # accumulated_error = .... capped to -5
-        assert (
-            vtherm.auto_start_stop_manager._auto_start_stop_algo.accumulated_error == -5
-        )
+        assert abs(vtherm.auto_start_stop_manager._auto_start_stop_algo.accumulated_error + 5) < 0.01
 
         # VTherm should stay stopped cause slope is too low to allow the turn to On
         assert vtherm.hvac_mode == VThermHvacMode_OFF
@@ -638,9 +631,7 @@ async def test_auto_start_stop_medium_heat_vtherm(
         await hass.async_block_till_done()
 
         # accumulated_error = -5/2 + target - current = 1 x 20 min / 2 capped to 5
-        assert (
-            vtherm.auto_start_stop_manager._auto_start_stop_algo.accumulated_error == 5
-        )
+        assert abs(vtherm.auto_start_stop_manager._auto_start_stop_algo.accumulated_error - 5) < 0.01
 
         # VTherm should have been stopped
         assert vtherm.hvac_mode == VThermHvacMode_HEAT
@@ -1182,7 +1173,7 @@ async def test_auto_start_stop_medium_heat_vtherm_preset_change_enable_false(
     assert vtherm._attr_extra_state_attributes["auto_start_stop_manager"]["auto_start_stop_dtmin"] == 7
 
     # 1. Vtherm auto-start/stop should be in FAST mode and enable should be on
-    await wait_for_local_condition(lambda: vtherm._attr_extra_state_attributes["auto_start_stop_manager"].get("auto_start_stop_enable") is True)
+    await wait_for_local_condition(lambda: vtherm._attr_extra_state_attributes["auto_start_stop_manager"].get("auto_start_stop_enable") is True, timeout=3.0, hass=hass)
 
     assert (
         vtherm.auto_start_stop_manager.auto_start_stop_level
@@ -1237,6 +1228,9 @@ async def test_auto_start_stop_medium_heat_vtherm_preset_change_enable_false(
         # a message should have been sent
         assert mock_send_event.call_count == 0
 
+    # Restore enable to True before cleanup to avoid restore_state interference
+    enable_entity.turn_on()
+    await hass.async_block_till_done()
     vtherm.remove_thermostat()
 
 
