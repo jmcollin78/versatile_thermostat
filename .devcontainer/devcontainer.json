@@ -29,7 +29,9 @@
         // the heating simulator from Caiussererus
         "source=${localEnv:VTHERM_PROJECTS_HOME}/heating-simulator,target=/workspaces/versatile_thermostat/custom_components/heating_simulator,type=bind",
         // the vtherm_hysteresis VTherm plugin
-        "source=${localEnv:VTHERM_PROJECTS_HOME}/vtherm_hysteresis/custom_components/vtherm_hysteresis,target=/workspaces/versatile_thermostat/custom_components/vtherm_hysteresis,type=bind"
+        "source=${localEnv:VTHERM_PROJECTS_HOME}/vtherm_hysteresis/custom_components/vtherm_hysteresis,target=/workspaces/versatile_thermostat/custom_components/vtherm_hysteresis,type=bind",
+        // the vtherm_pellet_stove VTherm plugin
+        "source=${localEnv:VTHERM_PROJECTS_HOME}/vtherm_pellet_stove/custom_components/vtherm_pellet_stove,target=/workspaces/versatile_thermostat/custom_components/vtherm_pellet_stove,type=bind"
     ],
     "customizations": {
         "vscode": {
