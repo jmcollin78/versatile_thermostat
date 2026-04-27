@@ -19,19 +19,19 @@
         // launchctl getenv VTHERM_PROJECTS_HOME
         //
         // the versatile-thermostat-ui-card
-        "source=${localEnv:VTHERM_PROJECTS_HOME}/versatile-thermostat-ui-card/dist,target=/workspaces/versatile_thermostat/config/www/community/versatile-thermostat-ui-card,type=bind",
+        "source=/Users/jmcollin/SugarSync/Projets/home-assistant/versatile-thermostat-ui-card/dist,target=/workspaces/versatile_thermostat/config/www/community/versatile-thermostat-ui-card,type=bind",
         // the auto-tpi-learning-card
-        "source=${localEnv:VTHERM_PROJECTS_HOME}/auto-tpi-learning-card/dist,target=/workspaces/versatile_thermostat/config/www/community/auto-tpi-learning-card,type=bind",
+        "source=/Users/jmcollin/SugarSync/Projets/home-assistant/auto-tpi-learning-card/dist,target=/workspaces/versatile_thermostat/config/www/community/auto-tpi-learning-card,type=bind",
         // the climate-replication plugin
-        "source=${localEnv:VTHERM_PROJECTS_HOME}/vtherm_climate_replication/custom_components/vtherm_climate_replication,target=/workspaces/versatile_thermostat/custom_components/vtherm_climate_replication,type=bind",
+        "source=/Users/jmcollin/SugarSync/Projets/home-assistant/vtherm_climate_replication/custom_components/vtherm_climate_replication,target=/workspaces/versatile_thermostat/custom_components/vtherm_climate_replication,type=bind",
         // the Smart PI plugin
-        "source=${localEnv:VTHERM_PROJECTS_HOME}/vtherm_smartpi/custom_components/vtherm_smartpi,target=/workspaces/versatile_thermostat/custom_components/vtherm_smartpi,type=bind",
+        "source=/Users/jmcollin/SugarSync/Projets/home-assistant/vtherm_smartpi/custom_components/vtherm_smartpi,target=/workspaces/versatile_thermostat/custom_components/vtherm_smartpi,type=bind",
         // the heating simulator from Caiussererus
-        "source=${localEnv:VTHERM_PROJECTS_HOME}/heating-simulator,target=/workspaces/versatile_thermostat/custom_components/heating_simulator,type=bind",
+        "source=/Users/jmcollin/SugarSync/Projets/home-assistant/heating-simulator,target=/workspaces/versatile_thermostat/custom_components/heating_simulator,type=bind",
         // the vtherm_hysteresis VTherm plugin
-        "source=${localEnv:VTHERM_PROJECTS_HOME}/vtherm_hysteresis/custom_components/vtherm_hysteresis,target=/workspaces/versatile_thermostat/custom_components/vtherm_hysteresis,type=bind",
+        "source=/Users/jmcollin/SugarSync/Projets/home-assistant/vtherm_hysteresis/custom_components/vtherm_hysteresis,target=/workspaces/versatile_thermostat/custom_components/vtherm_hysteresis,type=bind",
         // the vtherm_pellet_stove VTherm plugin
-        "source=${localEnv:VTHERM_PROJECTS_HOME}/vtherm_pellet_stove/custom_components/vtherm_pellet_stove,target=/workspaces/versatile_thermostat/custom_components/vtherm_pellet_stove,type=bind"
+        "source=/Users/jmcollin/SugarSync/Projets/home-assistant/vtherm_pellet_stove/custom_components/vtherm_pellet_stove,target=/workspaces/versatile_thermostat/custom_components/vtherm_pellet_stove,type=bind"
     ],
     "customizations": {
         "vscode": {
