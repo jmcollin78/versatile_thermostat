@@ -342,7 +342,62 @@ async def test_auto_start_stop_reset_switch_delay(hass: HomeAssistant):
         now=now,
     )
     assert ret is False  # Should restart because dt_min delay is bypassed
-    assert algo.last_switch_date == now  # Switch date updated
+    # Note: last_switch_date stays None because _last_should_be_off was already reset to
+    # False by reset_switch_delay(), so should_be_turned_off() sees no state change
+    # (False → False). The important result is ret=False (VTherm restarts).
+
+
+async def test_auto_start_stop_reset_switch_delay_grey_zone(hass: HomeAssistant):
+    """Test that reset_switch_delay exits the stop state even in the 'grey zone'
+    where neither the turn-on nor the turn-off condition is explicitly met.
+
+    Regression test for the bug where a preset change did not exit the auto-stop
+    state when the predicted temperature (current_temp + slope * dt) was between
+    (target - TEMP_HYSTERESIS) and (target + TEMP_HYSTERESIS), causing _last_should_be_off
+    to stay True because neither condition was triggered.
+    """
+    algo: AutoStartStopDetectionAlgorithm = AutoStartStopDetectionAlgorithm(AUTO_START_STOP_LEVEL_FAST, "testu")
+
+    tz = get_tz(hass)  # pylint: disable=invalid-name
+    now: datetime = datetime.now(tz=tz)
+
+    assert algo._dt == 7  # FAST level has dt_min = 7 minutes
+
+    # 1. Simulate the auto-stopped state: room at 19°C, target 17°C → auto-stop
+    algo._accumulated_error = -2  # at threshold → fully "stopped"
+    algo._last_should_be_off = True
+    algo._last_switch_date = now
+
+    # 2. User immediately changes preset to BOOST (21°C). Room still at 19°C with
+    # a slight positive slope (thermal inertia after heater stopped).
+    # Grey zone: temp_at_dt = 19 + 0.2 * 7 = 20.4 which is < 20.5 (target - hysteresis)
+    # but > 20.5... wait, let's use 19.5°C room and slope 0.2 to land in the grey zone:
+    # temp_at_dt = 19.5 + 0.2 * 7 = 20.9 which is > 20.5 (turn-on cond. false)
+    # AND accumulated_error after reset calc won't reach -threshold (turn-off cond. false)
+    now = now + timedelta(minutes=0)  # immediate preset change
+    algo.reset_switch_delay()
+
+    # Verify reset_switch_delay cleared the last decision flag
+    assert algo._last_should_be_off is False
+    assert algo._last_switch_date is None
+    assert algo._last_calculation_date is None
+
+    # 3. Call should_be_turned_off in the grey zone:
+    #    - room at 19.5°C, new target 21°C, positive slope 0.2°/min
+    #    - temp_at_dt = 19.5 + 0.2 * 7 = 20.9
+    #    - turn-on condition: 20.9 <= 21 - 0.5 = 20.5? NO → condition not met
+    #    - turn-off: accumulated_error won't be at -threshold (positive error) → NO
+    #    - NEITHER condition → _last_should_be_off stays False (from reset)
+    #    - BUG (without fix): returned True because _last_should_be_off was still True
+    ret = algo.should_be_turned_off(
+        requested_hvac_mode=VThermHvacMode_HEAT,
+        target_temp=21.0,  # BOOST preset
+        current_temp=19.5,  # Room still warm but below target
+        slope_min=0.2,  # Slight positive slope (thermal inertia)
+        now=now,
+    )
+    # With the fix: _last_should_be_off was reset to False, so grey zone defaults to False
+    assert ret is False, "Preset change should exit auto-stop state even in the grey zone " "(neither turn-on nor turn-off condition explicitly met)"
 
 
 async def test_auto_start_stop_none_vtherm(

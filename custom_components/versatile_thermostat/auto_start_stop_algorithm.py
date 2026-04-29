@@ -299,6 +299,12 @@ class AutoStartStopDetectionAlgorithm:
         # This is needed because the check for too-rapid calculations would otherwise
         # ignore the next call if it happens within 24 seconds
         self._last_calculation_date = None
+        # Reset the last decision so a user-initiated preset/temperature change always exits
+        # the auto-stop state. Without this, if neither the "turn on" nor the "turn off"
+        # condition is met (e.g. room temp near target with a slightly positive slope),
+        # _last_should_be_off would stay True and the VTherm would remain stopped even though
+        # the user explicitly asked for a different preset.
+        self._last_should_be_off = False
 
     @property
     def dt_min(self) -> float:
