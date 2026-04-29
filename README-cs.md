@@ -31,6 +31,9 @@ Versatile Thermostat UI Card (K dispozici na [Github](https://github.com/jmcolli
 # Co je nového?
 ![Nové](images/new-icon.png)
 
+## Release 10.0
+Zavedení mechanismu pluginů. To umožňuje používat externí integrace jako pluginy pro _VTherm_. Seznam dostupných pluginů je k dispozici na [Versatile Thermostat Web site](https://www.versatile-thermostat.org/cs/plugins).
+
 ## Release 9.3
 > 1. **Detekce zaseknutého ventilu**: Zásadní vylepšení detekce poruchy vytápění. Když je na termostatech typu `over_climate_valve` detekována anomálie, termostat nyní diagnostikuje, zda je problém způsoben zaseknutým ventilem TRV (zaseknutý otevřený nebo zavřený) porovnáním požadovaného stavu se skutečným stavem. Tyto informace - `root_cause` - jsou odeslány vEvents anomálie, což vám umožňuje podniknout příslušná opatření (oznámení, obnovení ventilu atd.). Další informace [zde](documentation/cs/feature-heating-failure-detection.md),
 > 2. **Automatické znovuzamčení po odemčení**: Přidán parametr `auto_relock_sec` do funkce zámku. Pokud je nakonfigurován, termostat se automaticky znovuzamkne po zadaném počtu sekund po odemčení. Tuto funkci můžete zcela deaktivovat nastavením na 0. Ve výchozím nastavení je automatické znovuzamčení nastaveno na 30 sekund pro zvýšení bezpečnosti. Další informace [zde](documentation/cs/feature-lock.md),

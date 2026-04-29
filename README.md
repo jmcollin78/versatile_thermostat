@@ -27,8 +27,8 @@ Versatile Thermostat UI Card (Available on [Github](https://github.com/jmcollin7
 # What's New?
 ![New](images/new-icon.png)
 
-## Release 10.x
-Introduction of the plugin mecanism. This allows to use externals integration as plugin for _VTherm_. More information to come. This is beta release, please use it at your own risk. A list of the available plugin will be desccribed soon on the [Versatile Thermostat Web site](https://www.versatile-thermostat.org/en/plugins).
+## Release 10.0
+Introduction of the plugin mechanism. This allows the use of external integrations as plugins for _VTherm_. The list of available plugins is available on the [Versatile Thermostat Web site](https://www.versatile-thermostat.org/en/plugins).
 
 ## Release 9.3
 > 1. **Stuck valve detection**: Major improvement to heating failure detection. When an anomaly is detected on `over_climate_valve` type VTherms, the thermostat now diagnoses whether the problem is caused by a stuck TRV valve (stuck open or closed) by comparing the commanded state with the real state. This information - `root_cause` - is sent in the anomaly event, allowing you to take appropriate actions (notification, valve recovery, etc.). More information [here](documentation/en/feature-heating-failure-detection.md),

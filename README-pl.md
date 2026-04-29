@@ -30,6 +30,9 @@ Karta integracji VTherm UI (dostępna na [Github](https://github.com/jmcollin78/
 # Co nowego?
 ![New](images/new-icon.png)
 
+## Wydanie 10.0
+Wprowadzenie mechanizmu wtyczek. Umożliwia to korzystanie z zewnętrznych integracji jako wtyczek dla _VTherm_. Lista dostępnych wtyczek jest dostępna na stronie [Versatile Thermostat Web site](https://www.versatile-thermostat.org/pl/plugins).
+
 ## Wydanie 9.3
 > 1. **Wykrywanie zablokowanych zaworów**: Znaczne ulepszenie wykrywania awarii ogrzewania. Gdy anomalia zostanie wykryta na termostatach typu `over_climate_valve`, termostat diagnozuje teraz, czy problem jest spowodowany zablokowanym zaworem TRV (zablokowany otwarty lub zamknięty), porównując stan poleceń ze stanem rzeczywistym. Informacja ta - `root_cause` - jest wysyłana w zdarzeniu anomalii, umożliwiając podjęcie odpowiednich działań (powiadomienie, odzyskanie zaworu itp.). Więcej informacji [tutaj](documentation/pl/feature-heating-failure-detection.md),
 > 2. **Automatyczne ponowne zablokowanie po odblokowaniu**: Dodano parametr `auto_relock_sec` do funkcji blokady. Gdy jest skonfigurowany, termostat automatycznie się blokuje ponownie po określonej liczbie sekund po odblokowaniu. Tę funkcję można całkowicie wyłączyć, ustawiając wartość 0. Domyślnie automatyczne ponowne zablokowanie jest ustawione na 30 sekund dla zwiększonego bezpieczeństwa. Więcej informacji [tutaj](documentation/pl/feature-lock.md),

@@ -30,8 +30,8 @@ Le composant Versatile Thermostat UI Card (Disponible sur [Github](https://githu
 
 ![Nouveau](images/new-icon.png)
 
-## Release 10.x
-Introduction du mécanisme de plugin. Cela va permettre d'utiliser des intégrations externes comme des plugins à _VTherm_. C'est une version beta, vous l'utilisez à vos propres risques. La liste des plugins disponibles rapidement sera sur le [Versatile Thermostat Web site](https://www.versatile-thermostat.org/fr/plugins).
+## Release 10.0
+Introduction du mécanisme de plugin. Cela va permettre d'utiliser des intégrations externes comme des plugins à _VTherm_. La liste des plugins disponibles est sur le [Versatile Thermostat Web site](https://www.versatile-thermostat.org/fr/plugins).
 
 ## Release 9.3
 > 1. **Diagnostic des vannes bloquées** : Amélioration majeure de la détection d'anomalie de chauffe. Lorsqu'une anomalie est détectée sur les VTherms de type `over_climate_valve`, le thermostat diagnostique maintenant si le problème est causé par une vanne TRV bloquée (bloquée ouverte ou fermée) en comparant l'état commandé avec l'état réel. Cette information - `root_cause` - est envoyée dans l'événement d'anomalie, vous permettant de prendre les actions appropriées (notification, relance de la vanne, etc.). Plus d'informations [ici](documentation/fr/feature-heating-failure-detection.md),
