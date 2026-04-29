@@ -34,7 +34,7 @@ Versatile Thermostat UI Card (Verfügbar auf [Github](https://github.com/jmcolli
 ## Release 10.0
 Einführung des Plugin-Mechanismus. Dadurch können externe Integrationen als Plugins für _VTherm_ verwendet werden. Die Liste der verfügbaren Plugins ist auf der [Versatile Thermostat Web site](https://www.versatile-thermostat.org/de/plugins) verfügbar.
 
-## Release 9.3
+## Release 9.3 - stabile Version
 > 1. **Erkennung feststeckender Ventile**: Wesentliche Verbesserung der Heizungsfehlererkennung. Wenn eine Anomalie bei VTherms vom Typ `over_climate_valve` erkannt wird, diagnostiziert der Thermostat nun, ob das Problem durch ein feststeckendes TRV-Ventil (offen oder geschlossen feststeckend) verursacht wird, indem der Sollzustand mit dem Istzustand verglichen wird. Diese Information - `root_cause` - wird im Anomalieereignis gesendet und ermöglicht es Ihnen, angemessene Maßnahmen zu ergreifen (Benachrichtigung, Ventilwiederherstellung usw.). Weitere Informationen [hier](documentation/de/feature-heating-failure-detection.md),
 > 2. **Automatisches Erneut-Verriegeln nach Entsperrung**: Der Parameter `auto_relock_sec` wurde zur Verriegelungsfunktion hinzugefügt. Wenn konfiguriert, verriegelt sich der Thermostat nach der angegebenen Anzahl von Sekunden nach einer Entsperrung automatisch wieder. Diese Funktion kann vollständig deaktiviert werden, indem sie auf 0 gesetzt wird. Standardmäßig ist die automatische Wiederverriegelung auf 30 Sekunden eingestellt, um die Sicherheit zu verbessern. Weitere Informationen [hier](documentation/de/feature-lock.md),
 > 3. **Befehlswiederholung**: Neue Funktionalität zur automatischen Erkennung und Behebung von Unstimmigkeiten zwischen dem Sollzustand des Thermostats und dem Istzustand der verknüpften Geräte. Wenn ein Befehl nicht ordnungsgemäß auf das Gerät angewendet wird, wird er erneut gesendet. Dies verbessert die Systemzuverlässigkeit in instabilen Umgebungen oder mit unzuverlässigen Geräten. Weitere Informationen [hier](documentation/de/feature-advanced.md),
@@ -42,7 +42,7 @@ Einführung des Plugin-Mechanismus. Dadurch können externe Integrationen als Pl
 > 5. **Erhöhte Genauigkeit der Leistungssteuerung**: Die Aktivierungsschwelle des Kessels (`power_activation_threshold`) akzeptiert nun Dezimalwerte (0,1, 0,5 usw.) für eine feinere Kontrolle der Aktivierungsleistung. Dies bietet mehr Flexibilität zur Optimierung des Energieverbrauchs. Weitere Informationen [hier](documentation/de/feature-power.md),
 > 6. **Verbesserungen der Sensorzuverlässigkeit**: Bessere Unterstützung zur Bestimmung der Verfügbarkeit von Temperatursensoren mithilfe der `last_updated`-Metadaten von Home Assistant, verbesserte Erkennung von Sensorsignalverlust,
 
-## Release 9.2 - stabile Version
+## Release 9.2
 > 1. Neue Art der Verwaltung von Heiz-/Stoppzyklen für VTherm `over_switch`. Der aktuelle Algorithmus hat einen Zeitdrift, und die ersten Zyklen sind nicht optimal. Dies beeinträchtigt das TPI und insbesondere das Auto-TPI. Der neue `Cycle Scheduler` löst diese Schwierigkeiten. Diese Änderung ist völlig transparent,
 > 2. Ein Protokollkollektor. Support-Anfragen scheitern oft an der Möglichkweit, Protokolle im richtigen Zeitraum bereitzustellen, konzentriert auf den fehlerhaften Thermostat und auf der richtigen Protokollebene. Dies ist besonders bei schwer reproduzierbaren Fehlern der Fall. Der Protokollkollektor soll diese Schwierigkeit lösen. Er sammelt Protokolle im Hintergrund auf der niedrigsten Ebene, und eine Aktion (ehemals Dienst) ermöglicht deren Export in eine Datei. Diese kann dann heruntergeladen und der Support-Anfrage beigefügt werden. Der mit der Website verbundene Protokollanalysator – der in Version 9.1 (siehe unten) gestartet wurde – passt sich an, um diese Protokolle verarbeiten zu können. Weitere Informationen zum Protokollkollektor [hier](documentation/de/feature-logs-collector.md),
 > 3. Stabilisierung der Version 9.x. Die Hauptversion 9 brachte viele Änderungen mit sich, die einige Anomalien verursachten. Diese Version bringt die neuesten Korrektionen zur Version 9.
@@ -133,8 +133,8 @@ Die Dokumentation ist jetzt auf mehrere Seiten aufgeteilt, um das Lesen und Such
 ![image](documentation/en/images/results-over-climate-2.png)
 
 # Einige Anmerkungen zur Integration
-|                                             |                                             |                                             |
-| ------------------------------------------- | ------------------------------------------- | ------------------------------------------- |
+|                                               |                                               |                                               |
+| --------------------------------------------- | --------------------------------------------- | --------------------------------------------- |
 | ![Kundenmeinung 1](images/testimonials-1.png) | ![Kundenmeinung 2](images/testimonials-2.png) | ![Kundenmeinung 3](images/testimonials-3.png) |
 | ![Kundenmeinung 4](images/testimonials-4.png) | ![Kundenmeinung 5](images/testimonials-5.png) | ![Kundenmeinung 6](images/testimonials-6.png) |
 

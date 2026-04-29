@@ -34,7 +34,7 @@ Versatile Thermostat UI Card (K dispozici na [Github](https://github.com/jmcolli
 ## Release 10.0
 Zavedení mechanismu pluginů. To umožňuje používat externí integrace jako pluginy pro _VTherm_. Seznam dostupných pluginů je k dispozici na [Versatile Thermostat Web site](https://www.versatile-thermostat.org/cs/plugins).
 
-## Release 9.3
+## Release 9.3 - stabilní verze
 > 1. **Detekce zaseknutého ventilu**: Zásadní vylepšení detekce poruchy vytápění. Když je na termostatech typu `over_climate_valve` detekována anomálie, termostat nyní diagnostikuje, zda je problém způsoben zaseknutým ventilem TRV (zaseknutý otevřený nebo zavřený) porovnáním požadovaného stavu se skutečným stavem. Tyto informace - `root_cause` - jsou odeslány vEvents anomálie, což vám umožňuje podniknout příslušná opatření (oznámení, obnovení ventilu atd.). Další informace [zde](documentation/cs/feature-heating-failure-detection.md),
 > 2. **Automatické znovuzamčení po odemčení**: Přidán parametr `auto_relock_sec` do funkce zámku. Pokud je nakonfigurován, termostat se automaticky znovuzamkne po zadaném počtu sekund po odemčení. Tuto funkci můžete zcela deaktivovat nastavením na 0. Ve výchozím nastavení je automatické znovuzamčení nastaveno na 30 sekund pro zvýšení bezpečnosti. Další informace [zde](documentation/cs/feature-lock.md),
 > 3. **Opětovné odeslání příkazu**: Nová funkce pro automatickou detekci a opravu nesrovnalostí mezi požadovaným stavem termostatu a skutečným stavem podřízených zařízení. Pokud příkaz není správně aplikován na zařízení, je znovu odeslán. To zlepšuje spolehlivost systému v nestabilních prostředích nebo s nespolehlivým vybavením. Další informace [zde](documentation/cs/feature-advanced.md),
@@ -42,7 +42,7 @@ Zavedení mechanismu pluginů. To umožňuje používat externí integrace jako 
 > 5. **Zvýšená přesnost řízení výkonu**: Prah aktivace kotle (`power_activation_threshold`) nyní přijímá desetinné hodnoty (0,1, 0,5 atd.) pro jemnější kontrolu aktivačního výkonu. To poskytuje větší flexibilitu pro optimalizaci spotřeby energie. Další informace [zde](documentation/cs/feature-power.md),
 > 6. **Zlepšení dostupnosti senzorů**: Lepší podpora pro určení dostupnosti senzoru teploty pomocí metadat `last_updated` Home Assistant, zlepšená detekce ztráty signálu senzoru,
 
-## Release 9.2 - stabilní verze
+## Release 9.2
 > 1. Nový způsob řízení cyklů topení/zastavení pro VTherm `over_switch`. Současný algoritmus má časový drift a první cykly nejsou optimální. To narušuje TPI a zejména auto-TPI. Nový `Cycle Scheduler` řeší tyto potíže. Tato změna je pro vás zcela transparentní,
 > 2. Kolektor záznamů. Vaše žádosti o podporu často selhávají kvůli vaší schopnosti poskytnout záznamy v správném období, zaměřené na termostat s chybou a na správné úrovni záznamů. Jedná se zejména o obtížně reprodukovatelné chyby. Kolektor záznamů má za cíl vyřešit tuto potíž. Sbírá pro vás záznamy na pozadí na nejjemnější úrovni a akce (dříve služba) umožňuje jejich extrakci do souboru. Poté je můžete stáhnout a připojit k vaší žádosti o podporu. Analyzátor záznamů spojený s webovými stránkami – spuštěný ve verzi 9.1 (viz níže) – se přizpůsobuje, aby mohl tyto záznamy zpracovat. Více informací o kolektoru záznamů [zde](documentation/cs/feature-logs-collector.md),
 > 3. Stabilizace verze 9.x. Hlavní verze 9 přinesla mnoho změn, které způsobily některé anomálie. Tato verze přináší poslední opravy týkající se verze 9.

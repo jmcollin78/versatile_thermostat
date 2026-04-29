@@ -30,7 +30,7 @@ Versatile Thermostat UI Card (Available on [Github](https://github.com/jmcollin7
 ## Release 10.0
 Introduction of the plugin mechanism. This allows the use of external integrations as plugins for _VTherm_. The list of available plugins is available on the [Versatile Thermostat Web site](https://www.versatile-thermostat.org/en/plugins).
 
-## Release 9.3
+## Release 9.3 - stable version
 > 1. **Stuck valve detection**: Major improvement to heating failure detection. When an anomaly is detected on `over_climate_valve` type VTherms, the thermostat now diagnoses whether the problem is caused by a stuck TRV valve (stuck open or closed) by comparing the commanded state with the real state. This information - `root_cause` - is sent in the anomaly event, allowing you to take appropriate actions (notification, valve recovery, etc.). More information [here](documentation/en/feature-heating-failure-detection.md),
 > 2. **Auto-relock after unlock**: Added `auto_relock_sec` parameter to the lock feature. When configured, the thermostat will automatically re-lock after the specified number of seconds following an unlock. You can completely disable this feature by setting it to 0. By default, auto-relock is set to 30 seconds for improved security. More information [here](documentation/en/feature-lock.md),
 > 3. **Command resend**: New feature to automatically detect and correct discrepancies between the thermostat's desired state and the actual state of underlying devices. If a command is not properly applied to the device, it is resent. This improves system reliability in unstable environments or with unreliable equipment. More information [here](documentation/en/feature-advanced.md),
@@ -38,7 +38,7 @@ Introduction of the plugin mechanism. This allows the use of external integratio
 > 5. **Increased power control precision**: The boiler activation threshold (`power_activation_threshold`) now accepts decimal values (0.1, 0.5, etc.) for finer control of activation power. This provides greater flexibility to optimize your energy consumption. More information [here](documentation/en/feature-power.md),
 > 6. **Sensor availability improvements**: Better support for determining temperature sensor availability using Home Assistant's `last_updated` metadata, improving detection of sensor signal loss,
 
-## Release 9.2 - stable version
+## Release 9.2
 > 1. New way of managing heating/off cycles for `over_switch` VTherms. The current algorithm has a time drift and the first cycles are not optimal. This disrupts the TPI and especially the auto-TPI. The new `Cycle Scheduler` solves these issues. This change is completely transparent for you,
 > 2. A log collector. Your support requests often fail due to your ability to provide logs, over the right period, targeted at the faulty thermostat and at the right log level. This is especially the case for hard-to-reproduce bugs. The log collector aims to solve this difficulty. It collects logs for you in the background at the finest level and an action (formerly service) allows you to extract them into a file. You can then download them to attach to your support request. The log analyzer associated with the website - launched in 9.1 see below - adapts to be able to digest these logs. More information about the log collector [here](documentation/en/feature-logs-collector.md),
 > 3. stabilization of 9.x. The major version 9 brought many changes that generated some anomalies. This version provides the latest fixes related to this version 9.
