@@ -14,7 +14,6 @@ from .const import *  # pylint: disable=wildcard-import, unused-wildcard-import
 from .vtherm_hvac_mode import VThermHvacMode_OFF, VThermHvacMode_HEAT, VThermHvacMode_COOL
 from .vtherm_central_api import VersatileThermostatAPI
 from .commons import write_event_log
-from .const import EventType
 from .cycle_scheduler import calculate_cycle_times
 
 if TYPE_CHECKING:
@@ -627,7 +626,7 @@ class TPIHandler:
 
         # Fire event to notify listeners
         t.hass.bus.async_fire(
-            EventType.AUTO_TPI_EVENT.value,
+            AUTO_TPI_EVENT,
             {
                 "entity_id": t.entity_id,
                 "auto_tpi_mode": self._auto_tpi_manager.learning_active,
