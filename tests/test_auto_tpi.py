@@ -14,6 +14,7 @@ from custom_components.versatile_thermostat.auto_tpi_manager import (
     STORAGE_KEY_PREFIX,
 )
 from custom_components.versatile_thermostat.const import (
+    AUTO_TPI_EVENT,
     CONF_TPI_COEF_INT,
     CONF_TPI_COEF_EXT,
     CONF_AUTO_TPI_HEATING_POWER,
@@ -37,6 +38,7 @@ from custom_components.versatile_thermostat.const import (
     CONF_AUTO_TPI_MODE,
     DOMAIN,
 )
+from custom_components.versatile_thermostat.prop_handler_tpi import TPIHandler
 from custom_components.versatile_thermostat.thermostat_prop import ThermostatProp
 from custom_components.versatile_thermostat.vtherm_hvac_mode import VThermHvacMode_HEAT
 from homeassistant.components.climate.const import HVACMode, PRESET_NONE
@@ -99,6 +101,41 @@ def manager(mock_hass, mock_store, mock_config_entry):
         heater_heating_time=10,
         heater_cooling_time=5,
     )
+
+
+async def test_auto_tpi_mode_fires_local_event_name():
+    """Test Auto TPI mode event uses the local event name."""
+    thermostat = MagicMock()
+    thermostat.entry_infos = {CONF_AUTO_TPI_MODE: True}
+    thermostat._entry_infos = thermostat.entry_infos
+    thermostat.prop_algorithm = None
+    thermostat.tpi_coef_int = 0.5
+    thermostat.tpi_coef_ext = 0.01
+    thermostat.is_removed = False
+    thermostat.entity_id = "climate.auto_tpi_test"
+    thermostat.unique_id = "auto_tpi_test"
+    thermostat.hass.config_entries.async_get_entry.return_value = None
+
+    auto_tpi_manager = MagicMock()
+    auto_tpi_manager._default_coef_int = 0.5
+    auto_tpi_manager._default_coef_ext = 0.01
+    auto_tpi_manager.learning_active = True
+    auto_tpi_manager.start_learning = AsyncMock()
+    auto_tpi_manager.stop_learning = AsyncMock()
+
+    handler = TPIHandler(thermostat)
+    handler._auto_tpi_manager = auto_tpi_manager
+
+    await handler.async_set_auto_tpi_mode(True)
+
+    thermostat.hass.bus.async_fire.assert_called_once_with(
+        AUTO_TPI_EVENT,
+        {
+            "entity_id": "climate.auto_tpi_test",
+            "auto_tpi_mode": True,
+        },
+    )
+
 
 async def test_initialization(manager):
     """Test initialization with defaults."""
