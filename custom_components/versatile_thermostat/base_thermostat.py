@@ -1677,6 +1677,9 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
             if (
                 (self._ac_mode and self.vtherm_hvac_mode == VThermHvacMode_COOL)
                 or (self.vtherm_hvac_mode == VThermHvacMode_OFF and self.requested_state.hvac_mode == VThermHvacMode_COOL)
+                # issue #1958 - when window_action=fan_only temporarily switches the mode to FAN_ONLY,
+                # the user's intent (requested_state) is still COOL, so we must use AC presets.
+                or (self.vtherm_hvac_mode == VThermHvacMode_FAN_ONLY and self.requested_state.hvac_mode == VThermHvacMode_COOL)
                 #                (self.is_over_switch and self._ac_mode)
                 #                or self.vtherm_hvac_mode == VThermHvacMode_COOL
                 #                or (self.vtherm_hvac_mode == VThermHvacMode_OFF and self.requested_state.hvac_mode == VThermHvacMode_COOL)
