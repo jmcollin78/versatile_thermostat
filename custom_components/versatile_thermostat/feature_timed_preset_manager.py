@@ -148,7 +148,8 @@ class FeatureTimedPresetManager(BaseFeatureManager):
         self._cancel_timed_preset_timer()
 
         # Capture the original preset before overriding it
-        self._original_preset = self._vtherm.requested_state.preset
+        if not self._is_timed_preset_active:
+            self._original_preset = self._vtherm.requested_state.preset
 
         # Store the timed preset information
         self._timed_preset = preset
