@@ -1,0 +1,1049 @@
+{
+    "title": "多功能恒温器配置",
+    "config": {
+        "flow_title": "多功能恒温器配置",
+        "step": {
+            "user": {
+                "title": "多功能恒温器类型",
+                "description": "选择要创建的恒温器类型",
+                "data": {
+                    "thermostat_type": "恒温器类型"
+                },
+                "data_description": {
+                    "thermostat_type": "只能使用一种中央配置类型"
+                }
+            },
+            "menu": {
+                "title": "菜单",
+                "description": "配置你的恒温器。输入所有必填参数后即可完成配置。",
+                "menu_options": {
+                    "main": "主要属性",
+                    "central_boiler": "中央锅炉",
+                    "type": "底层设备",
+                    "tpi": "TPI 参数",
+                    "features": "功能",
+                    "presets": "预设",
+                    "window": "窗户检测",
+                    "motion": "运动检测",
+                    "power": "功率管理",
+                    "presence": "在家状态检测",
+                    "advanced": "高级参数",
+                    "auto_start_stop": "自动启动和停止",
+                    "valve_regulation": "阀门调节配置",
+                    "sync_device_internal_temp": "同步设备温度",
+                    "lock": "锁定",
+                    "heating_failure_detection": "加热故障检测",
+                    "auto_tpi_configuration": "Auto TPI - 配置",
+                    "auto_tpi_avg_settings": "Auto TPI - 加权平均",
+                    "auto_tpi_ema_settings": "Auto TPI - EWMA",
+                    "finalize": "全部完成",
+                    "configuration_not_complete": "配置未完成"
+                }
+            },
+            "lock": {
+                "title": "锁管理",
+                "description": "锁定功能可防止 UI 或自动化更改恒温器的配置，同时保持恒温器运行。",
+                "data": {
+                    "use_lock_central_config": "使用中控锁配置",
+                    "lock_code": "可选 PIN 码（4 位数字）",
+                    "lock_users": "锁定将阻止用户发出命令",
+                    "lock_automations": "锁定将阻止来自自动化和集成（即调度程序）的命令",
+                    "auto_relock_sec": "自动重锁延迟"
+                },
+                "data_description": {
+                    "use_lock_central_config": "勾选使用中控锁配置。取消选中为此 VTherm 使用特定的锁定配置",
+                    "auto_relock_sec": "解锁后自动重新锁定之前的延迟秒数。设置为 0 以禁用自动重新锁定。默认值为 30 秒。"
+                }
+            },
+            "main": {
+                "title": "添加新的多功能恒温器",
+                "description": "主要必填属性",
+                "data": {
+                    "name": "名称",
+                    "thermostat_type": "恒温器类型",
+                    "temperature_sensor_entity_id": "室内温度",
+                    "last_seen_temperature_sensor_entity_id": "最近一次室内温度更新时间",
+                    "external_temperature_sensor_entity_id": "室外温度传感器实体 ID",
+                    "cycle_min": "循环持续时间（分钟）",
+                    "temp_min": "允许的最低温度",
+                    "temp_max": "允许的最高温度",
+                    "step_temperature": "温度步进",
+                    "device_power": "设备功率",
+                    "use_central_mode": "启用中央实体控制（需要中央配置）。勾选后可使用 central_mode 选择实体控制此 VTherm。",
+                    "use_main_central_config": "使用额外的中央主配置。勾选后使用中央主配置（室外温度、最小值、最大值、步进等）。",
+                    "used_by_controls_central_boiler": "用于中央锅炉。勾选后，此 VTherm 可以控制中央锅炉"
+                },
+                "data_description": {
+                    "cycle_min": "一个加热/冷却循环的最短持续时间（以分钟为单位）以避免过于频繁的切换",
+                    "temp_min": "恒温器允许的最低温度",
+                    "temp_max": "恒温器允许的最高温度",
+                    "step_temperature": "设置目标温度的温度步长",
+                    "temperature_sensor_entity_id": "室温传感器实体 ID",
+                    "last_seen_temperature_sensor_entity_id": "室温传感器最后更新时间实体 ID。应为 datetime 传感器",
+                    "external_temperature_sensor_entity_id": "室外温度传感器实体 ID。如果选择中央配置则不使用"
+                }
+            },
+            "features": {
+                "title": "功能",
+                "description": "恒温器功能",
+                "data": {
+                    "use_window_feature": "使用窗户检测",
+                    "use_motion_feature": "使用运动检测",
+                    "use_power_feature": "使用功率管理",
+                    "use_presence_feature": "使用在家状态检测",
+                    "use_central_boiler_feature": "使用中央锅炉。勾选后为中央锅炉添加控制。此复选框生效后，还需要配置将控制中央锅炉的 VTherm。如果某个 VTherm 需要加热，锅炉将开启；如果没有 VTherm 需要加热，锅炉将关闭。开启/关闭中央锅炉的命令在相关配置页面中设置。",
+                    "use_auto_start_stop_feature": "使用自动启停功能",
+                    "use_heating_failure_detection_feature": "使用加热故障检测"
+                }
+            },
+            "type": {
+                "title": "链接实体",
+                "description": "链接实体属性",
+                "data": {
+                    "underlying_entity_ids": "需要控制的设备",
+                    "heater_keep_alive": "开关保活间隔（秒）",
+                    "proportional_function": "算法",
+                    "ac_mode": "空调模式",
+                    "sync_device_internal_temp": "同步设备内部温度",
+                    "auto_regulation_mode": "自调节",
+                    "auto_regulation_dtemp": "调节阈值",
+                    "auto_regulation_periode_min": "调节最短周期",
+                    "auto_regulation_use_device_temp": "使用底层内部温度",
+                    "inverse_switch_command": "反向开关指令",
+                    "auto_fan_mode": "自动风扇模式",
+                    "on_command_text": "开启命令自定义",
+                    "vswitch_on_command": "可选开启命令",
+                    "off_command_text": "关闭命令自定义",
+                    "vswitch_off_command": "可选关闭命令"
+                },
+                "data_description": {
+                    "underlying_entity_ids": "要控制的设备 - 1 为必填项",
+                    "heater_keep_alive": "可选的加热器开关状态刷新间隔。不需要时请留空。",
+                    "proportional_function": "算法（目前只有TPI）",
+                    "ac_mode": "使用空调（AC）模式",
+                    "sync_device_internal_temp": "勾选同步底层设备内部温度（填写新菜单项“同步设备温度”进行配置）",
+                    "auto_regulation_mode": "自动调节目标温度",
+                    "auto_regulation_dtemp": "以 °（或阀门的 %）为单位的阈值，低于该阈值将不会发送温度变化",
+                    "auto_regulation_periode_min": "两次调节更新之间的时间间隔（分钟）",
+                    "auto_regulation_use_device_temp": "使用底层设备可能提供的内部温度传感器来加速自调节（大多数情况下不需要）",
+                    "inverse_switch_command": "对于带导引线和二极管的开关，可能需要反转命令",
+                    "auto_fan_mode": "当需要大量加热/冷却时自动启动风扇",
+                    "on_command_text": "对于 `select` 或 `climate` 类型的底层，您必须自定义命令。"
+                }
+            },
+            "tpi": {
+                "title": "TPI",
+                "description": "时间比例积分属性",
+                "data": {
+                    "tpi_coef_int": "coef_int",
+                    "tpi_coef_ext": "coef_ext",
+                    "tpi_threshold_low": "TPI 阈值低",
+                    "tpi_threshold_high": "TPI 高阈值",
+                    "use_tpi_central_config": "使用中央TPI配置",
+                    "minimal_activation_delay": "最小激活延迟",
+                    "minimal_deactivation_delay": "最小停用延迟",
+                    "auto_tpi_mode": "启用自动 TPI 学习"
+                },
+                "data_description": {
+                    "tpi_coef_int": "用于内部温度增量的系数",
+                    "tpi_coef_ext": "用于外部温度增量的系数",
+                    "tpi_threshold_low": "以°为单位的阈值，在该阈值下，TPI 算法将开启。 0表示无阈值",
+                    "tpi_threshold_high": "以°为单位的阈值，高于该阈值，TPI 算法将关闭。 0表示无阈值",
+                    "use_tpi_central_config": "选中以使用中央 TPI 配置。取消选中为此 VTherm 使用特定的 TPI 配置",
+                    "minimal_activation_delay": "设备不会被激活的延迟秒数",
+                    "minimal_deactivation_delay": "设备保持活动状态的延迟（以秒为单位）",
+                    "auto_tpi_mode": "TPI 学习会话需要手动启动，请先阅读文档。"
+                }
+            },
+            "presets": {
+                "title": "预设",
+                "description": "选择恒温器是否使用中央预设 - 取消选择恒温器将拥有自己的预设",
+                "data": {
+                    "use_presets_central_config": "使用中央预设配置"
+                }
+            },
+            "window": {
+                "title": "窗户管理",
+                "description": "窗户管理。\n也可以根据温度下降配置自动开窗检测",
+                "data": {
+                    "window_sensor_entity_id": "窗户传感器实体 ID",
+                    "window_delay": "窗户传感器“开启”延迟（秒）",
+                    "window_off_delay": "窗户传感器“关闭”延迟（秒）",
+                    "window_auto_open_threshold": "自动开窗检测的温度下降阈值（单位为°/小时）",
+                    "window_auto_close_threshold": "自动检测结束的温升阈值（单位为°/小时）",
+                    "window_auto_max_duration": "自动开窗检测最大持续时间（分钟）",
+                    "use_window_central_config": "使用中央窗户配置",
+                    "window_action": "操作"
+                },
+                "data_description": {
+                    "window_sensor_entity_id": "如果不使用窗户传感器并使用自动检测，则留空",
+                    "window_delay": "考虑传感器“开启”检测之前的延迟（以秒为单位）",
+                    "window_off_delay": "传感器“关闭”检测被采纳前的延迟（秒）。留空则使用与开启延迟相同的值",
+                    "window_auto_open_threshold": "建议值：3 到 10 之间。如果不使用自动开窗检测，则留空",
+                    "window_auto_close_threshold": "建议值：0。如果不使用自动开窗检测，则留空",
+                    "window_auto_max_duration": "建议值：60（一小时）。如果不使用自动窗户打开检测，则留空",
+                    "use_window_central_config": "选择使用中央窗户配置。取消选择则为此 VTherm 使用特定窗户配置",
+                    "window_action": "检测到窗户打开时执行的操作"
+                }
+            },
+            "motion": {
+                "title": "运动管理",
+                "description": "运动传感器管理。预设可根据运动检测自动切换\nmotion_preset 和 no_motion_preset 应设置为对应的预设名称",
+                "data": {
+                    "motion_sensor_entity_id": "运动传感器实体 ID",
+                    "motion_delay": "激活延迟",
+                    "motion_off_delay": "停用延迟",
+                    "motion_preset": "运动预设",
+                    "no_motion_preset": "无运动预设",
+                    "use_motion_central_config": "使用中央运动配置"
+                },
+                "data_description": {
+                    "motion_sensor_entity_id": "运动传感器的实体 ID",
+                    "motion_delay": "运动激活延迟（秒）",
+                    "motion_off_delay": "运动停用延迟（秒）",
+                    "motion_preset": "检测到运动时使用的预设",
+                    "no_motion_preset": "未检测到运动时使用的预设",
+                    "use_motion_central_config": "选中以使用中央运动配置。取消选中为此 VTherm 使用特定运动配置"
+                }
+            },
+            "power": {
+                "title": "功率管理",
+                "description": "电源管理属性。\n提供您家的功率和最大功率传感器。\n指定加热器开启时的功耗。\n所有传感器和设备功率应使用相同的单位（kW 或 W）",
+                "data": {
+                    "power_sensor_entity_id": "功率",
+                    "max_power_sensor_entity_id": "最大功率",
+                    "power_temp": "削峰温度",
+                    "use_power_central_config": "采用集中电源配置"
+                },
+                "data_description": {
+                    "power_sensor_entity_id": "功率传感器实体 ID",
+                    "max_power_sensor_entity_id": "最大功率传感器实体 ID",
+                    "power_temp": "断电温度",
+                    "use_power_central_config": "勾选使用中央电源配置。取消选中为此 VTherm 使用特定电源配置"
+                }
+            },
+            "presence": {
+                "title": "在家状态管理",
+                "description": "在家状态管理属性。\n提供家中的在家状态传感器（true 表示有人在家），并设置对应的温度预设",
+                "data": {
+                    "presence_sensor_entity_id": "在家状态传感器",
+                    "use_presence_central_config": "使用中央在家状态温度配置。取消选择则使用特定温度实体"
+                },
+                "data_description": {
+                    "presence_sensor_entity_id": "在家状态传感器实体 ID"
+                }
+            },
+            "advanced": {
+                "title": "高级参数",
+                "description": "高级参数配置。如果您不知道自己在做什么，请保留默认值。\n这些参数可能导致温度控制很差或功率调节很差",
+                "data": {
+                    "safety_delay_min": "安全延时（分钟）",
+                    "safety_min_on_percent": "启用安全模式的最低功率百分比",
+                    "safety_default_on_percent": "安全模式下使用的功率百分比",
+                    "repair_incorrect_state": "修复不正确的状态",
+                    "use_advanced_central_config": "使用中央高级配置"
+                },
+                "data_description": {
+                    "safety_delay_min": "两次温度测量之间允许的最大延迟（以分钟为单位）。超过此延迟，恒温器将转至安全关闭状态",
+                    "safety_min_on_percent": "安全预设激活的最小加热百分比值。低于此功率百分比时，恒温器将不会进入安全预设状态",
+                    "safety_default_on_percent": "安全预设中的默认加热功率百分比值。设置为 0 以在安全预设中关闭加热器",
+                    "repair_incorrect_state": "检测到时自动修复底层实体的错误状态。如果底层设备状态与预期状态不匹配，该功能将重新发送所需的命令。",
+                    "use_advanced_central_config": "勾选使用中央高级配置。取消选中为此 VTherm 使用特定的高级配置"
+                }
+            },
+            "central_boiler": {
+                "title": "中央锅炉控制",
+                "description": "输入要调用的服务以打开/关闭中央锅炉。调用的服务必须格式如下：`entity_id/service_name[/attribute:value]`（/attribute:value 是可选的）\n例如：\n- 打开开关：`switch.controle_chaudiere/switch.turn_on`\n- 关闭开关：`switch.controle_chaudiere/switch.turn_off`\n- 将锅炉编程至 25°，从而强制其点火：`climate.thermostat_chaudiere/climate.set_temperature/temperature:25`\n- 向锅炉发送 10°，从而强制其熄灭：`climate.thermostat_chaudiere/climate.set_temperature/temperature:10`",
+                "data": {
+                    "central_boiler_activation_service": "开启命令",
+                    "central_boiler_deactivation_service": "关闭命令",
+                    "central_boiler_activation_delay_sec": "激活延迟（秒）",
+                    "keep_alive_boiler_delay_sec": "保活延迟（秒）"
+                },
+                "data_description": {
+                    "central_boiler_activation_service": "开启中央锅炉的命令，格式类似 entity_id/service_name[/attribute:value]",
+                    "central_boiler_deactivation_service": "关闭中央锅炉的命令，格式类似 entity_id/service_name[/attribute:value]",
+                    "central_boiler_activation_delay_sec": "当需要打开中央锅炉时，在激活中央锅炉之前延迟几秒",
+                    "keep_alive_boiler_delay_sec": "如果启用了保持活动状态，则定期重新发送锅炉命令的延迟（以秒为单位）。设置为 0 以禁用保持活动状态。"
+                }
+            },
+            "valve_regulation": {
+                "title": "带阀自调节",
+                "description": "通过直接控制阀门进行自我调节的配置",
+                "data": {
+                    "offset_calibration_entity_ids": "偏移校准实体",
+                    "opening_degree_entity_ids": "开度实体",
+                    "closing_degree_entity_ids": "闭合度实体",
+                    "proportional_function": "算法",
+                    "opening_threshold_degree": "开启阈值度数",
+                    "min_opening_degrees": "最小开度",
+                    "max_opening_degrees": "最大开度",
+                    "max_closing_degree": "最大关闭度"
+                },
+                "data_description": {
+                    "offset_calibration_entity_ids": "“偏移校准”实体列表。如果你的 TRV 提供该实体，请设置它以获得更好的调节效果。每个底层 climate 实体应对应一个。",
+                    "opening_degree_entity_ids": "“开度”实体列表。每个底层 climate 实体应对应一个。",
+                    "closing_degree_entity_ids": "“闭合度”实体列表。如果你的 TRV 提供该实体，请设置它以获得更好的调节效果。每个底层 climate 实体应对应一个。",
+                    "proportional_function": "算法（目前只有TPI）",
+                    "opening_threshold_degree": "阀门开度低于此值时应视为关闭（并应用 max_closing_degree）",
+                    "min_opening_degrees": "当超过先前阈值时每个底层设备的开度最小值，以逗号分隔。默认为 0。示例：20、25、30",
+                    "max_opening_degrees": "开度最大值。阀门的开度永远不会超过该值",
+                    "max_closing_degree": "关闭度最大值。阀门永远不会在高于该值时关闭。将其设置为 100 以完全关闭阀门"
+                }
+            },
+            "auto_tpi_configuration": {
+                "title": "Auto TPI - 配置",
+                "description": "自动 TPI 学习的常规设置。",
+                "data": {
+                    "auto_tpi_learning_type": "学习类型",
+                    "heater_heating_time": "加热时间（分钟）",
+                    "heater_cooling_time": "冷却时间（分钟）",
+                    "auto_tpi_heating_rate": "升温速率（{unit}/h）",
+                    "auto_tpi_aggressiveness": "激进程度",
+                    "auto_tpi_enable_advanced_settings": "启用高级参数",
+                    "auto_tpi_continuous_kext": "持续学习 Kext"
+                },
+                "data_description": {
+                    "auto_tpi_learning_type": "选择“Discovery”用于初始启动（加权平均，权重 1），或选择“Fine Tuning”用于持续调整（EWMA，Alpha 0.08）。",
+                    "heater_heating_time": "达到满功率的时间（分钟）",
+                    "heater_cooling_time": "停止后的冷却时间（分钟）\n\n| 类型 | 加热时间 | 冷却时间 |\n| :--- | :--- | :--- |\n| 电暖器 | 5mn | 7mn |\n| 水暖散热器 | 15mn | 20mn |\n| 地暖 | 30mn | 45mn |",
+                    "auto_tpi_heating_rate": "散热器升温能力（{unit}每小时）。保留为 0 以进行自动学习（引导程序）。",
+                    "auto_tpi_aggressiveness": "学习系数的缩减因子 (50-100%)。较低的值会产生更保守的系数并降低超调风险。",
+                    "auto_tpi_enable_advanced_settings": "勾选后可访问参数微调（Alpha、衰减、权重）。",
+                    "auto_tpi_continuous_kext": "选中以启用 AutoTPI 会话之外的外部系数 (Kext) 的持续学习。"
+                }
+            },
+            "auto_tpi_avg_settings": {
+                "title": "Auto TPI - 加权平均",
+                "description": "加权平均法参数。",
+                "data": {
+                    "auto_tpi_avg_initial_weight": "初始权重"
+                },
+                "data_description": {
+                    "auto_tpi_avg_initial_weight": "平均值计算中初始/前一个值的权重"
+                }
+            },
+            "auto_tpi_ema_settings": {
+                "title": "Auto TPI - EWMA",
+                "description": "EWMA 方法的参数。\n\n建议：\n| 场景 | Alpha (ema_alpha) | 衰减率 (ema_decay_rate) |\n| :--- | :--- | :--- |\n| 初始学习 | 0.15 | 0.08 |\n| 精细学习 | 0.08 | 0.12 |\n| 持续学习 | 0.05 | 0.02 |",
+                "data": {
+                    "auto_tpi_ema_alpha": "Alpha",
+                    "auto_tpi_ema_decay_rate": "衰减率",
+                    "auto_tpi_continuous_kext_alpha": "连续 Kext Alpha"
+                },
+                "data_description": {
+                    "auto_tpi_ema_alpha": "平滑因子 (0-1)。更高=更快的适应",
+                    "auto_tpi_ema_decay_rate": "Alpha 随时间下降的速率（稳定）",
+                    "auto_tpi_continuous_kext_alpha": "用于连续 Kext 学习的平滑因子 (Alpha)。默认 0.04（大约 3-5 天适应）。"
+                }
+            },
+            "sync_device_internal_temp": {
+                "title": "同步设备内部温度",
+                "description": "配置以将底层设备的内部温度与所选实体同步",
+                "data": {
+                    "sync_with_calibration": "应用偏移校准",
+                    "sync_entity_ids": "用于同步的实体 ID"
+                },
+                "data_description": {
+                    "sync_with_calibration": "勾选以在同步内部温度时应用偏移校准。取消选中可直接复制所选实体的温度",
+                    "sync_entity_ids": "用于同步底层设备内部温度的实体列表。每个底层设备应该有一个。如果选中复选框，则应为校准实体，否则应为温度实体。两者都是 `number` 实体。"
+                }
+            },
+            "heating_failure_detection": {
+                "title": "加热故障检测",
+                "description": "配置加热故障检测功能。当预期加热但温度不升高时，或者当加热关闭但温度持续升高时，该功能会检测到异常情况。",
+                "data": {
+                    "use_heating_failure_detection_feature": "启用加热故障检测",
+                    "use_heating_failure_detection_central_config": "使用集中供暖故障检测配置",
+                    "heating_failure_threshold": "加热故障阈值",
+                    "cooling_failure_threshold": "冷却故障阈值",
+                    "heating_failure_detection_delay": "检测延迟（分钟）",
+                    "temperature_change_tolerance": "温度变化容限 (°C)",
+                    "failure_detection_enable_template": "检测启用模板"
+                },
+                "data_description": {
+                    "use_heating_failure_detection_feature": "使用 TPI 启用 VTherms 加热异常检测",
+                    "use_heating_failure_detection_central_config": "勾选使用集中供暖故障检测配置。取消选中为此 VTherm 使用特定参数",
+                    "heating_failure_threshold": "开启百分比阈值，高于该阈值加热将导致温度升高 (0.9 = 90%)",
+                    "cooling_failure_threshold": "开启百分比阈值，低于该阈值温度不应升高 (0.0 = 0%)",
+                    "heating_failure_detection_delay": "检查温度是否按预期变化前需要等待的时间（分钟）",
+                    "temperature_change_tolerance": "考虑显着的最小温度变化度。忽略较小的变化以过滤传感器噪声（默认值：0.5°C）",
+                    "failure_detection_enable_template": "可选的 Jinja2 模板，必须返回 True 才能启用检测。当外部热源处于活动状态时（例如，双花括号中的 `is_state('binary_sensor.wood_stove', 'off')`），可用于暂时禁用检测。如果为空，则始终启用检测。"
+                }
+            }
+        },
+        "error": {
+            "unknown": "意外错误",
+            "unknown_entity": "未知实体 ID",
+            "window_open_detection_method": "只能使用一种开窗检测方法：使用窗户传感器，或通过温度阈值自动检测，不能同时使用。",
+            "no_central_config": "您无法选中“使用中央配置”，因为未找到中央配置。您需要创建一个“中央配置”类型的多功能恒温器才能使用它。",
+            "service_configuration_format": "服务配置格式错误",
+            "valve_regulation_nb_entities_incorrect": "阀门调节的阀门实体数量应等于底层设备数量",
+            "sync_device_internal_temp_nb_entities_incorrect": "同步设备内部温度的实体数量应等于底层数量",
+            "min_opening_degrees_format": "需要逗号分隔的正整数列表。示例：20、25、30",
+            "max_opening_degrees_format": "需要一个介于 0 和最大阀门开度之间的逗号分隔的正整数列表。示例：80、85、90",
+            "min_max_opening_degrees_inconsistent": "对于每个底层设备，max_opening_degrees 必须严格大于 min_opening_degrees。请检查你的配置。",
+            "vswitch_configuration_incorrect": "命令自定义配置不正确。对于不是 switch 的底层实体，这是必需的，格式必须为 service_name[/attribute:value]。更多信息请参阅 README。"
+        },
+        "abort": {
+            "already_configured": "设备已配置"
+        }
+    },
+    "options": {
+        "flow_title": "多功能恒温器配置",
+        "step": {
+            "user": {
+                "title": "类型 - {name}",
+                "description": "选择要创建的恒温器类型",
+                "data": {
+                    "thermostat_type": "恒温器类型"
+                },
+                "data_description": {
+                    "thermostat_type": "只能使用一种中央配置类型"
+                }
+            },
+            "menu": {
+                "title": "菜单",
+                "description": "配置你的恒温器。输入所有必填参数后即可完成配置。",
+                "menu_options": {
+                    "main": "主要属性",
+                    "central_boiler": "中央锅炉",
+                    "type": "底层设备",
+                    "tpi": "TPI 参数",
+                    "features": "功能",
+                    "presets": "预设",
+                    "window": "窗户检测",
+                    "motion": "运动检测",
+                    "power": "功率管理",
+                    "presence": "在家状态检测",
+                    "advanced": "高级参数",
+                    "auto_start_stop": "自动启动和停止",
+                    "valve_regulation": "阀门调节配置",
+                    "sync_device_internal_temp": "同步设备温度",
+                    "lock": "锁定",
+                    "heating_failure_detection": "加热故障检测",
+                    "finalize": "全部完成",
+                    "configuration_not_complete": "配置未完成"
+                }
+            },
+            "lock": {
+                "title": "锁管理 - {name}",
+                "description": "锁定功能可防止 UI 或自动化更改恒温器的配置，同时保持恒温器运行。",
+                "data": {
+                    "use_lock_central_config": "使用中控锁配置",
+                    "lock_code": "可选 PIN 码（4 位数字）",
+                    "lock_users": "锁定将阻止用户发出命令",
+                    "lock_automations": "锁定将阻止来自自动化和集成（即调度程序）的命令",
+                    "auto_relock_sec": "自动重锁延迟"
+                },
+                "data_description": {
+                    "use_lock_central_config": "勾选使用中控锁配置。取消选中为此 VTherm 使用特定的锁定配置",
+                    "auto_relock_sec": "解锁后自动重新锁定之前的延迟秒数。设置为 0 以禁用自动重新锁定。默认值为 30 秒。"
+                }
+            },
+            "main": {
+                "title": "主要 - {name}",
+                "description": "主要必填属性",
+                "data": {
+                    "name": "名称",
+                    "thermostat_type": "恒温器类型",
+                    "temperature_sensor_entity_id": "室内温度",
+                    "last_seen_temperature_sensor_entity_id": "最近一次室内温度更新时间",
+                    "external_temperature_sensor_entity_id": "室外温度传感器实体 ID",
+                    "cycle_min": "循环持续时间（分钟）",
+                    "temp_min": "允许的最低温度",
+                    "temp_max": "允许的最高温度",
+                    "step_temperature": "温度步进",
+                    "device_power": "设备功率",
+                    "use_central_mode": "启用中央实体控制（需要中央配置）。勾选后可使用 central_mode 选择实体控制此 VTherm。",
+                    "use_main_central_config": "使用额外的中央主配置。勾选后使用中央主配置（室外温度、最小值、最大值、步进等）。",
+                    "used_by_controls_central_boiler": "用于中央锅炉。勾选后，此 VTherm 可以控制中央锅炉"
+                },
+                "data_description": {
+                    "cycle_min": "一个加热/冷却循环的最短持续时间（以分钟为单位）以避免过于频繁的切换",
+                    "temp_min": "恒温器允许的最低温度",
+                    "temp_max": "恒温器允许的最高温度",
+                    "step_temperature": "设置目标温度的温度步长",
+                    "temperature_sensor_entity_id": "室温传感器实体 ID",
+                    "last_seen_temperature_sensor_entity_id": "室温传感器最后更新时间实体 ID。应为 datetime 传感器",
+                    "external_temperature_sensor_entity_id": "室外温度传感器实体 ID。如果选择中央配置则不使用"
+                }
+            },
+            "features": {
+                "title": "特点 - {name}",
+                "description": "恒温器功能",
+                "data": {
+                    "use_window_feature": "使用窗户检测",
+                    "use_motion_feature": "使用运动检测",
+                    "use_power_feature": "使用功率管理",
+                    "use_presence_feature": "使用在家状态检测",
+                    "use_central_boiler_feature": "使用中央锅炉。勾选后为中央锅炉添加控制。此复选框生效后，还需要配置将控制中央锅炉的 VTherm。如果某个 VTherm 需要加热，锅炉将开启；如果没有 VTherm 需要加热，锅炉将关闭。开启/关闭中央锅炉的命令在相关配置页面中设置。",
+                    "use_auto_start_stop_feature": "使用自动启停功能",
+                    "use_heating_failure_detection_feature": "使用加热故障检测"
+                }
+            },
+            "type": {
+                "title": "实体 - {name}",
+                "description": "链接实体属性",
+                "data": {
+                    "underlying_entity_ids": "需要控制的设备",
+                    "heater_keep_alive": "开关保活间隔（秒）",
+                    "proportional_function": "算法",
+                    "ac_mode": "空调模式",
+                    "sync_device_internal_temp": "同步设备温度",
+                    "auto_regulation_mode": "自调节",
+                    "auto_regulation_dtemp": "调节阈值",
+                    "auto_regulation_periode_min": "调节最短周期",
+                    "auto_regulation_use_device_temp": "使用底层内部温度",
+                    "inverse_switch_command": "反向开关指令",
+                    "auto_fan_mode": "自动风扇模式",
+                    "on_command_text": "开启命令自定义",
+                    "vswitch_on_command": "可选开启命令",
+                    "off_command_text": "关闭命令自定义",
+                    "vswitch_off_command": "可选关闭命令"
+                },
+                "data_description": {
+                    "underlying_entity_ids": "要控制的设备 - 1 为必填项",
+                    "heater_keep_alive": "可选的加热器开关状态刷新间隔。不需要时请留空。",
+                    "proportional_function": "算法（目前只有TPI）",
+                    "ac_mode": "使用空调（AC）模式",
+                    "sync_device_internal_temp": "勾选同步底层设备内部温度（填写新菜单项“同步设备温度”进行配置）",
+                    "auto_regulation_mode": "自动调节目标温度",
+                    "auto_regulation_dtemp": "以 °（或阀门的 %）为单位的阈值，低于该阈值将不会发送温度变化",
+                    "auto_regulation_periode_min": "两次调节更新之间的时间间隔（分钟）",
+                    "auto_regulation_use_device_temp": "使用底层设备可能提供的内部温度传感器来加速自调节（大多数情况下不需要）",
+                    "inverse_switch_command": "对于带导引线和二极管的开关，可能需要反转命令",
+                    "auto_fan_mode": "当需要大量加热/冷却时自动启动风扇",
+                    "on_command_text": "对于 `select` 或 `climate` 类型的底层，您必须自定义命令。"
+                }
+            },
+            "tpi": {
+                "title": "TPI - {name}",
+                "description": "时间比例积分属性",
+                "data": {
+                    "tpi_coef_int": "coef_int",
+                    "tpi_coef_ext": "coef_ext",
+                    "tpi_threshold_low": "TPI 阈值低",
+                    "tpi_threshold_high": "TPI 高阈值",
+                    "use_tpi_central_config": "使用中央TPI配置",
+                    "minimal_activation_delay": "最小激活延迟",
+                    "minimal_deactivation_delay": "最小停用延迟",
+                    "auto_tpi_mode": "启用自动 TPI 学习"
+                },
+                "data_description": {
+                    "tpi_coef_int": "用于内部温度增量的系数",
+                    "tpi_coef_ext": "用于外部温度增量的系数",
+                    "tpi_threshold_low": "以°为单位的阈值，在该阈值下，TPI 算法将开启。 0表示无阈值",
+                    "tpi_threshold_high": "以°为单位的阈值，高于该阈值，TPI 算法将关闭。 0表示无阈值",
+                    "use_tpi_central_config": "选中以使用中央 TPI 配置。取消选中为此 VTherm 使用特定的 TPI 配置",
+                    "minimal_activation_delay": "设备不会被激活的延迟秒数",
+                    "minimal_deactivation_delay": "设备保持活动状态的延迟（以秒为单位）",
+                    "auto_tpi_mode": "TPI 学习会话需要手动启动，请先阅读文档。"
+                }
+            },
+            "presets": {
+                "title": "预设 - {name}",
+                "description": "勾选后恒温器将使用中央预设。取消勾选则恒温器会拥有自己的预设实体",
+                "data": {
+                    "use_presets_central_config": "使用中央预设配置"
+                }
+            },
+            "window": {
+                "title": "窗户 - {name}",
+                "description": "窗户管理。\n也可以根据温度下降配置自动开窗检测",
+                "data": {
+                    "window_sensor_entity_id": "窗户传感器实体 ID",
+                    "window_delay": "窗户传感器“开启”延迟（秒）",
+                    "window_off_delay": "窗户传感器“关闭”延迟（秒）",
+                    "window_auto_open_threshold": "自动开窗检测的温度下降阈值（单位为°/小时）",
+                    "window_auto_close_threshold": "自动检测结束的温升阈值（单位为°/小时）",
+                    "window_auto_max_duration": "自动开窗检测最大持续时间（分钟）",
+                    "use_window_central_config": "使用中央窗户配置",
+                    "window_action": "操作"
+                },
+                "data_description": {
+                    "window_sensor_entity_id": "如果不使用窗户传感器并使用自动检测，则留空",
+                    "window_delay": "考虑传感器“开启”检测之前的延迟（以秒为单位）",
+                    "window_off_delay": "传感器“关闭”检测被采纳前的延迟（秒）。留空则使用与开启延迟相同的值",
+                    "window_auto_open_threshold": "建议值：3 到 10 之间。如果不使用自动开窗检测，则留空",
+                    "window_auto_close_threshold": "建议值：0。如果不使用自动开窗检测，则留空",
+                    "window_auto_max_duration": "建议值：60（一小时）。如果不使用自动窗户打开检测，则留空",
+                    "use_window_central_config": "选择使用中央窗户配置。取消选择则为此 VTherm 使用特定窗户配置",
+                    "window_action": "检测到窗户打开时执行的操作"
+                }
+            },
+            "motion": {
+                "title": "运动 - {name}",
+                "description": "运动传感器管理。预设可根据运动检测自动切换\nmotion_preset 和 no_motion_preset 应设置为对应的预设名称",
+                "data": {
+                    "motion_sensor_entity_id": "运动传感器实体 ID",
+                    "motion_delay": "激活延迟",
+                    "motion_off_delay": "停用延迟",
+                    "motion_preset": "运动预设",
+                    "no_motion_preset": "无运动预设",
+                    "use_motion_central_config": "使用中央运动配置"
+                },
+                "data_description": {
+                    "motion_sensor_entity_id": "运动传感器的实体 ID",
+                    "motion_delay": "运动激活延迟（秒）",
+                    "motion_off_delay": "运动停用延迟（秒）",
+                    "motion_preset": "检测到运动时使用的预设",
+                    "no_motion_preset": "未检测到运动时使用的预设",
+                    "use_motion_central_config": "选中以使用中央运动配置。取消选中为此 VTherm 使用特定运动配置"
+                }
+            },
+            "power": {
+                "title": "功率 - {name}",
+                "description": "电源管理属性。\n提供您家的功率和最大功率传感器。\n指定加热器开启时的功耗。\n所有传感器和设备功率应使用相同的单位（kW 或 W）",
+                "data": {
+                    "power_sensor_entity_id": "功率",
+                    "max_power_sensor_entity_id": "最大功率",
+                    "power_temp": "削峰温度",
+                    "use_power_central_config": "采用集中电源配置"
+                },
+                "data_description": {
+                    "power_sensor_entity_id": "功率传感器实体 ID",
+                    "max_power_sensor_entity_id": "最大功率传感器实体 ID",
+                    "power_temp": "断电温度",
+                    "use_power_central_config": "勾选使用中央电源配置。取消选中为此 VTherm 使用特定电源配置"
+                }
+            },
+            "presence": {
+                "title": "在家状态 - {name}",
+                "description": "在家状态管理属性。\n提供家中的在家状态传感器（true 表示有人在家），并设置对应的温度预设",
+                "data": {
+                    "presence_sensor_entity_id": "在家状态传感器",
+                    "use_presence_central_config": "使用中央在家状态温度配置。取消选择则使用特定温度实体"
+                },
+                "data_description": {
+                    "presence_sensor_entity_id": "在家状态传感器实体 ID"
+                }
+            },
+            "advanced": {
+                "title": "高级 - {name}",
+                "description": "高级参数配置。如果您不知道自己在做什么，请保留默认值。\n这些参数可能导致温度控制很差或功率调节很差",
+                "data": {
+                    "minimal_activation_delay": "最小激活延迟",
+                    "minimal_deactivation_delay": "最小停用延迟",
+                    "safety_delay_min": "安全延时（分钟）",
+                    "safety_min_on_percent": "启用安全模式的最低功率百分比",
+                    "safety_default_on_percent": "安全模式下使用的功率百分比",
+                    "repair_incorrect_state": "修复不正确的状态",
+                    "use_advanced_central_config": "使用中央高级配置"
+                },
+                "data_description": {
+                    "minimal_activation_delay": "设备不会被激活的延迟秒数",
+                    "minimal_deactivation_delay": "设备保持活动状态的延迟（以秒为单位）",
+                    "safety_delay_min": "两次温度测量之间允许的最大延迟（以分钟为单位）。超过此延迟，恒温器将转至安全关闭状态",
+                    "safety_min_on_percent": "安全预设激活的最小加热百分比值。低于此功率百分比时，恒温器将不会进入安全预设状态",
+                    "safety_default_on_percent": "安全预设中的默认加热功率百分比值。设置为 0 以在安全预设中关闭加热器",
+                    "repair_incorrect_state": "检测到时自动修复底层实体的错误状态。如果底层设备状态与预期状态不匹配，该功能将重新发送所需的命令。",
+                    "use_advanced_central_config": "勾选使用中央高级配置。取消选中为此 VTherm 使用特定的高级配置"
+                }
+            },
+            "central_boiler": {
+                "title": "中央锅炉控制 - {name}",
+                "description": "输入要调用的服务以打开/关闭中央锅炉。调用的服务必须格式如下：`entity_id/service_name[/attribute:value]`（/attribute:value 是可选的）\n例如：\n- 打开开关：`switch.controle_chaudiere/switch.turn_on`\n- 关闭开关：`switch.controle_chaudiere/switch.turn_off`\n- 将锅炉编程至 25°，从而强制其点火：`climate.thermostat_chaudiere/climate.set_temperature/temperature:25`\n- 向锅炉发送 10°，从而强制其熄灭：`climate.thermostat_chaudiere/climate.set_temperature/temperature:10`",
+                "data": {
+                    "central_boiler_activation_service": "开启命令",
+                    "central_boiler_deactivation_service": "关闭命令",
+                    "central_boiler_activation_delay_sec": "激活延迟（秒）",
+                    "keep_alive_boiler_delay_sec": "保活延迟（秒）"
+                },
+                "data_description": {
+                    "central_boiler_activation_service": "开启中央锅炉的命令，格式类似 entity_id/service_name[/attribute:value]",
+                    "central_boiler_deactivation_service": "关闭中央锅炉的命令，格式类似 entity_id/service_name[/attribute:value]",
+                    "central_boiler_activation_delay_sec": "当需要打开中央锅炉时，在激活中央锅炉之前延迟几秒",
+                    "keep_alive_boiler_delay_sec": "如果启用了保持活动状态，则定期重新发送锅炉命令的延迟（以秒为单位）。设置为 0 以禁用保持活动状态。"
+                }
+            },
+            "valve_regulation": {
+                "title": "带阀自调节 - {name}",
+                "description": "通过直接控制阀门进行自我调节的配置",
+                "data": {
+                    "offset_calibration_entity_ids": "偏移校准实体",
+                    "opening_degree_entity_ids": "开度实体",
+                    "closing_degree_entity_ids": "闭合度实体",
+                    "proportional_function": "算法",
+                    "opening_threshold_degree": "开启阈值度数",
+                    "min_opening_degrees": "最小开度",
+                    "max_opening_degrees": "最大开度",
+                    "max_closing_degree": "最大关闭度"
+                },
+                "data_description": {
+                    "offset_calibration_entity_ids": "“偏移校准”实体列表。如果你的 TRV 提供该实体，请设置它以获得更好的调节效果。每个底层 climate 实体应对应一个。",
+                    "opening_degree_entity_ids": "“开度”实体列表。每个底层 climate 实体应对应一个。",
+                    "closing_degree_entity_ids": "“闭合度”实体列表。如果你的 TRV 提供该实体，请设置它以获得更好的调节效果。每个底层 climate 实体应对应一个。",
+                    "proportional_function": "算法（目前只有TPI）",
+                    "opening_threshold_degree": "阀门开度低于此值时应视为关闭（并应用 max_closing_degree）",
+                    "min_opening_degrees": "当超过先前阈值时每个底层设备的开度最小值，以逗号分隔。默认为 0。示例：20、25、30",
+                    "max_opening_degrees": "开度最大值。阀门的开度永远不会超过该值",
+                    "max_closing_degree": "关闭度最大值。阀门永远不会在高于该值时关闭。将其设置为 100 以完全关闭阀门"
+                }
+            },
+            "sync_device_internal_temp": {
+                "title": "同步设备内部温度",
+                "description": "配置以将底层设备的内部温度与所选实体同步",
+                "data": {
+                    "sync_with_calibration": "应用偏移校准",
+                    "sync_entity_ids": "用于同步的实体 ID"
+                },
+                "data_description": {
+                    "sync_with_calibration": "勾选以在同步内部温度时应用偏移校准。取消选中可直接复制所选实体的温度",
+                    "sync_entity_ids": "用于同步底层设备内部温度的实体列表。每个底层设备应该有一个。如果选中复选框，则应为校准实体，否则应为温度实体。两者都是 `number` 实体。"
+                }
+            },
+            "auto_tpi_configuration": {
+                "title": "自动 TPI - 配置 - {name}",
+                "description": "自动 TPI 学习的常规设置。",
+                "data": {
+                    "auto_tpi_learning_type": "学习类型",
+                    "auto_tpi_heating_rate": "升温速率（{unit}/h）",
+                    "heater_heating_time": "加热时间（分钟）",
+                    "heater_cooling_time": "冷却时间（分钟）",
+                    "auto_tpi_aggressiveness": "激进程度",
+                    "auto_tpi_enable_advanced_settings": "启用高级参数",
+                    "auto_tpi_continuous_kext": "持续学习 Kext"
+                },
+                "data_description": {
+                    "auto_tpi_learning_type": "选择“Discovery”用于初始启动（加权平均，权重 1），或选择“Fine Tuning”用于持续调整（EWMA，Alpha 0.08）。",
+                    "auto_tpi_heating_rate": "散热器升温能力（{unit}每小时）。保留为 0 以进行自动学习（引导程序）。",
+                    "heater_heating_time": "达到满功率的时间（分钟）",
+                    "heater_cooling_time": "停止后的冷却时间（分钟）\n\n| 类型 | 加热时间 | 冷却时间 |\n| :--- | :--- | :--- |\n| 电暖器 | 5mn | 7mn |\n| 水暖散热器 | 15mn | 20mn |\n| 地暖 | 30mn | 45mn |",
+                    "auto_tpi_aggressiveness": "学习系数的缩减因子 (50-100%)。较低的值会产生更保守的系数并降低超调风险。",
+                    "auto_tpi_enable_advanced_settings": "勾选后可访问参数微调（Alpha、衰减、权重）。",
+                    "auto_tpi_continuous_kext": "选中以启用 AutoTPI 会话之外的外部系数 (Kext) 的持续学习。"
+                }
+            },
+            "auto_tpi_avg_settings": {
+                "title": "自动 TPI - 加权平均 - {name}",
+                "description": "加权平均法参数。",
+                "data": {
+                    "auto_tpi_avg_initial_weight": "初始权重"
+                },
+                "data_description": {
+                    "auto_tpi_avg_initial_weight": "平均计算中现有系数的初始权重（典型值为 1-50）。权重越高，学习越慢也越稳定。"
+                }
+            },
+            "auto_tpi_ema_settings": {
+                "title": "Auto TPI - EWMA - {name}",
+                "description": "EWMA 方法的参数。\n\n建议：\n| 场景 | Alpha (ema_alpha) | 衰减率 (ema_decay_rate) |\n| :--- | :--- | :--- |\n| 强力调整 | 0.15 | 0.08 |\n| 精细调节 | 0.08 | 0.12 |",
+                "data": {
+                    "auto_tpi_ema_alpha": "Alpha",
+                    "auto_tpi_ema_decay_rate": "衰减率",
+                    "auto_tpi_continuous_kext_alpha": "连续 Kext Alpha"
+                },
+                "data_description": {
+                    "auto_tpi_ema_alpha": "平滑因子 (0-1)。更高=更快的适应",
+                    "auto_tpi_ema_decay_rate": "Alpha 随时间下降的速率（稳定）",
+                    "auto_tpi_continuous_kext_alpha": "用于连续 Kext 学习的平滑因子 (Alpha)。默认 0.04（大约 3-5 天适应）。"
+                }
+            },
+            "heating_failure_detection": {
+                "title": "加热故障检测 - {name}",
+                "description": "配置加热故障检测功能。当预期加热但温度不升高时，或者当加热关闭但温度持续升高时，该功能会检测到异常情况。",
+                "data": {
+                    "use_heating_failure_detection_feature": "启用加热故障检测",
+                    "use_heating_failure_detection_central_config": "使用集中供暖故障检测配置",
+                    "heating_failure_threshold": "加热故障阈值",
+                    "cooling_failure_threshold": "冷却故障阈值",
+                    "heating_failure_detection_delay": "检测延迟（分钟）",
+                    "temperature_change_tolerance": "温度变化容限 (°C)",
+                    "failure_detection_enable_template": "检测启用模板"
+                },
+                "data_description": {
+                    "use_heating_failure_detection_feature": "使用 TPI 启用 VTherms 加热异常检测",
+                    "use_heating_failure_detection_central_config": "勾选使用集中供暖故障检测配置。取消选中为此 VTherm 使用特定参数",
+                    "heating_failure_threshold": "开启百分比阈值，高于该阈值加热将导致温度升高 (0.9 = 90%)",
+                    "cooling_failure_threshold": "开启百分比阈值，低于该阈值温度不应升高 (0.0 = 0%)",
+                    "heating_failure_detection_delay": "检查温度是否按预期变化前需要等待的时间（分钟）",
+                    "temperature_change_tolerance": "考虑显着的最小温度变化度。忽略较小的变化以过滤传感器噪声（默认值：0.5°C）",
+                    "failure_detection_enable_template": "可选的 Jinja2 模板，必须返回 True 才能启用检测。当外部热源处于活动状态时（例如，双花括号中的 `is_state('binary_sensor.wood_stove', 'off')`），可用于暂时禁用检测。如果为空，则始终启用检测。"
+                }
+            }
+        },
+        "error": {
+            "unknown": "意外错误",
+            "unknown_entity": "未知实体 ID",
+            "window_open_detection_method": "只能使用一种开窗检测方法：使用窗户传感器，或通过温度阈值自动检测，不能同时使用。",
+            "no_central_config": "您无法选中“使用中央配置”，因为未找到中央配置。您需要创建一个“中央配置”类型的多功能恒温器才能使用它。",
+            "service_configuration_format": "服务配置格式错误",
+            "valve_regulation_nb_entities_incorrect": "阀门调节的阀门实体数量应等于底层设备数量",
+            "sync_device_internal_temp_nb_entities_incorrect": "同步设备内部温度的实体数量应等于底层数量",
+            "min_opening_degrees_format": "需要逗号分隔的正整数列表。示例：20、25、30",
+            "max_opening_degrees_format": "需要一个介于 0 和阀门最大值之间的逗号分隔的正整数列表。示例：80、85、90",
+            "min_max_opening_degrees_inconsistent": "对于每个底层设备，max_opening_degrees 必须严格大于 min_opening_degrees。请检查你的配置。",
+            "vswitch_configuration_incorrect": "命令自定义配置不正确。对于不是 switch 的底层实体，这是必需的，格式必须为 service_name[/attribute:value]。更多信息请参阅 README。"
+        },
+        "abort": {
+            "already_configured": "设备已配置"
+        }
+    },
+    "selector": {
+        "thermostat_type": {
+            "options": {
+                "thermostat_central_config": "集中配置",
+                "thermostat_over_switch": "基于开关的恒温器",
+                "thermostat_over_climate": "基于 climate 的恒温器",
+                "thermostat_over_valve": "基于阀门的恒温器"
+            }
+        },
+        "auto_regulation_mode": {
+            "options": {
+                "auto_regulation_slow": "慢",
+                "auto_regulation_strong": "强",
+                "auto_regulation_medium": "中等",
+                "auto_regulation_light": "轻度",
+                "auto_regulation_expert": "专家",
+                "auto_regulation_none": "无自动调节",
+                "auto_regulation_valve": "阀门直接控制"
+            }
+        },
+        "auto_fan_mode": {
+            "options": {
+                "auto_fan_none": "无自动风扇",
+                "auto_fan_low": "低",
+                "auto_fan_medium": "中速",
+                "auto_fan_high": "高",
+                "auto_fan_turbo": "涡轮"
+            }
+        },
+        "window_action": {
+            "options": {
+                "window_turn_off": "关闭",
+                "window_fan_only": "仅风扇",
+                "window_frost_temp": "防冻保护",
+                "window_eco_temp": "生态"
+            }
+        },
+        "presets": {
+            "options": {
+                "frost": "防冻保护",
+                "eco": "生态",
+                "comfort": "舒适",
+                "boost": "增强"
+            }
+        },
+        "auto_start_stop": {
+            "options": {
+                "auto_start_stop_none": "无自动启停",
+                "auto_start_stop_very_slow": "检测速度非常慢",
+                "auto_start_stop_slow": "慢速检测",
+                "auto_start_stop_medium": "中等速度检测",
+                "auto_start_stop_fast": "快速检测"
+            }
+        },
+        "auto_tpi_calculation_method": {
+            "options": {
+                "average": "平均值",
+                "ema": "指数移动平均线 (EMA)"
+            }
+        },
+        "auto_tpi_learning_type": {
+            "options": {
+                "discovery": "发现",
+                "fine_tuning": "微调"
+            }
+        }
+    },
+    "entity": {
+        "climate": {
+            "versatile_thermostat": {
+                "state_attributes": {
+                    "preset_mode": {
+                        "state": {
+                            "power": "功率限制",
+                            "safety": "安全",
+                            "none": "手动",
+                            "frost": "防冻"
+                        }
+                    }
+                }
+            }
+        },
+        "binary_sensor": {
+            "safety_state": {
+                "name": "安全状态"
+            },
+            "heating_failure_state": {
+                "name": "加热故障状态"
+            },
+            "overpowering_state": {
+                "name": "过载状态"
+            },
+            "window_state": {
+                "name": "窗户状态"
+            },
+            "motion_state": {
+                "name": "运动状态"
+            },
+            "presence_state": {
+                "name": "在家状态"
+            },
+            "window_bypass_state": {
+                "name": "窗户旁路"
+            },
+            "central_boiler_state": {
+                "name": "中央锅炉"
+            }
+        },
+        "number": {
+            "frost_temp": {
+                "name": "防冻"
+            },
+            "eco_temp": {
+                "name": "生态"
+            },
+            "comfort_temp": {
+                "name": "舒适"
+            },
+            "boost_temp": {
+                "name": "增强"
+            },
+            "frost_ac_temp": {
+                "name": "防冻空调"
+            },
+            "eco_ac_temp": {
+                "name": "节能空调"
+            },
+            "comfort_ac_temp": {
+                "name": "舒适空调"
+            },
+            "boost_ac_temp": {
+                "name": "增强空调"
+            },
+            "frost_away_temp": {
+                "name": "离家防冻"
+            },
+            "eco_away_temp": {
+                "name": "离家节能"
+            },
+            "comfort_away_temp": {
+                "name": "离家舒适"
+            },
+            "boost_away_temp": {
+                "name": "离家增强"
+            },
+            "eco_ac_away_temp": {
+                "name": "离家节能空调"
+            },
+            "comfort_ac_away_temp": {
+                "name": "离家舒适空调"
+            },
+            "boost_ac_away_temp": {
+                "name": "离家增强空调"
+            }
+        }
+    },
+    "services": {
+        "set_auto_tpi_mode": {
+            "name": "设置自动 TPI 模式",
+            "description": "启用或禁用自动 TPI 学习模式",
+            "fields": {
+                "auto_tpi_mode": {
+                    "name": "自动 TPI 模式",
+                    "description": "启用（true）或禁用（false）自动 TPI 学习"
+                },
+                "reinitialise": {
+                    "name": "重置学习数据",
+                    "description": "启用自动 TPI 模式时重置所有学习数据（默认为 true）"
+                }
+            }
+        },
+        "reset_auto_tpi_capacities": {
+            "name": "重置 Auto TPI 能力",
+            "description": "将学习的最大加热和冷却能力重置为 1.0 °C/h。学习的系数不会重置。"
+        },
+        "auto_tpi_calibrate_capacity": {
+            "name": "Auto TPI 校准能力",
+            "description": "使用实体历史数据的线性回归来校准加热/冷却能力（以°C/小时为单位）。学习的系数不会更新。",
+            "fields": {
+                "start_date": {
+                    "name": "历史开始日期",
+                    "description": "检索历史记录的日期（默认为 30 天前）"
+                },
+                "end_date": {
+                    "name": "历史结束日期",
+                    "description": "检索历史记录的截止日期（默认为现在）"
+                },
+                "hvac_mode": {
+                    "name": "HVAC 模式",
+                    "description": "校准哪种模式（加热或冷却）。"
+                },
+                "save_to_config": {
+                    "name": "保存到配置",
+                    "description": "将计算出的容量应用于自动 TPI 配置。"
+                },
+                "min_power_threshold": {
+                    "name": "最小功率阈值",
+                    "description": "将周期视为饱和的最小功率百分比（默认 95%）。较低的值将包括更多的周期，但可能不太准确。"
+                }
+            }
+        },
+        "set_tpi_parameters": {
+            "name": "设置TPI参数",
+            "description": "更改TPI参数",
+            "fields": {
+                "minimal_activation_delay": {
+                    "name": "最小激活延迟",
+                    "description": "设备不会被激活的延迟秒数"
+                },
+                "minimal_deactivation_delay": {
+                    "name": "最小停用延迟",
+                    "description": "设备保持活动状态的延迟（以秒为单位）"
+                },
+                "tpi_threshold_low": {
+                    "name": "TPI 阈值低",
+                    "description": "以°为单位的阈值，在该阈值下，TPI 算法将开启。 0表示无阈值"
+                },
+                "tpi_threshold_high": {
+                    "name": "TPI 高阈值",
+                    "description": "以°为单位的阈值，高于该阈值，TPI 算法将关闭。 0表示无阈值"
+                }
+            }
+        },
+        "lock": {
+            "name": "锁定",
+            "description": "锁定恒温器，防止 UI 或自动化对其配置进行任何更改。",
+            "fields": {
+                "code": {
+                    "name": "锁码",
+                    "description": "可选锁码"
+                }
+            }
+        },
+        "unlock": {
+            "name": "解锁",
+            "description": "解锁恒温器，允许更改其配置。",
+            "fields": {
+                "code": {
+                    "name": "锁码",
+                    "description": "可选锁码"
+                }
+            }
+        },
+        "download_logs": {
+            "name": "下载日志",
+            "description": "收集并下载 VTherm 实体的过滤日志。",
+            "fields": {
+                "log_level": {
+                    "name": "日志级别",
+                    "description": "要包含的最低日志级别"
+                },
+                "period_start": {
+                    "name": "周期开始",
+                    "description": "提取周期开始时间"
+                },
+                "period_end": {
+                    "name": "周期结束",
+                    "description": "提取周期结束时间"
+                }
+            }
+        }
+    },
+    "exceptions": {
+        "auto_tpi_learning_stopped": {
+            "message": "由于连续 3 次失败，{name} 的自动 TPI 学习已停止。原因：{reason}。请检查您的配置。"
+        }
+    }
+}
