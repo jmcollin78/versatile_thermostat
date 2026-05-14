@@ -218,7 +218,7 @@
                 "data_description": {
                     "power_sensor_entity_id": "功率传感器实体 ID",
                     "max_power_sensor_entity_id": "最大功率传感器实体 ID",
-                    "power_temp": "断电温度",
+                    "power_temp": "削峰温度",
                     "use_power_central_config": "勾选使用中央电源配置。取消选中为此 VTherm 使用特定电源配置"
                 }
             },
@@ -286,7 +286,7 @@
                     "closing_degree_entity_ids": "“闭合度”实体列表。如果你的 TRV 提供该实体，请设置它以获得更好的调节效果。每个底层 climate 实体应对应一个。",
                     "proportional_function": "算法（目前只有TPI）",
                     "opening_threshold_degree": "阀门开度低于此值时应视为关闭（并应用 max_closing_degree）",
-                    "min_opening_degrees": "当超过先前阈值时每个底层设备的开度最小值，以逗号分隔。默认为 0。示例：20、25、30",
+                    "min_opening_degrees": "当超过先前阈值时每个底层设备的开度最小值，以逗号分隔。默认为 0。示例：20,25,30",
                     "max_opening_degrees": "开度最大值。阀门的开度永远不会超过该值",
                     "max_closing_degree": "关闭度最大值。阀门永远不会在高于该值时关闭。将其设置为 100 以完全关闭阀门"
                 }
@@ -304,7 +304,7 @@
                     "auto_tpi_continuous_kext": "持续学习 Kext"
                 },
                 "data_description": {
-                    "auto_tpi_learning_type": "选择“Discovery”用于初始启动（加权平均，权重 1），或选择“Fine Tuning”用于持续调整（EWMA，Alpha 0.08）。",
+                    "auto_tpi_learning_type": "选择“发现”用于初始启动（加权平均，权重 1），或选择“微调”用于持续调整（EWMA，Alpha 0.08）。",
                     "heater_heating_time": "达到满功率的时间（分钟）",
                     "heater_cooling_time": "停止后的冷却时间（分钟）\n\n| 类型 | 加热时间 | 冷却时间 |\n| :--- | :--- | :--- |\n| 电暖器 | 5mn | 7mn |\n| 水暖散热器 | 15mn | 20mn |\n| 地暖 | 30mn | 45mn |",
                     "auto_tpi_heating_rate": "散热器升温能力（{unit}每小时）。保留为 0 以进行自动学习（引导程序）。",
@@ -354,7 +354,7 @@
                 "description": "配置加热故障检测功能。当预期加热但温度不升高时，或者当加热关闭但温度持续升高时，该功能会检测到异常情况。",
                 "data": {
                     "use_heating_failure_detection_feature": "启用加热故障检测",
-                    "use_heating_failure_detection_central_config": "使用集中供暖故障检测配置",
+                    "use_heating_failure_detection_central_config": "使用中央加热故障检测配置",
                     "heating_failure_threshold": "加热故障阈值",
                     "cooling_failure_threshold": "冷却故障阈值",
                     "heating_failure_detection_delay": "检测延迟（分钟）",
@@ -363,11 +363,11 @@
                 },
                 "data_description": {
                     "use_heating_failure_detection_feature": "使用 TPI 启用 VTherms 加热异常检测",
-                    "use_heating_failure_detection_central_config": "勾选使用集中供暖故障检测配置。取消选中为此 VTherm 使用特定参数",
+                    "use_heating_failure_detection_central_config": "勾选使用中央加热故障检测配置。取消选中为此 VTherm 使用特定参数",
                     "heating_failure_threshold": "开启百分比阈值，高于该阈值加热将导致温度升高 (0.9 = 90%)",
                     "cooling_failure_threshold": "开启百分比阈值，低于该阈值温度不应升高 (0.0 = 0%)",
                     "heating_failure_detection_delay": "检查温度是否按预期变化前需要等待的时间（分钟）",
-                    "temperature_change_tolerance": "考虑显着的最小温度变化度。忽略较小的变化以过滤传感器噪声（默认值：0.5°C）",
+                    "temperature_change_tolerance": "考虑显著的最小温度变化度。忽略较小的变化以过滤传感器噪声（默认值：0.5°C）",
                     "failure_detection_enable_template": "可选的 Jinja2 模板，必须返回 True 才能启用检测。当外部热源处于活动状态时（例如，双花括号中的 `is_state('binary_sensor.wood_stove', 'off')`），可用于暂时禁用检测。如果为空，则始终启用检测。"
                 }
             }
@@ -380,8 +380,8 @@
             "service_configuration_format": "服务配置格式错误",
             "valve_regulation_nb_entities_incorrect": "阀门调节的阀门实体数量应等于底层设备数量",
             "sync_device_internal_temp_nb_entities_incorrect": "同步设备内部温度的实体数量应等于底层数量",
-            "min_opening_degrees_format": "需要逗号分隔的正整数列表。示例：20、25、30",
-            "max_opening_degrees_format": "需要一个介于 0 和最大阀门开度之间的逗号分隔的正整数列表。示例：80、85、90",
+            "min_opening_degrees_format": "需要逗号分隔的正整数列表。示例：20,25,30",
+            "max_opening_degrees_format": "需要一个介于 0 和最大阀门开度之间的逗号分隔的正整数列表。示例：80,85,90",
             "min_max_opening_degrees_inconsistent": "对于每个底层设备，max_opening_degrees 必须严格大于 min_opening_degrees。请检查你的配置。",
             "vswitch_configuration_incorrect": "命令自定义配置不正确。对于不是 switch 的底层实体，这是必需的，格式必须为 service_name[/attribute:value]。更多信息请参阅 README。"
         },
@@ -604,7 +604,7 @@
                 "data_description": {
                     "power_sensor_entity_id": "功率传感器实体 ID",
                     "max_power_sensor_entity_id": "最大功率传感器实体 ID",
-                    "power_temp": "断电温度",
+                    "power_temp": "削峰温度",
                     "use_power_central_config": "勾选使用中央电源配置。取消选中为此 VTherm 使用特定电源配置"
                 }
             },
@@ -676,7 +676,7 @@
                     "closing_degree_entity_ids": "“闭合度”实体列表。如果你的 TRV 提供该实体，请设置它以获得更好的调节效果。每个底层 climate 实体应对应一个。",
                     "proportional_function": "算法（目前只有TPI）",
                     "opening_threshold_degree": "阀门开度低于此值时应视为关闭（并应用 max_closing_degree）",
-                    "min_opening_degrees": "当超过先前阈值时每个底层设备的开度最小值，以逗号分隔。默认为 0。示例：20、25、30",
+                    "min_opening_degrees": "当超过先前阈值时每个底层设备的开度最小值，以逗号分隔。默认为 0。示例：20,25,30",
                     "max_opening_degrees": "开度最大值。阀门的开度永远不会超过该值",
                     "max_closing_degree": "关闭度最大值。阀门永远不会在高于该值时关闭。将其设置为 100 以完全关闭阀门"
                 }
@@ -706,7 +706,7 @@
                     "auto_tpi_continuous_kext": "持续学习 Kext"
                 },
                 "data_description": {
-                    "auto_tpi_learning_type": "选择“Discovery”用于初始启动（加权平均，权重 1），或选择“Fine Tuning”用于持续调整（EWMA，Alpha 0.08）。",
+                    "auto_tpi_learning_type": "选择“发现”用于初始启动（加权平均，权重 1），或选择“微调”用于持续调整（EWMA，Alpha 0.08）。",
                     "auto_tpi_heating_rate": "散热器升温能力（{unit}每小时）。保留为 0 以进行自动学习（引导程序）。",
                     "heater_heating_time": "达到满功率的时间（分钟）",
                     "heater_cooling_time": "停止后的冷却时间（分钟）\n\n| 类型 | 加热时间 | 冷却时间 |\n| :--- | :--- | :--- |\n| 电暖器 | 5mn | 7mn |\n| 水暖散热器 | 15mn | 20mn |\n| 地暖 | 30mn | 45mn |",
@@ -744,7 +744,7 @@
                 "description": "配置加热故障检测功能。当预期加热但温度不升高时，或者当加热关闭但温度持续升高时，该功能会检测到异常情况。",
                 "data": {
                     "use_heating_failure_detection_feature": "启用加热故障检测",
-                    "use_heating_failure_detection_central_config": "使用集中供暖故障检测配置",
+                    "use_heating_failure_detection_central_config": "使用中央加热故障检测配置",
                     "heating_failure_threshold": "加热故障阈值",
                     "cooling_failure_threshold": "冷却故障阈值",
                     "heating_failure_detection_delay": "检测延迟（分钟）",
@@ -753,11 +753,11 @@
                 },
                 "data_description": {
                     "use_heating_failure_detection_feature": "使用 TPI 启用 VTherms 加热异常检测",
-                    "use_heating_failure_detection_central_config": "勾选使用集中供暖故障检测配置。取消选中为此 VTherm 使用特定参数",
+                    "use_heating_failure_detection_central_config": "勾选使用中央加热故障检测配置。取消选中为此 VTherm 使用特定参数",
                     "heating_failure_threshold": "开启百分比阈值，高于该阈值加热将导致温度升高 (0.9 = 90%)",
                     "cooling_failure_threshold": "开启百分比阈值，低于该阈值温度不应升高 (0.0 = 0%)",
                     "heating_failure_detection_delay": "检查温度是否按预期变化前需要等待的时间（分钟）",
-                    "temperature_change_tolerance": "考虑显着的最小温度变化度。忽略较小的变化以过滤传感器噪声（默认值：0.5°C）",
+                    "temperature_change_tolerance": "考虑显著的最小温度变化度。忽略较小的变化以过滤传感器噪声（默认值：0.5°C）",
                     "failure_detection_enable_template": "可选的 Jinja2 模板，必须返回 True 才能启用检测。当外部热源处于活动状态时（例如，双花括号中的 `is_state('binary_sensor.wood_stove', 'off')`），可用于暂时禁用检测。如果为空，则始终启用检测。"
                 }
             }
@@ -770,8 +770,8 @@
             "service_configuration_format": "服务配置格式错误",
             "valve_regulation_nb_entities_incorrect": "阀门调节的阀门实体数量应等于底层设备数量",
             "sync_device_internal_temp_nb_entities_incorrect": "同步设备内部温度的实体数量应等于底层数量",
-            "min_opening_degrees_format": "需要逗号分隔的正整数列表。示例：20、25、30",
-            "max_opening_degrees_format": "需要一个介于 0 和阀门最大值之间的逗号分隔的正整数列表。示例：80、85、90",
+            "min_opening_degrees_format": "需要逗号分隔的正整数列表。示例：20,25,30",
+            "max_opening_degrees_format": "需要一个介于 0 和阀门最大值之间的逗号分隔的正整数列表。示例：80,85,90",
             "min_max_opening_degrees_inconsistent": "对于每个底层设备，max_opening_degrees 必须严格大于 min_opening_degrees。请检查你的配置。",
             "vswitch_configuration_incorrect": "命令自定义配置不正确。对于不是 switch 的底层实体，这是必需的，格式必须为 service_name[/attribute:value]。更多信息请参阅 README。"
         },
@@ -981,8 +981,8 @@
             }
         },
         "set_tpi_parameters": {
-            "name": "设置TPI参数",
-            "description": "更改TPI参数",
+            "name": "设置 TPI 参数",
+            "description": "更改 TPI 参数",
             "fields": {
                 "minimal_activation_delay": {
                     "name": "最小激活延迟",
