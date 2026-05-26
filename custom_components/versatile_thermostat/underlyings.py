@@ -630,6 +630,16 @@ class UnderlyingClimate(UnderlyingEntity):
 
         return True
 
+    async def turn_off(self):
+        """Turn the underlying climate off."""
+        await self.set_hvac_mode(VThermHvacMode_OFF)
+
+    async def turn_on(self):
+        """Turn the underlying climate back on using the VTherm mode."""
+        desired_hvac_mode = self._thermostat.vtherm_hvac_mode
+        if desired_hvac_mode not in [None, VThermHvacMode_OFF, VThermHvacMode_SLEEP]:
+            await self.set_hvac_mode(desired_hvac_mode)
+
     @overrides
     def remove_entity(self):
         """Remove the entity"""
@@ -640,6 +650,39 @@ class UnderlyingClimate(UnderlyingEntity):
             self._cancel_set_temperature_later()
             self._cancel_set_temperature_later = None
         super().remove_entity()
+
+    def _desired_device_active_state(self) -> bool | None:
+        """Return whether the underlying climate is expected to actively run.
+
+        This is derived from the VTherm requested HVAC mode plus the current /
+        target temperatures, so it still works when the underlying climate was
+        forced to OFF while VTherm itself remains in HEAT/COOL.
+        """
+        desired_hvac_mode = self._thermostat.vtherm_hvac_mode
+        if desired_hvac_mode in [VThermHvacMode_OFF, VThermHvacMode_SLEEP, None]:
+            return False
+
+        if desired_hvac_mode == VThermHvacMode_FAN_ONLY:
+            return True
+
+        target = self.underlying_target_temperature
+        if target is None:
+            target = self._thermostat.target_temperature
+
+        current = self.underlying_current_temperature
+        if current is None:
+            current = self._thermostat.current_temperature
+
+        if target is None or current is None:
+            return None
+
+        if desired_hvac_mode in [VThermHvacMode_COOL, VThermHvacMode_DRY]:
+            return target < current
+
+        if desired_hvac_mode in [VThermHvacMode_HEAT, VThermHvacMode_HEAT_COOL, VThermHvacMode_AUTO]:
+            return target > current
+
+        return None
 
     @property
     def should_device_be_active(self):
@@ -1109,22 +1152,36 @@ class UnderlyingClimate(UnderlyingEntity):
         self._step_sync_entity = step_sync_entity
 
     async def check_and_repair(self) -> bool:
-        """Check if the underlying device state matches the desired state and repair if needed.
-        Returns True if a repair was performed."""
-        hvac_mode = self._thermostat.vtherm_hvac_mode
+        """Repair an underlying climate that stayed ON while VTherm is idle/OFF.
 
-        under_hvac_mode = self.hvac_mode
-
-        _LOGGER.debug("%s - Checking if underlying climate state needs repair. hvac_mode=%s, under_hvac_mode=%s", self, hvac_mode, under_hvac_mode)
-
-        if hvac_mode is None or under_hvac_mode is None:
+        For climates, a mode mismatch matters even when both VTherm and the
+        underlying report an inactive/idle action. In that case the generic
+        active/inactive comparison is insufficient because the device can still
+        physically blow air while remaining in HEAT/COOL.
+        """
+        state = self._state_manager.get_state(self._entity_id)
+        if state is None or state.state in [STATE_UNAVAILABLE, STATE_UNKNOWN]:
             return False
 
-        if str(hvac_mode) == str(under_hvac_mode):
-            return False
+        desired_active = self._desired_device_active_state()
+        current_hvac_mode = VThermHvacMode(state.state)
 
-        await self.set_hvac_mode(hvac_mode)
-        return True
+        _LOGGER.debug(
+            "%s - Checking if underlying climate state needs repair. desired_active=%s, current_hvac_mode=%s",
+            self,
+            desired_active,
+            current_hvac_mode,
+        )
+
+        if desired_active is False and current_hvac_mode != VThermHvacMode_OFF:
+            await self.turn_off()
+            return True
+
+        if desired_active is True and current_hvac_mode == VThermHvacMode_OFF:
+            await self.turn_on()
+            return True
+
+        return False
 
     @property
     def min_sync_entity(self) -> float:
