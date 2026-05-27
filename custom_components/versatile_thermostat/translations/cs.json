@@ -29,6 +29,7 @@
           "presence": "Detekce přítomnosti",
           "advanced": "Pokročilé parametry",
           "auto_start_stop": "Automatické spuštění a zastavení",
+          "humidity": "Regulace vlhkosti",
           "valve_regulation": "Konfigurace regulace ventilu",
           "sync_device_internal_temp": "Synchronizace teploty zařízení",
           "heating_failure_detection": "Heating failure detection",
@@ -91,7 +92,24 @@
           "use_presence_feature": "Použít detekci přítomnosti",
           "use_central_boiler_feature": "Použít centrální kotel. Zaškrtněte pro přidání ovládání centrálního kotle. Po zaškrtnutí budete muset nakonfigurovat VTherm, který bude mít kontrolu nad centrálním kotlem. Pokud jeden VTherm vyžaduje vytápění, kotel se zapne. Pokud žádný VTherm nevyžaduje vytápění, kotel se vypne. Příkazy pro zapnutí/vypnutí centrálního kotle jsou uvedeny na související konfigurační stránce",
           "use_auto_start_stop_feature": "Použít funkci automatického spuštění a zastavení",
+          "use_humidity_feature": "Použít regulaci vlhkosti",
           "use_heating_failure_detection_feature": "Use heating failure detection"
+        }
+      },
+      "humidity": {
+        "title": "Regulace vlhkosti",
+        "description": "Parametry regulace vlhkosti",
+        "data": {
+          "humidity_control_mode": "Režim regulace vlhkosti",
+          "humidity_sensor_entity_id": "Senzor vlhkosti",
+          "humidity_tolerance": "Tolerance vlhkosti",
+          "humidity_safety_delay_min": "Bezpečnostní zpoždění vlhkosti (v minutách)"
+        },
+        "data_description": {
+          "humidity_control_mode": "Pouze režim Dry reguluje vlhkost, když je termostat v režimu odvlhčování. Podpora chlazení přepne z chlazení na odvlhčování pouze tehdy, když je dosažena cílová teplota a vlhkost je příliš vysoká.",
+          "humidity_sensor_entity_id": "Volitelný externí senzor vlhkosti. Pokud zůstane prázdný, použije se vlhkost podkladové climate entity, pokud je dostupná.",
+          "humidity_tolerance": "Hystereze nad cílovou hodnotou před spuštěním režimu odvlhčování",
+          "humidity_safety_delay_min": "Maximální povolené zpoždění v minutách mezi dvěma měřeními vlhkosti. Po překročení tohoto zpoždění se hodnota vlhkosti pro regulaci ignoruje."
         }
       },
       "type": {
@@ -363,6 +381,7 @@
           "presence": "Detekce přítomnosti",
           "advanced": "Pokročilé parametry",
           "auto_start_stop": "Automatické spuštění a zastavení",
+          "humidity": "Regulace vlhkosti",
           "valve_regulation": "Konfigurace regulace ventilu",
           "sync_device_internal_temp": "Synchronizace teploty zařízení",
           "heating_failure_detection": "Heating failure detection",
@@ -424,7 +443,24 @@
           "use_presence_feature": "Použít detekci přítomnosti",
           "use_central_boiler_feature": "Použít centrální kotel. Zaškrtněte pro přidání ovládání centrálního kotle. Po zaškrtnutí budete muset nakonfigurovat VTherm, který bude mít kontrolu nad centrálním kotlem. Pokud jeden VTherm vyžaduje vytápění, kotel se zapne. Pokud žádný VTherm nevyžaduje vytápění, kotel se vypne. Příkazy pro zapnutí/vypnutí centrálního kotle jsou uvedeny na související konfigurační stránce",
           "use_auto_start_stop_feature": "Použít funkci automatického spuštění a zastavení",
+          "use_humidity_feature": "Použít regulaci vlhkosti",
           "use_heating_failure_detection_feature": "Use heating failure detection"
+        }
+      },
+      "humidity": {
+        "title": "Regulace vlhkosti - {name}",
+        "description": "Parametry regulace vlhkosti",
+        "data": {
+          "humidity_control_mode": "Režim regulace vlhkosti",
+          "humidity_sensor_entity_id": "Senzor vlhkosti",
+          "humidity_tolerance": "Tolerance vlhkosti",
+          "humidity_safety_delay_min": "Bezpečnostní zpoždění vlhkosti (v minutách)"
+        },
+        "data_description": {
+          "humidity_control_mode": "Pouze režim Dry reguluje vlhkost, když je termostat v režimu odvlhčování. Podpora chlazení přepne z chlazení na odvlhčování pouze tehdy, když je dosažena cílová teplota a vlhkost je příliš vysoká.",
+          "humidity_sensor_entity_id": "Volitelný externí senzor vlhkosti. Pokud zůstane prázdný, použije se vlhkost podkladové climate entity, pokud je dostupná.",
+          "humidity_tolerance": "Hystereze nad cílovou hodnotou před spuštěním režimu odvlhčování",
+          "humidity_safety_delay_min": "Maximální povolené zpoždění v minutách mezi dvěma měřeními vlhkosti. Po překročení tohoto zpoždění se hodnota vlhkosti pro regulaci ignoruje."
         }
       },
       "type": {
@@ -720,12 +756,24 @@
         "auto_start_stop_medium": "Střední detekce",
         "auto_start_stop_fast": "Rychlá detekce"
       }
+    },
+    "humidity_control_mode": {
+      "options": {
+        "humidity_control_off": "Zakázáno",
+        "humidity_control_dry_only": "Pouze režim Dry",
+        "humidity_control_cool_assist": "Chlazení s podporou vlhkosti"
+      }
     }
   },
   "entity": {
     "climate": {
       "versatile_thermostat": {
         "state_attributes": {
+          "fan_mode": {
+            "state": {
+              "quiet": "Tichý"
+            }
+          },
           "preset_mode": {
             "state": {
               "power": "Odlehčení",

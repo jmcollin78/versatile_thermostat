@@ -29,6 +29,7 @@
           "presence": "Anwesenheitserkennung",
           "advanced": "Erweiterte Einstellungen",
           "auto_start_stop": "Auto Start und Stop",
+          "humidity": "Feuchteregelung",
           "valve_regulation": "Konfiguration Ventilsteuerung",
           "sync_device_internal_temp": "Synchronisierung der Gerätetemperatur",
           "lock": "Sperrenverwaltung",
@@ -93,7 +94,24 @@
           "use_presence_feature": "Anwesenheitserkennung",
           "use_central_boiler_feature": "Zentralheizung hinzufügen. Aktivieren Sie diese Option, um eine Steuerung für eine Zentralheizung hinzuzufügen. Anschließend müssen die VTerms konfiguriert werden, die die Zentralheizung steuern. Sonst ist diese Option unwirksam. Sobald mindestens einer der VTherms heizen muss, wird die Zentralheizung aktiviert. Sollte keiner der VTherms heizen müssen, wird sie ausgeschaltet. Die Befehle zum Ein- und Ausschalten der Zentralheizung befinden sich auf der folgenden Konfigurationsseite",
           "use_auto_start_stop_feature": "Mit automatischer Start- und Stoppfunktion",
+          "use_humidity_feature": "Mit Feuchteregelung",
           "use_heating_failure_detection_feature": "Heizungsausfallerkennung"
+        }
+      },
+      "humidity": {
+        "title": "Feuchteregelung",
+        "description": "Parameter der Feuchteregelung",
+        "data": {
+          "humidity_control_mode": "Modus der Feuchteregelung",
+          "humidity_sensor_entity_id": "Feuchtesensor",
+          "humidity_tolerance": "Feuchte-Toleranz",
+          "humidity_safety_delay_min": "Feuchte-Sicherheitsverzögerung (in Minuten)"
+        },
+        "data_description": {
+          "humidity_control_mode": "Nur im Dry-Modus regelt die Feuchte, wenn der Thermostat im Dry-Modus ist. Kühlunterstützung wechselt von Cool zu Dry nur, wenn die Zieltemperatur erreicht ist und die Feuchte zu hoch ist.",
+          "humidity_sensor_entity_id": "Optionaler externer Feuchtesensor. Wenn leer, wird die Feuchte des zugrunde liegenden Climate-Geräts verwendet, falls verfügbar.",
+          "humidity_tolerance": "Hysterese oberhalb des Zielwerts, bevor der Dry-Modus startet",
+          "humidity_safety_delay_min": "Maximal zulässige Zeitspanne in Minuten zwischen zwei Feuchtemessungen. Nach Ablauf dieser Zeitspanne wird der Feuchtewert für die Regelung ignoriert."
         }
       },
       "type": {
@@ -414,6 +432,7 @@
           "presence": "Anwesenheitserkennung",
           "advanced": "Erweiterte Einstellungen",
           "auto_start_stop": "Auto Start/Stopp",
+          "humidity": "Feuchteregelung",
           "valve_regulation": "Ventilsteuerung",
           "sync_device_internal_temp": "Synchronisierung der Gerätetemperatur",
           "lock": "Sperrenverwaltung",
@@ -475,7 +494,24 @@
           "use_presence_feature": "Mit Anwesenheitserkennung",
           "use_central_boiler_feature": "Benutze Zentralheizung. Aktivieren, um eine Steuerung für eine Zentralheizung hinzuzufügen. Anschließend muss VTerm für die Steuerung der Zentralheizung konfiguriert werden, um wirksam zu werden. Wenn mindestens einer der VTerms heizen muss, wird der Heizkessel angeschalten. Wenn kein VTherm heizen muss, wird sie abgeschalten. Die Befehle zum Ein- und Ausschalten der Zentralheizung finden sie auf der folgenden Konfigurationsseite.",
           "use_auto_start_stop_feature": "Mit automatischer Start- und Stopfunktion.",
+          "use_humidity_feature": "Mit Feuchteregelung",
           "use_heating_failure_detection_feature": "Mit Heizungsausfallerkennung"
+        }
+      },
+      "humidity": {
+        "title": "Feuchteregelung - {name}",
+        "description": "Parameter der Feuchteregelung",
+        "data": {
+          "humidity_control_mode": "Modus der Feuchteregelung",
+          "humidity_sensor_entity_id": "Feuchtesensor",
+          "humidity_tolerance": "Feuchte-Toleranz",
+          "humidity_safety_delay_min": "Feuchte-Sicherheitsverzögerung (in Minuten)"
+        },
+        "data_description": {
+          "humidity_control_mode": "Nur im Dry-Modus regelt die Feuchte, wenn der Thermostat im Dry-Modus ist. Kühlunterstützung wechselt von Cool zu Dry nur, wenn die Zieltemperatur erreicht ist und die Feuchte zu hoch ist.",
+          "humidity_sensor_entity_id": "Optionaler externer Feuchtesensor. Wenn leer, wird die Feuchte des zugrunde liegenden Climate-Geräts verwendet, falls verfügbar.",
+          "humidity_tolerance": "Hysterese oberhalb des Zielwerts, bevor der Dry-Modus startet",
+          "humidity_safety_delay_min": "Maximal zulässige Zeitspanne in Minuten zwischen zwei Feuchtemessungen. Nach Ablauf dieser Zeitspanne wird der Feuchtewert für die Regelung ignoriert."
         }
       },
       "type": {
@@ -825,6 +861,13 @@
         "auto_start_stop_fast": "Schnell"
       }
     },
+    "humidity_control_mode": {
+      "options": {
+        "humidity_control_off": "Deaktiviert",
+        "humidity_control_dry_only": "Nur Dry-Modus",
+        "humidity_control_cool_assist": "Cool mit Feuchteunterstützung"
+      }
+    },
     "auto_tpi_calculation_method": {
       "options": {
         "average": "Durchschnitt",
@@ -842,6 +885,11 @@
     "climate": {
       "versatile_thermostat": {
         "state_attributes": {
+          "fan_mode": {
+            "state": {
+              "quiet": "Leise"
+            }
+          },
           "preset_mode": {
             "state": {
               "power": "Lastabwurf",

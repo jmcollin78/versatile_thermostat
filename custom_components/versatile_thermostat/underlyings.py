@@ -606,7 +606,7 @@ class UnderlyingClimate(UnderlyingEntity):
             return False
 
         # When turning on a climate, check that power is available
-        if hvac_mode in (VThermHvacMode_HEAT, VThermHvacMode_COOL) and not await self.check_overpowering():
+        if hvac_mode in (VThermHvacMode_HEAT, VThermHvacMode_COOL, VThermHvacMode_DRY) and not await self.check_overpowering():
             return False
 
         await super().set_hvac_mode(hvac_mode)
@@ -921,7 +921,9 @@ class UnderlyingClimate(UnderlyingEntity):
                 hvac_mode,
             )
             hvac_action = HVACAction.IDLE
-            if target is not None and current is not None:
+            if hvac_mode == VThermHvacMode_DRY:
+                hvac_action = HVACAction.DRYING
+            elif target is not None and current is not None:
                 dtemp = target - current
 
                 if hvac_mode == VThermHvacMode_COOL and dtemp < 0:
@@ -974,6 +976,26 @@ class UnderlyingClimate(UnderlyingEntity):
     def current_humidity(self) -> float | None:
         """Get the humidity"""
         return self.get_underlying_attribute("current_humidity")
+
+    @property
+    def target_humidity(self) -> int | None:
+        """Get the target humidity."""
+        return self.get_underlying_attribute("target_humidity") or self.get_underlying_attribute("humidity")
+
+    @property
+    def min_humidity(self) -> int | None:
+        """Get the minimum humidity."""
+        return self.get_underlying_attribute("min_humidity")
+
+    @property
+    def max_humidity(self) -> int | None:
+        """Get the maximum humidity."""
+        return self.get_underlying_attribute("max_humidity")
+
+    @property
+    def target_humidity_step(self) -> int | None:
+        """Get the target humidity step."""
+        return self.get_underlying_attribute("target_humidity_step")
 
     @property
     def fan_modes(self) -> list[str]:

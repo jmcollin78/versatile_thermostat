@@ -29,6 +29,7 @@
           "presence": "Détection de présence",
           "advanced": "Paramètres avancés",
           "auto_start_stop": "Allumage/extinction automatique",
+          "humidity": "Contrôle de l'humidité",
           "valve_regulation": "Configuration de la regulation par vanne",
           "sync_device_internal_temp": "Synchronisation de la température de l'appareil",
           "lock": "Gestion du verrouilage",
@@ -94,7 +95,24 @@
           "use_presence_feature": "Avec détection de présence",
           "use_central_boiler_feature": "Ajouter une chaudière centrale. Cochez pour ajouter un contrôle sur une chaudière centrale. Vous devrez ensuite configurer les VTherms qui commandent la chaudière centrale pour que cette option prenne effet. Si au moins un des VTherm a besoin de chauffer, la chaudière centrale sera activée. Si aucun VTherm n'a besoin de chauffer, elle sera éteinte. Les commandes pour allumer/éteindre la chaudière centrale sont données dans la page de configuration suivante.",
           "use_auto_start_stop_feature": "Avec démarrage et extinction automatique",
+          "use_humidity_feature": "Avec contrôle de l'humidité",
           "use_heating_failure_detection_feature": "Avec détection de panne de chauffage"
+        }
+      },
+      "humidity": {
+        "title": "Contrôle de l'humidité",
+        "description": "Paramètres de contrôle de l'humidité",
+        "data": {
+          "humidity_control_mode": "Mode de contrôle de l'humidité",
+          "humidity_sensor_entity_id": "Capteur d'humidité",
+          "humidity_tolerance": "Tolérance d'humidité",
+          "humidity_safety_delay_min": "Délai de sécurité humidité (en minutes)"
+        },
+        "data_description": {
+          "humidity_control_mode": "Le mode Dry uniquement régule l'humidité lorsque le thermostat est en mode déshumidification. L'assistance au refroidissement bascule de Cool vers Dry uniquement lorsque la température cible est atteinte et que l'humidité est trop élevée.",
+          "humidity_sensor_entity_id": "Capteur d'humidité externe optionnel. Si le champ est vide, l'humidité du climatiseur sous-jacent est utilisée si elle est disponible.",
+          "humidity_tolerance": "Hystérésis au-dessus de la cible avant le démarrage du mode Dry",
+          "humidity_safety_delay_min": "Délai maximal autorisé en minutes entre deux mesures d'humidité. Au-delà, la valeur d'humidité est ignorée pour la régulation."
         }
       },
       "type": {
@@ -419,6 +437,7 @@
           "presence": "Détection de présence",
           "advanced": "Paramètres avancés",
           "auto_start_stop": "Allumage/extinction automatique",
+          "humidity": "Contrôle de l'humidité",
           "valve_regulation": "Configuration de la regulation par vanne",
           "sync_device_internal_temp": "Synchronisation de la température de l'appareil",
           "lock": "Verrouillage",
@@ -481,7 +500,24 @@
           "use_presence_feature": "Avec détection de présence",
           "use_central_boiler_feature": "Ajouter une chaudière centrale. Cochez pour ajouter un contrôle sur une chaudière centrale. Vous devrez ensuite configurer les VTherms qui commandent la chaudière centrale pour que cette option prenne effet. Si au moins un des VTherm a besoin de chauffer, la chaudière centrale sera activée. Si aucun VTherm n'a besoin de chauffer, elle sera éteinte. Les commandes pour allumer/éteindre la chaudière centrale sont données dans la page de configuration suivante.",
           "use_auto_start_stop_feature": "Avec démarrage et extinction automatique",
+          "use_humidity_feature": "Avec contrôle de l'humidité",
           "use_heating_failure_detection_feature": "Avec détection de panne de chauffage"
+        }
+      },
+      "humidity": {
+        "title": "Contrôle de l'humidité - {name}",
+        "description": "Paramètres de contrôle de l'humidité",
+        "data": {
+          "humidity_control_mode": "Mode de contrôle de l'humidité",
+          "humidity_sensor_entity_id": "Capteur d'humidité",
+          "humidity_tolerance": "Tolérance d'humidité",
+          "humidity_safety_delay_min": "Délai de sécurité humidité (en minutes)"
+        },
+        "data_description": {
+          "humidity_control_mode": "Le mode Dry uniquement régule l'humidité lorsque le thermostat est en mode déshumidification. L'assistance au refroidissement bascule de Cool vers Dry uniquement lorsque la température cible est atteinte et que l'humidité est trop élevée.",
+          "humidity_sensor_entity_id": "Capteur d'humidité externe optionnel. Si le champ est vide, l'humidité du climatiseur sous-jacent est utilisée si elle est disponible.",
+          "humidity_tolerance": "Hystérésis au-dessus de la cible avant le démarrage du mode Dry",
+          "humidity_safety_delay_min": "Délai maximal autorisé en minutes entre deux mesures d'humidité. Au-delà, la valeur d'humidité est ignorée pour la régulation."
         }
       },
       "type": {
@@ -835,6 +871,13 @@
         "auto_start_stop_fast": "Rapide"
       }
     },
+    "humidity_control_mode": {
+      "options": {
+        "humidity_control_off": "Désactivé",
+        "humidity_control_dry_only": "Mode Dry uniquement",
+        "humidity_control_cool_assist": "Cool avec assistance humidité"
+      }
+    },
     "auto_tpi_calculation_method": {
       "options": {
         "average": "Moyenne",
@@ -852,6 +895,11 @@
     "climate": {
       "versatile_thermostat": {
         "state_attributes": {
+          "fan_mode": {
+            "state": {
+              "quiet": "Silencieux"
+            }
+          },
           "preset_mode": {
             "state": {
               "power": "Délestage",

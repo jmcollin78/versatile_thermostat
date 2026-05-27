@@ -29,6 +29,7 @@
           "presence": "Presence detection",
           "advanced": "Advanced parameters",
           "auto_start_stop": "Auto start and stop",
+          "humidity": "Humidity control",
           "valve_regulation": "Valve regulation configuration",
           "sync_device_internal_temp": "Synchronize device temperature",
           "lock": "Lock",
@@ -93,7 +94,24 @@
           "use_presence_feature": "Use presence detection",
           "use_central_boiler_feature": "Use a central boiler. Check to add a control to your central boiler. You will have to configure the VTherm which will have a control of the central boiler after selecting this checkbox to take effect. If one VTherm requires heating, the boiler will be turned on. If no VTherm requires heating, the boiler will be turned off. Commands for turning on/off the central boiler are given in the related configuration page",
           "use_auto_start_stop_feature": "Use the auto start and stop feature",
+          "use_humidity_feature": "Use humidity control",
           "use_heating_failure_detection_feature": "Use heating failure detection"
+        }
+      },
+      "humidity": {
+        "title": "Humidity control",
+        "description": "Humidity control parameters",
+        "data": {
+          "humidity_control_mode": "Humidity control mode",
+          "humidity_sensor_entity_id": "Humidity sensor",
+          "humidity_tolerance": "Humidity tolerance",
+          "humidity_safety_delay_min": "Humidity safety delay (in minutes)"
+        },
+        "data_description": {
+          "humidity_control_mode": "Dry only regulates humidity when the thermostat is in dry mode. Cool assist switches from cool to dry only when the temperature target is reached and humidity is too high.",
+          "humidity_sensor_entity_id": "Optional external humidity sensor. If left empty, the underlying climate humidity is used when available.",
+          "humidity_tolerance": "Hysteresis above the target before dry mode starts",
+          "humidity_safety_delay_min": "Maximum allowed delay in minutes between two humidity measurements. Above this delay, the humidity value is ignored for regulation."
         }
       },
       "type": {
@@ -418,6 +436,7 @@
           "presence": "Presence detection",
           "advanced": "Advanced parameters",
           "auto_start_stop": "Auto start and stop",
+          "humidity": "Humidity control",
           "valve_regulation": "Valve regulation configuration",
           "sync_device_internal_temp": "Synchronize device temperature",
           "lock": "Lock",
@@ -479,7 +498,24 @@
           "use_presence_feature": "Use presence detection",
           "use_central_boiler_feature": "Use a central boiler. Check to add a control to your central boiler. You will have to configure the VTherm which will have a control of the central boiler after selecting this checkbox to take effect. If one VTherm requires heating, the boiler will be turned on. If no VTherm requires heating, the boiler will be turned off. Commands for turning on/off the central boiler are given in the related configuration page",
           "use_auto_start_stop_feature": "Use the auto start and stop feature",
+          "use_humidity_feature": "Use humidity control",
           "use_heating_failure_detection_feature": "Use heating failure detection"
+        }
+      },
+      "humidity": {
+        "title": "Humidity control - {name}",
+        "description": "Humidity control parameters",
+        "data": {
+          "humidity_control_mode": "Humidity control mode",
+          "humidity_sensor_entity_id": "Humidity sensor",
+          "humidity_tolerance": "Humidity tolerance",
+          "humidity_safety_delay_min": "Humidity safety delay (in minutes)"
+        },
+        "data_description": {
+          "humidity_control_mode": "Dry only regulates humidity when the thermostat is in dry mode. Cool assist switches from cool to dry only when the temperature target is reached and humidity is too high.",
+          "humidity_sensor_entity_id": "Optional external humidity sensor. If left empty, the underlying climate humidity is used when available.",
+          "humidity_tolerance": "Hysteresis above the target before dry mode starts",
+          "humidity_safety_delay_min": "Maximum allowed delay in minutes between two humidity measurements. Above this delay, the humidity value is ignored for regulation."
         }
       },
       "type": {
@@ -833,6 +869,13 @@
         "auto_start_stop_fast": "Fast detection"
       }
     },
+    "humidity_control_mode": {
+      "options": {
+        "humidity_control_off": "Disabled",
+        "humidity_control_dry_only": "Dry mode only",
+        "humidity_control_cool_assist": "Cool with humidity assist"
+      }
+    },
     "auto_tpi_calculation_method": {
       "options": {
         "average": "Average",
@@ -850,6 +893,11 @@
     "climate": {
       "versatile_thermostat": {
         "state_attributes": {
+          "fan_mode": {
+            "state": {
+              "quiet": "Quiet"
+            }
+          },
           "preset_mode": {
             "state": {
               "power": "Shedding",

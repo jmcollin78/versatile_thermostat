@@ -65,6 +65,7 @@ from .feature_motion_manager import FeatureMotionManager
 from .feature_window_manager import FeatureWindowManager
 from .feature_safety_manager import FeatureSafetyManager
 from .feature_auto_start_stop_manager import FeatureAutoStartStopManager
+from .feature_humidity_manager import FeatureHumidityManager
 from .feature_lock_manager import FeatureLockManager
 from .feature_timed_preset_manager import FeatureTimedPresetManager
 from .feature_heating_failure_detection_manager import FeatureHeatingFailureDetectionManager
@@ -90,6 +91,7 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
         .union(FeaturePowerManager.unrecorded_attributes)
         .union(FeatureMotionManager.unrecorded_attributes)
         .union(FeatureWindowManager.unrecorded_attributes)
+        .union(FeatureHumidityManager.unrecorded_attributes)
     )
 
     ##
@@ -206,6 +208,7 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
         self._motion_manager: FeatureMotionManager = FeatureMotionManager(self, hass)
         self._window_manager: FeatureWindowManager = FeatureWindowManager(self, hass)
         self._safety_manager: FeatureSafetyManager = FeatureSafetyManager(self, hass)
+        self._humidity_manager: FeatureHumidityManager = FeatureHumidityManager(self, hass)
         # Auto start/stop is only for over_climate
         self._auto_start_stop_manager: FeatureAutoStartStopManager | None = None
         self._lock_manager: FeatureLockManager = FeatureLockManager(self, hass)
@@ -218,6 +221,7 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
         self.register_manager(self._motion_manager)
         self.register_manager(self._window_manager)
         self.register_manager(self._safety_manager)
+        self.register_manager(self._humidity_manager)
         self.register_manager(self._lock_manager)
         self.register_manager(self._timed_preset_manager)
         self.register_manager(self._heating_failure_detection_manager)
@@ -337,6 +341,8 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
         self._state_manager = StateManager()
 
         self._support_flags = SUPPORT_FLAGS
+        if self._humidity_manager.is_configured:
+            self._support_flags |= ClimateEntityFeature.TARGET_HUMIDITY
 
         # Preset will be initialized from Number entities
         self._presets: dict[str, Any] = {}  # presets
@@ -754,6 +760,9 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
         else:
             _LOGGER.debug("%s - No preset_modes", self)
 
+        if self._humidity_manager.is_configured:
+            self._support_flags |= ClimateEntityFeature.TARGET_HUMIDITY
+
         if self._motion_manager.is_configured:
             self._attr_preset_modes.append(VThermPreset.ACTIVITY)
 
@@ -987,6 +996,11 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
     def auto_start_stop_manager(self) -> FeatureAutoStartStopManager | None:
         """Get the auto start/stop manager (only implemented in over_climate)"""
         return self._auto_start_stop_manager
+
+    @property
+    def humidity_manager(self) -> FeatureHumidityManager:
+        """Get the humidity manager."""
+        return self._humidity_manager
 
     @property
     def lock_manager(self) -> FeatureLockManager | None:
@@ -1434,6 +1448,8 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
     async def async_set_humidity(self, humidity: int):
         """Set new target humidity."""
         write_event_log(_LOGGER, self, f"Set humidity: {humidity}")
+        if self.humidity_manager.is_configured:
+            await self.humidity_manager.async_set_target_humidity(humidity)
         return
 
     @check_lock
@@ -1775,6 +1791,8 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
             action = HVACAction.OFF
         elif not self.is_device_active:
             action = HVACAction.IDLE
+        elif self.vtherm_hvac_mode == VThermHvacMode_DRY:
+            action = HVACAction.DRYING
         elif self.vtherm_hvac_mode == VThermHvacMode_COOL:
             action = HVACAction.COOLING
         else:
@@ -1900,6 +1918,11 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
         # Potentially it generates a safety event
         if await self._safety_manager.refresh_and_update_if_changed() or (self.auto_start_stop_manager and await self.auto_start_stop_manager.refresh_and_update_if_changed()):
             _LOGGER.info("%s - Change in safety alert or auto_start_stopis detected. Force update states", self)
+            return dearm_window_auto
+
+        if self.humidity_manager.is_configured:
+            self.requested_state.force_changed()
+            await self.update_states(force=True)
             return dearm_window_auto
 
         await self.async_control_heating(force=False)

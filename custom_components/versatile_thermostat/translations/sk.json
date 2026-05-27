@@ -28,6 +28,7 @@
           "presence": "Detekcia prítomnosti",
           "advanced": "Pokročilé parametre",
           "auto_start_stop": "Automatické spustenie a zastavenie",
+          "humidity": "Regulácia vlhkosti",
           "valve_regulation": "Konfigurácia regulácie ventilu",
           "sync_device_internal_temp": "Synchronizácia teploty zariadenia",
           "lock": "Správa zámku",
@@ -87,7 +88,24 @@
           "use_power_feature": "Použite správu napájania",
           "use_presence_feature": "Použite detekciu prítomnosti",
           "use_central_boiler_feature": "Použite centrálny kotol. Začiarknutím tohto políčka pridáte ovládanie do centrálneho kotla. Po zaškrtnutí tohto políčka budete musieť nakonfigurovať VTherm, ktorý bude mať ovládanie centrálneho kotla, aby sa prejavilo. Ak jeden VTherm vyžaduje ohrev, kotol sa zapne. Ak žiadny VTherm nevyžaduje ohrev, kotol sa vypne. Príkazy na zapnutie/vypnutie centrálneho kotla sú uvedené na príslušnej konfiguračnej stránke",
+          "use_humidity_feature": "Použiť reguláciu vlhkosti",
           "use_heating_failure_detection_feature": "Použiť detekciu porúch vykurovania"
+        }
+      },
+      "humidity": {
+        "title": "Regulácia vlhkosti",
+        "description": "Parametre regulácie vlhkosti",
+        "data": {
+          "humidity_control_mode": "Režim regulácie vlhkosti",
+          "humidity_sensor_entity_id": "Snímač vlhkosti",
+          "humidity_tolerance": "Tolerancia vlhkosti",
+          "humidity_safety_delay_min": "Bezpečnostné oneskorenie vlhkosti (v minútach)"
+        },
+        "data_description": {
+          "humidity_control_mode": "Iba režim Dry reguluje vlhkosť, keď je termostat v režime odvlhčovania. Podpora chladenia prepne z chladenia na odvlhčovanie iba vtedy, keď je dosiahnutá cieľová teplota a vlhkosť je príliš vysoká.",
+          "humidity_sensor_entity_id": "Voliteľný externý snímač vlhkosti. Ak zostane prázdny, použije sa vlhkosť základnej climate entity, ak je dostupná.",
+          "humidity_tolerance": "Hysterézia nad cieľovou hodnotou pred spustením režimu Dry",
+          "humidity_safety_delay_min": "Maximálne povolené oneskorenie v minútach medzi dvoma meraniami vlhkosti. Po prekročení tohto oneskorenia sa hodnota vlhkosti pri regulácii ignoruje."
         }
       },
       "type": {
@@ -356,6 +374,7 @@
           "presence": "Detekcia prítomnosti",
           "advanced": "Pokročilé parametre",
           "auto_start_stop": "Automatické spustenie a zastavenie",
+          "humidity": "Regulácia vlhkosti",
           "valve_regulation": "Konfigurácia regulácie ventilu",
           "sync_device_internal_temp": "Synchronizácia teploty zariadenia",
           "lock": "Správa zámku",
@@ -415,7 +434,24 @@
           "use_power_feature": "Použite správu napájania",
           "use_presence_feature": "Použite detekciu prítomnosti",
           "use_central_boiler_feature": "Použite centrálny kotol. Začiarknutím tohto políčka pridáte ovládanie do centrálneho kotla. Po zaškrtnutí tohto políčka budete musieť nakonfigurovať VTherm, ktorý bude mať ovládanie centrálneho kotla, aby sa prejavilo. Ak jeden VTherm vyžaduje ohrev, kotol sa zapne. Ak žiadny VTherm nevyžaduje ohrev, kotol sa vypne. Príkazy na zapnutie/vypnutie centrálneho kotla sú uvedené na príslušnej konfiguračnej stránke",
+          "use_humidity_feature": "Použiť reguláciu vlhkosti",
           "use_heating_failure_detection_feature": "Použiť detekciu porúch vykurovania"
+        }
+      },
+      "humidity": {
+        "title": "Regulácia vlhkosti - {name}",
+        "description": "Parametre regulácie vlhkosti",
+        "data": {
+          "humidity_control_mode": "Režim regulácie vlhkosti",
+          "humidity_sensor_entity_id": "Snímač vlhkosti",
+          "humidity_tolerance": "Tolerancia vlhkosti",
+          "humidity_safety_delay_min": "Bezpečnostné oneskorenie vlhkosti (v minútach)"
+        },
+        "data_description": {
+          "humidity_control_mode": "Iba režim Dry reguluje vlhkosť, keď je termostat v režime odvlhčovania. Podpora chladenia prepne z chladenia na odvlhčovanie iba vtedy, keď je dosiahnutá cieľová teplota a vlhkosť je príliš vysoká.",
+          "humidity_sensor_entity_id": "Voliteľný externý snímač vlhkosti. Ak zostane prázdny, použije sa vlhkosť základnej climate entity, ak je dostupná.",
+          "humidity_tolerance": "Hysterézia nad cieľovou hodnotou pred spustením režimu Dry",
+          "humidity_safety_delay_min": "Maximálne povolené oneskorenie v minútach medzi dvoma meraniami vlhkosti. Po prekročení tohto oneskorenia sa hodnota vlhkosti pri regulácii ignoruje."
         }
       },
       "type": {
@@ -699,12 +735,24 @@
         "comfort": "Komfort",
         "boost": "Boost"
       }
+    },
+    "humidity_control_mode": {
+      "options": {
+        "humidity_control_off": "Zakázané",
+        "humidity_control_dry_only": "Iba režim Dry",
+        "humidity_control_cool_assist": "Cool s podporou vlhkosti"
+      }
     }
   },
   "entity": {
     "climate": {
       "versatile_thermostat": {
         "state_attributes": {
+          "fan_mode": {
+            "state": {
+              "quiet": "Tichý"
+            }
+          },
           "preset_mode": {
             "state": {
               "power": "Vyradenie",

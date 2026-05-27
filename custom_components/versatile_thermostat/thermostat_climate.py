@@ -135,6 +135,14 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
         # if one not IDLE or OFF -> return it
         # else if one IDLE -> IDLE
         # else OFF
+        if self.vtherm_hvac_mode == VThermHvacMode_DRY and self.humidity_manager.is_configured:
+            self.humidity_manager.log_humidity_state(
+                requested_hvac_mode=self.requested_state.hvac_mode,
+                current_hvac_mode=self.vtherm_hvac_mode,
+            )
+            self._attr_hvac_action = HVACAction.DRYING if self.humidity_manager.is_dehumidifying_required else HVACAction.IDLE
+            return
+
         if under_list is None:
             under_list = self._underlyings
 
@@ -158,10 +166,15 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
 
         self.stop_recalculate_later()
 
-        if self.vtherm_hvac_mode == VThermHvacMode_OFF:
+        if self.vtherm_hvac_mode in [VThermHvacMode_OFF, VThermHvacMode_DRY]:
             _LOGGER.debug(
-                "%s - don't send regulated temperature cause VTherm is off ", self
+                "%s - don't send regulated temperature cause VTherm is off or in dry mode", self
             )
+            if self.humidity_manager.is_configured:
+                self.humidity_manager.log_humidity_state(
+                    requested_hvac_mode=self.requested_state.hvac_mode,
+                    current_hvac_mode=self.vtherm_hvac_mode,
+                )
             # In this case, reset the timer of last regulation change to avoid time delta too high
             self._last_regulation_change = self.now
             return
@@ -305,33 +318,61 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
         )
         return True
 
+    def _get_auto_fan_humidity_delta(self) -> float | None:
+        """Return humidity gap when dry-only humidity control drives auto fan."""
+        if (
+            self.vtherm_hvac_mode != VThermHvacMode_DRY
+            or not self.humidity_manager.is_configured
+            or self.humidity_manager.humidity_control_mode != CONF_HUMIDITY_MODE_DRY_ONLY
+        ):
+            return None
+
+        current_humidity = self.humidity_manager.current_humidity
+        target_humidity = self.humidity_manager.target_humidity
+        if current_humidity is None or target_humidity is None:
+            return None
+
+        return current_humidity - target_humidity
+
     async def _send_auto_fan_mode(self):
-        """Send the fan mode if auto_fan_mode and temperature gap is > threshold"""
+        """Send the fan mode if auto_fan_mode and control gap is above threshold."""
         if not self._auto_fan_mode or not self._auto_activated_fan_mode:
             return
 
-        dtemp = (
-            self.regulated_target_temp if self.is_regulated else self.target_temperature
-        )
-        if dtemp is None or self.current_temperature is None:
-            return
+        humidity_delta = self._get_auto_fan_humidity_delta()
+        if humidity_delta is not None:
+            should_activate_auto_fan = (
+                humidity_delta > self.humidity_manager.humidity_tolerance
+            )
+            delta_label = "humidity"
+            delta_value = humidity_delta
+        else:
+            dtemp = (
+                self.regulated_target_temp if self.is_regulated else self.target_temperature
+            )
+            if dtemp is None or self.current_temperature is None:
+                return
 
-        dtemp = dtemp - self.current_temperature
-        should_activate_auto_fan = (
-            dtemp >= AUTO_FAN_DTEMP_THRESHOLD or dtemp <= -AUTO_FAN_DTEMP_THRESHOLD
-        )
+            dtemp = dtemp - self.current_temperature
+            should_activate_auto_fan = (
+                dtemp >= AUTO_FAN_DTEMP_THRESHOLD or dtemp <= -AUTO_FAN_DTEMP_THRESHOLD
+            )
 
-        # deal with ac / non ac mode
-        hvac_mode = self.vtherm_hvac_mode
-        if (hvac_mode == VThermHvacMode_COOL and dtemp > 0) or (hvac_mode == VThermHvacMode_HEAT and dtemp < 0) or (hvac_mode == VThermHvacMode_OFF):
-            should_activate_auto_fan = False
+            # deal with ac / non ac mode
+            hvac_mode = self.vtherm_hvac_mode
+            if (hvac_mode == VThermHvacMode_COOL and dtemp > 0) or (hvac_mode == VThermHvacMode_HEAT and dtemp < 0) or (hvac_mode == VThermHvacMode_OFF):
+                should_activate_auto_fan = False
+
+            delta_label = "temperature"
+            delta_value = dtemp
 
         if should_activate_auto_fan and self.fan_mode != self._auto_activated_fan_mode:
             _LOGGER.info(
-                "%s - Activate the auto fan mode with %s because delta temp is %.2f",
+                "%s - Activate the auto fan mode with %s because delta %s is %.2f",
                 self,
                 self._auto_fan_mode,
-                dtemp,
+                delta_label,
+                delta_value,
             )
             await self.async_set_fan_mode(self._auto_activated_fan_mode)
         if (
@@ -339,10 +380,11 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
             and self.fan_mode not in AUTO_FAN_DEACTIVATED_MODES
         ):
             _LOGGER.info(
-                "%s - DeActivate the auto fan mode with %s because delta temp is %.2f",
+                "%s - DeActivate the auto fan mode with %s because delta %s is %.2f",
                 self,
                 self._auto_deactivated_fan_mode,
-                dtemp,
+                delta_label,
+                delta_value,
             )
             await self.async_set_fan_mode(self._auto_deactivated_fan_mode)
 
@@ -825,6 +867,9 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
             _LOGGER.debug("%s - async_control_heating is called but the entity is not initialized yet. Skip the cycle", self)
             return False
 
+        if self.humidity_manager.is_configured and await self.humidity_manager.refresh_and_update_if_changed():
+            return True
+
         # Check if we need to auto start/stop the Vtherm
         old_stop = self.auto_start_stop_manager.is_auto_stop_detected
         new_stop = await self.auto_start_stop_manager.refresh_state()
@@ -1109,10 +1154,57 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
     @property
     def current_humidity(self) -> float | None:
         """Return the humidity."""
+        if self.humidity_manager.is_configured and self.humidity_manager.current_humidity is not None:
+            return self.humidity_manager.current_humidity
+
         if self.underlying_entity(0):
             return self.underlying_entity(0).current_humidity
 
         return None
+
+    @property
+    def target_humidity(self) -> int | None:
+        """Return the humidity target."""
+        if self.humidity_manager.is_configured:
+            return self.humidity_manager.target_humidity
+
+        if self.underlying_entity(0):
+            return self.underlying_entity(0).target_humidity
+
+        return self._humidity
+
+    @property
+    def min_humidity(self) -> int:
+        """Return minimum humidity."""
+        if self.humidity_manager.is_configured:
+            return self.humidity_manager.min_humidity
+
+        if self.underlying_entity(0) and self.underlying_entity(0).min_humidity is not None:
+            return self.underlying_entity(0).min_humidity
+
+        return DEFAULT_HUMIDITY_MIN
+
+    @property
+    def max_humidity(self) -> int:
+        """Return maximum humidity."""
+        if self.humidity_manager.is_configured:
+            return self.humidity_manager.max_humidity
+
+        if self.underlying_entity(0) and self.underlying_entity(0).max_humidity is not None:
+            return self.underlying_entity(0).max_humidity
+
+        return DEFAULT_HUMIDITY_MAX
+
+    @property
+    def target_humidity_step(self) -> int:
+        """Return target humidity step."""
+        if self.humidity_manager.is_configured:
+            return self.humidity_manager.target_humidity_step
+
+        if self.underlying_entity(0) and self.underlying_entity(0).target_humidity_step is not None:
+            return self.underlying_entity(0).target_humidity_step
+
+        return DEFAULT_HUMIDITY_STEP
 
     @property
     def is_aux_heat(self) -> bool | None:
@@ -1186,6 +1278,11 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
         _LOGGER.info("%s - Set humidity: %s", self, humidity)
         if humidity is None:
             return
+        if self.humidity_manager.is_configured:
+            await self.humidity_manager.async_set_target_humidity(humidity)
+            self.async_write_ha_state()
+            return
+
         for under in self._underlyings:
             await under.set_humidity(humidity)
         self._humidity = humidity

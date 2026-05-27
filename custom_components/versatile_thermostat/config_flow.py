@@ -111,6 +111,16 @@ class VersatileThermostatBaseConfigFlow(FlowHandler):
             and self._infos.get(CONF_THERMOSTAT_TYPE) == CONF_THERMOSTAT_CLIMATE
         )
 
+        self._infos[CONF_USE_HUMIDITY_FEATURE] = (
+            (
+                self._infos.get(CONF_USE_HUMIDITY_FEATURE, False) is True
+                or self._infos.get(CONF_HUMIDITY_SENSOR) is not None
+                or self._infos.get(CONF_HUMIDITY_MODE, CONF_HUMIDITY_MODE_OFF) != CONF_HUMIDITY_MODE_OFF
+            )
+            and self._infos.get(CONF_THERMOSTAT_TYPE) == CONF_THERMOSTAT_CLIMATE
+            and not self.is_valve_regulation_selected(self._infos)
+        )
+
         self._infos[CONF_USE_HEATING_FAILURE_DETECTION_FEATURE] = self._infos.get(
             CONF_USE_HEATING_FAILURE_DETECTION_FEATURE, False
         )
@@ -213,6 +223,7 @@ class VersatileThermostatBaseConfigFlow(FlowHandler):
             CONF_POWER_SENSOR,
             CONF_MAX_POWER_SENSOR,
             CONF_PRESENCE_SENSOR,
+            CONF_HUMIDITY_SENSOR,
             CONF_OFFSET_CALIBRATION_LIST,
             CONF_OPENING_DEGREE_LIST,
             CONF_CLOSING_DEGREE_LIST,
@@ -427,6 +438,12 @@ class VersatileThermostatBaseConfigFlow(FlowHandler):
             ):
                 return False
 
+            if (
+                infos.get(CONF_USE_HUMIDITY_FEATURE, False) is True
+                and infos.get(CONF_HUMIDITY_MODE, None) is None
+            ):
+                return False
+
             if infos.get(CONF_USE_ADVANCED_CENTRAL_CONFIG, False) is False and (
                 infos.get(CONF_SAFETY_DELAY_MIN, -1) == -1 or infos.get(CONF_SAFETY_MIN_ON_PERCENT, -1) == -1 or infos.get(CONF_SAFETY_DEFAULT_ON_PERCENT, -1) == -1
             ):
@@ -612,6 +629,13 @@ class VersatileThermostatBaseConfigFlow(FlowHandler):
         ):
             menu_options.append("auto_start_stop")
 
+        if (
+            self._infos.get(CONF_USE_HUMIDITY_FEATURE, False) is True
+            and self._infos[CONF_THERMOSTAT_TYPE] == CONF_THERMOSTAT_CLIMATE
+            and not self.is_valve_regulation_selected(self._infos)
+        ):
+            menu_options.append("humidity")
+
         if self.is_valve_regulation_selected(self._infos):
             menu_options.append("valve_regulation")
 
@@ -766,6 +790,16 @@ class VersatileThermostatBaseConfigFlow(FlowHandler):
         next_step = self.async_step_menu
 
         return await self.generic_step("auto_start_stop", schema, user_input, next_step)
+
+    async def async_step_humidity(self, user_input: dict | None = None) -> FlowResult:
+        """Handle humidity control configuration."""
+        _LOGGER.debug("Into ConfigFlow.async_step_humidity user_input=%s", user_input)
+
+        schema = STEP_HUMIDITY_DATA_SCHEMA
+        self._infos[COMES_FROM] = None
+        next_step = self.async_step_menu
+
+        return await self.generic_step("humidity", schema, user_input, next_step)
 
     async def async_step_valve_regulation(
         self, user_input: dict | None = None
@@ -1240,6 +1274,22 @@ class VersatileThermostatBaseConfigFlow(FlowHandler):
                 del self._infos[CONF_CENTRAL_BOILER_DEACTIVATION_SRV]
         if not self._infos[CONF_USE_AUTO_START_STOP_FEATURE]:
             self._infos[CONF_AUTO_START_STOP_LEVEL] = AUTO_START_STOP_LEVEL_NONE
+        if (
+            not self._infos.get(CONF_USE_HUMIDITY_FEATURE, False)
+            or self._infos.get(CONF_HUMIDITY_MODE) == CONF_HUMIDITY_MODE_OFF
+        ):
+            for key in [
+                CONF_USE_HUMIDITY_FEATURE,
+                CONF_HUMIDITY_SENSOR,
+                CONF_HUMIDITY_MODE,
+                CONF_HUMIDITY_TARGET,
+                CONF_HUMIDITY_TOLERANCE,
+                CONF_HUMIDITY_SAFETY_DELAY_MIN,
+            ]:
+                if key in self._infos:
+                    del self._infos[key]
+        else:
+            self._infos.pop(CONF_HUMIDITY_TARGET, None)
 
         # Removes temporary value
         if COMES_FROM in self._infos:

@@ -13,6 +13,7 @@ from .const import (
     HVAC_OFF_REASON_AUTO_START_STOP,
     HVAC_OFF_REASON_SLEEP_MODE,
     HVAC_OFF_REASON_CENTRAL_MODE,
+    HVAC_OFF_REASON_HUMIDITY_TARGET_REACHED,
     CONF_WINDOW_ECO_TEMP,
     CONF_WINDOW_FAN_ONLY,
     CONF_WINDOW_FROST_TEMP,
@@ -33,7 +34,14 @@ from .const import (
     MSG_TARGET_TEMP_TIMED_PRESET,
 )
 from .vtherm_state import VThermState
-from .vtherm_hvac_mode import VThermHvacMode_OFF, VThermHvacMode_FAN_ONLY, VThermHvacMode_COOL, VThermHvacMode_HEAT, VThermHvacMode_SLEEP
+from .vtherm_hvac_mode import (
+    VThermHvacMode_OFF,
+    VThermHvacMode_FAN_ONLY,
+    VThermHvacMode_COOL,
+    VThermHvacMode_HEAT,
+    VThermHvacMode_SLEEP,
+    VThermHvacMode_DRY,
+)
 from .vtherm_preset import VThermPreset
 
 _LOGGER = get_vtherm_logger(__name__)
@@ -151,6 +159,20 @@ class StateManager:
                 vtherm.set_hvac_off_reason(HVAC_OFF_REASON_CENTRAL_MODE)
             elif vtherm.vtherm_hvac_mode != VThermHvacMode_HEAT and VThermHvacMode_HEAT in vtherm.vtherm_hvac_modes:
                 self._current_state.set_hvac_mode(VThermHvacMode_HEAT)
+
+        elif vtherm.humidity_manager.is_configured and (
+            humidity_hvac_mode := vtherm.humidity_manager.calculate_hvac_mode(
+                self._requested_state.hvac_mode,
+                self._current_state.hvac_mode,
+                vtherm.vtherm_hvac_modes,
+            )
+        ) is not None:
+            self._current_state.set_hvac_mode(humidity_hvac_mode)
+            if (
+                humidity_hvac_mode == VThermHvacMode_OFF
+                and self._requested_state.hvac_mode == VThermHvacMode_DRY
+            ):
+                vtherm.set_hvac_off_reason(HVAC_OFF_REASON_HUMIDITY_TARGET_REACHED)
 
         # all is fine set current_state = requested_state
         else:

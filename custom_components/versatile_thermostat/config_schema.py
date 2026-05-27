@@ -162,6 +162,7 @@ STEP_CLIMATE_FEATURES_DATA_SCHEMA = vol.Schema(  # pylint: disable=invalid-name
         vol.Optional(CONF_USE_POWER_FEATURE, default=False): cv.boolean,
         vol.Optional(CONF_USE_PRESENCE_FEATURE, default=False): cv.boolean,
         vol.Optional(CONF_USE_AUTO_START_STOP_FEATURE, default=False): cv.boolean,
+        vol.Optional(CONF_USE_HUMIDITY_FEATURE, default=False): cv.boolean,
     }
 )
 
@@ -263,6 +264,39 @@ STEP_AUTO_START_STOP = vol.Schema(  # pylint: disable=invalid-name
                 options=CONF_AUTO_START_STOP_LEVELS,
                 translation_key="auto_start_stop",
                 mode="dropdown",
+            )
+        ),
+    }
+)
+
+STEP_HUMIDITY_DATA_SCHEMA = vol.Schema(  # pylint: disable=invalid-name
+    {
+        vol.Required(CONF_HUMIDITY_MODE, default=CONF_HUMIDITY_MODE_DRY_ONLY): selector.SelectSelector(
+            selector.SelectSelectorConfig(
+                options=CONF_HUMIDITY_MODES,
+                translation_key="humidity_control_mode",
+                mode="dropdown",
+            )
+        ),
+        vol.Optional(CONF_HUMIDITY_SENSOR): selector.EntitySelector(
+            selector.EntitySelectorConfig(domain=[SENSOR_DOMAIN, INPUT_NUMBER_DOMAIN, NUMBER_DOMAIN]),
+        ),
+        vol.Optional(CONF_HUMIDITY_TOLERANCE, default=DEFAULT_HUMIDITY_TOLERANCE): selector.NumberSelector(
+            selector.NumberSelectorConfig(
+                min=0,
+                max=20,
+                step=DEFAULT_HUMIDITY_STEP,
+                mode=selector.NumberSelectorMode.BOX,
+                unit_of_measurement="%",
+            )
+        ),
+        vol.Optional(CONF_HUMIDITY_SAFETY_DELAY_MIN, default=DEFAULT_HUMIDITY_SAFETY_DELAY_MIN): selector.NumberSelector(
+            selector.NumberSelectorConfig(
+                min=1,
+                max=1440,
+                step=1,
+                mode=selector.NumberSelectorMode.BOX,
+                unit_of_measurement="min",
             )
         ),
     }

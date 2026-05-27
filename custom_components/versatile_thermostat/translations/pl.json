@@ -29,6 +29,7 @@
           "presence": "Detekcja obecności",
           "advanced": "Parametry zaawansowane",
           "auto_start_stop": "AutoSTART i autoSTOP",
+          "humidity": "Regulacja wilgotności",
           "valve_regulation": "Konfiguracja regulacji zaworu",
           "sync_device_internal_temp": "Synchronizacja temperatury urządzenia",
           "lock": "Zarządzanie blokadą",
@@ -90,7 +91,24 @@
           "use_presence_feature": "Użyj detekcji obecności",
           "use_central_boiler_feature": "Użyj kotła centralnego. Zaznacz, aby dodać sterowanie kotłem centralnym. Po zaznaczeniu tej opcji musisz skonfigurować termostat sterujący kotłem centralnym. Jeśli któryś z termostatów zażąda ogrzewania, kocioł się załączy. Jeśli żaden termostat nie będzie żądał ogrzewania, kocioł pozostanie wyłączony. Polecenia załączenia i wyłączenia kotła centralnego są podane na odpowiedniej stronie konfiguracyjnej",
           "use_auto_start_stop_feature": "Użyj funkcji autoSTART i autoSTOP",
+          "use_humidity_feature": "Użyj regulacji wilgotności",
           "use_heating_failure_detection_feature": "Użyj wykrywania awarii ogrzewania"
+        }
+      },
+      "humidity": {
+        "title": "Regulacja wilgotności",
+        "description": "Parametry regulacji wilgotności",
+        "data": {
+          "humidity_control_mode": "Tryb regulacji wilgotności",
+          "humidity_sensor_entity_id": "Czujnik wilgotności",
+          "humidity_tolerance": "Tolerancja wilgotności",
+          "humidity_safety_delay_min": "Opóźnienie bezpieczeństwa wilgotności (w min.)"
+        },
+        "data_description": {
+          "humidity_control_mode": "Tylko tryb Dry reguluje wilgotność, gdy termostat jest w trybie osuszania. Wspomaganie chłodzenia przełącza z Cool na Dry tylko wtedy, gdy temperatura docelowa została osiągnięta, a wilgotność jest zbyt wysoka.",
+          "humidity_sensor_entity_id": "Opcjonalny zewnętrzny czujnik wilgotności. Jeśli pole pozostanie puste, używana jest wilgotność z podrzędnej encji climate, gdy jest dostępna.",
+          "humidity_tolerance": "Histereza powyżej wartości docelowej przed uruchomieniem trybu Dry",
+          "humidity_safety_delay_min": "Maksymalne dozwolone opóźnienie w minutach między dwoma pomiarami wilgotności. Po jego przekroczeniu wartość wilgotności jest ignorowana podczas regulacji."
         }
       },
       "type": {
@@ -369,6 +387,7 @@
           "presence": "Detekcja obecności",
           "advanced": "Parametry zaawansowane",
           "auto_start_stop": "AutoSTART i autoSTOP",
+          "humidity": "Regulacja wilgotności",
           "valve_regulation": "Konfiguracja regulacji zaworu",
           "sync_device_internal_temp": "Synchronizacja temperatury urządzenia",
           "lock": "Blokada",
@@ -433,7 +452,24 @@
           "use_presence_feature": "Użyj detekcji obecności",
           "use_central_boiler_feature": "Użyj kotła centralnego. Zaznacz, aby dodać sterowanie kotłem centralnym. Po zaznaczeniu tej opcji musisz skonfigurować termostat sterujący kotłem centralnym. Jeśli któryś z termostatów będzie wymagał ogrzewania, kocioł się załączy. Jeśli żaden termostat nie będzie wymagał ogrzewania, kocioł pozostanie wyłączony. Polecenia załączenia i wyłączenia kotła centralnego są podane na odpowiedniej stronie konfiguracyjnej",
           "use_auto_start_stop_feature": "Użyj funkcji autoSTART i autoSTOP",
+          "use_humidity_feature": "Użyj regulacji wilgotności",
           "use_heating_failure_detection_feature": "Użyj wykrywania awarii ogrzewania"
+        }
+      },
+      "humidity": {
+        "title": "Regulacja wilgotności - {name}",
+        "description": "Parametry regulacji wilgotności",
+        "data": {
+          "humidity_control_mode": "Tryb regulacji wilgotności",
+          "humidity_sensor_entity_id": "Czujnik wilgotności",
+          "humidity_tolerance": "Tolerancja wilgotności",
+          "humidity_safety_delay_min": "Opóźnienie bezpieczeństwa wilgotności (w min.)"
+        },
+        "data_description": {
+          "humidity_control_mode": "Tylko tryb Dry reguluje wilgotność, gdy termostat jest w trybie osuszania. Wspomaganie chłodzenia przełącza z Cool na Dry tylko wtedy, gdy temperatura docelowa została osiągnięta, a wilgotność jest zbyt wysoka.",
+          "humidity_sensor_entity_id": "Opcjonalny zewnętrzny czujnik wilgotności. Jeśli pole pozostanie puste, używana jest wilgotność z podrzędnej encji climate, gdy jest dostępna.",
+          "humidity_tolerance": "Histereza powyżej wartości docelowej przed uruchomieniem trybu Dry",
+          "humidity_safety_delay_min": "Maksymalne dozwolone opóźnienie w minutach między dwoma pomiarami wilgotności. Po jego przekroczeniu wartość wilgotności jest ignorowana podczas regulacji."
         }
       },
       "type": {
@@ -774,6 +810,13 @@
         "auto_start_stop_fast": "Szybka detekcja"
       }
     },
+    "humidity_control_mode": {
+      "options": {
+        "humidity_control_off": "Wyłączone",
+        "humidity_control_dry_only": "Tylko tryb Dry",
+        "humidity_control_cool_assist": "Cool ze wspomaganiem wilgotności"
+      }
+    },
     "auto_tpi_calculation_method": {
       "options": {
         "average": "Średnia",
@@ -785,6 +828,11 @@
     "climate": {
       "versatile_thermostat": {
         "state_attributes": {
+          "fan_mode": {
+            "state": {
+              "quiet": "Cichy"
+            }
+          },
           "preset_mode": {
             "state": {
               "power": "Ograniczony",

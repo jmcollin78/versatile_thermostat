@@ -29,6 +29,7 @@
                     "presence": "Rilevata Presenza",
                     "advanced": "Parametri avanzati",
                     "auto_start_stop": "Auto start and stop",
+                    "humidity": "Controllo umidità",
                     "valve_regulation": "Configurazione della regolazione della valvola",
                     "sync_device_internal_temp": "Sincronizza la temperatura del dispositivo",
                     "lock": "Blocco",
@@ -94,7 +95,24 @@
                     "use_presence_feature": "Usa rilevamento presenza",
                     "use_central_boiler_feature": "Utilizza una caldaia centralizzata. Selezionare per aggiungere un controllo alla caldaia centralizzata. Dopo aver selezionato questa casella di controllo, occorre configurare il VTherm che avrà il controllo della caldaia centralizzata. Se un VTherm richiede il riscaldamento, la caldaia verrà accesa. Se nessun VTherm richiede il riscaldamento, la caldaia verrà spenta. I comandi per accendere/spegnere la caldaia centralizzata sono riportati nella relativa pagina di configurazione.",
                     "use_auto_start_stop_feature": "Usa la funzione auto start and stop",
+                    "use_humidity_feature": "Usa controllo umidità",
                     "use_heating_failure_detection_feature": "Usa rilevamento guasti riscaldamento"
+                }
+            },
+            "humidity": {
+                "title": "Controllo umidità",
+                "description": "Parametri controllo umidità",
+                "data": {
+                    "humidity_control_mode": "Modalità controllo umidità",
+                    "humidity_sensor_entity_id": "Sensore umidità",
+                    "humidity_tolerance": "Tolleranza umidità",
+                    "humidity_safety_delay_min": "Ritardo di sicurezza umidità (in minuti)"
+                },
+                "data_description": {
+                    "humidity_control_mode": "Solo la modalità Dry regola l’umidità quando il termostato è in modalità deumidificazione. L’assistenza al raffreddamento passa da Cool a Dry solo quando la temperatura target è raggiunta e l’umidità è troppo alta.",
+                    "humidity_sensor_entity_id": "Sensore di umidità esterno opzionale. Se lasciato vuoto, viene usata l’umidità del climate sottostante quando disponibile.",
+                    "humidity_tolerance": "Isteresi sopra il target prima dell’avvio della modalità Dry",
+                    "humidity_safety_delay_min": "Ritardo massimo consentito in minuti tra due misurazioni dell’umidità. Oltre questo ritardo, il valore di umidità viene ignorato per la regolazione."
                 }
             },
             "type": {
@@ -419,6 +437,7 @@
                     "presence": "Rilevamento della presenza",
                     "advanced": "Parametri avanzati",
                     "auto_start_stop": "Auto start and stop",
+                    "humidity": "Controllo umidità",
                     "valve_regulation": "Configurazione della regolazione della valvola",
                     "sync_device_internal_temp": "Sincronizza la temperatura del dispositivo",
                     "lock": "Gestione del blocco",
@@ -481,7 +500,24 @@
                     "use_presence_feature": "Usare rilevamento presenza",
                     "use_central_boiler_feature": "Utilizza una caldaia centralizzata. Selezionare questa opzione per aggiungere un controllo alla caldaia centralizzata. Dopo aver selezionato questa casella di controllo, sarà necessario configurare il VTherm che avrà il controllo della caldaia centralizzata. Se un VTherm richiede il riscaldamento, la caldaia verrà accesa. Se nessun VTherm richiede il riscaldamento, la caldaia verrà spenta. I comandi per accendere/spegnere la caldaia centrale sono riportati nella pagina di configurazione corrispondente.",
                     "use_auto_start_stop_feature": "Usa la funzione auto start and stop",
+                    "use_humidity_feature": "Usa controllo umidità",
                     "use_heating_failure_detection_feature": "Usa rilevamento guasti riscaldamento"
+                }
+            },
+            "humidity": {
+                "title": "Controllo umidità - {name}",
+                "description": "Parametri controllo umidità",
+                "data": {
+                    "humidity_control_mode": "Modalità controllo umidità",
+                    "humidity_sensor_entity_id": "Sensore umidità",
+                    "humidity_tolerance": "Tolleranza umidità",
+                    "humidity_safety_delay_min": "Ritardo di sicurezza umidità (in minuti)"
+                },
+                "data_description": {
+                    "humidity_control_mode": "Solo la modalità Dry regola l’umidità quando il termostato è in modalità deumidificazione. L’assistenza al raffreddamento passa da Cool a Dry solo quando la temperatura target è raggiunta e l’umidità è troppo alta.",
+                    "humidity_sensor_entity_id": "Sensore di umidità esterno opzionale. Se lasciato vuoto, viene usata l’umidità del climate sottostante quando disponibile.",
+                    "humidity_tolerance": "Isteresi sopra il target prima dell’avvio della modalità Dry",
+                    "humidity_safety_delay_min": "Ritardo massimo consentito in minuti tra due misurazioni dell’umidità. Oltre questo ritardo, il valore di umidità viene ignorato per la regolazione."
                 }
             },
             "type": {
@@ -835,6 +871,13 @@
                 "auto_start_stop_fast": "Rilevamento veloce"
             }
         },
+        "humidity_control_mode": {
+            "options": {
+                "humidity_control_off": "Disabilitato",
+                "humidity_control_dry_only": "Solo modalità Dry",
+                "humidity_control_cool_assist": "Cool con assistenza umidità"
+            }
+        },
         "auto_tpi_calculation_method": {
             "options": {
                 "average": "Media",
@@ -852,6 +895,11 @@
         "climate": {
             "versatile_thermostat": {
                 "state_attributes": {
+                    "fan_mode": {
+                        "state": {
+                            "quiet": "Silenzioso"
+                        }
+                    },
                     "preset_mode": {
                         "state": {
                             "power": "Distribuzione",

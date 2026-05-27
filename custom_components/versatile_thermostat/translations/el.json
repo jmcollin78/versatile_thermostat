@@ -4,30 +4,41 @@
     "flow_title": "Διαμόρφωση Ευέλικτου Θερμοστάτη",
     "step": {
       "user": {
-        "title": "Προσθήκη νέου Ευέλικτου Θερμοστάτη",
-        "description": "Κύρια υποχρεωτικά χαρακτηριστικά",
+        "title": "Τύπος Versatile Thermostat",
+        "description": "Επιλέξτε τον τύπο θερμοστάτη που θέλετε να δημιουργήσετε",
         "data": {
-          "name": "Όνομα",
-          "thermostat_type": "Τύπος Θερμοστάτη",
-          "temperature_sensor_entity_id": "Ταυτότητα οντότητας αισθητήρα θερμοκρασίας",
-          "external_temperature_sensor_entity_id": "Ταυτότητα οντότητας εξωτερικού αισθητήρα θερμοκρασίας",
-          "cycle_min": "Διάρκεια κύκλου (λεπτά)",
-          "temp_min": "Ελάχιστη επιτρεπτή θερμοκρασία",
-          "temp_max": "Μέγιστη επιτρεπτή θερμοκρασία",
-          "device_power": "Ισχύς συσκευής",
-          "use_window_feature": "Χρήση ανίχνευσης παραθύρου",
-          "use_motion_feature": "Χρήση ανίχνευσης κίνησης",
-          "use_power_feature": "Χρήση διαχείρισης ισχύος",
-          "use_presence_feature": "Χρήση ανίχνευσης παρουσίας"
+          "thermostat_type": "Τύπος Θερμοστάτη"
         },
         "data_description": {
-          "cycle_min": "Minimum duration of one heating/cooling cycle in minutes to avoid too frequent switching",
-          "temp_min": "Minimum temperature allowed for the thermostat",
-          "temp_max": "Maximum temperature allowed for the thermostat",
-          "step_temperature": "Temperature step for setting the target temperature",
-          "temperature_sensor_entity_id": "Room temperature sensor entity id",
-          "last_seen_temperature_sensor_entity_id": "Last seen room temperature sensor entity id. Should be datetime sensor",
-          "external_temperature_sensor_entity_id": "Outdoor temperature sensor entity id. Not used if central configuration is selected"
+          "thermostat_type": "Είναι δυνατός μόνο ένας τύπος κεντρικής διαμόρφωσης"
+        }
+      },
+      "menu": {
+        "title": "Μενού",
+        "description": "Διαμορφώστε τον θερμοστάτη σας. Θα μπορείτε να ολοκληρώσετε τη διαμόρφωση όταν εισαχθούν όλες οι απαιτούμενες παράμετροι.",
+        "menu_options": {
+          "main": "Κύρια χαρακτηριστικά",
+          "central_boiler": "Κεντρικός λέβητας",
+          "type": "Υποκείμενες οντότητες",
+          "tpi": "Παράμετροι TPI",
+          "features": "Λειτουργίες",
+          "presets": "Προκαθορισμένες ρυθμίσεις",
+          "window": "Ανίχνευση παραθύρου",
+          "motion": "Ανίχνευση κίνησης",
+          "power": "Διαχείριση ισχύος",
+          "presence": "Ανίχνευση παρουσίας",
+          "advanced": "Προχωρημένες παράμετροι",
+          "auto_start_stop": "Αυτόματη εκκίνηση και διακοπή",
+          "humidity": "Έλεγχος υγρασίας",
+          "valve_regulation": "Διαμόρφωση ρύθμισης βαλβίδας",
+          "sync_device_internal_temp": "Συγχρονισμός θερμοκρασίας συσκευής",
+          "lock": "Κλείδωμα",
+          "heating_failure_detection": "Ανίχνευση βλάβης θέρμανσης",
+          "auto_tpi_configuration": "Auto TPI - Διαμόρφωση",
+          "auto_tpi_avg_settings": "Auto TPI - Σταθμισμένος μέσος όρος",
+          "auto_tpi_ema_settings": "Auto TPI - EWMA",
+          "finalize": "Ολοκληρώθηκε",
+          "configuration_not_complete": "Η διαμόρφωση δεν έχει ολοκληρωθεί"
         }
       },
       "lock": {
@@ -37,59 +48,105 @@
           "use_lock_central_config": "Χρήση κεντρικής διαμόρφωσης κλειδώματος",
           "lock_code": "Ο κωδικός PIN για το ξεκλείδωμα του θερμοστάτη (4 ψηφία)",
           "lock_users": "Το κλείδωμα θα αποτρέψει εντολές από χρήστες",
-          "lock_automations": "Το κλείδωμα θα αποτρέψει εντολές από αυτοματισμούς και ενσωματώσεις (π.χ. προγραμματιστής)"
+          "lock_automations": "Το κλείδωμα θα αποτρέψει εντολές από αυτοματισμούς και ενσωματώσεις (π.χ. προγραμματιστής)",
+          "auto_relock_sec": "Καθυστέρηση αυτόματου επανακλειδώματος"
         },
         "data_description": {
           "use_lock_central_config": "Επιλέξτε για χρήση της κεντρικής διαμόρφωσης κλειδώματος. Αποεπιλέξτε για χρήση συγκεκριμένης διαμόρφωσης κλειδώματος για αυτόν τον VTherm",
-          "lock_code": "Ο κωδικός PIN για το ξεκλείδωμα του θερμοστάτη (4 ψηφία)"
+          "auto_relock_sec": "Καθυστέρηση σε δευτερόλεπτα πριν από το αυτόματο επανακλείδωμα μετά από ξεκλείδωμα. Ορίστε 0 για απενεργοποίηση. Η προεπιλογή είναι 30 δευτερόλεπτα."
+        }
+      },
+      "main": {
+        "title": "Προσθήκη νέου Versatile Thermostat",
+        "description": "Κύρια υποχρεωτικά χαρακτηριστικά",
+        "data": {
+          "name": "Όνομα",
+          "thermostat_type": "Τύπος θερμοστάτη",
+          "temperature_sensor_entity_id": "Θερμοκρασία χώρου",
+          "last_seen_temperature_sensor_entity_id": "Τελευταία λήψη θερμοκρασίας χώρου",
+          "external_temperature_sensor_entity_id": "ID οντότητας αισθητήρα εξωτερικής θερμοκρασίας",
+          "cycle_min": "Διάρκεια κύκλου (λεπτά)",
+          "temp_min": "Ελάχιστη επιτρεπόμενη θερμοκρασία",
+          "temp_max": "Μέγιστη επιτρεπόμενη θερμοκρασία",
+          "step_temperature": "Βήμα θερμοκρασίας",
+          "device_power": "Ισχύς συσκευής",
+          "use_central_mode": "Ενεργοποιήστε τον έλεγχο από κεντρική οντότητα (απαιτεί κεντρική διαμόρφωση). Επιλέξτε το για να επιτρέψετε τον έλεγχο του VTherm με τις οντότητες επιλογής central_mode.",
+          "use_main_central_config": "Χρήση πρόσθετης κεντρικής κύριας διαμόρφωσης. Επιλέξτε το για χρήση της κεντρικής κύριας διαμόρφωσης (εξωτερική θερμοκρασία, ελάχιστο, μέγιστο, βήμα, ...).",
+          "used_by_controls_central_boiler": "Χρησιμοποιείται από τον κεντρικό λέβητα. Επιλέξτε το αν αυτό το VTherm πρέπει να ελέγχει τον κεντρικό λέβητα"
+        },
+        "data_description": {
+          "cycle_min": "Ελάχιστη διάρκεια ενός κύκλου θέρμανσης/ψύξης σε λεπτά, ώστε να αποφεύγονται πολύ συχνές εναλλαγές",
+          "temp_min": "Ελάχιστη επιτρεπόμενη θερμοκρασία για τον θερμοστάτη",
+          "temp_max": "Μέγιστη επιτρεπόμενη θερμοκρασία για τον θερμοστάτη",
+          "step_temperature": "Βήμα θερμοκρασίας για τη ρύθμιση της θερμοκρασίας στόχου",
+          "temperature_sensor_entity_id": "ID οντότητας αισθητήρα θερμοκρασίας χώρου",
+          "last_seen_temperature_sensor_entity_id": "ID οντότητας του αισθητήρα τελευταίας λήψης θερμοκρασίας χώρου. Πρέπει να είναι αισθητήρας ημερομηνίας/ώρας",
+          "external_temperature_sensor_entity_id": "ID οντότητας αισθητήρα εξωτερικής θερμοκρασίας. Δεν χρησιμοποιείται αν έχει επιλεγεί κεντρική διαμόρφωση"
+        }
+      },
+      "features": {
+        "title": "Λειτουργίες",
+        "description": "Λειτουργίες θερμοστάτη",
+        "data": {
+          "use_window_feature": "Χρήση ανίχνευσης παραθύρου",
+          "use_motion_feature": "Χρήση ανίχνευσης κίνησης",
+          "use_power_feature": "Χρήση διαχείρισης ισχύος",
+          "use_presence_feature": "Χρήση ανίχνευσης παρουσίας",
+          "use_central_boiler_feature": "Χρήση κεντρικού λέβητα. Επιλέξτε το για να προσθέσετε έλεγχο στον κεντρικό λέβητα. Αφού επιλέξετε αυτό το πλαίσιο, θα πρέπει να διαμορφώσετε το VTherm που θα ελέγχει τον κεντρικό λέβητα ώστε να εφαρμοστεί. Αν ένα VTherm απαιτεί θέρμανση, ο λέβητας θα ενεργοποιηθεί. Αν κανένα VTherm δεν απαιτεί θέρμανση, ο λέβητας θα απενεργοποιηθεί. Οι εντολές ενεργοποίησης/απενεργοποίησης του κεντρικού λέβητα δίνονται στη σχετική σελίδα διαμόρφωσης",
+          "use_auto_start_stop_feature": "Χρήση της λειτουργίας αυτόματης εκκίνησης και διακοπής",
+          "use_humidity_feature": "Χρήση ελέγχου υγρασίας",
+          "use_heating_failure_detection_feature": "Χρήση ανίχνευσης βλάβης θέρμανσης"
+        }
+      },
+      "humidity": {
+        "title": "Έλεγχος υγρασίας",
+        "description": "Παράμετροι ελέγχου υγρασίας",
+        "data": {
+          "humidity_control_mode": "Λειτουργία ελέγχου υγρασίας",
+          "humidity_sensor_entity_id": "Αισθητήρας υγρασίας",
+          "humidity_tolerance": "Ανοχή υγρασίας",
+          "humidity_safety_delay_min": "Καθυστέρηση ασφαλείας υγρασίας (σε λεπτά)"
+        },
+        "data_description": {
+          "humidity_control_mode": "Μόνο η λειτουργία Dry ρυθμίζει την υγρασία όταν ο θερμοστάτης βρίσκεται σε λειτουργία αφύγρανσης. Η υποστήριξη ψύξης αλλάζει από ψύξη σε αφύγρανση μόνο όταν έχει επιτευχθεί η θερμοκρασία στόχος και η υγρασία είναι πολύ υψηλή.",
+          "humidity_sensor_entity_id": "Προαιρετικός εξωτερικός αισθητήρας υγρασίας. Αν μείνει κενό, χρησιμοποιείται η υγρασία της υποκείμενης κλιματικής οντότητας όταν είναι διαθέσιμη.",
+          "humidity_tolerance": "Υστέρηση πάνω από τον στόχο πριν ξεκινήσει η λειτουργία αφύγρανσης",
+          "humidity_safety_delay_min": "Μέγιστη επιτρεπόμενη καθυστέρηση σε λεπτά μεταξύ δύο μετρήσεων υγρασίας. Πέρα από αυτή την καθυστέρηση, η τιμή υγρασίας αγνοείται για τη ρύθμιση."
         }
       },
       "type": {
         "title": "Συνδεδεμένες οντότητες",
         "description": "Χαρακτηριστικά συνδεδεμένων οντοτήτων",
         "data": {
-          "heater_entity_id": "1ος διακόπτης θερμαντήρα",
-          "heater_entity2_id": "2ος διακόπτης θερμαντήρα",
-          "heater_entity3_id": "3ος διακόπτης θερμαντήρα",
-          "heater_entity4_id": "4ος διακόπτης θερμαντήρα",
+          "underlying_entity_ids": "Οι συσκευές που θα ελέγχονται",
+          "heater_keep_alive": "Διάστημα keep-alive διακόπτη σε δευτερόλεπτα",
           "proportional_function": "Αλγόριθμος",
-          "climate_entity_id": "1η υποκείμενη κλιματική οντότητα",
-          "climate_entity2_id": "2η υποκείμενη κλιματική οντότητα",
-          "climate_entity3_id": "3η υποκείμενη κλιματική οντότητα",
-          "climate_entity4_id": "4η υποκείμενη κλιματική οντότητα",
           "ac_mode": "Λειτουργία AC",
           "sync_device_internal_temp": "Συγχρονισμός εσωτερικής θερμοκρασίας συσκευής",
-          "valve_entity_id": "1ος αριθμός βαλβίδας",
-          "valve_entity2_id": "2ος αριθμός βαλβίδας",
-          "valve_entity3_id": "3ος αριθμός βαλβίδας",
-          "valve_entity4_id": "4ος αριθμός βαλβίδας",
           "auto_regulation_mode": "Αυτόματη ρύθμιση",
           "auto_regulation_dtemp": "Όριο ρύθμισης",
           "auto_regulation_periode_min": "Ελάχιστη περίοδος ρύθμισης",
+          "auto_regulation_use_device_temp": "Χρήση εσωτερικής θερμοκρασίας της υποκείμενης οντότητας",
           "inverse_switch_command": "Αντίστροφη εντολή διακόπτη",
-          "auto_fan_mode": "Auto fan mode"
+          "auto_fan_mode": "Λειτουργία αυτόματου ανεμιστήρα",
+          "on_command_text": "Προσαρμογή εντολής ενεργοποίησης",
+          "vswitch_on_command": "Προαιρετικές εντολές ενεργοποίησης",
+          "off_command_text": "Προσαρμογή εντολής απενεργοποίησης",
+          "vswitch_off_command": "Προαιρετικές εντολές απενεργοποίησης"
         },
         "data_description": {
-          "heater_entity_id": "Υποχρεωτική ταυτότητα οντότητας θερμαντήρα",
-          "heater_entity2_id": "Προαιρετική 2η ταυτότητα οντότητας θερμαντήρα. Αφήστε κενό αν δεν χρησιμοποιείται",
-          "heater_entity3_id": "Προαιρετική 3η ταυτότητα οντότητας θερμαντήρα. Αφήστε κενό αν δεν χρησιμοποιείται",
-          "heater_entity4_id": "Προαιρετική 4η ταυτότητα οντότητας θερμαντήρα. Αφήστε κενό αν δεν χρησιμοποιείται",
+          "underlying_entity_ids": "Οι συσκευές που θα ελέγχονται - απαιτείται τουλάχιστον 1",
+          "heater_keep_alive": "Προαιρετικό διάστημα ανανέωσης κατάστασης του διακόπτη θέρμανσης. Αφήστε το κενό αν δεν απαιτείται.",
           "proportional_function": "Αλγόριθμος προς χρήση (TPI είναι ο μόνος για τώρα)",
-          "climate_entity_id": "Ταυτότητα υποκείμενης κλιματικής οντότητας",
-          "climate_entity2_id": "2η ταυτότητα υποκείμενης κλιματικής οντότητας",
-          "climate_entity3_id": "3η ταυτότητα υποκείμενης κλιματικής οντότητας",
-          "climate_entity4_id": "4η ταυτότητα υποκείμενης κλιματικής οντότητας",
           "ac_mode": "Χρήση της λειτουργίας Κλιματισμού (AC)",
           "sync_device_internal_temp": "Συγχρονισμός εσωτερικής θερμοκρασίας συσκευής",
-          "valve_entity_id": "1η ταυτότητα αριθμού βαλβίδας",
-          "valve_entity2_id": "2η ταυτότητα αριθμού βαλβίδας",
-          "valve_entity3_id": "3η ταυτότητα αριθμού βαλβίδας",
-          "valve_entity4_id": "4η ταυτότητα αριθμού βαλβίδας",
           "auto_regulation_mode": "Αυτόματη προσαρμογή της στοχευμένης θερμοκρασίας",
           "auto_regulation_dtemp": "Το όριο σε ° κάτω από το οποίο η αλλαγή θερμοκρασίας δεν θα αποστέλλεται",
           "auto_regulation_periode_min": "Διάρκεια σε λεπτά μεταξύ δύο ενημερώσεων ρύθμισης",
+          "auto_regulation_use_device_temp": "Χρήση του ενδεχόμενου εσωτερικού αισθητήρα θερμοκρασίας της υποκείμενης οντότητας για επιτάχυνση της αυτορρύθμισης (δεν χρειάζεται στις περισσότερες περιπτώσεις)",
           "inverse_switch_command": "Για διακόπτη με πιλοτικό καλώδιο και δίοδο μπορεί να χρειαστεί να αντιστρέψετε την εντολή",
-          "auto_fan_mode": "Automatically activate fan when huge heating/cooling is necessary"
+          "auto_fan_mode": "Αυτόματη ενεργοποίηση ανεμιστήρα όταν απαιτείται έντονη θέρμανση/ψύξη",
+          "on_command_text": "Για υποκείμενη οντότητα τύπου `select` ή `climate` πρέπει να προσαρμόσετε τις εντολές."
         }
       },
       "tpi": {
@@ -97,109 +154,135 @@
         "description": "Χαρακτηριστικά Χρονικά Αναλογικού Ολοκληρωτικού (TPI)",
         "data": {
           "tpi_coef_int": "Συντελεστής για χρήση στη διαφορά εσωτερικής θερμοκρασίας",
-          "tpi_coef_ext": "Συντελεστής για χρήση στη διαφορά εξωτερικής θερμοκρασίας"
+          "tpi_coef_ext": "Συντελεστής για χρήση στη διαφορά εξωτερικής θερμοκρασίας",
+          "tpi_threshold_low": "Χαμηλό όριο TPI",
+          "tpi_threshold_high": "Υψηλό όριο TPI",
+          "use_tpi_central_config": "Χρήση κεντρικής διαμόρφωσης TPI",
+          "minimal_activation_delay": "Ελάχιστη καθυστέρηση ενεργοποίησης",
+          "minimal_deactivation_delay": "Ελάχιστη καθυστέρηση απενεργοποίησης",
+          "auto_tpi_mode": "Ενεργοποίηση εκμάθησης Auto TPI"
+        },
+        "data_description": {
+          "tpi_coef_int": "Συντελεστής για χρήση στη διαφορά εσωτερικής θερμοκρασίας",
+          "tpi_coef_ext": "Συντελεστής για χρήση στη διαφορά εξωτερικής θερμοκρασίας",
+          "tpi_threshold_low": "Όριο σε ° κάτω από το οποίο ο αλγόριθμος TPI θα είναι ενεργός. Το 0 σημαίνει χωρίς όριο",
+          "tpi_threshold_high": "Όριο σε ° πάνω από το οποίο ο αλγόριθμος TPI θα είναι ανενεργός. Το 0 σημαίνει χωρίς όριο",
+          "use_tpi_central_config": "Επιλέξτε το για χρήση της κεντρικής διαμόρφωσης TPI. Αποεπιλέξτε το για ειδική διαμόρφωση TPI για αυτό το VTherm",
+          "minimal_activation_delay": "Καθυστέρηση σε δευτερόλεπτα κάτω από την οποία ο εξοπλισμός δεν θα ενεργοποιηθεί",
+          "minimal_deactivation_delay": "Καθυστέρηση σε δευτερόλεπτα κάτω από την οποία ο εξοπλισμός θα παραμείνει ενεργός",
+          "auto_tpi_mode": "Οι συνεδρίες εκμάθησης TPI ξεκινούν χειροκίνητα, διαβάστε πρώτα την τεκμηρίωση."
         }
       },
       "presets": {
         "title": "Προκαθορισμένα",
-        "description": "Για κάθε προκαθορισμένο, δώστε την επιθυμητή θερμοκρασία (0 για να αγνοηθεί το προκαθορισμένο)",
+        "description": "Επιλέξτε αν ο θερμοστάτης θα χρησιμοποιεί κεντρικές προκαθορισμένες ρυθμίσεις. Αποεπιλέξτε το για να έχει ο θερμοστάτης δικές του προκαθορισμένες ρυθμίσεις",
         "data": {
-          "eco_temp": "Θερμοκρασία στο προκαθορισμένο Eco",
-          "comfort_temp": "Θερμοκρασία στο προκαθορισμένο Comfort",
-          "boost_temp": "Θερμοκρασία στο προκαθορισμένο Boost",
-          "frost_temp": "Θερμοκρασία στο προκαθορισμένο Frost protection",
-          "eco_ac_temp": "Θερμοκρασία στο προκαθορισμένο Eco για λειτουργία AC",
-          "comfort_ac_temp": "Θερμοκρασία στο προκαθορισμένο Comfort για λειτουργία AC",
-          "boost_ac_temp": "Θερμοκρασία στο προκαθορισμένο Boost για λειτουργία AC"
+          "use_presets_central_config": "Χρήση κεντρικής διαμόρφωσης προκαθορισμένων ρυθμίσεων"
         }
       },
       "window": {
         "title": "Διαχείριση Παραθύρων",
-        "description": "Ανοίξτε τη διαχείριση παραθύρων.\nΑφήστε το αντίστοιχο entity_id κενό αν δεν χρησιμοποιείται\nΜπορείτε επίσης να ρυθμίσετε αυτόματη ανίχνευση ανοίγματος παραθύρου με βάση τη μείωση της θερμοκρασίας",
+        "description": "Διαχείριση ανοιχτού παραθύρου.\nΜπορείτε επίσης να διαμορφώσετε αυτόματη ανίχνευση ανοίγματος παραθύρου με βάση τη μείωση της θερμοκρασίας",
         "data": {
           "window_sensor_entity_id": "Ταυτότητα οντότητας αισθητήρα παραθύρου",
           "window_delay": "Καθυστέρηση αισθητήρα παραθύρου (δευτερόλεπτα)",
+          "window_off_delay": "Καθυστέρηση 'off' αισθητήρα παραθύρου (δευτερόλεπτα)",
           "window_auto_open_threshold": "Κατώφλι μείωσης θερμοκρασίας για αυτόματη ανίχνευση ανοίγματος παραθύρου (σε °/λεπτό)",
           "window_auto_close_threshold": "Κατώφλι αύξησης θερμοκρασίας για τέλος αυτόματης ανίχνευσης (σε °/λεπτό)",
-          "window_auto_max_duration": "Μέγιστη διάρκεια αυτόματης ανίχνευσης ανοίγματος παραθύρου (σε λεπτά)"
+          "window_auto_max_duration": "Μέγιστη διάρκεια αυτόματης ανίχνευσης ανοίγματος παραθύρου (σε λεπτά)",
+          "use_window_central_config": "Χρήση κεντρικής διαμόρφωσης παραθύρου",
+          "window_action": "Ενέργεια"
         },
         "data_description": {
           "window_sensor_entity_id": "Αφήστε κενό αν δεν πρέπει να χρησιμοποιηθεί αισθητήρας παραθύρου",
           "window_delay": "Η καθυστέρηση σε δευτερόλεπτα πριν ληφθεί υπόψη η ανίχνευση του αισθητήρα",
+          "window_off_delay": "Καθυστέρηση σε δευτερόλεπτα πριν ληφθεί υπόψη η ανίχνευση 'off' του αισθητήρα. Αφήστε το κενό για χρήση της ίδιας τιμής με την καθυστέρηση ενεργοποίησης παραθύρου",
           "window_auto_open_threshold": "Συνιστώμενη τιμή: μεταξύ 0.05 και 0.1. Αφήστε κενό αν δεν χρησιμοποιείται αυτόματη ανίχνευση ανοίγματος παραθύρου",
           "window_auto_close_threshold": "Συνιστώμενη τιμή: 0. Αφήστε κενό αν δεν χρησιμοποιείται αυτόματη ανίχνευση ανοίγματος παραθύρου",
-          "window_auto_max_duration": "Συνιστώμενη τιμή: 60 (μία ώρα). Αφήστε κενό αν δεν χρησιμοποιείται αυτόματη ανίχνευση ανοίγματος παραθύρου"
+          "window_auto_max_duration": "Συνιστώμενη τιμή: 60 (μία ώρα). Αφήστε κενό αν δεν χρησιμοποιείται αυτόματη ανίχνευση ανοίγματος παραθύρου",
+          "use_window_central_config": "Επιλέξτε το για χρήση της κεντρικής διαμόρφωσης παραθύρου. Αποεπιλέξτε το για ειδική διαμόρφωση παραθύρου για αυτό το VTherm",
+          "window_action": "Ενέργεια που θα εκτελεστεί αν το παράθυρο ανιχνευθεί ως ανοιχτό"
         }
       },
       "motion": {
         "title": "Διαχείριση Κίνησης",
-        "description": "Διαχείριση αισθητήρα κίνησης. Το προκαθορισμένο μπορεί να αλλάζει αυτόματα ανάλογα με ανίχνευση κίνησης\nΑφήστε το αντίστοιχο entity_id κενό αν δεν χρησιμοποιείται.\nΟι επιλογές motion_preset και no_motion_preset πρέπει να οριστούν στο αντίστοιχο όνομα προκαθορισμένου",
+        "description": "Διαχείριση κίνησης. Η προκαθορισμένη ρύθμιση μπορεί να αλλάζει αυτόματα ανάλογα με την ανίχνευση κίνησης\nΤα motion_preset και no_motion_preset πρέπει να οριστούν στο αντίστοιχο όνομα προκαθορισμένης ρύθμισης",
         "data": {
           "motion_sensor_entity_id": "Ταυτότητα οντότητας αισθητήρα κίνησης",
           "motion_delay": "Καθυστέρηση ενεργοποίησης",
           "motion_off_delay": "Καθυστέρηση απενεργοποίησης",
           "motion_preset": "Προκαθορισμένο κίνησης",
-          "no_motion_preset": "Προκαθορισμένο χωρίς κίνηση"
+          "no_motion_preset": "Προκαθορισμένο χωρίς κίνηση",
+          "use_motion_central_config": "Χρήση κεντρικής διαμόρφωσης κίνησης"
         },
         "data_description": {
           "motion_sensor_entity_id": "Η ταυτότητα οντότητας του αισθητήρα κίνησης",
           "motion_delay": "Καθυστέρηση ενεργοποίησης κίνησης (δευτερόλεπτα)",
           "motion_off_delay": "Καθυστέρηση απενεργοποίησης κίνησης (δευτερόλεπτα)",
           "motion_preset": "Το προκαθορισμένο που θα χρησιμοποιηθεί όταν ανιχνευθεί κίνηση",
-          "no_motion_preset": "Το προκαθορισμένο που θα χρησιμοποιηθεί όταν δεν ανιχνευθεί κίνηση"
+          "no_motion_preset": "Το προκαθορισμένο που θα χρησιμοποιηθεί όταν δεν ανιχνευθεί κίνηση",
+          "use_motion_central_config": "Επιλέξτε το για χρήση της κεντρικής διαμόρφωσης κίνησης. Αποεπιλέξτε το για ειδική διαμόρφωση κίνησης για αυτό το VTherm"
         }
       },
       "power": {
         "title": "Διαχείριση Ενέργειας",
-        "description": "Χαρακτηριστικά διαχείρισης ενέργειας.\nΔίνει τον αισθητήρα ενέργειας και τον μέγιστο αισθητήρα ενέργειας του σπιτιού σας.\nΣτη συνέχεια καθορίστε την κατανάλωση ενέργειας του θερμαντήρα όταν είναι ενεργοποιημένος.\nΌλοι οι αισθητήρες και η ισχύς της συσκευής πρέπει να έχουν την ίδια μονάδα (kW ή W).\nΑφήστε το αντίστοιχο entity_id κενό αν δεν χρησιμοποιείται.",
+        "description": "Χαρακτηριστικά διαχείρισης ισχύος.\nΟρίστε τον αισθητήρα ισχύος και τον αισθητήρα μέγιστης ισχύος του σπιτιού σας.\nΚαθορίστε την κατανάλωση ισχύος του θερμαντήρα όταν είναι ενεργός.\nΌλοι οι αισθητήρες και η ισχύς συσκευής πρέπει να χρησιμοποιούν την ίδια μονάδα (kW ή W)",
         "data": {
           "power_sensor_entity_id": "Ταυτότητα οντότητας αισθητήρα ενέργειας",
           "max_power_sensor_entity_id": "Ταυτότητα οντότητας αισθητήρα μέγιστης ενέργειας",
-          "power_temp": "Θερμοκρασία για Αποβολή Ενέργειας"
+          "power_temp": "Θερμοκρασία για Αποβολή Ενέργειας",
+          "use_power_central_config": "Χρήση κεντρικής διαμόρφωσης ισχύος"
+        },
+        "data_description": {
+          "power_sensor_entity_id": "ID οντότητας αισθητήρα ισχύος",
+          "max_power_sensor_entity_id": "ID οντότητας αισθητήρα μέγιστης ισχύος",
+          "power_temp": "Θερμοκρασία για αποκοπή ισχύος",
+          "use_power_central_config": "Επιλέξτε το για χρήση της κεντρικής διαμόρφωσης ισχύος. Αποεπιλέξτε το για ειδική διαμόρφωση ισχύος για αυτό το VTherm"
         }
       },
       "presence": {
         "title": "Διαχείριση Παρουσίας",
-        "description": "Χαρακτηριστικά διαχείρισης παρουσίας.\nΔίνει έναν αισθητήρα παρουσίας του σπιτιού σας (αληθές αν κάποιος είναι παρών).\nΣτη συνέχεια καθορίστε είτε το προκαθορισμένο που θα χρησιμοποιηθεί όταν ο αισθητήρας παρουσίας είναι ψευδής ή την απόκλιση στη θερμοκρασία που θα εφαρμοστεί.\nΑν δοθεί προκαθορισμένο, η απόκλιση δεν θα χρησιμοποιηθεί.\nΑφήστε το αντίστοιχο entity_id κενό αν δεν χρησιμοποιείται.",
+        "description": "Χαρακτηριστικά διαχείρισης παρουσίας.\nΟρίστε έναν αισθητήρα παρουσίας του σπιτιού σας (true όταν υπάρχει κάποιος) και την αντίστοιχη προκαθορισμένη ρύθμιση θερμοκρασίας",
         "data": {
           "presence_sensor_entity_id": "Ταυτότητα οντότητας αισθητήρα παρουσίας",
-          "eco_away_temp": "Θερμοκρασία στο προκαθορισμένο Eco όταν δεν υπάρχει παρουσία",
-          "comfort_away_temp": "Θερμοκρασία στο προκαθορισμένο Comfort όταν δεν υπάρχει παρουσία",
-          "boost_away_temp": "Θερμοκρασία στο προκαθορισμένο Boost όταν δεν υπάρχει παρουσία",
-          "frost_away_temp": "Θερμοκρασία στο προκαθορισμένο Frost protection όταν δεν υπάρχει παρουσία",
-          "eco_ac_away_temp": "Θερμοκρασία στο προκαθορισμένο Eco όταν δεν υπάρχει παρουσία σε λειτουργία AC",
-          "comfort_ac_away_temp": "Θερμοκρασία στο προκαθορισμένο Comfort όταν δεν υπάρχει παρουσία σε λειτουργία AC",
-          "boost_ac_away_temp": "Θερμοκρασία στο προκαθορισμένο Boost όταν δεν υπάρχει παρουσία σε λειτουργία AC"
+          "use_presence_central_config": "Χρήση κεντρικής διαμόρφωσης θερμοκρασιών παρουσίας. Αποεπιλέξτε το για χρήση ειδικών οντοτήτων θερμοκρασίας"
+        },
+        "data_description": {
+          "presence_sensor_entity_id": "ID οντότητας αισθητήρα παρουσίας"
         }
       },
       "advanced": {
         "title": "Προχωρημένες Παράμετροι",
         "description": "Διαμόρφωση των προχωρημένων παραμέτρων. Αφήστε τις προεπιλεγμένες τιμές αν δεν γνωρίζετε τι κάνετε.\nΑυτές οι παράμετροι μπορούν να οδηγήσουν σε πολύ κακή ρύθμιση θερμοκρασίας ή ενέργειας.",
         "data": {
-          "minimal_activation_delay": "Ελάχιστη καθυστέρηση ενεργοποίησης",
           "safety_delay_min": "Καθυστέρηση ασφαλείας (σε λεπτά)",
           "safety_min_on_percent": "Ελάχιστο ποσοστό ισχύος για ενεργοποίηση λειτουργίας ασφαλείας",
           "safety_default_on_percent": "Ποσοστό ισχύος για χρήση σε λειτουργία ασφαλείας",
-          "repair_incorrect_state": "Επιδιόρθωση ακατάλληλης κατάστασης"
+          "repair_incorrect_state": "Επιδιόρθωση ακατάλληλης κατάστασης",
+          "use_advanced_central_config": "Χρήση κεντρικής προχωρημένης διαμόρφωσης"
         },
         "data_description": {
-          "minimal_activation_delay": "Καθυστέρηση σε δευτερόλεπτα κάτω από την οποία η συσκευή δεν θα ενεργοποιηθεί",
           "safety_delay_min": "Μέγιστη επιτρεπτή καθυστέρηση σε λεπτά μεταξύ δύο μετρήσεων θερμοκρασίας. Πέρα από αυτή την καθυστέρηση, ο θερμοστάτης θα μεταβεί σε κατάσταση ασφαλείας",
           "safety_min_on_percent": "Ελάχιστη τιμή ποσοστού θέρμανσης για την ενεργοποίηση του προεπιλεγμένου ασφάλειας. Κάτω από αυτό το ποσοστό ισχύος το θερμοστάτη δεν θα πάει στο προεπιλεγμένο ασφάλειας.",
           "safety_default_on_percent": "Η προεπιλεγμένη τιμή ποσοστού ισχύος θέρμανσης στο προεπιλεγμένο ασφάλειας. Ορίστε σε 0 για να απενεργοποιήσετε τη θερμάστρα στο παρόν ασφάλειας.",
-          "repair_incorrect_state": "Αυτόματη επιδιόρθωση της ακατάλληλης κατάστασης των υποκείμενων οντοτήτων όταν εντοπιστεί. Η λειτουργία θα ξαναστείλει την επιθυμητή εντολή εάν η κατάσταση της υποκείμενης συσκευής δεν ταιριάζει με την αναμενόμενη κατάσταση."
+          "repair_incorrect_state": "Αυτόματη επιδιόρθωση της ακατάλληλης κατάστασης των υποκείμενων οντοτήτων όταν εντοπιστεί. Η λειτουργία θα ξαναστείλει την επιθυμητή εντολή εάν η κατάσταση της υποκείμενης συσκευής δεν ταιριάζει με την αναμενόμενη κατάσταση.",
+          "use_advanced_central_config": "Επιλέξτε το για χρήση της κεντρικής προχωρημένης διαμόρφωσης. Αποεπιλέξτε το για ειδική προχωρημένη διαμόρφωση για αυτό το VTherm"
         }
       },
-      "sync_device_internal_temp": {
-        "title": "Synchronize device internal temperature",
-        "description": "Configuration to synchronize the internal temperature of the underlying devices with selected entities",
+      "central_boiler": {
+        "title": "Έλεγχος του κεντρικού λέβητα",
+        "description": "Εισαγάγετε τις υπηρεσίες που θα καλούνται για ενεργοποίηση/απενεργοποίηση του κεντρικού λέβητα. Η υπηρεσία πρέπει να έχει την ακόλουθη μορφή: `entity_id/service_name[/attribute:value]` (το /attribute:value είναι προαιρετικό)\nΓια παράδειγμα:\n- για ενεργοποίηση διακόπτη: `switch.controle_chaudiere/switch.turn_on`\n- για απενεργοποίηση διακόπτη: `switch.controle_chaudiere/switch.turn_off`\n- για ρύθμιση του λέβητα στους 25° και αναγκαστική ενεργοποίηση: `climate.thermostat_chaudiere/climate.set_temperature/temperature:25`\n- για αποστολή 10° στον λέβητα και αναγκαστική απενεργοποίηση: `climate.thermostat_chaudiere/climate.set_temperature/temperature:10`",
         "data": {
-          "sync_with_calibration": "Apply offset calibration",
-          "sync_entity_ids": "Entities id used for synchronization"
+          "central_boiler_activation_service": "Εντολή ενεργοποίησης",
+          "central_boiler_deactivation_service": "Εντολή απενεργοποίησης",
+          "central_boiler_activation_delay_sec": "Καθυστέρηση ενεργοποίησης (δευτερόλεπτα)",
+          "keep_alive_boiler_delay_sec": "Καθυστέρηση keep-alive (δευτερόλεπτα)"
         },
         "data_description": {
-          "sync_with_calibration": "Check to apply the offset calibration when synchronizing the internal temperature. Uncheck to directly copy the temperature from the selected entities",
-          "sync_entity_ids": "The list of the entities used to synchronize the internal temperature of the underlying devices. There should be one per underlying device. Should be a calibration entity if checkbox is selected or a temperature entity otherwise. Both are `number` entities."
+          "central_boiler_activation_service": "Εντολή ενεργοποίησης του κεντρικού λέβητα με μορφή entity_id/service_name[/attribute:value]",
+          "central_boiler_deactivation_service": "Εντολή απενεργοποίησης του κεντρικού λέβητα με μορφή entity_id/service_name[/attribute:value]",
+          "central_boiler_activation_delay_sec": "Καθυστέρηση σε δευτερόλεπτα πριν ενεργοποιηθεί ο κεντρικός λέβητας όταν πρέπει να ανοίξει",
+          "keep_alive_boiler_delay_sec": "Καθυστέρηση σε δευτερόλεπτα για περιοδική επαναποστολή της εντολής λέβητα αν είναι ενεργό το keep-alive. Ορίστε 0 για απενεργοποίηση του keep-alive."
         }
       },
       "valve_regulation": {
@@ -226,26 +309,84 @@
           "max_closing_degree": "Μέγιστη τιμή του βαθμού κλεισίματος. Η βαλβίδα δεν θα κλείσει ποτέ περισσότερο από αυτήν την τιμή. Ορίστε το στο 100 για πλήρες κλείσιμο της βαλβίδας"
         }
       },
-      "heating_failure_detection": {
-        "title": "Heating failure detection",
-        "description": "Configure the heating failure detection feature. This detects anomalies when heating is expected but temperature doesn't increase, or when heating is off but temperature keeps rising.",
+      "auto_tpi_configuration": {
+        "title": "Auto TPI - Διαμόρφωση",
+        "description": "Γενικές ρυθμίσεις για την εκμάθηση Auto TPI.",
         "data": {
-          "use_heating_failure_detection_feature": "Enable heating failure detection",
-          "use_heating_failure_detection_central_config": "Use central heating failure detection configuration",
-          "heating_failure_threshold": "Heating failure threshold",
-          "cooling_failure_threshold": "Cooling failure threshold",
-          "heating_failure_detection_delay": "Detection delay (minutes)",
-          "temperature_change_tolerance": "Temperature change tolerance (°C)",
-          "failure_detection_enable_template": "Detection enable template"
+          "auto_tpi_learning_type": "Τύπος εκμάθησης",
+          "heater_heating_time": "Χρόνος θέρμανσης (λεπτά)",
+          "heater_cooling_time": "Χρόνος ψύξης (λεπτά)",
+          "auto_tpi_heating_rate": "Ρυθμός θέρμανσης ({unit}/h)",
+          "auto_tpi_aggressiveness": "Επιθετικότητα",
+          "auto_tpi_enable_advanced_settings": "Ενεργοποίηση προχωρημένων παραμέτρων",
+          "auto_tpi_continuous_kext": "Συνεχής εκμάθηση Kext"
         },
         "data_description": {
-          "use_heating_failure_detection_feature": "Enable the detection of heating anomalies for VTherms with TPI",
-          "use_heating_failure_detection_central_config": "Check to use the central heating failure detection configuration. Uncheck to use specific parameters for this VTherm",
-          "heating_failure_threshold": "On percent threshold above which heating should cause temperature increase (0.9 = 90%)",
-          "cooling_failure_threshold": "On percent threshold below which temperature should not increase (0.0 = 0%)",
-          "heating_failure_detection_delay": "Time in minutes to wait before checking if temperature has changed as expected",
-          "temperature_change_tolerance": "Minimum temperature change in degrees to consider significant. Smaller changes are ignored to filter sensor noise (default: 0.5°C)",
-          "failure_detection_enable_template": "An optional Jinja2 template that must return True to enable detection. Useful to temporarily disable detection when an external heat source is active (e.g., `is_state('binary_sensor.wood_stove', 'off')` in double curly braces). If empty, detection is always enabled."
+          "auto_tpi_learning_type": "Επιλέξτε 'Discovery' για την αρχική εκκίνηση (σταθμισμένος μέσος όρος, βάρος 1) ή 'Fine Tuning' για συνεχείς προσαρμογές (EWMA, Alpha 0.08).",
+          "heater_heating_time": "Χρόνος για επίτευξη πλήρους ισχύος (λεπτά)",
+          "heater_cooling_time": "Χρόνος ψύξης μετά τη διακοπή (λεπτά)\n\n| Τύπος | Χρόνος θέρμανσης | Χρόνος ψύξης |\n| :--- | :--- | :--- |\n| Ηλεκτρικό σώμα | 5 λεπτά | 7 λεπτά |\n| Σώμα νερού | 15 λεπτά | 20 λεπτά |\n| Ενδοδαπέδια θέρμανση | 30 λεπτά | 45 λεπτά |",
+          "auto_tpi_heating_rate": "Ικανότητα αύξησης θερμοκρασίας του θερμαντικού σώματος ({unit} ανά ώρα). Αφήστε το 0 για αυτόματη εκμάθηση (bootstrap).",
+          "auto_tpi_aggressiveness": "Συντελεστής μείωσης για τους μαθημένους συντελεστές (50-100%). Χαμηλότερες τιμές δίνουν πιο συντηρητικούς συντελεστές και μειώνουν τον κίνδυνο υπέρβασης.",
+          "auto_tpi_enable_advanced_settings": "Επιλέξτε το για πρόσβαση στη λεπτομερή ρύθμιση παραμέτρων (Alpha, Decay, Weight).",
+          "auto_tpi_continuous_kext": "Επιλέξτε το για ενεργοποίηση συνεχούς εκμάθησης του εξωτερικού συντελεστή (Kext) εκτός συνεδριών AutoTPI."
+        }
+      },
+      "auto_tpi_avg_settings": {
+        "title": "Auto TPI - Σταθμισμένος μέσος όρος",
+        "description": "Παράμετροι για τη μέθοδο σταθμισμένου μέσου όρου.",
+        "data": {
+          "auto_tpi_avg_initial_weight": "Αρχικό βάρος"
+        },
+        "data_description": {
+          "auto_tpi_avg_initial_weight": "Βάρος της αρχικής/προηγούμενης τιμής στον υπολογισμό του μέσου όρου"
+        }
+      },
+      "auto_tpi_ema_settings": {
+        "title": "Auto TPI - EWMA",
+        "description": "Παράμετροι για τη μέθοδο EWMA.\n\nΣυστάσεις:\n| Κατάσταση | Alpha (ema_alpha) | Ρυθμός μείωσης (ema_decay_rate) |\n| :--- | :--- | :--- |\n| Αρχική εκμάθηση | 0.15 | 0.08 |\n| Λεπτομερής εκμάθηση | 0.08 | 0.12 |\n| Συνεχής εκμάθηση | 0.05 | 0.02 |",
+        "data": {
+          "auto_tpi_ema_alpha": "Alpha",
+          "auto_tpi_ema_decay_rate": "Ρυθμός μείωσης",
+          "auto_tpi_continuous_kext_alpha": "Συνεχές Kext Alpha"
+        },
+        "data_description": {
+          "auto_tpi_ema_alpha": "Συντελεστής εξομάλυνσης (0-1). Υψηλότερη τιμή = ταχύτερη προσαρμογή",
+          "auto_tpi_ema_decay_rate": "Ρυθμός με τον οποίο το Alpha μειώνεται με τον χρόνο (σταθεροποίηση)",
+          "auto_tpi_continuous_kext_alpha": "Συντελεστής εξομάλυνσης για τη συνεχή εκμάθηση Kext (Alpha). Προεπιλογή 0.04 (περίπου 3-5 ημέρες προσαρμογής)."
+        }
+      },
+      "sync_device_internal_temp": {
+        "title": "Συγχρονισμός εσωτερικής θερμοκρασίας συσκευής",
+        "description": "Διαμόρφωση για συγχρονισμό της εσωτερικής θερμοκρασίας των υποκείμενων συσκευών με επιλεγμένες οντότητες",
+        "data": {
+          "sync_with_calibration": "Εφαρμογή βαθμονόμησης μετατόπισης",
+          "sync_entity_ids": "ID οντοτήτων που χρησιμοποιούνται για συγχρονισμό"
+        },
+        "data_description": {
+          "sync_with_calibration": "Επιλέξτε το για εφαρμογή της βαθμονόμησης μετατόπισης κατά τον συγχρονισμό της εσωτερικής θερμοκρασίας. Αποεπιλέξτε το για απευθείας αντιγραφή της θερμοκρασίας από τις επιλεγμένες οντότητες",
+          "sync_entity_ids": "Η λίστα των οντοτήτων που χρησιμοποιούνται για τον συγχρονισμό της εσωτερικής θερμοκρασίας των υποκείμενων συσκευών. Πρέπει να υπάρχει μία ανά υποκείμενη συσκευή. Πρέπει να είναι οντότητα βαθμονόμησης αν είναι επιλεγμένο το πλαίσιο, αλλιώς οντότητα θερμοκρασίας. Και οι δύο είναι οντότητες `number`."
+        }
+      },
+      "heating_failure_detection": {
+        "title": "Ανίχνευση βλάβης θέρμανσης",
+        "description": "Διαμορφώστε τη λειτουργία ανίχνευσης βλάβης θέρμανσης. Ανιχνεύει ανωμαλίες όταν αναμένεται θέρμανση αλλά η θερμοκρασία δεν αυξάνεται, ή όταν η θέρμανση είναι απενεργοποιημένη αλλά η θερμοκρασία συνεχίζει να αυξάνεται.",
+        "data": {
+          "use_heating_failure_detection_feature": "Ενεργοποίηση ανίχνευσης βλάβης θέρμανσης",
+          "use_heating_failure_detection_central_config": "Χρήση κεντρικής διαμόρφωσης ανίχνευσης βλάβης θέρμανσης",
+          "heating_failure_threshold": "Όριο βλάβης θέρμανσης",
+          "cooling_failure_threshold": "Όριο βλάβης ψύξης",
+          "heating_failure_detection_delay": "Καθυστέρηση ανίχνευσης (λεπτά)",
+          "temperature_change_tolerance": "Ανοχή μεταβολής θερμοκρασίας (°C)",
+          "failure_detection_enable_template": "Πρότυπο ενεργοποίησης ανίχνευσης"
+        },
+        "data_description": {
+          "use_heating_failure_detection_feature": "Ενεργοποίηση της ανίχνευσης ανωμαλιών θέρμανσης για VTherm με TPI",
+          "use_heating_failure_detection_central_config": "Επιλέξτε το για χρήση της κεντρικής διαμόρφωσης ανίχνευσης βλάβης θέρμανσης. Αποεπιλέξτε το για χρήση ειδικών παραμέτρων για αυτό το VTherm",
+          "heating_failure_threshold": "Ποσοστιαίο όριο ενεργοποίησης πάνω από το οποίο η θέρμανση πρέπει να προκαλεί αύξηση θερμοκρασίας (0.9 = 90%)",
+          "cooling_failure_threshold": "Ποσοστιαίο όριο ενεργοποίησης κάτω από το οποίο η θερμοκρασία δεν πρέπει να αυξάνεται (0.0 = 0%)",
+          "heating_failure_detection_delay": "Χρόνος σε λεπτά πριν ελεγχθεί αν η θερμοκρασία άλλαξε όπως αναμενόταν",
+          "temperature_change_tolerance": "Ελάχιστη μεταβολή θερμοκρασίας σε βαθμούς για να θεωρηθεί σημαντική. Μικρότερες μεταβολές αγνοούνται για φιλτράρισμα θορύβου αισθητήρα (προεπιλογή: 0.5°C)",
+          "failure_detection_enable_template": "Προαιρετικό πρότυπο Jinja2 που πρέπει να επιστρέφει True για ενεργοποίηση της ανίχνευσης. Χρήσιμο για προσωρινή απενεργοποίηση όταν είναι ενεργή εξωτερική πηγή θερμότητας (π.χ. `is_state('binary_sensor.wood_stove', 'off')` μέσα σε διπλά άγκιστρα). Αν είναι κενό, η ανίχνευση είναι πάντα ενεργή."
         }
       }
     },
@@ -253,14 +394,14 @@
       "unknown": "Απροσδόκητο λάθος",
       "unknown_entity": "Άγνωστο αναγνωριστικό οντότητας",
       "window_open_detection_method": "Πρέπει να χρησιμοποιηθεί μόνο μία μέθοδος ανίχνευσης ανοιχτού παραθύρου. Χρησιμοποιήστε αισθητήρα ή αυτόματη ανίχνευση μέσω κατωφλίου θερμοκρασίας αλλά όχι και τα δύο",
-      "no_central_config": "You cannot check 'use central configuration' because no central configuration was found. You need to create a Versatile Thermostat of type 'Central Configuration' to use it.",
-      "service_configuration_format": "The format of the service configuration is wrong",
-      "valve_regulation_nb_entities_incorrect": "The number of valve entities for valve regulation should be equal to the number of underlyings",
-      "sync_device_internal_temp_nb_entities_incorrect": "The number of entities for synchronize device internal temperature should be equal to the number of underlyings",
-      "min_opening_degrees_format": "A comma separated list of positive integer is expected. Example: 20, 25, 30",
+      "no_central_config": "Δεν μπορείτε να επιλέξετε 'χρήση κεντρικής διαμόρφωσης', επειδή δεν βρέθηκε κεντρική διαμόρφωση. Πρέπει να δημιουργήσετε ένα Versatile Thermostat τύπου 'Κεντρική διαμόρφωση' για να τη χρησιμοποιήσετε.",
+      "service_configuration_format": "Η μορφή της διαμόρφωσης υπηρεσίας είναι λανθασμένη",
+      "valve_regulation_nb_entities_incorrect": "Ο αριθμός των οντοτήτων βαλβίδας για τη ρύθμιση βαλβίδας πρέπει να είναι ίσος με τον αριθμό των υποκείμενων οντοτήτων",
+      "sync_device_internal_temp_nb_entities_incorrect": "Ο αριθμός των οντοτήτων για συγχρονισμό εσωτερικής θερμοκρασίας συσκευής πρέπει να είναι ίσος με τον αριθμό των υποκείμενων οντοτήτων",
+      "min_opening_degrees_format": "Αναμένεται λίστα θετικών ακεραίων χωρισμένων με κόμμα. Παράδειγμα: 20, 25, 30",
       "max_opening_degrees_format": "Αναμένεται μια λίστα θετικών ακεραίων μεταξύ 0 και 100 χωρισμένη με κόμματα. Παράδειγμα: 80, 85, 90",
       "min_max_opening_degrees_inconsistent": "Για κάθε υποκείμενη συσκευή, το max_opening_degrees πρέπει να είναι αυστηρά μεγαλύτερο από το min_opening_degrees. Ελέγξτε τη διαμόρφωσή σας.",
-      "vswitch_configuration_incorrect": "The command customization configuration is incorrect. It is required for underlying entities that are not switches, and the format must be service_name[/attribute:value]. More information is available in the README"
+      "vswitch_configuration_incorrect": "Η διαμόρφωση προσαρμογής εντολών είναι λανθασμένη. Απαιτείται για υποκείμενες οντότητες που δεν είναι διακόπτες και η μορφή πρέπει να είναι service_name[/attribute:value]. Περισσότερες πληροφορίες υπάρχουν στο README"
     },
     "abort": {
       "already_configured": "Η συσκευή έχει ήδη ρυθμιστεί"
@@ -270,204 +411,286 @@
     "flow_title": "Διαμόρφωση Ευέλικτου Θερμοστάτη",
     "step": {
       "user": {
-        "title": "Προσθήκη νέου Ευέλικτου Θερμοστάτη",
+        "title": "Τύπος - {name}",
+        "description": "Επιλέξτε τον τύπο θερμοστάτη που θέλετε να δημιουργήσετε",
+        "data": {
+          "thermostat_type": "Τύπος θερμοστάτη"
+        },
+        "data_description": {
+          "thermostat_type": "Είναι δυνατός μόνο ένας τύπος κεντρικής διαμόρφωσης"
+        }
+      },
+      "menu": {
+        "title": "Μενού",
+        "description": "Διαμορφώστε τον θερμοστάτη σας. Θα μπορείτε να ολοκληρώσετε τη διαμόρφωση όταν εισαχθούν όλες οι απαιτούμενες παράμετροι.",
+        "menu_options": {
+          "main": "Κύρια χαρακτηριστικά",
+          "central_boiler": "Κεντρικός λέβητας",
+          "type": "Υποκείμενες οντότητες",
+          "tpi": "Παράμετροι TPI",
+          "features": "Λειτουργίες",
+          "presets": "Προκαθορισμένες ρυθμίσεις",
+          "window": "Ανίχνευση παραθύρου",
+          "motion": "Ανίχνευση κίνησης",
+          "power": "Διαχείριση ισχύος",
+          "presence": "Ανίχνευση παρουσίας",
+          "advanced": "Προχωρημένες παράμετροι",
+          "auto_start_stop": "Αυτόματη εκκίνηση και διακοπή",
+          "humidity": "Έλεγχος υγρασίας",
+          "valve_regulation": "Διαμόρφωση ρύθμισης βαλβίδας",
+          "sync_device_internal_temp": "Συγχρονισμός θερμοκρασίας συσκευής",
+          "lock": "Κλείδωμα",
+          "heating_failure_detection": "Ανίχνευση βλάβης θέρμανσης",
+          "finalize": "Ολοκληρώθηκε",
+          "configuration_not_complete": "Η διαμόρφωση δεν έχει ολοκληρωθεί"
+        }
+      },
+      "lock": {
+        "title": "Διαχείριση κλειδώματος - {name}",
+        "description": "Η λειτουργία κλειδώματος αποτρέπει αλλαγές στη διαμόρφωση ενός θερμοστάτη από το περιβάλλον χρήστη ή αυτοματισμούς, διατηρώντας παράλληλα τον θερμοστάτη σε λειτουργία.",
+        "data": {
+          "use_lock_central_config": "Χρήση κεντρικής διαμόρφωσης κλειδώματος",
+          "lock_code": "Ο κωδικός PIN για το ξεκλείδωμα του θερμοστάτη (4 ψηφία)",
+          "lock_users": "Το κλείδωμα θα αποτρέψει εντολές από χρήστες",
+          "lock_automations": "Το κλείδωμα θα αποτρέψει εντολές από αυτοματισμούς και ενσωματώσεις (π.χ. προγραμματιστής)",
+          "auto_relock_sec": "Καθυστέρηση αυτόματου επανακλειδώματος"
+        },
+        "data_description": {
+          "use_lock_central_config": "Επιλέξτε για χρήση της κεντρικής διαμόρφωσης κλειδώματος. Αποεπιλέξτε για χρήση συγκεκριμένης διαμόρφωσης κλειδώματος για αυτόν τον VTherm",
+          "auto_relock_sec": "Καθυστέρηση σε δευτερόλεπτα πριν από το αυτόματο επανακλείδωμα μετά από ξεκλείδωμα. Ορίστε 0 για απενεργοποίηση. Η προεπιλογή είναι 30 δευτερόλεπτα."
+        }
+      },
+      "main": {
+        "title": "Κύρια - {name}",
         "description": "Κύρια υποχρεωτικά χαρακτηριστικά",
         "data": {
           "name": "Όνομα",
           "thermostat_type": "Τύπος θερμοστάτη",
-          "temperature_sensor_entity_id": "Ταυτότητα οντότητας αισθητήρα θερμοκρασίας",
-          "external_temperature_sensor_entity_id": "Ταυτότητα οντότητας εξωτερικού αισθητήρα θερμοκρασίας",
+          "temperature_sensor_entity_id": "Θερμοκρασία χώρου",
+          "last_seen_temperature_sensor_entity_id": "Τελευταία λήψη θερμοκρασίας χώρου",
+          "external_temperature_sensor_entity_id": "ID οντότητας αισθητήρα εξωτερικής θερμοκρασίας",
           "cycle_min": "Διάρκεια κύκλου (λεπτά)",
           "temp_min": "Ελάχιστη επιτρεπόμενη θερμοκρασία",
           "temp_max": "Μέγιστη επιτρεπόμενη θερμοκρασία",
-          "device_power": "Ισχύς συσκευής (kW)",
-          "use_window_feature": "Χρήση ανίχνευσης παραθύρου",
-          "use_motion_feature": "Χρήση ανίχνευσης κίνησης",
-          "use_power_feature": "Χρήση διαχείρισης ενέργειας",
-          "use_presence_feature": "Χρήση ανίχνευσης παρουσίας"
+          "step_temperature": "Βήμα θερμοκρασίας",
+          "device_power": "Ισχύς συσκευής",
+          "use_central_mode": "Ενεργοποιήστε τον έλεγχο από κεντρική οντότητα (απαιτεί κεντρική διαμόρφωση). Επιλέξτε το για να επιτρέψετε τον έλεγχο του VTherm με τις οντότητες επιλογής central_mode.",
+          "use_main_central_config": "Χρήση πρόσθετης κεντρικής κύριας διαμόρφωσης. Επιλέξτε το για χρήση της κεντρικής κύριας διαμόρφωσης (εξωτερική θερμοκρασία, ελάχιστο, μέγιστο, βήμα, ...).",
+          "used_by_controls_central_boiler": "Χρησιμοποιείται από τον κεντρικό λέβητα. Επιλέξτε το αν αυτό το VTherm πρέπει να ελέγχει τον κεντρικό λέβητα"
         },
         "data_description": {
-          "cycle_min": "Minimum duration of one heating/cooling cycle in minutes to avoid too frequent switching",
-          "temp_min": "Minimum temperature allowed for the thermostat",
-          "temp_max": "Maximum temperature allowed for the thermostat",
-          "step_temperature": "Temperature step for setting the target temperature",
-          "temperature_sensor_entity_id": "Room temperature sensor entity id",
-          "last_seen_temperature_sensor_entity_id": "Last seen room temperature sensor entity id. Should be datetime sensor",
-          "external_temperature_sensor_entity_id": "Outdoor temperature sensor entity id. Not used if central configuration is selected"
+          "cycle_min": "Ελάχιστη διάρκεια ενός κύκλου θέρμανσης/ψύξης σε λεπτά, ώστε να αποφεύγονται πολύ συχνές εναλλαγές",
+          "temp_min": "Ελάχιστη επιτρεπόμενη θερμοκρασία για τον θερμοστάτη",
+          "temp_max": "Μέγιστη επιτρεπόμενη θερμοκρασία για τον θερμοστάτη",
+          "step_temperature": "Βήμα θερμοκρασίας για τη ρύθμιση της θερμοκρασίας στόχου",
+          "temperature_sensor_entity_id": "ID οντότητας αισθητήρα θερμοκρασίας χώρου",
+          "last_seen_temperature_sensor_entity_id": "ID οντότητας του αισθητήρα τελευταίας λήψης θερμοκρασίας χώρου. Πρέπει να είναι αισθητήρας ημερομηνίας/ώρας",
+          "external_temperature_sensor_entity_id": "ID οντότητας αισθητήρα εξωτερικής θερμοκρασίας. Δεν χρησιμοποιείται αν έχει επιλεγεί κεντρική διαμόρφωση"
+        }
+      },
+      "features": {
+        "title": "Λειτουργίες - {name}",
+        "description": "Λειτουργίες θερμοστάτη",
+        "data": {
+          "use_window_feature": "Χρήση ανίχνευσης παραθύρου",
+          "use_motion_feature": "Χρήση ανίχνευσης κίνησης",
+          "use_power_feature": "Χρήση διαχείρισης ισχύος",
+          "use_presence_feature": "Χρήση ανίχνευσης παρουσίας",
+          "use_central_boiler_feature": "Χρήση κεντρικού λέβητα. Επιλέξτε το για να προσθέσετε έλεγχο στον κεντρικό λέβητα. Αφού επιλέξετε αυτό το πλαίσιο, θα πρέπει να διαμορφώσετε το VTherm που θα ελέγχει τον κεντρικό λέβητα ώστε να εφαρμοστεί. Αν ένα VTherm απαιτεί θέρμανση, ο λέβητας θα ενεργοποιηθεί. Αν κανένα VTherm δεν απαιτεί θέρμανση, ο λέβητας θα απενεργοποιηθεί. Οι εντολές ενεργοποίησης/απενεργοποίησης του κεντρικού λέβητα δίνονται στη σχετική σελίδα διαμόρφωσης",
+          "use_auto_start_stop_feature": "Χρήση της λειτουργίας αυτόματης εκκίνησης και διακοπής",
+          "use_humidity_feature": "Χρήση ελέγχου υγρασίας",
+          "use_heating_failure_detection_feature": "Χρήση ανίχνευσης βλάβης θέρμανσης"
+        }
+      },
+      "humidity": {
+        "title": "Έλεγχος υγρασίας - {name}",
+        "description": "Παράμετροι ελέγχου υγρασίας",
+        "data": {
+          "humidity_control_mode": "Λειτουργία ελέγχου υγρασίας",
+          "humidity_sensor_entity_id": "Αισθητήρας υγρασίας",
+          "humidity_tolerance": "Ανοχή υγρασίας",
+          "humidity_safety_delay_min": "Καθυστέρηση ασφαλείας υγρασίας (σε λεπτά)"
+        },
+        "data_description": {
+          "humidity_control_mode": "Μόνο η λειτουργία Dry ρυθμίζει την υγρασία όταν ο θερμοστάτης βρίσκεται σε λειτουργία αφύγρανσης. Η υποστήριξη ψύξης αλλάζει από ψύξη σε αφύγρανση μόνο όταν έχει επιτευχθεί η θερμοκρασία στόχος και η υγρασία είναι πολύ υψηλή.",
+          "humidity_sensor_entity_id": "Προαιρετικός εξωτερικός αισθητήρας υγρασίας. Αν μείνει κενό, χρησιμοποιείται η υγρασία της υποκείμενης κλιματικής οντότητας όταν είναι διαθέσιμη.",
+          "humidity_tolerance": "Υστέρηση πάνω από τον στόχο πριν ξεκινήσει η λειτουργία αφύγρανσης",
+          "humidity_safety_delay_min": "Μέγιστη επιτρεπόμενη καθυστέρηση σε λεπτά μεταξύ δύο μετρήσεων υγρασίας. Πέρα από αυτή την καθυστέρηση, η τιμή υγρασίας αγνοείται για τη ρύθμιση."
         }
       },
       "type": {
-        "title": "Συνδεδεμένες οντότητες",
+        "title": "Οντότητες - {name}",
         "description": "Χαρακτηριστικά συνδεδεμένων οντοτήτων",
         "data": {
-          "heater_entity_id": "1ος διακόπτης θερμαντήρα",
-          "heater_entity2_id": "2ος διακόπτης θερμαντήρα",
-          "heater_entity3_id": "3ος διακόπτης θερμαντήρα",
-          "heater_entity4_id": "4ος διακόπτης θερμαντήρα",
+          "underlying_entity_ids": "Οι συσκευές που θα ελέγχονται",
+          "heater_keep_alive": "Διάστημα keep-alive διακόπτη σε δευτερόλεπτα",
           "proportional_function": "Αλγόριθμος",
-          "climate_entity_id": "1η υποκείμενη κλιματική οντότητα",
-          "climate_entity2_id": "2η υποκείμενη κλιματική οντότητα",
-          "climate_entity3_id": "3η υποκείμενη κλιματική οντότητα",
-          "climate_entity4_id": "4η υποκείμενη κλιματική οντότητα",
           "ac_mode": "Λειτουργία AC",
           "sync_device_internal_temp": "Συγχρονισμός εσωτερικής θερμοκρασίας συσκευής",
-          "valve_entity_id": "1ος αριθμός βαλβίδας",
-          "valve_entity2_id": "2ος αριθμός βαλβίδας",
-          "valve_entity3_id": "3ος αριθμός βαλβίδας",
-          "valve_entity4_id": "4ος αριθμός βαλβίδας",
           "auto_regulation_mode": "Αυτορύθμιση",
           "auto_regulation_dtemp": "Όριο ρύθμισης",
           "auto_regulation_periode_min": "Ελάχιστη περίοδος ρύθμισης",
+          "auto_regulation_use_device_temp": "Χρήση εσωτερικής θερμοκρασίας της υποκείμενης οντότητας",
           "inverse_switch_command": "Αντίστροφη εντολή διακόπτη",
-          "auto_fan_mode": "Auto fan mode"
+          "auto_fan_mode": "Λειτουργία αυτόματου ανεμιστήρα",
+          "on_command_text": "Προσαρμογή εντολής ενεργοποίησης",
+          "vswitch_on_command": "Προαιρετικές εντολές ενεργοποίησης",
+          "off_command_text": "Προσαρμογή εντολής απενεργοποίησης",
+          "vswitch_off_command": "Προαιρετικές εντολές απενεργοποίησης"
         },
         "data_description": {
-          "heater_entity_id": "Υποχρεωτική ταυτότητα οντότητας θερμαντήρα",
-          "heater_entity2_id": "Προαιρετική ταυτότητα οντότητας 2ου θερμαντήρα. Αφήστε το κενό αν δεν χρησιμοποιείται",
-          "heater_entity3_id": "Προαιρετική ταυτότητα οντότητας 3ου θερμαντήρα. Αφήστε το κενό αν δεν χρησιμοποιείται",
-          "heater_entity4_id": "Προαιρετική ταυτότητα οντότητας 4ου θερμαντήρα. Αφήστε το κενό αν δεν χρησιμοποιείται",
+          "underlying_entity_ids": "Οι συσκευές που θα ελέγχονται - απαιτείται τουλάχιστον 1",
+          "heater_keep_alive": "Προαιρετικό διάστημα ανανέωσης κατάστασης του διακόπτη θέρμανσης. Αφήστε το κενό αν δεν απαιτείται.",
           "proportional_function": "Αλγόριθμος που θα χρησιμοποιηθεί (TPI είναι ο μόνος για τώρα)",
-          "climate_entity_id": "Ταυτότητα οντότητας υποκείμενου κλίματος",
-          "climate_entity2_id": "Ταυτότητα οντότητας 2ου υποκείμενου κλίματος",
-          "climate_entity3_id": "Ταυτότητα οντότητας 3ου υποκείμενου κλίματος",
-          "climate_entity4_id": "Ταυτότητα οντότητας 4ου υποκείμενου κλίματος",
           "ac_mode": "Χρήση της λειτουργίας Κλιματισμού (AC)",
           "sync_device_internal_temp": "Συγχρονισμός εσωτερικής θερμοκρασίας συσκευής",
-          "valve_entity_id": "Ταυτότητα οντότητας 1ης βαλβίδας",
-          "valve_entity2_id": "Ταυτότητα οντότητας 2ης βαλβίδας",
-          "valve_entity3_id": "Ταυτότητα οντότητας 3ης βαλβίδας",
-          "valve_entity4_id": "Ταυτότητα οντότητας 4ης βαλβίδας",
           "auto_regulation_mode": "Αυτόματη ρύθμιση της στοχευόμενης θερμοκρασίας",
           "auto_regulation_dtemp": "Το κατώφλι σε °C κάτω από το οποίο η αλλαγή της θερμοκρασίας δεν θα αποστέλλεται",
           "auto_regulation_periode_min": "Διάρκεια σε λεπτά μεταξύ δύο ενημερώσεων ρύθμισης",
+          "auto_regulation_use_device_temp": "Χρήση του ενδεχόμενου εσωτερικού αισθητήρα θερμοκρασίας της υποκείμενης οντότητας για επιτάχυνση της αυτορρύθμισης (δεν χρειάζεται στις περισσότερες περιπτώσεις)",
           "inverse_switch_command": "Για διακόπτες με πιλοτικό καλώδιο και δίοδο μπορεί να χρειαστεί να αντιστραφεί η εντολή",
-          "auto_fan_mode": "Automatically activate fan when huge heating/cooling is necessary"
+          "auto_fan_mode": "Αυτόματη ενεργοποίηση ανεμιστήρα όταν απαιτείται έντονη θέρμανση/ψύξη",
+          "on_command_text": "Για υποκείμενη οντότητα τύπου `select` ή `climate` πρέπει να προσαρμόσετε τις εντολές."
         }
       },
       "tpi": {
-        "title": "TPI",
+        "title": "TPI - {name}",
         "description": "Χαρακτηριστικά Χρονικού Αναλογικού Ολοκληρωτικού (TPI)",
         "data": {
           "tpi_coef_int": "Συντελεστής που θα χρησιμοποιηθεί για την εσωτερική διαφορά θερμοκρασίας",
-          "tpi_coef_ext": "Συντελεστής που θα χρησιμοποιηθεί για την εξωτερική διαφορά θερμοκρασίας"
+          "tpi_coef_ext": "Συντελεστής που θα χρησιμοποιηθεί για την εξωτερική διαφορά θερμοκρασίας",
+          "tpi_threshold_low": "Χαμηλό όριο TPI",
+          "tpi_threshold_high": "Υψηλό όριο TPI",
+          "use_tpi_central_config": "Χρήση κεντρικής διαμόρφωσης TPI",
+          "minimal_activation_delay": "Ελάχιστη καθυστέρηση ενεργοποίησης",
+          "minimal_deactivation_delay": "Ελάχιστη καθυστέρηση απενεργοποίησης",
+          "auto_tpi_mode": "Ενεργοποίηση εκμάθησης Auto TPI"
+        },
+        "data_description": {
+          "tpi_coef_int": "Συντελεστής για χρήση στη διαφορά εσωτερικής θερμοκρασίας",
+          "tpi_coef_ext": "Συντελεστής για χρήση στη διαφορά εξωτερικής θερμοκρασίας",
+          "tpi_threshold_low": "Όριο σε ° κάτω από το οποίο ο αλγόριθμος TPI θα είναι ενεργός. Το 0 σημαίνει χωρίς όριο",
+          "tpi_threshold_high": "Όριο σε ° πάνω από το οποίο ο αλγόριθμος TPI θα είναι ανενεργός. Το 0 σημαίνει χωρίς όριο",
+          "use_tpi_central_config": "Επιλέξτε το για χρήση της κεντρικής διαμόρφωσης TPI. Αποεπιλέξτε το για ειδική διαμόρφωση TPI για αυτό το VTherm",
+          "minimal_activation_delay": "Καθυστέρηση σε δευτερόλεπτα κάτω από την οποία ο εξοπλισμός δεν θα ενεργοποιηθεί",
+          "minimal_deactivation_delay": "Καθυστέρηση σε δευτερόλεπτα κάτω από την οποία ο εξοπλισμός θα παραμείνει ενεργός",
+          "auto_tpi_mode": "Οι συνεδρίες εκμάθησης TPI ξεκινούν χειροκίνητα, διαβάστε πρώτα την τεκμηρίωση."
         }
       },
       "presets": {
-        "title": "Προεπιλογές",
-        "description": "Για κάθε προεπιλογή, δώστε τη στοχευόμενη θερμοκρασία (0 για να αγνοηθεί η προεπιλογή)",
+        "title": "Προκαθορισμένες ρυθμίσεις - {name}",
+        "description": "Επιλέξτε αν ο θερμοστάτης θα χρησιμοποιεί κεντρικές προκαθορισμένες ρυθμίσεις. Αποεπιλέξτε το για να έχει ο θερμοστάτης δικές του οντότητες προκαθορισμένων ρυθμίσεων",
         "data": {
-          "eco_temp": "Θερμοκρασία στην οικονομική προεπιλογή",
-          "comfort_temp": "Θερμοκρασία στην άνετη προεπιλογή",
-          "boost_temp": "Θερμοκρασία στην ενισχυμένη προεπιλογή",
-          "frost_temp": "Θερμοκρασία στο προκαθορισμένο Frost protection",
-          "eco_ac_temp": "Θερμοκρασία στην οικονομική προεπιλογή για τη λειτουργία AC",
-          "comfort_ac_temp": "Θερμοκρασία στην άνετη προεπιλογή για τη λειτουργία AC",
-          "boost_ac_temp": "Θερμοκρασία στην ενισχυμένη προεπιλογή για τη λειτουργία AC"
+          "use_presets_central_config": "Χρήση κεντρικής διαμόρφωσης προκαθορισμένων ρυθμίσεων"
         }
       },
       "window": {
-        "title": "Διαχείριση παραθύρου",
-        "description": "Διαχείριση ανοιχτού παραθύρου.\nΑφήστε την αντίστοιχη ταυτότητα οντότητας κενή αν δεν χρησιμοποιείται\nΜπορείτε επίσης να διαμορφώσετε την αυτόματη ανίχνευση ανοίγματος παραθύρου βάσει της μείωσης της θερμοκρασίας",
+        "title": "Παράθυρο - {name}",
+        "description": "Διαχείριση ανοιχτού παραθύρου.\nΜπορείτε επίσης να διαμορφώσετε αυτόματη ανίχνευση ανοίγματος παραθύρου με βάση τη μείωση της θερμοκρασίας",
         "data": {
           "window_sensor_entity_id": "Ταυτότητα οντότητας αισθητήρα παραθύρου",
           "window_delay": "Καθυστέρηση αισθητήρα παραθύρου (δευτερόλεπτα)",
+          "window_off_delay": "Καθυστέρηση 'off' αισθητήρα παραθύρου (δευτερόλεπτα)",
           "window_auto_open_threshold": "Όριο μείωσης θερμοκρασίας για αυτόματη ανίχνευση ανοίγματος παραθύρου (σε °/λεπτό)",
           "window_auto_close_threshold": "Όριο αύξησης θερμοκρασίας για τέλος αυτόματης ανίχνευσης (σε °/λεπτό)",
-          "window_auto_max_duration": "Μέγιστη διάρκεια αυτόματης ανίχνευσης ανοίγματος παραθύρου (σε λεπτά)"
+          "window_auto_max_duration": "Μέγιστη διάρκεια αυτόματης ανίχνευσης ανοίγματος παραθύρου (σε λεπτά)",
+          "use_window_central_config": "Χρήση κεντρικής διαμόρφωσης παραθύρου",
+          "window_action": "Ενέργεια"
         },
         "data_description": {
           "window_sensor_entity_id": "Αφήστε κενό αν δεν πρέπει να χρησιμοποιηθεί αισθητήρας παραθύρου",
           "window_delay": "Η καθυστέρηση σε δευτερόλεπτα πριν ληφθεί υπόψη η ανίχνευση αισθητήρα",
+          "window_off_delay": "Καθυστέρηση σε δευτερόλεπτα πριν ληφθεί υπόψη η ανίχνευση 'off' του αισθητήρα. Αφήστε το κενό για χρήση της ίδιας τιμής με την καθυστέρηση ενεργοποίησης παραθύρου",
           "window_auto_open_threshold": "Συνιστώμενη τιμή: μεταξύ 0.05 και 0.1. Αφήστε κενό αν δεν χρησιμοποιείται αυτόματη ανίχνευση ανοίγματος παραθύρου",
           "window_auto_close_threshold": "Συνιστώμενη τιμή: 0. Αφήστε κενό αν δεν χρησιμοποιείται αυτόματη ανίχνευση ανοίγματος παραθύρου",
-          "window_auto_max_duration": "Συνιστώμενη τιμή: 60 (μία ώρα). Αφήστε κενό αν δεν χρησιμοποιείται αυτόματη ανίχνευση ανοίγματος παραθύρου"
+          "window_auto_max_duration": "Συνιστώμενη τιμή: 60 (μία ώρα). Αφήστε κενό αν δεν χρησιμοποιείται αυτόματη ανίχνευση ανοίγματος παραθύρου",
+          "use_window_central_config": "Επιλέξτε το για χρήση της κεντρικής διαμόρφωσης παραθύρου. Αποεπιλέξτε το για ειδική διαμόρφωση παραθύρου για αυτό το VTherm",
+          "window_action": "Ενέργεια που θα γίνει αν το παράθυρο ανιχνευθεί ως ανοιχτό"
         }
       },
       "motion": {
-        "title": "Διαχείριση κίνησης",
-        "description": "Διαχείριση αισθητήρα κίνησης. Ο προεπιλεγμένος τρόπος μπορεί να αλλάξει αυτόματα ανάλογα με την ανίχνευση κίνησης\nΑφήστε το αντίστοιχο entity_id κενό αν δεν χρησιμοποιείται.\nΤα motion_preset και no_motion_preset πρέπει να οριστούν στο αντίστοιχο όνομα προεπιλογής",
+        "title": "Κίνηση - {name}",
+        "description": "Διαχείριση κίνησης. Η προκαθορισμένη ρύθμιση μπορεί να αλλάζει αυτόματα ανάλογα με την ανίχνευση κίνησης\nΤα motion_preset και no_motion_preset πρέπει να οριστούν στο αντίστοιχο όνομα προκαθορισμένης ρύθμισης",
         "data": {
           "motion_sensor_entity_id": "Ανιχνευτής κίνησης entity id",
           "motion_delay": "Καθυστέρηση ενεργοποίησης",
           "motion_off_delay": "Καθυστέρηση απενεργοποίησης",
           "motion_preset": "Προεπιλογή κίνησης",
-          "no_motion_preset": "Προεπιλογή χωρίς κίνηση"
+          "no_motion_preset": "Προεπιλογή χωρίς κίνηση",
+          "use_motion_central_config": "Χρήση κεντρικής διαμόρφωσης κίνησης"
         },
         "data_description": {
           "motion_sensor_entity_id": "Το entity id του ανιχνευτή κίνησης",
           "motion_delay": "Καθυστέρηση ενεργοποίησης κίνησης (δευτερόλεπτα)",
           "motion_off_delay": "Καθυστέρηση απενεργοποίησης κίνησης (δευτερόλεπτα)",
           "motion_preset": "Η προεπιλογή που χρησιμοποιείται όταν ανιχνεύεται κίνηση",
-          "no_motion_preset": "Η προεπιλογή που χρησιμοποιείται όταν δεν ανιχνεύεται κίνηση"
+          "no_motion_preset": "Η προεπιλογή που χρησιμοποιείται όταν δεν ανιχνεύεται κίνηση",
+          "use_motion_central_config": "Επιλέξτε το για χρήση της κεντρικής διαμόρφωσης κίνησης. Αποεπιλέξτε το για ειδική διαμόρφωση κίνησης για αυτό το VTherm"
         }
       },
       "power": {
-        "title": "Διαχείριση Ενέργειας",
-        "description": "Χαρακτηριστικά διαχείρισης ενέργειας.\nΠαρέχει τον αισθητήρα ισχύος και τον μέγιστο αισθητήρα ισχύος του σπιτιού σας.\nΣτη συνέχεια καθορίστε την κατανάλωση ενέργειας του θερμαντήρα όταν είναι ενεργοποιημένος.\nΌλοι οι αισθητήρες και η ισχύς της συσκευής πρέπει να έχουν την ίδια μονάδα (kW ή W).\nΑφήστε το αντίστοιχο entity_id κενό εάν δεν χρησιμοποιείται.",
+        "title": "Ισχύς - {name}",
+        "description": "Χαρακτηριστικά διαχείρισης ισχύος.\nΟρίστε τον αισθητήρα ισχύος και τον αισθητήρα μέγιστης ισχύος του σπιτιού σας.\nΚαθορίστε την κατανάλωση ισχύος του θερμαντήρα όταν είναι ενεργός.\nΌλοι οι αισθητήρες και η ισχύς συσκευής πρέπει να χρησιμοποιούν την ίδια μονάδα (kW ή W)",
         "data": {
           "power_sensor_entity_id": "Ταυτότητα οντότητας αισθητήρα ισχύος",
           "max_power_sensor_entity_id": "Ταυτότητα οντότητας αισθητήρα μέγιστης ισχύος",
-          "power_temp": "Θερμοκρασία για Μείωση Ισχύος"
+          "power_temp": "Θερμοκρασία για Μείωση Ισχύος",
+          "use_power_central_config": "Χρήση κεντρικής διαμόρφωσης ισχύος"
+        },
+        "data_description": {
+          "power_sensor_entity_id": "ID οντότητας αισθητήρα ισχύος",
+          "max_power_sensor_entity_id": "ID οντότητας αισθητήρα μέγιστης ισχύος",
+          "power_temp": "Θερμοκρασία για αποκοπή ισχύος",
+          "use_power_central_config": "Επιλέξτε το για χρήση της κεντρικής διαμόρφωσης ισχύος. Αποεπιλέξτε το για ειδική διαμόρφωση ισχύος για αυτό το VTherm"
         }
       },
       "presence": {
-        "title": "Διαχείριση Παρουσίας",
-        "description": "Χαρακτηριστικά διαχείρισης παρουσίας.\nΠαρέχει έναν αισθητήρα παρουσίας του σπιτιού σας (αληθές εάν κάποιος είναι παρών).\nΣτη συνέχεια καθορίστε είτε το προεπιλεγμένο πρόγραμμα που θα χρησιμοποιηθεί όταν ο αισθητήρας παρουσίας είναι ψευδής είτε την θερμοκρασιακή διαφορά που θα εφαρμοστεί.\nΕάν δίνεται προεπιλογή, η διαφορά δεν θα χρησιμοποιηθεί.\nΑφήστε το αντίστοιχο entity_id κενό εάν δεν χρησιμοποιείται.",
+        "title": "Παρουσία - {name}",
+        "description": "Χαρακτηριστικά διαχείρισης παρουσίας.\nΟρίστε έναν αισθητήρα παρουσίας του σπιτιού σας (true όταν υπάρχει κάποιος) και την αντίστοιχη προκαθορισμένη ρύθμιση θερμοκρασίας",
         "data": {
           "presence_sensor_entity_id": "Ταυτότητα οντότητας αισθητήρα παρουσίας (αληθές είναι παρών)",
-          "eco_away_temp": "Θερμοκρασία στο πρόγραμμα Eco όταν δεν υπάρχει παρουσία",
-          "comfort_away_temp": "Θερμοκρασία στο πρόγραμμα Comfort όταν δεν υπάρχει παρουσία",
-          "boost_away_temp": "Θερμοκρασία στο πρόγραμμα Boost όταν δεν υπάρχει παρουσία",
-          "frost_away_temp": "Θερμοκρασία στο προκαθορισμένο Frost protection όταν δεν υπάρχει παρουσία",
-          "eco_ac_away_temp": "Θερμοκρασία στο πρόγραμμα Eco όταν δεν υπάρχει παρουσία σε λειτουργία AC",
-          "comfort_ac_away_temp": "Θερμοκρασία στο πρόγραμμα Comfort όταν δεν υπάρχει παρουσία σε λειτουργία AC",
-          "boost_ac_away_temp": "Θερμοκρασία στο πρόγραμμα Boost όταν δεν υπάρχει παρουσία σε λειτουργία AC"
+          "use_presence_central_config": "Χρήση κεντρικής διαμόρφωσης θερμοκρασιών παρουσίας. Αποεπιλέξτε το για χρήση ειδικών οντοτήτων θερμοκρασίας"
+        },
+        "data_description": {
+          "presence_sensor_entity_id": "ID οντότητας αισθητήρα παρουσίας"
         }
       },
       "advanced": {
-        "title": "Προηγμένες Παράμετροι",
+        "title": "Προχωρημένες παράμετροι - {name}",
         "description": "Διαμόρφωση των προηγμένων παραμέτρων. Αφήστε τις προεπιλεγμένες τιμές εάν δεν γνωρίζετε τι κάνετε.\nΑυτές οι παράμετροι μπορούν να οδηγήσουν σε πολύ κακή ρύθμιση θερμοκρασίας ή ενέργειας.",
         "data": {
           "minimal_activation_delay": "Ελάχιστη καθυστέρηση ενεργοποίησης",
+          "minimal_deactivation_delay": "Ελάχιστη καθυστέρηση απενεργοποίησης",
           "safety_delay_min": "Καθυστέρηση ασφαλείας (σε λεπτά)",
           "safety_min_on_percent": "Ελάχιστο ποσοστό ισχύος για τη λειτουργία ασφαλείας",
           "safety_default_on_percent": "Ποσοστό ισχύος που θα χρησιμοποιηθεί στη λειτουργία ασφαλείας",
-          "repair_incorrect_state": "Repair incorrect state",
-          "use_advanced_central_config": "Use central advanced configuration"
+          "repair_incorrect_state": "Επιδιόρθωση λανθασμένης κατάστασης",
+          "use_advanced_central_config": "Χρήση κεντρικής προχωρημένης διαμόρφωσης"
         },
         "data_description": {
           "minimal_activation_delay": "Καθυστέρηση σε δευτερόλεπτα κάτω από την οποία ο εξοπλισμός δεν θα ενεργοποιηθεί",
+          "minimal_deactivation_delay": "Καθυστέρηση σε δευτερόλεπτα κάτω από την οποία ο εξοπλισμός θα παραμείνει ενεργός",
           "safety_delay_min": "Μέγιστη επιτρεπόμενη καθυστέρηση σε λεπτά μεταξύ δύο μετρήσεων θερμοκρασίας. Πάνω από αυτή την καθυστέρηση, ο θερμοστάτης θα μεταβεί σε κατάσταση ασφαλείας",
           "safety_min_on_percent": "Ελάχιστη τιμή ποσοστού θέρμανσης για ενεργοποίηση του προεπιλεγμένου ασφαλείας. Κάτω από αυτό το ποσοστό ισχύος, ο θερμοστάτης δεν θα μεταβεί στο προεπιλεγμένο ασφαλείας",
           "safety_default_on_percent": "Η προεπιλεγμένη τιμή ποσοστού ισχύος θέρμανσης στο προεπιλεγμένο ασφαλείας. Ορίστε σε 0 για να απενεργοποιήσετε τη θερμάστρα στο παρόν ασφαλείας",
-          "repair_incorrect_state": "Automatically repair incorrect state of underlying entities when detected. The feature will re-send the desired command if the underlying device state doesn't match the expected state.",
-          "use_advanced_central_config": "Check to use the central advanced configuration. Uncheck to use a specific advanced configuration for this VTherm"
+          "repair_incorrect_state": "Αυτόματη επιδιόρθωση λανθασμένης κατάστασης των υποκείμενων οντοτήτων όταν ανιχνευθεί. Η λειτουργία θα στείλει ξανά την επιθυμητή εντολή αν η κατάσταση της υποκείμενης συσκευής δεν ταιριάζει με την αναμενόμενη.",
+          "use_advanced_central_config": "Επιλέξτε το για χρήση της κεντρικής προχωρημένης διαμόρφωσης. Αποεπιλέξτε το για ειδική προχωρημένη διαμόρφωση για αυτό το VTherm"
         }
       },
-      "lock": {
-        "title": "Διαχείριση κλειδώματος",
-        "description": "Η λειτουργία κλειδώματος αποτρέπει αλλαγές στη διαμόρφωση ενός θερμοστάτη από το περιβάλλον χρήστη ή αυτοματισμούς, διατηρώντας παράλληλα τον θερμοστάτη σε λειτουργία.",
+      "central_boiler": {
+        "title": "Έλεγχος του κεντρικού λέβητα - {name}",
+        "description": "Εισαγάγετε τις υπηρεσίες που θα καλούνται για ενεργοποίηση/απενεργοποίηση του κεντρικού λέβητα. Η υπηρεσία πρέπει να έχει την ακόλουθη μορφή: `entity_id/service_name[/attribute:value]` (το /attribute:value είναι προαιρετικό)\nΓια παράδειγμα:\n- για ενεργοποίηση διακόπτη: `switch.controle_chaudiere/switch.turn_on`\n- για απενεργοποίηση διακόπτη: `switch.controle_chaudiere/switch.turn_off`\n- για ρύθμιση του λέβητα στους 25° και αναγκαστική ενεργοποίηση: `climate.thermostat_chaudiere/climate.set_temperature/temperature:25`\n- για αποστολή 10° στον λέβητα και αναγκαστική απενεργοποίηση: `climate.thermostat_chaudiere/climate.set_temperature/temperature:10`",
         "data": {
-          "use_lock_central_config": "Χρήση κεντρικής διαμόρφωσης κλειδώματος",
-          "lock_code": "Ο κωδικός PIN για το ξεκλείδωμα του θερμοστάτη (4 ψηφία)",
-          "lock_users": "Το κλείδωμα θα αποτρέψει εντολές από χρήστες",
-          "lock_automations": "Το κλείδωμα θα αποτρέψει εντολές από αυτοματισμούς και ενσωματώσεις (π.χ. προγραμματιστής)"
+          "central_boiler_activation_service": "Εντολή ενεργοποίησης",
+          "central_boiler_deactivation_service": "Εντολή απενεργοποίησης",
+          "central_boiler_activation_delay_sec": "Καθυστέρηση ενεργοποίησης (δευτερόλεπτα)",
+          "keep_alive_boiler_delay_sec": "Καθυστέρηση keep-alive (δευτερόλεπτα)"
         },
         "data_description": {
-          "use_lock_central_config": "Επιλέξτε για χρήση της κεντρικής διαμόρφωσης κλειδώματος. Αποεπιλέξτε για χρήση συγκεκριμένης διαμόρφωσης κλειδώματος για αυτόν τον VTherm",
-          "lock_code": "Ο κωδικός PIN για το ξεκλείδωμα του θερμοστάτη (4 ψηφία)"
-        }
-      },
-      "sync_device_internal_temp": {
-        "title": "Synchronize device internal temperature",
-        "description": "Configuration to synchronize the internal temperature of the underlying devices with selected entities",
-        "data": {
-          "sync_with_calibration": "Apply offset calibration",
-          "sync_entity_ids": "Entities id used for synchronization"
-        },
-        "data_description": {
-          "sync_with_calibration": "Check to apply the offset calibration when synchronizing the internal temperature. Uncheck to directly copy the temperature from the selected entities",
-          "sync_entity_ids": "The list of the entities used to synchronize the internal temperature of the underlying devices. There should be one per underlying device. Should be a calibration entity if checkbox is selected or a temperature entity otherwise. Both are `number` entities."
+          "central_boiler_activation_service": "Εντολή ενεργοποίησης του κεντρικού λέβητα με μορφή entity_id/service_name[/attribute:value]",
+          "central_boiler_deactivation_service": "Εντολή απενεργοποίησης του κεντρικού λέβητα με μορφή entity_id/service_name[/attribute:value]",
+          "central_boiler_activation_delay_sec": "Καθυστέρηση σε δευτερόλεπτα πριν ενεργοποιηθεί ο κεντρικός λέβητας όταν πρέπει να ανοίξει",
+          "keep_alive_boiler_delay_sec": "Καθυστέρηση σε δευτερόλεπτα για περιοδική επαναποστολή της εντολής λέβητα αν είναι ενεργό το keep-alive. Ορίστε 0 για απενεργοποίηση του keep-alive."
         }
       },
       "valve_regulation": {
@@ -494,26 +717,84 @@
           "max_closing_degree": "Μέγιστη τιμή του βαθμού κλεισίματος. Η βαλβίδα δεν θα κλείσει ποτέ περισσότερο από αυτήν την τιμή. Ορίστε το στο 100 για πλήρες κλείσιμο της βαλβίδας"
         }
       },
-      "heating_failure_detection": {
-        "title": "Heating failure detection",
-        "description": "Configure the heating failure detection feature. This detects anomalies when heating is expected but temperature doesn't increase, or when heating is off but temperature keeps rising.",
+      "sync_device_internal_temp": {
+        "title": "Συγχρονισμός εσωτερικής θερμοκρασίας συσκευής",
+        "description": "Διαμόρφωση για συγχρονισμό της εσωτερικής θερμοκρασίας των υποκείμενων συσκευών με επιλεγμένες οντότητες",
         "data": {
-          "use_heating_failure_detection_feature": "Enable heating failure detection",
-          "use_heating_failure_detection_central_config": "Use central heating failure detection configuration",
-          "heating_failure_threshold": "Heating failure threshold",
-          "cooling_failure_threshold": "Cooling failure threshold",
-          "heating_failure_detection_delay": "Detection delay (minutes)",
-          "temperature_change_tolerance": "Temperature change tolerance (°C)",
-          "failure_detection_enable_template": "Detection enable template"
+          "sync_with_calibration": "Εφαρμογή βαθμονόμησης μετατόπισης",
+          "sync_entity_ids": "ID οντοτήτων που χρησιμοποιούνται για συγχρονισμό"
         },
         "data_description": {
-          "use_heating_failure_detection_feature": "Enable the detection of heating anomalies for VTherms with TPI",
-          "use_heating_failure_detection_central_config": "Check to use the central heating failure detection configuration. Uncheck to use specific parameters for this VTherm",
-          "heating_failure_threshold": "On percent threshold above which heating should cause temperature increase (0.9 = 90%)",
-          "cooling_failure_threshold": "On percent threshold below which temperature should not increase (0.0 = 0%)",
-          "heating_failure_detection_delay": "Time in minutes to wait before checking if temperature has changed as expected",
-          "temperature_change_tolerance": "Minimum temperature change in degrees to consider significant. Smaller changes are ignored to filter sensor noise (default: 0.5°C)",
-          "failure_detection_enable_template": "An optional Jinja2 template that must return True to enable detection. Useful to temporarily disable detection when an external heat source is active (e.g., `is_state('binary_sensor.wood_stove', 'off')` in double curly braces). If empty, detection is always enabled."
+          "sync_with_calibration": "Επιλέξτε το για εφαρμογή της βαθμονόμησης μετατόπισης κατά τον συγχρονισμό της εσωτερικής θερμοκρασίας. Αποεπιλέξτε το για απευθείας αντιγραφή της θερμοκρασίας από τις επιλεγμένες οντότητες",
+          "sync_entity_ids": "Η λίστα των οντοτήτων που χρησιμοποιούνται για τον συγχρονισμό της εσωτερικής θερμοκρασίας των υποκείμενων συσκευών. Πρέπει να υπάρχει μία ανά υποκείμενη συσκευή. Πρέπει να είναι οντότητα βαθμονόμησης αν είναι επιλεγμένο το πλαίσιο, αλλιώς οντότητα θερμοκρασίας. Και οι δύο είναι οντότητες `number`."
+        }
+      },
+      "auto_tpi_configuration": {
+        "title": "Auto TPI - Διαμόρφωση - {name}",
+        "description": "Γενικές ρυθμίσεις για την εκμάθηση Auto TPI.",
+        "data": {
+          "auto_tpi_learning_type": "Τύπος εκμάθησης",
+          "auto_tpi_heating_rate": "Ρυθμός θέρμανσης ({unit}/h)",
+          "heater_heating_time": "Χρόνος θέρμανσης (λεπτά)",
+          "heater_cooling_time": "Χρόνος ψύξης (λεπτά)",
+          "auto_tpi_aggressiveness": "Επιθετικότητα",
+          "auto_tpi_enable_advanced_settings": "Ενεργοποίηση προχωρημένων παραμέτρων",
+          "auto_tpi_continuous_kext": "Συνεχής εκμάθηση Kext"
+        },
+        "data_description": {
+          "auto_tpi_learning_type": "Επιλέξτε 'Discovery' για την αρχική εκκίνηση (σταθμισμένος μέσος όρος, βάρος 1) ή 'Fine Tuning' για συνεχείς προσαρμογές (EWMA, Alpha 0.08).",
+          "auto_tpi_heating_rate": "Ικανότητα αύξησης θερμοκρασίας του θερμαντικού σώματος ({unit} ανά ώρα). Αφήστε το 0 για αυτόματη εκμάθηση (bootstrap).",
+          "heater_heating_time": "Χρόνος για επίτευξη πλήρους ισχύος (λεπτά)",
+          "heater_cooling_time": "Χρόνος ψύξης μετά τη διακοπή (λεπτά)\n\n| Τύπος | Χρόνος θέρμανσης | Χρόνος ψύξης |\n| :--- | :--- | :--- |\n| Ηλεκτρικό σώμα | 5 λεπτά | 7 λεπτά |\n| Σώμα νερού | 15 λεπτά | 20 λεπτά |\n| Ενδοδαπέδια θέρμανση | 30 λεπτά | 45 λεπτά |",
+          "auto_tpi_aggressiveness": "Συντελεστής μείωσης για τους μαθημένους συντελεστές (50-100%). Χαμηλότερες τιμές δίνουν πιο συντηρητικούς συντελεστές και μειώνουν τον κίνδυνο υπέρβασης.",
+          "auto_tpi_enable_advanced_settings": "Επιλέξτε το για τροποποίηση των παραμέτρων του επιλεγμένου αλγορίθμου.",
+          "auto_tpi_continuous_kext": "Επιλέξτε το για ενεργοποίηση συνεχούς εκμάθησης του εξωτερικού συντελεστή (Kext) εκτός συνεδριών AutoTPI."
+        }
+      },
+      "auto_tpi_avg_settings": {
+        "title": "Auto TPI - Σταθμισμένος μέσος όρος - {name}",
+        "description": "Παράμετροι για τη μέθοδο σταθμισμένου μέσου όρου.",
+        "data": {
+          "auto_tpi_avg_initial_weight": "Αρχικό βάρος"
+        },
+        "data_description": {
+          "auto_tpi_avg_initial_weight": "Αρχικό βάρος των υπαρχόντων συντελεστών στον υπολογισμό μέσου όρου (τυπικά 1-50). Μεγαλύτερο βάρος σημαίνει πιο αργή και πιο σταθερή εκμάθηση."
+        }
+      },
+      "auto_tpi_ema_settings": {
+        "title": "Auto TPI - EWMA - {name}",
+        "description": "Παράμετροι για τη μέθοδο EWMA.\n\nΣυστάσεις:\n| Κατάσταση | Alpha (ema_alpha) | Ρυθμός μείωσης (ema_decay_rate) |\n| :--- | :--- | :--- |\n| Έντονες προσαρμογές | 0.15 | 0.08 |\n| Λεπτομερής ρύθμιση | 0.08 | 0.12 |",
+        "data": {
+          "auto_tpi_ema_alpha": "Alpha",
+          "auto_tpi_ema_decay_rate": "Ρυθμός μείωσης",
+          "auto_tpi_continuous_kext_alpha": "Συνεχές Kext Alpha"
+        },
+        "data_description": {
+          "auto_tpi_ema_alpha": "Συντελεστής εξομάλυνσης (0-1). Υψηλότερη τιμή = ταχύτερη προσαρμογή",
+          "auto_tpi_ema_decay_rate": "Ρυθμός με τον οποίο το Alpha μειώνεται με τον χρόνο (σταθεροποίηση)",
+          "auto_tpi_continuous_kext_alpha": "Συντελεστής εξομάλυνσης για τη συνεχή εκμάθηση Kext (Alpha). Προεπιλογή 0.04 (περίπου 3-5 ημέρες προσαρμογής)."
+        }
+      },
+      "heating_failure_detection": {
+        "title": "Ανίχνευση βλάβης θέρμανσης - {name}",
+        "description": "Διαμορφώστε τη λειτουργία ανίχνευσης βλάβης θέρμανσης. Ανιχνεύει ανωμαλίες όταν αναμένεται θέρμανση αλλά η θερμοκρασία δεν αυξάνεται, ή όταν η θέρμανση είναι απενεργοποιημένη αλλά η θερμοκρασία συνεχίζει να αυξάνεται.",
+        "data": {
+          "use_heating_failure_detection_feature": "Ενεργοποίηση ανίχνευσης βλάβης θέρμανσης",
+          "use_heating_failure_detection_central_config": "Χρήση κεντρικής διαμόρφωσης ανίχνευσης βλάβης θέρμανσης",
+          "heating_failure_threshold": "Όριο βλάβης θέρμανσης",
+          "cooling_failure_threshold": "Όριο βλάβης ψύξης",
+          "heating_failure_detection_delay": "Καθυστέρηση ανίχνευσης (λεπτά)",
+          "temperature_change_tolerance": "Ανοχή μεταβολής θερμοκρασίας (°C)",
+          "failure_detection_enable_template": "Πρότυπο ενεργοποίησης ανίχνευσης"
+        },
+        "data_description": {
+          "use_heating_failure_detection_feature": "Ενεργοποίηση της ανίχνευσης ανωμαλιών θέρμανσης για VTherm με TPI",
+          "use_heating_failure_detection_central_config": "Επιλέξτε το για χρήση της κεντρικής διαμόρφωσης ανίχνευσης βλάβης θέρμανσης. Αποεπιλέξτε το για χρήση ειδικών παραμέτρων για αυτό το VTherm",
+          "heating_failure_threshold": "Ποσοστιαίο όριο ενεργοποίησης πάνω από το οποίο η θέρμανση πρέπει να προκαλεί αύξηση θερμοκρασίας (0.9 = 90%)",
+          "cooling_failure_threshold": "Ποσοστιαίο όριο ενεργοποίησης κάτω από το οποίο η θερμοκρασία δεν πρέπει να αυξάνεται (0.0 = 0%)",
+          "heating_failure_detection_delay": "Χρόνος σε λεπτά πριν ελεγχθεί αν η θερμοκρασία άλλαξε όπως αναμενόταν",
+          "temperature_change_tolerance": "Ελάχιστη μεταβολή θερμοκρασίας σε βαθμούς για να θεωρηθεί σημαντική. Μικρότερες μεταβολές αγνοούνται για φιλτράρισμα θορύβου αισθητήρα (προεπιλογή: 0.5°C)",
+          "failure_detection_enable_template": "Προαιρετικό πρότυπο Jinja2 που πρέπει να επιστρέφει True για ενεργοποίηση της ανίχνευσης. Χρήσιμο για προσωρινή απενεργοποίηση όταν είναι ενεργή εξωτερική πηγή θερμότητας (π.χ. `is_state('binary_sensor.wood_stove', 'off')` μέσα σε διπλά άγκιστρα). Αν είναι κενό, η ανίχνευση είναι πάντα ενεργή."
         }
       }
     },
@@ -521,14 +802,14 @@
       "unknown": "Απροσδόκητο λάθος",
       "unknown_entity": "Άγνωστο αναγνωριστικό οντότητας",
       "window_open_detection_method": "Πρέπει να χρησιμοποιηθεί μόνο μία μέθοδος ανίχνευσης ανοιχτού παραθύρου. Χρησιμοποιήστε αισθητήρα ή αυτόματη ανίχνευση μέσω κατωφλίου θερμοκρασίας αλλά όχι και τα δύο",
-      "no_central_config": "You cannot check 'use central configuration' because no central configuration was found. You need to create a Versatile Thermostat of type 'Central Configuration' to use it.",
-      "service_configuration_format": "The format of the service configuration is wrong",
-      "valve_regulation_nb_entities_incorrect": "The number of valve entities for valve regulation should be equal to the number of underlyings",
-      "sync_device_internal_temp_nb_entities_incorrect": "The number of entities for synchronize device internal temperature should be equal to the number of underlyings",
-      "min_opening_degrees_format": "A comma separated list of positive integer is expected. Example: 20, 25, 30",
+      "no_central_config": "Δεν μπορείτε να επιλέξετε 'χρήση κεντρικής διαμόρφωσης', επειδή δεν βρέθηκε κεντρική διαμόρφωση. Πρέπει να δημιουργήσετε ένα Versatile Thermostat τύπου 'Κεντρική διαμόρφωση' για να τη χρησιμοποιήσετε.",
+      "service_configuration_format": "Η μορφή της διαμόρφωσης υπηρεσίας είναι λανθασμένη",
+      "valve_regulation_nb_entities_incorrect": "Ο αριθμός των οντοτήτων βαλβίδας για τη ρύθμιση βαλβίδας πρέπει να είναι ίσος με τον αριθμό των υποκείμενων οντοτήτων",
+      "sync_device_internal_temp_nb_entities_incorrect": "Ο αριθμός των οντοτήτων για συγχρονισμό εσωτερικής θερμοκρασίας συσκευής πρέπει να είναι ίσος με τον αριθμό των υποκείμενων οντοτήτων",
+      "min_opening_degrees_format": "Αναμένεται λίστα θετικών ακεραίων χωρισμένων με κόμμα. Παράδειγμα: 20, 25, 30",
       "max_opening_degrees_format": "Αναμένεται μια λίστα θετικών ακεραίων μεταξύ 0 και 100 χωρισμένη με κόμματα. Παράδειγμα: 80, 85, 90",
       "min_max_opening_degrees_inconsistent": "Για κάθε υποκείμενη συσκευή, το max_opening_degrees πρέπει να είναι αυστηρά μεγαλύτερο από το min_opening_degrees. Ελέγξτε τη διαμόρφωσή σας.",
-      "vswitch_configuration_incorrect": "The command customization configuration is incorrect. It is required for underlying entities that are not switches, and the format must be service_name[/attribute:value]. More information is available in the README"
+      "vswitch_configuration_incorrect": "Η διαμόρφωση προσαρμογής εντολών είναι λανθασμένη. Απαιτείται για υποκείμενες οντότητες που δεν είναι διακόπτες και η μορφή πρέπει να είναι service_name[/attribute:value]. Περισσότερες πληροφορίες υπάρχουν στο README"
     },
     "abort": {
       "already_configured": "Η συσκευή έχει ήδη ρυθμιστεί"
@@ -537,6 +818,7 @@
   "selector": {
     "thermostat_type": {
       "options": {
+        "thermostat_central_config": "Κεντρική διαμόρφωση",
         "thermostat_over_switch": "Θερμοστάτης πάνω σε διακόπτη",
         "thermostat_over_climate": "Θερμοστάτης πάνω σε κλίμα",
         "thermostat_over_valve": "Θερμοστάτης πάνω σε βαλβίδα"
@@ -549,16 +831,61 @@
         "auto_regulation_medium": "Μέτρια",
         "auto_regulation_light": "Ελαφριά",
         "auto_regulation_expert": "Εμπειρογνώμων",
-        "auto_regulation_none": "Χωρίς αυτόματη ρύθμιση"
+        "auto_regulation_none": "Χωρίς αυτόματη ρύθμιση",
+        "auto_regulation_valve": "Άμεσος έλεγχος βαλβίδας"
       }
     },
     "auto_fan_mode": {
       "options": {
-        "auto_fan_none": "No auto fan",
-        "auto_fan_low": "Low",
-        "auto_fan_medium": "Medium",
-        "auto_fan_high": "High",
+        "auto_fan_none": "Χωρίς αυτόματο ανεμιστήρα",
+        "auto_fan_low": "Χαμηλή",
+        "auto_fan_medium": "Μεσαία",
+        "auto_fan_high": "Υψηλή",
         "auto_fan_turbo": "Turbo"
+      }
+    },
+    "window_action": {
+      "options": {
+        "window_turn_off": "Απενεργοποίηση",
+        "window_fan_only": "Μόνο ανεμιστήρας",
+        "window_frost_temp": "Αντιπαγετική προστασία",
+        "window_eco_temp": "Eco"
+      }
+    },
+    "presets": {
+      "options": {
+        "frost": "Αντιπαγετική προστασία",
+        "eco": "Eco",
+        "comfort": "Comfort",
+        "boost": "Boost"
+      }
+    },
+    "auto_start_stop": {
+      "options": {
+        "auto_start_stop_none": "Χωρίς αυτόματη εκκίνηση/διακοπή",
+        "auto_start_stop_very_slow": "Πολύ αργή ανίχνευση",
+        "auto_start_stop_slow": "Αργή ανίχνευση",
+        "auto_start_stop_medium": "Μεσαία ανίχνευση",
+        "auto_start_stop_fast": "Γρήγορη ανίχνευση"
+      }
+    },
+    "humidity_control_mode": {
+      "options": {
+        "humidity_control_off": "Απενεργοποιημένο",
+        "humidity_control_dry_only": "Μόνο λειτουργία Dry",
+        "humidity_control_cool_assist": "Ψύξη με υποστήριξη υγρασίας"
+      }
+    },
+    "auto_tpi_calculation_method": {
+      "options": {
+        "average": "Μέσος όρος",
+        "ema": "Εκθετικός κινητός μέσος όρος (EMA)"
+      }
+    },
+    "auto_tpi_learning_type": {
+      "options": {
+        "discovery": "Ανακάλυψη",
+        "fine_tuning": "Λεπτομερής ρύθμιση"
       }
     }
   },
@@ -566,15 +893,205 @@
     "climate": {
       "versatile_thermostat": {
         "state_attributes": {
+          "fan_mode": {
+            "state": {
+              "quiet": "Αθόρυβο"
+            }
+          },
           "preset_mode": {
             "state": {
               "power": "Μείωση",
-              "security": "Ασφάλεια",
-              "none": "Χειροκίνητο"
+              "safety": "Ασφάλεια",
+              "none": "Χειροκίνητο",
+              "frost": "Παγετός"
             }
           }
         }
       }
+    },
+    "binary_sensor": {
+      "safety_state": {
+        "name": "Κατάσταση ασφαλείας"
+      },
+      "heating_failure_state": {
+        "name": "Κατάσταση βλάβης θέρμανσης"
+      },
+      "overpowering_state": {
+        "name": "Κατάσταση υπέρβασης ισχύος"
+      },
+      "window_state": {
+        "name": "Κατάσταση παραθύρου"
+      },
+      "motion_state": {
+        "name": "Κατάσταση κίνησης"
+      },
+      "presence_state": {
+        "name": "Κατάσταση παρουσίας"
+      },
+      "window_bypass_state": {
+        "name": "Παράκαμψη παραθύρου"
+      },
+      "central_boiler_state": {
+        "name": "Κεντρικός λέβητας"
+      }
+    },
+    "number": {
+      "frost_temp": {
+        "name": "Παγετός"
+      },
+      "eco_temp": {
+        "name": "Eco"
+      },
+      "comfort_temp": {
+        "name": "Comfort"
+      },
+      "boost_temp": {
+        "name": "Boost"
+      },
+      "frost_ac_temp": {
+        "name": "Αντιπαγετική προστασία AC"
+      },
+      "eco_ac_temp": {
+        "name": "Eco AC"
+      },
+      "comfort_ac_temp": {
+        "name": "Comfort AC"
+      },
+      "boost_ac_temp": {
+        "name": "Boost AC"
+      },
+      "frost_away_temp": {
+        "name": "Αντιπαγετική προστασία εκτός"
+      },
+      "eco_away_temp": {
+        "name": "Eco εκτός"
+      },
+      "comfort_away_temp": {
+        "name": "Comfort εκτός"
+      },
+      "boost_away_temp": {
+        "name": "Boost εκτός"
+      },
+      "eco_ac_away_temp": {
+        "name": "Eco AC εκτός"
+      },
+      "comfort_ac_away_temp": {
+        "name": "Comfort AC εκτός"
+      },
+      "boost_ac_away_temp": {
+        "name": "Boost AC εκτός"
+      }
+    }
+  },
+  "services": {
+    "set_auto_tpi_mode": {
+      "name": "Ορισμός λειτουργίας Auto TPI",
+      "description": "Ενεργοποίηση ή απενεργοποίηση της λειτουργίας εκμάθησης Auto TPI",
+      "fields": {
+        "auto_tpi_mode": {
+          "name": "Λειτουργία Auto TPI",
+          "description": "Ενεργοποίηση (true) ή απενεργοποίηση (false) της εκμάθησης Auto TPI"
+        },
+        "reinitialise": {
+          "name": "Επαναφορά δεδομένων εκμάθησης",
+          "description": "Επαναφορά όλων των δεδομένων εκμάθησης κατά την ενεργοποίηση της λειτουργίας Auto TPI (προεπιλογή true)"
+        }
+      }
+    },
+    "reset_auto_tpi_capacities": {
+      "name": "Επαναφορά δυνατοτήτων Auto TPI",
+      "description": "Επαναφορά των μαθημένων μέγιστων δυνατοτήτων θέρμανσης και ψύξης σε 1.0 °C/h. Οι μαθημένοι συντελεστές ΔΕΝ επαναφέρονται."
+    },
+    "auto_tpi_calibrate_capacity": {
+      "name": "Βαθμονόμηση δυνατότητας Auto TPI",
+      "description": "Βαθμονόμηση της δυνατότητας θέρμανσης/ψύξης (σε °C/ώρα) με χρήση γραμμικής παλινδρόμησης στα ιστορικά δεδομένα της οντότητας. Οι μαθημένοι συντελεστές ΔΕΝ ενημερώνονται.",
+      "fields": {
+        "start_date": {
+          "name": "Ιστορικό από ημερομηνία",
+          "description": "Ημερομηνία από την οποία θα ανακτηθεί το ιστορικό (προεπιλογή πριν από 30 ημέρες)"
+        },
+        "end_date": {
+          "name": "Ιστορικό έως ημερομηνία",
+          "description": "Ημερομηνία έως την οποία θα ανακτηθεί το ιστορικό (προεπιλογή τώρα)"
+        },
+        "hvac_mode": {
+          "name": "Λειτουργία HVAC",
+          "description": "Ποια λειτουργία θα βαθμονομηθεί (θέρμανση ή ψύξη)."
+        },
+        "save_to_config": {
+          "name": "Αποθήκευση στη διαμόρφωση",
+          "description": "Εφαρμογή της υπολογισμένης δυνατότητας στη διαμόρφωση Auto TPI."
+        },
+        "min_power_threshold": {
+          "name": "Ελάχιστο όριο ισχύος",
+          "description": "Ελάχιστο ποσοστό ισχύος για να θεωρηθεί ένας κύκλος κορεσμένος (προεπιλογή 95%). Χαμηλότερες τιμές θα συμπεριλάβουν περισσότερους κύκλους, αλλά μπορεί να είναι λιγότερο ακριβείς."
+        }
+      }
+    },
+    "set_tpi_parameters": {
+      "name": "Ορισμός παραμέτρων TPI",
+      "description": "Αλλαγή των παραμέτρων TPI",
+      "fields": {
+        "minimal_activation_delay": {
+          "name": "Ελάχιστη καθυστέρηση ενεργοποίησης",
+          "description": "Καθυστέρηση σε δευτερόλεπτα κάτω από την οποία ο εξοπλισμός δεν θα ενεργοποιηθεί"
+        },
+        "minimal_deactivation_delay": {
+          "name": "Ελάχιστη καθυστέρηση απενεργοποίησης",
+          "description": "Καθυστέρηση σε δευτερόλεπτα κάτω από την οποία ο εξοπλισμός θα παραμείνει ενεργός"
+        },
+        "tpi_threshold_low": {
+          "name": "Χαμηλό όριο TPI",
+          "description": "Όριο σε ° κάτω από το οποίο ο αλγόριθμος TPI θα είναι ενεργός. Το 0 σημαίνει χωρίς όριο"
+        },
+        "tpi_threshold_high": {
+          "name": "Υψηλό όριο TPI",
+          "description": "Όριο σε ° πάνω από το οποίο ο αλγόριθμος TPI θα είναι ανενεργός. Το 0 σημαίνει χωρίς όριο"
+        }
+      }
+    },
+    "lock": {
+      "name": "Κλείδωμα",
+      "description": "Κλειδώνει τον θερμοστάτη, αποτρέποντας οποιαδήποτε αλλαγή στη διαμόρφωσή του από το περιβάλλον χρήστη ή αυτοματισμούς.",
+      "fields": {
+        "code": {
+          "name": "Κωδικός κλειδώματος",
+          "description": "Ο προαιρετικός κωδικός κλειδώματος"
+        }
+      }
+    },
+    "unlock": {
+      "name": "Ξεκλείδωμα",
+      "description": "Ξεκλειδώνει τον θερμοστάτη, επιτρέποντας αλλαγές στη διαμόρφωσή του.",
+      "fields": {
+        "code": {
+          "name": "Κωδικός κλειδώματος",
+          "description": "Ο προαιρετικός κωδικός κλειδώματος"
+        }
+      }
+    },
+    "download_logs": {
+      "name": "Λήψη αρχείων καταγραφής",
+      "description": "Συλλογή και λήψη φιλτραρισμένων αρχείων καταγραφής για μια οντότητα VTherm.",
+      "fields": {
+        "log_level": {
+          "name": "Επίπεδο καταγραφής",
+          "description": "Ελάχιστο επίπεδο καταγραφής που θα συμπεριληφθεί"
+        },
+        "period_start": {
+          "name": "Έναρξη περιόδου",
+          "description": "Έναρξη της περιόδου εξαγωγής"
+        },
+        "period_end": {
+          "name": "Λήξη περιόδου",
+          "description": "Λήξη της περιόδου εξαγωγής"
+        }
+      }
+    }
+  },
+  "exceptions": {
+    "auto_tpi_learning_stopped": {
+      "message": "Η εκμάθηση Auto TPI για το {name} σταμάτησε λόγω 3 διαδοχικών αποτυχιών. Αιτία: {reason}. Ελέγξτε τη διαμόρφωσή σας."
     }
   }
 }

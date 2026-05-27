@@ -29,6 +29,7 @@
                     "presence": "在家状态检测",
                     "advanced": "高级参数",
                     "auto_start_stop": "自动启动和停止",
+                    "humidity": "湿度控制",
                     "valve_regulation": "阀门调节配置",
                     "sync_device_internal_temp": "同步设备温度",
                     "lock": "锁定",
@@ -93,7 +94,24 @@
                     "use_presence_feature": "使用在家状态检测",
                     "use_central_boiler_feature": "使用中央锅炉。勾选后为中央锅炉添加控制。此复选框生效后，还需要配置将控制中央锅炉的 VTherm。如果某个 VTherm 需要加热，锅炉将开启；如果没有 VTherm 需要加热，锅炉将关闭。开启/关闭中央锅炉的命令在相关配置页面中设置。",
                     "use_auto_start_stop_feature": "使用自动启停功能",
+                    "use_humidity_feature": "使用湿度控制",
                     "use_heating_failure_detection_feature": "使用加热故障检测"
+                }
+            },
+            "humidity": {
+                "title": "湿度控制",
+                "description": "湿度控制参数",
+                "data": {
+                    "humidity_control_mode": "湿度控制模式",
+                    "humidity_sensor_entity_id": "湿度传感器",
+                    "humidity_tolerance": "湿度容差",
+                    "humidity_safety_delay_min": "湿度安全延时（分钟）"
+                },
+                "data_description": {
+                    "humidity_control_mode": "仅 Dry 模式会在恒温器处于除湿模式时调节湿度。制冷辅助只会在达到目标温度且湿度过高时从 Cool 切换到 Dry。",
+                    "humidity_sensor_entity_id": "可选的外部湿度传感器。如果留空，则在可用时使用底层 climate 设备的湿度。",
+                    "humidity_tolerance": "启动 Dry 模式前，高于目标值的滞后范围",
+                    "humidity_safety_delay_min": "两次湿度测量之间允许的最大延迟（以分钟为单位）。超过此延迟，湿度值将被忽略用于调节。"
                 }
             },
             "type": {
@@ -418,6 +436,7 @@
                     "presence": "在家状态检测",
                     "advanced": "高级参数",
                     "auto_start_stop": "自动启动和停止",
+                    "humidity": "湿度控制",
                     "valve_regulation": "阀门调节配置",
                     "sync_device_internal_temp": "同步设备温度",
                     "lock": "锁定",
@@ -479,7 +498,24 @@
                     "use_presence_feature": "使用在家状态检测",
                     "use_central_boiler_feature": "使用中央锅炉。勾选后为中央锅炉添加控制。此复选框生效后，还需要配置将控制中央锅炉的 VTherm。如果某个 VTherm 需要加热，锅炉将开启；如果没有 VTherm 需要加热，锅炉将关闭。开启/关闭中央锅炉的命令在相关配置页面中设置。",
                     "use_auto_start_stop_feature": "使用自动启停功能",
+                    "use_humidity_feature": "使用湿度控制",
                     "use_heating_failure_detection_feature": "使用加热故障检测"
+                }
+            },
+            "humidity": {
+                "title": "湿度控制 - {name}",
+                "description": "湿度控制参数",
+                "data": {
+                    "humidity_control_mode": "湿度控制模式",
+                    "humidity_sensor_entity_id": "湿度传感器",
+                    "humidity_tolerance": "湿度容差",
+                    "humidity_safety_delay_min": "湿度安全延时（分钟）"
+                },
+                "data_description": {
+                    "humidity_control_mode": "仅 Dry 模式会在恒温器处于除湿模式时调节湿度。制冷辅助只会在达到目标温度且湿度过高时从 Cool 切换到 Dry。",
+                    "humidity_sensor_entity_id": "可选的外部湿度传感器。如果留空，则在可用时使用底层 climate 设备的湿度。",
+                    "humidity_tolerance": "启动 Dry 模式前，高于目标值的滞后范围",
+                    "humidity_safety_delay_min": "两次湿度测量之间允许的最大延迟（以分钟为单位）。超过此延迟，湿度值将被忽略用于调节。"
                 }
             },
             "type": {
@@ -833,6 +869,13 @@
                 "auto_start_stop_fast": "快速检测"
             }
         },
+        "humidity_control_mode": {
+            "options": {
+                "humidity_control_off": "已禁用",
+                "humidity_control_dry_only": "仅 Dry 模式",
+                "humidity_control_cool_assist": "Cool 并辅助湿度控制"
+            }
+        },
         "auto_tpi_calculation_method": {
             "options": {
                 "average": "平均值",
@@ -850,6 +893,11 @@
         "climate": {
             "versatile_thermostat": {
                 "state_attributes": {
+                    "fan_mode": {
+                        "state": {
+                            "quiet": "安静"
+                        }
+                    },
                     "preset_mode": {
                         "state": {
                             "power": "功率限制",
