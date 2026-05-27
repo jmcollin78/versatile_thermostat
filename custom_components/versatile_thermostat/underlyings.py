@@ -87,6 +87,7 @@ class UnderlyingEntity:
         self._last_command_sent_datetime: datetime = dt_util.utc_from_timestamp(0)
         # Use UnderlyingStateManager to track underlying entity state
         self._state_manager: UnderlyingStateManager = UnderlyingStateManager(self._hass, on_change=self._underlying_changed)
+        self._state_manager.register_underlying_entities([self._entity_id])
         self._is_initialized: bool = False
         self._api = VersatileThermostatAPI.get_vtherm_api(hass)
 

@@ -57,7 +57,7 @@ async def test_check_initial_state_underlying_switch(hass, hvac_mode, last_state
 
     # Ensure no previous state
     assert u._last_known_underlying_state is None
-    assert u.state_manager.is_all_states_initialized is True
+    assert u.state_manager.is_all_states_initialized is False
 
     u.startup()
     # because hass is a MagicMock, the switch.test will have an initial state

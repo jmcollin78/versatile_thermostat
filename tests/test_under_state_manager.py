@@ -1,5 +1,6 @@
 # pylint: disable=unused-argument, line-too-long, protected-access
 """Unit tests for UnderlyingStateManager."""
+import logging
 from typing import List
 
 import pytest
@@ -17,6 +18,54 @@ async def test_manager_initial_empty(hass: HomeAssistant):
     assert mgr._entity_ids == []
     # empty set of states should be considered initialized
     assert mgr.is_all_states_initialized is True
+
+
+async def test_registered_entity_before_startup_does_not_log_error(hass: HomeAssistant, caplog):
+    """A registered entity can be read before startup without being unknown."""
+    mgr = UnderlyingStateManager(hass)
+    mgr.register_underlying_entities(["climate.late_start"])
+
+    with caplog.at_level(logging.ERROR):
+        state = mgr.get_state("climate.late_start")
+
+    assert state is None
+    assert "Requested state for unknown entity_id" not in caplog.text
+    assert mgr._entity_ids == ["climate.late_start"]
+
+
+async def test_registered_entity_startup_refreshes_state_and_notifies(hass: HomeAssistant):
+    """Startup refreshes a pre-registered entity and sends the initial callback."""
+    calls: List[tuple] = []
+
+    async def on_change(entity_id: str, state, old_state):
+        calls.append((entity_id, state.state if state else None))
+
+    mgr = UnderlyingStateManager(hass, on_change=on_change)
+    mgr.register_underlying_entities(["climate.late_start"])
+    hass.states.async_set("climate.late_start", "cool")
+
+    mgr.add_underlying_entities(["climate.late_start"])
+    await hass.async_block_till_done()
+
+    state = mgr.get_state("climate.late_start")
+    assert state is not None
+    assert state.state == "cool"
+    assert calls == [("climate.late_start", "cool")]
+
+
+async def test_get_state_for_unmanaged_entity_after_registration_logs_error(
+    hass: HomeAssistant, caplog
+):
+    """A real unmanaged lookup remains visible as a configuration/code error."""
+    mgr = UnderlyingStateManager(hass)
+    mgr.add_underlying_entities(["climate.managed"])
+
+    with caplog.at_level(logging.ERROR):
+        state = mgr.get_state("climate.other")
+
+    assert state is None
+    assert "Requested state for unknown entity_id: climate.other" in caplog.text
+    assert mgr._entity_ids == ["climate.managed"]
 
 
 async def test_add_entities_and_state_tracking(hass: HomeAssistant):

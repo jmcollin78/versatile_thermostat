@@ -78,7 +78,11 @@ class UnderlyingStateManager:
         """Return the last known `State` for `entity_id`, or `None` if unknown."""
         idx = self._index_of(entity_id)
         if idx is None:
-            _LOGGER.error("UnderlyingStateManager - Requested state for unknown entity_id: %s", entity_id)
+            _LOGGER.error(
+                "UnderlyingStateManager - Requested state for unknown entity_id: %s. Managed entity_ids are: %s",
+                entity_id,
+                self._entity_ids,
+            )
             return None
         return self._states[idx]
 
@@ -125,6 +129,14 @@ class UnderlyingStateManager:
         except ValueError:
             return None
 
+    def register_underlying_entities(self, entity_ids: List[str]) -> None:
+        """Register entity IDs without starting listeners or notifying callbacks."""
+        for entity_id in entity_ids:
+            if entity_id in self._entity_ids:
+                continue
+            self._entity_ids.append(entity_id)
+            self._states.append(None)
+
     def add_underlying_entities(self, entity_ids: List[str]) -> None:
         """Add multiple entity_ids to the monitored list at runtime.
 
@@ -135,12 +147,14 @@ class UnderlyingStateManager:
         """
         added = []
         for entity_id in entity_ids:
-            if entity_id in self._entity_ids:
-                continue
-            self._entity_ids.append(entity_id)
+            idx = self._index_of(entity_id)
             state = self._hass.states.get(entity_id)
-            # should always add an initial state even if None
-            self._states.append(state)
+            if idx is None:
+                self._entity_ids.append(entity_id)
+                self._states.append(state)
+                idx = len(self._states) - 1
+            else:
+                self._states[idx] = state
             if state and state.state not in [STATE_UNAVAILABLE, STATE_UNKNOWN, None]:
                 # but don't notify if not a real state
                 added.append(entity_id)
