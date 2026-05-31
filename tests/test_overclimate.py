@@ -1304,3 +1304,84 @@ async def test_under_climate_is_device_active(
         f"hvac_mode={hvac_mode}, hvac_action={hvac_action}, "
         f"state={under_state}, target_temp={target_temp}, current_temp={current_temp}"
     )
+
+
+async def test_over_climate_cool_to_off_multiple_underlyings(
+    hass: HomeAssistant,
+):
+    """Test transition from COOL to OFF in over_climate with multiple underlying climates."""
+
+    tz = get_tz(hass)
+    now: datetime = datetime.now(tz=tz)
+
+    entry = MockConfigEntry(
+        domain=DOMAIN,
+        title="TheOverClimateMockName",
+        unique_id="uniqueId",
+        data={
+            CONF_NAME: "TheOverClimateMockName",
+            CONF_TEMP_SENSOR: "sensor.mock_temp_sensor",
+            CONF_THERMOSTAT_TYPE: CONF_THERMOSTAT_CLIMATE,
+            CONF_EXTERNAL_TEMP_SENSOR: "sensor.mock_ext_temp_sensor",
+            CONF_CYCLE_MIN: 5,
+            CONF_TEMP_MIN: 15,
+            CONF_TEMP_MAX: 30,
+            CONF_STEP_TEMPERATURE: 0.1,
+            CONF_USE_WINDOW_FEATURE: False,
+            CONF_USE_MOTION_FEATURE: False,
+            CONF_USE_POWER_FEATURE: False,
+            CONF_USE_PRESENCE_FEATURE: False,
+            CONF_UNDERLYING_LIST: ["climate.mock_climate1", "climate.mock_climate2"],
+            CONF_AC_MODE: True,
+            CONF_MINIMAL_ACTIVATION_DELAY: 30,
+            CONF_MINIMAL_DEACTIVATION_DELAY: 0,
+            CONF_SAFETY_DELAY_MIN: 5,
+            CONF_SAFETY_MIN_ON_PERCENT: 0.3,
+        },
+    )
+
+    # 1. Create underlying climates
+    fake1 = await create_and_register_mock_climate(
+        hass,
+        "mock_climate1",
+        "MockClimateName1",
+        {},
+        hvac_modes=[VThermHvacMode_OFF, VThermHvacMode_COOL],
+    )
+    fake2 = await create_and_register_mock_climate(
+        hass,
+        "mock_climate2",
+        "MockClimateName2",
+        {},
+        hvac_modes=[VThermHvacMode_OFF, VThermHvacMode_COOL],
+    )
+
+    # 2. Create the VTherm
+    entity: ThermostatOverClimate = await create_thermostat(hass, entry, "climate.theoverclimatemockname")
+
+    assert entity
+    assert entity.is_over_climate is True
+    assert len(entity._underlyings) == 2
+
+    # Set some temperatures
+    await send_temperature_change_event(entity, 25, now, True)
+    await send_ext_temperature_change_event(entity, 30, now, True)
+
+    # 3. Set VTherm to COOL mode
+    await entity.async_set_hvac_mode(VThermHvacMode_COOL)
+    await hass.async_block_till_done()
+
+    assert entity.hvac_mode == VThermHvacMode_COOL
+    assert entity._underlyings[0].hvac_mode == VThermHvacMode_COOL
+    assert entity._underlyings[1].hvac_mode == VThermHvacMode_COOL
+
+    # Now, test the COOL -> OFF transition
+    await entity.async_set_hvac_mode(VThermHvacMode_OFF)
+    await hass.async_block_till_done()
+
+    # Let's check states after the transition has fully propagated naturally!
+    assert entity.hvac_mode == VThermHvacMode_OFF
+    assert fake1.hvac_mode == VThermHvacMode_OFF
+    assert fake2.hvac_mode == VThermHvacMode_OFF
+
+    entity.remove_thermostat()

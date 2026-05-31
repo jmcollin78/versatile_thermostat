@@ -310,6 +310,10 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
         if not self._auto_fan_mode or not self._auto_activated_fan_mode:
             return
 
+        if self.vtherm_hvac_mode == VThermHvacMode_OFF:
+            _LOGGER.debug("%s - VTherm is off. Do not send any fan mode command.", self)
+            return
+
         dtemp = (
             self.regulated_target_temp if self.is_regulated else self.target_temperature
         )
