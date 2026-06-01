@@ -26,6 +26,8 @@ from .vtherm_central_api import VersatileThermostatAPI
 from .commons import check_and_extract_service_configuration
 
 COMES_FROM = "comes_from"
+PLUGINS_LINK_PLACEHOLDER = "plugins_link"
+PLUGINS_LINK = "[plugins](https://www.versatile-thermostat.org/en/plugins/)"
 
 _LOGGER = get_vtherm_logger(__name__)
 
@@ -56,15 +58,15 @@ class VersatileThermostatBaseConfigFlow(FlowHandler):
     VERSION = CONFIG_VERSION
     MINOR_VERSION = CONFIG_MINOR_VERSION
 
-    _placeholders = {
-        CONF_NAME: "",
-    }
-
     def __init__(self, infos) -> None:
         super().__init__()
         _LOGGER.debug("CTOR BaseConfigFlow infos: %s", infos)
         self._infos: dict = infos
         self._learning_type_changed = False
+        self._placeholders = {
+            CONF_NAME: "",
+            PLUGINS_LINK_PLACEHOLDER: PLUGINS_LINK,
+        }
 
         # VTherm API should have been initialized before arriving here
         vtherm_api = VersatileThermostatAPI.get_vtherm_api()
@@ -1300,6 +1302,7 @@ class VersatileThermostatOptionsFlowHandler(
 
         self._placeholders = {
             CONF_NAME: self._infos[CONF_NAME],
+            PLUGINS_LINK_PLACEHOLDER: PLUGINS_LINK,
         }
 
         return await self.async_step_menu(user_input)
