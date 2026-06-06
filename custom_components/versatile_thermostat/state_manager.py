@@ -233,6 +233,14 @@ class StateManager:
         updated = False
         window_action = vtherm.window_manager.window_action
 
+        # Handle window action correction for COOL mode (Issue #1987)
+        if vtherm.vtherm_hvac_mode == VThermHvacMode_COOL and window_action == CONF_WINDOW_FROST_TEMP:
+            _LOGGER.debug(
+                "%s - HVAC mode is COOL and window action is Frost, falling back to Eco",
+                vtherm,
+            )
+            window_action = CONF_WINDOW_ECO_TEMP
+
         # note that window_manager.is_window_detected is False if bypass is on (so no need to test it here)
         if vtherm.window_manager.is_window_detected:
             if (window_action == CONF_WINDOW_FROST_TEMP and vtherm.is_preset_configured(VThermPreset.FROST)) or (

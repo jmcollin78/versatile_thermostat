@@ -3113,3 +3113,90 @@ async def test_window_action_fan_only_ac_mode_uses_ac_preset_temp(hass: HomeAssi
 
     # Clean the entity
     entity.remove_thermostat()
+
+
+@pytest.mark.parametrize("expected_lingering_tasks", [True])
+@pytest.mark.parametrize("expected_lingering_timers", [True])
+async def test_window_action_frost_temp_fallback_to_eco_in_cool_mode(hass: HomeAssistant, skip_hass_states_is_state, fake_underlying_switch: MockSwitch):
+    """Test issue #1987: in COOL mode, there is no Frost preset.
+    If the window action is set to CONF_WINDOW_FROST_TEMP, it should fall back as if the action
+    is CONF_WINDOW_ECO_TEMP and use the eco_ac_temp preset temp.
+    """
+
+    entry = MockConfigEntry(
+        domain=DOMAIN,
+        title="TheOverSwitchMockName",
+        unique_id="uniqueId",
+        data={
+            CONF_NAME: "TheOverSwitchMockName",
+            CONF_THERMOSTAT_TYPE: CONF_THERMOSTAT_SWITCH,
+            CONF_TEMP_SENSOR: "sensor.mock_temp_sensor",
+            CONF_EXTERNAL_TEMP_SENSOR: "sensor.mock_ext_temp_sensor",
+            CONF_CYCLE_MIN: 5,
+            CONF_TEMP_MIN: 15,
+            CONF_TEMP_MAX: 30,
+            "eco_temp": 17,
+            "comfort_temp": 18,
+            "boost_temp": 21,
+            "frost_temp": 10,
+            "eco_ac_temp": 25,
+            "comfort_ac_temp": 23,
+            "boost_ac_temp": 21,
+            CONF_USE_WINDOW_FEATURE: True,
+            CONF_USE_MOTION_FEATURE: False,
+            CONF_USE_POWER_FEATURE: False,
+            CONF_USE_PRESENCE_FEATURE: False,
+            CONF_UNDERLYING_LIST: ["switch.mock_switch"],
+            CONF_PROP_FUNCTION: PROPORTIONAL_FUNCTION_TPI,
+            CONF_TPI_COEF_INT: 0.3,
+            CONF_TPI_COEF_EXT: 0.01,
+            CONF_MINIMAL_ACTIVATION_DELAY: 30,
+            CONF_MINIMAL_DEACTIVATION_DELAY: 0,
+            CONF_SAFETY_DELAY_MIN: 5,
+            CONF_SAFETY_MIN_ON_PERCENT: 0.3,
+            CONF_WINDOW_SENSOR: "binary_sensor.mock_window_sensor",
+            CONF_WINDOW_DELAY: 1,
+            CONF_WINDOW_ACTION: CONF_WINDOW_FROST_TEMP,
+            CONF_AC_MODE: True,
+        },
+    )
+
+    entity: BaseThermostat = await create_thermostat(hass, entry, "climate.theoverswitchmockname")
+    assert entity
+
+    tz = get_tz(hass)
+    now = datetime.now(tz)
+
+    await entity.async_set_hvac_mode(VThermHvacMode_COOL)
+    await entity.async_set_preset_mode(VThermPreset.COMFORT)
+    assert entity.vtherm_hvac_mode is VThermHvacMode_COOL
+    assert entity.preset_mode == VThermPreset.COMFORT
+    # COMFORT in COOL mode is comfort_ac_temp -> 23.0
+    assert entity.target_temperature == 23.0
+
+    # Open the window
+    with patch("custom_components.versatile_thermostat.base_thermostat.BaseThermostat.send_event") as mock_send_event, patch(
+        "homeassistant.helpers.condition.state", return_value=True
+    ):
+        event_timestamp = now - timedelta(minutes=2)
+        try_window_condition = await send_window_change_event(entity, True, False, event_timestamp)
+        await try_window_condition(None)
+
+        assert entity.window_state == STATE_ON
+        # Because we are in COOL mode, the target temperature should fall back to ECO (eco_ac_temp) -> 25.0
+        assert entity.target_temperature == 25.0, f"Expected fallback to AC eco preset temp 25.0 but got {entity.target_temperature}"
+
+    # Close the window
+    with patch("custom_components.versatile_thermostat.base_thermostat.BaseThermostat.send_event") as mock_send_event, patch(
+        "homeassistant.helpers.condition.state", return_value=True
+    ):
+        event_timestamp = now - timedelta(minutes=1)
+        try_function = await send_window_change_event(entity, False, True, event_timestamp, sleep=False)
+        await try_function(None)
+        await hass.async_block_till_done()
+
+        assert entity.window_state == STATE_OFF
+        assert entity.target_temperature == 23.0, f"Expected restoration to COMFORT preset temp 23.0 but got {entity.target_temperature}"
+
+    # Clean the entity
+    entity.remove_thermostat()
