@@ -94,3 +94,24 @@ async def test_on_change_callback_and_stop(hass: HomeAssistant):
     hass.states.async_set("switch.cb", "off")
     await hass.async_block_till_done()
     assert len(calls) == before
+
+
+async def test_get_state_unknown_but_found_in_ha(hass: HomeAssistant):
+    """Test get_state with an unknown entity_id, which gets retrieved from HA but not added to manager."""
+    mgr = UnderlyingStateManager(hass)
+    assert mgr._entity_ids == []
+
+    # Prepare state in HA but do not add to manager initially
+    hass.states.async_set("switch.test_ha_only", "on")
+    await hass.async_block_till_done()
+
+    # Request state of unknown entity_id, should retrieve it from HA without adding it
+    state = mgr.get_state("switch.test_ha_only")
+    assert state is not None
+    assert state.state == "on"
+    assert "switch.test_ha_only" not in mgr._entity_ids
+
+    # Request state of another still unknown entity, which is not in HA either, should return None
+    state_unknown = mgr.get_state("sensor.not_existing")
+    assert state_unknown is None
+    assert "sensor.not_existing" not in mgr._entity_ids

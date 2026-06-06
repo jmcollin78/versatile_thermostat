@@ -78,6 +78,13 @@ class UnderlyingStateManager:
         """Return the last known `State` for `entity_id`, or `None` if unknown."""
         idx = self._index_of(entity_id)
         if idx is None:
+            state = self._hass.states.get(entity_id)
+            if state is not None:
+                _LOGGER.debug(
+                    "UnderlyingStateManager - Requested state for unknown entity_id: %s, found in HA",
+                    entity_id,
+                )
+                return state
             _LOGGER.error("UnderlyingStateManager - Requested state for unknown entity_id: %s", entity_id)
             return None
         return self._states[idx]
