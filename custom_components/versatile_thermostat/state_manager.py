@@ -128,8 +128,10 @@ class StateManager:
                 vtherm.set_hvac_off_reason(HVAC_OFF_REASON_WINDOW_DETECTION)
 
         elif vtherm.auto_start_stop_manager and vtherm.auto_start_stop_manager.is_auto_stop_detected and self._requested_state.hvac_mode != VThermHvacMode_OFF:
-            self._current_state.set_hvac_mode(VThermHvacMode_OFF)
-            vtherm.set_hvac_off_reason(HVAC_OFF_REASON_AUTO_START_STOP)
+            auto_stop_hvac_mode = vtherm.auto_start_stop_manager.auto_stop_hvac_mode
+            self._current_state.set_hvac_mode(auto_stop_hvac_mode)
+            if auto_stop_hvac_mode == VThermHvacMode_OFF:
+                vtherm.set_hvac_off_reason(HVAC_OFF_REASON_AUTO_START_STOP)
 
         elif vtherm.last_central_mode == CENTRAL_MODE_COOL_ONLY and self._requested_state.hvac_mode != VThermHvacMode_OFF:
             if VThermHvacMode_COOL in vtherm.vtherm_hvac_modes:

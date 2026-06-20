@@ -295,6 +295,7 @@ async def test_user_config_flow_over_switch(
             CONF_USE_PRESENCE_FEATURE: True,
             CONF_USE_CENTRAL_BOILER_FEATURE: False,
             CONF_AUTO_START_STOP_LEVEL: AUTO_START_STOP_LEVEL_NONE,
+            CONF_AUTO_START_STOP_ACTION: AUTO_START_STOP_ACTION_TURN_OFF,
         }
     )
     assert result["result"]
@@ -527,6 +528,7 @@ async def test_user_config_flow_over_climate(
         CONF_USE_CENTRAL_MODE: False,
         CONF_AUTO_REGULATION_MODE: CONF_AUTO_REGULATION_STRONG,
         CONF_AUTO_START_STOP_LEVEL: AUTO_START_STOP_LEVEL_NONE,
+        CONF_AUTO_START_STOP_ACTION: AUTO_START_STOP_ACTION_TURN_OFF,
         CONF_SYNC_DEVICE_INTERNAL_TEMP: False,
     }
     assert result["result"]
@@ -617,6 +619,7 @@ async def test_user_config_flow_over_climate_auto_start_stop(
         result["flow_id"],
         user_input={
             CONF_AUTO_START_STOP_LEVEL: AUTO_START_STOP_LEVEL_MEDIUM,
+            CONF_AUTO_START_STOP_ACTION: AUTO_START_STOP_ACTION_FAN_ONLY,
         },
     )
     assert result["type"] == FlowResultType.MENU
@@ -778,6 +781,7 @@ async def test_user_config_flow_over_climate_auto_start_stop(
         CONF_USED_BY_CENTRAL_BOILER: False,
         CONF_USE_AUTO_START_STOP_FEATURE: True,
         CONF_AUTO_START_STOP_LEVEL: AUTO_START_STOP_LEVEL_MEDIUM,
+        CONF_AUTO_START_STOP_ACTION: AUTO_START_STOP_ACTION_FAN_ONLY,
         CONF_AUTO_REGULATION_MODE: CONF_AUTO_REGULATION_STRONG,
         CONF_SYNC_DEVICE_INTERNAL_TEMP: False,
     }
@@ -1042,6 +1046,7 @@ async def test_user_config_flow_over_switch_bug_552_tpi(
             CONF_USE_PRESENCE_FEATURE: False,
             CONF_USE_CENTRAL_BOILER_FEATURE: False,
             CONF_AUTO_START_STOP_LEVEL: AUTO_START_STOP_LEVEL_NONE,
+            CONF_AUTO_START_STOP_ACTION: AUTO_START_STOP_ACTION_TURN_OFF,
         }
     )
     assert result["result"]
@@ -1529,6 +1534,7 @@ async def test_user_config_flow_over_climate_valve(
         CONF_MAX_OPENING_DEGREES: "90",
         CONF_OPENING_THRESHOLD_DEGREE: 5,
         CONF_AUTO_START_STOP_LEVEL: AUTO_START_STOP_LEVEL_NONE,
+        CONF_AUTO_START_STOP_ACTION: AUTO_START_STOP_ACTION_TURN_OFF,
     }
     assert result["result"]
     assert result["result"].domain == DOMAIN

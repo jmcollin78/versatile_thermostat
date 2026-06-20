@@ -111,6 +111,38 @@ async def test_auto_start_stop_feature_manager_post_init(
         assert custom_attributes["auto_start_stop_manager"]["auto_start_stop_last_switch_date"] == auto_start_stop_manager._auto_start_stop_algo.last_switch_date
 
 
+async def test_auto_start_stop_feature_manager_stores_configured_action(
+    hass: HomeAssistant,
+):
+    """Test that the configured auto-start/stop action is stored and exposed."""
+    fake_vtherm = MagicMock(spec=BaseThermostat)
+    type(fake_vtherm).name = PropertyMock(return_value="the name")
+    type(fake_vtherm).have_valve_regulation = PropertyMock(return_value=False)
+    type(fake_vtherm).is_over_climate = PropertyMock(return_value=True)
+    type(fake_vtherm).is_on = PropertyMock(return_value=False)
+    fake_vtherm.hvac_off_reason = None
+
+    auto_start_stop_manager = FeatureAutoStartStopManager(fake_vtherm, hass)
+    auto_start_stop_manager.post_init(
+        {
+            CONF_USE_AUTO_START_STOP_FEATURE: True,
+            CONF_AUTO_START_STOP_LEVEL: AUTO_START_STOP_LEVEL_MEDIUM,
+            CONF_AUTO_START_STOP_ACTION: AUTO_START_STOP_ACTION_FAN_ONLY,
+        }
+    )
+
+    assert auto_start_stop_manager.auto_start_stop_action == AUTO_START_STOP_ACTION_FAN_ONLY
+    type(fake_vtherm).vtherm_hvac_modes = PropertyMock(return_value=[VThermHvacMode_HEAT, VThermHvacMode_COOL, VThermHvacMode_FAN_ONLY, VThermHvacMode_OFF])
+    type(fake_vtherm).hvac_mode = PropertyMock(return_value=VThermHvacMode_FAN_ONLY)
+    assert auto_start_stop_manager.auto_stop_hvac_mode == VThermHvacMode_FAN_ONLY
+    auto_start_stop_manager._is_auto_stop_detected = True
+    assert auto_start_stop_manager.is_auto_stopped is True
+
+    custom_attributes = {}
+    auto_start_stop_manager.add_custom_attributes(custom_attributes)
+    assert custom_attributes["auto_start_stop_manager"]["auto_start_stop_action"] == AUTO_START_STOP_ACTION_FAN_ONLY
+
+
 # ──────────────────────────────────────────────────────────────────────────────
 # Tests for restore_state()
 # ──────────────────────────────────────────────────────────────────────────────

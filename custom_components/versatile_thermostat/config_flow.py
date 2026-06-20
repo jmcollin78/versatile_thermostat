@@ -1242,6 +1242,7 @@ class VersatileThermostatBaseConfigFlow(FlowHandler):
                 del self._infos[CONF_CENTRAL_BOILER_DEACTIVATION_SRV]
         if not self._infos[CONF_USE_AUTO_START_STOP_FEATURE]:
             self._infos[CONF_AUTO_START_STOP_LEVEL] = AUTO_START_STOP_LEVEL_NONE
+            self._infos[CONF_AUTO_START_STOP_ACTION] = AUTO_START_STOP_ACTION_TURN_OFF
 
         # Removes temporary value
         if COMES_FROM in self._infos:

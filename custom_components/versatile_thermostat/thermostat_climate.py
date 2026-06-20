@@ -158,9 +158,11 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
 
         self.stop_recalculate_later()
 
-        if self.vtherm_hvac_mode == VThermHvacMode_OFF:
+        if self.vtherm_hvac_mode in (VThermHvacMode_OFF, VThermHvacMode_FAN_ONLY):
             _LOGGER.debug(
-                "%s - don't send regulated temperature cause VTherm is off ", self
+                "%s - don't send regulated temperature cause VTherm is %s",
+                self,
+                self.vtherm_hvac_mode,
             )
             # In this case, reset the timer of last regulation change to avoid time delta too high
             self._last_regulation_change = self.now
@@ -308,6 +310,9 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
     async def _send_auto_fan_mode(self):
         """Send the fan mode if auto_fan_mode and temperature gap is > threshold"""
         if not self._auto_fan_mode or not self._auto_activated_fan_mode:
+            return
+
+        if self.vtherm_hvac_mode == VThermHvacMode_FAN_ONLY:
             return
 
         dtemp = (

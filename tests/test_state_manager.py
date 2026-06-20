@@ -8,7 +8,7 @@ from homeassistant.components.climate import HVACMode
 from custom_components.versatile_thermostat.base_thermostat import BaseThermostat
 from custom_components.versatile_thermostat.state_manager import StateManager
 from custom_components.versatile_thermostat.vtherm_state import VThermState
-from custom_components.versatile_thermostat.vtherm_hvac_mode import VThermHvacMode_OFF, VThermHvacMode_HEAT, VThermHvacMode_COOL
+from custom_components.versatile_thermostat.vtherm_hvac_mode import VThermHvacMode_OFF, VThermHvacMode_HEAT, VThermHvacMode_COOL, VThermHvacMode_FAN_ONLY
 from custom_components.versatile_thermostat.vtherm_preset import VThermPreset
 
 from .commons import *  # pylint: disable=wildcard-import, unused-wildcard-import
@@ -325,6 +325,7 @@ async def test_state_manager_calculate_hvac_mode(
 
     fake_vtherm.auto_start_stop_manager = MagicMock()
     type(fake_vtherm.auto_start_stop_manager).is_auto_stop_detected = PropertyMock(return_value=is_auto_stop_detected)
+    type(fake_vtherm.auto_start_stop_manager).auto_stop_hvac_mode = PropertyMock(return_value=VThermHvacMode_OFF)
 
     ret = await state_manager.calculate_current_hvac_mode(fake_vtherm)
     assert ret is expected_result
@@ -335,6 +336,76 @@ async def test_state_manager_calculate_hvac_mode(
         fake_vtherm.set_hvac_off_reason.assert_called_with(expected_hvac_off_reason)
     else:
         fake_vtherm.set_hvac_off_reason.assert_not_called()
+
+
+async def test_state_manager_auto_start_stop_can_use_fan_only_when_supported(
+    hass: HomeAssistant,
+) -> None:
+    """Auto-start/stop can temporarily switch to FAN_ONLY instead of OFF."""
+    fake_vtherm = MagicMock(spec=BaseThermostat)
+    type(fake_vtherm).name = PropertyMock(return_value="the name")
+    type(fake_vtherm).is_over_climate = PropertyMock(return_value=True)
+    type(fake_vtherm).vtherm_hvac_modes = PropertyMock(return_value=[VThermHvacMode_HEAT, VThermHvacMode_COOL, VThermHvacMode_FAN_ONLY, VThermHvacMode_OFF])
+    type(fake_vtherm).hvac_off_reason = PropertyMock(return_value=None)
+    fake_vtherm.set_hvac_off_reason = MagicMock()
+
+    fake_vtherm.safety_manager = MagicMock()
+    type(fake_vtherm.safety_manager).is_safety_detected = PropertyMock(return_value=False)
+
+    fake_vtherm.window_manager = MagicMock()
+    type(fake_vtherm.window_manager).is_window_detected = PropertyMock(return_value=False)
+
+    fake_vtherm.auto_start_stop_manager = MagicMock()
+    type(fake_vtherm.auto_start_stop_manager).is_auto_stop_detected = PropertyMock(return_value=True)
+    type(fake_vtherm.auto_start_stop_manager).auto_stop_hvac_mode = PropertyMock(return_value=VThermHvacMode_FAN_ONLY)
+    type(fake_vtherm).last_central_mode = PropertyMock(return_value=CENTRAL_MODE_AUTO)
+
+    state_manager = StateManager()
+    state_manager.requested_state.set_state(hvac_mode=VThermHvacMode_COOL, preset=VThermPreset.ECO, target_temperature=22)
+    state_manager.current_state.set_state(hvac_mode=VThermHvacMode_COOL, preset=VThermPreset.ECO, target_temperature=22)
+    state_manager.requested_state.reset_changed()
+    state_manager.current_state.reset_changed()
+
+    ret = await state_manager.calculate_current_hvac_mode(fake_vtherm)
+
+    assert ret is True
+    assert state_manager.current_state.hvac_mode == VThermHvacMode_FAN_ONLY
+    fake_vtherm.set_hvac_off_reason.assert_not_called()
+
+
+async def test_state_manager_auto_start_stop_falls_back_to_off_when_fan_only_is_not_supported(
+    hass: HomeAssistant,
+) -> None:
+    """Auto-start/stop uses OFF when FAN_ONLY action is selected but unsupported."""
+    fake_vtherm = MagicMock(spec=BaseThermostat)
+    type(fake_vtherm).name = PropertyMock(return_value="the name")
+    type(fake_vtherm).is_over_climate = PropertyMock(return_value=True)
+    type(fake_vtherm).vtherm_hvac_modes = PropertyMock(return_value=[VThermHvacMode_HEAT, VThermHvacMode_COOL, VThermHvacMode_OFF])
+    type(fake_vtherm).hvac_off_reason = PropertyMock(return_value=None)
+    fake_vtherm.set_hvac_off_reason = MagicMock()
+
+    fake_vtherm.safety_manager = MagicMock()
+    type(fake_vtherm.safety_manager).is_safety_detected = PropertyMock(return_value=False)
+
+    fake_vtherm.window_manager = MagicMock()
+    type(fake_vtherm.window_manager).is_window_detected = PropertyMock(return_value=False)
+
+    fake_vtherm.auto_start_stop_manager = MagicMock()
+    type(fake_vtherm.auto_start_stop_manager).is_auto_stop_detected = PropertyMock(return_value=True)
+    type(fake_vtherm.auto_start_stop_manager).auto_stop_hvac_mode = PropertyMock(return_value=VThermHvacMode_OFF)
+    type(fake_vtherm).last_central_mode = PropertyMock(return_value=CENTRAL_MODE_AUTO)
+
+    state_manager = StateManager()
+    state_manager.requested_state.set_state(hvac_mode=VThermHvacMode_COOL, preset=VThermPreset.ECO, target_temperature=22)
+    state_manager.current_state.set_state(hvac_mode=VThermHvacMode_COOL, preset=VThermPreset.ECO, target_temperature=22)
+    state_manager.requested_state.reset_changed()
+    state_manager.current_state.reset_changed()
+
+    ret = await state_manager.calculate_current_hvac_mode(fake_vtherm)
+
+    assert ret is True
+    assert state_manager.current_state.hvac_mode == VThermHvacMode_OFF
+    fake_vtherm.set_hvac_off_reason.assert_called_with(HVAC_OFF_REASON_AUTO_START_STOP)
 
 
 @pytest.mark.parametrize(

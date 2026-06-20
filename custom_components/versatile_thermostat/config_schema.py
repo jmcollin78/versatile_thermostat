@@ -265,6 +265,13 @@ STEP_AUTO_START_STOP = vol.Schema(  # pylint: disable=invalid-name
                 mode="dropdown",
             )
         ),
+        vol.Optional(CONF_AUTO_START_STOP_ACTION, default=AUTO_START_STOP_ACTION_TURN_OFF): selector.SelectSelector(
+            selector.SelectSelectorConfig(
+                options=CONF_AUTO_START_STOP_ACTIONS,
+                translation_key="auto_start_stop_action",
+                mode="dropdown",
+            )
+        ),
     }
 )
 

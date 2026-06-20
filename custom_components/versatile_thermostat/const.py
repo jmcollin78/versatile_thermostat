@@ -222,6 +222,7 @@ CONF_USED_BY_CENTRAL_BOILER = "used_by_controls_central_boiler"
 CONF_WINDOW_ACTION = "window_action"
 
 CONF_AUTO_START_STOP_LEVEL = "auto_start_stop_level"
+CONF_AUTO_START_STOP_ACTION = "auto_start_stop_action"
 AUTO_START_STOP_LEVEL_NONE = "auto_start_stop_none"
 AUTO_START_STOP_LEVEL_VERY_SLOW = "auto_start_stop_very_slow"
 AUTO_START_STOP_LEVEL_SLOW = "auto_start_stop_slow"
@@ -234,6 +235,12 @@ CONF_AUTO_START_STOP_LEVELS = [
     AUTO_START_STOP_LEVEL_MEDIUM,
     AUTO_START_STOP_LEVEL_FAST,
 ]
+AUTO_START_STOP_ACTION_TURN_OFF = "auto_start_stop_action_turn_off"
+AUTO_START_STOP_ACTION_FAN_ONLY = "auto_start_stop_action_fan_only"
+CONF_AUTO_START_STOP_ACTIONS = [
+    AUTO_START_STOP_ACTION_TURN_OFF,
+    AUTO_START_STOP_ACTION_FAN_ONLY,
+]
 
 # For explicit typing purpose only
 TYPE_AUTO_START_STOP_LEVELS = Literal[  # pylint: disable=invalid-name
@@ -242,6 +249,10 @@ TYPE_AUTO_START_STOP_LEVELS = Literal[  # pylint: disable=invalid-name
     AUTO_START_STOP_LEVEL_SLOW,
     AUTO_START_STOP_LEVEL_VERY_SLOW,
     AUTO_START_STOP_LEVEL_NONE,
+]
+TYPE_AUTO_START_STOP_ACTIONS = Literal[  # pylint: disable=invalid-name
+    AUTO_START_STOP_ACTION_TURN_OFF,
+    AUTO_START_STOP_ACTION_FAN_ONLY,
 ]
 
 HVAC_OFF_REASON_NAME = "hvac_off_reason"
