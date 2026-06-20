@@ -833,6 +833,12 @@
                 "auto_start_stop_fast": "Rychlá detekce"
             }
         },
+        "auto_start_stop_action": {
+            "options": {
+                "auto_start_stop_action_turn_off": "Vypnout",
+                "auto_start_stop_action_fan_only": "Pouze ventilátor"
+            }
+        },
         "auto_tpi_calculation_method": {
             "options": {
                 "average": "Průměrný",

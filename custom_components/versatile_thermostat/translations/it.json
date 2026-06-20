@@ -835,6 +835,12 @@
                 "auto_start_stop_fast": "Rilevamento veloce"
             }
         },
+        "auto_start_stop_action": {
+            "options": {
+                "auto_start_stop_action_turn_off": "Spegni",
+                "auto_start_stop_action_fan_only": "Solo ventilatore"
+            }
+        },
         "auto_tpi_calculation_method": {
             "options": {
                 "average": "Media",

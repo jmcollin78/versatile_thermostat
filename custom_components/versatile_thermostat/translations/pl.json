@@ -774,6 +774,12 @@
         "auto_start_stop_fast": "Szybka detekcja"
       }
     },
+    "auto_start_stop_action": {
+      "options": {
+        "auto_start_stop_action_turn_off": "Wyłącz",
+        "auto_start_stop_action_fan_only": "Tylko wentylacja"
+      }
+    },
     "auto_tpi_calculation_method": {
       "options": {
         "average": "Średnia",

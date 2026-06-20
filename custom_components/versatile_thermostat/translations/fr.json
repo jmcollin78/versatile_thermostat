@@ -835,6 +835,12 @@
         "auto_start_stop_fast": "Rapide"
       }
     },
+    "auto_start_stop_action": {
+      "options": {
+        "auto_start_stop_action_turn_off": "Éteindre",
+        "auto_start_stop_action_fan_only": "Ventilation seule"
+      }
+    },
     "auto_tpi_calculation_method": {
       "options": {
         "average": "Moyenne",
