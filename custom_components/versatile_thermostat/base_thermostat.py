@@ -64,6 +64,7 @@ from .feature_power_manager import FeaturePowerManager
 from .feature_motion_manager import FeatureMotionManager
 from .feature_window_manager import FeatureWindowManager
 from .feature_safety_manager import FeatureSafetyManager
+from .feature_supply_temperature_safety_manager import FeatureSupplyTemperatureSafetyManager
 from .feature_auto_start_stop_manager import FeatureAutoStartStopManager
 from .feature_lock_manager import FeatureLockManager
 from .feature_timed_preset_manager import FeatureTimedPresetManager
@@ -90,6 +91,7 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
         .union(FeaturePowerManager.unrecorded_attributes)
         .union(FeatureMotionManager.unrecorded_attributes)
         .union(FeatureWindowManager.unrecorded_attributes)
+        .union(FeatureSupplyTemperatureSafetyManager.unrecorded_attributes)
     )
 
     ##
@@ -206,6 +208,7 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
         self._motion_manager: FeatureMotionManager = FeatureMotionManager(self, hass)
         self._window_manager: FeatureWindowManager = FeatureWindowManager(self, hass)
         self._safety_manager: FeatureSafetyManager = FeatureSafetyManager(self, hass)
+        self._supply_temperature_safety_manager: FeatureSupplyTemperatureSafetyManager = FeatureSupplyTemperatureSafetyManager(self, hass)
         # Auto start/stop is only for over_climate
         self._auto_start_stop_manager: FeatureAutoStartStopManager | None = None
         self._lock_manager: FeatureLockManager = FeatureLockManager(self, hass)
@@ -218,6 +221,7 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
         self.register_manager(self._motion_manager)
         self.register_manager(self._window_manager)
         self.register_manager(self._safety_manager)
+        self.register_manager(self._supply_temperature_safety_manager)
         self.register_manager(self._lock_manager)
         self.register_manager(self._timed_preset_manager)
         self.register_manager(self._heating_failure_detection_manager)
@@ -984,6 +988,11 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
         return self._safety_manager
 
     @property
+    def supply_temperature_safety_manager(self) -> FeatureSupplyTemperatureSafetyManager | None:
+        """Get the supply temperature safety manager"""
+        return self._supply_temperature_safety_manager
+
+    @property
     def auto_start_stop_manager(self) -> FeatureAutoStartStopManager | None:
         """Get the auto start/stop manager (only implemented in over_climate)"""
         return self._auto_start_stop_manager
@@ -1579,6 +1588,19 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
             _LOGGER.info("%s - async_control_heating is called but the entity is not ready yet (not initialized or startup not done). Skip the cycle", self)
             return False
 
+        await self._supply_temperature_safety_manager.refresh_state(restart_on_clear=False)
+        if self._supply_temperature_safety_manager.is_supply_temperature_safety_detected:
+            _LOGGER.warning(
+                "%s - End of cycle (supply temperature safety detected: %s)",
+                self,
+                self._supply_temperature_safety_manager.safety_reason,
+            )
+            await self.async_underlying_entity_turn_off()
+            self.calculate_hvac_action()
+            self.update_custom_attributes()
+            self.async_write_ha_state()
+            return True
+
         # check auto_window conditions
         await self._window_manager.manage_window_auto(in_cycle=True)
 
@@ -1787,6 +1809,8 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
         messages: list[str] = []
         if self.safety_manager.is_safety_detected:
             messages.append(MSG_SAFETY_DETECTED)
+        if self.supply_temperature_safety_manager.is_supply_temperature_safety_detected:
+            messages.append(MSG_SUPPLY_TEMP_SAFETY_DETECTED)
         if self.power_manager.is_overpowering_detected:
             messages.append(MSG_OVERPOWERING_DETECTED)
         if self.hvac_off_reason:

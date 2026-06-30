@@ -385,6 +385,14 @@ class UnderlyingSwitch(UnderlyingEntity):
 
     def _calculate_should_be_on(self, should_be_on: bool | None = None) -> bool:
         """Calculate and update the _should_be_on flag"""
+        supply_safety_manager = getattr(self._thermostat, "supply_temperature_safety_manager", None)
+        if (
+            supply_safety_manager is not None
+            and supply_safety_manager.is_supply_temperature_safety_detected
+        ):
+            self._should_be_on = False
+            return self._should_be_on
+
         self._should_be_on = self._hvac_mode in [VThermHvacMode_HEAT, VThermHvacMode_COOL] and self._on_time_sec > 0
 
         return self._should_be_on
@@ -503,6 +511,22 @@ class UnderlyingSwitch(UnderlyingEntity):
         """Turn heater toggleable device on."""
         self._keep_alive.cancel()  # Cancel early to avoid a turn_on/turn_off race condition
         _LOGGER.debug("%s - Starting underlying entity %s", self, self._entity_id)
+
+        supply_safety_manager = getattr(self._thermostat, "supply_temperature_safety_manager", None)
+        if (
+            supply_safety_manager is not None
+            and supply_safety_manager.is_supply_temperature_safety_detected
+        ):
+            _LOGGER.warning(
+                "%s - Refusing to turn on because supply temperature safety is detected (%s)",
+                self,
+                supply_safety_manager.safety_reason,
+            )
+            self._is_on_part_running = False
+            self._should_be_on = False
+            if self.is_device_active:
+                await self.turn_off()
+            return False
 
         if not await self.check_overpowering():
             self._thermostat.requested_state.force_changed()

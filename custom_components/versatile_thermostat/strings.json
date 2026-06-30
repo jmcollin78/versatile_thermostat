@@ -114,7 +114,12 @@
           "on_command_text": "Turn on command customization",
           "vswitch_on_command": "Optional turn on commands",
           "off_command_text": "Turn off command customization",
-          "vswitch_off_command": "Optional turn off commands"
+          "vswitch_off_command": "Optional turn off commands",
+          "supply_temperature_sensor_entity_id": "Supply temperature sensor",
+          "supply_temperature_heat_max": "Maximum supply temperature in heating mode",
+          "supply_temperature_cool_min": "Minimum supply temperature in cooling mode",
+          "supply_temperature_tolerance": "Supply temperature safety hysteresis",
+          "supply_temperature_delay_sec": "Supply temperature safety delay"
         },
         "data_description": {
           "underlying_entity_ids": "The device(s) to be controlled - 1 is required",
@@ -128,7 +133,12 @@
           "auto_regulation_use_device_temp": "Use the eventual internal temperature sensor of the underlying to speedup the self-regulation (not needed in most cases)",
           "inverse_switch_command": "For switch with pilot wire and diode you may need to inverse the command",
           "auto_fan_mode": "Automatically activate fan when huge heating/cooling is necessary",
-          "on_command_text": "For underlying of type `select` or `climate` you have to customize the commands."
+          "on_command_text": "For underlying of type `select` or `climate` you have to customize the commands.",
+          "supply_temperature_sensor_entity_id": "Optional temperature sensor measuring the supply water temperature. When configured, VTherm blocks switch activation if the supply temperature is unsafe.",
+          "supply_temperature_heat_max": "In heating mode, switch activation is blocked when the supply temperature is greater than or equal to this value.",
+          "supply_temperature_cool_min": "In cooling mode, switch activation is blocked when the supply temperature is less than or equal to this value.",
+          "supply_temperature_tolerance": "Hysteresis used to clear the safety trip. Heating clears below heat max minus this value; cooling clears above cool min plus this value.",
+          "supply_temperature_delay_sec": "Optional delay before applying a new supply temperature safety trip."
         }
       },
       "tpi": {
@@ -500,7 +510,12 @@
           "on_command_text": "Turn on command customization",
           "vswitch_on_command": "Optional turn on commands",
           "off_command_text": "Turn off command customization",
-          "vswitch_off_command": "Optional turn off commands"
+          "vswitch_off_command": "Optional turn off commands",
+          "supply_temperature_sensor_entity_id": "Supply temperature sensor",
+          "supply_temperature_heat_max": "Maximum supply temperature in heating mode",
+          "supply_temperature_cool_min": "Minimum supply temperature in cooling mode",
+          "supply_temperature_tolerance": "Supply temperature safety hysteresis",
+          "supply_temperature_delay_sec": "Supply temperature safety delay"
         },
         "data_description": {
           "underlying_entity_ids": "The device(s) to be controlled - 1 is required",
@@ -514,7 +529,12 @@
           "auto_regulation_use_device_temp": "Use the eventual internal temperature sensor of the underlying to speedup the self-regulation (not needed in most cases)",
           "inverse_switch_command": "For switch with pilot wire and diode you may need to inverse the command",
           "auto_fan_mode": "Automatically activate fan when huge heating/cooling is necessary",
-          "on_command_text": "For underlying of type `select` or `climate` you have to customize the commands."
+          "on_command_text": "For underlying of type `select` or `climate` you have to customize the commands.",
+          "supply_temperature_sensor_entity_id": "Optional temperature sensor measuring the supply water temperature. When configured, VTherm blocks switch activation if the supply temperature is unsafe.",
+          "supply_temperature_heat_max": "In heating mode, switch activation is blocked when the supply temperature is greater than or equal to this value.",
+          "supply_temperature_cool_min": "In cooling mode, switch activation is blocked when the supply temperature is less than or equal to this value.",
+          "supply_temperature_tolerance": "Hysteresis used to clear the safety trip. Heating clears below heat max minus this value; cooling clears above cool min plus this value.",
+          "supply_temperature_delay_sec": "Optional delay before applying a new supply temperature safety trip."
         }
       },
       "tpi": {

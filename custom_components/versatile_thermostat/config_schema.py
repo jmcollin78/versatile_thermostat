@@ -70,6 +70,51 @@ def build_step_thermostat_switch_schema() -> vol.Schema:
             vol.Optional(CONF_VSWITCH_ON_CMD_LIST): selector.TextSelector(selector.TextSelectorConfig(type=selector.TextSelectorType.TEXT, multiple=True)),
             vol.Optional("off_command_text"): vol.In([]),
             vol.Optional(CONF_VSWITCH_OFF_CMD_LIST): selector.TextSelector(selector.TextSelectorConfig(type=selector.TextSelectorType.TEXT, multiple=True)),
+            vol.Optional(CONF_SUPPLY_TEMP_SENSOR): selector.EntitySelector(
+                selector.EntitySelectorConfig(domain=[SENSOR_DOMAIN, INPUT_NUMBER_DOMAIN, NUMBER_DOMAIN]),
+            ),
+            vol.Optional(CONF_SUPPLY_TEMP_HEAT_MAX, default=45): selector.NumberSelector(
+                selector.NumberSelectorConfig(
+                    min=20.0,
+                    max=80.0,
+                    step=0.5,
+                    mode=selector.NumberSelectorMode.BOX,
+                    unit_of_measurement="°C",
+                )
+            ),
+            vol.Optional(CONF_SUPPLY_TEMP_COOL_MIN, default=18): selector.NumberSelector(
+                selector.NumberSelectorConfig(
+                    min=5.0,
+                    max=30.0,
+                    step=0.5,
+                    mode=selector.NumberSelectorMode.BOX,
+                    unit_of_measurement="°C",
+                )
+            ),
+            vol.Optional(
+                CONF_SUPPLY_TEMP_TOLERANCE,
+                default=DEFAULT_SUPPLY_TEMP_TOLERANCE,
+            ): selector.NumberSelector(
+                selector.NumberSelectorConfig(
+                    min=0.0,
+                    max=10.0,
+                    step=0.5,
+                    mode=selector.NumberSelectorMode.BOX,
+                    unit_of_measurement="°C",
+                )
+            ),
+            vol.Optional(
+                CONF_SUPPLY_TEMP_DELAY_SEC,
+                default=DEFAULT_SUPPLY_TEMP_DELAY_SEC,
+            ): selector.NumberSelector(
+                selector.NumberSelectorConfig(
+                    min=0,
+                    max=600,
+                    step=5,
+                    mode=selector.NumberSelectorMode.BOX,
+                    unit_of_measurement="s",
+                )
+            ),
         }
     )
 

@@ -90,6 +90,11 @@ CONF_TEMP_MAX = "temp_max"
 CONF_SAFETY_DELAY_MIN = "safety_delay_min"
 CONF_SAFETY_MIN_ON_PERCENT = "safety_min_on_percent"
 CONF_SAFETY_DEFAULT_ON_PERCENT = "safety_default_on_percent"
+CONF_SUPPLY_TEMP_SENSOR = "supply_temperature_sensor_entity_id"
+CONF_SUPPLY_TEMP_HEAT_MAX = "supply_temperature_heat_max"
+CONF_SUPPLY_TEMP_COOL_MIN = "supply_temperature_cool_min"
+CONF_SUPPLY_TEMP_TOLERANCE = "supply_temperature_tolerance"
+CONF_SUPPLY_TEMP_DELAY_SEC = "supply_temperature_delay_sec"
 CONF_THERMOSTAT_TYPE = "thermostat_type"
 CONF_THERMOSTAT_CENTRAL_CONFIG = "thermostat_central_config"
 CONF_THERMOSTAT_SWITCH = "thermostat_over_switch"
@@ -355,6 +360,11 @@ ALL_CONF = (
         CONF_SAFETY_DELAY_MIN,
         CONF_SAFETY_MIN_ON_PERCENT,
         CONF_SAFETY_DEFAULT_ON_PERCENT,
+        CONF_SUPPLY_TEMP_SENSOR,
+        CONF_SUPPLY_TEMP_HEAT_MAX,
+        CONF_SUPPLY_TEMP_COOL_MIN,
+        CONF_SUPPLY_TEMP_TOLERANCE,
+        CONF_SUPPLY_TEMP_DELAY_SEC,
         CONF_THERMOSTAT_TYPE,
         CONF_THERMOSTAT_SWITCH,
         CONF_THERMOSTAT_CLIMATE,
@@ -483,6 +493,8 @@ SERVICE_DOWNLOAD_LOGS = "download_logs"
 
 DEFAULT_SAFETY_MIN_ON_PERCENT = 0.5
 DEFAULT_SAFETY_DEFAULT_ON_PERCENT = 0.1
+DEFAULT_SUPPLY_TEMP_TOLERANCE = 2.0
+DEFAULT_SUPPLY_TEMP_DELAY_SEC = 0
 
 # Repair incorrect state defaults
 DEFAULT_REPAIR_INCORRECT_STATE = False
@@ -524,6 +536,7 @@ ATTR_REQUESTED_STATE = "requested_state"
 
 MSG_OVERPOWERING_DETECTED = "overpowering_detected"
 MSG_SAFETY_DETECTED = "safety_detected"
+MSG_SUPPLY_TEMP_SAFETY_DETECTED = "supply_temperature_safety_detected"
 MSG_TARGET_TEMP_WINDOW_ECO = "target_temp_window_eco"
 MSG_TARGET_TEMP_WINDOW_FROST = "target_temp_window_frost"
 MSG_TARGET_TEMP_POWER = "target_temp_power"

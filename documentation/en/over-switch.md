@@ -6,6 +6,7 @@
     - [The underlying devices](#the-underlying-devices)
     - [Keep-Alive](#keep-alive)
     - [AC Mode](#ac-mode)
+    - [Supply Temperature Safety](#supply-temperature-safety)
     - [Command Inversion](#command-inversion)
     - [Command Customization](#command-customization)
 
@@ -54,6 +55,31 @@ Some equipment requires periodic activation to prevent a safety shutdown. Known 
 ### AC Mode
 
 It is possible to choose a `thermostat_over_switch` to control an air conditioner by checking the "AC Mode" box. In this case, only the cooling mode will be visible.
+
+### Supply Temperature Safety
+
+For hydronic heating or cooling systems, the optional supply temperature safety can prevent VTherm from activating the underlying switch when the water temperature is outside configured limits.
+
+This is useful when the underlying switch controls a circulation pump for a floor system:
+
+- in heating mode, water that is too hot can damage the floor construction or floor covering,
+- in cooling mode, water that is too cold can cause condensation.
+
+When configured, VTherm monitors the `supply_temperature_sensor_entity_id` sensor. If the limit is reached, VTherm cancels the current cycle, turns off the underlying switch, and blocks future switch activation until the temperature returns inside the hysteresis band.
+
+The available parameters are:
+
+| Parameter | Description |
+| --------- | ----------- |
+| `supply_temperature_sensor_entity_id` | Temperature sensor measuring the supply water temperature. |
+| `supply_temperature_heat_max` | Maximum allowed supply temperature while in heating mode. |
+| `supply_temperature_cool_min` | Minimum allowed supply temperature while in cooling mode. |
+| `supply_temperature_tolerance` | Hysteresis used before clearing a safety trip. |
+| `supply_temperature_delay_sec` | Optional delay before applying a new trip. |
+
+If the supply temperature sensor becomes unavailable or unknown, VTherm blocks activation as a fail-safe behavior.
+
+> This feature is software supervision only. Turning off a pump does not guarantee zero water flow. Physical protection such as a suitable safety thermostat, condensation protection, check valve, or isolation valve may still be required depending on the installation.
 
 ### Command Inversion
 

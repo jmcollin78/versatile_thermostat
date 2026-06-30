@@ -44,6 +44,96 @@ async def test_safety_feature_manager_create(
     assert custom_attributes.get("safety_manager") is None
 
 
+async def test_supply_temperature_safety_blocks_underlying_switch(
+    hass: HomeAssistant,
+    skip_hass_states_is_state,
+    fake_underlying_switch: MockSwitch,
+):
+    """Supply temperature safety turns off and blocks the pump switch."""
+
+    hass.states.async_set("sensor.mock_supply_temperature", "35")
+    await hass.async_block_till_done()
+
+    entry = MockConfigEntry(
+        domain=DOMAIN,
+        title="TheOverSwitchMockName",
+        unique_id="uniqueId",
+        data={
+            CONF_NAME: "TheOverSwitchMockName",
+            CONF_THERMOSTAT_TYPE: CONF_THERMOSTAT_SWITCH,
+            CONF_TEMP_SENSOR: "sensor.mock_temp_sensor",
+            CONF_EXTERNAL_TEMP_SENSOR: "sensor.mock_ext_temp_sensor",
+            CONF_CYCLE_MIN: 5,
+            CONF_TEMP_MIN: 15,
+            CONF_TEMP_MAX: 30,
+            CONF_STEP_TEMPERATURE: 0.1,
+            "frost_temp": 10,
+            "eco_temp": 17,
+            "comfort_temp": 19,
+            "boost_temp": 21,
+            CONF_USE_WINDOW_FEATURE: False,
+            CONF_USE_MOTION_FEATURE: False,
+            CONF_USE_POWER_FEATURE: False,
+            CONF_USE_PRESENCE_FEATURE: False,
+            CONF_UNDERLYING_LIST: ["switch.mock_switch"],
+            CONF_HEATER_KEEP_ALIVE: 0,
+            CONF_PROP_FUNCTION: PROPORTIONAL_FUNCTION_TPI,
+            CONF_TPI_COEF_INT: 0.3,
+            CONF_TPI_COEF_EXT: 0.01,
+            CONF_MINIMAL_ACTIVATION_DELAY: 10,
+            CONF_MINIMAL_DEACTIVATION_DELAY: 0,
+            CONF_SAFETY_DELAY_MIN: 60,
+            CONF_SAFETY_MIN_ON_PERCENT: 0.3,
+            CONF_SUPPLY_TEMP_SENSOR: "sensor.mock_supply_temperature",
+            CONF_SUPPLY_TEMP_HEAT_MAX: 45,
+            CONF_SUPPLY_TEMP_COOL_MIN: 18,
+            CONF_SUPPLY_TEMP_TOLERANCE: 2,
+            CONF_SUPPLY_TEMP_DELAY_SEC: 0,
+        },
+    )
+
+    entity: ThermostatOverSwitch = await create_thermostat(
+        hass, entry, "climate.theoverswitchmockname"
+    )
+    assert entity
+    assert entity.supply_temperature_safety_manager.is_configured is True
+    assert entity.supply_temperature_safety_manager.is_supply_temperature_safety_detected is False
+
+    await entity.async_set_hvac_mode(VThermHvacMode_HEAT)
+    underlying = entity.underlying_entity(0)
+
+    assert await underlying.turn_on() is True
+    await hass.async_block_till_done()
+    assert fake_underlying_switch.is_on is True
+
+    hass.states.async_set("sensor.mock_supply_temperature", "50")
+    await wait_for_local_condition(
+        lambda: entity.supply_temperature_safety_manager.is_supply_temperature_safety_detected,
+        hass=hass,
+    )
+    assert fake_underlying_switch.is_on is False
+    assert underlying.should_device_be_active is False
+
+    assert await underlying.turn_on() is False
+    await hass.async_block_till_done()
+    assert fake_underlying_switch.is_on is False
+
+    with patch(
+        "custom_components.versatile_thermostat.base_thermostat.BaseThermostat.async_control_heating"
+    ):
+        hass.states.async_set("sensor.mock_supply_temperature", "40")
+        await wait_for_local_condition(
+            lambda: not entity.supply_temperature_safety_manager.is_supply_temperature_safety_detected,
+            hass=hass,
+        )
+
+    assert await underlying.turn_on() is True
+    await hass.async_block_till_done()
+    assert fake_underlying_switch.is_on is True
+
+    entity.remove_thermostat()
+
+
 @pytest.mark.parametrize(
     "safety_delay_min, safety_min_on_percent, safety_default_on_percent, is_configured, state",
     [
