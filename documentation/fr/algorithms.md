@@ -99,10 +99,10 @@ L'algorithme d'auto-régulation peut être synthétisé comme suit:
 
 L'algorithme utilisé dans la fonction d'auto-start/stop est le suivant :
 1. Si `auto-start/stop` n'est pas activé, on s'arréte là.
-2. Si `VTherm` est allumé et en mode `Chauffage`, alors si `erreur_accumulée` < -`seuil_d_erreur` -> éteindre et sauver le mode `HVAC`,
-3. Si `VTherm` est allumé et en mode `Clim`, alors si `erreur_accumulée` > `seuil_d_erreur` -> éteindre et sauver le mode `HVAC`,
-4. Si `VTherm` est éteint et le mode `HVAC` sauvé est `Chauffage` et `temperature_actuel` + `pente` x `dt` <= `temperature_cible` alors on allume et sauver le mode `HVAC`,
-5. Si `VTherm` est éteint et le mode `HVAC` sauvé est `Clim` et `temperature_actuel` + `pente` x `dt` >= `temperature_cible` alors on allume et sauver le mode `HVAC`,
+2. Si `VTherm` est allumé et en mode `Chauffage`, alors si `erreur_accumulée` < -`seuil_d_erreur` -> l'équipement sous-jacent est éteint (le `hvac_mode` du VTherm reste `Chauffage` et n'est pas modifié ; seul son `hvac_action` passe à `off` et `is_auto_stop_detected` passe à `true`),
+3. Si `VTherm` est allumé et en mode `Clim`, alors si `erreur_accumulée` > `seuil_d_erreur` -> l'équipement sous-jacent est éteint (le `hvac_mode` du VTherm reste `Clim` et n'est pas modifié ; seul son `hvac_action` passe à `off` et `is_auto_stop_detected` passe à `true`),
+4. Si l'équipement sous-jacent est arrêté automatiquement (`is_auto_stop_detected` à `true`) et le mode du VTherm est `Chauffage` et `temperature_actuel` + `pente` x `dt` <= `temperature_cible` alors l'équipement sous-jacent est rallumé,
+5. Si l'équipement sous-jacent est arrêté automatiquement (`is_auto_stop_detected` à `true`) et le mode du VTherm est `Clim` et `temperature_actuel` + `pente` x `dt` >= `temperature_cible` alors l'équipement sous-jacent est rallumé,
 
 `seuil_d_erreur` est fixé à `10 (° * min)` en mode lent, `5` en mode moyen et `2` en mode rapide.
 

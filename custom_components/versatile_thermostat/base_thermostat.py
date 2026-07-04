@@ -162,6 +162,13 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
         # state changes from underlying to avoid loops
         self._last_change_time_from_vtherm = None
 
+        # The last hvac_mode that was actually commanded to the underlying
+        # devices. It can differ from the exposed hvac_mode (eg. while
+        # auto-start/stop keeps the underlying off but the VTherm stays on).
+        # Starting at None guarantees the first update_states commands the
+        # underlyings (covers the restore-with-auto-stop case).
+        self._last_applied_hvac_mode: VThermHvacMode | None = None
+
         self._underlyings: list[T] = []
 
         self._ema_temp = None
@@ -876,6 +883,21 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
         return self._state_manager.current_state.hvac_mode
 
     @property
+    def hvac_mode_to_apply(self) -> VThermHvacMode | None:
+        """Return the hvac_mode that should actually be commanded to the
+        underlying devices.
+
+        This diverges from the exposed vtherm_hvac_mode only while the
+        auto-start/stop feature has detected an auto-stop: in that case the
+        underlying devices are turned off while the VTherm keeps the
+        user-requested mode (and reports hvac_action OFF). For every other
+        VTherm type (or when auto-stop is not detected) this is a pass-through.
+        """
+        if self._auto_start_stop_manager and self._auto_start_stop_manager.is_auto_stop_detected and self.vtherm_hvac_mode != VThermHvacMode_OFF:
+            return VThermHvacMode_OFF
+        return self.vtherm_hvac_mode
+
+    @property
     def is_recalculate_scheduled(self) -> bool:
         """Return true if a recalculation is scheduled."""
         return self._cancel_recalculate_later is not None
@@ -1380,6 +1402,12 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
         if hvac_mode is None:
             return
 
+        # An explicit user mode change always expresses intent to run in that mode,
+        # so clear any auto-start/stop detection first. Doing it here (rather than in
+        # update_states) ensures programmatic requested_state writes don't clear it.
+        if self._auto_start_stop_manager and self._auto_start_stop_manager.is_auto_stop_detected:
+            await self._auto_start_stop_manager.reset_detection(cause="hvac_mode set manually")
+
         # Change the requested state
         self._state_manager.requested_state.set_hvac_mode(hvac_mode)
         await self.update_states(force=False)
@@ -1508,10 +1536,11 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
             return False
 
         changed = False
+        applied = False
         if self._state_manager.requested_state.is_changed:
+            sub_need_control_heating = False
             if changed := await self._state_manager.calculate_current_state(self):
                 _LOGGER.info("%s - current state changed to %s", self, self._state_manager.current_state)
-                sub_need_control_heating = False
                 # Apply preset
                 if self._state_manager.current_state.is_preset_changed:
                     _LOGGER.info("%s - Applying new preset: %s", self, self.vtherm_preset_mode)
@@ -1530,22 +1559,35 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
                     if self.auto_start_stop_manager:
                         self.auto_start_stop_manager.reset_switch_delay()
 
-                # Apply hvac_mode
+                # Apply the exposed hvac_mode (what the user sees). The command to the
+                # underlying devices is handled separately below via hvac_mode_to_apply,
+                # so that auto-start/stop can keep the underlying off while the exposed
+                # mode stays at the user-requested value.
                 if self._state_manager.current_state.is_hvac_mode_changed:
                     _LOGGER.info("%s - Applying new hvac mode: %s", self, self.vtherm_hvac_mode)
-                    # Delegate to all underlying
-                    for under in self._underlyings:
-                        sub_need_control_heating = await under.set_hvac_mode(self.vtherm_hvac_mode) or sub_need_control_heating
                     self._attr_hvac_mode = to_legacy_ha_hvac_mode(self.vtherm_hvac_mode)
                     self.send_event(EventType.HVAC_MODE_EVENT, {"hvac_mode": str(self.vtherm_hvac_mode)})
                     # Remove eventual overpowering if we want to turn-off
                     if self.hvac_mode in [VThermHvacMode_OFF, VThermHvacMode_SLEEP] and self.power_manager.is_overpowering_detected:
                         await self.power_manager.set_overpowering(False)
 
-                if changed:
-                    self.recalculate(force=force)
-                    self.reset_last_change_time_from_vtherm()
-                    await self.async_control_heating(force=force or sub_need_control_heating)
+            # Command the effective mode to the underlying devices. This runs even when
+            # the exposed hvac_mode did not change (eg. when only the auto-start/stop
+            # detection flag flipped), but is gated on hvac_mode_to_apply actually
+            # changing to avoid resending commands on every cycle.
+            applied = False
+            mode_to_apply = self.hvac_mode_to_apply
+            if mode_to_apply != self._last_applied_hvac_mode:
+                _LOGGER.info("%s - Applying effective hvac mode to underlyings: %s", self, mode_to_apply)
+                for under in self._underlyings:
+                    sub_need_control_heating = await under.set_hvac_mode(mode_to_apply) or sub_need_control_heating
+                self._last_applied_hvac_mode = mode_to_apply
+                applied = True
+
+            if changed or applied:
+                self.recalculate(force=force)
+                self.reset_last_change_time_from_vtherm()
+                await self.async_control_heating(force=force or sub_need_control_heating)
 
             self.calculate_hvac_action()
             self.update_custom_attributes()
@@ -1556,7 +1598,7 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
         self._state_manager.requested_state.reset_changed()
         self._state_manager.current_state.reset_changed()
 
-        return changed
+        return changed or applied
 
     async def async_control_heating(self, timestamp=None, force=False) -> bool:
         """The main function used to run the calculation at each cycle
@@ -1772,6 +1814,10 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
     def calculate_hvac_action(self, _: list = None) -> HVACAction | None:
         """Calculate the HVAC action based on the current state and underlying devices"""
         if self.vtherm_hvac_mode == VThermHvacMode_OFF:
+            action = HVACAction.OFF
+        elif self._auto_start_stop_manager and self._auto_start_stop_manager.is_auto_stop_detected:
+            # The underlying devices are turned off by auto-start/stop even though
+            # the exposed hvac_mode stays at the user-requested value.
             action = HVACAction.OFF
         elif not self.is_device_active:
             action = HVACAction.IDLE

@@ -90,7 +90,7 @@ Rady, jak správně upravit tato nastavení, najdete na stránce [samo-regulace]
 Specifické funkce lze konfigurovat prostřednictvím dedikované možnosti v menu.
 
 Specifické funkce, které vyžadují konfiguraci pro tento typ VTherm, jsou:
-1. Auto-start/stop: Automatické spuštění a zastavení VTherm na základě předpovědí použití. Toto je popsáno zde: [funkce auto-start/stop](feature-auto-start-stop.md).
+1. Auto-start/stop: Automatické spuštění a zastavení podřízeného zařízení na základě předpovědí použití (_VTherm_ si přitom zachová požadovaný `hvac_mode`). Toto je popsáno zde: [funkce auto-start/stop](feature-auto-start-stop.md).
 2. Pokud je zvolena regulace ventilu, konfigurace algoritmu TPI je přístupná z menu. Viz ([algoritmy](algorithms.md)).
 
 ## Sledování změn podkladové teploty

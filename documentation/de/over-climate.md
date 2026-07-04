@@ -94,7 +94,7 @@ Auf der Seite [Selbstregulierung](self-regulation.md) finden Sie Hinweise, wie S
 Besondere Funktionen können über eine spezielle Option im Menü konfiguriert werden.
 
 Die besonderen Funktionen, die für diesen Typ von VTherm konfiguriert werden müssen, sind:
-1. Auto-Start/Stop: Automatischer Start und Stopp von VTherm auf der Grundlage von Nutzungsprognosen. Dies wird hier beschrieben: [Auto-Start/Stop-Funktion](feature-auto-start-stop.md).
+1. Auto-Start/Stop: Automatischer Start und Stopp des zugrunde liegenden Geräts auf der Grundlage von Nutzungsprognosen (der _VTherm_ behält dabei den angeforderten `hvac_mode` bei). Dies wird hier beschrieben: [Auto-Start/Stop-Funktion](feature-auto-start-stop.md).
 2. Wenn die Ventilregelung gewählt wird, ist die Konfiguration des TPI-Algorithmus über das Menü zugänglich. Siehe ([Algorithmen](algorithms.md)).
 
 ## Verfolgung grundlegender Temperaturänderungen

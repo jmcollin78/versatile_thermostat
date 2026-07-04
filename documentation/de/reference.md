@@ -371,10 +371,10 @@ Es werden folgende Ereignisse gemeldet:
 - ``versatile_thermostat_safety_event``: Ein Thermostat wechselt in den voreingestellten Modus ``security`` oder verlässt diesen.
 - ``versatile_thermostat_power_event``: Ein Thermostat erreicht oder unterschreitet den  ``power``-Sollwert
 - ``versatile_thermostat_temperature_event``: Eine oder beide Temperaturmessungen eines Thermostats wurden seit mehr als ``safety_delay_min`` Minuten nicht aktualisiert.
-- ``versatile_thermostat_hvac_mode_event``: Der Thermostat ist ein- oder ausgeschaltet. Dieses Ereignis wird auch beim Start des Thermostats übertragen.
+- ``versatile_thermostat_hvac_mode_event``: Der Thermostat ist ein- oder ausgeschaltet. Dieses Ereignis wird auch beim Start des Thermostats übertragen. Dieses Ereignis wird nicht mehr ausgelöst, wenn die Auto-Start/Stopp-Funktion das zugrunde liegende Gerät stoppt oder neu startet: Verwenden Sie stattdessen ``versatile_thermostat_auto_start_stop_event`` und das Attribut ``is_auto_stop_detected``.
 - ``versatile_thermostat_preset_event``: Eine neue Voreinstellung wird am Thermostat ausgewählt. Dieses Ereignis wird auch beim Start des Thermostats übertragen.
 - ``versatile_thermostat_central_boiler_event``: Ein Ereignis, das eine Änderung des Heizkesselzustands anzeigt.
-- ``versatile_thermostat_auto_start_stop_event``: Ein Ereignis, das einen Stopp oder einen Neustart durch die Auto-Start/Stopp-Funktion anzeigt
+- ``versatile_thermostat_auto_start_stop_event``: Ein Ereignis, das einen Stopp oder einen Neustart des zugrunde liegenden Geräts durch die Auto-Start/Stopp-Funktion anzeigt. Der ``hvac_mode`` des angezeigten Thermostats wird dabei nicht geändert: nur das zugrunde liegende Gerät wird gestoppt oder neu gestartet
 - ``versatile_thermostat_timed_preset_event``: Ein Ereignis, das die Aktivierung oder Deaktivierung eines zeitgesteuerten Presets anzeigt
 
 Wenn Sie bis hierher mitgekommen sind, wissen Sie, dass beim Umschalten eines Thermostats in den Sicherheitsmodus drei Ereignisse ausgelöst werden:
@@ -442,7 +442,7 @@ Die benutzerdefinierten Attribute sind folgende:
 | ``is_used_by_central_boiler``     | Gibt an, ob VTherm den Zentralheizungskessel steuern kann                                                                                                               |
 | ``auto_start_stop_enable``        | Gibt an, ob VTherm sich selbst starten/stoppen darf                                                                                                                     |
 | ``auto_start_stop_level``         | Zeigt den Stand der Auto-Start/Stopp-Funktion an                                                                                                                        |
-| ``hvac_off_reason``               | Gibt den Grund für die Abschaltung (hvac_off) des VTherm an. Dies kann Window, Auto-start/stop oder manuell sein.                                                       |
+| ``hvac_off_reason``               | Gibt den Grund für die Abschaltung (hvac_off) des VTherm an. Dies kann Window oder manuell sein. Die Auto-Start/Stopp-Funktion setzt dieses Attribut nicht mehr (sie schaltet nur das zugrunde liegende Gerät aus, ohne den `hvac_mode` des VTherm auf off zu setzen); verwenden Sie stattdessen das Attribut `is_auto_stop_detected`                                                       |
 | ``last_change_time_from_vtherm``  | Datum/Uhrzeit der letzten Änderung durch VTherm                                                                                                                         |
 | ``nb_device_actives``             | Die Anzahl der zugeordneten Geräte, die derzeit als aktiv angesehen werden                                                                                              |
 | ``device_actives``                | Die Liste der zugrunde liegenden Geräte, die derzeit als aktiv angesehen werden                                                                                         |

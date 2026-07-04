@@ -99,10 +99,10 @@ Algorytm samoregulacji można podsumować w następujący sposób:
 Algorytm używany w funkcji autoSTART/STOP działa w następujący sposób:
 
 1. Jeśli „AutoSTART/AutoSTOP” jest wyłączony, działanie funkcji zatrzymuje się.
-2. Jeśli termostat VTherm jest załączony i pracuje w trybie ogrzewania, gdy `error_accumulated` < `-error_threshold` → wyłącz i zapisz tryb HVAC.
-3  Jeśli termostat VTherm jest załączony i pracuje w trybie chłodzenia, gdy `error_accumulated` > `error_threshold` → wyłącz i zapisz tryb HVAC.
-4. Jeśli termostat VTherm jest wyłączony, a zapisany tryb HVAC to `grzanie`, i `aktualna temperatura` + `slope` * `dt` <= `temperatura docelowa`, załącz i ustaw tryb HVAC jako zapisany.
-5. Jeśli termostat VTherm jest wyłączony, a zapisany tryb HVAC to `chłodzenie`, i `aktuana temperatura` + `slope` * `dt` >= `temperatura docelowa`, załącz i ustaw tryb HVAC jako zapisany.
+2. Jeśli termostat VTherm jest załączony i pracuje w trybie ogrzewania, gdy `error_accumulated` < `-error_threshold` → urządzenie podrzędne zostaje wyłączone. `hvac_mode` termostatu VTherm pozostaje ustawiony na ogrzewanie (nie przełącza się na off); zmienia się jedynie jego `hvac_action` na `off`, a `is_auto_stop_detected` na `true`.
+3. Jeśli termostat VTherm jest załączony i pracuje w trybie chłodzenia, gdy `error_accumulated` > `error_threshold` → urządzenie podrzędne zostaje wyłączone. `hvac_mode` termostatu VTherm pozostaje ustawiony na chłodzenie (nie przełącza się na off); zmienia się jedynie jego `hvac_action` na `off`, a `is_auto_stop_detected` na `true`.
+4. Jeśli urządzenie podrzędne zostało automatycznie zatrzymane (`is_auto_stop_detected` ma wartość `true`), a tryb termostatu VTherm to `grzanie`, i `aktualna temperatura` + `slope` * `dt` <= `temperatura docelowa`, urządzenie podrzędne zostaje ponownie załączone.
+5. Jeśli urządzenie podrzędne zostało automatycznie zatrzymane (`is_auto_stop_detected` ma wartość `true`), a tryb termostatu VTherm to `chłodzenie`, i `aktualna temperatura` + `slope` * `dt` >= `temperatura docelowa`, urządzenie podrzędne zostaje ponownie załączone.
 6. `error_threshold` jest ustawiony na `10 (° * min)` dla powolnej detekcji, `5` dla średniej detekcji oraz `2` dla szybkiej detekcji.
 
 Parametr `dt` jest ustawiony na `30 minut` dla powolnego, na `15 minut` dla średniego, oraz na `7 minut` dla szybkiego tempa detekcji.

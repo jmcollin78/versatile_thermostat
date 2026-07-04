@@ -275,6 +275,9 @@ class FeatureCentralPowerManager(BaseFeatureManager):
             vtherm
             for vtherm in entities
             if vtherm.power_manager.is_configured and vtherm.is_on
+            # An auto-stopped VTherm keeps its exposed mode on but draws no power
+            # (its underlying is turned off), so exclude it from shedding candidates.
+            and not (vtherm.auto_start_stop_manager and vtherm.auto_start_stop_manager.is_auto_stop_detected)
         ]
 
         # sort the result with the min temp difference first. A and B should be BaseThermostat class

@@ -10,7 +10,6 @@ from .const import (
     HVAC_OFF_REASON_SAFETY,
     HVAC_OFF_REASON_MANUAL,
     HVAC_OFF_REASON_WINDOW_DETECTION,
-    HVAC_OFF_REASON_AUTO_START_STOP,
     HVAC_OFF_REASON_SLEEP_MODE,
     HVAC_OFF_REASON_CENTRAL_MODE,
     CONF_WINDOW_ECO_TEMP,
@@ -126,10 +125,6 @@ class StateManager:
             ):  # default is to turn_off
                 self._current_state.set_hvac_mode(VThermHvacMode_OFF)
                 vtherm.set_hvac_off_reason(HVAC_OFF_REASON_WINDOW_DETECTION)
-
-        elif vtherm.auto_start_stop_manager and vtherm.auto_start_stop_manager.is_auto_stop_detected and self._requested_state.hvac_mode != VThermHvacMode_OFF:
-            self._current_state.set_hvac_mode(VThermHvacMode_OFF)
-            vtherm.set_hvac_off_reason(HVAC_OFF_REASON_AUTO_START_STOP)
 
         elif vtherm.last_central_mode == CENTRAL_MODE_COOL_ONLY and self._requested_state.hvac_mode != VThermHvacMode_OFF:
             if VThermHvacMode_COOL in vtherm.vtherm_hvac_modes:

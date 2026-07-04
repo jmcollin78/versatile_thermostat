@@ -676,7 +676,8 @@ class UnderlyingClimate(UnderlyingEntity):
         self._hvac_mode = underlying_hvac_mode
 
         is_device_active = underlying_state.state not in [HVACMode.OFF, STATE_UNAVAILABLE, STATE_UNKNOWN]
-        hvac_mode = self._thermostat.vtherm_hvac_mode
+        # Use the effective mode so a restored auto-stop keeps the device off at startup
+        hvac_mode = self._thermostat.hvac_mode_to_apply
 
         if hvac_mode == VThermHvacMode_OFF and is_device_active:
             _LOGGER.info(
@@ -739,8 +740,11 @@ class UnderlyingClimate(UnderlyingEntity):
                 under_temp_diff = 0
                 new_target_temp = None
 
-        # Forget event when the event holds no real changes
-        if new_hvac_mode == self._thermostat.hvac_mode:
+        # Forget event when the event holds no real changes. Compare against the mode
+        # actually commanded to the device (hvac_mode_to_apply), so that while
+        # auto-stopped the device's "off" echo is dropped, while a device reporting a
+        # real mode (eg. manually turned on) still passes through.
+        if new_hvac_mode == self._thermostat.hvac_mode_to_apply:
             new_hvac_mode = None
         if new_hvac_action == old_hvac_action:
             new_hvac_action = None
@@ -920,14 +924,20 @@ class UnderlyingClimate(UnderlyingEntity):
                 current,
                 hvac_mode,
             )
-            hvac_action = HVACAction.IDLE
-            if target is not None and current is not None:
-                dtemp = target - current
+            if hvac_mode == VThermHvacMode_OFF:
+                # The device's own mode is off: report OFF rather than IDLE so that
+                # aggregation converges to OFF even for devices that do not publish a
+                # native hvac_action.
+                hvac_action = HVACAction.OFF
+            else:
+                hvac_action = HVACAction.IDLE
+                if target is not None and current is not None:
+                    dtemp = target - current
 
-                if hvac_mode == VThermHvacMode_COOL and dtemp < 0:
-                    hvac_action = HVACAction.COOLING
-                elif hvac_mode in [VThermHvacMode_HEAT, VThermHvacMode_HEAT_COOL] and dtemp > 0:
-                    hvac_action = HVACAction.HEATING
+                    if hvac_mode == VThermHvacMode_COOL and dtemp < 0:
+                        hvac_action = HVACAction.COOLING
+                    elif hvac_mode in [VThermHvacMode_HEAT, VThermHvacMode_HEAT_COOL] and dtemp > 0:
+                        hvac_action = HVACAction.HEATING
 
         return hvac_action
 
@@ -1111,7 +1121,8 @@ class UnderlyingClimate(UnderlyingEntity):
     async def check_and_repair(self) -> bool:
         """Check if the underlying device state matches the desired state and repair if needed.
         Returns True if a repair was performed."""
-        hvac_mode = self._thermostat.vtherm_hvac_mode
+        # Use the effective mode so we don't fight auto-start/stop every cycle
+        hvac_mode = self._thermostat.hvac_mode_to_apply
 
         under_hvac_mode = self.hvac_mode
 

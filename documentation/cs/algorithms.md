@@ -56,10 +56,10 @@ Algoritmus samo-regulace lze shrnout následovně:
 
 Algoritmus používaný ve funkci auto-start/stop funguje následovně:
 1. Pokud je "Povolit auto-start/stop" vypnuto, zde končíme.
-2. Pokud je VTherm zapnutý a v režimu vytápění, když `error_accumulated` < `-error_threshold` -> vypnout a uložit HVAC režim.
-3. Pokud je VTherm zapnutý a v režimu chlazení, když `error_accumulated` > `error_threshold` -> vypnout a uložit HVAC režim.
-4. Pokud je VTherm vypnutý a uložený HVAC režim je vytápění, a `current_temperature + slope * dt <= target_temperature`, zapnout a nastavit HVAC režim na uložený režim.
-5. Pokud je VTherm vypnutý a uložený HVAC režim je chlazení, a `current_temperature + slope * dt >= target_temperature`, zapnout a nastavit HVAC režim na uložený režim.
+2. Pokud je VTherm zapnutý a v režimu vytápění, když `error_accumulated` < `-error_threshold` -> podřízené zařízení se vypne. `hvac_mode` VTherm zůstává vytápění (nepřepíná se na off); mění se pouze jeho `hvac_action` na `off` a `is_auto_stop_detected` na `true`.
+3. Pokud je VTherm zapnutý a v režimu chlazení, když `error_accumulated` > `error_threshold` -> podřízené zařízení se vypne. `hvac_mode` VTherm zůstává chlazení (nepřepíná se na off); mění se pouze jeho `hvac_action` na `off` a `is_auto_stop_detected` na `true`.
+4. Pokud je podřízené zařízení automaticky zastaveno (`is_auto_stop_detected` je `true`) a režim VTherm je vytápění, a `current_temperature + slope * dt <= target_temperature`, podřízené zařízení se znovu zapne.
+5. Pokud je podřízené zařízení automaticky zastaveno (`is_auto_stop_detected` je `true`) a režim VTherm je chlazení, a `current_temperature + slope * dt >= target_temperature`, podřízené zařízení se znovu zapne.
 6. `error_threshold` je nastaven na `10 (° * min)` pro pomalou detekci, `5` pro střední a `2` pro rychlou.
 
 `dt` je nastaven na `30 min` pro pomalou, `15 min` pro střední a `7 min` pro rychlou úroveň detekce.

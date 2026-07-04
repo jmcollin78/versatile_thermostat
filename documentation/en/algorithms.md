@@ -104,10 +104,10 @@ The self-regulation algorithm can be summarized as follows:
 
 The algorithm used in the auto-start/stop function operates as follows:
 1. If "Enable Auto-Start/Stop" is off, stop here.
-2. If VTherm is on and in Heating mode, when `error_accumulated` < `-error_threshold` -> turn off and save HVAC mode.
-3. If VTherm is on and in Cooling mode, when `error_accumulated` > `error_threshold` -> turn off and save HVAC mode.
-4. If VTherm is off and the saved HVAC mode is Heating, and `current_temperature + slope * dt <= target_temperature`, turn on and set the HVAC mode to the saved mode.
-5. If VTherm is off and the saved HVAC mode is Cooling, and `current_temperature + slope * dt >= target_temperature`, turn on and set the HVAC mode to the saved mode.
+2. If VTherm is on and in Heating mode, when `error_accumulated` < `-error_threshold` -> the underlying device(s) are turned off. The VTherm's `hvac_mode` stays Heating (it is not switched to off); only its `hvac_action` switches to `off` and `is_auto_stop_detected` becomes `true`.
+3. If VTherm is on and in Cooling mode, when `error_accumulated` > `error_threshold` -> the underlying device(s) are turned off. The VTherm's `hvac_mode` stays Cooling (it is not switched to off); only its `hvac_action` switches to `off` and `is_auto_stop_detected` becomes `true`.
+4. If the underlying device(s) are auto-stopped (`is_auto_stop_detected` is `true`) and the VTherm's mode is Heating, and `current_temperature + slope * dt <= target_temperature`, the underlying device(s) are turned back on.
+5. If the underlying device(s) are auto-stopped (`is_auto_stop_detected` is `true`) and the VTherm's mode is Cooling, and `current_temperature + slope * dt >= target_temperature`, the underlying device(s) are turned back on.
 6. `error_threshold` is set to `10 (° * min)` for slow detection, `5` for medium, and `2` for fast.
 
 `dt` is set to `30 min` for slow, `15 min` for medium, and `7 min` for fast detection levels.

@@ -78,13 +78,14 @@ class FeatureAutoStartStopManager(BaseFeatureManager):
         self._is_auto_start_stop_enabled = self._auto_start_stop_level != AUTO_START_STOP_LEVEL_NONE
 
         # Instanciate the auto start stop algo
-        self._auto_start_stop_algo = AutoStartStopDetectionAlgorithm(
-            self._auto_start_stop_level, self.name
-        )
+        self._auto_start_stop_algo = AutoStartStopDetectionAlgorithm(self._auto_start_stop_level, self.name)
 
-        # Fix an eventual incoherent state
-        if self._vtherm.is_on and self._vtherm.hvac_off_reason == HVAC_OFF_REASON_AUTO_START_STOP:
-            self._vtherm.hvac_off_reason = None
+        # Legacy cleanup: earlier versions turned the VTherm off and stamped
+        # hvac_off_reason with AUTO_START_STOP. That reason is no longer used
+        # (auto-stop keeps the exposed mode and only turns the underlying off),
+        # so clear any restored/stale value.
+        if self._vtherm.hvac_off_reason == HVAC_OFF_REASON_AUTO_START_STOP:
+            self._vtherm.set_hvac_off_reason(None)
 
     @overrides
     async def start_listening(self):
@@ -115,10 +116,10 @@ class FeatureAutoStartStopManager(BaseFeatureManager):
             _LOGGER.debug("%s - auto_start_stop should be off is %s", self, should_be_off)
             if should_be_off:
                 _LOGGER.info("%s - VTherm should be OFF due to auto-start-stop conditions", self)
-                # self._vtherm.set_hvac_off_reason(HVAC_OFF_REASON_AUTO_START_STOP)
-                # await self._vtherm.async_turn_off()
+                # The underlying device is turned off by BaseThermostat.update_states via
+                # hvac_mode_to_apply; the exposed hvac_mode stays at the requested value.
 
-                # Send an event if vtherm is on
+                # Send an event when we transition to auto-stopped
                 if not self._is_auto_stop_detected:
                     self._vtherm.send_event(
                         event_type=EventType.AUTO_START_STOP_EVENT,
@@ -139,10 +140,10 @@ class FeatureAutoStartStopManager(BaseFeatureManager):
 
             else:
                 _LOGGER.info("%s - VTherm should be ON due to auto-start-stop conditions", self)
+                # The underlying device is restarted by BaseThermostat.update_states via
+                # hvac_mode_to_apply once the detection flag clears below.
 
-                # await self._vtherm.async_turn_on()
-
-                # Send an event
+                # Send an event when we transition out of auto-stopped
                 if self._is_auto_stop_detected:
                     self._vtherm.send_event(
                         event_type=EventType.AUTO_START_STOP_EVENT,
@@ -181,9 +182,9 @@ class FeatureAutoStartStopManager(BaseFeatureManager):
         if self._is_auto_start_stop_enabled != is_enabled:
             self._is_auto_start_stop_enabled = is_enabled
 
-            # Send an event if the vtherm was off due to auto-start/stop and enable has been set to false
-            if not is_enabled and self._vtherm.hvac_mode == VThermHvacMode_OFF and self._vtherm.hvac_off_reason == HVAC_OFF_REASON_AUTO_START_STOP:
-                _LOGGER.debug("%s - the vtherm is off cause auto-start/stop and enable have been set to false -> starts the VTherm")
+            # Send an event if the vtherm was auto-stopped and enable has been set to false
+            if not is_enabled and self._is_auto_stop_detected:
+                _LOGGER.debug("%s - the vtherm was auto-stopped and enable have been set to false -> starts the VTherm")
                 # Send an event
                 self._vtherm.send_event(
                     event_type=EventType.AUTO_START_STOP_EVENT,
@@ -304,8 +305,42 @@ class FeatureAutoStartStopManager(BaseFeatureManager):
 
     @property
     def is_auto_stopped(self) -> bool:
-        """Returns the is vtherm is stopped and reason is AUTO_START_STOP"""
-        return self._vtherm.hvac_mode == VThermHvacMode_OFF and self._vtherm.hvac_off_reason == HVAC_OFF_REASON_AUTO_START_STOP
+        """Returns True if the VTherm has been auto-stopped (underlying turned off
+        while the exposed mode stays at the user-requested value)."""
+        return self._is_auto_stop_detected
+
+    async def reset_detection(self, cause: str):
+        """Clear the auto-stop detection following an explicit user action (eg. the
+        user changed the hvac_mode, or manually turned an underlying device on).
+
+        Keeps the algorithm coherent: clears the sticky should_be_off flag and stamps
+        the last switch date to now so the dt_min guard prevents an immediate re-stop.
+        Emits a "start" AUTO_START_STOP_EVENT so downstream consumers are notified.
+        """
+        if not self._is_auto_stop_detected:
+            return
+
+        _LOGGER.info("%s - Resetting auto-stop detection. cause=%s", self, cause)
+        self._is_auto_stop_detected = False
+        if self._auto_start_stop_algo is not None:
+            self._auto_start_stop_algo._last_should_be_off = False
+            self._auto_start_stop_algo._last_switch_date = self._vtherm.now
+
+        self._vtherm.send_event(
+            event_type=EventType.AUTO_START_STOP_EVENT,
+            data={
+                "type": "start",
+                "name": self.name,
+                "cause": cause,
+                "hvac_mode": str(self._vtherm.requested_state.hvac_mode),
+                "saved_hvac_mode": str(self._vtherm.requested_state.hvac_mode),
+                "target_temperature": self._vtherm.target_temperature,
+                "current_temperature": self._vtherm.current_temperature,
+                "temperature_slope": round(self._vtherm.last_temperature_slope or 0, 3),
+                "accumulated_error": self._auto_start_stop_algo.accumulated_error if self._auto_start_stop_algo else 0,
+                "accumulated_error_threshold": self._auto_start_stop_algo.accumulated_error_threshold if self._auto_start_stop_algo else 0,
+            },
+        )
 
     def reset_switch_delay(self):
         """Reset the switch delay in the algorithm to allow immediate restart.

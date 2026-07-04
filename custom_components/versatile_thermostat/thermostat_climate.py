@@ -138,6 +138,13 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
         if under_list is None:
             under_list = self._underlyings
 
+        # While auto-stopped, the underlying devices are turned off but their reported
+        # state may lag the off command by a few seconds (and simulated actions default
+        # to IDLE), so report OFF explicitly rather than relying on aggregation.
+        if self.auto_start_stop_manager.is_auto_stop_detected and self.vtherm_hvac_mode != VThermHvacMode_OFF:
+            self._attr_hvac_action = HVACAction.OFF
+            return
+
         one_idle = False
         for under in under_list:
             if (action := under.hvac_action) not in [
@@ -158,10 +165,8 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
 
         self.stop_recalculate_later()
 
-        if self.vtherm_hvac_mode == VThermHvacMode_OFF:
-            _LOGGER.debug(
-                "%s - don't send regulated temperature cause VTherm is off ", self
-            )
+        if self.hvac_mode_to_apply == VThermHvacMode_OFF:
+            _LOGGER.debug("%s - don't send regulated temperature cause the underlying is off ", self)
             # In this case, reset the timer of last regulation change to avoid time delta too high
             self._last_regulation_change = self.now
             return
@@ -317,12 +322,11 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
             return
 
         dtemp = dtemp - self.current_temperature
-        should_activate_auto_fan = (
-            dtemp >= AUTO_FAN_DTEMP_THRESHOLD or dtemp <= -AUTO_FAN_DTEMP_THRESHOLD
-        )
+        should_activate_auto_fan = dtemp >= AUTO_FAN_DTEMP_THRESHOLD or dtemp <= -AUTO_FAN_DTEMP_THRESHOLD
 
-        # deal with ac / non ac mode
-        hvac_mode = self.vtherm_hvac_mode
+        # deal with ac / non ac mode (use the effective mode so that no fan is
+        # activated while the underlying is auto-stopped)
+        hvac_mode = self.hvac_mode_to_apply
         if (hvac_mode == VThermHvacMode_COOL and dtemp > 0) or (hvac_mode == VThermHvacMode_HEAT and dtemp < 0) or (hvac_mode == VThermHvacMode_OFF):
             should_activate_auto_fan = False
 
@@ -767,12 +771,12 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
             # Issue #334 - if all underlyings are not aligned with the same hvac_mode don't change the underlying and wait they are aligned
             if self.is_over_climate:
                 for under in self._underlyings:
-                    if under.entity_id != new_state.entity_id and under.hvac_mode != self.vtherm_hvac_mode:
+                    if under.entity_id != new_state.entity_id and under.hvac_mode != self.hvac_mode_to_apply:
                         _LOGGER.info(
-                            "%s - the underlying's hvac_mode %s is not aligned with VTherm hvac_mode %s. So we don't diffuse the change to all other underlyings to avoid loops",
+                            "%s - the underlying's hvac_mode %s is not aligned with the mode to apply %s. So we don't diffuse the change to all other underlyings to avoid loops",
                             under,
                             under.hvac_mode,
-                            self.vtherm_hvac_mode,
+                            self.hvac_mode_to_apply,
                         )
                         return
 
@@ -782,14 +786,29 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
                     new_hvac_mode,
                 )
             changes = True
+
+            # A device turned on (not off) while we are auto-stopped is an explicit
+            # user action: clear the auto-stop detection and let the requested mode be
+            # re-applied to all underlyings.
+            if new_hvac_mode != VThermHvacMode_OFF and self.auto_start_stop_manager.is_auto_stop_detected:
+                await self.auto_start_stop_manager.reset_detection(cause="Underlying device turned on manually")
+
             # We follow the underlying hvac_mode change
-            if self._follow_underlying_temp_change:
-                _LOGGER.debug(
-                    "%s - Follow is 'on'. Changing hvac_mode for all underlying to '%s'",
-                    self,
-                    new_hvac_mode,
-                )
-                self.requested_state.set_hvac_mode(new_hvac_mode)
+            elif self._follow_underlying_temp_change:
+                # Do not let a late "off" straggler from an auto-stopped underlying
+                # corrupt the user-requested mode.
+                if new_hvac_mode == VThermHvacMode_OFF and self.auto_start_stop_manager.is_auto_stop_detected:
+                    _LOGGER.debug(
+                        "%s - ignoring underlying 'off' report while auto-stopped to keep the requested mode",
+                        self,
+                    )
+                else:
+                    _LOGGER.debug(
+                        "%s - Follow is 'on'. Changing hvac_mode for all underlying to '%s'",
+                        self,
+                        new_hvac_mode,
+                    )
+                    self.requested_state.set_hvac_mode(new_hvac_mode)
 
         # A quick win to known if it has change by using the self._attr_fan_mode and not only underlying[0].fan_mode
         if new_fan_mode:

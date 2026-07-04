@@ -99,10 +99,10 @@ Der Selbstregulierungsalgorithmus lässt sich wie folgt zusammenfassen:
 
 Der in der Auto-Start/Stopp-Funktion verwendete Algorithmus funktioniert wie folgt:
 1. Wenn `Auto-Start/Stopp` nicht aktiviert ist, dann wird es abgeschaltet.
-2. Wenn `VTherm` eingeschaltet ist und sich im Modus `Heizen` befindet, gilt: Wenn `error_accumulated` < `-error_threshold` -> ausschalten und `HVAC`-Modus speichern.
-3. Wenn `VTherm` eingeschaltet und der Modu `Kühlen` aktiv ist, gilt: Eenn `error_accumulated` > `error_threshold` -> ausschalten und `HVAC`-Modus speichern.
-4. Wenn `VTherm` ausgeschaltet ist und der gespeicherte `HVAC`-Modus `Heizen` ist, sowie `current_temperature + slope * dt <= target_temperature`, dann schaltet das Gerät ein und stellt `HVAC` auf den gespeicherten Modus ein.
-5. Wenn `VTherm` ausgeschaltet und der gespeicherte `HVAC`-Modus "Kühlen" ist, sowie `current_temperature + slope * dt >= target_temperature`, schaltet das Gerät ein und stellt `HVAC` auf den gespeicherten Modus ein.
+2. Wenn `VTherm` eingeschaltet ist und sich im Modus `Heizen` befindet, gilt: Wenn `error_accumulated` < `-error_threshold` -> das zugrunde liegende Gerät wird ausgeschaltet. Der `hvac_mode` des VTherm bleibt dabei auf `Heizen` (er wird nicht auf off gesetzt); nur sein `hvac_action` wechselt zu `off` und `is_auto_stop_detected` wird `true`.
+3. Wenn `VTherm` eingeschaltet und der Modu `Kühlen` aktiv ist, gilt: Wenn `error_accumulated` > `error_threshold` -> das zugrunde liegende Gerät wird ausgeschaltet. Der `hvac_mode` des VTherm bleibt dabei auf `Kühlen` (er wird nicht auf off gesetzt); nur sein `hvac_action` wechselt zu `off` und `is_auto_stop_detected` wird `true`.
+4. Wenn das zugrunde liegende Gerät automatisch gestoppt ist (`is_auto_stop_detected` ist `true`) und der Modus des VTherm `Heizen` ist, sowie `current_temperature + slope * dt <= target_temperature`, dann wird das zugrunde liegende Gerät wieder eingeschaltet.
+5. Wenn das zugrunde liegende Gerät automatisch gestoppt ist (`is_auto_stop_detected` ist `true`) und der Modus des VTherm `Kühlen` ist, sowie `current_temperature + slope * dt >= target_temperature`, dann wird das zugrunde liegende Gerät wieder eingeschaltet.
 
 `error_threshold` ist im langsamen Modus auf `10 (° * min)`, im mittleren Modus auf `5` und im schnellen Modus auf `2` festgelegt.
 

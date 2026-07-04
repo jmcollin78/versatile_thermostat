@@ -366,10 +366,10 @@ Powiadomienia dotyczą następujących zdarzeń:
 - ``versatile_thermostat_safety_event``: termostat wchodzi lub wychodzi z ustawień `bezpieczeństwo`
 - ``versatile_thermostat_power_event``: termostat wchodzi lub wychodzi z ustawień `moc`
 - ``versatile_thermostat_temperature_event``: co najmniej jeden z pomiarów temperatury termostatu nie został zaktualizowany przez ponad `safety_delay_min` minut.
-- ``versatile_thermostat_hvac_mode_event``: termostat jest włączany lub wyłączany. To zdarzenie jest również raportowane podczas uruchamiania termostatu.
+- ``versatile_thermostat_hvac_mode_event``: termostat jest włączany lub wyłączany. To zdarzenie jest również raportowane podczas uruchamiania termostatu. To zdarzenie nie jest już wyzwalane, gdy funkcja autoSTART/autoSTOP zatrzymuje lub ponownie uruchamia urządzenie podrzędne: zamiast tego użyj ``versatile_thermostat_auto_start_stop_event`` oraz atrybutu ``is_auto_stop_detected``.
 - ``versatile_thermostat_preset_event``: w termostacie wybrano nowy preset. To zdarzenie jest również raportowane podczas uruchamiania termostatu.
 - ``versatile_thermostat_central_boiler_event``: zdarzenie zmiany stanu kotła
-- ``versatile_thermostat_auto_start_stop_event``: zdarzenie zatrzymania lub ponownego uruchomienia wykonane przez funkcję autoSTART/autoSTOP
+- ``versatile_thermostat_auto_start_stop_event``: zdarzenie zatrzymania lub ponownego uruchomienia urządzenia podrzędnego wykonane przez funkcję autoSTART/autoSTOP. `hvac_mode` widocznego termostatu nie ulega przy tym zmianie: zatrzymywane lub ponownie uruchamiane jest wyłącznie urządzenie podrzędne
 - ``versatile_thermostat_timed_preset_event``: zdarzenie wskazujące aktywację lub dezaktywację presetu czasowego
 
 Jeśli śledziłeś instrukcje, gdy termostat przełącza się w tryb bezpieczny, wyzwalane są 3 zdarzenia:
@@ -436,7 +436,7 @@ Atrybuty własne są następujace:
 | ``is_used_by_central_boiler``      | Wskazuje, czy termostat może sterować centralnym kotłem                                                             |
 | ``auto_start_stop_enable``         | Wskazuje, czy termostat może pracować w trybie autoSTART/autoSTOP                                                   |
 | ``auto_start_stop_level``          | Wskazuje poziom autoSTAR/autoSTOP                                                                                   |
-| ``hvac_off_reason``                | Wskazuje powód wyłączenia termostatu (`hvac_off`). Może to być `Window`, `AutoSTART/autoSTOP` lub `Manual`          |
+| ``hvac_off_reason``                | Wskazuje powód wyłączenia termostatu (`hvac_off`). Może to być `Window` lub `Manual`. Funkcja autoSTART/autoSTOP nigdy już nie ustawia tego atrybutu (wyłącza jedynie urządzenie podrzędne, nie przełączając `hvac_mode` termostatu na off); zamiast tego użyj atrybutu `is_auto_stop_detected`          |
 | ``last_change_time_from_vtherm``   | Data i czas ostatniej zmiany dokonanej przez termostat                                                              |
 | ``nb_device_actives``              | Liczba urządzeń podrzędnych widocznych jako aktywne                                                                 |
 | ``device_actives``                 | Lista urządzeń podrzędnych widocznych jako aktywne                                                                  |
