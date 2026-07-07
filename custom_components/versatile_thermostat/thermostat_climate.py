@@ -416,8 +416,10 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
                     DOMAIN,
                 )
 
-        if not self._regulation_algo:
-            # A default empty algo (which does nothing)
+        if self._auto_regulation_mode == CONF_AUTO_REGULATION_NONE or not self._regulation_algo:
+            # A default empty algo (which does nothing). It must also replace any
+            # previously active algo when switching to None at runtime, else the
+            # old regulator keeps sending regulated setpoints to the underlyings.
             self._regulation_algo = PITemperatureRegulator(self.target_temperature, 0, 0, 0, 0, 0, True)
 
     def choose_auto_fan_mode(self, auto_fan_mode: str):

@@ -656,3 +656,38 @@ async def test_over_climate_regulation_calculation_scheduled(hass: HomeAssistant
     assert vtherm.is_recalculate_scheduled is True
 
     vtherm.remove_thermostat()
+
+
+async def test_over_climate_set_regulation_mode_none_replaces_algo(
+    hass: HomeAssistant, skip_hass_states_is_state, skip_send_event, fake_underlying_climate
+):
+    """Test that switching the auto regulation mode to None at runtime replaces the
+    active regulation algo with the do-nothing one. Before the fix the previous algo
+    stayed in place and kept sending regulated setpoints to the underlyings, while
+    is_regulated was already reporting False"""
+
+    entry = MockConfigEntry(
+        domain=DOMAIN,
+        title="TheOverClimateMockName",
+        unique_id="uniqueId",
+        # This is include a medium regulation
+        data=PARTIAL_CLIMATE_CONFIG,
+    )
+
+    entity = await create_thermostat(hass, entry, "climate.theoverclimatemockname")
+    assert entity
+    assert isinstance(entity, ThermostatOverClimate)
+    assert entity.is_regulated is True
+
+    # The medium algo regulates: with a room temp below the target it adds an offset
+    entity._regulation_algo.set_target_temp(20)
+    assert entity._regulation_algo.calculate_regulated_temperature(17, 10, 1.0) != 20
+
+    await entity.service_set_auto_regulation_mode("None")
+    assert entity.is_regulated is False
+
+    # The do-nothing algo must now be in place: it always returns the target
+    entity._regulation_algo.set_target_temp(20)
+    assert entity._regulation_algo.calculate_regulated_temperature(17, 10, 1.0) == 20
+
+    entity.remove_thermostat()
