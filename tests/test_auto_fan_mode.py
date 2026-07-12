@@ -163,7 +163,7 @@ async def test_over_climate_auto_fan_mode_with_worded_fan_speed_values(
     assert entity.fan_modes == fan_modes
     assert entity._auto_fan_mode == "auto_fan_high"
     assert entity._auto_activated_fan_mode == "three"
-    assert entity._auto_deactivated_fan_mode == "auto"
+    assert entity._auto_deactivated_fan_mode == "one"
 
     # 2. Change auto_fan_mode by CONF_AUTO_FAN_TURBO
     with patch(
@@ -171,7 +171,7 @@ async def test_over_climate_auto_fan_mode_with_worded_fan_speed_values(
     ) as mock_send_fan_mode:
         await entity.service_set_auto_fan_mode("Turbo")
         assert entity._auto_activated_fan_mode == "three"
-        assert entity._auto_deactivated_fan_mode == "auto"
+        assert entity._auto_deactivated_fan_mode == "one"
 
     # 3. Change auto_fan_mode by CONF_AUTO_FAN_MEDIUM
     with patch(
@@ -179,7 +179,7 @@ async def test_over_climate_auto_fan_mode_with_worded_fan_speed_values(
     ) as mock_send_fan_mode:
         await entity.service_set_auto_fan_mode("Medium")
         assert entity._auto_activated_fan_mode == "two"
-        assert entity._auto_deactivated_fan_mode == "auto"
+        assert entity._auto_deactivated_fan_mode == "one"
 
     # 4. Change auto_fan_mode by CONF_AUTO_FAN_LOW
     with patch(
@@ -187,7 +187,7 @@ async def test_over_climate_auto_fan_mode_with_worded_fan_speed_values(
     ) as mock_send_fan_mode:
         await entity.service_set_auto_fan_mode("Low")
         assert entity._auto_activated_fan_mode == "one"
-        assert entity._auto_deactivated_fan_mode == "auto"
+        assert entity._auto_deactivated_fan_mode == "one"
 
     entity.remove_thermostat()
 
