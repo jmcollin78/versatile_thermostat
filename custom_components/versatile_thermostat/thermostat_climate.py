@@ -21,7 +21,7 @@ from .pi_algorithm import PITemperatureRegulator
 from .const import *  # pylint: disable=wildcard-import, unused-wildcard-import
 
 from .vtherm_central_api import VersatileThermostatAPI
-from .underlyings import UnderlyingClimate
+from .underlyings import UnderlyingClimate, resend_delay_sec
 from .feature_auto_start_stop_manager import FeatureAutoStartStopManager
 from .vtherm_hvac_mode import VThermHvacMode
 
@@ -838,12 +838,14 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
 
         # Some climate integrations can silently drift away from the hvac_mode VTherm
         # asked for (device bounces back to a previous mode on its own, a command is
-        # lost, ...). Realign them on every periodical cycle since VTherm otherwise only
-        # resends hvac_mode when its own internal state changes. This is only done on
-        # genuine periodical ticks (timestamp is set) and not on the internal calls
-        # chained from update_states() right after a hvac_mode command was just sent,
-        # since the underlying's cached state may not have caught up yet in that case.
-        if timestamp:
+        # lost, ...). Realign them on every control cycle (periodical tick, but also
+        # temperature-sensor-triggered cycles so the repair doesn't have to wait for a
+        # long cycle_min) since VTherm otherwise only resends hvac_mode when its own
+        # internal state changes. Skip it only for the few seconds right after VTherm
+        # itself just sent a hvac_mode command (this call is then chained straight from
+        # update_states()), since the underlying's cached state may not have caught up
+        # yet in that case.
+        if not self._last_change_time_from_vtherm or (self.now - self._last_change_time_from_vtherm).total_seconds() >= resend_delay_sec:
             for under in self._underlyings:
                 await under.resync_hvac_mode()
 

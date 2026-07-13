@@ -9,7 +9,6 @@ import pytest
 
 from homeassistant.core import HomeAssistant
 from homeassistant.components.climate import SERVICE_SET_TEMPERATURE, HVACMode, HVACAction
-from homeassistant.util import dt as dt_util
 
 from homeassistant.components.switch import DOMAIN as SWITCH_DOMAIN
 
@@ -1320,7 +1319,11 @@ async def test_under_climate_resync_hvac_mode_drift(
     sync forever, even though VTherm itself thinks it is on.
 
     This checks that UnderlyingClimate.resync_hvac_mode(), called on every
-    async_control_heating cycle, detects and repairs such a drift."""
+    async_control_heating cycle (periodical tick or temperature-sensor-triggered,
+    not just the long cycle_min timer), detects and repairs such a drift. Here the
+    cycle is triggered the same way a room temperature sensor update would
+    (no timestamp, force=False), on purpose: the reporter needed the repair to not
+    have to wait for a 40 minutes cycle_min."""
 
     entry = MockConfigEntry(
         domain=DOMAIN,
@@ -1368,15 +1371,66 @@ async def test_under_climate_resync_hvac_mode_drift(
     under = vtherm.underlyings[0]
     assert under.state_manager.get_state("climate.mock_climate").state == VThermHvacMode_OFF
 
-    # 3. Run a control cycle (this is what the periodic timer does every cycle_min,
-    # passing a timestamp). Without the fix, this only resends the regulated
+    # Move past the short grace period after VTherm's own last command (this is not
+    # a wait for the long cycle_min timer, just the couple of seconds VTherm gives
+    # the underlying's state cache to catch up with a command it just sent)
+    vtherm._set_now(vtherm.now + timedelta(seconds=5))
+
+    # 3. Run a control cycle exactly as a room temperature sensor update would
+    # (no timestamp, force=False) -- this must NOT require waiting for the
+    # periodic cycle_min timer. Without the fix, this only resends the regulated
     # temperature and never touches hvac_mode, so the underlying stays stuck OFF
     # forever.
-    await vtherm.async_control_heating(timestamp=dt_util.utcnow(), force=True)
+    await vtherm.async_control_heating(force=False)
     await hass.async_block_till_done()
 
     # 4. The underlying should have been realigned on HEAT
     assert hass.states.get("climate.mock_climate").state == VThermHvacMode_HEAT
+
+    vtherm.remove_thermostat()
+
+
+async def test_under_climate_resync_hvac_mode_skipped_right_after_own_command(
+    hass: HomeAssistant,
+    skip_hass_states_is_state,
+    skip_turn_on_off_heater,
+    skip_send_event,
+):
+    """resync_hvac_mode must NOT run in the couple of seconds right after VTherm
+    itself just sent a hvac_mode command: the underlying's cached state may not
+    have caught up yet, so reading it now would be a false positive and cause a
+    spurious duplicate command."""
+
+    entry = MockConfigEntry(
+        domain=DOMAIN,
+        title="TheOverClimateMockName",
+        unique_id="uniqueId",
+        data=PARTIAL_CLIMATE_NOT_REGULATED_CONFIG,
+    )
+
+    await create_and_register_mock_climate(
+        hass,
+        "mock_climate",
+        "MockClimateName",
+        {},
+        hvac_modes=[VThermHvacMode_OFF, VThermHvacMode_HEAT],
+        hvac_mode=VThermHvacMode_OFF,
+        hvac_action=HVACAction.OFF,
+    )
+
+    vtherm = await create_thermostat(hass, entry, "climate.theoverclimatemockname")
+
+    await vtherm.async_set_hvac_mode(VThermHvacMode_HEAT)
+    await hass.async_block_till_done()
+    assert vtherm.vtherm_hvac_mode == VThermHvacMode_HEAT
+
+    with patch("custom_components.versatile_thermostat.underlyings.UnderlyingClimate.resync_hvac_mode") as mock_resync:
+        # Immediately after (no time advance): this is the internal call chained
+        # from update_states() right after the hvac_mode command was sent.
+        await vtherm.async_control_heating(force=False)
+        await hass.async_block_till_done()
+
+        mock_resync.assert_not_called()
 
     vtherm.remove_thermostat()
 
@@ -1411,8 +1465,10 @@ async def test_under_climate_resync_hvac_mode_no_drift_no_action(
     vtherm = await create_thermostat(hass, entry, "climate.theoverclimatemockname")
     assert vtherm.vtherm_hvac_mode == VThermHvacMode_OFF
 
+    vtherm._set_now(vtherm.now + timedelta(seconds=5))
+
     with patch("custom_components.versatile_thermostat.underlyings.UnderlyingClimate.set_hvac_mode") as mock_set_hvac_mode:
-        await vtherm.async_control_heating(timestamp=dt_util.utcnow(), force=True)
+        await vtherm.async_control_heating(force=False)
         await hass.async_block_till_done()
 
         mock_set_hvac_mode.assert_not_called()
