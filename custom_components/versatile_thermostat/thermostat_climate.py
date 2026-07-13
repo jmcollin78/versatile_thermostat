@@ -836,6 +836,17 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
 
         # Continue the normal async_control_heating
 
+        # Some climate integrations can silently drift away from the hvac_mode VTherm
+        # asked for (device bounces back to a previous mode on its own, a command is
+        # lost, ...). Realign them on every periodical cycle since VTherm otherwise only
+        # resends hvac_mode when its own internal state changes. This is only done on
+        # genuine periodical ticks (timestamp is set) and not on the internal calls
+        # chained from update_states() right after a hvac_mode command was just sent,
+        # since the underlying's cached state may not have caught up yet in that case.
+        if timestamp:
+            for under in self._underlyings:
+                await under.resync_hvac_mode()
+
         # Send the regulated temperature to the underlyings
         await self._send_regulated_temperature(force=force)
 

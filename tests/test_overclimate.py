@@ -9,6 +9,7 @@ import pytest
 
 from homeassistant.core import HomeAssistant
 from homeassistant.components.climate import SERVICE_SET_TEMPERATURE, HVACMode, HVACAction
+from homeassistant.util import dt as dt_util
 
 from homeassistant.components.switch import DOMAIN as SWITCH_DOMAIN
 
@@ -1304,3 +1305,116 @@ async def test_under_climate_is_device_active(
         f"hvac_mode={hvac_mode}, hvac_action={hvac_action}, "
         f"state={under_state}, target_temp={target_temp}, current_temp={current_temp}"
     )
+
+
+async def test_under_climate_resync_hvac_mode_drift(
+    hass: HomeAssistant,
+    skip_hass_states_is_state,
+    skip_turn_on_off_heater,
+    skip_send_event,
+):
+    """Reproduces the Qlima/Midea bug report: the underlying climate silently drifts
+    back to a hvac_mode VTherm didn't ask for (device flapping, cloud lag, lost
+    command, ...). Since VTherm only (re)sends hvac_mode when its own internal
+    state changes, without a periodic re-check the underlying stays stuck out of
+    sync forever, even though VTherm itself thinks it is on.
+
+    This checks that UnderlyingClimate.resync_hvac_mode(), called on every
+    async_control_heating cycle, detects and repairs such a drift."""
+
+    entry = MockConfigEntry(
+        domain=DOMAIN,
+        title="TheOverClimateMockName",
+        unique_id="uniqueId",
+        data=PARTIAL_CLIMATE_NOT_REGULATED_CONFIG,
+    )
+
+    fake_underlying_climate = await create_and_register_mock_climate(
+        hass,
+        "mock_climate",
+        "MockClimateName",
+        {},
+        hvac_modes=[VThermHvacMode_OFF, VThermHvacMode_HEAT],
+        hvac_mode=VThermHvacMode_OFF,
+        hvac_action=HVACAction.OFF,
+    )
+
+    vtherm = await create_thermostat(hass, entry, "climate.theoverclimatemockname")
+    assert vtherm
+    assert vtherm.is_over_climate is True
+
+    # 1. Turn the VTherm on: this really sends hvac_mode=heat to the underlying
+    # (no mock/patch here, this goes through the real climate.set_hvac_mode service)
+    await vtherm.async_set_hvac_mode(VThermHvacMode_HEAT)
+    await hass.async_block_till_done()
+
+    assert vtherm.vtherm_hvac_mode == VThermHvacMode_HEAT
+    assert hass.states.get("climate.mock_climate").state == VThermHvacMode_HEAT
+
+    # 2. Simulate the underlying device drifting back to OFF on its own (bug on the
+    # device/integration side), completely independent of VTherm.
+    fake_underlying_climate.set_hvac_mode(VThermHvacMode_OFF)
+    await hass.async_block_till_done()
+    await hass.async_block_till_done()
+    assert hass.states.get("climate.mock_climate").state == VThermHvacMode_OFF
+
+    # VTherm itself is unaware of the drift: it still believes it is heating
+    assert vtherm.vtherm_hvac_mode == VThermHvacMode_HEAT
+
+    # sanity check: VTherm's own cached view of the underlying's state must have
+    # caught up with the drift too, otherwise the assertions below would be
+    # meaningless (resync_hvac_mode reads from this cache, not from hass.states
+    # directly)
+    under = vtherm.underlyings[0]
+    assert under.state_manager.get_state("climate.mock_climate").state == VThermHvacMode_OFF
+
+    # 3. Run a control cycle (this is what the periodic timer does every cycle_min,
+    # passing a timestamp). Without the fix, this only resends the regulated
+    # temperature and never touches hvac_mode, so the underlying stays stuck OFF
+    # forever.
+    await vtherm.async_control_heating(timestamp=dt_util.utcnow(), force=True)
+    await hass.async_block_till_done()
+
+    # 4. The underlying should have been realigned on HEAT
+    assert hass.states.get("climate.mock_climate").state == VThermHvacMode_HEAT
+
+    vtherm.remove_thermostat()
+
+
+async def test_under_climate_resync_hvac_mode_no_drift_no_action(
+    hass: HomeAssistant,
+    skip_hass_states_is_state,
+    skip_turn_on_off_heater,
+    skip_send_event,
+):
+    """When the underlying climate already matches what VTherm asked for,
+    resync_hvac_mode (called every control cycle) must not send any spurious
+    command."""
+
+    entry = MockConfigEntry(
+        domain=DOMAIN,
+        title="TheOverClimateMockName",
+        unique_id="uniqueId",
+        data=PARTIAL_CLIMATE_NOT_REGULATED_CONFIG,
+    )
+
+    await create_and_register_mock_climate(
+        hass,
+        "mock_climate",
+        "MockClimateName",
+        {},
+        hvac_modes=[VThermHvacMode_OFF, VThermHvacMode_HEAT],
+        hvac_mode=VThermHvacMode_OFF,
+        hvac_action=HVACAction.OFF,
+    )
+
+    vtherm = await create_thermostat(hass, entry, "climate.theoverclimatemockname")
+    assert vtherm.vtherm_hvac_mode == VThermHvacMode_OFF
+
+    with patch("custom_components.versatile_thermostat.underlyings.UnderlyingClimate.set_hvac_mode") as mock_set_hvac_mode:
+        await vtherm.async_control_heating(timestamp=dt_util.utcnow(), force=True)
+        await hass.async_block_till_done()
+
+        mock_set_hvac_mode.assert_not_called()
+
+    vtherm.remove_thermostat()

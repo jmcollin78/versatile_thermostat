@@ -226,6 +226,92 @@ async def test_check_initial_state_underlying_climate(hass, hvac_mode, last_stat
             assert u.set_hvac_mode.await_count == 1
             u.set_hvac_mode.assert_awaited_once_with(thermostat.vtherm_hvac_mode)
 
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize(
+    "vtherm_hvac_mode, underlying_state, expect_hvac_call",
+    [
+        # VTherm believes it is heating but the underlying silently drifted back to off
+        (VThermHvacMode_HEAT, VThermHvacMode_OFF, True),
+        # VTherm believes it is off but the underlying is stuck on (drift the other way)
+        (VThermHvacMode_OFF, VThermHvacMode_HEAT, True),
+        # No drift: nothing to repair
+        (VThermHvacMode_HEAT, VThermHvacMode_HEAT, False),
+        (VThermHvacMode_OFF, VThermHvacMode_OFF, False),
+    ],
+)
+async def test_resync_hvac_mode_repairs_drift_outside_of_startup(hass, vtherm_hvac_mode, underlying_state, expect_hvac_call):
+    """resync_hvac_mode must be able to detect and repair a hvac_mode mismatch at any
+    time, not only during the initial check done at startup. This is what
+    ThermostatOverClimate.async_control_heating now calls on every control cycle to
+    fix a underlying climate that silently drifted away from what VTherm asked for
+    (see the Qlima/Midea bug report: the device flaps to a different mode on its
+    own and VTherm never noticed because it only resends hvac_mode when its own
+    internal state changes)."""
+
+    hass.services = MagicMock()
+    hass.services.async_call = AsyncMock()
+
+    thermostat = MagicMock()
+    thermostat.vtherm_hvac_mode = vtherm_hvac_mode
+    thermostat.now = None
+    power_manager = MagicMock()
+    power_manager.check_power_available = AsyncMock(return_value=(True, None))
+    thermostat.power_manager = power_manager
+    thermostat.init_underlyings_completed = AsyncMock()
+    thermostat.underlying_changed = AsyncMock()
+
+    u = UnderlyingClimate(hass=hass, thermostat=thermostat, climate_entity_id="climate.test")
+    u.set_hvac_mode = AsyncMock()
+
+    u.startup()
+    # Simulate that the underlying was already fully initialized (drift happening
+    # well after startup, not during the initial check) so the state update below
+    # does not go through the startup check_initial_state path.
+    u._is_initialized = True
+    hass.states.async_set("climate.test", underlying_state)
+    await hass.async_block_till_done()
+
+    # Call resync_hvac_mode directly, as async_control_heating now does every cycle
+    await u.resync_hvac_mode()
+
+    if expect_hvac_call:
+        u.set_hvac_mode.assert_awaited_once_with(vtherm_hvac_mode)
+    else:
+        u.set_hvac_mode.assert_not_awaited()
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("underlying_state", [STATE_UNAVAILABLE, STATE_UNKNOWN])
+async def test_resync_hvac_mode_ignores_unavailable_underlying(hass, underlying_state):
+    """resync_hvac_mode must not try to repair a device that is currently
+    unavailable/unknown: there is nothing useful to send to it."""
+
+    hass.services = MagicMock()
+    hass.services.async_call = AsyncMock()
+
+    thermostat = MagicMock()
+    thermostat.vtherm_hvac_mode = VThermHvacMode_HEAT
+    thermostat.now = None
+    power_manager = MagicMock()
+    power_manager.check_power_available = AsyncMock(return_value=(True, None))
+    thermostat.power_manager = power_manager
+    thermostat.init_underlyings_completed = AsyncMock()
+    thermostat.underlying_changed = AsyncMock()
+
+    u = UnderlyingClimate(hass=hass, thermostat=thermostat, climate_entity_id="climate.test")
+    u.set_hvac_mode = AsyncMock()
+
+    u.startup()
+    hass.states.async_set("climate.test", underlying_state)
+    await hass.async_block_till_done()
+    u._is_initialized = True
+
+    await u.resync_hvac_mode()
+
+    u.set_hvac_mode.assert_not_awaited()
+
+
 @pytest.mark.asyncio
 @pytest.mark.parametrize(
     "hvac_mode, is_sleeping, last_state, open_percent, current_valve_opening, expect_percent_open_call",

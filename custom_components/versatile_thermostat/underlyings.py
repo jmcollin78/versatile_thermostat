@@ -671,8 +671,23 @@ class UnderlyingClimate(UnderlyingEntity):
 
     async def check_initial_state(self):
         """Prevent the underlying to be on but thermostat is off"""
+        await self.resync_hvac_mode()
+
+    async def resync_hvac_mode(self):
+        """Realign the underlying climate hvac_mode on the one requested by VTherm.
+
+        Some climate integrations (e.g. cloud-polled devices) can silently drift away
+        from the hvac_mode VTherm asked for (the device bounces back to a previous
+        mode on its own, a command is lost, etc). VTherm only (re)sends a hvac_mode
+        command when its own internal state changes, so without this periodic
+        re-check such a drift is never corrected. This is called once at startup
+        (via check_initial_state) and then on every control cycle.
+        """
         underlying_state = self._state_manager.get_state(self._entity_id)
-        underlying_hvac_mode = from_ha_hvac_mode(underlying_state.state) if underlying_state else None
+        if underlying_state is None or underlying_state.state in [STATE_UNAVAILABLE, STATE_UNKNOWN]:
+            return
+
+        underlying_hvac_mode = from_ha_hvac_mode(underlying_state.state)
         self._hvac_mode = underlying_hvac_mode
 
         is_device_active = underlying_state.state not in [HVACMode.OFF, STATE_UNAVAILABLE, STATE_UNKNOWN]
