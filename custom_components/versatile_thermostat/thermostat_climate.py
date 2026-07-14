@@ -162,6 +162,17 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
             _LOGGER.debug(
                 "%s - don't send regulated temperature cause VTherm is off ", self
             )
+            # Realign the underlying if it silently drifted back on while VTherm
+            # wants it off (the reverse-direction case of the resync done below
+            # for the "on" path). Gated the same way: the auto-regulation period
+            # (or force) throttles retries, and the grace period after VTherm's
+            # own last command avoids reading a stale/echoed cache as a false
+            # positive.
+            if (force or self.check_auto_regulation_period_min(self.now)) and (
+                not self._last_change_time_from_vtherm or (self.now - self._last_change_time_from_vtherm).total_seconds() >= resend_delay_sec
+            ):
+                for under in self._underlyings:
+                    await under.resync_hvac_mode()
             # In this case, reset the timer of last regulation change to avoid time delta too high
             self._last_regulation_change = self.now
             return

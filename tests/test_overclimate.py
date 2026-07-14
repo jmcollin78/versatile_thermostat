@@ -1398,6 +1398,73 @@ async def test_under_climate_resync_hvac_mode_drift(
     vtherm.remove_thermostat()
 
 
+async def test_under_climate_resync_hvac_mode_drift_off_direction(
+    hass: HomeAssistant,
+    skip_hass_states_is_state,
+    skip_turn_on_off_heater,
+    skip_send_event,
+):
+    """Mirror of test_under_climate_resync_hvac_mode_drift for the reverse
+    direction: VTherm wants the underlying off, but it silently drifted back on
+    on its own. _send_regulated_temperature returns early when vtherm_hvac_mode
+    is OFF (there is nothing to regulate), so the drift repair for this
+    direction is done right there, before that early return, gated the same way
+    (auto-regulation period or force, plus the grace period after VTherm's own
+    last command)."""
+
+    entry = MockConfigEntry(
+        domain=DOMAIN,
+        title="TheOverClimateMockName",
+        unique_id="uniqueId",
+        data=PARTIAL_CLIMATE_NOT_REGULATED_CONFIG,
+    )
+
+    fake_underlying_climate = await create_and_register_mock_climate(
+        hass,
+        "mock_climate",
+        "MockClimateName",
+        {},
+        hvac_modes=[VThermHvacMode_OFF, VThermHvacMode_HEAT],
+        hvac_mode=VThermHvacMode_HEAT,
+        hvac_action=HVACAction.HEATING,
+    )
+
+    vtherm = await create_thermostat(hass, entry, "climate.theoverclimatemockname")
+    assert vtherm
+
+    # 1. Turn the VTherm off: this really sends hvac_mode=off to the underlying
+    await vtherm.async_set_hvac_mode(VThermHvacMode_OFF)
+    await hass.async_block_till_done()
+
+    assert vtherm.vtherm_hvac_mode == VThermHvacMode_OFF
+    assert hass.states.get("climate.mock_climate").state == VThermHvacMode_OFF
+
+    # 2. Simulate the underlying device drifting back on on its own, independent
+    # of VTherm.
+    fake_underlying_climate.set_hvac_mode(VThermHvacMode_HEAT)
+    await hass.async_block_till_done()
+    await hass.async_block_till_done()
+    assert hass.states.get("climate.mock_climate").state == VThermHvacMode_HEAT
+
+    # VTherm itself is unaware of the drift: it still believes it is off
+    assert vtherm.vtherm_hvac_mode == VThermHvacMode_OFF
+
+    under = vtherm.underlyings[0]
+    assert under.state_manager.get_state("climate.mock_climate").state == VThermHvacMode_HEAT
+
+    # Move past both the grace period and the auto-regulation period
+    vtherm._set_now(vtherm.now + timedelta(minutes=vtherm._auto_regulation_period_min + 1))
+
+    # 3. Run a control cycle exactly as a room temperature sensor update would
+    await vtherm.async_control_heating(force=False)
+    await hass.async_block_till_done()
+
+    # 4. The underlying should have been realigned on OFF
+    assert hass.states.get("climate.mock_climate").state == VThermHvacMode_OFF
+
+    vtherm.remove_thermostat()
+
+
 async def test_under_climate_resync_hvac_mode_skipped_right_after_own_command(
     hass: HomeAssistant,
     skip_hass_states_is_state,
@@ -1458,12 +1525,9 @@ async def test_under_climate_resync_hvac_mode_no_drift_no_action(
     """When the underlying climate already matches what VTherm asked for,
     resync_hvac_mode (called from _send_regulated_temperature, once the
     auto-regulation period has elapsed or forced) must not send any spurious
-    command.
-
-    vtherm_hvac_mode is HEAT here (not OFF): _send_regulated_temperature returns
-    before ever reaching resync_hvac_mode when VTherm itself is off, so a
-    meaningful no-drift check needs VTherm on and the underlying already matching
-    that state. force=True is used to reach the resync call without waiting out
+    command. This covers the "on" direction (vtherm_hvac_mode is HEAT); see
+    test_under_climate_resync_hvac_mode_drift_off_direction for the "off"
+    direction. force=True is used to reach the resync call without waiting out
     the auto-regulation period."""
 
     entry = MockConfigEntry(
