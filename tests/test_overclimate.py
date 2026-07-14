@@ -1318,12 +1318,18 @@ async def test_under_climate_resync_hvac_mode_drift(
     state changes, without a periodic re-check the underlying stays stuck out of
     sync forever, even though VTherm itself thinks it is on.
 
-    This checks that UnderlyingClimate.resync_hvac_mode(), called on every
-    async_control_heating cycle (periodical tick or temperature-sensor-triggered,
-    not just the long cycle_min timer), detects and repairs such a drift. Here the
-    cycle is triggered the same way a room temperature sensor update would
-    (no timestamp, force=False), on purpose: the reporter needed the repair to not
-    have to wait for a 40 minutes cycle_min."""
+    This checks that UnderlyingClimate.resync_hvac_mode(), called from within
+    ThermostatOverClimate._send_regulated_temperature (itself invoked by
+    async_control_heating on every cycle -- periodical tick or
+    temperature-sensor-triggered, not just the long cycle_min timer) once the
+    auto-regulation period has elapsed (or force=True), detects and repairs such
+    a drift. Here the cycle is triggered the same way a room temperature sensor
+    update would (no timestamp, force=False), on purpose: the reporter needed the
+    repair to not have to wait for a 40 minutes cycle_min. The repair itself is
+    still spaced out by the same auto-regulation period gate that already guards
+    _send_regulated_temperature (not fired on every cycle) so it doesn't keep
+    re-triggering a device-side protection (e.g. a compressor minimum-off-time)
+    before the device gets a chance to actually start."""
 
     entry = MockConfigEntry(
         domain=DOMAIN,
@@ -1371,16 +1377,18 @@ async def test_under_climate_resync_hvac_mode_drift(
     under = vtherm.underlyings[0]
     assert under.state_manager.get_state("climate.mock_climate").state == VThermHvacMode_OFF
 
-    # Move past the short grace period after VTherm's own last command (this is not
-    # a wait for the long cycle_min timer, just the couple of seconds VTherm gives
-    # the underlying's state cache to catch up with a command it just sent)
-    vtherm._set_now(vtherm.now + timedelta(seconds=5))
+    # Move past both the short grace period after VTherm's own last command (the
+    # couple of seconds VTherm gives the underlying's state cache to catch up with
+    # a command it just sent) and the auto-regulation period (the repair is spaced
+    # out by this, same gate as _send_regulated_temperature, so it doesn't keep
+    # re-triggering a device-side protection before the device can actually start)
+    vtherm._set_now(vtherm.now + timedelta(minutes=vtherm._auto_regulation_period_min + 1))
 
     # 3. Run a control cycle exactly as a room temperature sensor update would
-    # (no timestamp, force=False) -- this must NOT require waiting for the
-    # periodic cycle_min timer. Without the fix, this only resends the regulated
-    # temperature and never touches hvac_mode, so the underlying stays stuck OFF
-    # forever.
+    # (no timestamp, force=False) -- this must NOT require waiting for the long
+    # cycle_min timer (only the much shorter auto-regulation period). Without the
+    # fix, this only resends the regulated temperature and never touches
+    # hvac_mode, so the underlying stays stuck OFF forever.
     await vtherm.async_control_heating(force=False)
     await hass.async_block_till_done()
 
@@ -1399,7 +1407,13 @@ async def test_under_climate_resync_hvac_mode_skipped_right_after_own_command(
     """resync_hvac_mode must NOT run in the couple of seconds right after VTherm
     itself just sent a hvac_mode command: the underlying's cached state may not
     have caught up yet, so reading it now would be a false positive and cause a
-    spurious duplicate command."""
+    spurious duplicate command.
+
+    resync_hvac_mode is called from _send_regulated_temperature, guarded first by
+    the auto-regulation period check and then by this grace-period check. Since
+    the auto-regulation period (minutes) is always much longer than the grace
+    period (a couple of seconds), force=True is used here to bypass the former so
+    the latter can be exercised on its own."""
 
     entry = MockConfigEntry(
         domain=DOMAIN,
@@ -1425,9 +1439,9 @@ async def test_under_climate_resync_hvac_mode_skipped_right_after_own_command(
     assert vtherm.vtherm_hvac_mode == VThermHvacMode_HEAT
 
     with patch("custom_components.versatile_thermostat.underlyings.UnderlyingClimate.resync_hvac_mode") as mock_resync:
-        # Immediately after (no time advance): this is the internal call chained
-        # from update_states() right after the hvac_mode command was sent.
-        await vtherm.async_control_heating(force=False)
+        # Immediately after (no time advance) and forced, so only the grace-period
+        # check (not the auto-regulation period check) is at play.
+        await vtherm.async_control_heating(force=True)
         await hass.async_block_till_done()
 
         mock_resync.assert_not_called()
@@ -1442,8 +1456,15 @@ async def test_under_climate_resync_hvac_mode_no_drift_no_action(
     skip_send_event,
 ):
     """When the underlying climate already matches what VTherm asked for,
-    resync_hvac_mode (called every control cycle) must not send any spurious
-    command."""
+    resync_hvac_mode (called from _send_regulated_temperature, once the
+    auto-regulation period has elapsed or forced) must not send any spurious
+    command.
+
+    vtherm_hvac_mode is HEAT here (not OFF): _send_regulated_temperature returns
+    before ever reaching resync_hvac_mode when VTherm itself is off, so a
+    meaningful no-drift check needs VTherm on and the underlying already matching
+    that state. force=True is used to reach the resync call without waiting out
+    the auto-regulation period."""
 
     entry = MockConfigEntry(
         domain=DOMAIN,
@@ -1463,12 +1484,18 @@ async def test_under_climate_resync_hvac_mode_no_drift_no_action(
     )
 
     vtherm = await create_thermostat(hass, entry, "climate.theoverclimatemockname")
-    assert vtherm.vtherm_hvac_mode == VThermHvacMode_OFF
 
+    await vtherm.async_set_hvac_mode(VThermHvacMode_HEAT)
+    await hass.async_block_till_done()
+    assert vtherm.vtherm_hvac_mode == VThermHvacMode_HEAT
+    assert hass.states.get("climate.mock_climate").state == VThermHvacMode_HEAT
+
+    # Move past the grace period so resync_hvac_mode actually reads the (matching)
+    # underlying state instead of being skipped as a possible echo.
     vtherm._set_now(vtherm.now + timedelta(seconds=5))
 
     with patch("custom_components.versatile_thermostat.underlyings.UnderlyingClimate.set_hvac_mode") as mock_set_hvac_mode:
-        await vtherm.async_control_heating(force=False)
+        await vtherm.async_control_heating(force=True)
         await hass.async_block_till_done()
 
         mock_set_hvac_mode.assert_not_called()

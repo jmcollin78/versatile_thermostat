@@ -243,11 +243,17 @@ async def test_check_initial_state_underlying_climate(hass, hvac_mode, last_stat
 async def test_resync_hvac_mode_repairs_drift_outside_of_startup(hass, vtherm_hvac_mode, underlying_state, expect_hvac_call):
     """resync_hvac_mode must be able to detect and repair a hvac_mode mismatch at any
     time, not only during the initial check done at startup. This is what
-    ThermostatOverClimate.async_control_heating now calls on every control cycle to
-    fix a underlying climate that silently drifted away from what VTherm asked for
-    (see the Qlima/Midea bug report: the device flaps to a different mode on its
-    own and VTherm never noticed because it only resends hvac_mode when its own
-    internal state changes)."""
+    ThermostatOverClimate._send_regulated_temperature now calls (once the
+    auto-regulation period has elapsed, or forced) to fix a underlying climate
+    that silently drifted away from what VTherm asked for (see the Qlima/Midea bug
+    report: the device flaps to a different mode on its own and VTherm never
+    noticed because it only resends hvac_mode when its own internal state
+    changes).
+
+    Note: when vtherm_hvac_mode is OFF, _send_regulated_temperature returns before
+    reaching resync_hvac_mode, so the OFF-direction case exercised here (VTherm
+    off, underlying stuck on) is currently only repaired by resync_hvac_mode being
+    called directly (as this test does), not by a live control cycle."""
 
     hass.services = MagicMock()
     hass.services.async_call = AsyncMock()
@@ -272,7 +278,8 @@ async def test_resync_hvac_mode_repairs_drift_outside_of_startup(hass, vtherm_hv
     hass.states.async_set("climate.test", underlying_state)
     await hass.async_block_till_done()
 
-    # Call resync_hvac_mode directly, as async_control_heating now does every cycle
+    # Call resync_hvac_mode directly, as _send_regulated_temperature now does
+    # (once the auto-regulation period has elapsed, or forced)
     await u.resync_hvac_mode()
 
     if expect_hvac_call:

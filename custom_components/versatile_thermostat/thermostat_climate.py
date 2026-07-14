@@ -184,6 +184,21 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
             self.do_send_regulated_temp_later()
             return
 
+        # Some climate integrations can silently drift away from the hvac_mode VTherm
+        # asked for (device bounces back to a previous mode on its own, a command is
+        # lost, a compressor minimum-off-time protection silently ignores the command,
+        # ...) since VTherm otherwise only resends hvac_mode when its own internal
+        # state changes. Realign them here: the auto-regulation period gate above
+        # already ensures we don't get here more often than that period allows (or
+        # that force=True was explicitly requested), so retrying the repair can't
+        # re-trigger a device-side protection before it has had a chance to let the
+        # device actually start. Still skip it for the few seconds right after
+        # VTherm itself just sent a hvac_mode command, since the underlying's cached
+        # state may not have caught up yet in that case.
+        if not self._last_change_time_from_vtherm or (self.now - self._last_change_time_from_vtherm).total_seconds() >= resend_delay_sec:
+            for under in self._underlyings:
+                await under.resync_hvac_mode()
+
         self._regulation_algo.set_target_temp(self.target_temperature)
 
         if not self._regulated_target_temp:
@@ -836,20 +851,9 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
 
         # Continue the normal async_control_heating
 
-        # Some climate integrations can silently drift away from the hvac_mode VTherm
-        # asked for (device bounces back to a previous mode on its own, a command is
-        # lost, a compressor minimum-off-time protection silently ignores the command,
-        # ...) since VTherm otherwise only resends hvac_mode when its own internal
-        # state changes. Realign them, but only once the auto-regulation period has
-        # elapsed (same gate as _send_regulated_temperature), not on every control
-        # cycle: retrying more often than that risks re-triggering a device-side
-        # protection before it has had a chance to let the device actually start.
-        if not self._last_change_time_from_vtherm or (self.now - self._last_change_time_from_vtherm).total_seconds() >= resend_delay_sec:
-            if self.check_auto_regulation_period_min(self.now):
-                for under in self._underlyings:
-                    await under.resync_hvac_mode()
-
-        # Send the regulated temperature to the underlyings
+        # Send the regulated temperature to the underlyings. The hvac_mode drift
+        # repair (see resync_hvac_mode) is also triggered from within this call,
+        # gated by the same auto-regulation period check.
         await self._send_regulated_temperature(force=force)
 
         if self._auto_fan_mode and self._auto_fan_mode != CONF_AUTO_FAN_NONE:
