@@ -694,18 +694,25 @@ class UnderlyingClimate(UnderlyingEntity):
         hvac_mode = self._thermostat.vtherm_hvac_mode
 
         if hvac_mode == VThermHvacMode_OFF and is_device_active:
-            _LOGGER.info(
-                "%s - The hvac mode is OFF, but the underlying device is ON. Turning off device %s",
+            _LOGGER.warning(
+                "%s - Drift detected on %s: VTherm wants hvac_mode=%s but the underlying is currently in state=%s. "
+                "Sending set_hvac_mode(%s) to realign it",
                 self,
                 self._entity_id,
+                hvac_mode,
+                underlying_state.state,
+                hvac_mode,
             )
             await self.set_hvac_mode(hvac_mode)
         elif hvac_mode != VThermHvacMode_OFF and not is_device_active:
-            _LOGGER.info(
-                "%s - The hvac mode is %s, but the underlying device is not ON. Turning on device %s if needed",
+            _LOGGER.warning(
+                "%s - Drift detected on %s: VTherm wants hvac_mode=%s but the underlying is currently in state=%s (not active). "
+                "Sending set_hvac_mode(%s) to realign it",
                 self,
-                hvac_mode,
                 self._entity_id,
+                hvac_mode,
+                underlying_state.state,
+                hvac_mode,
             )
             await self.set_hvac_mode(hvac_mode)
 
