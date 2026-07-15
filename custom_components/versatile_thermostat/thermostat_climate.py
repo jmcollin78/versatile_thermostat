@@ -265,6 +265,31 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
             # will not have any effect on the device. This avoid to send too many temperature changes to the underlying.
             dtemp = target_temp - (under.last_sent_temperature if under.last_sent_temperature else 0)
 
+            # Some climate integrations (e.g. Midea cloud) mishandle a set_temperature
+            # call fired right on the heels of set_hvac_mode: the device bounces back
+            # to its previous mode shortly after, even though the mode change alone
+            # (without a following command) is handled fine. If a hvac_mode command was
+            # just sent to this underlying earlier in this same control cycle (turn-on
+            # cascade or drift-repair resync), don't send the regulated temperature
+            # immediately: re-schedule it resend_delay_sec later (replacing the
+            # raw-target resend set_hvac_mode scheduled), once the underlying has
+            # settled on the new mode. consume_mode_just_sent() resets itself, so a
+            # later, genuinely separate temperature change is unaffected.
+            if under.consume_mode_just_sent():
+                _LOGGER.debug(
+                    "%s - hvac_mode was just sent to %s (startup/resync) -> delay sending the regulated temperature %.1f by %s sec",
+                    self,
+                    under.entity_id,
+                    target_temp,
+                    resend_delay_sec,
+                )
+                under.set_temperature_later(
+                    target_temp,
+                    self._attr_max_temp,
+                    self._attr_min_temp,
+                )
+                continue
+
             if not force and abs(dtemp) < (self._auto_regulation_dtemp or 0):
                 _LOGGER.info(
                     "%s - dtemp (%.1f) is < %.1f -> forget the regulation send for %s",
@@ -272,25 +297,6 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
                     dtemp,
                     self._auto_regulation_dtemp,
                     under.entity_id,
-                )
-                continue
-
-            # Some climate integrations (e.g. Midea cloud) mishandle a set_temperature
-            # call fired right on the heels of set_hvac_mode: the device bounces back
-            # to its previous mode shortly after, even though the mode change alone
-            # (without a following command) is handled fine. If a hvac_mode command was
-            # just sent to this underlying earlier in this same control cycle (turn-on
-            # cascade or drift-repair resync), skip the immediate send here and let the
-            # delayed resend already scheduled by set_hvac_mode (see resend_delay_sec)
-            # carry it once the underlying has settled. consume_mode_just_sent() resets
-            # itself, so a later, genuinely separate temperature change is unaffected.
-            if under.consume_mode_just_sent():
-                _LOGGER.debug(
-                    "%s - hvac_mode was just sent to %s (startup/resync) -> skip sending the regulated temperature %.1f for now, the delayed resend will send the target temperature in %s sec",
-                    self,
-                    under.entity_id,
-                    target_temp,
-                    resend_delay_sec,
                 )
                 continue
 

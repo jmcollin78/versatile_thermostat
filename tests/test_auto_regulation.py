@@ -165,12 +165,10 @@ async def test_over_climate_regulation_ac_mode(hass: HomeAssistant, skip_send_ev
 
     # Activate the heating by changing VThermHvacMode and temperature
     # Select a hvacmode, presence and preset
-    # The immediate regulated-temperature push right after set_hvac_mode is skipped
-    # (see resend_delay_sec) and would otherwise be carried by a delayed resend of the
-    # raw (unregulated) target_temperature, scheduled via async_call_later -- a coarse
-    # fallback meant for lazy TRV devices, not a substitute for the regulation
-    # calculation this test exercises below. Stub it out so it doesn't race the
-    # explicit temperature/sensor changes that drive the regulation cycles here.
+    # The immediate regulated-temperature push right after set_hvac_mode is delayed
+    # by resend_delay_sec (via async_call_later) to let the underlying settle on the
+    # new mode. Stub that scheduling out so the delayed send doesn't race the explicit
+    # temperature/sensor changes that drive the regulation cycles this test exercises.
     with patch("custom_components.versatile_thermostat.underlyings.async_call_later", return_value=lambda: None):
         await entity.async_set_hvac_mode(VThermHvacMode_COOL)
         await hass.async_block_till_done()

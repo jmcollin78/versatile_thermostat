@@ -630,17 +630,35 @@ class UnderlyingClimate(UnderlyingEntity):
         )
         self._mode_just_sent = True
 
-        # if restart the climate, then resend the target temperature 2 sec later for lazy SonoffTRVZB
+        # if restart the climate, then resend the target temperature 2 sec later.
+        # Originally added for lazy SonoffTRVZB; also gives cloud-polled devices
+        # (e.g. Midea) time to settle on the new mode before receiving a temperature.
+        # When the thermostat is regulated, _send_regulated_temperature replaces this
+        # raw-target send with the regulated temperature via set_temperature_later.
         if hvac_mode in (VThermHvacMode_HEAT, VThermHvacMode_COOL):
-
-            async def callback_resend_temp(_):
-                await self.set_temperature(self._thermostat.target_temperature, None, None)
-
-            if self._cancel_set_temperature_later:
-                self._cancel_set_temperature_later()
-            self._cancel_set_temperature_later = async_call_later(self._hass, resend_delay_sec, callback_resend_temp)
+            self.set_temperature_later(None, None, None)
 
         return True
+
+    def set_temperature_later(self, temperature, max_temp, min_temp):
+        """Schedule a set_temperature to this underlying after resend_delay_sec,
+        replacing any already pending delayed send. Used to space out a temperature
+        command from a set_hvac_mode command just sent to the same underlying, since
+        some integrations (e.g. Midea cloud) bounce back to their previous mode when
+        both commands arrive back-to-back.
+        A None temperature means: use the thermostat's target temperature at fire time."""
+
+        async def callback_resend_temp(_):
+            self._cancel_set_temperature_later = None
+            await self.set_temperature(
+                temperature if temperature is not None else self._thermostat.target_temperature,
+                max_temp,
+                min_temp,
+            )
+
+        if self._cancel_set_temperature_later:
+            self._cancel_set_temperature_later()
+        self._cancel_set_temperature_later = async_call_later(self._hass, resend_delay_sec, callback_resend_temp)
 
     @overrides
     def remove_entity(self):
@@ -889,6 +907,13 @@ class UnderlyingClimate(UnderlyingEntity):
         """Set the target temperature"""
         if not self.is_initialized:
             return
+
+        # A direct send supersedes any pending delayed resend (see
+        # set_temperature_later): cancel it so a stale value cannot
+        # overwrite this newer one afterwards.
+        if self._cancel_set_temperature_later:
+            self._cancel_set_temperature_later()
+            self._cancel_set_temperature_later = None
 
         # Issue 508 we have to take care of service set_temperature or set_range
         target_temp = self.clamp_sent_value(temperature)
