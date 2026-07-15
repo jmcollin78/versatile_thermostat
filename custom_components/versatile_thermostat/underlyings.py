@@ -934,7 +934,9 @@ class UnderlyingClimate(UnderlyingEntity):
             self._cancel_set_temperature_later = None
 
         # Issue 508 we have to take care of service set_temperature or set_range
-        target_temp = self.clamp_sent_value(temperature)
+        # Round to absorb float noise from the regulation calculation
+        # (e.g. 23.099999999999998 -> 23.1)
+        target_temp = round(self.clamp_sent_value(temperature), 2)
         data = {
             ATTR_ENTITY_ID: self._entity_id,
         }
