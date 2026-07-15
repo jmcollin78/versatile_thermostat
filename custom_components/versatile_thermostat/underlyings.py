@@ -590,6 +590,17 @@ class UnderlyingClimate(UnderlyingEntity):
         self._min_sync_entity: float = None
         self._max_sync_entity: float = None
         self._step_sync_entity: float = None
+        self._mode_just_sent: bool = False
+
+    def consume_mode_just_sent(self) -> bool:
+        """Whether a set_hvac_mode command was just sent to this underlying (turn-on
+        cascade or drift-repair resync) earlier in the current control cycle, not yet
+        consumed by a follow-up command check. Consuming it resets it, so a later,
+        genuinely separate call (e.g. an explicit user temperature change) is unaffected.
+        """
+        just_sent = self._mode_just_sent
+        self._mode_just_sent = False
+        return just_sent
 
     async def set_hvac_mode(self, hvac_mode: VThermHvacMode) -> bool:
         """Set the HVACmode of the underlying climate. Returns true if something have change"""
@@ -617,6 +628,7 @@ class UnderlyingClimate(UnderlyingEntity):
             SERVICE_SET_HVAC_MODE,
             data,
         )
+        self._mode_just_sent = True
 
         # if restart the climate, then resend the target temperature 2 sec later for lazy SonoffTRVZB
         if hvac_mode in (VThermHvacMode_HEAT, VThermHvacMode_COOL):
@@ -673,7 +685,7 @@ class UnderlyingClimate(UnderlyingEntity):
         """Prevent the underlying to be on but thermostat is off"""
         await self.resync_hvac_mode()
 
-    async def resync_hvac_mode(self):
+    async def resync_hvac_mode(self) -> bool:
         """Realign the underlying climate hvac_mode on the one requested by VTherm.
 
         Some climate integrations (e.g. cloud-polled devices) can silently drift away
@@ -682,10 +694,12 @@ class UnderlyingClimate(UnderlyingEntity):
         command when its own internal state changes, so without this periodic
         re-check such a drift is never corrected. This is called once at startup
         (via check_initial_state) and then on every control cycle.
+
+        Returns True if a set_hvac_mode command was actually (re)sent to repair a drift.
         """
         underlying_state = self._state_manager.get_state(self._entity_id)
         if underlying_state is None or underlying_state.state in [STATE_UNAVAILABLE, STATE_UNKNOWN]:
-            return
+            return False
 
         underlying_hvac_mode = from_ha_hvac_mode(underlying_state.state)
         self._hvac_mode = underlying_hvac_mode
@@ -703,7 +717,7 @@ class UnderlyingClimate(UnderlyingEntity):
                 underlying_state.state,
                 hvac_mode,
             )
-            await self.set_hvac_mode(hvac_mode)
+            return await self.set_hvac_mode(hvac_mode)
         elif hvac_mode != VThermHvacMode_OFF and not is_device_active:
             _LOGGER.warning(
                 "%s - Drift detected on %s: VTherm wants hvac_mode=%s but the underlying is currently in state=%s (not active). "
@@ -714,7 +728,9 @@ class UnderlyingClimate(UnderlyingEntity):
                 underlying_state.state,
                 hvac_mode,
             )
-            await self.set_hvac_mode(hvac_mode)
+            return await self.set_hvac_mode(hvac_mode)
+
+        return False
 
     async def _underlying_changed(self, entity_id: str, new_state: Optional[State], old_state: Optional[State] = None):
         """Handle underlying state change notified by UnderlyingStateManager.

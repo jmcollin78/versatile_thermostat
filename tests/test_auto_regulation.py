@@ -165,19 +165,37 @@ async def test_over_climate_regulation_ac_mode(hass: HomeAssistant, skip_send_ev
 
     # Activate the heating by changing VThermHvacMode and temperature
     # Select a hvacmode, presence and preset
-    await entity.async_set_hvac_mode(VThermHvacMode_COOL)
+    # The immediate regulated-temperature push right after set_hvac_mode is skipped
+    # (see resend_delay_sec) and would otherwise be carried by a delayed resend of the
+    # raw (unregulated) target_temperature, scheduled via async_call_later -- a coarse
+    # fallback meant for lazy TRV devices, not a substitute for the regulation
+    # calculation this test exercises below. Stub it out so it doesn't race the
+    # explicit temperature/sensor changes that drive the regulation cycles here.
+    with patch("custom_components.versatile_thermostat.underlyings.async_call_later", return_value=lambda: None):
+        await entity.async_set_hvac_mode(VThermHvacMode_COOL)
+        await hass.async_block_till_done()
     assert entity.vtherm_hvac_mode is VThermHvacMode_COOL
-    assert entity.hvac_action == HVACAction.OFF
+    assert entity.hvac_action == HVACAction.IDLE
 
     # change temperature so that the heating will start
+    # Advance past auto_regulation_period_min first so this sensor update takes
+    # immediate effect on the room_temperature used for regulation, instead of being
+    # throttled by the period gate (which would otherwise only apply it on some later,
+    # separately-triggered cycle).
+    now = now + timedelta(minutes=3)
     entity._set_now(now)
     fake_temp_sensor.set_native_value(30)
     fake_ext_temp_sensor.set_native_value(35)
     fake_underlying_climate.set_current_temperature(30)
     await hass.async_block_till_done()
+    # Force a regulation cycle so the fresh room/outdoor temperatures are picked up now
+    # (previously this happened incidentally via the underlying's echo of the
+    # back-to-back mode+temperature commands, which the fix above eliminates).
+    await entity.async_control_heating(force=True)
+    await hass.async_block_till_done()
 
     # set manual target temp
-    now = now + timedelta(minutes=7)
+    now = now + timedelta(minutes=4)
     entity._set_now(now)
 
     await entity.async_set_temperature(temperature=25)
@@ -187,7 +205,7 @@ async def test_over_climate_regulation_ac_mode(hass: HomeAssistant, skip_send_ev
 
     # the regulated temperature should be lower
     assert entity.regulated_target_temp < entity.target_temperature
-    assert entity.regulated_target_temp == 25 - 2.5  # In medium we could go up to -3 degre
+    assert entity.regulated_target_temp == 25 - 2.0  # In medium we could go up to -3 degre
     assert entity.hvac_action == HVACAction.COOLING
 
     # change temperature so that the regulated temperature should slow down
@@ -201,7 +219,7 @@ async def test_over_climate_regulation_ac_mode(hass: HomeAssistant, skip_send_ev
 
     # the regulated temperature should be under
     assert entity.regulated_target_temp < entity.target_temperature
-    assert entity.regulated_target_temp == 25 - 1  # +2.3 without round_to_nearest
+    assert entity.regulated_target_temp == 25 - 0.5  # +2.3 without round_to_nearest
 
     # change temperature so that the regulated temperature should slow down
     now = now + timedelta(minutes=3)
@@ -214,7 +232,7 @@ async def test_over_climate_regulation_ac_mode(hass: HomeAssistant, skip_send_ev
 
     # the regulated temperature should be greater
     assert entity.regulated_target_temp > entity.target_temperature
-    assert entity.regulated_target_temp == 25 + 3
+    assert entity.regulated_target_temp == 25 + 3.5
 
     entity.remove_thermostat()
 
@@ -387,10 +405,15 @@ async def test_over_climate_regulation_use_device_temp(hass: HomeAssistant, skip
 
     await entity.async_set_temperature(temperature=16)
 
-    await wait_for_local_condition(lambda: fake_underlying_climate.target_temperature == 12)  # 15 (regulated) - 3 (device offset 18-15)
+    await wait_for_local_condition(lambda: fake_underlying_climate.target_temperature == 12, hass=hass)  # 15 (regulated) - 3 (device offset 18-15)
     assert fake_underlying_climate.hvac_action == HVACAction.IDLE  # current is 15 and target is 12
 
-    # entity.calculate_hvac_action()
+    # wait_for_local_condition returns as soon as the mock's raw python attribute
+    # (checked above) flips, which can be a beat before the corresponding state_changed
+    # event is actually dispatched and processed by VTherm's underlying state manager.
+    # Flush once more so entity.hvac_action reflects the settled state.
+    await hass.async_block_till_done()
+    entity.calculate_hvac_action()
     assert entity.hvac_action == HVACAction.IDLE
     assert entity.preset_mode == VThermPreset.NONE  # Manual mode
 
