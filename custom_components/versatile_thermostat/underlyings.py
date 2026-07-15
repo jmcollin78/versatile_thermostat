@@ -650,14 +650,27 @@ class UnderlyingClimate(UnderlyingEntity):
 
         async def callback_resend_temp(_):
             self._cancel_set_temperature_later = None
-            await self.set_temperature(
-                temperature if temperature is not None else self._thermostat.target_temperature,
-                max_temp,
-                min_temp,
+            temp_to_send = temperature if temperature is not None else self._thermostat.target_temperature
+            _LOGGER.debug(
+                "%s - delayed set_temperature fires now: sending %s (%s)",
+                self,
+                temp_to_send,
+                "value captured at scheduling" if temperature is not None else "thermostat target read at fire time",
             )
+            await self.set_temperature(temp_to_send, max_temp, min_temp)
 
         if self._cancel_set_temperature_later:
+            _LOGGER.debug(
+                "%s - a delayed set_temperature was already pending -> replacing it",
+                self,
+            )
             self._cancel_set_temperature_later()
+        _LOGGER.debug(
+            "%s - scheduling a delayed set_temperature in %s sec with %s",
+            self,
+            resend_delay_sec,
+            f"temperature {temperature}" if temperature is not None else "the thermostat target temperature (read at fire time)",
+        )
         self._cancel_set_temperature_later = async_call_later(self._hass, resend_delay_sec, callback_resend_temp)
 
     @overrides
@@ -912,6 +925,11 @@ class UnderlyingClimate(UnderlyingEntity):
         # set_temperature_later): cancel it so a stale value cannot
         # overwrite this newer one afterwards.
         if self._cancel_set_temperature_later:
+            _LOGGER.debug(
+                "%s - a direct set_temperature (%s) supersedes the pending delayed send -> cancelling the delayed send",
+                self,
+                temperature,
+            )
             self._cancel_set_temperature_later()
             self._cancel_set_temperature_later = None
 
