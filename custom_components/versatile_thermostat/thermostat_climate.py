@@ -277,7 +277,7 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
             # later, genuinely separate temperature change is unaffected.
             if under.consume_mode_just_sent():
                 _LOGGER.debug(
-                    "%s - hvac_mode was just sent to %s (startup/resync) -> delay sending the regulated temperature %.1f by %s sec",
+                    "%s - hvac_mode was just sent to %s (startup/resync) -> delay sending the regulated temperature %.2f by %s sec",
                     self,
                     under.entity_id,
                     target_temp,

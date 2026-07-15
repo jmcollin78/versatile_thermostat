@@ -652,7 +652,7 @@ class UnderlyingClimate(UnderlyingEntity):
             self._cancel_set_temperature_later = None
             temp_to_send = temperature if temperature is not None else self._thermostat.target_temperature
             _LOGGER.debug(
-                "%s - delayed set_temperature fires now: sending %s (%s)",
+                "%s - delayed set_temperature fires now: sending %.2f (%s)",
                 self,
                 temp_to_send,
                 "value captured at scheduling" if temperature is not None else "thermostat target read at fire time",
@@ -669,7 +669,7 @@ class UnderlyingClimate(UnderlyingEntity):
             "%s - scheduling a delayed set_temperature in %s sec with %s",
             self,
             resend_delay_sec,
-            f"temperature {temperature}" if temperature is not None else "the thermostat target temperature (read at fire time)",
+            f"temperature {temperature:.2f}" if temperature is not None else "the thermostat target temperature (read at fire time)",
         )
         self._cancel_set_temperature_later = async_call_later(self._hass, resend_delay_sec, callback_resend_temp)
 
@@ -926,7 +926,7 @@ class UnderlyingClimate(UnderlyingEntity):
         # overwrite this newer one afterwards.
         if self._cancel_set_temperature_later:
             _LOGGER.debug(
-                "%s - a direct set_temperature (%s) supersedes the pending delayed send -> cancelling the delayed send",
+                "%s - a direct set_temperature (%.2f) supersedes the pending delayed send -> cancelling the delayed send",
                 self,
                 temperature,
             )
@@ -941,7 +941,7 @@ class UnderlyingClimate(UnderlyingEntity):
             ATTR_ENTITY_ID: self._entity_id,
         }
 
-        _LOGGER.info("%s - Set setpoint temperature to: %s", self, target_temp)
+        _LOGGER.info("%s - Set setpoint temperature to: %.2f", self, target_temp)
 
         # Issue 807 add TARGET_TEMPERATURE only if in the features
         if ClimateEntityFeature.TARGET_TEMPERATURE_RANGE in self.supported_features:
