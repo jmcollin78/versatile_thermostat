@@ -17,6 +17,8 @@ Dieses Modul ermöglicht die Steuerung eines Heizkörpers über einen Pilotdraht
 
 Das _VTherm_ regelt die Temperatur, indem es die Voreinstellung über benutzerdefinierte Befehle periodisch ändert, bis der Sollwert erreicht ist.
 
+Bitte beachten Sie, dass es zu Verwechslungen kommen kann, da die verschiedenen Betriebsmodi von _VTherm_ (Frostschutz, Eco, Komfort usw.) nicht direkt mit den gleichnamigen Betriebsmodi des über eine Steuerleitung geregelten Heizkörpers übereinstimmen. _VTherm_ nutzt in der Standardkonfiguration nur zwei der über den Steuerdraht verfügbaren Modi: einen für „stärker heizen“ (in der Regel den Komfortmodus) und einen für „weniger heizen“ (in der Regel den Frostschutzmodus), wobei die Befehle in Schritt 4 unten angegeben sind. Durch den Wechsel zwischen diesen Befehlen kann _VTherm_ die Ist-Temperatur je nach ausgewähltem Modus auf der in den Einstellungen festgelegten Temperatur stabilisieren.
+
 Damit dies funktioniert, muss die für die Heizungssteuerung verwendete Voreinstellung höher sein als die von Ihnen benötigte Höchsttemperatur (24°C ist ein guter Wert).
 
 Für die Integration in _VTherm_, müssen Sie:

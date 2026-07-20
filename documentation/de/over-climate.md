@@ -97,7 +97,7 @@ Die besonderen Funktionen, die für diesen Typ von VTherm konfiguriert werden m�
 1. Auto-Start/Stop: Automatischer Start und Stopp von VTherm auf der Grundlage von Nutzungsprognosen. Dies wird hier beschrieben: [Auto-Start/Stop-Funktion](feature-auto-start-stop.md).
 2. Wenn die Ventilregelung gewählt wird, ist die Konfiguration des TPI-Algorithmus über das Menü zugänglich. Siehe ([Algorithmen](algorithms.md)).
 
-## Verfolgung grundlegender Temperaturänderungen
+## Verfolgung verknüpfter Temperaturänderungen
 
 Einige Benutzer möchten ihre Geräte weiterhin wie bisher (ohne _VTherm_) benutzen. Sie möchten zum Beispiel die Fernbedienung Ihrer _WP_ benutzen oder den Drehknopf an Ihrem _TRV_ drehen.
 In diesem Fall wurde dem Gerät _VTherm_ eine Entität mit der Bezeichnung `follow underlying temp change` (Folge Temperatureinstellung am Gerät) hinzugefügt:

@@ -14,8 +14,6 @@ Wenn Sie die Funktion `Mit Bewegungserkennung` gewählt haben:
 
 ![image](images/config-motion.png)
 
-Das brauchen wir::
-
 | Parameter | Beschreibung | Attributname |
 |-----------|-------------|--------------|
 | **Bewegungsmelder** | Entitäts-ID eines Bewegungssensors. Der Zustand des Weg- und/oder Geschwindigkeitsgebers muss "ein" (Bewegung erkannt) oder "aus" (keine Bewegung erkannt) sein. | `motion_sensor_entity_id` |

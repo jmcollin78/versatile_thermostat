@@ -105,7 +105,7 @@ Wird für eine sanfte und sehr präzise Anpassung verwendet.
 
 ---
 
-## 💡 Best Practices
+## 💡 Bewährte Verfahren
 
 ### Externe Störungen vermeiden
 Versuchen Sie während einer Lern-Sitzung (besonders in den ersten Stunden) Folgendes zu vermeiden:
@@ -138,6 +138,22 @@ Diese Faktoren verfälschen die Wahrnehmung des Systems über die Isolierung Ihr
 1.  **Stabilität**: Behalten Sie Ihre gewohnten Heizgewohnheiten bei und vermeiden Sie lediglich außergewöhnliche Störungen (lange geöffnete Fenster, Zusatzheizung).
 2.  **Beobachtung**: Lassen Sie das System Mikrowariationen beobachten und die Koeffizienten über 50 Zyklen anpassen.
 3.  **Neubewertung**: Wenn Sie feststellen, dass die Koeffizienten stark driften oder der Komfort nachlässt, ist es besser, eine komplette Sitzung im **Discovery**-Modus neu zu starten.
+
+---
+
+## 🔄 Kontinuierliches Kext-Lernen/Continuous Kext Learning
+
+Während Standard-Auto-TPI-Sitzungen für punktuelles Lernen (anfängliche Erfassung oder Feinabstimmung) ausgelegt sind, ermöglicht die Funktion **Continuous Kext Learning** dem Thermostat, sich an langfristige Klimaveränderungen und Schwankungen in der Gebäudedämmung anzupassen, ohne dass manuelle Sitzungen erforderlich sind.
+
+### So funktioniert es
+Nach der Aktivierung überwacht das System während des Normalbetriebs kontinuierlich die Genauigkeit des Koeffizienten $K_{ext}$ (Außenwärmedämmung). Wenn es eine systematische Abweichung feststellt (z. B. liegt die Temperatur bei Kälteeinbrüchen stets 0,2 °C unter dem Sollwert), nimmt es mithilfe eines **exponentiellen gleitenden Durchschnitts (EWMA)** Mikrokorrekturen vor.
+
+### Features
+- **Passive Adaptation**: Läuft im Hintergrund, solange der Thermostat in Betrieb ist.
+- **Safety**: Nur aktiv, wenn die Leistungsgrenze nicht erreicht ist und das System stabil läuft.
+- **Configurable Alpha**: Hiermit kann der "Alpha"-Faktor (Standardwert 0,04) angepasst werden, um die Reaktionszeit des Systems anzupasst. Ein höherer Wert bedeutet eine schnellere Anpassung, aber auch eine größere Empfindlichkeit gegenüber Störsignalen.
+- **Requires Bootstrap**: Das kontinuierliche Lernen beginnt erst, nachdem mindestens ein erfolgreicher Lernzyklus im Außenbereich in einer Standardsitzung durchgeführt wurde.
+
 ---
 
 ## 📊 Visuelle Überwachung

@@ -22,7 +22,7 @@
   - [VTherm schaltet automatisch in den Modus 'Kühlen' oder 'Heizen' um](#vtherm-schaltet-automatisch-in-den-modus-kühlen-oder-heizen-um)
   - [Erkennung von offenen Fenstern verhindert keine Änderungen der Voreinstellungen](#erkennung-von-offenen-fenstern-verhindert-keine-änderungen-der-voreinstellungen)
     - [Beispiel:](#beispiel)
-
+  - [Fehler Stabilisierung\_Schwellwert ist eine ungültige Option](#fehler-stabilisierung_schwellwert-ist-eine-ungültige-option)
 
 ## Verwendung eines Heatzy
 
@@ -199,8 +199,6 @@ Das hängt von der Ursache des Problems ab:
 3. Einige Temperatursensoren senden keine Messungen, wenn sich die Temperatur nicht geändert hat. Wenn also die Temperatur lange Zeit sehr stabil bleibt, kann der Sicherheitsmodus ausgelöst werden. Dies ist kein großes Problem, da er deaktiviert wird, sobald das VTherm eine neue Temperatur empfängt. Bei einigen Thermometern (z. B. TuYA oder Zigbee) können Sie eine maximale Verzögerung zwischen zwei Messungen erzwingen. Die maximale Verzögerung sollte auf einen Wert gesetzt werden, der kleiner ist als `safety_delay_min`,
 4. Sobald die Temperatur wieder empfangen wird, schaltet sich der Sicherheitsmodus aus, und die vorherigen Werte für Voreinstellung, Zieltemperatur und Modus werden wiederhergestellt.
 5. Wenn der externe Temperatursensor defekt ist, können Sie die Auslösung des Sicherheitsmodus deaktivieren, da er nur minimale Auswirkungen auf die Ergebnisse hat. Siehe dazu [hier](feature-advanced.md#safety-mode).
-6. some Zigbee sensors have an entity named Last Seen. They are often hidden and need to be enabled to be usable. Once enabled, you can configure it in the VTherm main configuration screen. See main configuration screen.
-
 
 ## Eine Personengruppe als Anwesenheitssensor verwenden
 
@@ -276,3 +274,9 @@ Wenn der Aktionsmodus auf _Frostschutz_ oder _Eco_ eingestellt ist, wird die vor
 2. **Window opens and system waits**: Die Voreinstellung bleibt auf Komfort, **aber die Solltemperatur wechselt auf 10°C** (Frostschutz). Dieser Zustand kann inkonsistent erscheinen, weil die angezeigte Voreinstellung nicht mit der angewendeten Solltemperatur übereinstimmt.
 3. **Änderung der Voreinstellung zu Boost** (durch den Benutzer oder den Scheduler): Die Voreinstellung wechselt zu Boost, aber die Solltemperatur bleibt bei 10°C (Frostschutz). Dieser Zustand kann auch inkonsistent erscheinen.
 4. **Fenster wird geschlossen**: Die Voreinstellung bleibt auf Boost, und die Solltemperatur ändert sich auf 21°C (Boost). Die Inkonsistenz verschwindet, und die Änderung der Voreinstellung durch den Benutzer wird korrekt übernommen.
+
+## Fehler Stabilisierung/_Schwellwert ist eine ungültige Option
+
+Dieser Fehler trat nach einem Upgrade von Version 8.6.0 (und älter) auf Version 8.6.1 (oder höher) bei Benutzern auf, die die Selbstregulierungsfunktion im Expertenmodus nutzen.
+In diesem Modus gab es eine Einstellung namens `stabilization_threshold`, die in die Datei `configuration.yaml` geschrieben werden musste. Diese Einstellung wird seit vielen Jahren nicht mehr verwendet und wurde entfernt.
+Diese muss aus der `configuration.yaml` entfernen werden.
