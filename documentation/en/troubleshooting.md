@@ -212,11 +212,11 @@ File `template.yaml`:
 - binary_sensor:
     - name: maison_occupee
       unique_id: maison_occupee
-      state: "{{is_state('person.person1', 'home') or is_state('person.person2', 'home') or is_state('input_boolean.force_presence', 'on')}}"
+      state: "{{states('zone.home') | int(0) > 0 }}"
       device_class: occupancy
 ```
 
-In this example, note the use of an `input_boolean` called `force_presence`, which forces the sensor to `True`, thereby forcing any VTherm that uses it to have active presence. This can be used, for example, to trigger a pre-heating of the house when leaving work or when an unrecognized person is present in HA.
+In this example, zone.home is default HomeAssistant home sensor showing number of people in zone, thereby once 1 person is home, sensor is true. This can be used, for example, to trigger a pre-heating of the house when leaving work or when an unrecognized person is present in HA.
 
 File `configuration.yaml`:
 
