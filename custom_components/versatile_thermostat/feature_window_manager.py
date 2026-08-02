@@ -134,7 +134,8 @@ class FeatureWindowManager(BaseFeatureManager):
 
         # Try to get last window bypass state
         old_state = await self._vtherm.async_get_last_state()
-        self._is_window_bypass = old_state is not None and hasattr(old_state, "attributes") and old_state.attributes.get("is_window_bypass") is True
+        old_attributes = getattr(old_state, "attributes", None) or {}
+        self._is_window_bypass = (old_attributes.get("window_manager") or {}).get("is_window_bypass") is True
 
         if self._is_configured:
             self.stop_listening()
