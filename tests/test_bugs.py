@@ -1340,3 +1340,66 @@ async def test_bug_1947(hass: HomeAssistant, skip_hass_states_is_state):
     assert vtherm.hvac_off_reason is None
     assert fake_underlying_climate.hvac_mode == VThermHvacMode_HEAT
     assert fake_underlying_climate.target_temperature == 21.0
+
+
+@pytest.mark.parametrize(
+    "supported_features",
+    [
+        # The bug: a restored / rehydrated underlying state carries
+        # `supported_features` as a plain int (this is how Home Assistant stores
+        # it for restored states). `EnumMember in <int>` used to raise TypeError.
+        int(ClimateEntityFeature.TARGET_TEMPERATURE | ClimateEntityFeature.FAN_MODE),
+        # The healthy case: a live state carries the ClimateEntityFeature IntFlag.
+        ClimateEntityFeature.TARGET_TEMPERATURE | ClimateEntityFeature.FAN_MODE,
+    ],
+    ids=["plain_int_restored_state", "intflag_live_state"],
+)
+async def test_bug_2003(hass: HomeAssistant, supported_features):
+    """Bug #2003 - UnderlyingClimate.set_temperature() must not crash when the
+    underlying entity's `supported_features` state attribute is a plain int.
+
+    Home Assistant stores `supported_features` as a plain int for restored states
+    (e.g. right after the underlying entity comes back from `unavailable` or its
+    integration is reloaded). The previous code used
+    `ClimateEntityFeature.X in self.supported_features`, which raises
+    `TypeError: argument of type 'int' is not a container or iterable` for a plain
+    int. The fix uses a bitwise test, which works for both a plain int and a
+    ClimateEntityFeature IntFlag.
+    """
+
+    thermostat = MagicMock()
+
+    under = UnderlyingClimate(hass=hass, thermostat=thermostat, climate_entity_id="climate.test")
+
+    # Reproduce the underlying state: `supported_features` of the parametrized type,
+    # plus min/max so clamp_sent_value() works.
+    under_state = State(
+        "climate.test",
+        HVACMode.COOL,
+        attributes={
+            "supported_features": supported_features,
+            "min_temp": 7.0,
+            "max_temp": 35.0,
+            "temperature": 20.0,
+        },
+    )
+    under.state_manager.get_state = MagicMock(return_value=under_state)
+
+    # Capture the underlying service call instead of really issuing it.
+    under.hass_services_async_call = AsyncMock()
+
+    with patch.object(type(under), "is_initialized", new_callable=PropertyMock, return_value=True):
+        # Must not raise (it used to raise TypeError for the plain-int case).
+        await under.set_temperature(20.0, 35.0, 7.0)
+
+    # The setpoint was delivered to the underlying climate entity.
+    assert under.hass_services_async_call.await_count == 1
+    call_args = under.hass_services_async_call.await_args
+    assert call_args.args[0] == CLIMATE_DOMAIN
+    assert call_args.args[1] == SERVICE_SET_TEMPERATURE
+    sent_data = call_args.args[2]
+    # TARGET_TEMPERATURE is supported -> the "temperature" key is sent.
+    assert sent_data["temperature"] == 20.0
+    # TARGET_TEMPERATURE_RANGE is NOT supported -> the range keys are absent.
+    assert "target_temp_high" not in sent_data
+    assert "target_temp_low" not in sent_data

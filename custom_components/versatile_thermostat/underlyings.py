@@ -860,8 +860,15 @@ class UnderlyingClimate(UnderlyingEntity):
 
         _LOGGER.info("%s - Set setpoint temperature to: %s", self, target_temp)
 
-        # Issue 807 add TARGET_TEMPERATURE only if in the features
-        if ClimateEntityFeature.TARGET_TEMPERATURE_RANGE in self.supported_features:
+        # Issue 807 add TARGET_TEMPERATURE only if in the features.
+        # Use a bitwise test (not the `in` operator): self.supported_features is read
+        # from the underlying entity's state attributes, where Home Assistant may store
+        # it as a plain int (e.g. for restored states). `EnumMember in <int>` raises
+        # `TypeError: argument of type 'int' is not a container or iterable`, whereas
+        # the bitwise `&` works for both a plain int and a ClimateEntityFeature IntFlag.
+        # This matches the bitwise pattern already used elsewhere in this class
+        # (fan_modes / swing_modes).
+        if self.supported_features & ClimateEntityFeature.TARGET_TEMPERATURE_RANGE:
             data.update(
                 {
                     "target_temp_high": target_temp,
@@ -869,7 +876,7 @@ class UnderlyingClimate(UnderlyingEntity):
                 }
             )
 
-        if ClimateEntityFeature.TARGET_TEMPERATURE in self.supported_features:
+        if self.supported_features & ClimateEntityFeature.TARGET_TEMPERATURE:
             data["temperature"] = target_temp
 
         try:
