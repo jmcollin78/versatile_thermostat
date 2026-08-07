@@ -66,9 +66,6 @@ Beispiele (zur Anpassung an Ihre Gegebenheiten):
 - `switch.pumpe_heizungsanlage/switch.turn_off`: zum Ausschalten des Schalters, der die Kesselpumpe steuert.
 - ...
 
-> **Hinweis**
-> Es gibt keine Verzögerung für das Abschalten des Heizkessels. Dies ist bewusst so gewählt, damit Sie den Heizkessel nicht laufen lassen, wenn alle Ventile geschlossen sind. Richtig wäre eine negative Verzögerung (d. h. Ausschalten des Heizkessels vor dem Schließen der Ventile), aber das ist in der aktuellen Situation nicht möglich, da die Betätigung der Ventile den Heizkessel auslöst und nicht umgekehrt.
-
 ### Wie findet man die richtige Maßnahme?
 Um den richtige Auslöser zu finden, gehen Sie am besten zu "Entwicklertools / Dienste" und suchen Sie nach der aufzurufenden Aktion, der zu steuernden Entität und allen erforderlichen Parametern.
 Klicken Sie auf 'Dienst aufrufen'. Wenn sich Ihr Kessel einschaltet, haben Sie die richtige Konfiguration. Wechseln Sie dann in den YAML-Modus und kopieren Sie die Parameter.
@@ -98,7 +95,20 @@ event_type: versatile_thermostat_central_boiler_event
 data:
   central_boiler: true
   entity_id: binary_sensor.central_configuration_central_boiler
-  name: Zentralheizung
+  name: Central boiler
+  state_attributes: null
+origin: LOCAL
+time_fired: "2024-01-14T11:33:52.342026+00:00"
+context:
+  id: 01HM3VZRJP3WYYWPNSDAFARW1T
+  parent_id: null
+  user_id: null
+```yaml
+event_type: versatile_thermostat_central_boiler_event
+data:
+  central_boiler: true
+  entity_id: binary_sensor.central_configuration_central_boiler
+  name: Central boiler
   state_attributes: null
 origin: LOCAL
 time_fired: "2024-01-14T11:33:52.342026+00:00"

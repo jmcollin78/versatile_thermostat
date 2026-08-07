@@ -300,6 +300,28 @@ Kint_final = (1 - α) × Kint_alt + α × Kint_neu
 | `α₀` (initiales Alpha) | 0.08 | Ursprüngliches Gewicht neuer Werte |
 | `decay_rate` | 0.12 | Verringerungsgeschwindigkeit von Alpha |
 
+### Kontinuierliches Kext-Lernen
+
+Dieser Mechanismus ermöglicht eine langfristige Anpassung von $K_{ext}$ ohne aktive Lernphase.
+
+#### Einsatzvoraussetzungen
+Ein Zyklus wird nur dann für kontinuierliches Lernen verwendet, wenn:
+1. **Feature enabled**: `auto_tpi_continuous_kext` ist auf `true` gestetzt.
+2. **Bootstrapped**: Für den aktuellen Modus wurde zuvor mindestens ein Außenlernzyklus abgeschlossen.
+3. **Non-saturated power**: $0 < P_{real} < P_{saturation}$.
+4. **Stable system**: Keine Zyklusunterbrechungen, kein Kesselausfall, kein Heizungsausfall und keine übermäßigen aufeinanderfolgenden Ausfälle.
+5. **Significant outdoor delta**: $|Setpoint - T_{outdoor}| \ge 1.0°C$.
+6. **No setpoint change**: Der Sollwert hat sich während des Zyklus nicht geändert.
+
+#### Formel für kontinuierliches Lernen
+Die Korrektur wird ähnlich wie beim Standard-$K_{ext}$-Lernen berechnet:
+$$K_{ext}^{target} = K_{ext}^{old} + K_{int} \times \frac{\Delta T_{indoor}}{\Delta T_{outdoor}}$$
+
+Anschließend wird sie unter Verwendung eines EWMA mit einem bestimmten Alpha-Wert angewendet:
+$$K_{ext}^{new} = (1 - \alpha_{cont}) \times K_{ext}^{old} + \alpha_{cont} \times K_{ext}^{target}$$
+
+Standardmäßig, $\alpha_{cont} = 0.04$.
+
 ---
 
 ## Automatische Korrekturmechanismen
@@ -488,6 +510,11 @@ flowchart TD
 **Speicherort**: `.storage/versatile_thermostat_{unique_id}_auto_tpi_v2.json`
 
 Diese Datei enthält den kompletten Lernzustand und wird bei einem Neustart von Home Assistant wiederhergestellt. Sie kann gelöscht werden, um einen vollständigen Reset zu erzwingen (nicht empfohlen).
+
+#### Synchronisation beim Systemstart
+Bei jedem Systemstart führt das System, sofern **Continuous Kext Learning** aktiviert ist, einen **Abgleich** zwischen den gespeicherten Daten (JSON) und der Home Assistant-Konfiguration (`ConfigEntry`) durch:
+1. **Begrenzung**: Geladene Koeffizienten werden sofort auf den Grenzwert `max_coef_int` begrenzt (Standard-Sicherheitsmaßnahme).
+2. **Synchronisierung von Kext und Leistungskonfiguration**: Wenn der Wert $K_{ext}$ oder die **Heiz-/Kühlleistung** in der Konfiguration vom im Speicher abgelegten erlernten Wert abweicht (der durch Hintergrundanpassung ohne Neuladen der Integration erfasst wurde), führt das System eine vollständige Aktualisierung der Konfiguration durch. Dadurch wird sichergestellt, dass die Benutzeroberfläche und die YAML/UI-Konfiguration stets mit dem gleichen Gebäudemodell synchronisiert bleiben.
 
 ---
 

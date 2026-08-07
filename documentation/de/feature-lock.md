@@ -60,11 +60,8 @@ Der Sperrzustand ist:
 
 - Änderungen des HLK-Modus (einschließlich Ein/Aus)
 - Änderungen der Ziel-Temperatur
-- Änderungen von Voreinstellungen und VTherm Voreinstellungs-Konfigurationsdiensten
-- Änderungen des Anwesenheitsstatus über VTherm-Dienste
-- Änderungen der Sicherheitskonfiguration über VTherm-Dienste
-- Änderungen der Fensterumgehung über VTherm-Dienste
-- Lüfter-/Schwenk-/Lüftungsmodi, wenn sie von VTherm bereitgestellt werden
+- Änderungen von Voreinstellungen und Konfigurationsdienste für VTherm Voreinstellungen
+- HA-Aktionen als Dienstaufruf
 
 **Erlaubt (interne VTherm-Logik, immer aktiv):**
 

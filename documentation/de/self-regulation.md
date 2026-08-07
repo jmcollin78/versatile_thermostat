@@ -49,6 +49,8 @@ Wenn eine Ventilschließrate konfiguriert ist, wird sie auf `100 - Öffnungsrate
 > 1. Seit Version 7.2.2 ist es möglich, die Entity "Schließungsgrad" auf Sonoff TRVZB zu verwenden.
 > 2. Das Attribut `hvac_action` von Sonoff TRVZB TRVs ist unzuverlässig. Wenn die Innentemperatur des TRV zu sehr von der Raumtemperatur abweicht, kann die `climate`-Entity anzeigen, dass das _TRV_ nicht heizt, auch wenn das Ventil durch _VTherm_ zwangsweise geöffnet wird. Dieses Problem hat keine Auswirkungen, da die `climate`-Entity von _VTherm_ korrigiert wird und die Ventilöffnung bei der Festlegung des Attributs `hvac_action` berücksichtigt. Dieses Problem wird durch die Konfiguration der Temperatur-Offset-Kalibrierung abgeschwächt, aber nicht vollständig beseitigt.
 > 3. Das Attribut `valve_open_percent` von _VTherm_ stimmt möglicherweise nicht mit dem an das Ventil gesendeten `Öffnungsgrad`-Wert überein. Wenn Sie einen der vier Parameter `opening_threshold`, `max_closing_degree`, `minimum_opening_degrees` oder `max_opening_degrees` verwenden, wird eine Anpassung vorgenommen. Das Attribut `valve_open_percent` stellt den von _VTherm_ berechneten Rohwert dar. Der an das Ventil gesendete `Öffnungsgrad`-Wert kann entsprechend angepasst werden.
+> 4. Ist der Regelparameter `regulation_threshold` (siehe [over_climate regulation](./over-climate.md#lauto-régulation)) in Benutzung, wird der Wert von `opening_threshold` so angepasst, dass er niemals unter diesen Wert fällt. Der `regulation_threshold` ist nämlich die Regeleinheit, unter der der Sollwert nicht gesendet wird. Die Einstellung eines `opening_threshold` hätte daher keine Auswirkung.
+> 5. Ein _VTherm_ gilt als aktiv, wenn der Wert `opening_threshold` überschritten wird. Also wenn _VTherm_ einene Zentralheizung suert, wird diese unterhalb des Wertes nicht eingeschaltet.
 
 #### Wie werden die Parameter, die die Öffnungweite steuern, richtig eingestellt?
 
@@ -80,6 +82,7 @@ Die Einstellungen können dann wie folgt sein:
 1. `minimum_opening_degrees`: 10, um bei Heizbedarf mindestens 10% zu öffnen,
 2. `max_closing_degree`: 90, um immer mindestens 10% Öffnungweite zu haben,
 3. `opening_threshold`: 10, zur Berücksichtigung, dass die ersten 10 % nicht heizen. Das TRV befindet sich dann im `Idle`-Modus.
+4. `max_opening_degrees`: 50, um die Öffnung des Ventils auf 50 % zu begrenzen.
 
 Sie erhalten dann folgende Kurve:
 

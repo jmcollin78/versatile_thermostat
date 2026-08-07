@@ -300,7 +300,8 @@
           "heater_cooling_time": "Auskühlzeit (min)",
           "auto_tpi_heating_rate": "Aufheizgeschwindigkeit ({unit}/h)",
           "auto_tpi_aggressiveness": "Aggressivität",
-          "auto_tpi_enable_advanced_settings": "Erweiterte Einstellungen aktivieren"
+          "auto_tpi_enable_advanced_settings": "Erweiterte Einstellungen aktivieren",
+          "auto_tpi_continuous_kext": "Kontinuierliches Kext-lernen"
         },
         "data_description": {
           "auto_tpi_learning_type": "Wähle 'Erkundung' für den ersten Start (gewichteter Durchschnitt, Gewicht 1) oder 'Feinabstimmung' für kontinuierliche Anpassungen (EWMA, Alpha 0,08).",
@@ -308,7 +309,8 @@
           "heater_cooling_time": "Abkühlzeit nach dem Ausschalten (Minuten)\n\n| Typ | Aufheizzeit | Abkühlzeit |\n| :--- | :--- | :--- |\n| Elektroheizkörper | 5 Min. | 7 Min. |\n| Wasserheizkörper | 15 Min. | 20 Min. |\n| Fußbodenheizung | 30 Min. | 45 Min. |",
           "auto_tpi_heating_rate": "Temperaturanstiegskapazität des Heizkörpers ({unit} pro Stunde). Kann über den Aktionsdienst 'Kapazität kalibrieren' geschätzt werden.",
           "auto_tpi_aggressiveness": "Skalierungsfaktor für die gelernten Koeffizienten (50-100 %). Niedrigere Werte führen zu konservativeren Koeffizienten und verringern das Risiko einer Überschreitung des Sollwerts.",
-          "auto_tpi_enable_advanced_settings": "Aktivieren Sie diese Option, um die Feinabstimmung der Parameter (Alpha, Abklingen, Gewicht) vorzunehmen."
+          "auto_tpi_enable_advanced_settings": "Option anwählen, um die Feinabstimmung der Parameter (Alpha, Abklingen, Gewicht) vorzunehmen.",
+          "auto_tpi_continuous_kext": "Kontrollkästchen aktivieren, um das kontinuierliche Lernen des externen Koeffizienten (Kext) außerhalb von AutoTPI-Sitzungen zu ermöglichen."
         }
       },
       "auto_tpi_avg_settings": {
@@ -326,11 +328,13 @@
         "description": "Parameter für die EWMA-Methode.\n\nEmpfehlungen :\n| Situation | Alpha (ema_alpha) | Abklingrate (ema_decay_rate) |\n| :--- | :--- | :--- |\n| Lernstart | 0.15 | 0.08 |\n| Lernabschluß | 0.08 | 0.12 |\n| Kontinuierliches Lernen | 0.05 | 0.02 |",
         "data": {
           "auto_tpi_ema_alpha": "Alpha",
-          "auto_tpi_ema_decay_rate": "Rückgangsrate"
+          "auto_tpi_ema_decay_rate": "Rückgangsrate",
+          "auto_tpi_continuous_kext_alpha": "Continuous Kext Alpha"
         },
         "data_description": {
           "auto_tpi_ema_alpha": "Glättungsfaktor (0-1). Höher = schnellere Anpassung",
-          "auto_tpi_ema_decay_rate": "Rate, mit der Alpha im Laufe der Zeit abnimmt (Stabilisierung)"
+          "auto_tpi_ema_decay_rate": "Rate, mit der Alpha im Laufe der Zeit abnimmt (Stabilisierung)",
+          "auto_tpi_continuous_kext_alpha": "Smoothing factor for continuous Kext learning (Alpha). Default 0.04 (approx 3-5 days adaptation)."
         }
       },
       "sync_device_internal_temp": {
@@ -698,7 +702,8 @@
           "heater_heating_time": "Aufheizzeit (min)",
           "heater_cooling_time": "Abkühlzeit (min)",
           "auto_tpi_aggressiveness": "Aggressivität",
-          "auto_tpi_enable_advanced_settings": "Erweiterte Einstellungen aktivieren"
+          "auto_tpi_enable_advanced_settings": "Erweiterte Einstellungen aktivieren",
+                    "auto_tpi_continuous_kext": "Kontinuierliches Kext-lernen"
         },
         "data_description": {
           "auto_tpi_learning_type": "Wähle 'Erkundung' für den ersten Start (gewichteter Durchschnitt, Gewicht 1) oder 'Feinabstimmung' für kontinuierliche Anpassungen (EWMA, Alpha 0,08).",
@@ -706,7 +711,8 @@
           "heater_heating_time": "Zeit bis zum Erreichen der vollen Leistung (Minuten)",
           "heater_cooling_time": "Abkühlzeit nach dem Ausschalten (Minuten)\n\n| Typ | Aufheizzeit | Abkühlzeit |\n| :--- | :--- | :--- |\n| Elektroheizkörper | 5 Min. | 7 Min. |\n| Wasserheizkörper | 15 Min. | 20 Min. |\n| Fußbodenheizung | 30 Min. | 45 Min. |",
           "auto_tpi_aggressiveness": "Skalierungsfaktor für die gelernten Koeffizienten (50–100 %). Niedrigere Werte führen zu konservativeren Koeffizienten und verringern das Risiko einer Überschreitung des Sollwerts.",
-          "auto_tpi_enable_advanced_settings": "Kontrollkästchen aktivieren, um die Parameter des ausgewählten Algorithmus zu ändern."
+          "auto_tpi_enable_advanced_settings": "Kontrollkästchen aktivieren, um die Parameter des ausgewählten Algorithmus zu ändern.",
+          "auto_tpi_continuous_kext": "Kontrollkästchen aktivieren, um das kontinuierliche Lernen des externen Koeffizienten (Kext) außerhalb von AutoTPI-Sitzungen zu ermöglichen."
         }
       },
       "auto_tpi_avg_settings": {
@@ -724,11 +730,13 @@
         "description": "Parameter für die EWMA-Methode.\n\nEmpfehlungen:\n| Situation | Alpha (ema_alpha) | Abklingrate (ema_decay_rate) |\n| :--- | :--- | :--- |\n| Anfängliches Lernen | 0,15 | 0,08 |\n| Endgültiges Lernen | 0,08 | 0,12 |\n| Kontinuierliches Lernen | 0,05 | 0,02 |",
         "data": {
           "auto_tpi_ema_alpha": "Alpha",
-          "auto_tpi_ema_decay_rate": "Rückgangsrate"
+          "auto_tpi_ema_decay_rate": "Rückgangsrate",
+          "auto_tpi_continuous_kext_alpha": "Kontinuierliches Kext Alpha"
         },
         "data_description": {
           "auto_tpi_ema_alpha": "Glättungsfaktor (0-1). Höher = schnellere Anpassung",
-          "auto_tpi_ema_decay_rate": "Rate, mit der Alpha im Laufe der Zeit abnimmt (Stabilisierung)"
+          "auto_tpi_ema_decay_rate": "Rate, mit der Alpha im Laufe der Zeit abnimmt (Stabilisierung)",
+                    "auto_tpi_continuous_kext_alpha": "Glättungsfaktor für kontinuierliches Kext-Lernen (Alpha). Standardwert 0,04 (Anpassungszeit von ca. 3–5 Tagen)."
         }
       },
       "heating_failure_detection": {
@@ -776,7 +784,7 @@
       "options": {
         "thermostat_central_config": "Zentrale Konfiguration",
         "thermostat_over_switch": "Thermostat an einem Schalter",
-        "thermostat_over_climate": "Thermostat an einem Thermostat",
+        "thermostat_over_climate": "Thermostat mittels Thermostat/Klimaanlage",
         "thermostat_over_valve": "Thermostat an einem Ventil"
       }
     },
@@ -1011,6 +1019,24 @@
         "code": {
           "name": "Sperrcode",
           "description": "Der optionale Sperrcode"
+        }
+      }
+    },
+    "download_logs": {
+      "name": "Download logs",
+      "description": "Gefilterte Protokolle für eine VTherm-Entität erfassen und herunterladen.",
+      "fields": {
+        "log_level": {
+          "name": "Log level",
+          "description": "Mindestprotokollstufe für die Erfassung"
+        },
+        "period_start": {
+          "name": "Period start",
+          "description": "Erfassungszeitraum Start"
+        },
+        "period_end": {
+          "name": "Period end",
+          "description": "Erfassungszeitraum Ende"
         }
       }
     }

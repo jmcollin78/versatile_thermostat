@@ -53,7 +53,7 @@ Einige Geräte erfordern eine regelmäßige Aktivierung, um eine Sicherheitsabsc
 
 ### Klimaanelagenmodus/AC Modus
 
-Es ist möglich, einen `thermostat_over_switch` zur Steuerung einer Klimaanlage zu wählen, indem man das Kästchen „AC Modus“ ankreuzt. In diesem Fall wird nur der Kühlmodus angezeigt.
+Es ist möglich, einen `thermostat_over_switch` zur Steuerung einer Klimaanlage zu wählen, indem man das Kästchen "AC Modus" ankreuzt. In diesem Fall wird nur der Kühlmodus angezeigt.
 
 ### Befehlsumkehr
 

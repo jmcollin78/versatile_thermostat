@@ -20,6 +20,7 @@ Um diese Funktion zu nutzen, benötigen Sie:
 
 ![image](images/config-auto-start-stop.png)
 
+Bei der Einstellung 'Sehr langsam' liegen zwischen einem Stopp und einem Neustart etwa 60 Minuten,
 Bei der Einstellung 'Langsam' vergehen etwa 30 Minuten zwischen einem Stopp und einem Neustart.
 Bei der Einstellung 'Mittel' liegt der Schwellenwert bei etwa 15 Minuten, bei der Einstellung „Schnell“ bei 7 Minuten.
 

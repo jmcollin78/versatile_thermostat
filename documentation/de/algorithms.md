@@ -35,7 +35,6 @@ Wenn das _Vtherm_ über ein TPI verfügt und im Menü die Option "TPI" ausgewäh
 | **Hoher Schwellenwert** | Temperaturabweichung (°C oder K), bei deren Überschreitung der Algorithmus deaktiviert wird. | `tpi_threshold_high` |
 | **Niedriger Schwellenwert** | Temperaturabweichung (°C oder K), bei deren Unterschreitung der Algorithmus wieder aktiviert wird. | `tpi_threshold_low` |
 
-
 ### Prinzip
 
 Der TPI-Algorithmus berechnet den Prozentsatz für Ein- und Ausschalten des Heizkörpers in jedem Zyklus anhand der Zieltemperatur, der aktuellen Raumtemperatur und der aktuellen Außentemperatur. Dieser Algorithmus ist nur für Versatile Thermostate anwendbar, die im Modus `over_switch` und `over_valve` betrieben werden.
@@ -57,18 +56,24 @@ Im Modus `over_valve` wird der Wert `on_percent` in einen Prozentsatz (0 bis 100
 
 ### Mindestverzögerung bei Aktivierung oder Deaktivierung
 
-Die erste Verzögerung (`minimal_activation_delay_sec`) in Sekunden ist die minimal zulässige Verzögerung zum Einschalten der Heizung. Wenn die Berechnung eine Einschaltverzögerung ergibt, die unter diesem Wert liegt, bleibt die Heizung ausgeschaltet. Wenn die Einschaltzeit zu kurz ist, kann das Gerät aufgrund des schnellen Umschaltens nicht auf Temperatur kommen.
+Die erste Verzögerung (`minimal_activation_delay_sec`) in Sekunden ist die minimal zulässige Einschaltverzögerung der Heizung. 
+Wenn die Berechnung eine Einschaltverzögerung ergibt, die unter diesem Wert liegt, bleibt die Heizung ausgeschaltet.
+Wenn die Einschaltzeit zu kurz ist, kann das Gerät aufgrund des schnellen Umschaltens nicht auf Betriebstemperatur kommen.
 
-Das Gleiche gilt für zweite Verzögerung (`minimal_deactivation_delay_sec`), ebenfalls in Sekunden, hier jedoch für die Ausschaltdauer. Ist die Ausschaltzeit kürzer als dieser Wert, wird die Heizung nicht ausgeschaltet. Dadurch wird ein schnelles Flackern verhindert, das für die Temperaturregelung nur einen geringen Nutzen hat.
+Das Gleiche gilt für zweite Verzögerung (`minimal_deactivation_delay_sec`), ebenfalls in Sekunden, hier jedoch für die Ausschaltdauer. 
+Ist die Ausschaltzeit kürzer als dieser Wert, wird die Heizung nicht ausgeschaltet. 
+Dadurch wird ein schnelles Flackern verhindert, da es für die Temperaturregelung von geringem Nutzen ist.
 
 ### Obere und untere Aktivierungsschwellwerte des Algorithmus
 
-Seit Version 7.4 stehen zwei zusätzliche Schwellenwerte zur Verfügung. Mit ihnen kann der TPI-Algorithmus selbst je nach Abweichung zwischen Sollwert und aktuellen Temperatur ausgeschalter (bzw. eingeschaltet) werden.
+Seit Version 7.4 stehen zwei zusätzliche Schwellenwerte zur Verfügung. 
+Mit ihnen kann der TPI-Algorithmus selbst de-/aktiviert werden, je nach Abweichung zwischen Sollwert und aktuellen Temperatur.
 
-Wenn die Temperatur steigt und die Abweichung größer als der obere Schwellenwert ist, wird die Heizung ausgeschaltet (d. h. `on_percent` wird auf 0 gesetzt).
-Wenn die Temperatur sinkt und die Abweichung unter dem unteren Schwellenwert liegt, wird die Heizung wieder eingeschaltet (d. h. `on_percent` wird durch den oben beschriebenen Algorithmus berechnet).
+- Wenn die Temperatur steigt und die Abweichung größer als der obere Schwellenwert ist, wird die Heizung ausgeschaltet (d. h. `on_percent` wird auf 0 gesetzt).
+- Wenn die Temperatur sinkt und die Abweichung unter dem unteren Schwellenwert liegt, wird die Heizung wieder eingeschaltet (d. h. `on_percent` wird durch den oben beschriebenen Algorithmus berechnet).
 
-Mit diese beiden Schwellenwerte kann der Ein-/Ausschaltzyklus unterbrochen werden, sobald die Temperatur den Sollwert überschreitet. Eine Hysterese verhindert ein schnelles Umschalten.
+Mit diesen beiden Schwellenwerten kann der Ein-/Ausschaltzyklus unterbrochen werden, sobald die Temperatur den Sollwert überschreitet. 
+Eine Hysterese verhindert ein schnelles Umschalten.
 
 Beispiele:
 1. Angenommen, der Sollwert beträgt 20 °C, der obere Schwellenwert 2 °C und der untere Schwellenwert 1 °C.
@@ -103,8 +108,7 @@ Der in der Auto-Start/Stopp-Funktion verwendete Algorithmus funktioniert wie fol
 3. Wenn `VTherm` eingeschaltet und der Modu `Kühlen` aktiv ist, gilt: Eenn `error_accumulated` > `error_threshold` -> ausschalten und `HVAC`-Modus speichern.
 4. Wenn `VTherm` ausgeschaltet ist und der gespeicherte `HVAC`-Modus `Heizen` ist, sowie `current_temperature + slope * dt <= target_temperature`, dann schaltet das Gerät ein und stellt `HVAC` auf den gespeicherten Modus ein.
 5. Wenn `VTherm` ausgeschaltet und der gespeicherte `HVAC`-Modus "Kühlen" ist, sowie `current_temperature + slope * dt >= target_temperature`, schaltet das Gerät ein und stellt `HVAC` auf den gespeicherten Modus ein.
-
-`error_threshold` ist im langsamen Modus auf `10 (° * min)`, im mittleren Modus auf `5` und im schnellen Modus auf `2` festgelegt.
+6. `error_threshold` ist im langsamen Modus auf `10 (° * min)`, im mittleren Modus auf `5` und im schnellen Modus auf `2` festgelegt.
 
 `dt` wird für langsame Erkennung auf `30 min`, für mittlere Erkennung auf `15 min` und für schnelle Erkennung auf `7 min` gesetzt.
 

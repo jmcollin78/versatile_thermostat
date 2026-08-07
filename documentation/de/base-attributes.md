@@ -18,9 +18,11 @@ Wählen Sie das Menü "Hauptmerkmale".
 | **Zentralisierte Steuerung** | Ermöglicht zentralisierte Thermostatsteuerung. Siehe [centralized control](#centralized-control) | `is_controlled_by_central_mode` |
 | **Zentraler Heizkessel-Trigger** | Aktivierungsfeld, um dieses VTherm als Trigger für zentralen Heizkessel zu verwenden. | `is_used_by_central_boiler` |
 
+
 # Auswahl der zu verwendenden Eigenschaften
 
 Wählen Sie das Menü "Eigenschaften".
+
 ![image](images/config-features.png)
 
 | Eigenschaft | Beschreibung | Attributname |
