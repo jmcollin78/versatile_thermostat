@@ -106,6 +106,176 @@ async def test_over_climate_auto_fan_mode_with_3_fan_speed_values(
 
     entity.remove_thermostat()
 
+async def test_over_climate_auto_fan_mode_with_worded_fan_speed_values(
+    hass: HomeAssistant, skip_hass_states_is_state, skip_send_event
+):
+    """Test the init of an over climate thermostat with worded fan speed values (MelCloud Home)"""
+
+    fan_modes = ["auto", "one", "two", "three"]
+
+    entry = MockConfigEntry(
+        domain=DOMAIN,
+        title="TheOverClimateMockName",
+        unique_id="uniqueId",
+        data={
+            CONF_NAME: "TheOverClimateMockName",
+            CONF_THERMOSTAT_TYPE: CONF_THERMOSTAT_CLIMATE,
+            CONF_TEMP_SENSOR: "sensor.mock_temp_sensor",
+            CONF_EXTERNAL_TEMP_SENSOR: "sensor.mock_ext_temp_sensor",
+            CONF_CYCLE_MIN: 5,
+            CONF_TEMP_MIN: 15,
+            CONF_TEMP_MAX: 30,
+            "eco_temp": 17,
+            "comfort_temp": 18,
+            "boost_temp": 19,
+            CONF_USE_WINDOW_FEATURE: False,
+            CONF_USE_MOTION_FEATURE: False,
+            CONF_USE_POWER_FEATURE: False,
+            CONF_USE_PRESENCE_FEATURE: False,
+            CONF_UNDERLYING_LIST: ["climate.mock_climate"],
+            CONF_MINIMAL_ACTIVATION_DELAY: 30,
+            CONF_MINIMAL_DEACTIVATION_DELAY: 0,
+            CONF_SAFETY_DELAY_MIN: 5,
+            CONF_SAFETY_MIN_ON_PERCENT: 0.3,
+            CONF_AUTO_FAN_MODE: CONF_AUTO_FAN_HIGH,
+        },
+    )
+
+    fake_underlying_climate = await create_and_register_mock_climate(
+        hass=hass,
+        unique_id="mock_climate",
+        name="MockClimateName",
+        fan_modes=fan_modes,
+    )
+
+    # 1. Init with CONF_AUTO_FAN_HIGH
+    entry.add_to_hass(hass)
+    await hass.config_entries.async_setup(entry.entry_id)
+    assert entry.state is ConfigEntryState.LOADED
+
+    entity: ThermostatOverClimate = search_entity(hass, "climate.theoverclimatemockname", "climate")
+
+    assert entity
+    assert isinstance(entity, ThermostatOverClimate)
+
+    assert entity.name == "TheOverClimateMockName"
+    assert entity.is_over_climate is True
+    assert entity.fan_modes == fan_modes
+    assert entity._auto_fan_mode == "auto_fan_high"
+    assert entity._auto_activated_fan_mode == "three"
+    assert entity._auto_deactivated_fan_mode == "one"
+
+    # 2. Change auto_fan_mode by CONF_AUTO_FAN_TURBO
+    with patch(
+        "custom_components.versatile_thermostat.underlyings.UnderlyingClimate.set_fan_mode"
+    ) as mock_send_fan_mode:
+        await entity.service_set_auto_fan_mode("Turbo")
+        assert entity._auto_activated_fan_mode == "three"
+        assert entity._auto_deactivated_fan_mode == "one"
+
+    # 3. Change auto_fan_mode by CONF_AUTO_FAN_MEDIUM
+    with patch(
+        "custom_components.versatile_thermostat.underlyings.UnderlyingClimate.set_fan_mode"
+    ) as mock_send_fan_mode:
+        await entity.service_set_auto_fan_mode("Medium")
+        assert entity._auto_activated_fan_mode == "two"
+        assert entity._auto_deactivated_fan_mode == "one"
+
+    # 4. Change auto_fan_mode by CONF_AUTO_FAN_LOW
+    with patch(
+        "custom_components.versatile_thermostat.underlyings.UnderlyingClimate.set_fan_mode"
+    ) as mock_send_fan_mode:
+        await entity.service_set_auto_fan_mode("Low")
+        assert entity._auto_activated_fan_mode == "one"
+        assert entity._auto_deactivated_fan_mode == "one"
+
+    entity.remove_thermostat()
+
+async def test_over_climate_auto_fan_mode_with_speed_prefixed_fan_values(
+    hass: HomeAssistant, skip_hass_states_is_state, skip_send_event
+):
+    """Test the init of an over climate thermostat with speed_N fan values (MelCloud Home / Mitsubishi)"""
+
+    fan_modes = ["auto", "speed_1", "speed_2", "speed_3", "speed_4"]
+
+    entry = MockConfigEntry(
+        domain=DOMAIN,
+        title="TheOverClimateMockName",
+        unique_id="uniqueId",
+        data={
+            CONF_NAME: "TheOverClimateMockName",
+            CONF_THERMOSTAT_TYPE: CONF_THERMOSTAT_CLIMATE,
+            CONF_TEMP_SENSOR: "sensor.mock_temp_sensor",
+            CONF_EXTERNAL_TEMP_SENSOR: "sensor.mock_ext_temp_sensor",
+            CONF_CYCLE_MIN: 5,
+            CONF_TEMP_MIN: 15,
+            CONF_TEMP_MAX: 30,
+            "eco_temp": 17,
+            "comfort_temp": 18,
+            "boost_temp": 19,
+            CONF_USE_WINDOW_FEATURE: False,
+            CONF_USE_MOTION_FEATURE: False,
+            CONF_USE_POWER_FEATURE: False,
+            CONF_USE_PRESENCE_FEATURE: False,
+            CONF_UNDERLYING_LIST: ["climate.mock_climate"],
+            CONF_MINIMAL_ACTIVATION_DELAY: 30,
+            CONF_MINIMAL_DEACTIVATION_DELAY: 0,
+            CONF_SAFETY_DELAY_MIN: 5,
+            CONF_SAFETY_MIN_ON_PERCENT: 0.3,
+            CONF_AUTO_FAN_MODE: CONF_AUTO_FAN_HIGH,
+        },
+    )
+
+    fake_underlying_climate = await create_and_register_mock_climate(
+        hass=hass,
+        unique_id="mock_climate",
+        name="MockClimateName",
+        fan_modes=fan_modes,
+    )
+
+    # 1. Init with CONF_AUTO_FAN_HIGH
+    entry.add_to_hass(hass)
+    await hass.config_entries.async_setup(entry.entry_id)
+    assert entry.state is ConfigEntryState.LOADED
+
+    entity: ThermostatOverClimate = search_entity(hass, "climate.theoverclimatemockname", "climate")
+
+    assert entity
+    assert isinstance(entity, ThermostatOverClimate)
+
+    assert entity.name == "TheOverClimateMockName"
+    assert entity.is_over_climate is True
+    assert entity.fan_modes == fan_modes
+    assert entity._auto_fan_mode == "auto_fan_high"
+    assert entity._auto_activated_fan_mode == "speed_3"
+    assert entity._auto_deactivated_fan_mode == "speed_1"
+
+    # 2. Change auto_fan_mode by CONF_AUTO_FAN_TURBO
+    with patch(
+        "custom_components.versatile_thermostat.underlyings.UnderlyingClimate.set_fan_mode"
+    ) as mock_send_fan_mode:
+        await entity.service_set_auto_fan_mode("Turbo")
+        assert entity._auto_activated_fan_mode == "speed_4"
+        assert entity._auto_deactivated_fan_mode == "speed_1"
+
+    # 3. Change auto_fan_mode by CONF_AUTO_FAN_MEDIUM
+    with patch(
+        "custom_components.versatile_thermostat.underlyings.UnderlyingClimate.set_fan_mode"
+    ) as mock_send_fan_mode:
+        await entity.service_set_auto_fan_mode("Medium")
+        assert entity._auto_activated_fan_mode == "speed_2"
+        assert entity._auto_deactivated_fan_mode == "speed_1"
+
+    # 4. Change auto_fan_mode by CONF_AUTO_FAN_LOW
+    with patch(
+        "custom_components.versatile_thermostat.underlyings.UnderlyingClimate.set_fan_mode"
+    ) as mock_send_fan_mode:
+        await entity.service_set_auto_fan_mode("Low")
+        assert entity._auto_activated_fan_mode == "speed_1"
+        assert entity._auto_deactivated_fan_mode == "speed_1"
+
+    entity.remove_thermostat()
+
 async def test_over_climate_auto_fan_mode_with_4_fan_speed_values(
     hass: HomeAssistant, skip_hass_states_is_state, skip_send_event
 ):

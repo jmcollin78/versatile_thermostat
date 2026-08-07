@@ -442,8 +442,8 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
                 return None
 
         def determine_fan_mode_contains_speed(fan_modes: list[str]) -> bool:
-            """Determine if the fan_modes contains speed modes by searching for the keywords "low"/"1"."""
-            for val in ["low", "1"]:
+            """Determine if the fan_modes contains speed modes by searching for the keywords "low"/"1"/"one"/"speed_1"."""
+            for val in ["low", "1", "one", "speed_1"]:
                 if find_fan_mode(fan_modes, val):
                     return True
             return False
@@ -455,6 +455,10 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
                 index = speed_modes.index("low")
             elif "1" in speed_modes:
                 index = speed_modes.index("1")
+            elif "one" in speed_modes:
+                index = speed_modes.index("one")
+            elif "speed_1" in speed_modes:
+                index = speed_modes.index("speed_1")
 
             if index > -1 and index >= len(speed_modes) / 2:
                 speed_modes.reverse()
