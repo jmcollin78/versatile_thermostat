@@ -10,6 +10,9 @@ from homeassistant.components.select import DOMAIN as SELECT_DOMAIN
 from custom_components.versatile_thermostat.thermostat_climate import (
     ThermostatOverClimate,
 )
+from custom_components.versatile_thermostat.select import (
+    AutoStartStopStopModeSelect,
+)
 from .commons import *  # pylint: disable=wildcard-import, unused-wildcard-import
 
 logging.getLogger().setLevel(logging.DEBUG)
@@ -236,7 +239,7 @@ async def test_stop_mode_fan_only_and_immediate_change(
     assert vtherm.auto_start_stop_manager.is_auto_stop_detected is True
     assert vtherm.hvac_mode == VThermHvacMode_FAN_ONLY
     assert vtherm.hvac_off_reason is None
-    assert vtherm.hvac_mode_reason == HVAC_OFF_REASON_AUTO_START_STOP
+    assert vtherm.hvac_mode_reason == HVAC_MODE_REASON_AUTO_START_STOP_FAN_ONLY
 
     # 4. Change the select to off while the stop is active -> immediate switch to off
     await select_entity.async_select_option(AUTO_START_STOP_STOP_MODE_OFF)
@@ -251,7 +254,7 @@ async def test_stop_mode_fan_only_and_immediate_change(
     await wait_for_local_condition(lambda: vtherm.hvac_mode == VThermHvacMode_DRY, timeout=3.0, hass=hass)
     assert vtherm.hvac_mode == VThermHvacMode_DRY
     assert vtherm.hvac_off_reason is None
-    assert vtherm.hvac_mode_reason == HVAC_OFF_REASON_AUTO_START_STOP
+    assert vtherm.hvac_mode_reason == HVAC_MODE_REASON_AUTO_START_STOP_DRY
 
     # 6. Rising temperature -> the auto-stop is released and the VTherm restarts in heat
     now = now + timedelta(minutes=20)
@@ -264,3 +267,42 @@ async def test_stop_mode_fan_only_and_immediate_change(
     assert vtherm.hvac_mode_reason is None
 
     vtherm.remove_thermostat()
+
+
+async def test_stop_mode_select_restore_kept_before_underlying_ready(hass: HomeAssistant, skip_hass_states_is_state):
+    """A restored value must not be discarded while the underlying hvac_modes
+    are not available yet (HA start/restart scenario)."""
+
+    select = AutoStartStopStopModeSelect(hass, "overClimateUniqueId", "overClimate", {CONF_NAME: "overClimate"})
+    # Simulate the value restored from the previous run
+    select._attr_current_option = AUTO_START_STOP_STOP_MODE_DRY
+    # Avoid touching the real state machine
+    select.async_write_ha_state = MagicMock()
+
+    fake_climate = MagicMock()
+    select._my_climate = fake_climate
+
+    # 1. VTherm not initialized yet -> only off is exposed, but dry must be kept
+    fake_climate.is_initialized = False
+    fake_climate.hvac_modes = [VThermHvacMode_OFF]
+    await select.async_my_climate_changed(None)
+    assert select.current_option == AUTO_START_STOP_STOP_MODE_DRY
+
+    # 2. VTherm initialized and underlying exposes dry -> still kept
+    fake_climate.is_initialized = True
+    fake_climate.hvac_modes = [VThermHvacMode_OFF, VThermHvacMode_DRY]
+    await select.async_my_climate_changed(None)
+    assert select.current_option == AUTO_START_STOP_STOP_MODE_DRY
+
+    # 3. VTherm initialized but underlying does not support dry -> reset to off
+    fake_climate.is_initialized = True
+    fake_climate.hvac_modes = [VThermHvacMode_OFF, VThermHvacMode_FAN_ONLY]
+    await select.async_my_climate_changed(None)
+    assert select.current_option == AUTO_START_STOP_STOP_MODE_OFF
+
+    # 4. Underlying only supporting off/heat (e.g. generic) -> restored value reset to off
+    select._attr_current_option = AUTO_START_STOP_STOP_MODE_DRY
+    fake_climate.is_initialized = True
+    fake_climate.hvac_modes = [VThermHvacMode_OFF, VThermHvacMode_HEAT]
+    await select.async_my_climate_changed(None)
+    assert select.current_option == AUTO_START_STOP_STOP_MODE_OFF

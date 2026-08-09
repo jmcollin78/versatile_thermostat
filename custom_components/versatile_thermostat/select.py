@@ -4,7 +4,7 @@
 import logging
 from vtherm_api.log_collector import get_vtherm_logger
 
-from homeassistant.core import HomeAssistant, callback
+from homeassistant.core import HomeAssistant, callback, Event
 
 from homeassistant.const import EntityCategory
 from homeassistant.components.select import SelectEntity
@@ -179,10 +179,33 @@ class AutoStartStopStopModeSelect(
 
     @callback
     def my_climate_is_initialized(self):
-        """Called when the associated climate is initialized -> validate the current option"""
+        """Called when the associated climate is resolved -> refresh the options.
+        The restored option is only validated once the VTherm is fully
+        initialized (its underlying hvac_modes are available)."""
+
+        self._refresh_current_option()
+        self.hass.create_task(self.update_my_state_and_vtherm())
+
+    def _refresh_current_option(self):
+        """Reset the current option to off only once the VTherm is fully
+        initialized and its underlying does not support the current option.
+        While the VTherm is not initialized, the restored option is kept as is
+        to avoid discarding it before the underlying hvac_modes are available."""
+        climate = self.my_climate
+        if climate is None or not climate.is_initialized:
+            return
         if self._attr_current_option not in self.options:
             self._attr_current_option = AUTO_START_STOP_STOP_MODE_OFF
-        self.hass.create_task(self.update_my_state_and_vtherm())
+
+    @overrides
+    async def async_my_climate_changed(self, event: Event = None):
+        """Called when my climate changes -> refresh the available options.
+        The underlying supported hvac_modes may become available only after
+        the VTherm has adopted them, so the options must be recomputed."""
+        if self.my_climate is None:
+            return
+        self._refresh_current_option()
+        self.async_write_ha_state()
 
     @overrides
     async def async_added_to_hass(self):

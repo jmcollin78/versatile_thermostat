@@ -1042,14 +1042,13 @@
                   "disable_name": false,
                   "disable_auto_fan_infos": false,
                   "disable_autoStartStop": false,
-                  "disable_circle": true,
                   "autoStartStopEnableEntity": "switch.thermostat_climate_2_enable_auto_start_stop",
-                  "theme": "gunmalmg",
+                  "theme": "vtherm",
                   "name": "Thermostat climate 2"
                 },
                 {
                   "type": "thermostat",
-                  "entity": "climate.underlying_thermostat2"
+                  "entity": "climate.hvac"
                 },
                 {
                   "show_name": true,

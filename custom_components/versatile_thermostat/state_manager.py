@@ -13,6 +13,7 @@ from .const import (
     HVAC_OFF_REASON_AUTO_START_STOP,
     HVAC_OFF_REASON_SLEEP_MODE,
     HVAC_OFF_REASON_CENTRAL_MODE,
+    AUTO_START_STOP_HVAC_MODE_REASONS,
     CONF_WINDOW_ECO_TEMP,
     CONF_WINDOW_FAN_ONLY,
     CONF_WINDOW_FROST_TEMP,
@@ -131,13 +132,14 @@ class StateManager:
                 vtherm.set_hvac_off_reason(HVAC_OFF_REASON_WINDOW_DETECTION)
 
         elif vtherm.auto_start_stop_manager and vtherm.auto_start_stop_manager.is_auto_stop_detected and self._requested_state.hvac_mode != VThermHvacMode_OFF:
-            vtherm.set_hvac_mode_reason(HVAC_OFF_REASON_AUTO_START_STOP)
             stop_mode = vtherm.auto_start_stop_manager.stop_mode
             if stop_mode != VThermHvacMode_OFF and stop_mode in vtherm.vtherm_hvac_modes:
                 self._current_state.set_hvac_mode(stop_mode)
+                vtherm.set_hvac_mode_reason(AUTO_START_STOP_HVAC_MODE_REASONS.get(str(stop_mode), HVAC_OFF_REASON_AUTO_START_STOP))
             else:
                 self._current_state.set_hvac_mode(VThermHvacMode_OFF)
                 vtherm.set_hvac_off_reason(HVAC_OFF_REASON_AUTO_START_STOP)
+                vtherm.set_hvac_mode_reason(HVAC_OFF_REASON_AUTO_START_STOP)
 
         elif vtherm.last_central_mode == CENTRAL_MODE_COOL_ONLY and self._requested_state.hvac_mode != VThermHvacMode_OFF:
             vtherm.set_hvac_mode_reason(HVAC_OFF_REASON_CENTRAL_MODE)

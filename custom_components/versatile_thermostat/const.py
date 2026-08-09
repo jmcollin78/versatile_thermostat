@@ -267,6 +267,15 @@ HVAC_OFF_REASONS = Literal[  # pylint: disable=invalid-name
     HVAC_OFF_REASON_MANUAL, HVAC_OFF_REASON_AUTO_START_STOP, HVAC_OFF_REASON_WINDOW_DETECTION, HVAC_OFF_REASON_SLEEP_MODE, HVAC_OFF_REASON_SAFETY
 ]
 
+# The hvac_mode_reason set when the auto-start/stop feature applies a non-off stop mode
+HVAC_MODE_REASON_AUTO_START_STOP_FAN_ONLY = "hvac_fan_only_auto_start_stop"
+HVAC_MODE_REASON_AUTO_START_STOP_DRY = "hvac_dry_auto_start_stop"
+# Maps the stop mode applied by the auto-start/stop feature to the related hvac_mode_reason
+AUTO_START_STOP_HVAC_MODE_REASONS = {
+    AUTO_START_STOP_STOP_MODE_FAN_ONLY: HVAC_MODE_REASON_AUTO_START_STOP_FAN_ONLY,
+    AUTO_START_STOP_STOP_MODE_DRY: HVAC_MODE_REASON_AUTO_START_STOP_DRY,
+}
+
 DEFAULT_SHORT_EMA_PARAMS = {
     "max_alpha": 0.5,
     # In sec

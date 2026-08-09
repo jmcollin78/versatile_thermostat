@@ -8,6 +8,11 @@ homeassistant:
 system_health:
 energy:
 
+# Demo integration: provides the `climate.hvac` entity which supports the
+# `off`, `heat`, `cool`, `auto`, `dry` and `fan_only` modes. Use it as the
+# underlying of an over_climate VTherm to test the auto-start/stop stop mode.
+demo:
+
 recorder:
     auto_purge: true
     purge_keep_days: 1

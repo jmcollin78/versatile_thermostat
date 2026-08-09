@@ -112,14 +112,14 @@ versatile_thermostat:
 
 The parameters are as follows:
 
-| Parameter | Description | Type | Example |
-| --- | --- | --- | --- |
-| `kp` | Proportional factor applied to the raw temperature error (difference between target temperature and actual temperature) | Float | 0.6 |
-| `ki` | Integral factor applied to the accumulation of errors over time | Float | 0.1 |
-| `k_ext` | Factor applied to the difference between indoor and outdoor temperature. Allows compensation for external variations | Float | 0.0 |
-| `offset_max` | Maximum correction (offset) that regulation can apply to the setpoint | Float | 10 |
-| `accumulated_error_threshold` | Maximum threshold for error accumulation. Prevents infinite error accumulation | Float | 80 |
-| `overheat_protection` | Activates overheat protection by limiting positive corrections (optional) | Boolean | true |
+| Parameter                     | Description                                                                                                             | Type    | Example |
+| ----------------------------- | ----------------------------------------------------------------------------------------------------------------------- | ------- | ------- |
+| `kp`                          | Proportional factor applied to the raw temperature error (difference between target temperature and actual temperature) | Float   | 0.6     |
+| `ki`                          | Integral factor applied to the accumulation of errors over time                                                         | Float   | 0.1     |
+| `k_ext`                       | Factor applied to the difference between indoor and outdoor temperature. Allows compensation for external variations    | Float   | 0.0     |
+| `offset_max`                  | Maximum correction (offset) that regulation can apply to the setpoint                                                   | Float   | 10      |
+| `accumulated_error_threshold` | Maximum threshold for error accumulation. Prevents infinite error accumulation                                          | Float   | 80      |
+| `overheat_protection`         | Activates overheat protection by limiting positive corrections (optional)                                               | Boolean | true    |
 
 > ![Important](images/tips.png) _*Important Note*_
 >
@@ -139,9 +139,9 @@ versatile_thermostat:
     check_outdoor_sensor: false
 ```
 
-| Parameter | Description | Type | Default |
-| --- | --- | --- | --- |
-| `check_outdoor_sensor` | If `true`, lack of outdoor sensor data will trigger safety mode. If `false`, only the indoor sensor will be checked | Boolean | true |
+| Parameter              | Description                                                                                                         | Type    | Default |
+| ---------------------- | ------------------------------------------------------------------------------------------------------------------- | ------- | ------- |
+| `check_outdoor_sensor` | If `true`, lack of outdoor sensor data will trigger safety mode. If `false`, only the indoor sensor will be checked | Boolean | true    |
 
 > ![Important](images/tips.png) _*Important Note*_
 >
@@ -160,9 +160,9 @@ versatile_thermostat:
   max_on_percent: 0.9
 ```
 
-| Parameter | Description | Type | Range | Default |
-| --- | --- | --- | --- | --- |
-| `max_on_percent` | Maximum percentage of heating power allowed. `1.0` = 100% power, `0.9` = 90%, etc. | Float | 0.0 to 1.0 | 1.0 |
+| Parameter        | Description                                                                        | Type  | Range      | Default |
+| ---------------- | ---------------------------------------------------------------------------------- | ----- | ---------- | ------- |
+| `max_on_percent` | Maximum percentage of heating power allowed. `1.0` = 100% power, `0.9` = 90%, etc. | Float | 0.0 to 1.0 | 1.0     |
 
 **Usage examples**:
 - `0.8`: limits heating to 80% of capacity
@@ -189,11 +189,11 @@ versatile_thermostat:
     precision: 2
 ```
 
-| Parameter | Description | Type | Range | Default |
-| --- | --- | --- | --- | --- |
-| `max_alpha` | Maximum smoothing factor (alpha) for the exponential moving average. Controls sensitivity to rapid temperature changes | Float | 0.0 to 1.0 | 0.5 |
-| `halflife_sec` | Half-life duration in seconds for the moving average calculation. Determines how quickly old values lose weight | Integer | > 0 | 300 |
-| `precision` | Number of decimal places retained in the moving average calculation | Integer | > 0 | 2 |
+| Parameter      | Description                                                                                                            | Type    | Range      | Default |
+| -------------- | ---------------------------------------------------------------------------------------------------------------------- | ------- | ---------- | ------- |
+| `max_alpha`    | Maximum smoothing factor (alpha) for the exponential moving average. Controls sensitivity to rapid temperature changes | Float   | 0.0 to 1.0 | 0.5     |
+| `halflife_sec` | Half-life duration in seconds for the moving average calculation. Determines how quickly old values lose weight        | Integer | > 0        | 300     |
+| `precision`    | Number of decimal places retained in the moving average calculation                                                    | Integer | > 0        | 2       |
 
 **Parameter meanings**:
 - **`max_alpha`**: a higher value makes detection more reactive to sudden changes (faster detection but more sensitive to false positives)
@@ -218,9 +218,9 @@ versatile_thermostat:
   log_buffer_max_age_hours: 24
 ```
 
-| Parameter | Description | Type | Range | Default |
-| --- | --- | --- | --- | --- |
-| `log_buffer_max_age_hours` | Maximum log retention duration in hours. Logs older than this will be automatically deleted | Integer | > 0 | 24 |
+| Parameter                  | Description                                                                                 | Type    | Range | Default |
+| -------------------------- | ------------------------------------------------------------------------------------------- | ------- | ----- | ------- |
+| `log_buffer_max_age_hours` | Maximum log retention duration in hours. Logs older than this will be automatically deleted | Integer | > 0   | 24      |
 
 **Usage examples**:
 - `12`: retains logs from the last 12 hours
@@ -438,7 +438,7 @@ The custom attributes are as follows:
 | ``ema_temp``                                    | The current average temperature. Calculated as the exponential moving average of previous values. Used to calculate `temperature_slope`                                                                         |
 | ``temperature_slope``                           | The current temperature slope in °/hour                                                                                                                                                                         |
 | ``hvac_off_reason``                             | Indicates the reason for the VTherm shutdown (hvac_off). Can be Window, Auto-start/stop or Manual                                                                                                               |
-| ``hvac_mode_reason``                            | Indicates the reason for the current VTherm mode (hvac_mode). Can be Window, Auto-start/stop, Central mode, Safety, Manual or Sleep                                                                              |
+| ``hvac_mode_reason``                            | Indicates the reason for the current VTherm mode (hvac_mode). Can be Window, Auto-start/stop (detailed by the stop mode: off, fan-only or dry), Central mode, Safety, Manual or Sleep                           |
 | ``total_energy``                                | An estimate of the total energy consumed by this VTherm                                                                                                                                                         |
 | ``last_change_time_from_vtherm``                | The date/time of the last change made by VTherm                                                                                                                                                                 |
 | ``messages``                                    | A list of messages explaining the current state calculation. See [state messages](#state-messages)                                                                                                              |
