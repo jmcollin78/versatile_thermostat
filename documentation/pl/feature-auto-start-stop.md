@@ -1,8 +1,9 @@
 # AutoSTART / AutoSTOP
 
-- [AutoSTART / AutoSTOP](#auto-start--auto-stop)
-  - [Konfiguracja AutoSTART/AutoSTOP](#configure-auto-startstop)
-  - [Zastosowanie](#usage)
+- [AutoSTART / AutoSTOP](#autostart--autostop)
+  - [Konfiguracja AutoSTART/AutoSTOP](#konfiguracja-autostartautostop)
+  - [Zastosowanie](#zastosowanie)
+  - [Wybór trybu zatrzymania](#wybór-trybu-zatrzymania)
 
 Ta funkcja pozwala zatrzymać urządzenie, które nie musi być załączone, oraz ponownie je uruchomić, gdy warunki tego wymagają. Funkcja obejmuje trzy ustawienia kontrolujące, jak szybko urządzenie jest zatrzymywane i ponownie uruchamiane. Jest ona zarezerwowana wyłącznie dla `termostatu na klimacie` i ma zastosowanie w przypadku, gdy:
 1. Twoje urządzenie jest stale zasilane i zużywa energię elektryczną nawet wtedy, gdy ogrzewanie (lub chłodzenie) nie jest potrzebne. Często dotyczy to pomp ciepła (_PAC_), które pobierają energię nawet w trybie czuwania.
@@ -40,3 +41,16 @@ Zaznacz pole wyboru, aby zezwolić na autoSTART i autoSTOP, lub pozostaw je niez
 > 1. Algorytm detekcji został opisany [tutaj](algorithms.md#auto-startstop-algorithm).
 > 2. Niektóre urządzenia (kotły, ogrzewanie podłogowe, pompy ciepła itp.) mogą nie tolerować zbyt częstego załączania/wyłączania. W takim przypadku lepiej wyłączyć tę funkcję, gdy wiadomo, że urządzenie będzie używane. Np. ja wyłączam tę funkcję w ciągu dnia, gdy wykrywana jest obecność, ponieważ wiem, że moja pompa ciepła będzie często się uruchamiać. Natomiast załączam autoSTART/autoSTOP w nocy lub gdy nikogo nie ma w domu, ponieważ wartość zadana jest obniżona i funkcja rzadko się aktywuje.
 > 3. Jeśli korzystasz z karty interfejsu Versatile Thermostat (patrz: [tutaj](additions.md#better-with-the-versatile-thermostat-ui-card)), na karcie bezpośrednio widoczne jest pole wyłączenia autoSTART/autoSTOP, a termostat zatrzymany przez tę funkcję jest oznaczony ikoną ![auto-start/stop icon](images/auto-start-stop-icon.png).
+
+## Wybór trybu zatrzymania
+
+Domyślnie, gdy funkcja autoSTART/autoSTOP wykryje, że konieczne jest zatrzymanie, _VTherm_ jest wyłączany (`Wyłączony`). Niektóre urządzenia oferują tryby, które zużywają mało energii, jednocześnie utrzymując urządzenie w stanie aktywnym, takie jak tylko wentylacja lub osuszanie. Aby z nich skorzystać, na urządzeniu _VTherm_ dostępna jest encja typu `select` o nazwie `select.<name>_auto_start_stop_stop_mode`.
+
+Oferuje ona następujące wartości:
+1. `Wyłączony`: urządzenie jest wyłączane przy automatycznym zatrzymaniu (zachowanie domyślne),
+2. `Tylko wentylacja`: urządzenie jest przełączane w tryb tylko wentylacji przy automatycznym zatrzymaniu,
+3. `Osuszanie`: urządzenie jest przełączane w tryb osuszania przy automatycznym zatrzymaniu.
+
+Tryby `Tylko wentylacja` i `Osuszanie` są proponowane tylko wtedy, gdy urządzenie podrzędne je obsługuje.
+
+Jeśli zmienisz to ustawienie, gdy automatyczne zatrzymanie jest już aktywne, tryb _VTherm_ zostanie natychmiast dostosowany do Twojego wyboru, zachowując stan zatrzymania.

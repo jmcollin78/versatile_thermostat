@@ -3,6 +3,7 @@
 - [Automatické spuštění / Automatické zastavení](#automatické-spuštění--automatické-zastavení)
   - [Konfigurace automatického spuštění/zastavení](#konfigurace-automatického-spuštěnízastavení)
   - [Použití](#použití)
+  - [Výběr režimu zastavení](#výběr-režimu-zastavení)
 
 Tato funkce umožňuje _VTherm_ zastavit zařízení, které nepotřebuje být zapnuté, a restartovat jej, když podmínky to vyžadují. Tato funkce zahrnuje tři nastavení, která kontrolují, jak rychle je zařízení zastaveno a restartováno.
 Výhradně vyhrazeno pro _VTherm_ typu `over_climate`, vztahuje se na následující případ použití:
@@ -40,3 +41,16 @@ Poznámka: Funkce automatického spuštění/zastavení znovu zapne _VTherm_ pou
 > 1. Algoritmus detekce je popsán [zde](algorithms.md#auto-startstop-algorithm).
 > 2. Některá zařízení (kotle, podlahové vytápění, _PAC_, atd.) nemusí mít ráda příliš časté spuštění/zastavení. Pokud je to případ, může být lepší deaktivovat funkci, když víte, že bude zařízení použito. Například deaktivuji tuto funkci během dne, když je detekována přítomnost, protože vím, že moje _PAC_ se často zapne. Povolit automatické spuštění/zastavení v noci nebo když nikdo není doma, protože setpoint je snížen a zřídka se spouští.
 > 3. Pokud používáte UI kartu Versatile Thermostat (viz [zde](additions.md#better-with-the-versatile-thermostat-ui-card)), zaškrtávací políčko je přímo viditelné na kartě pro deaktivaci automatického spuštění/zastavení a _VTherm_ zastavený automatickým spuštěním/zastavením je označen ikonou: ![ikona automatického spuštění/zastavení](images/auto-start-stop-icon.png).
+
+## Výběr režimu zastavení
+
+Ve výchozím nastavení, když funkce automatického spuštění/zastavení zjistí, že je potřeba zastavení, je _VTherm_ vypnut (`Vypnuto`). Některá zařízení nabízejí režimy, které spotřebovávají málo energie a přitom udržují zařízení aktivní, jako je pouze ventilátor nebo vysoušení. Abyste je mohli využít, je na zařízení _VTherm_ dostupná entita typu `select` s názvem `select.<name>_auto_start_stop_stop_mode`.
+
+Nabízí následující hodnoty:
+1. `Vypnuto`: zařízení je při automatickém zastavení vypnuto (výchozí chování),
+2. `Pouze ventilátor`: zařízení je při automatickém zastavení přepnuto na režim pouze ventilátor,
+3. `Vysoušení`: zařízení je při automatickém zastavení přepnuto na režim vysoušení.
+
+Režimy `Pouze ventilátor` a `Vysoušení` jsou nabízeny pouze tehdy, pokud je podřízené zařízení podporuje.
+
+Pokud toto nastavení změníte, když již probíhá automatické zastavení, režim _VTherm_ se okamžitě přizpůsobí vaší volbě při zachování stavu zastavení.

@@ -50,13 +50,14 @@ DOMAIN = "versatile_thermostat"
 
 # The order is important.
 PLATFORMS: list[Platform] = [
-    Platform.SELECT,
     Platform.CLIMATE,
     Platform.SENSOR,
     # Number should be after CLIMATE
     Platform.NUMBER,
     Platform.BINARY_SENSOR,
     Platform.SWITCH,
+    # Select should be after CLIMATE
+    Platform.SELECT,
 ]
 
 CONF_UNDERLYING_LIST = "underlying_entity_ids"
@@ -244,7 +245,18 @@ TYPE_AUTO_START_STOP_LEVELS = Literal[  # pylint: disable=invalid-name
     AUTO_START_STOP_LEVEL_NONE,
 ]
 
+# The hvac_mode applied when the auto-start/stop feature detects a stop condition
+AUTO_START_STOP_STOP_MODE_OFF = str(VThermHvacMode_OFF)
+AUTO_START_STOP_STOP_MODE_FAN_ONLY = str(VThermHvacMode_FAN_ONLY)
+AUTO_START_STOP_STOP_MODE_DRY = str(VThermHvacMode_DRY)
+AUTO_START_STOP_STOP_MODES = [
+    AUTO_START_STOP_STOP_MODE_OFF,
+    AUTO_START_STOP_STOP_MODE_FAN_ONLY,
+    AUTO_START_STOP_STOP_MODE_DRY,
+]
+
 HVAC_OFF_REASON_NAME = "hvac_off_reason"
+HVAC_MODE_REASON_NAME = "hvac_mode_reason"
 HVAC_OFF_REASON_MANUAL = "hvac_off_manual"
 HVAC_OFF_REASON_AUTO_START_STOP = "hvac_off_auto_start_stop"
 HVAC_OFF_REASON_WINDOW_DETECTION = "hvac_off_window_detection"
@@ -254,6 +266,15 @@ HVAC_OFF_REASON_CENTRAL_MODE = "hvac_off_central_mode"
 HVAC_OFF_REASONS = Literal[  # pylint: disable=invalid-name
     HVAC_OFF_REASON_MANUAL, HVAC_OFF_REASON_AUTO_START_STOP, HVAC_OFF_REASON_WINDOW_DETECTION, HVAC_OFF_REASON_SLEEP_MODE, HVAC_OFF_REASON_SAFETY
 ]
+
+# The hvac_mode_reason set when the auto-start/stop feature applies a non-off stop mode
+HVAC_MODE_REASON_AUTO_START_STOP_FAN_ONLY = "hvac_fan_only_auto_start_stop"
+HVAC_MODE_REASON_AUTO_START_STOP_DRY = "hvac_dry_auto_start_stop"
+# Maps the stop mode applied by the auto-start/stop feature to the related hvac_mode_reason
+AUTO_START_STOP_HVAC_MODE_REASONS = {
+    AUTO_START_STOP_STOP_MODE_FAN_ONLY: HVAC_MODE_REASON_AUTO_START_STOP_FAN_ONLY,
+    AUTO_START_STOP_STOP_MODE_DRY: HVAC_MODE_REASON_AUTO_START_STOP_DRY,
+}
 
 DEFAULT_SHORT_EMA_PARAMS = {
     "max_alpha": 0.5,

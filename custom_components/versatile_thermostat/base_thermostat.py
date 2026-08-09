@@ -197,6 +197,7 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
         self._use_central_config_temperature = False
 
         self._hvac_off_reason: str | None = None
+        self._hvac_mode_reason: str | None = None
         self._hvac_list: list[VThermHvacMode] = []
         self._str_hvac_list: list[str] = []
         self._temperature_reason: str | None = None
@@ -639,6 +640,7 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
 
             # Try to get total_energy from specific_states (new format) or root level (old format)
             specific_states = old_state.attributes.get("specific_states", {})
+            self._hvac_mode_reason = specific_states.get(HVAC_MODE_REASON_NAME, self._hvac_off_reason)
             old_total_energy = specific_states.get(ATTR_TOTAL_ENERGY)
             if old_total_energy is None:
                 # Fallback to root level for backward compatibility
@@ -1286,6 +1288,14 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
         return self._hvac_off_reason
 
     @property
+    def hvac_mode_reason(self) -> str | None:
+        """Returns the reason why the current hvac_mode is forced.
+        Unlike hvac_off_reason, this is set whatever the forced hvac_mode is
+        (off, fan_only, dry, ...) so the UI can explain why the VTherm is not
+        in the requested mode."""
+        return self._hvac_mode_reason
+
+    @property
     def temperature_reason(self) -> str | None:
         """Returns the reason of the target temperature
         This is useful for features that changes the VTherm like window detection or power management"""
@@ -1738,6 +1748,10 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
         """Set the reason of hvac_off"""
         self._hvac_off_reason = hvac_off_reason
 
+    def set_hvac_mode_reason(self, hvac_mode_reason: str | None):
+        """Set the reason why the current hvac_mode is forced"""
+        self._hvac_mode_reason = hvac_mode_reason
+
     def set_temperature_reason(self, temperature_reason: str | None):
         """Set the reason of temperature"""
         self._temperature_reason = temperature_reason
@@ -1828,6 +1842,7 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
                 "ema_temp": self._ema_temp,
                 "temperature_slope": round(self.last_temperature_slope or 0, 3),
                 "hvac_off_reason": self.hvac_off_reason,
+                "hvac_mode_reason": self.hvac_mode_reason,
                 ATTR_TOTAL_ENERGY: self.total_energy,
                 "last_change_time_from_vtherm": (
                     self._last_change_time_from_vtherm.astimezone(self._current_tz).isoformat() if self._last_change_time_from_vtherm is not None else None

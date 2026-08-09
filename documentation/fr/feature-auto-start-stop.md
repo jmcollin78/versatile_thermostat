@@ -3,6 +3,7 @@
 - [Le démarrage / arrêt automatique (auto-start/stop)](#le-démarrage--arrêt-automatique-auto-startstop)
   - [Configurer l'auto-start/stop](#configurer-lauto-startstop)
   - [Usage](#usage)
+  - [Choisir le mode d'arrêt](#choisir-le-mode-darrêt)
 
 Cette fonction permet d'autoriser VTherm à stopper un équipement qui n'a pas besoin d'être allumé et de le redémarrer lorsque les conditions le réclame. Cette fonction est munie de 3 réglages qui permettent d'arrêter / relancer plus ou moins rapidement l'équipement.
 Exclusivement réservé au _VTherm_ de type `over_climate`, elle répond au cas d'usage suivant :
@@ -42,3 +43,16 @@ A noter : la fonction auto-start/stop ne rallumera un _VTherm_ que si celui-ci a
 > 1. L'algorithme de détection est décrit [ici](algorithms.md#lalgorithme-de-la-fonction-dauto-startstop).
 > 2. Certains équipements (chaudière, chauffage au sol, _PAC_, ...) n'aiment pas forcément être arrêtés / stoppés trop souvent. Si vous êtes dans ce cas, il peut être préférable de désactiver la fonction lorsque vous savez qu'il va être utilisé. Par exemple, je désactive cette fonction en journée si il y a une présence de détectée car je sais que ma _PAC_ va s'allumer souvent. J'autorise l'auto-start/stop la nuit ou en cas d'absence puisque la consigne est abaissée et qu'elle se déclenche peu, voir pas du tout.
 > 3. Si vous utilisez la carte Verstatile Thermostat UI (cf. [ici](additions.md#bien-mieux-avec-le-versatile-thermostat-ui-card)), une case à cocher est directement visible sur la carte pour désactiver l'auto-start/stop et un _VTherm_ stoppé par l'auto-start/stop est signalé par l'icone : ![auto-start/stop icone](images/auto-start-stop-icon.png).
+
+## Choisir le mode d'arrêt
+
+Par défaut, lorsque la fonction auto-start/stop détecte qu'un arrêt est nécessaire, le _VTherm_ est éteint (`Arrêt`). Certains équipements proposent des modes qui consomment peu tout en gardant l'appareil actif, comme la ventilation seule ou la déshumidification. Pour en profiter, une entité de type `select` nommée `select.<name>_auto_start_stop_stop_mode` est disponible sur l'appareil VTherm.
+
+Elle propose les valeurs suivantes :
+1. `Arrêt` : l'équipement est éteint lors d'un arrêt automatique (comportement par défaut),
+2. `Ventilation seule` : l'équipement est mis en ventilation seule lors d'un arrêt automatique,
+3. `Déshumidification` : l'équipement est mis en déshumidification lors d'un arrêt automatique.
+
+Les modes `Ventilation seule` et `Déshumidification` ne sont proposés que si l'équipement sous-jacent les supporte.
+
+Si vous modifiez ce réglage alors qu'un arrêt automatique est déjà en cours, le mode du _VTherm_ est immédiatement adapté à votre choix tout en conservant l'état d'arrêt.

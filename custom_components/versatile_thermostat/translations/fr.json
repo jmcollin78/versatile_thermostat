@@ -935,6 +935,16 @@
       "boost_ac_away_temp": {
         "name": "Boost clim abs"
       }
+    },
+    "select": {
+      "auto_start_stop_stop_mode": {
+        "name": "Mode d'arrêt auto start/stop",
+        "state": {
+          "off": "Arrêt",
+          "fan_only": "Ventilation seule",
+          "dry": "Déshumidification"
+        }
+      }
     }
   },
   "services": {

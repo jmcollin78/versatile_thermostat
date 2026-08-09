@@ -933,6 +933,16 @@
             "boost_ac_away_temp": {
                 "name": "Boost ac away"
             }
+        },
+        "select": {
+            "auto_start_stop_stop_mode": {
+                "name": "Auto start/stop stop mode",
+                "state": {
+                    "off": "Off",
+                    "fan_only": "Fan only",
+                    "dry": "Dry"
+                }
+            }
         }
     },
     "services": {

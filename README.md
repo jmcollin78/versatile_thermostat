@@ -27,6 +27,9 @@ Versatile Thermostat UI Card (Available on [Github](https://github.com/jmcollin7
 # What's New?
 ![New](images/new-icon.png)
 
+## Release 10.1
+Auto-start/stop stop mode selection. A new `select` entity lets you choose the mode applied when the auto-start/stop feature detects a stop condition: `Off` (default), `Fan only` or `Dry`. The `Fan only` and `Dry` modes are only proposed when the underlying appliance supports them. More information [here](documentation/en/feature-auto-start-stop.md).
+
 ## Release 10.0
 Introduction of the plugin mechanism. This allows the use of external integrations as plugins for _VTherm_. The list of available plugins is available on the [Versatile Thermostat Web site](https://www.versatile-thermostat.org/en/plugins).
 
