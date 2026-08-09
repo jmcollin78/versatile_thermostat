@@ -38,8 +38,8 @@ class FeaturePresenceManager(BaseFeatureManager):
 
     unrecorded_attributes = frozenset(
         {
-            "presence_sensor_entity_id",
             "is_presence_configured",
+            "presence_manager",
         }
     )
 

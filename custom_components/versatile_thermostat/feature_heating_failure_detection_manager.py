@@ -54,12 +54,8 @@ class FeatureHeatingFailureDetectionManager(BaseFeatureManager):
 
     unrecorded_attributes = frozenset(
         {
-            "heating_failure_threshold",
-            "cooling_failure_threshold",
-            "heating_failure_detection_delay",
-            "temperature_change_tolerance",
             "is_heating_failure_detection_configured",
-            "failure_detection_enable_template",
+            "heating_failure_detection_manager",
         }
     )
 

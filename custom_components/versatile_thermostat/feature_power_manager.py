@@ -31,13 +31,8 @@ class FeaturePowerManager(BaseFeatureManager):
 
     unrecorded_attributes = frozenset(
         {
-            "power_sensor_entity_id",
-            "max_power_sensor_entity_id",
             "is_power_configured",
-            "device_power",
-            "power_temp",
-            "current_power",
-            "current_max_power",
+            "power_manager",
         }
     )
 

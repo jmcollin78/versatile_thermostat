@@ -32,12 +32,8 @@ class FeatureAutoStartStopManager(BaseFeatureManager):
 
     unrecorded_attributes = frozenset(
         {
-            "auto_start_stop_level",
-            "auto_start_stop_dtmin",
-            "auto_start_stop_enable",
-            "auto_start_stop_accumulated_error",
-            "auto_start_stop_accumulated_error_threshold",
-            "auto_start_stop_last_switch_date",
+            "is_auto_start_stop_configured",
+            "auto_start_stop_manager",
         }
     )
 

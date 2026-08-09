@@ -32,10 +32,8 @@ class FeatureSafetyManager(BaseFeatureManager):
 
     unrecorded_attributes = frozenset(
         {
-            "safety_delay_min",
-            "safety_min_on_percent",
-            "safety_default_on_percent",
             "is_safety_configured",
+            "safety_manager",
         }
     )
 

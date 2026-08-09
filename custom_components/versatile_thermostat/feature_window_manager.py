@@ -43,15 +43,8 @@ class FeatureWindowManager(BaseFeatureManager):
 
     unrecorded_attributes = frozenset(
         {
-            "window_sensor_entity_id",
             "is_window_configured",
-            "window_delay_sec",
-            "window_off_delay_sec",
-            "window_auto_configured",
-            "window_auto_open_threshold",
-            "window_auto_close_threshold",
-            "window_auto_max_duration",
-            "window_action",
+            "window_manager",
         }
     )
 
