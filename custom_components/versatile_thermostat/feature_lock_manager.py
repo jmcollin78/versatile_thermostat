@@ -21,6 +21,14 @@ _LOGGER = get_vtherm_logger(__name__)
 
 class FeatureLockManager(BaseFeatureManager):
     """ The implementation of the Lock Feature Manager for Versatile Thermostat """
+
+    unrecorded_attributes = frozenset(
+        {
+            "is_lock_configured",
+            "lock_manager",
+        }
+    )
+
     def __init__(self, vtherm: Any, hass: HomeAssistant):
         """Initialize the FeatureLockManager."""
         super().__init__(vtherm, hass)

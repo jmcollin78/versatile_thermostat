@@ -85,11 +85,16 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
     _attr_swing_horizontal_mode = ""
 
     _entity_component_unrecorded_attributes = (
-        ClimateEntity._entity_component_unrecorded_attributes.union(frozenset({"configuration", "preset_temperatures"}))
+        ClimateEntity._entity_component_unrecorded_attributes.union(frozenset({"configuration", "preset_temperatures", "specific_states"}))
         .union(FeaturePresenceManager.unrecorded_attributes)
         .union(FeaturePowerManager.unrecorded_attributes)
         .union(FeatureMotionManager.unrecorded_attributes)
         .union(FeatureWindowManager.unrecorded_attributes)
+        .union(FeatureSafetyManager.unrecorded_attributes)
+        .union(FeatureLockManager.unrecorded_attributes)
+        .union(FeatureTimedPresetManager.unrecorded_attributes)
+        .union(FeatureHeatingFailureDetectionManager.unrecorded_attributes)
+        .union(FeatureRepairIncorrectStateManager.unrecorded_attributes)
     )
 
     ##

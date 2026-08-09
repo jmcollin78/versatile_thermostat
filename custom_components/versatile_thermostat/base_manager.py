@@ -17,6 +17,12 @@ _LOGGER = get_vtherm_logger(__name__)
 class BaseFeatureManager:
     """A base class for all feature"""
 
+    # Attributes that should be excluded from the recorder history. Each manager
+    # exposes its custom attributes under a dedicated top-level section key; that
+    # section name is declared here so the recorder skips the whole section
+    # (the recorder can only filter top-level keys, not nested ones).
+    unrecorded_attributes = frozenset()
+
     def __init__(self, vtherm: Any, hass: HomeAssistant, name: str = None):
         """Init of a featureManager"""
         self._vtherm = vtherm

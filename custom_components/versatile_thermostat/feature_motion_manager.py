@@ -42,12 +42,8 @@ class FeatureMotionManager(BaseFeatureManager):
 
     unrecorded_attributes = frozenset(
         {
-            "motion_sensor_entity_id",
             "is_motion_configured",
-            "motion_delay_sec",
-            "motion_off_delay_sec",
-            "motion_preset",
-            "no_motion_preset",
+            "motion_manager",
         }
     )
 

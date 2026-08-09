@@ -38,6 +38,7 @@ class FeatureRepairIncorrectStateManager(BaseFeatureManager):
     unrecorded_attributes = frozenset(
         {
             "is_repair_incorrect_state_configured",
+            "repair_incorrect_state_manager",
         }
     )
 
