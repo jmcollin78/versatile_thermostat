@@ -30,6 +30,9 @@ Le composant Versatile Thermostat UI Card (Disponible sur [Github](https://githu
 
 ![Nouveau](images/new-icon.png)
 
+## Release 10.1
+Choix du mode d'arrêt de l'auto-start/stop. Une nouvelle entité `select` permet de choisir le mode appliqué lorsque la fonction auto-start/stop détecte une condition d'arrêt : `Arrêt` (par défaut), `Ventilation seule` ou `Déshumidification`. Les modes `Ventilation seule` et `Déshumidification` ne sont proposés que si l'équipement sous-jacent les supporte. Plus d'informations [ici](documentation/fr/feature-auto-start-stop.md).
+
 ## Release 10.0
 Introduction du mécanisme de plugin. Cela va permettre d'utiliser des intégrations externes comme des plugins à _VTherm_. La liste des plugins disponibles est sur le [Versatile Thermostat Web site](https://www.versatile-thermostat.org/fr/plugins).
 

@@ -3,6 +3,7 @@
 - [Auto-start / Auto-stop](#auto-start--auto-stop)
   - [Configure Auto-start/stop](#configure-auto-startstop)
   - [Usage](#usage)
+  - [Choosing the stop mode](#choosing-the-stop-mode)
 
 This feature allows _VTherm_ to stop an appliance that doesn't need to be on and restart it when conditions require it. This function includes three settings that control how quickly the appliance is stopped and restarted.
 Exclusively reserved for _VTherm_ of type `over_climate`, it applies to the following use case:
@@ -40,3 +41,16 @@ Note: The auto-start/stop function will only turn a _VTherm_ back on if it was t
 > 1. The detection algorithm is described [here](algorithms.md#auto-startstop-algorithm).
 > 2. Some appliances (boilers, underfloor heating, _PAC_, etc.) may not like being started/stopped too frequently. If that's the case, it might be better to disable the function when you know the appliance will be used. For example, I disable this feature during the day when presence is detected because I know my _PAC_ will turn on often. I enable auto-start/stop at night or when no one is home, as the setpoint is lowered and it rarely triggers.
 > 3. If you use the Versatile Thermostat UI card (see [here](additions.md#better-with-the-versatile-thermostat-ui-card)), a checkbox is directly visible on the card to disable auto-start/stop, and a _VTherm_ stopped by auto-start/stop is indicated by the icon: ![auto-start/stop icon](images/auto-start-stop-icon.png).
+
+## Choosing the stop mode
+
+By default, when the auto-start/stop function detects that a stop is needed, the _VTherm_ is turned off (`Off`). Some appliances offer modes that consume little power while keeping the appliance active, such as fan only or dry. To take advantage of them, a `select` entity named `select.<name>_auto_start_stop_stop_mode` is available on the _VTherm_ device.
+
+It offers the following values:
+1. `Off`: the appliance is turned off on an automatic stop (default behavior),
+2. `Fan only`: the appliance is set to fan only on an automatic stop,
+3. `Dry`: the appliance is set to dry on an automatic stop.
+
+The `Fan only` and `Dry` modes are only proposed if the underlying appliance supports them.
+
+If you change this setting while an automatic stop is already active, the _VTherm_ mode is immediately adapted to your choice while keeping the stop state.

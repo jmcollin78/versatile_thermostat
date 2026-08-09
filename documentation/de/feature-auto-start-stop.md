@@ -1,8 +1,9 @@
 # Auto-Start / Auto-Stopp
 
-- [Auto-Start / Auto-Stopp](#auto-start--auto-stop)
+- [Auto-Start / Auto-Stopp](#auto-start--auto-stopp)
   - [Auto-Start/Stop konfigurieren](#auto-startstop-konfigurieren)
   - [Anwendung](#anwendung)
+  - [Auswahl des Stopp-Modus](#auswahl-des-stopp-modus)
 
 Mit dieser Funktion kann _VTherm_ ein Gerät stoppen, das nicht eingeschaltet sein muss, und es neu starten, wenn die Bedingungen es erfordern. Diese Funktion umfasst drei Einstellungen, welche die Geschwindigkeit des Stoppens und Wiedereinschaltens des Geräts bestimmen.
 Ausschließlich für _VTherm_ des Typs `over_climate` reserviert, gilt er für den folgenden Anwendungsfall:
@@ -40,3 +41,16 @@ Hinweis: Die Auto-Start/Stop-Funktion schaltet ein _VTherm_ nur dann wieder ein,
 > 1. Der Erkennungsalgorithmus ist [hier](algorithms.md#auto-startstop-algorithm) beschrieben.
 > 2. Einige Geräte (Heizkessel, Fußbodenheizung, _WP_, etc.) mögen es vielleicht nicht, wenn sie zu häufig gestartet/gestoppt werden. Wenn das der Fall ist, ist es vielleicht besser, die Funktion zu deaktivieren, wenn Sie wissen, dass das Gerät benutzt werden wird. Ich deaktiviere diese Funktion zum Beispiel tagsüber, wenn Anwesenheit erkannt wird, weil ich weiß, dass sich meine _WP_ oft einschalten wird. Nachts oder wenn niemand zu Hause ist, aktiviere ich die Start-Stopp-Automatik, da der Sollwert gesenkt wird und sie nur selten auslöst.
 > 3. Wenn Sie die Versatile Thermostat UI-Karte verwenden (siehe [hier](additions.md#better-with-the-versatile-thermostat-ui-card)), ist ein Kontrollkästchen direkt auf der Karte sichtbar, um Auto-Start/Stopp zu deaktivieren, und ein _VTherm_, das durch Auto-Start/Stopp gestoppt wurde, wird durch dieses Symbol angezeigt: ![auto-start/stop icon](images/auto-start-stop-icon.png).
+
+## Auswahl des Stopp-Modus
+
+Wenn die Auto-Start/Stopp-Funktion feststellt, dass ein Stopp erforderlich ist, wird _VTherm_ standardmäßig ausgeschaltet (`Aus`). Einige Geräte bieten Modi, die wenig Strom verbrauchen und das Gerät dennoch aktiv halten, wie z. B. nur Lüften oder Trocknen. Um diese zu nutzen, steht auf dem _VTherm_-Gerät eine Entity vom Typ `select` mit dem Namen `select.<name>_auto_start_stop_stop_mode` zur Verfügung.
+
+Sie bietet folgende Werte:
+1. `Aus`: Das Gerät wird bei einem automatischen Stopp ausgeschaltet (Standardverhalten),
+2. `Nur Lüften`: Das Gerät wird bei einem automatischen Stopp auf nur Lüften gesetzt,
+3. `Trocknen`: Das Gerät wird bei einem automatischen Stopp auf Trocknen gesetzt.
+
+Die Modi `Nur Lüften` und `Trocknen` werden nur angeboten, wenn das zugrunde liegende Gerät sie unterstützt.
+
+Wenn Sie diese Einstellung ändern, während ein automatischer Stopp bereits aktiv ist, wird der Modus von _VTherm_ sofort an Ihre Wahl angepasst, wobei der Stopp-Zustand beibehalten wird.

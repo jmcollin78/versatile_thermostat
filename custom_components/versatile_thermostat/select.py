@@ -4,8 +4,9 @@
 import logging
 from vtherm_api.log_collector import get_vtherm_logger
 
-from homeassistant.core import HomeAssistant
+from homeassistant.core import HomeAssistant, callback
 
+from homeassistant.const import EntityCategory
 from homeassistant.components.select import SelectEntity
 from homeassistant.helpers.device_registry import DeviceInfo, DeviceEntryType
 from homeassistant.config_entries import ConfigEntry
@@ -18,14 +19,22 @@ from custom_components.versatile_thermostat.base_thermostat import (
 
 from custom_components.versatile_thermostat.vtherm_central_api import VersatileThermostatAPI
 
+from .base_entity import VersatileThermostatBaseEntity
+
 from .const import (
     DOMAIN,
     DEVICE_MANUFACTURER,
     CONF_NAME,
     CONF_THERMOSTAT_TYPE,
     CONF_THERMOSTAT_CENTRAL_CONFIG,
+    CONF_THERMOSTAT_CLIMATE,
+    CONF_USE_AUTO_START_STOP_FEATURE,
     CENTRAL_MODE_AUTO,
     CENTRAL_MODES,
+    AUTO_START_STOP_STOP_MODE_OFF,
+    AUTO_START_STOP_STOP_MODE_FAN_ONLY,
+    AUTO_START_STOP_STOP_MODE_DRY,
+    AUTO_START_STOP_STOP_MODES,
     overrides,
 )
 from .commons import write_event_log
@@ -44,14 +53,16 @@ async def async_setup_entry(
     _LOGGER.debug("%s - Calling async_setup_entry entry=%s, data=%s", name, entry.entry_id, entry.data)
     vt_type = entry.data.get(CONF_THERMOSTAT_TYPE)
 
-    if vt_type != CONF_THERMOSTAT_CENTRAL_CONFIG:
-        return
+    entities = []
 
-    entities = [
-        CentralModeSelect(hass, unique_id, name, entry.data),
-    ]
+    if vt_type == CONF_THERMOSTAT_CENTRAL_CONFIG:
+        entities.append(CentralModeSelect(hass, unique_id, name, entry.data))
+    elif vt_type == CONF_THERMOSTAT_CLIMATE:
+        if entry.data.get(CONF_USE_AUTO_START_STOP_FEATURE) is True:
+            entities.append(AutoStartStopStopModeSelect(hass, unique_id, name, entry.data))
 
-    async_add_entities(entities, True)
+    if entities:
+        async_add_entities(entities, True)
 
 
 class CentralModeSelect(SelectEntity, RestoreEntity):
@@ -124,3 +135,88 @@ class CentralModeSelect(SelectEntity, RestoreEntity):
 
     def __str__(self) -> str:
         return f"VersatileThermostat-{self.name}"
+
+
+class AutoStartStopStopModeSelect(
+    VersatileThermostatBaseEntity, SelectEntity, RestoreEntity
+):
+    """Representation of the hvac_mode applied when the auto-start/stop
+    feature detects a stop condition (off, fan_only or dry)."""
+
+    def __init__(
+        self, hass: HomeAssistant, unique_id: str, name: str, entry_infos: ConfigData
+    ):
+        """Initialize the auto-start/stop stop mode select"""
+        super().__init__(hass, unique_id, name)
+        self._attr_name = "Auto start/stop stop mode"
+        self._attr_unique_id = f"{self._device_name}_auto_start_stop_stop_mode"
+        self._attr_translation_key = "auto_start_stop_stop_mode"
+        self._attr_entity_category = EntityCategory.CONFIG
+        self._attr_current_option = AUTO_START_STOP_STOP_MODE_OFF
+
+    @property
+    def icon(self) -> str | None:
+        """The icon"""
+        return "mdi:hvac"
+
+    @property
+    def options(self) -> list[str]:
+        """The available options, computed from the underlying supported hvac_modes"""
+        return self._build_options()
+
+    def _build_options(self) -> list[str]:
+        """Build the available options from the underlying supported hvac_modes.
+        fan_only and dry are only proposed if the underlying supports them."""
+        options = [AUTO_START_STOP_STOP_MODE_OFF]
+        climate = self.my_climate
+        if climate is not None:
+            hvac_modes = climate.hvac_modes
+            if AUTO_START_STOP_STOP_MODE_FAN_ONLY in hvac_modes:
+                options.append(AUTO_START_STOP_STOP_MODE_FAN_ONLY)
+            if AUTO_START_STOP_STOP_MODE_DRY in hvac_modes:
+                options.append(AUTO_START_STOP_STOP_MODE_DRY)
+        return options
+
+    @callback
+    def my_climate_is_initialized(self):
+        """Called when the associated climate is initialized -> validate the current option"""
+        if self._attr_current_option not in self.options:
+            self._attr_current_option = AUTO_START_STOP_STOP_MODE_OFF
+        self.hass.create_task(self.update_my_state_and_vtherm())
+
+    @overrides
+    async def async_added_to_hass(self):
+        # Restore the persisted value before looking for the climate so that
+        # my_climate_is_initialized validates the options against it.
+        last_state = await self.async_get_last_state()
+        if last_state is not None and last_state.state in AUTO_START_STOP_STOP_MODES:
+            self._attr_current_option = last_state.state
+
+        await super().async_added_to_hass()
+
+        await self.update_my_state_and_vtherm()
+
+    async def update_my_state_and_vtherm(self):
+        """Update the stop mode in my VTherm auto-start/stop manager"""
+        self.async_write_ha_state()
+        if (
+            self.my_climate is not None
+            and self.my_climate.auto_start_stop_manager is not None
+        ):
+            await self.my_climate.auto_start_stop_manager.set_auto_start_stop_stop_mode(self._attr_current_option)
+
+    @overrides
+    async def async_select_option(self, option: str) -> None:
+        """Change the selected option."""
+        if option == self._attr_current_option:
+            return
+
+        if option in self.options:
+            write_event_log(_LOGGER, self, f"Auto start/stop stop mode is being changed from {self._attr_current_option} to {option}")
+            self._attr_current_option = option
+            await self.update_my_state_and_vtherm()
+
+    @overrides
+    def select_option(self, option: str) -> None:
+        """Change the selected option"""
+        self.hass.create_task(self.async_select_option(option))

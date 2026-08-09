@@ -27,6 +27,9 @@ Versatile Thermostat UI Card (Verfügbar auf [Github](https://github.com/jmcolli
 # Was ist neu?
 ![Neu](images/new-icon.png)
 
+## Release 10.1
+Auswahl des Stopp-Modus für Auto-Start/Stopp. Eine neue `select`-Entität ermöglicht die Auswahl des Modus, der angewendet wird, wenn die Auto-Start/Stopp-Funktion eine Stoppbedingung erkennt: `Aus` (Standard), `Nur Lüfter` oder `Trocknen`. Die Modi `Nur Lüfter` und `Trocknen` werden nur angeboten, wenn das zugrunde liegende Gerät sie unterstützt. Weitere Informationen [hier](documentation/en/feature-auto-start-stop.md).
+
 ## Release 10.0
 Einführung des Plugin-Mechanismus. Dadurch können externe Integrationen als Plugins für _VTherm_ verwendet werden. Die Liste der verfügbaren Plugins ist auf der [Versatile Thermostat Web site](https://www.versatile-thermostat.org/de/plugins) verfügbar.
 

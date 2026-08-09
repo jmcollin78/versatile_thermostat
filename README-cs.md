@@ -27,6 +27,9 @@ Versatile Thermostat UI Card (K dispozici na [Github](https://github.com/jmcolli
 # Co je nového?
 ![Nové](images/new-icon.png)
 
+## Verze 10.1
+Výběr režimu zastavení pro automatické spuštění/zastavení. Nová entita `select` umožňuje zvolit režim použitý, když funkce automatického spuštění/zastavení zjistí podmínku zastavení: `Vypnuto` (výchozí), `Pouze ventilátor` nebo `Vysoušení`. Režimy `Pouze ventilátor` a `Vysoušení` jsou nabízeny pouze tehdy, pokud je podřízené zařízení podporuje. Více informací [zde](documentation/cs/feature-auto-start-stop.md).
+
 ## Verze 10.0
 Zavedení mechanismu pluginů. Umožňuje používat externí integrace jako pluginy pro _VTherm_. Seznam dostupných pluginů je na [webu Versatile Thermostat](https://www.versatile-thermostat.org/cs/plugins).
 

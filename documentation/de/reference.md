@@ -18,7 +18,7 @@
   - [Zeitgesteuertes Preset](#zeitgesteuertes-preset)
 - [Ereignisse](#ereignisse)
 - [Benutzerdefinierte Attribute](#benutzerdefinierte-attribute)
-  - [Für _VTherm_](#für-vtherm)
+  - [Für ein _VTherm_](#für-ein-vtherm)
   - [Für die zentrale Konfiguration](#für-die-zentrale-konfiguration)
 - [Statusmeldungen](#statusmeldungen)
 
@@ -71,8 +71,8 @@
 | ``max_power_sensor_entity_id``            | Leistungssensor Max (Entity-ID)                                                   | X             | X                  | X            | X                        |
 | ``power_temp``                            | Temperatur bei Lastabwurf                                                         | X             | X                  | X            | X                        |
 | ``presence_sensor_entity_id``             | Anwesenheitssensor Entity-ID (true, wenn jemand anwesend ist)                     | X             | X                  | X            | -                        |
-| ``minimal_activation_delay``              | Mindestverzögerung bei der Aktivierung                                                | X             | -                  | -            | X                        |
-| ``minimal_deactivation_delay``            | Mindestverzögerung bei der Deaktivierung                                 | X             | -                   | -            | X                       |
+| ``minimal_activation_delay``              | Mindestverzögerung bei der Aktivierung                                            | X             | -                  | -            | X                        |
+| ``minimal_deactivation_delay``            | Mindestverzögerung bei der Deaktivierung                                          | X             | -                  | -            | X                        |
 | ``safety_delay_min``                      | Maximale Zeitspanne zwischen zwei Temperaturmessungen                             | X             | -                  | X            | X                        |
 | ``safety_min_on_percent``                 | Mindestprozentsatz der Leistung für den Übergang in den Sicherheitsmodus          | X             | -                  | X            | X                        |
 | ``auto_regulation_mode``                  | Der Selbstregulierungsmodus                                                       | -             | X                  | -            | -                        |
@@ -438,6 +438,7 @@ Die benutzerdefinierten Attribute sind folgende:
 | ``ema_temp``                                    | Die aktuelle Durchschnittstemperatur. Berechnet als exponentieller gleitender Durchschnitt der vorherigen Werte. Wird zur Berechnung von `temperature_slope` verwendet.                                          |
 | ``temperature_slope``                           | Die aktuelle Temperatursteigung in °/Stunde                                                                                                                                                                      |
 | ``hvac_off_reason``                             | Gibt den Grund für die Abschaltung von VTherm (hvac_off) an. Mögliche Werte sind "Fenster", "Automatischer Start/Stopp" oder "Manuell".                                                                          |
+| ``hvac_mode_reason``                            | Gibt den Grund für den aktuellen VTherm-Modus (hvac_mode) an. Mögliche Werte sind "Fenster", "Automatischer Start/Stopp", "Zentralmodus", "Sicherheit", "Manuell" oder "Ruhemodus".                              |
 | ``total_energy``                                | Eine Schätzung des Gesamtenergieverbrauchs dieses VTherm                                                                                                                                                         |
 | ``last_change_time_from_vtherm``                | Datum und Uhrzeit der letzten von VTherm vorgenommenen Änderung                                                                                                                                                  |
 | ``messages``                                    | Eine Liste von Meldungen, die die Berechnung des aktuellen Zustands erläutern. Siehe [Zustandsmeldungen](#zustandsmeldungen)                                                                                     |
@@ -470,7 +471,7 @@ Die benutzerdefinierten Attribute sind folgende:
 | **ABSCHNITT `presence_manager`**                | ------ nur wenn `is_presence_configured` den Wert `true` hat                                                                                                                                                     |
 | ``presence_sensor_entity_id``                   | Die für die Anwesenheitserkennung verwendete Entität                                                                                                                                                             |
 | ``presence_state``                              | `on`, wenn eine Anwesenheit festgestellt wird. `off`, wenn keine Anwesenheit festgestellt wird                                                                                                                   |
- **ABSCHNITT `motion_manager`**                   | ------ nur wenn `is_motion_configured` den Wert `true` hat                                                                                                                                                       |
+| **ABSCHNITT `motion_manager`**                  | ------ nur wenn `is_motion_configured` den Wert `true` hat                                                                                                                                                       |
 | ``motion_sensor_entity_id``                     | Die zur Bewegungserkennung verwendete Entität                                                                                                                                                                    |
 | ``motion_state``                                | `on`, wenn eine Bewegung erkannt wird. `off`, wenn keine Bewegung erkannt wird                                                                                                                                   |
 | ``motion_delay_sec``                            | Die Verzögerung in Sekunden bei der Bewegungserkennung, wenn der Sensor von `aus` auf `ein` umschaltet                                                                                                           |
@@ -510,6 +511,7 @@ Die benutzerdefinierten Attribute sind folgende:
 | ``auto_start_stop_accumulated_error``           | Der Wert `accumulated_error` des Auto-Start/Stopp-Algorithmus                                                                                                                                                    |
 | ``auto_start_stop_accumulated_error_threshold`` | Der Schwellwert `accumulated_error` des Auto-Start/Stopp-Algorithmus                                                                                                                                             |
 | ``auto_start_stop_last_switch_date``            | Datum und Uhrzeit der letzten Umschaltung durch den Auto-Start/Stopp-Algorithmus                                                                                                                                 |
+| ``auto_start_stop_stop_mode``                   | Der bei einem automatischen Stopp angewendete Modus. Mögliche Werte sind `off`, `fan_only` oder `dry`                                                                                                            |
 | **ABSCHNITT `timed_preset_manager`**            | ------                                                                                                                                                                                                           |
 | ``timed_preset_active``                         | `true`, wenn eine zeitgesteuerte Voreinstellung aktiv ist                                                                                                                                                        |
 | ``timed_preset_preset``                         | Der Name der aktiven zeitgesteuerten Voreinstellung (oder `null`, falls keine vorhanden ist)                                                                                                                     |

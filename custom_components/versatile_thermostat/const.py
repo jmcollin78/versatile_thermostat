@@ -50,13 +50,14 @@ DOMAIN = "versatile_thermostat"
 
 # The order is important.
 PLATFORMS: list[Platform] = [
-    Platform.SELECT,
     Platform.CLIMATE,
     Platform.SENSOR,
     # Number should be after CLIMATE
     Platform.NUMBER,
     Platform.BINARY_SENSOR,
     Platform.SWITCH,
+    # Select should be after CLIMATE
+    Platform.SELECT,
 ]
 
 CONF_UNDERLYING_LIST = "underlying_entity_ids"
@@ -244,7 +245,18 @@ TYPE_AUTO_START_STOP_LEVELS = Literal[  # pylint: disable=invalid-name
     AUTO_START_STOP_LEVEL_NONE,
 ]
 
+# The hvac_mode applied when the auto-start/stop feature detects a stop condition
+AUTO_START_STOP_STOP_MODE_OFF = str(VThermHvacMode_OFF)
+AUTO_START_STOP_STOP_MODE_FAN_ONLY = str(VThermHvacMode_FAN_ONLY)
+AUTO_START_STOP_STOP_MODE_DRY = str(VThermHvacMode_DRY)
+AUTO_START_STOP_STOP_MODES = [
+    AUTO_START_STOP_STOP_MODE_OFF,
+    AUTO_START_STOP_STOP_MODE_FAN_ONLY,
+    AUTO_START_STOP_STOP_MODE_DRY,
+]
+
 HVAC_OFF_REASON_NAME = "hvac_off_reason"
+HVAC_MODE_REASON_NAME = "hvac_mode_reason"
 HVAC_OFF_REASON_MANUAL = "hvac_off_manual"
 HVAC_OFF_REASON_AUTO_START_STOP = "hvac_off_auto_start_stop"
 HVAC_OFF_REASON_WINDOW_DETECTION = "hvac_off_window_detection"
