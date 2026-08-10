@@ -772,26 +772,35 @@ async def test_over_climate_no_regulation_outside_heat_cool(
     await entity._send_regulated_temperature(force=True)
     assert entity.regulated_target_temp != entity.target_temperature
 
-    # 2. Switch to DRY mode: auto-regulation must be disabled and the raw target
-    # temperature must be sent to the underlying.
-    now = now + timedelta(minutes=3)
-    entity._set_now(now)
-    await entity.async_set_hvac_mode(VThermHvacMode_DRY)
-    await hass.async_block_till_done()
+    under = entity._underlyings[0]
+    # In cool mode the last sent temperature is the regulated value (different from target)
+    assert under.last_sent_temperature != entity.target_temperature
 
-    assert entity.vtherm_hvac_mode is VThermHvacMode_DRY
-
-    with patch("custom_components.versatile_thermostat.underlyings.UnderlyingClimate.set_temperature") as mock_set_temp:
-        await entity._send_regulated_temperature(force=True)
+    # Patch the service call so the real set_temperature runs and updates
+    # last_sent_temperature, allowing the de-duplication logic to be exercised.
+    with patch("custom_components.versatile_thermostat.underlyings.UnderlyingClimate.hass_services_async_call") as mock_service_call:
+        # 2. Switch to DRY mode: auto-regulation must be disabled and the raw target
+        # temperature must be sent to the underlying.
+        now = now + timedelta(minutes=3)
+        entity._set_now(now)
+        await entity.async_set_hvac_mode(VThermHvacMode_DRY)
         await hass.async_block_till_done()
+
+        assert entity.vtherm_hvac_mode is VThermHvacMode_DRY
 
         # The regulated target temperature must be forced to the raw target temperature
         assert entity.regulated_target_temp == entity.target_temperature
 
-        # The underlying must receive the raw target temperature (no regulation offset)
-        assert mock_set_temp.call_count == 1
-        sent_temp = mock_set_temp.call_args[0][0]
-        assert sent_temp == entity.target_temperature, f"Expected raw target temp {entity.target_temperature} but got {sent_temp}"
+        # The underlying must have received the raw target temperature (no regulation offset)
+        assert under.last_sent_temperature == entity.target_temperature
+
+        # 3. A new regulation cycle with an unchanged target must NOT resend the
+        # setpoint to avoid resending the same command on each cycle.
+        calls_after_switch = mock_service_call.call_count
+        now = now + timedelta(minutes=3)
+        entity._set_now(now)
+        await entity._send_regulated_temperature(force=True)
+        await hass.async_block_till_done()
+        assert mock_service_call.call_count == calls_after_switch
 
     entity.remove_thermostat()
-

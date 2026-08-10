@@ -182,9 +182,12 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
             )
             # Outside of heat/cool the device is active but must receive the original
             # (non regulated) target temperature. Force the regulated temperature to the
-            # target temperature and send it to all underlyings.
+            # target temperature and send it to all underlyings only when it differs from
+            # the last sent value, to avoid resending the same setpoint on each cycle.
             self._regulated_target_temp = self.target_temperature
             for under in self._underlyings:
+                if under.last_sent_temperature == self.target_temperature:
+                    continue
                 await under.set_temperature(
                     self.target_temperature,
                     self._attr_max_temp,
