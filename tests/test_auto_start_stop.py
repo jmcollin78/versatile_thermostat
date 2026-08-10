@@ -1785,3 +1785,125 @@ async def test_auto_start_stop_disable_vtherm_off(
         )
 
     vtherm.remove_thermostat()
+
+
+async def test_auto_start_stop_dry_stop_mode_uses_ac_preset_temp(hass: HomeAssistant, skip_hass_states_is_state):
+    """Regression test: with an AC-mode over_climate VTherm running in COOL mode and a
+    DRY auto-start/stop stop mode, when the stop conditions are reached the VTherm must
+    switch to DRY while keeping the AC preset temperature (comfort_ac).
+
+    Without the fix, find_preset_temp() falls back to the heating preset while in DRY
+    (because vtherm_hvac_mode is DRY, not COOL), so the effective target temperature
+    changes (comfort_ac -> comfort). That target change re-triggers reset_switch_delay,
+    which flips the auto-stop decision and produces an infinite DRY <-> COOL loop.
+    """
+
+    # The temperatures to set
+    temps = {
+        "frost": 7.0,
+        "eco": 17.0,
+        "comfort": 19.0,
+        "boost": 21.0,
+        "eco_ac": 27.0,
+        "comfort_ac": 25.0,
+        "boost_ac": 23.0,
+        "frost_away": 7.1,
+        "eco_away": 17.1,
+        "comfort_away": 19.1,
+        "boost_away": 21.1,
+        "eco_ac_away": 27.1,
+        "comfort_ac_away": 25.1,
+        "boost_ac_away": 23.1,
+    }
+
+    config_entry = MockConfigEntry(
+        domain=DOMAIN,
+        title="TheOverClimateMockName",
+        unique_id="overClimateUniqueId",
+        data={
+            CONF_NAME: "overClimate",
+            CONF_TEMP_SENSOR: "sensor.mock_temp_sensor",
+            CONF_THERMOSTAT_TYPE: CONF_THERMOSTAT_CLIMATE,
+            CONF_EXTERNAL_TEMP_SENSOR: "sensor.mock_ext_temp_sensor",
+            CONF_CYCLE_MIN: 5,
+            CONF_TEMP_MIN: 15,
+            CONF_TEMP_MAX: 30,
+            CONF_USE_WINDOW_FEATURE: False,
+            CONF_USE_MOTION_FEATURE: False,
+            CONF_USE_POWER_FEATURE: False,
+            CONF_USE_AUTO_START_STOP_FEATURE: True,
+            CONF_USE_PRESENCE_FEATURE: True,
+            CONF_PRESENCE_SENSOR: "binary_sensor.presence_sensor",
+            CONF_UNDERLYING_LIST: ["climate.mock_climate"],
+            CONF_MINIMAL_ACTIVATION_DELAY: 30,
+            CONF_MINIMAL_DEACTIVATION_DELAY: 0,
+            CONF_SAFETY_DELAY_MIN: 5,
+            CONF_SAFETY_MIN_ON_PERCENT: 0.3,
+            CONF_AUTO_FAN_MODE: CONF_AUTO_FAN_TURBO,
+            CONF_AC_MODE: True,
+            CONF_AUTO_START_STOP_LEVEL: AUTO_START_STOP_LEVEL_FAST,
+        },
+    )
+
+    # The underlying must support DRY so that the dry stop mode can be applied
+    await create_and_register_mock_climate(
+        hass,
+        "mock_climate",
+        "mock_climate",
+        {},
+        hvac_modes=[VThermHvacMode_OFF, VThermHvacMode_COOL, VThermHvacMode_HEAT, VThermHvacMode_DRY],
+    )
+
+    vtherm: ThermostatOverClimate = await create_thermostat(hass, config_entry, "climate.overclimate")
+
+    assert vtherm is not None
+
+    # Initialize all temps
+    await set_all_climate_preset_temp(hass, vtherm, temps, "overclimate")
+
+    # Use DRY as the auto-start/stop stop mode
+    await vtherm.auto_start_stop_manager.set_auto_start_stop_stop_mode(AUTO_START_STOP_STOP_MODE_DRY)
+
+    tz = get_tz(hass)  # pylint: disable=invalid-name
+    now: datetime = datetime.now(tz=tz)
+
+    # 1. Set mode to Cool and preset to Comfort -> AC comfort preset (25.0)
+    await send_presence_change_event(vtherm, True, False, now)
+    await send_temperature_change_event(vtherm, 27, now, True)
+    await vtherm.async_set_hvac_mode(VThermHvacMode_COOL)
+    await vtherm.async_set_preset_mode(VThermPreset.COMFORT)
+    await hass.async_block_till_done()
+
+    assert vtherm.target_temperature == 25.0
+    assert vtherm.hvac_mode == VThermHvacMode_COOL
+
+    # 2. Set current temperature to 25 (== target) 5 min later -> no change
+    now = now + timedelta(minutes=5)
+    vtherm.auto_start_stop_manager._auto_start_stop_algo._accumulated_error = 0
+    vtherm._set_now(now)
+    await send_temperature_change_event(vtherm, 25, now, True)
+    await hass.async_block_till_done()
+    assert vtherm.hvac_mode == VThermHvacMode_COOL
+
+    # 3. Set current temperature to 23 (below target) 5 min later -> should stop to DRY
+    now = now + timedelta(minutes=5)
+    vtherm._set_now(now)
+    await send_temperature_change_event(vtherm, 23, now, True)
+    await wait_for_local_condition(lambda: vtherm.hvac_mode == VThermHvacMode_DRY, timeout=3.0, hass=hass)
+
+    # VTherm must have switched to DRY (the configured stop mode)
+    assert vtherm.hvac_mode == VThermHvacMode_DRY
+    assert vtherm.auto_start_stop_manager.is_auto_stop_detected is True
+
+    # THE KEY ASSERTION: while in DRY, the effective target temperature must remain the
+    # AC comfort preset (25.0), not the heating comfort preset (19.0). This is what
+    # prevents the reset_switch_delay-induced DRY <-> COOL oscillation.
+    assert vtherm.target_temperature == 25.0, f"While in DRY stop mode, target temperature should remain at AC comfort preset " f"(25.0) but got {vtherm.target_temperature}."
+
+    # 4. The state must be stable: re-evaluating must not flip back to COOL
+    await hass.async_block_till_done()
+    assert vtherm.hvac_mode == VThermHvacMode_DRY
+    assert vtherm.auto_start_stop_manager.is_auto_stop_detected is True
+    assert vtherm.target_temperature == 25.0
+
+    vtherm.remove_thermostat()
