@@ -86,8 +86,11 @@ class PITemperatureRegulator:
         # Calculate the sum of error (I)
         # Discussion #384. Finally don't reset the accumulated error but smoothly reset it if the sign is inversed
         # If the error have change its sign, reset smoothly the accumulated error
+        # The divisor is clamped so that a fractional cycle (time_delta < 0.5), which happens when
+        # the regulation is triggered twice in quick succession (e.g. repeated target changes),
+        # can never amplify the accumulated error instead of decaying it.
         if self.overheat_protection and error * self.accumulated_error < 0:
-            self.accumulated_error = self.accumulated_error / (2.0 * time_delta)
+            self.accumulated_error = self.accumulated_error / (2.0 * max(time_delta, 0.5))
 
         self.accumulated_error += error * time_delta
 
