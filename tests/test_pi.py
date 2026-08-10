@@ -274,3 +274,33 @@ def test_pi_algorithm_time_delta():
     assert the_algo.calculate_regulated_temperature(25, 15, 1.0) == 25.8
     assert the_algo.calculate_regulated_temperature(25, 15, 1.0) == 25.4
     assert the_algo.calculate_regulated_temperature(25, 15, 10.0) == 25.2  # miss 9 cycles, capped
+
+
+def test_pi_algorithm_small_time_delta_sign_change():
+    """A fractional cycle (time_delta < 0.5) on a sign change must never amplify the
+    accumulated error (issue #2024). The divisor is clamped so the integral keeps decaying."""
+
+    the_algo = PITemperatureRegulator(
+        target_temp=20,
+        kp=0.6,
+        ki=0.2,
+        k_ext=0.2,
+        offset_max=4,
+        accumulated_error_threshold=40,
+        overheat_protection=True,
+    )
+
+    assert the_algo
+
+    # Build up a positive accumulated error
+    the_algo.set_target_temp(20)
+    the_algo.reset_accumulated_error()
+    the_algo.calculate_regulated_temperature(18, 18, 1.0)
+    the_algo.calculate_regulated_temperature(18, 18, 1.0)
+    positive_accumulated_error = the_algo.accumulated_error
+    assert positive_accumulated_error > 0
+
+    # A sign change with a near-zero time_delta must decay (or keep) the accumulated error,
+    # never amplify it. Before the fix, dividing by (2.0 * 0.001) multiplied it by ~500.
+    the_algo.calculate_regulated_temperature(22, 18, 0.001)
+    assert abs(the_algo.accumulated_error) <= positive_accumulated_error
