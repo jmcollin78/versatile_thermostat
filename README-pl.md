@@ -33,6 +33,8 @@ Karta integracji VTherm UI (dostępna na [Github](https://github.com/jmcollin78/
 ## Wydanie 10.1
 Wybór trybu zatrzymania dla autoSTART/autoSTOP. Nowa encja `select` pozwala wybrać tryb stosowany, gdy funkcja autoSTART/autoSTOP wykryje warunek zatrzymania: `Wyłączony` (domyślnie), `Tylko wentylacja` lub `Osuszanie`. Tryby `Tylko wentylacja` i `Osuszanie` są proponowane tylko wtedy, gdy urządzenie podrzędne je obsługuje. Więcej informacji [tutaj](documentation/pl/feature-auto-start-stop.md).
 
+Samoregulacja jest teraz wyłączona, gdy _VTherm_ typu `over_climate` nie jest w trybie `Grzanie` lub `Chłodzenie`: do urządzenia podrzędnego wysyłana jest oryginalna (nieregulowana) temperatura zadana. Więcej informacji [tutaj](documentation/pl/self-regulation.md).
+
 ## Wydanie 10.0
 Wprowadzenie mechanizmu wtyczek. Umożliwia to korzystanie z zewnętrznych integracji jako wtyczek dla _VTherm_. Lista dostępnych wtyczek jest dostępna na stronie [Versatile Thermostat Web site](https://www.versatile-thermostat.org/pl/plugins).
 

@@ -59,6 +59,9 @@ W drugim przypadku _*Versatile Thermostat*_ oblicza offset (przesunięcie) na po
 
 Te trzy informacje są łączone w celu obliczenia offsetu, który zostanie dodany do bieżącej temperatury zadanej i przesłany do urządzenia.
 
+> ![Wskazówka](images/tips.png) _*Uwaga*_
+> Samoregulacja jest stosowana tylko wtedy, gdy _VTherm_ jest w trybie `Grzanie` lub `Chłodzenie`. W dowolnym innym trybie (na przykład `Osuszanie` lub `Tylko wentylator`) samoregulacja jest wyłączona, a do urządzenia podrzędnego wysyłana jest oryginalna (nieregulowana) temperatura zadana.
+
 Samoregulacja jest konfigurowana za pomocą:
 1. Stopnia regulacji:
    1. **Słaby** – dla małych potrzeb samoregulacji. W tym trybie maksymalny offset wyniesie `1,5°C`.

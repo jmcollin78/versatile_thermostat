@@ -97,6 +97,9 @@ In the second case, Versatile Thermostat calculates an offset based on the follo
 
 These three pieces of information are combined to calculate the offset, which will be added to the current setpoint and sent to the underlying climate.
 
+> ![Tip](images/tips.png) _*Note*_
+> Self-regulation only applies when the _VTherm_ is in `Heat` or `Cool` mode. In any other mode (for example `Dry` or `Fan only`), self-regulation is disabled and the original (non-regulated) setpoint is sent to the underlying device.
+
 Self-regulation is configured with:
 1. A regulation degree:
    1. Light - for small self-regulation needs. In this mode, the maximum offset will be 1.5°C.

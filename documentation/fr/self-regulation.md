@@ -99,6 +99,9 @@ Dans ce deuxième cas, le Versatile Thermostat calcule un décalage basé sur le
 
 Ces trois informations sont combinées pour calculer le décalage qui sera ajouté à la consigne courante et envoyé au climate sous-jacent.
 
+> ![Astuce](images/tips.png) _*Note*_
+> L'auto-régulation ne s'applique que lorsque le _VTherm_ est en mode `Chauffage` ou `Refroidissement`. Dans tout autre mode (par exemple `Déshumidification` ou `Ventilation seule`), l'auto-régulation est désactivée et la consigne d'origine (non régulée) est envoyée à l'équipement sous-jacent.
+
 La fonction d'auto-régulation se paramètre avec :
 1. une degré de régulation :
    1. Légère - pour des faibles besoins en auto-régulation. Dans ce mode, le décalage maximal sera de 1,5°,

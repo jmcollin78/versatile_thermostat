@@ -97,6 +97,9 @@ Im zweiten Fall berechnet Versatile Thermostat einen Offset auf der Grundlage de
 
 Diese drei Informationen werden kombiniert, um den Offset zu berechnen, der zum aktuellen Sollwert addiert und an das zugehörige Klima gesendet wird.
 
+> ![Tipp](images/tips.png) _*Hinweis*_
+> Die Selbstregulierung wird nur angewendet, wenn sich das _VTherm_ im Modus `Heizen` oder `Kühlen` befindet. In jedem anderen Modus (zum Beispiel `Entfeuchten` oder `Nur Lüften`) ist die Selbstregulierung deaktiviert und der ursprüngliche (nicht regulierte) Sollwert wird an das zugehörige Gerät gesendet.
+
 Die Selbstregulierung wird konfiguriert mit:
 1. Einer Regulierungsstufe::
    1. Leicht - für geringe Anforderungen an die Selbstregulierung. In diesem Modus beträgt die maximale Abweichung 1,5°C.

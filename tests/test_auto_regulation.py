@@ -691,3 +691,107 @@ async def test_over_climate_set_regulation_mode_none_replaces_algo(
     assert entity._regulation_algo.calculate_regulated_temperature(17, 10, 1.0) == 20
 
     entity.remove_thermostat()
+
+
+async def test_over_climate_no_regulation_outside_heat_cool(
+    hass: HomeAssistant, skip_hass_states_is_state, skip_send_event, fake_temp_sensor, fake_ext_temp_sensor
+):
+    """Test that auto-regulation is disabled when the over_climate is not in heat nor cool.
+
+    When the VTherm runs in a mode other than heat/cool (e.g. dry), the underlying must
+    receive the original (non regulated) target temperature."""
+
+    entry = MockConfigEntry(
+        domain=DOMAIN,
+        title="TheOverClimateMockName",
+        unique_id="uniqueId",
+        data={
+            CONF_NAME: "TheOverClimateMockName",
+            CONF_TEMP_SENSOR: "sensor.mock_temp_sensor",
+            CONF_THERMOSTAT_TYPE: CONF_THERMOSTAT_CLIMATE,
+            CONF_EXTERNAL_TEMP_SENSOR: "sensor.mock_ext_temp_sensor",
+            CONF_CYCLE_MIN: 5,
+            CONF_TEMP_MIN: 15,
+            CONF_TEMP_MAX: 30,
+            CONF_STEP_TEMPERATURE: 0.1,
+            CONF_USE_WINDOW_FEATURE: False,
+            CONF_USE_MOTION_FEATURE: False,
+            CONF_USE_POWER_FEATURE: False,
+            CONF_USE_PRESENCE_FEATURE: False,
+            CONF_UNDERLYING_LIST: ["climate.mock_climate"],
+            CONF_AC_MODE: True,
+            CONF_AUTO_REGULATION_MODE: CONF_AUTO_REGULATION_MEDIUM,
+            CONF_AUTO_REGULATION_DTEMP: 0.5,
+            CONF_AUTO_REGULATION_PERIOD_MIN: 2,
+            CONF_AUTO_FAN_MODE: CONF_AUTO_FAN_NONE,
+            CONF_AUTO_REGULATION_USE_DEVICE_TEMP: False,
+            CONF_MINIMAL_ACTIVATION_DELAY: 30,
+            CONF_MINIMAL_DEACTIVATION_DELAY: 0,
+            CONF_SAFETY_DELAY_MIN: 5,
+            CONF_SAFETY_MIN_ON_PERCENT: 0.3,
+        },
+    )
+
+    # The underlying must support DRY so the VTherm can be set to dry mode
+    await create_and_register_mock_climate(
+        hass,
+        "mock_climate",
+        "MockClimateName",
+        {},
+        hvac_modes=[VThermHvacMode_OFF, VThermHvacMode_COOL, VThermHvacMode_HEAT, VThermHvacMode_DRY],
+    )
+
+    tz = get_tz(hass)  # pylint: disable=invalid-name
+    now: datetime = datetime.now(tz=tz)
+
+    entity: ThermostatOverClimate = await create_thermostat(hass, entry, "climate.theoverclimatemockname")
+
+    assert entity
+    assert isinstance(entity, ThermostatOverClimate)
+    assert entity.is_over_climate is True
+    assert entity.is_regulated is True
+
+    await wait_for_local_condition(lambda: entity.is_ready is True)
+
+    # 1. Set the VTherm in COOL mode with a manual target of 25°C and a hot room so
+    # that the regulation is active and lowers the regulated temperature.
+    now = now + timedelta(minutes=5)
+    entity._set_now(now)
+    fake_temp_sensor.set_native_value(30)
+    fake_ext_temp_sensor.set_native_value(35)
+    await entity.async_set_hvac_mode(VThermHvacMode_COOL)
+    await entity.async_set_temperature(temperature=25)
+    await hass.async_block_till_done()
+
+    assert entity.vtherm_hvac_mode is VThermHvacMode_COOL
+    assert entity.target_temperature == 25
+
+    # Force a regulation calculation: the regulated temperature must differ from target
+    now = now + timedelta(minutes=3)
+    entity._set_now(now)
+    await entity._send_regulated_temperature(force=True)
+    assert entity.regulated_target_temp != entity.target_temperature
+
+    # 2. Switch to DRY mode: auto-regulation must be disabled and the raw target
+    # temperature must be sent to the underlying.
+    now = now + timedelta(minutes=3)
+    entity._set_now(now)
+    await entity.async_set_hvac_mode(VThermHvacMode_DRY)
+    await hass.async_block_till_done()
+
+    assert entity.vtherm_hvac_mode is VThermHvacMode_DRY
+
+    with patch("custom_components.versatile_thermostat.underlyings.UnderlyingClimate.set_temperature") as mock_set_temp:
+        await entity._send_regulated_temperature(force=True)
+        await hass.async_block_till_done()
+
+        # The regulated target temperature must be forced to the raw target temperature
+        assert entity.regulated_target_temp == entity.target_temperature
+
+        # The underlying must receive the raw target temperature (no regulation offset)
+        assert mock_set_temp.call_count == 1
+        sent_temp = mock_set_temp.call_args[0][0]
+        assert sent_temp == entity.target_temperature, f"Expected raw target temp {entity.target_temperature} but got {sent_temp}"
+
+    entity.remove_thermostat()
+

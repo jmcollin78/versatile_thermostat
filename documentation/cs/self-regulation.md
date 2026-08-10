@@ -55,6 +55,9 @@ Ve druhém případě Versatile Thermostat vypočítá offset na základě násl
 
 Tyto tři informace jsou kombinovány pro výpočet offsetu, který bude přidán k aktuálnímu setpointu a odeslán podkladové klimatizaci.
 
+> ![Tip](images/tips.png) _*Poznámka*_
+> Samo-regulace se uplatní pouze tehdy, když je _VTherm_ v režimu `Topení` nebo `Chlazení`. V jakémkoli jiném režimu (například `Odvlhčování` nebo `Pouze ventilátor`) je samo-regulace vypnuta a podkladovému zařízení je odeslán původní (neregulovaný) setpoint.
+
 Samo-regulace je konfigurována s:
 1. Stupněm regulace:
    1. Lehká - pro malé potřeby samo-regulace. V tomto režimu bude maximální offset 1,5°C.

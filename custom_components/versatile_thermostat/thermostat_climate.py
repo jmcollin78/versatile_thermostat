@@ -174,6 +174,26 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
             )
             return
 
+        if self.vtherm_hvac_mode not in (VThermHvacMode_HEAT, VThermHvacMode_COOL):
+            _LOGGER.debug(
+                "%s - auto-regulation is disabled cause VTherm hvac_mode is %s (not heat nor cool). Sending the raw target temperature",
+                self,
+                self.vtherm_hvac_mode,
+            )
+            # Outside of heat/cool the device is active but must receive the original
+            # (non regulated) target temperature. Force the regulated temperature to the
+            # target temperature and send it to all underlyings.
+            self._regulated_target_temp = self.target_temperature
+            for under in self._underlyings:
+                await under.set_temperature(
+                    self.target_temperature,
+                    self._attr_max_temp,
+                    self._attr_min_temp,
+                )
+            # Reset the timer of last regulation change to avoid time delta too high
+            self._last_regulation_change = self.now
+            return
+
         _LOGGER.info(
             "%s - Calling ThermostatClimate._send_regulated_temperature force=%s",
             self,
