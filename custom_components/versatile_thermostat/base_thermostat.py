@@ -2157,7 +2157,13 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
             "This thermostat does not use TPI algorithm."
         )
 
-    async def service_set_auto_tpi_mode(self, auto_tpi_mode: bool):
+    async def service_set_auto_tpi_mode(
+        self,
+        auto_tpi_mode: bool,
+        reinitialise: bool = True,
+        allow_kint_boost_on_stagnation: bool = False,
+        allow_kext_compensation_on_overshoot: bool = False,
+    ):
         """Stub method for Auto TPI mode service on non-TPI thermostats.
 
         This service is only available for switch/valve type thermostats that use TPI algorithm.
