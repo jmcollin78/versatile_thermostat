@@ -511,9 +511,8 @@ async def test_service_set_tpi_parameters(hass: HomeAssistant, skip_hass_states_
 
 @pytest.mark.parametrize("expected_lingering_tasks", [True])
 @pytest.mark.parametrize("expected_lingering_timers", [True])
-async def test_service_set_tpi_parameters_not_allowed_on_over_climate(hass: HomeAssistant, skip_hass_states_is_state, skip_turn_on_off_heater):
-    """Test that the set_tpi_parameters service cannot be called on a VTherm over_climate.
-    This service is only available for VTherms using TPI algorithm (over_switch, over_valve)."""
+async def test_tpi_services_not_allowed_on_over_climate(hass: HomeAssistant, skip_hass_states_is_state, skip_turn_on_off_heater):
+    """Test that TPI services cannot be called on a VTherm over_climate."""
 
     # Create a mock climate entity
     climate_entity = MockClimate(
@@ -561,6 +560,14 @@ async def test_service_set_tpi_parameters_not_allowed_on_over_climate(hass: Home
 
     # Verify that the entity doesn't have a prop_algorithm (TPI is not used for over_climate)
     assert getattr(entity, "proportional_algorithm", None) is None
+
+    with pytest.raises(ServiceValidationError):
+        await entity.service_set_auto_tpi_mode(
+            auto_tpi_mode=True,
+            reinitialise=True,
+            allow_kint_boost_on_stagnation=False,
+            allow_kext_compensation_on_overshoot=False,
+        )
 
     # Try to call the service - it should raise an error or do nothing
     # since over_climate doesn't use TPI algorithm
