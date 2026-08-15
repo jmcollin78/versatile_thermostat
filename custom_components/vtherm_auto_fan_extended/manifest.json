@@ -1,0 +1,17 @@
+{
+    "domain": "vtherm_auto_fan_extended",
+    "name": "Versatile Thermostat Auto Fan",
+    "description": "Automatic fan speed control plugin for Versatile Thermostat over_climate thermostats",
+    "version": "0.1.0",
+    "config_flow": true,
+    "after_dependencies": [
+        "versatile_thermostat"
+    ],
+    "integration_type": "service",
+    "iot_class": "calculated",
+    "codeowners": [
+        "@jmcollin78"
+    ],
+    "documentation": "https://github.com/jmcollin78/vtherm_auto_fan_extended",
+    "issue_tracker": "https://github.com/jmcollin78/vtherm_auto_fan_extended/issues"
+}

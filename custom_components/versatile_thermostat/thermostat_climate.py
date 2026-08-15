@@ -1009,6 +1009,20 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
         return self._regulated_target_temp
 
     @property
+    def regulated_target_temperature(self) -> float | None:
+        """Return the regulated target temperature used to drive the underlying."""
+        return self._regulated_target_temp
+
+    @property
+    def underlying_fan_modes(self) -> list[str] | None:
+        """Return the fan modes exposed by the underlying climate(s)."""
+        return self.fan_modes
+
+    async def async_set_underlying_fan_mode(self, fan_mode: str) -> None:
+        """Send a fan mode to the underlying climate(s)."""
+        await self.async_set_fan_mode(fan_mode)
+
+    @property
     def is_regulated(self) -> bool:
         """Check if the ThermostatOverClimate is regulated"""
         return self.auto_regulation_mode != CONF_AUTO_REGULATION_NONE

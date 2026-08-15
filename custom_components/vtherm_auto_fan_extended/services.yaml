@@ -1,0 +1,23 @@
+set_auto_fan_mode:
+  name: Set auto fan mode
+  description: Change the auto fan level of a Versatile Thermostat over_climate thermostat.
+  fields:
+    entity_id:
+      name: Target thermostat
+      description: The VTherm climate entity to control.
+      required: true
+      selector:
+        entity:
+          domain: climate
+    auto_fan_mode:
+      name: Auto fan mode
+      description: The auto fan level to apply.
+      required: true
+      selector:
+        select:
+          options:
+            - "None"
+            - "Low"
+            - "Medium"
+            - "High"
+            - "Turbo"

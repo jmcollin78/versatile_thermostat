@@ -205,6 +205,17 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
         # Instantiate all features manager
         self._managers: list[BaseFeatureManager] = []
 
+        # Names of feature managers provided by external plugins that have
+        # already been instantiated for this thermostat. Used to avoid
+        # registering the same external manager twice (post_init + startup retry).
+        self._external_manager_names: set[str] = set()
+
+        # Instances of feature managers provided by external plugins. They are
+        # also present in ``self._managers`` (for lifecycle) but are tracked
+        # separately so they can be refreshed on every control cycle (internal
+        # managers have their own dedicated per-cycle mechanisms).
+        self._external_managers: list[BaseFeatureManager] = []
+
         self._presence_manager: FeaturePresenceManager = FeaturePresenceManager(
             self, hass
         )
@@ -236,6 +247,42 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
     def register_manager(self, manager: BaseFeatureManager):
         """Register a manager"""
         self._managers.append(manager)
+
+    def _load_external_feature_managers(self):
+        """Instantiate feature managers provided by external plugins.
+
+        Query the VTherm API registry and create one manager instance per
+        eligible thermostat (the factory decides eligibility through its
+        ``supports`` method). Managers whose plugin registers after this
+        thermostat has been built are picked up later during ``async_startup``,
+        mirroring the external proportional algorithm retry behavior.
+        """
+        api = VersatileThermostatAPI.get_vtherm_api(self.hass)
+        if api is None or not hasattr(api, "get_feature_manager_factories"):
+            return
+
+        for factory in api.get_feature_manager_factories():
+            name = factory.name
+            if name in self._external_manager_names:
+                continue
+            try:
+                if not factory.supports(self):
+                    continue
+                manager = factory.create(self)
+                manager.post_init(self._entry_infos)
+            except Exception as exc:  # pylint: disable=broad-except
+                _LOGGER.error(
+                    "%s - Error while creating external feature manager '%s': %s",
+                    self,
+                    name,
+                    exc,
+                )
+                continue
+
+            self.register_manager(manager)
+            self._external_manager_names.add(name)
+            self._external_managers.append(manager)
+            _LOGGER.info("%s - Registered external feature manager '%s'", self, name)
 
     def clean_central_config_doublon(
         self, config_entry: ConfigData, central_config: ConfigEntry | None
@@ -307,6 +354,11 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
         # Post init all managers
         for manager in self._managers:
             manager.post_init(entry_infos)
+
+        # Instantiate feature managers provided by external plugins that are
+        # already registered at this point. Late-registered plugins are handled
+        # by a retry in async_startup.
+        self._load_external_feature_managers()
 
         self._use_central_config_temperature = entry_infos.get(
             CONF_USE_PRESETS_CENTRAL_CONFIG
@@ -486,6 +538,12 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
 
         _LOGGER.debug("%s - Calling async_startup_internal", self)
         # need_write_state = False
+
+        # Retry loading external feature managers: a plugin may have registered
+        # its factory after this thermostat was built (load order between the
+        # core and the plugin is not guaranteed). Newly created managers are
+        # then started in the loop below.
+        self._load_external_feature_managers()
 
         # start listening for all managers
         for manager in self._managers:
@@ -897,6 +955,30 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
     def target_temperature(self) -> float | None:
         """Return the temperature we try to reach."""
         return self._state_manager.current_state.target_temperature
+
+    @property
+    def regulated_target_temperature(self) -> float | None:
+        """Return the regulated target temperature used to drive the underlying.
+
+        The base implementation returns the plain target temperature. Over
+        climate thermostats override this to expose their regulated value.
+        """
+        return self.target_temperature
+
+    @property
+    def underlying_fan_modes(self) -> list[str] | None:
+        """Return the fan modes exposed by the underlying climate(s).
+
+        The base implementation returns None because most thermostats do not
+        expose an underlying climate with fan control.
+        """
+        return None
+
+    async def async_set_underlying_fan_mode(self, fan_mode: str) -> None:
+        """Send a fan mode to the underlying climate(s).
+
+        The base implementation is a no-op for thermostats without fan control.
+        """
 
     @property
     def supported_features(self) -> ClimateEntityFeature:
@@ -1609,6 +1691,25 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
         # Call specific control heating
         await self._control_heating_specific(timestamp, force)
 
+        # Refresh external feature managers (provided by plugins) on every cycle.
+        # This is done after the specific control heating so that a manager can
+        # react to the regulated target temperature (e.g. drive the underlying
+        # fan mode), and before the publication block below so that any custom
+        # attributes updated here are written to HA within the same cycle.
+        # Only external managers are refreshed here: internal managers have their
+        # own dedicated per-cycle mechanisms. A per-manager guard prevents a
+        # faulty plugin from breaking the control loop.
+        for manager in self._external_managers:
+            try:
+                await manager.refresh_state()
+            except Exception as exc:  # pylint: disable=broad-except
+                _LOGGER.error(
+                    "%s - Error while refreshing external feature manager '%s': %s",
+                    self,
+                    manager.name,
+                    exc,
+                )
+
         # Check for heating/cooling failures (only for TPI VTherms)
         await self._heating_failure_detection_manager.refresh_state()
 
@@ -1884,7 +1985,12 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
         self._state_manager.add_custom_attributes(self._attr_extra_state_attributes)
 
         for manager in self._managers:
-            manager.add_custom_attributes(self._attr_extra_state_attributes)
+            # add_custom_attributes is optional for external feature managers
+            # (it is not part of the InterfaceFeatureManager contract), so call
+            # it defensively.
+            publish_attributes = getattr(manager, "add_custom_attributes", None)
+            if callable(publish_attributes):
+                publish_attributes(self._attr_extra_state_attributes)
 
     def send_event(self, event_type: EventType, data: dict):
         """Send an event"""
