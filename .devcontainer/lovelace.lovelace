@@ -1088,6 +1088,9 @@
                     },
                     {
                       "entity": "sensor.thermostat_climate_2_ema_temperature"
+                    },
+                    {
+                      "entity": "sensor.thermostat_climate_2_auto_fan_current_fan_mode"
                     }
                   ],
                   "title": "Thermostat Climate 2",

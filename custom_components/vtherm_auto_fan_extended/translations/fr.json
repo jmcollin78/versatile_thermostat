@@ -2,70 +2,33 @@
     "title": "Versatile Thermostat Auto Fan",
     "config": {
         "step": {
-            "global": {
-                "title": "Auto Fan — valeurs par défaut globales",
-                "data": {
-                    "auto_fan_mode": "Niveau de ventilation automatique"
-                }
-            },
-            "thermostat": {
-                "title": "Auto Fan — par thermostat",
+            "user": {
+                "title": "Auto Fan — thermostat cible",
                 "data": {
                     "target_vtherm_unique_id": "Entité VTherm cible",
-                    "auto_fan_mode": "Niveau de ventilation automatique"
+                    "exclusion_patterns": "Modes de ventilation exclus (regex)"
+                },
+                "data_description": {
+                    "exclusion_patterns": "Les modes de ventilation correspondant à l'un de ces motifs n'ont pas de seuil. Un nom fixe correspond exactement (ex. off) ; utilisez des jokers pour une correspondance partielle (ex. .*auto.*)."
                 }
             },
             "reconfigure": {
-                "title": "Auto Fan — reconfiguration",
+                "title": "Auto Fan — modes de ventilation exclus",
                 "data": {
-                    "auto_fan_mode": "Niveau de ventilation automatique"
+                    "exclusion_patterns": "Modes de ventilation exclus (regex)"
+                },
+                "data_description": {
+                    "exclusion_patterns": "Les modes de ventilation correspondant à l'un de ces motifs n'ont pas de seuil. Un nom fixe correspond exactement (ex. off) ; utilisez des jokers pour une correspondance partielle (ex. .*auto.*)."
                 }
             }
         },
         "error": {
-            "invalid_entity": "L'entité sélectionnée n'est pas un Versatile Thermostat valide."
+            "invalid_entity": "L'entité sélectionnée n'est pas un Versatile Thermostat valide.",
+            "invalid_regex": "L'un des motifs d'exclusion n'est pas une expression régulière valide."
         },
         "abort": {
-            "single_instance_allowed": "Une seule configuration globale Auto Fan est autorisée.",
             "already_configured": "Ce thermostat est déjà configuré.",
             "reconfigure_successful": "Configuration mise à jour et intégration rechargée."
-        }
-    },
-    "options": {
-        "step": {
-            "init": {
-                "title": "Options Auto Fan",
-                "data": {
-                    "auto_fan_mode": "Niveau de ventilation automatique"
-                }
-            }
-        }
-    },
-    "selector": {
-        "auto_fan_mode": {
-            "options": {
-                "auto_fan_none": "Aucun",
-                "auto_fan_low": "Faible",
-                "auto_fan_medium": "Moyen",
-                "auto_fan_high": "Élevé",
-                "auto_fan_turbo": "Turbo"
-            }
-        }
-    },
-    "services": {
-        "set_auto_fan_mode": {
-            "name": "Définir le mode de ventilation automatique",
-            "description": "Change le niveau de ventilation automatique d'un Versatile Thermostat over_climate.",
-            "fields": {
-                "entity_id": {
-                    "name": "Thermostat cible",
-                    "description": "L'entité climate VTherm à contrôler."
-                },
-                "auto_fan_mode": {
-                    "name": "Mode de ventilation automatique",
-                    "description": "Le niveau de ventilation automatique à appliquer."
-                }
-            }
         }
     }
 }

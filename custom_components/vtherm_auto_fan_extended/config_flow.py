@@ -2,50 +2,70 @@
 
 from __future__ import annotations
 
+import re
 from typing import Any
 
 import voluptuous as vol
 from homeassistant.components.climate import DOMAIN as CLIMATE_DOMAIN
-from homeassistant.config_entries import ConfigFlow, OptionsFlow
+from homeassistant.config_entries import ConfigFlow
 from homeassistant.helpers import entity_registry as er
 from homeassistant.helpers import selector
 
 from .const import (
-    CONF_AUTO_FAN_MODE,
-    CONF_AUTO_FAN_MODES,
+    CONF_EXCLUSION_PATTERNS,
     CONF_TARGET_VTHERM,
-    DEFAULT_OPTIONS,
+    DEFAULT_EXCLUSION_PATTERNS,
     DOMAIN,
 )
 
 
-def build_options_schema(defaults: dict[str, Any]) -> vol.Schema:
-    """Build the shared options schema from the given defaults."""
+def _patterns_selector(options: list[str]) -> selector.SelectSelector:
+    """Build the multi-value selector for the exclusion patterns."""
+    return selector.SelectSelector(
+        selector.SelectSelectorConfig(
+            options=list(options),
+            multiple=True,
+            custom_value=True,
+            mode=selector.SelectSelectorMode.DROPDOWN,
+        )
+    )
+
+
+def _user_schema() -> vol.Schema:
+    """Build the initial config schema (target VTherm + exclusion patterns)."""
     return vol.Schema(
         {
-            vol.Optional(
-                CONF_AUTO_FAN_MODE,
-                default=defaults.get(CONF_AUTO_FAN_MODE),
-            ): selector.SelectSelector(
-                selector.SelectSelectorConfig(
-                    options=list(CONF_AUTO_FAN_MODES),
-                    translation_key="auto_fan_mode",
-                    mode=selector.SelectSelectorMode.DROPDOWN,
-                )
+            vol.Required(CONF_TARGET_VTHERM): selector.EntitySelector(
+                selector.EntitySelectorConfig(domain=CLIMATE_DOMAIN)
             ),
+            vol.Optional(
+                CONF_EXCLUSION_PATTERNS,
+                default=list(DEFAULT_EXCLUSION_PATTERNS),
+            ): _patterns_selector(DEFAULT_EXCLUSION_PATTERNS),
         }
     )
 
 
-def build_user_schema(defaults: dict[str, Any]) -> vol.Schema:
-    """Build the per-thermostat schema (entity selector + options)."""
-    schema: dict[Any, Any] = {
-        vol.Required(CONF_TARGET_VTHERM): selector.EntitySelector(
-            selector.EntitySelectorConfig(domain=CLIMATE_DOMAIN)
-        )
-    }
-    schema.update(build_options_schema(defaults).schema)
-    return vol.Schema(schema)
+def _reconfigure_schema(current: list[str]) -> vol.Schema:
+    """Build the reconfigure schema (exclusion patterns only)."""
+    return vol.Schema(
+        {
+            vol.Optional(
+                CONF_EXCLUSION_PATTERNS,
+                default=list(current),
+            ): _patterns_selector(current),
+        }
+    )
+
+
+def _invalid_patterns(patterns: list[str]) -> bool:
+    """Return True when at least one pattern is not a compilable regex."""
+    for pattern in patterns:
+        try:
+            re.compile(pattern)
+        except re.error:
+            return True
+    return False
 
 
 class AutoFanConfigFlow(ConfigFlow, domain=DOMAIN):
@@ -58,41 +78,25 @@ class AutoFanConfigFlow(ConfigFlow, domain=DOMAIN):
         return other_flow.unique_id == self.unique_id
 
     async def async_step_user(self, user_input: dict[str, Any] | None = None):
-        """Create the global defaults entry first, then per-thermostat ones."""
-        del user_input
-        if not self._async_current_entries():
-            await self.async_set_unique_id(DOMAIN)
-            self._abort_if_unique_id_configured()
-            return self.async_create_entry(
-                title="Auto Fan defaults",
-                data=dict(DEFAULT_OPTIONS),
+        """Pick the target over_climate VTherm to attach the auto fan to."""
+        if user_input is not None:
+            patterns = user_input.get(
+                CONF_EXCLUSION_PATTERNS, list(DEFAULT_EXCLUSION_PATTERNS)
             )
+            if _invalid_patterns(patterns):
+                return self.async_show_form(
+                    step_id="user",
+                    data_schema=_user_schema(),
+                    errors={CONF_EXCLUSION_PATTERNS: "invalid_regex"},
+                )
 
-        return await self.async_step_thermostat()
-
-    async def async_step_global(self, user_input: dict[str, Any] | None = None):
-        """Handle the global defaults entry explicitly."""
-        await self.async_set_unique_id(DOMAIN)
-        self._abort_if_unique_id_configured()
-
-        if user_input is not None:
-            return self.async_create_entry(title="Auto Fan defaults", data=user_input)
-
-        return self.async_show_form(
-            step_id="global",
-            data_schema=build_options_schema(dict(DEFAULT_OPTIONS)),
-        )
-
-    async def async_step_thermostat(self, user_input: dict[str, Any] | None = None):
-        """Handle the per-thermostat entry."""
-        if user_input is not None:
-            entity_id = user_input.get(CONF_TARGET_VTHERM)
+            entity_id = user_input[CONF_TARGET_VTHERM]
             registry = er.async_get(self.hass)
             reg_entry = registry.async_get(entity_id)
             if reg_entry is None or reg_entry.unique_id is None:
                 return self.async_show_form(
-                    step_id="thermostat",
-                    data_schema=build_user_schema(dict(DEFAULT_OPTIONS)),
+                    step_id="user",
+                    data_schema=_user_schema(),
                     errors={CONF_TARGET_VTHERM: "invalid_entity"},
                 )
 
@@ -100,57 +104,40 @@ class AutoFanConfigFlow(ConfigFlow, domain=DOMAIN):
             await self.async_set_unique_id(f"{DOMAIN}-{target_unique_id}")
             self._abort_if_unique_id_configured()
 
-            data = dict(user_input)
-            data[CONF_TARGET_VTHERM] = target_unique_id
             state = self.hass.states.get(entity_id)
             title = state.name if state is not None else entity_id
-            return self.async_create_entry(title=title, data=data)
-
-        return self.async_show_form(
-            step_id="thermostat",
-            data_schema=build_user_schema(dict(DEFAULT_OPTIONS)),
-        )
-
-    async def async_step_reconfigure(self, user_input: dict[str, Any] | None = None):
-        """Allow reconfiguring an existing entry."""
-        entry = self._get_reconfigure_entry()
-
-        if user_input is not None:
-            new_data = {**entry.data, **user_input}
-            return self.async_update_reload_and_abort(
-                entry,
-                data=new_data,
-                options={},
+            return self.async_create_entry(
+                title=title,
+                data={
+                    CONF_TARGET_VTHERM: target_unique_id,
+                    CONF_EXCLUSION_PATTERNS: patterns,
+                },
             )
 
-        defaults = dict(DEFAULT_OPTIONS)
-        defaults.update(entry.options or entry.data)
+        return self.async_show_form(step_id="user", data_schema=_user_schema())
+
+    async def async_step_reconfigure(self, user_input: dict[str, Any] | None = None):
+        """Edit the exclusion patterns of an existing entry (target fixed)."""
+        entry = self._get_reconfigure_entry()
+        current = entry.data.get(
+            CONF_EXCLUSION_PATTERNS, list(DEFAULT_EXCLUSION_PATTERNS)
+        )
+
+        if user_input is not None:
+            patterns = user_input.get(CONF_EXCLUSION_PATTERNS, list(current))
+            if _invalid_patterns(patterns):
+                return self.async_show_form(
+                    step_id="reconfigure",
+                    data_schema=_reconfigure_schema(patterns),
+                    errors={CONF_EXCLUSION_PATTERNS: "invalid_regex"},
+                )
+            return self.async_update_reload_and_abort(
+                entry,
+                data={**entry.data, CONF_EXCLUSION_PATTERNS: patterns},
+            )
+
         return self.async_show_form(
             step_id="reconfigure",
-            data_schema=build_options_schema(defaults),
+            data_schema=_reconfigure_schema(current),
         )
 
-    @staticmethod
-    def async_get_options_flow(config_entry):
-        """Return the options flow handler."""
-        return AutoFanOptionsFlow(config_entry)
-
-
-class AutoFanOptionsFlow(OptionsFlow):
-    """Edit Auto Fan plugin options."""
-
-    def __init__(self, config_entry) -> None:
-        """Store the config entry being edited."""
-        self._config_entry = config_entry
-
-    async def async_step_init(self, user_input: dict[str, Any] | None = None):
-        """Handle the options flow."""
-        if user_input is not None:
-            return self.async_create_entry(title="", data=user_input)
-
-        defaults = dict(DEFAULT_OPTIONS)
-        defaults.update(self._config_entry.options or self._config_entry.data)
-        return self.async_show_form(
-            step_id="init",
-            data_schema=build_options_schema(defaults),
-        )

@@ -2,70 +2,33 @@
     "title": "Versatile Thermostat Auto Fan",
     "config": {
         "step": {
-            "global": {
-                "title": "Auto Fan — global defaults",
-                "data": {
-                    "auto_fan_mode": "Auto fan level"
-                }
-            },
-            "thermostat": {
-                "title": "Auto Fan — per thermostat",
+            "user": {
+                "title": "Auto Fan — target thermostat",
                 "data": {
                     "target_vtherm_unique_id": "Target VTherm entity",
-                    "auto_fan_mode": "Auto fan level"
+                    "exclusion_patterns": "Excluded fan modes (regex)"
+                },
+                "data_description": {
+                    "exclusion_patterns": "Fan modes matching one of these patterns get no threshold. A fixed name matches exactly (e.g. off); use wildcards for a partial match (e.g. .*auto.*)."
                 }
             },
             "reconfigure": {
-                "title": "Auto Fan — reconfigure",
+                "title": "Auto Fan — excluded fan modes",
                 "data": {
-                    "auto_fan_mode": "Auto fan level"
+                    "exclusion_patterns": "Excluded fan modes (regex)"
+                },
+                "data_description": {
+                    "exclusion_patterns": "Fan modes matching one of these patterns get no threshold. A fixed name matches exactly (e.g. off); use wildcards for a partial match (e.g. .*auto.*)."
                 }
             }
         },
         "error": {
-            "invalid_entity": "The selected entity is not a valid Versatile Thermostat."
+            "invalid_entity": "The selected entity is not a valid Versatile Thermostat.",
+            "invalid_regex": "One of the exclusion patterns is not a valid regular expression."
         },
         "abort": {
-            "single_instance_allowed": "Only one Auto Fan global configuration entry is allowed.",
             "already_configured": "This thermostat is already configured.",
             "reconfigure_successful": "Configuration updated and integration reloaded."
-        }
-    },
-    "options": {
-        "step": {
-            "init": {
-                "title": "Auto Fan options",
-                "data": {
-                    "auto_fan_mode": "Auto fan level"
-                }
-            }
-        }
-    },
-    "selector": {
-        "auto_fan_mode": {
-            "options": {
-                "auto_fan_none": "None",
-                "auto_fan_low": "Low",
-                "auto_fan_medium": "Medium",
-                "auto_fan_high": "High",
-                "auto_fan_turbo": "Turbo"
-            }
-        }
-    },
-    "services": {
-        "set_auto_fan_mode": {
-            "name": "Set auto fan mode",
-            "description": "Change the auto fan level of a Versatile Thermostat over_climate thermostat.",
-            "fields": {
-                "entity_id": {
-                    "name": "Target thermostat",
-                    "description": "The VTherm climate entity to control."
-                },
-                "auto_fan_mode": {
-                    "name": "Auto fan mode",
-                    "description": "The auto fan level to apply."
-                }
-            }
         }
     }
 }
