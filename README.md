@@ -27,6 +27,9 @@ Versatile Thermostat UI Card (Available on [Github](https://github.com/jmcollin7
 # What's New?
 ![New](images/new-icon.png)
 
+## Release 10.2.0
+The **Auto Fan** feature is now available as an external plugin ([vtherm_auto_fan_extended](https://github.com/jmcollin78/vtherm_auto_fan_extended)). The original (_legacy_) auto-fan version is still available in _VTherm_, but it must be disabled in the thermostat configuration in order to use the plugin. The full documentation is available on the [plugin's GitHub repository](https://github.com/jmcollin78/vtherm_auto_fan_extended).
+
 ## Release 10.1
 Auto-start/stop stop mode selection. A new `select` entity lets you choose the mode applied when the auto-start/stop feature detects a stop condition: `Off` (default), `Fan only` or `Dry`. The `Fan only` and `Dry` modes are only proposed when the underlying appliance supports them. More information [here](documentation/en/feature-auto-start-stop.md).
 

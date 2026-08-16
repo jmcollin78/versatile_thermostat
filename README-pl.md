@@ -30,6 +30,9 @@ Karta integracji VTherm UI (dostępna na [Github](https://github.com/jmcollin78/
 # Co nowego?
 ![New](images/new-icon.png)
 
+## Wydanie 10.2.0
+Funkcja **Auto Fan** jest teraz dostępna jako zewnętrzna wtyczka ([vtherm_auto_fan_extended](https://github.com/jmcollin78/vtherm_auto_fan_extended)). Oryginalna (_legacy_) wersja auto-fan jest nadal dostępna w _VTherm_, ale aby korzystać z wtyczki, musi zostać wyłączona w konfiguracji termostatu. Pełna dokumentacja jest dostępna w [repozytorium GitHub wtyczki](https://github.com/jmcollin78/vtherm_auto_fan_extended).
+
 ## Wydanie 10.1
 Wybór trybu zatrzymania dla autoSTART/autoSTOP. Nowa encja `select` pozwala wybrać tryb stosowany, gdy funkcja autoSTART/autoSTOP wykryje warunek zatrzymania: `Wyłączony` (domyślnie), `Tylko wentylacja` lub `Osuszanie`. Tryby `Tylko wentylacja` i `Osuszanie` są proponowane tylko wtedy, gdy urządzenie podrzędne je obsługuje. Więcej informacji [tutaj](documentation/pl/feature-auto-start-stop.md).
 
