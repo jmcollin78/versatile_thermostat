@@ -9,7 +9,7 @@ from custom_components.versatile_thermostat.ema import ExponentialMovingAverage
 from .commons import get_tz
 
 
-def test_ema_basics(hass: HomeAssistant):
+def test_ema_basics(hass: HomeAssistant) -> None:
     """Test the EMA calculation with basic features"""
 
     tz = get_tz(hass)  # pylint: disable=invalid-name
