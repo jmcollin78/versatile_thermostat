@@ -27,6 +27,9 @@ Versatile Thermostat UI Card (Verfügbar auf [Github](https://github.com/jmcolli
 # Was ist neu?
 ![Neu](images/new-icon.png)
 
+## Release 10.2.0
+Die Funktion **Auto Fan** ist jetzt als externes Plugin verfügbar ([vtherm_auto_fan_extended](https://github.com/jmcollin78/vtherm_auto_fan_extended)). Die ursprüngliche (_Legacy_) Auto-Fan-Version ist in _VTherm_ weiterhin verfügbar, muss jedoch in der Thermostatkonfiguration deaktiviert werden, um das Plugin verwenden zu können. Die vollständige Dokumentation ist im [GitHub-Repository des Plugins](https://github.com/jmcollin78/vtherm_auto_fan_extended) verfügbar.
+
 ## Release 10.1
 Auswahl des Stopp-Modus für Auto-Start/Stopp. Eine neue `select`-Entität ermöglicht die Auswahl des Modus, der angewendet wird, wenn die Auto-Start/Stopp-Funktion eine Stoppbedingung erkennt: `Aus` (Standard), `Nur Lüfter` oder `Trocknen`. Die Modi `Nur Lüfter` und `Trocknen` werden nur angeboten, wenn das zugrunde liegende Gerät sie unterstützt. Weitere Informationen [hier](documentation/en/feature-auto-start-stop.md).
 

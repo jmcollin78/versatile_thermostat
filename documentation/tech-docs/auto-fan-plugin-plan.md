@@ -223,3 +223,149 @@ Les VTherm existants possèdent `auto_fan_mode` dans leur config entry. Options 
 - **Migration** auto vs manuelle des configs existantes.
 - Domaine/nom du plugin (`vtherm_auto_fan`) et domaine du service (`versatile_thermostat` historique vs domaine plugin).
 - Faut-il un **hook de cycle explicite** dans le contrat `InterfaceFeatureManager`, ou `refresh_state` suffit-il pour piloter le fan à chaque cycle ?
+
+---
+
+## 10. Précisions d'implémentation — rafraîchissement des managers externes par cycle
+
+Le besoin de piloter le fan « à chaque cycle » impose que les managers externes soient
+rafraîchis pendant `async_control_heating`, et pas seulement au démarrage. Six points ont
+été tranchés lors de l'implémentation ; chacun est documenté ci-dessous avec la solution retenue.
+
+1. **Emplacement de l'appel de rafraîchissement dans le cycle.**
+   - *Solution* : la boucle de rafraîchissement des managers externes est placée dans
+     `async_control_heating`, **après** `_control_heating_specific` (l'état de régulation est
+     donc déjà calculé) et **avant** le bloc de publication
+     (`update_custom_attributes()` + `async_write_ha_state()`). Ainsi les attributs mis à jour
+     par un manager externe sont publiés dans le même cycle.
+
+2. **Comportement en sécurité (`safety`).**
+   - *Solution* : pour `over_climate`, la sortie anticipée liée à la sécurité intervient
+     **avant** `_control_heating_specific`. Les managers externes ne sont donc pas rafraîchis
+     pendant un état de sécurité — comportement cohérent avec l'auto-fan historique.
+
+3. **`refresh_state` utilisé comme « tick » de cycle.**
+   - *Solution* : plutôt que d'ajouter un hook de cycle dédié au contrat
+     `InterfaceFeatureManager`, `refresh_state()` est appelé à chaque cycle et sert de point
+     d'entrée pour recalculer/piloter le fan. Convention retenue pour garder le contrat minimal.
+
+4. **Valeur de retour de `refresh_state` ignorée au niveau du cycle.**
+   - *Solution* : le `bool` renvoyé par `refresh_state()` n'est pas exploité à cet endroit.
+     Limitation connue : un manager externe ne peut pas, via ce point, forcer un recalcul du
+     cycle en cours. Acceptable pour l'auto-fan (le fan est appliqué directement par le manager).
+
+5. **Source de vérité unique pour la liste des managers externes.**
+   - *Solution* : une liste dédiée `self._external_managers` est peuplée au même endroit que
+     `self._external_manager_names`, dans `_load_external_feature_managers()`. La boucle de
+     cycle n'itère que sur `self._external_managers` (et non sur l'ensemble `self._managers`),
+     afin d'éviter tout double rafraîchissement des managers internes.
+
+6. **Non conditionné au `timestamp`.**
+   - *Solution* : le rafraîchissement s'exécute aussi sur les cycles forcés (`force=True`),
+     sans être filtré par `timestamp`. L'anti-spam éventuel est délégué à la temporisation de
+     `underlyings.set_fan_mode` (cf. issue #1458), pas au point d'appel du cycle.
+
+### Note complémentaire — `add_custom_attributes` optionnel
+
+`add_custom_attributes` **ne fait pas partie** du contrat `InterfaceFeatureManager`. Comme les
+managers externes sont ajoutés à `self._managers`, l'appel de `update_custom_attributes()` du
+cœur est rendu défensif (`getattr` + `callable`) : un manager externe qui n'expose pas
+d'attributs ne provoque pas d'erreur, et un manager qui l'implémente (ex. l'auto-fan) publie
+bien ses attributs. Les managers internes possédant tous la méthode, leur comportement est
+inchangé.
+
+---
+
+## 11. Test de validation ajouté
+
+Fichier : `tests/test_external_feature_manager.py`.
+
+- Enregistre une **fausse factory** (`InterfaceFeatureManagerFactory`) + un **faux manager**
+  via `VersatileThermostatAPI.get_vtherm_api(hass).register_feature_manager(...)`.
+- Construit un VTherm `over_climate` (avec climate sous-jacent mocké), déclenche
+  `async_control_heating(force=True)` et vérifie que `refresh_state()` du faux manager est
+  appelé **une fois par cycle**.
+- Vérifie aussi l'instanciation (présence dans `_external_managers` / `_external_manager_names`,
+  appel de `post_init`).
+- Le faux manager **n'implémente pas** `add_custom_attributes` : il valide donc le garde-fou
+  défensif décrit en section 10.
+
+État : **passe**. Non-régression vérifiée sur `test_auto_fan_mode.py` + `test_sensors.py` (15 tests OK).
+
+---
+
+## 12. État de testabilité en local (faits vérifiés le 2026-08-15)
+
+### 12.1 Environnement d'exécution HA
+
+- **Pas de `.venv`** dans le projet. HA s'exécute depuis
+  `~/.local/lib/python3.14/site-packages` (même environnement que le shell de dev).
+- `vtherm_api` **0.4.0** y est installé en **éditable** (source :
+  `custom_components/vtherm_api/src/vtherm_api`). Le HA lancé par `./container start`
+  utilise donc bien la 0.4.0 (avec `register_feature_manager` / `get_feature_manager_factories`).
+- `config/deps` **ne contient pas** `vtherm_api` (rien à nettoyer côté deps HA).
+- Le `manifest.json` du cœur déclare toujours `vtherm_api>=0.3.0` ; comme la 0.4.0 est
+  **déjà installée**, HA voit la contrainte satisfaite et **ne réinstalle pas** (pas de
+  downgrade vers la 0.3.0 de PyPI).
+
+> **Conclusion** : un test en local dans ce dev container est possible **sans rien publier**.
+
+### 12.2 État du plugin `vtherm_auto_fan_extended` (relu)
+
+- Manifeste : `domain=vtherm_auto_fan_extended`, `version=0.1.0`, `config_flow=true`,
+  `after_dependencies=[versatile_thermostat]`, `integration_type=service`.
+  **Aucun `requirements`** : le plugin compte sur le cœur pour amener `vtherm_api`.
+- `__init__.py` : `async_setup` / `async_setup_entry` enregistrent la factory
+  (`register_feature_manager`) + les services, puis rechargent les entries VTherm
+  `over_climate` concernées pour qu'elles réinstancient le manager.
+- `factory.py` : `supports()` limite le scope aux `over_climate`
+  (`entry_infos[CONF_THERMOSTAT_TYPE] == over_climate`, avec repli sur `underlying_fan_modes`).
+- `manager.py` :
+  - `_resolve_level()` lit la config **des entries du plugin** par priorité :
+    entrée par-thermostat (`target_vtherm_unique_id`) > entrée globale >
+    clé legacy `auto_fan_mode` de l'entry VTherm > défaut.
+  - S'enregistre dans `hass.data[DOMAIN][DATA_MANAGERS]` (clé = `unique_id`) pour être
+    joignable par le service `set_auto_fan_mode`.
+
+### 12.3 Conclusion de testabilité
+
+**Prêt à tester en local dès maintenant**, en tenant compte des points de coordination
+ci-dessous (section 13).
+
+---
+
+## 13. Points de coordination à trancher avant/pendant le test
+
+1. **L'auto-fan du cœur est toujours présent** (extraction destructive différée, cf. section 5.1).
+   - *Risque* : si le VTherm `over_climate` de test a `auto_fan_mode` ≠ `none` côté cœur,
+     **le cœur ET le plugin pilotent le ventilo** (double contrôle).
+   - *Recommandation de test* : utiliser un VTherm dont l'auto-fan cœur est à `none`,
+     puis configurer le plugin.
+
+2. **Double déclenchement du pilotage fan (non bloquant).**
+   - Le plugin réévalue déjà l'auto-fan via **son propre listener** de changement d'état du
+     VTherm (`manager.start_listening` → `async_track_state_change_event`).
+   - Notre boucle `refresh_state` par cycle (section 10) fait donc **doublon** — idempotent
+     grâce à `_last_sent_fan_mode`.
+   - *Décision à prendre* : conserver la boucle Phase 2 côté cœur (mécanisme générique
+     réutilisable par d'autres feature managers) **ou** laisser le plugin seul maître via son
+     listener. Les deux peuvent coexister sans régression, mais c'est une redondance à assumer.
+
+3. **Bump de la contrainte `vtherm_api` (avant merge / install de prod).**
+   - PyPI n'expose que jusqu'à **0.3.0** (versions publiées : 0.1.0, 0.2.0, 0.2.1, 0.3.0).
+     La **0.4.0 n'est pas publiée**.
+   - Tant que non publiée, garder `vtherm_api>=0.3.0` dans le `manifest.json` du cœur
+     (sinon CI cassée à l'install pip).
+   - Une install HA « propre » (hors dev container, qui installe depuis PyPI) récupérerait
+     0.3.0 → le plugin échouerait (`register_feature_manager` absent). D'où l'intérêt de
+     publier une version avant tout test hors dev container.
+
+4. **Versionnement de la release `vtherm_api`.**
+   - La source est en `0.4.0`. Une proposition de release en **`4.0.0.beta1`** sauterait en
+     majeur 4.
+   - *À confirmer* : préférer **`0.4.0b1`** (pré-release cohérente avec la source) sauf volonté
+     explicite de passer en 4.x.
+   - Si publication d'une **pré-release** : pour que pip l'accepte, le specifier doit l'autoriser
+     explicitement, ex. `vtherm_api>=0.4.0b1` dans le `manifest.json` du cœur, et idéalement
+     ajouter `requirements: ["vtherm_api>=0.4.0b1"]` au **manifeste du plugin** (aujourd'hui
+     sans `requirements`).

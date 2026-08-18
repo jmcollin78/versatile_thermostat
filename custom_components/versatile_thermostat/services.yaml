@@ -113,7 +113,7 @@ set_auto_regulation_mode:
 
 set_auto_fan_mode:
     name: Set Auto Fan mode
-    description: Change the mode of auto-fan (only for VTherm over climate)
+    description: Deprecated when using the vtherm_auto_fan_extended plugin. Without the plugin, legacy core behavior is kept.
     target:
         entity:
             integration: versatile_thermostat

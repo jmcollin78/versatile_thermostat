@@ -34,6 +34,7 @@ logger:
     default: warning
     logs:
         custom_components.versatile_thermostat: debug
+        custom_components.vtherm_auto_fan_extended: debug
 
 # If you need to debug uncommment the line below (doc: https://www.home-assistant.io/integrations/debugpy/)
 debugpy:

@@ -30,6 +30,9 @@ Le composant Versatile Thermostat UI Card (Disponible sur [Github](https://githu
 
 ![Nouveau](images/new-icon.png)
 
+## Release 10.2.0
+Intégration de la fonctionnalité **Auto Fan** sous forme de plugin externe ([vtherm_auto_fan_extended](https://github.com/jmcollin78/vtherm_auto_fan_extended)). La version d'origine (_legacy_) de l'auto-fan reste toujours disponible dans _VTherm_, mais elle doit être désactivée dans la configuration du thermostat pour pouvoir utiliser le plugin. Retrouvez la documentation complète sur le [dépôt GitHub du plugin](https://github.com/jmcollin78/vtherm_auto_fan_extended).
+
 ## Release 10.1
 Choix du mode d'arrêt de l'auto-start/stop. Une nouvelle entité `select` permet de choisir le mode appliqué lorsque la fonction auto-start/stop détecte une condition d'arrêt : `Arrêt` (par défaut), `Ventilation seule` ou `Déshumidification`. Les modes `Ventilation seule` et `Déshumidification` ne sont proposés que si l'équipement sous-jacent les supporte. Plus d'informations [ici](documentation/fr/feature-auto-start-stop.md).
 

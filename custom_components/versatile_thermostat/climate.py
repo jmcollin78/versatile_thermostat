@@ -125,7 +125,7 @@ async def async_setup_entry(
                 ["None", "Low", "Medium", "High", "Turbo"]
             ),
         },
-        "service_set_auto_fan_mode",
+        "service_set_auto_fan_mode_deprecated",
     )
 
     platform.async_register_entity_service(
