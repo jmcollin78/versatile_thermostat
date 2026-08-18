@@ -8,6 +8,7 @@ from datetime import timedelta, datetime
 
 from homeassistant.const import STATE_UNAVAILABLE, STATE_UNKNOWN
 from homeassistant.core import Event, HomeAssistant, State, callback
+from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers.event import async_track_state_change_event, async_track_time_interval, EventStateChangedData, async_call_later
 from homeassistant.components.climate import (
     HVACAction,
@@ -26,6 +27,9 @@ from .feature_auto_start_stop_manager import FeatureAutoStartStopManager
 from .vtherm_hvac_mode import VThermHvacMode
 
 _LOGGER = get_vtherm_logger(__name__)
+
+AUTO_FAN_PLUGIN_DOMAIN = "vtherm_auto_fan_extended"
+AUTO_FAN_PLUGIN_TARGET_VTHERM_KEY = "target_vtherm_unique_id"
 
 HVAC_ACTION_ON = [  # pylint: disable=invalid-name
     HVACAction.COOLING,
@@ -1321,6 +1325,49 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
 
         self.update_custom_attributes()
         self.async_write_ha_state()
+
+    async def service_set_auto_fan_mode_deprecated(self, auto_fan_mode: str):
+        """Deprecated service handler for auto fan mode.
+
+        Auto fan is now managed by the vtherm_auto_fan_extended plugin.
+        """
+        config_entries = getattr(self._hass, "config_entries", None)
+        plugin_is_configured = False
+        if config_entries is not None:
+            try:
+                plugin_entries = config_entries.async_entries(AUTO_FAN_PLUGIN_DOMAIN)
+            except Exception:  # pylint: disable=broad-except
+                plugin_entries = []
+
+            # If at least one entry targets this VTherm, plugin takes ownership.
+            plugin_is_configured = any(
+                entry.data.get(AUTO_FAN_PLUGIN_TARGET_VTHERM_KEY) == self.unique_id
+                for entry in plugin_entries
+            )
+
+            # Backward compatibility: old entries without target still mean plugin ownership.
+            if not plugin_is_configured and plugin_entries:
+                plugin_is_configured = any(
+                    AUTO_FAN_PLUGIN_TARGET_VTHERM_KEY not in entry.data
+                    for entry in plugin_entries
+                )
+
+        # If plugin is not configured for this VTherm, keep legacy core behavior.
+        if not plugin_is_configured:
+            await self.service_set_auto_fan_mode(auto_fan_mode)
+            return
+
+        _LOGGER.warning(
+            "%s - set_auto_fan_mode is deprecated in core and managed by the "
+            "vtherm_auto_fan_extended plugin (requested: %s)",
+            self,
+            auto_fan_mode,
+        )
+        raise HomeAssistantError(
+            "The set_auto_fan_mode service is now managed by the "
+            "vtherm_auto_fan_extended plugin and is no longer available in "
+            "Versatile Thermostat core."
+        )
 
     @overrides
     async def async_turn_off(self) -> None:
