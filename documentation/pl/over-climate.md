@@ -67,6 +67,9 @@ Możesz wybrać poziom wentylacji do aktywacji spośród następujących opcji: 
 
 Oczywiście Twoje urządzenie musi posiadać funkcję wentylacji i musi być sterowalne, aby ten tryb działał. Jeśli urządzenie nie obsługuje trybu Turbo, zostanie użyty tryb 'Wysoki'High. Gdy różnica temperatur ponownie stanie się niewielka, wentylacja przełączy się na tryb 'normalny, który zależy od Twojego urządzenia (w kolejności): `Mute`, `Quiet`, `Auto`, `Low`. Zostanie wybrany pierwszy dostępny tryb dla Twojego sprzętu.
 
+> ![Wskazówka](images/tips.png) _*Wtyczka zewnętrzna*_
+> Rozszerzona wersja autowentylacji jest dostępna jako wtyczka zewnętrzna. Ta wtyczka oferuje dodatkowe opcje konfiguracji i dokładniejszą kontrolę automatycznej wentylacji. Sprawdź stronę [wtyczki](https://www.versatile-thermostat.org/fr/plugins/), aby poznać tę wtyczkę.
+
 ### Kompensacja temperatury wewnętrznej urządzeń bazowych
 
 _Ostrzeżenie_:

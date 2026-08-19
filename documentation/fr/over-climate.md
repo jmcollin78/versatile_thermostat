@@ -65,6 +65,9 @@ Il faut évidemment que votre équipement sous-jacent soit équipé d'une ventil
 Si votre équipement ne comprend pas le mode Turbo, le mode `Forte` sera utilisé en remplacement.
 Une fois l'écart de température redevenu faible, la ventilation se mettra dans un mode "normal" qui dépend de votre équipement à savoir (dans l'ordre) : `Silence (mute ou quiet)`, `Auto (auto)`, `Faible (low)`. La première valeur qui est possible pour votre équipement sera choisie.
 
+> ![Astuce](images/tips.png) _*Plugin externe*_
+> Une version enrichie de l'auto-fan est disponible sous forme de plugin externe. Ce plugin offre des possibilités de configuration supplémentaires et une gestion plus fine de la ventilation automatique. Consultez la page [plugins](https://www.versatile-thermostat.org/fr/plugins/) pour découvrir ce plugin.
+
 ### Compenser la température interne du sous-jacent
 
 Attention : cette option ne doit pas être utilisée avec une régulation par contrôle direct de la vanne.

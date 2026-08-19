@@ -62,6 +62,9 @@ You can choose which ventilation level to activate from the following options: L
 
 Of course, your underlying equipment must have ventilation, and it must be controllable for this to work. If your equipment doesn't include the Turbo mode, the High mode will be used instead. Once the temperature difference becomes small again, the ventilation will switch to a "normal" mode, which depends on your equipment (in order): `Mute`, `Quiet`, `Auto`, `Low`. The first available mode for your equipment will be chosen.
 
+> ![Tip](images/tips.png) _*External plugin*_
+> An enhanced version of auto-fan is available as an external plugin. This plugin offers additional configuration options and finer control of automatic ventilation. Check the [plugins](https://www.versatile-thermostat.org/fr/plugins/) page to discover this plugin.
+
 ### Compensating for the Internal Temperature of the Underlying Equipment
 
 Warning: This option must not be used with direct valve control regulation if a calibration entity has been provided.

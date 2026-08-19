@@ -58,6 +58,9 @@ Můžete vybrat, kterou úroveň ventilace aktivovat z následujících možnost
 
 Samozřejmě vaše podkladové zařízení musí mít ventilaci a musí být ovladatelná, aby to fungovalo. Pokud vaše zařízení neobsahuje režim Turbo, bude místo toho použit režim Vysoká. Jakmile se rozdíl teplot znovu zmenší, ventilace se přepne do "normálního" režimu, který závisí na vašem zařízení (v pořadí): `Mute`, `Auto`, `Low`. Bude vybrán první dostupný režim pro vaše zařízení.
 
+> ![Tip](images/tips.png) _*Externí plugin*_
+> Vylepšená verze auto-ventilátoru je k dispozici jako externí plugin. Tento plugin nabízí další možnosti konfigurace a jemnější ovládání automatické ventilace. Podívejte se na stránku [pluginy](https://www.versatile-thermostat.org/fr/plugins/), kde tento plugin najdete.
+
 ### Kompenzace vnitřní teploty podkladového vybavení
 
 Upozornění: Tato možnost nesmí být použita s regulací přímého ovládání ventilu, pokud byla poskytnuta kalibrační entita.

@@ -62,6 +62,9 @@ Sie können aus den folgenden Optionen wählen, welche Lüftungsstufe aktiviert 
 
 Natürlich muss Ihr Gerät über eine Belüftung verfügen, und diese muss regelbar sein, damit dies funktioniert. Wenn Ihr Gerät nicht über den Turbo-Modus verfügt, wird stattdessen der Hoch-Modus verwendet. Sobald der Temperaturunterschied wieder klein wird, schaltet die Lüftung auf einen "normalen" Modus um, in Abhängigkeit von Ihrem Gerät (in dieser Reihenfolge): `Stumm`, `Quiet`, `Auto`, `Niedrig`. Es wird der erste verfügbare Modus für Ihr Gerät gewählt.
 
+> ![Tipp](images/tips.png) _*Externes Plugin*_
+> Eine erweiterte Version von Auto-Fan ist als externes Plugin verfügbar. Dieses Plugin bietet zusätzliche Konfigurationsmöglichkeiten und eine feinere Steuerung der automatischen Belüftung. Auf der Seite [Plugins](https://www.versatile-thermostat.org/fr/plugins/) können Sie dieses Plugin entdecken.
+
 ### Kompensation der Innentemperatur des zugehörigen Geräts
 
 Achtung! Diese Option darf nicht mit direkter Ventilsteuerung verwendet werden, wenn eine Kalibrierungseinheit vorhanden ist.
