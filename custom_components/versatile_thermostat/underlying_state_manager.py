@@ -85,7 +85,7 @@ class UnderlyingStateManager:
                     entity_id,
                 )
                 return state
-            _LOGGER.error("UnderlyingStateManager - Requested state for unknown entity_id: %s", entity_id)
+            _LOGGER.warning("UnderlyingStateManager - Requested state for unknown entity_id: %s", entity_id)
             return None
         return self._states[idx]
 
