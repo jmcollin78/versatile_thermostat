@@ -1,4 +1,4 @@
-homeassistant==2026.3.1
+homeassistant==2026.8.2
 
 # Home Assistant frontend (required by the frontend component)
 home-assistant-frontend
