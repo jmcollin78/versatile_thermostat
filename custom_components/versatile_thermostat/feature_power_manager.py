@@ -9,6 +9,7 @@ from homeassistant.const import (
     STATE_OFF,
     STATE_UNAVAILABLE,
     STATE_UNKNOWN,
+    UnitOfEnergy,
 )
 
 from homeassistant.core import (
@@ -43,6 +44,7 @@ class FeaturePowerManager(BaseFeatureManager):
         self._overpowering_state: str | None = None
         self._is_configured: bool = False
         self._device_power: float = 0
+        self._power_unit: str = POWER_UNIT_WATT
         self._use_power_feature: bool = False
 
     @overrides
@@ -52,6 +54,7 @@ class FeaturePowerManager(BaseFeatureManager):
         # Power management
         self._power_temp = entry_infos.get(CONF_PRESET_POWER)
 
+        self._power_unit = entry_infos.get(CONF_POWER_UNIT) or POWER_UNIT_WATT
         self._device_power = entry_infos.get(CONF_DEVICE_POWER) or 0
         self._use_power_feature = entry_infos.get(CONF_USE_POWER_FEATURE, False)
         self._is_configured = False
@@ -92,17 +95,21 @@ class FeaturePowerManager(BaseFeatureManager):
             }
         )
         if self._is_configured:
+            central = vtherm_api.central_power_manager
             extra_state_attributes.update(
                 {
                     "power_manager": {
-                        "power_sensor_entity_id": vtherm_api.central_power_manager.power_sensor_entity_id,
-                        "max_power_sensor_entity_id": vtherm_api.central_power_manager.max_power_sensor_entity_id,
+                        "power_sensor_entity_id": central.power_sensor_entity_id,
+                        "max_power_sensor_entity_id": central.max_power_sensor_entity_id,
                         "overpowering_state": self.overpowering_state,
                         "device_power": self._device_power,
                         "power_temp": self._power_temp,
-                        "current_power": vtherm_api.central_power_manager.current_power,
-                        "current_max_power": vtherm_api.central_power_manager.current_max_power,
+                        "current_power": central.current_power,
+                        "current_max_power": central.current_max_power,
                         "mean_cycle_power": self.mean_cycle_power,
+                        "power_unit": self._power_unit,
+                        "energy_unit": self.energy_unit,
+                        "central_power_unit": central.power_unit,
                     }
                 }
             )
@@ -112,6 +119,8 @@ class FeaturePowerManager(BaseFeatureManager):
                     "power_manager": {
                         "device_power": self._device_power,
                         "mean_cycle_power": self.mean_cycle_power,
+                        "power_unit": self._power_unit,
+                        "energy_unit": self.energy_unit,
                     }
                 }
             )
@@ -135,9 +144,7 @@ class FeaturePowerManager(BaseFeatureManager):
         current_power = vtherm_api.central_power_manager.current_power
         current_max_power = vtherm_api.central_power_manager.current_max_power
         started_vtherm_total_power = vtherm_api.central_power_manager.started_vtherm_total_power
-        current_started_power = vtherm_api.central_power_manager.get_started_vtherm_power(
-            effective_reservation_key
-        )
+        current_started_power = vtherm_api.central_power_manager.get_started_vtherm_power(effective_reservation_key)
         if (
             current_power is None
             or current_max_power is None
@@ -334,8 +341,19 @@ class FeaturePowerManager(BaseFeatureManager):
 
     @property
     def device_power(self) -> float:
-        """Return the device power"""
+        """Return the device power (normalized in Watts)"""
+
         return self._device_power
+
+    @property
+    def power_unit(self) -> str:
+        """Return the configured power unit of the VTherm ("W" or "kW")"""
+        return self._power_unit
+
+    @property
+    def energy_unit(self) -> str:
+        """Return the energy unit matching the configured power unit"""
+        return UnitOfEnergy.WATT_HOUR if self._power_unit == POWER_UNIT_WATT else UnitOfEnergy.KILO_WATT_HOUR
 
     @property
     def mean_cycle_power(self) -> float | None:

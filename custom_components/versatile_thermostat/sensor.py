@@ -9,8 +9,6 @@ from homeassistant.core import HomeAssistant, callback, Event, State
 
 from homeassistant.const import (
     UnitOfTime,
-    UnitOfPower,
-    UnitOfEnergy,
     PERCENTAGE,
 )
 
@@ -58,8 +56,6 @@ from .const import (
     CONF_AUTO_TPI_MODE,
     overrides,
 )
-
-THRESHOLD_WATT_KILO = 100
 
 _LOGGER = get_vtherm_logger(__name__)
 
@@ -200,10 +196,7 @@ class EnergySensor(VersatileThermostatBaseEntity, SensorEntity):
         if not self.my_climate:
             return None
 
-        if self.my_climate.power_manager.device_power > THRESHOLD_WATT_KILO:
-            return UnitOfEnergy.WATT_HOUR
-        else:
-            return UnitOfEnergy.KILO_WATT_HOUR
+        return self.my_climate.power_manager.energy_unit
 
     @property
     def suggested_display_precision(self) -> int | None:
@@ -260,10 +253,7 @@ class MeanPowerSensor(VersatileThermostatBaseEntity, SensorEntity):
         if not self.my_climate:
             return None
 
-        if self.my_climate.power_manager.device_power > THRESHOLD_WATT_KILO:
-            return UnitOfPower.WATT
-        else:
-            return UnitOfPower.KILO_WATT
+        return self.my_climate.power_manager.power_unit
 
     @property
     def suggested_display_precision(self) -> int | None:
@@ -968,6 +958,10 @@ class TotalPowerActiveDeviceForBoilerSensor(NbActiveDeviceForBoilerSensor):
     @property
     def device_class(self) -> SensorDeviceClass | None:
         return SensorDeviceClass.POWER
+
+    @property
+    def native_unit_of_measurement(self) -> str | None:
+        return VersatileThermostatAPI.get_vtherm_api(self._hass).central_power_manager.power_unit
 
     @property
     def suggested_display_precision(self) -> int | None:

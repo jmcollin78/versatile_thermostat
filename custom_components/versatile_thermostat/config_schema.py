@@ -139,6 +139,13 @@ STEP_MAIN_DATA_SCHEMA = vol.Schema(  # pylint: disable=invalid-name
         vol.Required(CONF_CYCLE_MIN, default=5): selector.NumberSelector(selector.NumberSelectorConfig(min=1, max=1000, step=1, mode=selector.NumberSelectorMode.BOX)),
 
         vol.Optional(CONF_DEVICE_POWER, default="1"): vol.Coerce(float),
+        vol.Optional(CONF_POWER_UNIT, default=POWER_UNIT_WATT): selector.SelectSelector(
+            selector.SelectSelectorConfig(
+                options=CONF_POWER_UNITS,
+                translation_key="power_unit",
+                mode="dropdown",
+            )
+        ),
         vol.Required(CONF_USE_MAIN_CENTRAL_CONFIG, default=True): cv.boolean,
         vol.Optional(CONF_USE_CENTRAL_MODE, default=True): cv.boolean,
         vol.Required(CONF_USED_BY_CENTRAL_BOILER, default=False): cv.boolean,
@@ -429,6 +436,13 @@ STEP_CENTRAL_POWER_DATA_SCHEMA = vol.Schema(  # pylint: disable=invalid-name
         ),
         vol.Required(CONF_MAX_POWER_SENSOR): selector.EntitySelector(
             selector.EntitySelectorConfig(domain=[SENSOR_DOMAIN, INPUT_NUMBER_DOMAIN]),
+        ),
+        vol.Optional(CONF_POWER_UNIT, default=POWER_UNIT_AUTO): selector.SelectSelector(
+            selector.SelectSelectorConfig(
+                options=CONF_CENTRAL_POWER_UNITS,
+                translation_key="central_power_unit",
+                mode="dropdown",
+            )
         ),
         vol.Optional(CONF_PRESET_POWER, default="13"): vol.Coerce(float),
     }

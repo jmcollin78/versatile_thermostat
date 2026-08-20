@@ -12,6 +12,7 @@ MOCK_TH_OVER_SWITCH_MAIN_CONFIG = {
     CONF_TEMP_SENSOR: "sensor.mock_temp_sensor",
     CONF_CYCLE_MIN: 5,
     CONF_DEVICE_POWER: 1,
+    CONF_POWER_UNIT: POWER_UNIT_WATT,
     CONF_USE_MAIN_CENTRAL_CONFIG: True,
 }
 
@@ -41,6 +42,7 @@ MOCK_TH_OVER_CLIMATE_MAIN_CONFIG = {
     CONF_TEMP_SENSOR: "sensor.mock_temp_sensor",
     CONF_CYCLE_MIN: 5.0,
     CONF_DEVICE_POWER: 1.0,
+    CONF_POWER_UNIT: POWER_UNIT_WATT,
     CONF_USE_MAIN_CENTRAL_CONFIG: False,
     CONF_USE_CENTRAL_MODE: True,
     # Keep default values which are False

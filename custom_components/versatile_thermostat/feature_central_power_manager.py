@@ -49,6 +49,7 @@ class FeatureCentralPowerManager(BaseFeatureManager):
         self._current_power: float | None = None
         self._current_max_power: float | None = None
         self._power_temp: float | None = None
+        self._power_unit_config: str | None = None
         self._cancel_calculate_shedding_call = None
         self._started_vtherm_total_power_by_id: dict[str, float] = {}
         # Not used now
@@ -65,6 +66,7 @@ class FeatureCentralPowerManager(BaseFeatureManager):
         self._power_sensor_entity_id = entry_infos.get(CONF_POWER_SENSOR)
         self._max_power_sensor_entity_id = entry_infos.get(CONF_MAX_POWER_SENSOR)
         self._power_temp = entry_infos.get(CONF_PRESET_POWER)
+        self._power_unit_config = entry_infos.get(CONF_POWER_UNIT)
 
         self._is_configured = False
         self._current_power = None
@@ -191,7 +193,7 @@ class FeatureCentralPowerManager(BaseFeatureManager):
                     device_power = vtherm.power_manager.device_power
                     total_power_gain += device_power
                     _LOGGER.info("vtherm %s should be in overpowering state (device_power=%.2f)", vtherm.name, device_power)
-                    await vtherm.power_manager.set_overpowering(True, device_power)
+                    await vtherm.power_manager.set_overpowering(True, vtherm.power_manager.device_power)
                     changed_vtherm.append(vtherm)
 
                 _LOGGER.debug("%s - after vtherm %s total_power_gain=%s, available_power=%s", self, vtherm.name, total_power_gain, available_power)
@@ -325,13 +327,42 @@ class FeatureCentralPowerManager(BaseFeatureManager):
 
     @property
     def current_power(self) -> float | None:
-        """Return the current power from sensor"""
+        """Return the current power from sensor (normalized in Watts)"""
+
         return self._current_power
 
     @property
     def current_max_power(self) -> float | None:
-        """Return the current power from sensor"""
+        """Return the current max power from sensor (normalized in Watts)"""
+
         return self._current_max_power
+
+    def _resolve_sensor_unit(self, entity_id: str | None) -> str:
+        """Resolve the power unit to use for a sensor.
+        Uses the user configured unit when set, else the sensor own
+        unit_of_measurement attribute, else falls back to Watts."""
+        if self._power_unit_config in (POWER_UNIT_WATT, POWER_UNIT_KILO_WATT):
+            return self._power_unit_config
+
+        if entity_id is not None and (state := self._hass.states.get(entity_id)) is not None:
+            unit = state.attributes.get("unit_of_measurement")
+            if unit in (POWER_UNIT_WATT, POWER_UNIT_KILO_WATT):
+                return unit
+
+        return POWER_UNIT_WATT
+
+    @property
+    def power_unit(self) -> str:
+        """Return the resolved central power unit ("W" or "kW")"""
+        return self._resolve_sensor_unit(self._power_sensor_entity_id)
+
+    def to_watts(self, power: float | None, unit: str | None) -> float | None:
+        """Convert a power value to Watts"""
+        return power_to_watts(power, unit)
+
+    def from_watts(self, power_w: float | None, target_unit: str | None) -> float | None:
+        """Convert a Watts value to the target power unit"""
+        return power_from_watts(power_w, target_unit)
 
     @property
     def power_temperature(self) -> float | None:
