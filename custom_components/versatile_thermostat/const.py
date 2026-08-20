@@ -41,7 +41,7 @@ from .vtherm_state import VThermState  # pylint: disable=unused-import
 _LOGGER = get_vtherm_logger(__name__)
 
 CONFIG_VERSION = 2
-CONFIG_MINOR_VERSION = 3
+CONFIG_MINOR_VERSION = 4
 
 DEVICE_MANUFACTURER = "JMCOLLIN"
 DEVICE_MODEL = "Versatile Thermostat"
@@ -70,6 +70,19 @@ CONF_MAX_POWER_SENSOR = "max_power_sensor_entity_id"
 CONF_WINDOW_SENSOR = "window_sensor_entity_id"
 CONF_MOTION_SENSOR = "motion_sensor_entity_id"
 CONF_DEVICE_POWER = "device_power"
+CONF_POWER_UNIT = "power_unit"
+
+# Power unit values. "W" and "kW" match homeassistant UnitOfPower values on purpose.
+POWER_UNIT_WATT = "W"
+POWER_UNIT_KILO_WATT = "kW"
+POWER_UNIT_AUTO = "auto"
+
+# Selector options
+CONF_POWER_UNITS = [POWER_UNIT_WATT, POWER_UNIT_KILO_WATT]
+CONF_CENTRAL_POWER_UNITS = [POWER_UNIT_WATT, POWER_UNIT_KILO_WATT, POWER_UNIT_AUTO]
+
+# Threshold used by the legacy unit heuristic and by the config migration
+THRESHOLD_POWER_WATT_KILO = 100
 CONF_CYCLE_MIN = "cycle_min"
 CONF_PROP_FUNCTION = "proportional_function"
 CONF_WINDOW_DELAY = "window_delay"
@@ -360,6 +373,7 @@ ALL_CONF = (
         CONF_MOTION_PRESET,
         CONF_NO_MOTION_PRESET,
         CONF_DEVICE_POWER,
+        CONF_POWER_UNIT,
         CONF_CYCLE_MIN,
         CONF_PROP_FUNCTION,
         CONF_TPI_COEF_INT,
@@ -647,6 +661,25 @@ def get_safe_float_value(value):
         return None if math.isinf(float_val) or not math.isfinite(float_val) else float_val
     except (ValueError, TypeError):
         return None
+
+
+def power_to_watts(value: float | None, unit: str | None) -> float | None:
+    """Normalize a power (or energy) magnitude to Watts (or Watt-hours).
+    The conversion is driven by the power unit ("W" / "kW")."""
+    if value is None:
+        return None
+    if unit == POWER_UNIT_KILO_WATT:
+        return value * 1000.0
+    return value
+
+
+def power_from_watts(value_w: float | None, unit: str | None) -> float | None:
+    """Convert a Watts (or Watt-hours) magnitude to the target power unit ("W" / "kW")."""
+    if value_w is None:
+        return None
+    if unit == POWER_UNIT_KILO_WATT:
+        return value_w / 1000.0
+    return value_w
 
 
 class UnknownEntity(HomeAssistantError):

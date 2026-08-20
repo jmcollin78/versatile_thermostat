@@ -334,6 +334,17 @@ async def async_migrate_entry(hass: HomeAssistant, config_entry: ConfigEntry):
             new.pop("auto_tpi_keep_ext_learning", None)
             new.pop("auto_tpi_continuous_learning", None)
 
+        if version <= 203:
+            # Freeze the power unit to preserve the unit previously displayed by the sensors.
+            # Only set it when absent to respect an already configured value.
+            if CONF_POWER_UNIT not in new:
+                if thermostat_type == CONF_THERMOSTAT_CENTRAL_CONFIG:
+                    new[CONF_POWER_UNIT] = POWER_UNIT_AUTO
+                else:
+                    device_power = get_safe_float_value(new.get(CONF_DEVICE_POWER))
+                    # Reproduce the historical THRESHOLD_WATT_KILO heuristic
+                    new[CONF_POWER_UNIT] = POWER_UNIT_WATT if device_power is not None and device_power > THRESHOLD_POWER_WATT_KILO else POWER_UNIT_KILO_WATT
+
         # Update the config entry with migrated data
         hass.config_entries.async_update_entry(
             config_entry,
