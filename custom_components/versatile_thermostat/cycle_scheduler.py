@@ -158,6 +158,24 @@ class CycleScheduler:
             UnderlyingEntityType.VALVE_REGULATION,
         )
 
+    def _resolve_valve_on_percent(
+        self,
+        on_percent: float,
+        force: bool = False,
+    ) -> float:
+        """Return the valve command retained by the thermostat."""
+        requested = max(0.0, min(1.0, float(on_percent)))
+        resolver = getattr(
+            type(self._thermostat),
+            "apply_valve_command_percent",
+            None,
+        )
+        if resolver is None:
+            return requested
+
+        retained = resolver(self._thermostat, requested, force=force)
+        return max(0.0, min(1.0, float(retained)))
+
     def register_cycle_start_callback(self, callback: Callable):
         """Register a callback to be called at the start of each master cycle.
 
@@ -232,6 +250,9 @@ class CycleScheduler:
             force: If True, cancel any running cycle and restart immediately.
             _from_cycle_end: Internal flag — True when called from _on_master_cycle_end.
         """
+        if self._is_valve_mode:
+            on_percent = self._resolve_valve_on_percent(on_percent, force=force)
+
         cycle_min = self._cycle_duration_sec / 60
         on_time_sec, off_time_sec, _ = calculate_cycle_times(
             on_percent,
@@ -336,6 +357,7 @@ class CycleScheduler:
         if not self._is_valve_mode:
             return
 
+        on_percent = self._resolve_valve_on_percent(on_percent)
         cycle_min = self._cycle_duration_sec / 60
         on_time_sec, off_time_sec, _ = calculate_cycle_times(
             on_percent,
