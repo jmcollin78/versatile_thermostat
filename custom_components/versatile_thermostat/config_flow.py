@@ -210,6 +210,7 @@ class VersatileThermostatBaseConfigFlow(FlowHandler):
             CONF_UNDERLYING_LIST,
             CONF_TEMP_SENSOR,
             CONF_EXTERNAL_TEMP_SENSOR,
+            CONF_HUMIDITY_SENSOR,
             CONF_WINDOW_SENSOR,
             CONF_MOTION_SENSOR,
             CONF_POWER_SENSOR,

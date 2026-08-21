@@ -1304,3 +1304,59 @@ async def test_under_climate_is_device_active(
         f"hvac_mode={hvac_mode}, hvac_action={hvac_action}, "
         f"state={under_state}, target_temp={target_temp}, current_temp={current_temp}"
     )
+
+
+async def test_over_climate_current_humidity_uses_external_sensor_when_configured(
+    hass: HomeAssistant,
+    skip_hass_states_is_state,
+    skip_turn_on_off_heater,
+    skip_send_event,
+    fake_underlying_climate,
+):
+    """Check that current_humidity comes from configured humidity sensor."""
+
+    entry = MockConfigEntry(
+        domain=DOMAIN,
+        title="TheOverClimateMockName",
+        unique_id="uniqueId-humidity",
+        data={
+            **PARTIAL_CLIMATE_CONFIG,
+            CONF_HUMIDITY_SENSOR: "sensor.mock_humidity_sensor",
+        },
+    )
+
+    hass.states.async_set("sensor.mock_humidity_sensor", 55)
+    await hass.async_block_till_done()
+
+    entity: ThermostatOverClimate = await create_thermostat(
+        hass,
+        entry,
+        "climate.theoverclimatemockname",
+    )
+
+    assert entity.current_humidity == 55
+
+
+async def test_over_climate_current_humidity_falls_back_to_underlying(
+    hass: HomeAssistant,
+    skip_hass_states_is_state,
+    skip_turn_on_off_heater,
+    skip_send_event,
+    fake_underlying_climate,
+):
+    """Check that current_humidity falls back to underlying climate when no sensor is configured."""
+
+    entry = MockConfigEntry(
+        domain=DOMAIN,
+        title="TheOverClimateMockName",
+        unique_id="uniqueId-no-humidity",
+        data=PARTIAL_CLIMATE_CONFIG,
+    )
+
+    entity: ThermostatOverClimate = await create_thermostat(
+        hass,
+        entry,
+        "climate.theoverclimatemockname",
+    )
+
+    assert entity.current_humidity == 40

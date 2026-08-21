@@ -62,6 +62,7 @@
                     "name": "Name",
                     "thermostat_type": "Thermostat type",
                     "temperature_sensor_entity_id": "Room temperature",
+                    "humidity_sensor_entity_id": "Room humidity sensor entity id",
                     "last_seen_temperature_sensor_entity_id": "Last seen room temperature datetime",
                     "external_temperature_sensor_entity_id": "Outdoor temperature sensor entity id",
                     "cycle_min": "Cycle duration (minutes)",
@@ -79,6 +80,7 @@
                     "temp_max": "Maximum temperature allowed for the thermostat",
                     "step_temperature": "Temperature step for setting the target temperature",
                     "temperature_sensor_entity_id": "Room temperature sensor entity id",
+                    "humidity_sensor_entity_id": "Room humidity sensor entity id. If set, it overrides current_humidity reported by the underlying climate",
                     "last_seen_temperature_sensor_entity_id": "Last seen room temperature sensor entity id. Should be datetime sensor",
                     "external_temperature_sensor_entity_id": "Outdoor temperature sensor entity id. Not used if central configuration is selected"
                 }
@@ -448,6 +450,7 @@
                     "name": "Name",
                     "thermostat_type": "Thermostat type",
                     "temperature_sensor_entity_id": "Room temperature",
+                    "humidity_sensor_entity_id": "Room humidity sensor entity id",
                     "last_seen_temperature_sensor_entity_id": "Last seen room temperature datetime",
                     "external_temperature_sensor_entity_id": "Outdoor temperature sensor entity id",
                     "cycle_min": "Cycle duration (minutes)",
@@ -465,6 +468,7 @@
                     "temp_max": "Maximum temperature allowed for the thermostat",
                     "step_temperature": "Temperature step for setting the target temperature",
                     "temperature_sensor_entity_id": "Room temperature sensor entity id",
+                    "humidity_sensor_entity_id": "Room humidity sensor entity id. If set, it overrides current_humidity reported by the underlying climate",
                     "last_seen_temperature_sensor_entity_id": "Last seen room temperature sensor entity id. Should be datetime sensor",
                     "external_temperature_sensor_entity_id": "Outdoor temperature sensor entity id. Not used if central configuration is selected"
                 }

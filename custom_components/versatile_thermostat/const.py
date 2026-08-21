@@ -65,6 +65,7 @@ CONF_HEATER_KEEP_ALIVE = "heater_keep_alive"
 CONF_TEMP_SENSOR = "temperature_sensor_entity_id"
 CONF_LAST_SEEN_TEMP_SENSOR = "last_seen_temperature_sensor_entity_id"
 CONF_EXTERNAL_TEMP_SENSOR = "external_temperature_sensor_entity_id"
+CONF_HUMIDITY_SENSOR = "humidity_sensor_entity_id"
 CONF_POWER_SENSOR = "power_sensor_entity_id"
 CONF_MAX_POWER_SENSOR = "max_power_sensor_entity_id"
 CONF_WINDOW_SENSOR = "window_sensor_entity_id"
@@ -347,6 +348,7 @@ ALL_CONF = (
         CONF_HEATER_KEEP_ALIVE,
         CONF_TEMP_SENSOR,
         CONF_EXTERNAL_TEMP_SENSOR,
+        CONF_HUMIDITY_SENSOR,
         CONF_POWER_SENSOR,
         CONF_MAX_POWER_SENSOR,
         CONF_WINDOW_SENSOR,
