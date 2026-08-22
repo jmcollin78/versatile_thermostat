@@ -260,7 +260,15 @@ class CycleScheduler:
             self.min_activation_delay,
             self.min_deactivation_delay,
         )
-        realized_on_percent = on_time_sec / self._cycle_duration_sec if self._cycle_duration_sec > 0 else 0.0
+        # A valve applies the retained position directly. Converting it back
+        # from integer cycle seconds would quantize it a second time and feed a
+        # different command into the next automatic cycle restart.
+        if self._is_valve_mode:
+            realized_on_percent = on_percent
+        elif self._cycle_duration_sec > 0:
+            realized_on_percent = on_time_sec / self._cycle_duration_sec
+        else:
+            realized_on_percent = 0.0
 
         # Always update thermostat timing attributes immediately so sensors
         # reflect the latest computed value, even when the cycle returns early.
@@ -365,7 +373,9 @@ class CycleScheduler:
             self.min_activation_delay,
             self.min_deactivation_delay,
         )
-        realized_on_percent = on_time_sec / self._cycle_duration_sec if self._cycle_duration_sec > 0 else 0.0
+        # Valve mode is direct-position control: cycle seconds are diagnostic
+        # timing data, not the source of the applied valve percentage.
+        realized_on_percent = on_percent
 
         self._thermostat._on_time_sec = on_time_sec
         self._thermostat._off_time_sec = off_time_sec
