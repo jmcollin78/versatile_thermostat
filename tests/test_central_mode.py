@@ -222,7 +222,9 @@ async def test_switch_change_central_mode_true(hass: HomeAssistant, skip_hass_st
         assert entity.last_central_mode is None
 
         # Find the select entity
-        select_entity = search_entity(hass, "select.central_mode", SELECT_DOMAIN)
+        select_entity = search_entity(
+            hass, "select.central_configuration_central_mode", SELECT_DOMAIN
+        )
 
         assert select_entity
         assert select_entity.current_option == CENTRAL_MODE_AUTO
@@ -366,7 +368,9 @@ async def test_switch_ac_change_central_mode_true(hass: HomeAssistant, skip_hass
         assert entity.vtherm_hvac_modes == [VThermHvacMode_HEAT, VThermHvacMode_COOL, VThermHvacMode_OFF]
 
         # Find the select entity
-        select_entity = search_entity(hass, "select.central_mode", SELECT_DOMAIN)
+        select_entity = search_entity(
+            hass, "select.central_configuration_central_mode", SELECT_DOMAIN
+        )
 
         assert select_entity
         assert select_entity.current_option == CENTRAL_MODE_AUTO
@@ -498,7 +502,9 @@ async def test_climate_ac_change_central_mode_false(hass: HomeAssistant, skip_ha
         assert entity.vtherm_hvac_modes == [VThermHvacMode_OFF, VThermHvacMode_COOL, VThermHvacMode_HEAT]
 
         # Find the select entity
-        select_entity = search_entity(hass, "select.central_mode", SELECT_DOMAIN)
+        select_entity = search_entity(
+            hass, "select.central_configuration_central_mode", SELECT_DOMAIN
+        )
 
         assert select_entity
         assert select_entity.current_option == CENTRAL_MODE_AUTO
@@ -632,7 +638,9 @@ async def test_climate_ac_only_change_central_mode_true(hass: HomeAssistant, ski
         assert entity.vtherm_hvac_modes == [VThermHvacMode_OFF, VThermHvacMode_COOL]
 
         # Find the select entity
-        select_entity = search_entity(hass, "select.central_mode", SELECT_DOMAIN)
+        select_entity = search_entity(
+            hass, "select.central_configuration_central_mode", SELECT_DOMAIN
+        )
 
         assert select_entity
         assert select_entity.current_option == CENTRAL_MODE_AUTO
@@ -790,7 +798,9 @@ async def test_switch_change_central_mode_true_with_window(hass: HomeAssistant, 
         assert entity.last_central_mode is None
 
         # Find the select entity
-        select_entity = search_entity(hass, "select.central_mode", SELECT_DOMAIN)
+        select_entity = search_entity(
+            hass, "select.central_configuration_central_mode", SELECT_DOMAIN
+        )
 
         assert select_entity
         assert select_entity.current_option == CENTRAL_MODE_AUTO
@@ -952,7 +962,9 @@ async def test_switch_change_central_mode_true_with_cool_only_and_window(hass: H
         assert entity.window_state is STATE_UNKNOWN
 
         # Find the select entity
-        select_entity = search_entity(hass, "select.central_mode", SELECT_DOMAIN)
+        select_entity = search_entity(
+            hass, "select.central_configuration_central_mode", SELECT_DOMAIN
+        )
 
         assert select_entity
         assert select_entity.current_option == CENTRAL_MODE_AUTO

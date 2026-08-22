@@ -2756,7 +2756,9 @@ async def test_window_and_central_mode_heat_only(hass: HomeAssistant, skip_hass_
     assert entity.window_state is STATE_UNKNOWN
 
     # Find the select entity
-    select_entity = search_entity(hass, "select.central_mode", SELECT_DOMAIN)
+    select_entity = search_entity(
+        hass, "select.central_configuration_central_mode", SELECT_DOMAIN
+    )
 
     assert select_entity
 

@@ -328,8 +328,7 @@ class MockClimate(ClimateEntity):
     def set_fan_mode(self, fan_mode):
         """Set the fan mode"""
         self._attr_fan_mode = fan_mode
-        # self.async_write_ha_state()
-        set_entity_states_from_entity(self.hass, self)
+        self.hass.loop.call_soon_threadsafe(self.async_write_ha_state)
 
     @property
     def supported_features(self) -> int:
@@ -926,6 +925,8 @@ async def create_and_register_mock_number(
 async def register_mock_entity(hass, entity: Entity, domain: str):
     """Register the entity in HA"""
 
+    # Test entities are updated explicitly and must not create polling timers.
+    entity._attr_should_poll = False  # pylint: disable=protected-access
     component = EntityComponent(_LOGGER, domain, hass)
 
     await component.async_add_entities([entity])

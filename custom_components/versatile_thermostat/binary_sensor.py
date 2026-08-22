@@ -470,8 +470,9 @@ class CentralBoilerBinarySensor(BinarySensorEntity):
         """Update the custom extra attributes for the entity"""
         self._attr_extra_state_attributes = {"central_boiler_state": STATE_ON if self._attr_is_on else STATE_OFF}
         api: VersatileThermostatAPI = VersatileThermostatAPI.get_vtherm_api()
-        cb_manager = api.central_boiler_manager
-        cb_manager.add_custom_attributes(self._attr_extra_state_attributes)
+        if api is None:
+            return
+        api.central_boiler_manager.add_custom_attributes(self._attr_extra_state_attributes)
 
     def __str__(self):
         return f"VersatileThermostat-{self.name}"
