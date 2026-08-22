@@ -464,6 +464,9 @@ async def test_bug_615(
         assert vtherm.is_over_climate is True
         assert vtherm.vtherm_hvac_mode is VThermHvacMode_OFF
         # because check_initial_state turns off the under
+        await wait_for_local_condition(
+            lambda: vtherm.hvac_action is HVACAction.OFF, hass=hass
+        )
         assert vtherm.hvac_action is HVACAction.OFF
 
         # Force a preset_mode without sending a temperature (as it was restored with a preset)
