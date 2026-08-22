@@ -220,6 +220,7 @@ class TPIHandler:
         """Cleanup on removal."""
         t = self._thermostat
         if self._auto_tpi_manager:
+            self._auto_tpi_manager.shutdown()
             t.hass.async_create_task(self._auto_tpi_manager.async_save_data())
 
     def on_scheduler_ready(self, scheduler) -> None:

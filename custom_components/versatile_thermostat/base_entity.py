@@ -82,6 +82,15 @@ class VersatileThermostatBaseEntity(Entity):
     async def async_added_to_hass(self):
         """Listen to my climate state change"""
 
+        @callback
+        def cancel_pending_climate_lookup():
+            """Cancel a pending climate lookup retry."""
+            if self._cancel_call:
+                self._cancel_call()
+                self._cancel_call = None
+
+        self.async_on_remove(cancel_pending_climate_lookup)
+
         # Check delay condition
         async def try_find_climate(_):
             _LOGGER.debug(
@@ -89,9 +98,7 @@ class VersatileThermostatBaseEntity(Entity):
             )
             mcl = self.my_climate
             if mcl:
-                if self._cancel_call:
-                    self._cancel_call()
-                    self._cancel_call = None
+                cancel_pending_climate_lookup()
                 self.async_on_remove(
                     async_track_state_change_event(
                         self.hass,

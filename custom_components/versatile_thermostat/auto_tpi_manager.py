@@ -2572,6 +2572,17 @@ class AutoTpiManager:
         _LOGGER.debug("%s - Auto TPI: Captured end of ON temp: %.1f", self._name, self.state.last_on_temp_in)
         self._timer_capture_remove_callback = None
 
+    def _cancel_capture_timer(self) -> None:
+        """Cancel the pending end-of-ON temperature capture."""
+        if self._timer_capture_remove_callback:
+            self._timer_capture_remove_callback()
+            self._timer_capture_remove_callback = None
+
+    def shutdown(self) -> None:
+        """Stop transient cycle activity owned by the manager."""
+        self._cancel_capture_timer()
+        self.state.cycle_active = False
+
     def update_realized_power(self, realized_percent: float):
         """Update the power actually applied to the underlyings.
 
@@ -2603,9 +2614,7 @@ class AutoTpiManager:
             # You could add specific logic here if needed (stats, etc)
 
         # Cancel any pending capture timer
-        if self._timer_capture_remove_callback:
-            self._timer_capture_remove_callback()
-            self._timer_capture_remove_callback = None
+        self._cancel_capture_timer()
 
         self.state.cycle_active = True
 
@@ -2789,6 +2798,8 @@ class AutoTpiManager:
 
     async def on_cycle_completed(self, e_eff: float = None, **_kw) -> None:
         """Called when a TPI cycle completes."""
+        self._cancel_capture_timer()
+
         # Validation logic (moved from old _tick)
         now = dt_util.now()
 

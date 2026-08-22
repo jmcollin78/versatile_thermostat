@@ -912,4 +912,6 @@ async def test_over_climate_auto_fan_mode_check_delay_command(hass: HomeAssistan
         assert planned_commands[1]["delay"] == 2.0
         assert planned_commands[1]["fan_mode"] == "mute"
 
-    entity.remove_thermostat()
+    await hass.async_block_till_done()
+    assert await hass.config_entries.async_unload(entry.entry_id) is True
+    await hass.async_block_till_done()

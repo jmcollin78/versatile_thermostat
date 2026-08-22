@@ -284,6 +284,7 @@ async def test_cycle_lifecycle(manager):
     assert manager.state.last_power == 0.5
     assert manager.state.last_state == "heat"
     assert manager._timer_capture_remove_callback is not None
+    capture_timer_cancel = manager._timer_capture_remove_callback
     
     
     # Simulate time passing (5 minutes) to satisfy cycle duration validation
@@ -292,9 +293,11 @@ async def test_cycle_lifecycle(manager):
 
     # 2. Complete Cycle
     await manager.on_cycle_completed()
-    
+
     assert manager.state.cycle_active is False
     assert manager.state.total_cycles == 1
+    capture_timer_cancel.assert_called_once()
+    assert manager._timer_capture_remove_callback is None
 
 
 # Fixture for mocked BaseThermostat with service_auto_tpi_calibrate_capacity
