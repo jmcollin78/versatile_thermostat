@@ -70,7 +70,9 @@ async def test_inverted_switch(hass: HomeAssistant, fake_underlying_switch: Mock
     assert entity.preset_mode == VThermPreset.BOOST
     assert entity.target_temperature == 21
 
-    await wait_for_local_condition(lambda: entity.is_device_active is False)
+    await wait_for_local_condition(
+        lambda: entity.is_device_active is True, hass=hass
+    )
 
     # 1. Make the temperature down to activate the switch
     # Cancel existing cycle so the new cycle can start
