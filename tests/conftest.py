@@ -16,7 +16,7 @@
 #
 # See here for more info: https://docs.pytest.org/en/latest/fixture.html (note that
 # pytest includes fixtures OOB which you can use as defined on this page)
-from unittest.mock import patch, MagicMock
+from unittest.mock import patch
 
 import pytest
 # https://github.com/miketheman/pytest-socket/pull/275
@@ -95,11 +95,13 @@ def skip_validate_input_fixture():
 
 @pytest.fixture(name="skip_hass_states_get")
 def skip_hass_states_get_fixture():
-    """Skip the get state in HomeAssistant by returning a mock State object"""
-    mock_state = MagicMock(spec=State)
-    mock_state.state = "20"
-    mock_state.attributes = {"max": 100, "min": 0}
-    with patch.object(StateMachine, "get", return_value=mock_state):
+    """Skip state lookup in Home Assistant by returning a fixed State object."""
+    state = State(
+        "sensor.mock_state",
+        "20",
+        attributes={"max": 100, "min": 0},
+    )
+    with patch.object(StateMachine, "get", return_value=state):
         yield
 
 

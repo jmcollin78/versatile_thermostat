@@ -2,6 +2,8 @@
 # pylint: disable=protected-access, wildcard-import, unused-wildcard-import
 
 import asyncio
+from contextlib import suppress
+
 import pytest
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
@@ -68,21 +70,25 @@ async def test_recalibrate_starts_task(hass, skip_hass_states_get, monkeypatch):
     called = {}
 
     def fake_create_task(coro):
-        # schedule the coroutine to actually run to avoid 'never awaited' warnings
-        called["task"] = True
-        try:
-            asyncio.get_running_loop().create_task(coro)
-        except RuntimeError:
-            # If no running loop (should not happen in pytest-asyncio), fallback
-            asyncio.create_task(coro)
+        """Schedule and retain the background task for test cleanup."""
+        task = asyncio.get_running_loop().create_task(coro)
+        called["task"] = task
+        return task
 
     monkeypatch.setattr(hass, "async_create_task", fake_create_task)
 
     result = await thermostat.service_recalibrate_valves(0)
 
-    assert isinstance(result, dict)
-    assert result.get("message") == "calibrage en cours"
-    assert called.get("task", False) is True
+    try:
+        assert isinstance(result, dict)
+        assert result.get("message") == "calibrage en cours"
+        assert isinstance(called.get("task"), asyncio.Task)
+    finally:
+        task = called.get("task")
+        if task:
+            task.cancel()
+            with suppress(asyncio.CancelledError):
+                await task
 
 
 @pytest.mark.asyncio

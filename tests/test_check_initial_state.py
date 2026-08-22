@@ -24,7 +24,7 @@ from custom_components.versatile_thermostat.vtherm_hvac_mode import VThermHvacMo
         (VThermHvacMode_OFF, STATE_UNKNOWN, False),
     ],
 )
-async def test_check_initial_state_underlying_switch(hass, hvac_mode, last_state, expect_off_call):
+async def test_check_initial_state_underlying_switch(hass, request, hvac_mode, last_state, expect_off_call):
     """Test check_initial_state behavior for UnderlyingSwitch.
 
     - when thermostat HVAC mode is OFF and underlying is ON, the switch should be turned off
@@ -51,6 +51,7 @@ async def test_check_initial_state_underlying_switch(hass, hvac_mode, last_state
 
     # Instantiate the UnderlyingSwitch
     u = UnderlyingSwitch(hass=hass, thermostat=thermostat, switch_entity_id="switch.test", keep_alive_sec=0.1)
+    request.addfinalizer(u.remove_entity)
 
     # Replace set_hvac_mode with a mock to assert it is invoked by check_initial_state
     u.turn_off = AsyncMock()
