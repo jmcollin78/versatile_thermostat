@@ -389,6 +389,52 @@ class TestCycleSchedulerCallbacks:
         assert scheduler._valve_cycle_trace[1][1] == pytest.approx(0.6)
 
     @pytest.mark.asyncio
+    @patch("custom_components.versatile_thermostat.cycle_scheduler.async_call_later")
+    async def test_valve_cycle_uses_command_retained_by_thermostat(
+        self,
+        mock_call_later,
+    ):
+        """Valve updates must send and trace the thermostat-retained command."""
+        mock_call_later.return_value = MagicMock()
+
+        class ValveThermostat:
+            """Minimal thermostat exposing the over-valve command contract."""
+
+            def __init__(self):
+                self.valve_open_percent = 0
+                self.calls = []
+                self._on_time_sec = 0
+                self._off_time_sec = 0
+
+            def apply_valve_command_percent(self, on_percent, force=False):
+                self.calls.append((on_percent, force))
+                self.valve_open_percent = round(on_percent * 100)
+                return self.valve_open_percent / 100.0
+
+            def __str__(self):
+                return "ValveThermostat"
+
+        hass = make_hass()
+        thermostat = ValveThermostat()
+        valve = make_underlying("V1", active=False, entity_type=UnderlyingEntityType.VALVE)
+        scheduler = CycleScheduler(hass, thermostat, [valve], 600)
+
+        await scheduler.start_cycle(VThermHvacMode_HEAT, 0.234, force=True)
+
+        assert thermostat.valve_open_percent == 23
+        assert thermostat.calls == [(0.234, True)]
+        assert scheduler._active_on_percent == pytest.approx(0.23)
+        assert scheduler._valve_cycle_trace == [(0.0, 0.23)]
+
+        await scheduler.start_cycle(VThermHvacMode_HEAT, 0.678, force=False)
+
+        assert thermostat.valve_open_percent == 68
+        assert thermostat.calls == [(0.234, True), (0.678, False)]
+        assert scheduler._active_on_percent == pytest.approx(0.68)
+        assert scheduler._valve_cycle_trace[-1][1] == pytest.approx(0.68)
+        assert valve.set_valve_open_percent.await_count == 2
+
+    @pytest.mark.asyncio
     @patch("custom_components.versatile_thermostat.cycle_scheduler.time.time")
     @patch("custom_components.versatile_thermostat.cycle_scheduler.async_call_later")
     async def test_valve_mid_cycle_update_contributes_to_realized_power(

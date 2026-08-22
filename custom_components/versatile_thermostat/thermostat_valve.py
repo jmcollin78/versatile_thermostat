@@ -212,8 +212,29 @@ class ThermostatOverValve(ThermostatProp[UnderlyingValve]):  # pylint: disable=a
             # Temperature not yet available; preserve the current valve position.
             return
 
+        self.apply_valve_command_percent(current_on_percent, force=True)
+
+    def apply_valve_command_percent(
+        self,
+        on_percent: float,
+        force: bool = False,
+    ) -> float:
+        """Accept a requested valve command and return the retained ratio.
+
+        This is the single conversion point between a proportional algorithm's
+        continuous output and the integer command exposed by the thermostat.
+        """
+        self.stop_recalculate_later()
+
+        if self._auto_regulation_period_min is None or self._auto_regulation_dpercent is None:
+            _LOGGER.warning(
+                "%s - auto_regulation_period_min or auto_regulation_dpercent is not set. Keeping current valve command.",
+                self,
+            )
+            return self.valve_open_percent / 100.0
+
         new_valve_percent = round(
-            max(0, min(current_on_percent, 1)) * 100
+            max(0, min(on_percent, 1)) * 100
         )
 
         # Issue 533 - don't filter with dtemp if valve should be close. Else it will never close
@@ -233,11 +254,23 @@ class ThermostatOverValve(ThermostatProp[UnderlyingValve]):  # pylint: disable=a
                 dpercent,
             )
 
-            return
+            return self.valve_open_percent / 100.0
 
         if self._valve_open_percent == new_valve_percent:
             _LOGGER.debug("%s - no change in valve_open_percent.", self)
-            return
+            return self.valve_open_percent / 100.0
+
+        now = self.now
+        if self._last_calculation_timestamp is not None:
+            period = (now - self._last_calculation_timestamp).total_seconds() / 60
+            if not force and period < self._auto_regulation_period_min:
+                _LOGGER.info(
+                    "%s - do not apply valve command because regulation_period (%d) is not exceeded",
+                    self,
+                    period,
+                )
+                self.do_recalculate_later()
+                return self.valve_open_percent / 100.0
 
         self._valve_open_percent = new_valve_percent
 
@@ -249,6 +282,7 @@ class ThermostatOverValve(ThermostatProp[UnderlyingValve]):  # pylint: disable=a
         # self.calculate_hvac_action()
         self.update_custom_attributes()
         self.async_write_ha_state()
+        return self.valve_open_percent / 100.0
 
     def do_recalculate_later(self):
         """A utility function to set the valve open percent later on all underlyings"""
