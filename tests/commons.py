@@ -328,7 +328,20 @@ class MockClimate(ClimateEntity):
     def set_fan_mode(self, fan_mode):
         """Set the fan mode"""
         self._attr_fan_mode = fan_mode
-        self.hass.loop.call_soon_threadsafe(self.async_write_ha_state)
+        self._write_ha_state()
+
+    def _write_ha_state(self):
+        """Write state immediately on the HA loop or schedule it thread-safely."""
+        try:
+            running_loop = asyncio.get_running_loop()
+        except RuntimeError:
+            self.schedule_update_ha_state()
+            return
+
+        if running_loop is self.hass.loop:
+            self.async_write_ha_state()
+        else:
+            self.schedule_update_ha_state()
 
     @property
     def supported_features(self) -> int:
@@ -364,7 +377,7 @@ class MockClimate(ClimateEntity):
         temperature = kwargs.get(ATTR_TEMPERATURE)
         self._attr_target_temperature = temperature
         self._calculate_hvac_action()
-        self.hass.loop.call_soon_threadsafe(self.async_write_ha_state)
+        self._write_ha_state()
 
     async def async_set_hvac_mode(self, hvac_mode):
         """The hvac mode"""
@@ -375,7 +388,7 @@ class MockClimate(ClimateEntity):
             self._attr_available = True
             self._attr_hvac_mode = hvac_mode
         self._calculate_hvac_action()
-        self.hass.loop.call_soon_threadsafe(self.async_write_ha_state)
+        self._write_ha_state()
 
     def set_hvac_mode(self, hvac_mode):
         """The hvac mode"""
@@ -386,28 +399,28 @@ class MockClimate(ClimateEntity):
             self._attr_available = True
             self._attr_hvac_mode = hvac_mode
         self._calculate_hvac_action()
-        self.hass.loop.call_soon_threadsafe(self.async_write_ha_state)
+        self._write_ha_state()
 
     def set_hvac_action(self, hvac_action: HVACAction):
         """Set the HVACaction"""
         self._attr_hvac_action = hvac_action
-        self.hass.loop.call_soon_threadsafe(self.async_write_ha_state)
+        self._write_ha_state()
 
     def set_current_temperature(self, current_temperature):
         """Set the current_temperature"""
         self._attr_current_temperature = current_temperature
         self._calculate_hvac_action()
-        self.hass.loop.call_soon_threadsafe(self.async_write_ha_state)
+        self._write_ha_state()
 
     def set_swing_mode(self, swing_mode):
         """The swing mode"""
         self._attr_swing_mode = swing_mode
-        self.hass.loop.call_soon_threadsafe(self.async_write_ha_state)
+        self._write_ha_state()
 
     def set_swing_horizontal_mode(self, swing_horizontal_mode):
         """The swing horizontal mode"""
         self._attr_swing_horizontal_mode = swing_horizontal_mode
-        self.hass.loop.call_soon_threadsafe(self.async_write_ha_state)
+        self._write_ha_state()
 
     @property
     def attributes(self) -> Dict[str, Any]:

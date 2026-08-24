@@ -205,7 +205,6 @@ async def test_update_central_boiler_state_simple(
     assert boiler_binary_sensor.state == STATE_OFF
 
     nb_device_active_sensor: NbActiveDeviceForBoilerSensor = search_entity(hass, "sensor.central_configuration_nb_device_active_for_boiler", "sensor")
-    nb_device_active_sensor: NbActiveDeviceForBoilerSensor = search_entity(hass, "sensor.central_configuration_nb_device_active_for_boiler", "sensor")
     assert nb_device_active_sensor is not None
     assert nb_device_active_sensor.state == 0
     assert nb_device_active_sensor.active_device_ids == []

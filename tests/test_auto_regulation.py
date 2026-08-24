@@ -70,6 +70,9 @@ async def test_over_climate_regulation(hass: HomeAssistant, skip_hass_states_is_
         # Select a hvacmode, presence and preset
         await entity.async_set_hvac_mode(VThermHvacMode_HEAT)
         assert entity.vtherm_hvac_mode is VThermHvacMode_HEAT
+        await wait_for_local_condition(
+            lambda: entity.hvac_action is HVACAction.IDLE, hass=hass
+        )
         assert entity.hvac_action == HVACAction.IDLE
 
         assert entity.regulated_target_temp == entity.min_temp
@@ -167,6 +170,9 @@ async def test_over_climate_regulation_ac_mode(hass: HomeAssistant, skip_send_ev
     # Select a hvacmode, presence and preset
     await entity.async_set_hvac_mode(VThermHvacMode_COOL)
     assert entity.vtherm_hvac_mode is VThermHvacMode_COOL
+    await wait_for_local_condition(
+        lambda: entity.hvac_action is HVACAction.IDLE, hass=hass
+    )
     assert entity.hvac_action == HVACAction.IDLE
 
     # change temperature so that the heating will start
@@ -510,6 +516,9 @@ async def test_over_climate_regulation_dtemp_null(
         # Select a hvacmode, presence and preset
         await entity.async_set_hvac_mode(VThermHvacMode_HEAT)
         assert entity.vtherm_hvac_mode is VThermHvacMode_HEAT
+        await wait_for_local_condition(
+            lambda: entity.hvac_action is HVACAction.HEATING, hass=hass
+        )
         assert entity.hvac_action == HVACAction.HEATING
 
         # change temperature so that the heating will start
