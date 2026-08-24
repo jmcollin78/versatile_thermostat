@@ -902,6 +902,9 @@ async def test_update_central_boiler_state_simple_climate(
     await send_temperature_change_event(entity, 25, now)
     await entity.async_set_hvac_mode(VThermHvacMode_HEAT)
     await entity.async_set_preset_mode(VThermPreset.FROST)
+    await wait_for_local_condition(
+        lambda: entity.device_actives == [], hass=hass
+    )
 
     assert entity.hvac_mode == VThermHvacMode_HEAT
     assert entity.device_actives == []
@@ -1037,6 +1040,9 @@ async def test_update_central_boiler_state_simple_climate_power(
     await send_temperature_change_event(entity, 25, now)
     await entity.async_set_hvac_mode(VThermHvacMode_HEAT)
     await entity.async_set_preset_mode(VThermPreset.FROST)
+    await wait_for_local_condition(
+        lambda: entity.device_actives == [], hass=hass
+    )
 
     assert entity.hvac_mode == VThermHvacMode_HEAT
     assert entity.device_actives == []
