@@ -572,12 +572,8 @@ async def test_security_over_climate(
         # Force safety mode
         assert entity._last_ext_temperature_measure is not None
         assert entity._last_temperature_measure is not None
-        assert (
-            entity._last_temperature_measure.astimezone(tz) - now
-        ).total_seconds() < 1
-        assert (
-            entity._last_ext_temperature_measure.astimezone(tz) - now
-        ).total_seconds() < 1
+        assert entity._last_temperature_measure.astimezone(tz) >= now
+        assert entity._last_ext_temperature_measure.astimezone(tz) >= now
 
         # Tries to turns on the Thermostat
         await entity.async_set_hvac_mode(VThermHvacMode_HEAT)
