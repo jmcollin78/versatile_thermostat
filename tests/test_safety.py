@@ -536,7 +536,10 @@ async def test_security_over_climate(
         await wait_for_local_condition(lambda: entity.is_ready)
 
         # Even if the underlying is HEATING it will be off at startup
-        await wait_for_local_condition(lambda: entity.vtherm_hvac_mode is VThermHvacMode_OFF)
+        await wait_for_local_condition(
+            lambda: entity.vtherm_hvac_mode is VThermHvacMode_OFF
+            and entity.hvac_action is HVACAction.OFF
+        )
         assert entity.hvac_action is HVACAction.OFF
         assert fake_underlying_climate.hvac_mode == HVACMode.OFF
         assert fake_underlying_climate.hvac_action == HVACAction.OFF
