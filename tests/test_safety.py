@@ -581,7 +581,7 @@ async def test_security_over_climate(
         assert entity.hvac_mode == VThermHvacMode_HEAT
 
         # One call more
-        assert mock_send_event.call_count >= 3
+        assert mock_send_event.call_count == 3
         mock_send_event.assert_has_calls(
             [
                 call.send_event(

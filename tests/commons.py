@@ -388,7 +388,7 @@ class MockClimate(ClimateEntity):
             self._attr_available = True
             self._attr_hvac_mode = hvac_mode
         self._calculate_hvac_action()
-        self._write_ha_state()
+        self.schedule_update_ha_state()
 
     def set_hvac_mode(self, hvac_mode):
         """The hvac mode"""

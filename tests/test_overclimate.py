@@ -774,7 +774,7 @@ async def test_ignore_temp_outside_minmax_range(
         assert entity.preset_mode is VThermPreset.NONE
 
         # should have been called with EventType.PRESET_EVENT and EventType.HVAC_MODE_EVENT
-        assert mock_send_event.call_count >= 1
+        assert mock_send_event.call_count == 1
         mock_send_event.assert_has_calls(
             [
                 call.send_event(EventType.PRESET_EVENT, {"preset": VThermPreset.NONE}),
@@ -975,7 +975,7 @@ async def test_manual_hvac_off_should_take_the_lead_over_window(
         assert vtherm.hvac_off_reason == HVAC_OFF_REASON_WINDOW_DETECTION
         # assert vtherm._saved_hvac_mode == VThermHvacMode_HEAT
 
-        assert mock_send_event.call_count >= 1
+        assert mock_send_event.call_count == 1
 
         assert vtherm.window_state == STATE_ON
 
