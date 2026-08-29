@@ -64,6 +64,7 @@
           "temp_max": "Maximálna povolená teplota",
           "step_temperature": "Krok teploty",
           "device_power": "Napájanie zariadenia",
+          "power_unit": "Jednotka výkonu (pre napájanie zariadenia)",
           "use_central_mode": "Povoliť ovládanie centrálnou entitou (potrebná centrálna konfigurácia)",
           "use_main_central_config": "Použite dodatočnú centrálnu hlavnú konfiguráciu. Začiarknite, ak chcete použiť centrálnu hlavnú konfiguráciu (vonkajšia teplota, min, max, krok, ...).",
           "used_by_controls_central_boiler": "Používa sa centrálnym kotlom. Skontrolujte, či má mať tento VTherm ovládanie na centrálnom kotli"
@@ -75,7 +76,8 @@
           "step_temperature": "Krok teploty na nastavenie cieľovej teploty",
           "temperature_sensor_entity_id": "ID entity snímača izbovej teploty",
           "last_seen_temperature_sensor_entity_id": "Naposledy videný snímač izbovej teploty ID entity. Mal by to byť snímač dátumu a času",
-          "external_temperature_sensor_entity_id": "ID entity snímača vonkajšej teploty. Nepoužíva sa, ak je zvolená centrálna konfigurácia"
+          "external_temperature_sensor_entity_id": "ID entity snímača vonkajšej teploty. Nepoužíva sa, ak je zvolená centrálna konfigurácia",
+          "power_unit": "Jednotka spotreby výkonu zariadenia"
         }
       },
       "features": {
@@ -698,6 +700,19 @@
         "eco": "Eco",
         "comfort": "Komfort",
         "boost": "Boost"
+      }
+    },
+    "power_unit": {
+      "options": {
+        "W": "Watt (W)",
+        "kW": "Kilowatt (kW)"
+      }
+    },
+    "central_power_unit": {
+      "options": {
+        "W": "Watt (W)",
+        "kW": "Kilowatt (kW)",
+        "auto": "Automaticky (automatická detekcia zo senzoru)"
       }
     }
   },

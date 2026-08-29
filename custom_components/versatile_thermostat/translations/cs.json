@@ -69,6 +69,7 @@
                     "temp_max": "Maximální povolená teplota",
                     "step_temperature": "Krok teploty",
                     "device_power": "Výkon zařízení",
+                    "power_unit": "Jednotka výkonu (pro výkon zařízení)",
                     "use_central_mode": "Povolit řízení centrální entitou (vyžaduje centrální konfiguraci). Zaškrtněte pro povolení řízení VTherm pomocí entit select central_mode.",
                     "use_main_central_config": "Použít dodatečnou centrální hlavní konfiguraci. Zaškrtněte pro použití centrální hlavní konfigurace (venkovní teplota, min, max, krok, ...).",
                     "used_by_controls_central_boiler": "Používán centrálním kotlem. Zaškrtněte, pokud má tento VTherm řídit centrální kotel"
@@ -80,7 +81,8 @@
                     "step_temperature": "Krok teploty pro nastavení cílové teploty",
                     "temperature_sensor_entity_id": "ID entity senzoru teploty místnosti",
                     "last_seen_temperature_sensor_entity_id": "ID entity posledního času měření teploty místnosti. Měl by být datetime senzor",
-                    "external_temperature_sensor_entity_id": "ID entity senzoru venkovní teploty. Nepoužívá se, pokud je zvolena centrální konfigurace"
+                    "external_temperature_sensor_entity_id": "ID entity senzoru venkovní teploty. Nepoužívá se, pokud je zvolena centrální konfigurace",
+                    "power_unit": "Jednotka spotřeby výkonu zařízení"
                 }
             },
             "features": {
@@ -212,12 +214,14 @@
                 "data": {
                     "power_sensor_entity_id": "Výkon",
                     "max_power_sensor_entity_id": "Maximální výkon",
+                    "power_unit": "Jednotka centrálního výkonu",
                     "power_temp": "Teplota odlehčení",
                     "use_power_central_config": "Použít centrální konfiguraci výkonu"
                 },
                 "data_description": {
                     "power_sensor_entity_id": "ID entity senzoru výkonu",
                     "max_power_sensor_entity_id": "ID entity senzoru maximálního výkonu",
+                    "power_unit": "Vyberte jednotku výkonu nebo Automaticky k automatické detekci ze senzoru",
                     "power_temp": "Teplota pro odlehčení výkonu",
                     "use_power_central_config": "Zaškrtněte pro použití centrální konfigurace výkonu. Odškrtněte pro použití specifické konfigurace výkonu pro tento VTherm"
                 }
@@ -843,6 +847,19 @@
             "options": {
                 "discovery": "Objev",
                 "fine_tuning": "Jemné ladění"
+            }
+        },
+        "power_unit": {
+            "options": {
+                "W": "Watty (W)",
+                "kW": "Kilowatty (kW)"
+            }
+        },
+        "central_power_unit": {
+            "options": {
+                "W": "Watty (W)",
+                "kW": "Kilowatty (kW)",
+                "auto": "Automaticky (automatická detekce ze senzoru)"
             }
         }
     },

@@ -55,7 +55,9 @@ class FeaturePowerManager(BaseFeatureManager):
         self._power_temp = entry_infos.get(CONF_PRESET_POWER)
 
         self._power_unit = entry_infos.get(CONF_POWER_UNIT) or POWER_UNIT_WATT
-        self._device_power = entry_infos.get(CONF_DEVICE_POWER) or 0
+        # Normalize device_power to internal Watts based on configured unit
+        raw_device_power = entry_infos.get(CONF_DEVICE_POWER)
+        self._device_power = power_to_watts(raw_device_power, self._power_unit) if raw_device_power else 0
         self._use_power_feature = entry_infos.get(CONF_USE_POWER_FEATURE, False)
         self._is_configured = False
 

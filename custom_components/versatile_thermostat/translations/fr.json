@@ -70,6 +70,7 @@
           "temp_max": "Température maximale permise",
           "step_temperature": "Pas de température",
           "device_power": "Puissance de l'équipement",
+          "power_unit": "Unité de puissance (pour puissance équipement)",
           "use_central_mode": "Autoriser le controle par une entity centrale ('nécessite une config. centrale`). Cochez pour autoriser le contrôle du VTherm par la liste déroulante 'central_mode' de l'entité configuration centrale.",
           "use_main_central_config": "Utiliser la configuration centrale supplémentaire. Cochez pour utiliser la configuration centrale supplémentaire (température externe, min, max, pas, ...)",
           "used_by_controls_central_boiler": "Utilisé par la chaudière centrale. Cochez si ce VTherm doit contrôler la chaudière centrale."
@@ -81,7 +82,8 @@
           "step_temperature": "Pas de température pour le réglage de la température cible",
           "temperature_sensor_entity_id": "Id d'entité du capteur de température",
           "last_seen_temperature_sensor_entity_id": "Id d'entité du capteur donnant la date et heure de dernière vue capteur de température. L'état doit être au format date heure (ex: 2024-03-31T17:07:03+00:00)",
-          "external_temperature_sensor_entity_id": "Entity id du capteur de température extérieure. Non utilisé si une configuration centrale est définie"
+          "external_temperature_sensor_entity_id": "Entity id du capteur de température extérieure. Non utilisé si une configuration centrale est définie",
+          "power_unit": "Unité de consommation de puissance de l'équipement"
         }
       },
       "features": {
@@ -213,12 +215,14 @@
         "data": {
           "power_sensor_entity_id": "Capteur de puissance totale (entity id)",
           "max_power_sensor_entity_id": "Capteur de puissance Max (entity id)",
+          "power_unit": "Unité de puissance centrale",
           "power_temp": "Température si délestaqe",
           "use_power_central_config": "Utiliser la configuration centrale de la puissance"
         },
         "data_description": {
           "power_sensor_entity_id": "Entity id du capteur de puissance totale du logement",
           "max_power_sensor_entity_id": "Entity id du capteur de puissance Max autorisée avant délestage",
+          "power_unit": "Sélectionnez l'unité de puissance ou Auto pour la détecter automatiquement depuis le capteur",
           "power_temp": "Température cible si délestaqe",
           "use_power_central_config": "Cochez pour utiliser la configuration centrale de la puissance. Décochez et saisissez les attributs pour utiliser une configuration spécifique de la puissance"
         }
@@ -845,6 +849,19 @@
       "options": {
         "discovery": "Découverte",
         "fine_tuning": "Ajustement fin"
+      }
+    },
+    "power_unit": {
+      "options": {
+        "W": "Watts (W)",
+        "kW": "Kilowatts (kW)"
+      }
+    },
+    "central_power_unit": {
+      "options": {
+        "W": "Watts (W)",
+        "kW": "Kilowatts (kW)",
+        "auto": "Auto (détection depuis le capteur)"
       }
     }
   },

@@ -138,7 +138,30 @@ The new `CONF_POWER_UNIT` field and its dropdown option labels must be translate
 
 ## Validation and Tests Plan
 
-### Unit and Integration Tests
+### Implementation Completed (v1 - Translation Phase)
+
+✅ **Stage 1: `device_power` Normalization and Conversion Implementation** (COMPLETED)
+- Normalization of `device_power` to Watts at initialization in `feature_power_manager.py`
+- Conversion of displayed values `MeanPowerSensor` and `EnergySensor` from Watts/Wh to configured unit
+- Conversion of restored `total_energy` from configured unit to internal Wh (once on startup)
+- All conversions syntax-tested via `python3 -m py_compile`
+
+✅ **Stage 2: Translations and Configuration Schema** (COMPLETED)
+- Added `power_unit` and `central_power_unit` keys to `strings.json` (English master)
+- Selector translations completed across 10 localization files:
+  - ✅ fr.json (French)
+  - ✅ en.json (Additional English)
+  - ✅ de.json (German)
+  - ✅ cs.json (Czech)
+  - ✅ el.json (Greek)
+  - ✅ it.json (Italian)
+  - ✅ pl.json (Polish)
+  - ✅ ru.json (Russian)
+  - ✅ sk.json (Slovak)
+  - ✅ zh-Hans.json (Simplified Chinese)
+- All JSON files validated as syntactically correct
+
+### Unit and Integration Tests (Phase 2 - To be Implemented)
 
 1. **Unit Consistency and Conversion Checks**:
    - Class tests added in [tests/test_sensors.py](tests/test_sensors.py) to check that a VTherm's configured `power_unit` drives the unit of its measurement entities (`W`/`kW` and `Wh`/`kWh`).

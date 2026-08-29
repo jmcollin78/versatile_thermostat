@@ -69,6 +69,7 @@
                     "temp_max": "Maximum temperature allowed",
                     "step_temperature": "Temperature step",
                     "device_power": "Device power",
+                    "power_unit": "Power unit (for device power)",
                     "use_central_mode": "Enable the control by central entity (requires central config). Check to enable the control of the VTherm with the select central_mode entities.",
                     "use_main_central_config": "Use additional central main configuration. Check to use the central main configuration (outdoor temperature, min, max, step, ...).",
                     "used_by_controls_central_boiler": "Used by central boiler. Check if this VTherm should have control on the central boiler"
@@ -80,7 +81,8 @@
                     "step_temperature": "Temperature step for setting the target temperature",
                     "temperature_sensor_entity_id": "Room temperature sensor entity id",
                     "last_seen_temperature_sensor_entity_id": "Last seen room temperature sensor entity id. Should be datetime sensor",
-                    "external_temperature_sensor_entity_id": "Outdoor temperature sensor entity id. Not used if central configuration is selected"
+                    "external_temperature_sensor_entity_id": "Outdoor temperature sensor entity id. Not used if central configuration is selected",
+                    "power_unit": "Device power consumption unit"
                 }
             },
             "features": {
@@ -212,12 +214,14 @@
                 "data": {
                     "power_sensor_entity_id": "Power",
                     "max_power_sensor_entity_id": "Max power",
+                    "power_unit": "Central power unit",
                     "power_temp": "Shedding temperature",
                     "use_power_central_config": "Use central power configuration"
                 },
                 "data_description": {
                     "power_sensor_entity_id": "Power sensor entity id",
                     "max_power_sensor_entity_id": "Max power sensor entity id",
+                    "power_unit": "Select the power unit or Auto to auto-detect from the sensor",
                     "power_temp": "Temperature for Power shedding",
                     "use_power_central_config": "Check to use the central power configuration. Uncheck to use a specific power configuration for this VTherm"
                 }
@@ -843,6 +847,19 @@
             "options": {
                 "discovery": "Discovery",
                 "fine_tuning": "Fine Tuning"
+            }
+        },
+        "power_unit": {
+            "options": {
+                "W": "Watts (W)",
+                "kW": "Kilowatts (kW)"
+            }
+        },
+        "central_power_unit": {
+            "options": {
+                "W": "Watts (W)",
+                "kW": "Kilowatts (kW)",
+                "auto": "Auto (auto-detect from sensor)"
             }
         }
     },

@@ -69,6 +69,7 @@
           "temp_max": "Zulässige Höchsttemperatur",
           "step_temperature": "Temperaturschritte",
           "device_power": "Geräteleistung",
+          "power_unit": "Leistungseinheit (für Geräteleistung)",
           "use_central_mode": "Kontrolle durch zentrale Stelle zulassen (zentrale Konfiguration erforderlich). Aktivieren, um die Steuerung des VTherm mit den ausgewählten Zentralmodus-Entities zu aktivieren.",
           "use_main_central_config": "Zusätzliche zentrale Konfiguration verwenden. Anwählen, wenn eine zusätzliche zentrale Konfiguration verwendet werden soll (Außentemperatur, Min, Max, Stufe, ...).",
           "used_by_controls_central_boiler": "Zentralheizung verwenden. Wenn angewählt, steuert dieses VTherm den zentralen Heizkessel."
@@ -80,7 +81,8 @@
           "step_temperature": "Temperaturschritt für die Einstellung der Zieltemperatur",
           "temperature_sensor_entity_id": "Entity-ID des Raumtemperatursensor",
           "last_seen_temperature_sensor_entity_id": "Entity-ID des Sensors, der das Datum und die Uhrzeit der letzten Datenübermittlung vom Temperatursensors angibt. Der Status muss im Format Datum Uhrzeit angegeben werden (z. B.: 2024-03-31T17:07:03+00:00).",
-          "external_temperature_sensor_entity_id": "Außentemperatursensor Entity-ID. Wird nicht verwendet, wenn zentrale Konfiguration gewählt wurde."
+          "external_temperature_sensor_entity_id": "Außentemperatursensor Entity-ID. Wird nicht verwendet, wenn zentrale Konfiguration gewählt wurde.",
+          "power_unit": "Leistungsverbrauchseinheit des Geräts"
         }
       },
       "features": {
@@ -212,12 +214,14 @@
         "data": {
           "power_sensor_entity_id": "Gesamtleistungssensor (Entity-ID)",
           "max_power_sensor_entity_id": "Sensor für maximale Leistung (Entity-ID)",
+          "power_unit": "Zentrale Leistungseinheit",
           "power_temp": "Temperatur bei Lastabwurf",
           "use_power_central_config": "Zentrales Powermanagement verwenden"
         },
         "data_description": {
           "power_sensor_entity_id": "Entity-ID des Gesamtleistungssensors der Wohnung/des Hauses",
           "max_power_sensor_entity_id": "Entity-ID des Maximalleistungssensors vor Lastabwurf",
+          "power_unit": "Wählen Sie die Leistungseinheit oder Automatisch, um sie automatisch vom Sensor zu erkennen",
           "power_temp": "Zieltemperatur bei Leistungsreduzierung",
           "use_power_central_config": "Aktivieren, zur Verwendung des zentralen Powermanagements. Deaktivieren, um eine spezifische Leistungskonfiguration für dieses VTherm zu verwenden."
         }
@@ -703,7 +707,7 @@
           "heater_cooling_time": "Abkühlzeit (min)",
           "auto_tpi_aggressiveness": "Aggressivität",
           "auto_tpi_enable_advanced_settings": "Erweiterte Einstellungen aktivieren",
-                    "auto_tpi_continuous_kext": "Kontinuierliches Kext-lernen"
+          "auto_tpi_continuous_kext": "Kontinuierliches Kext-lernen"
         },
         "data_description": {
           "auto_tpi_learning_type": "Wähle 'Erkundung' für den ersten Start (gewichteter Durchschnitt, Gewicht 1) oder 'Feinabstimmung' für kontinuierliche Anpassungen (EWMA, Alpha 0,08).",
@@ -736,7 +740,7 @@
         "data_description": {
           "auto_tpi_ema_alpha": "Glättungsfaktor (0-1). Höher = schnellere Anpassung",
           "auto_tpi_ema_decay_rate": "Rate, mit der Alpha im Laufe der Zeit abnimmt (Stabilisierung)",
-                    "auto_tpi_continuous_kext_alpha": "Glättungsfaktor für kontinuierliches Kext-Lernen (Alpha). Standardwert 0,04 (Anpassungszeit von ca. 3–5 Tagen)."
+          "auto_tpi_continuous_kext_alpha": "Glättungsfaktor für kontinuierliches Kext-Lernen (Alpha). Standardwert 0,04 (Anpassungszeit von ca. 3–5 Tagen)."
         }
       },
       "heating_failure_detection": {
@@ -843,6 +847,19 @@
       "options": {
         "discovery": "Erkundung",
         "fine_tuning": "Feinjustierung"
+      }
+    },
+    "power_unit": {
+      "options": {
+        "W": "Watt (W)",
+        "kW": "Kilowatt (kW)"
+      }
+    },
+    "central_power_unit": {
+      "options": {
+        "W": "Watt (W)",
+        "kW": "Kilowatt (kW)",
+        "auto": "Automatisch (automatische Erkennung vom Sensor)"
       }
     }
   },

@@ -703,7 +703,13 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
             if old_total_energy is None:
                 # Fallback to root level for backward compatibility
                 old_total_energy = old_state.attributes.get(ATTR_TOTAL_ENERGY)
-            self._total_energy = old_total_energy if old_total_energy is not None else 0
+            # Convert from previously stored unit to internal Wh (energy values are normalized like power values)
+            if old_total_energy is not None:
+                # Get the configured power unit (energy unit is derived from power unit)
+                stored_unit = self.power_manager.power_unit
+                self._total_energy = power_to_watts(old_total_energy, stored_unit) if old_total_energy else 0
+            else:
+                self._total_energy = 0
             _LOGGER.debug(
                 "%s - get_my_previous_state restored energy is %s",
                 self,

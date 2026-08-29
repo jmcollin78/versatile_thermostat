@@ -162,15 +162,18 @@ class EnergySensor(VersatileThermostatBaseEntity, SensorEntity):
         """Called when my climate have change"""
         # _LOGGER.debug("%s - climate state change", self._attr_unique_id)
 
-        energy = self.my_climate.total_energy
-        if energy is None:
+        energy_wh = self.my_climate.total_energy
+        if energy_wh is None:
             return
 
-        if math.isnan(energy) or math.isinf(energy):
+        if math.isnan(energy_wh) or math.isinf(energy_wh):
             raise ValueError(f"Sensor has illegal state {self.my_climate.total_energy}")
 
+        # Convert from internal Wh to display unit (Wh or kWh)
+        displayed_energy = self.my_climate.power_manager.from_watts(energy_wh, self.my_climate.power_manager.power_unit)
+
         old_state = self._attr_native_value
-        self._attr_native_value = round(energy, self.suggested_display_precision)
+        self._attr_native_value = round(displayed_energy, self.suggested_display_precision)
         if old_state != self._attr_native_value:
             self.async_write_ha_state()
         return
@@ -226,10 +229,12 @@ class MeanPowerSensor(VersatileThermostatBaseEntity, SensorEntity):
             raise ValueError(f"Sensor has illegal state {mean_cycle_power}")
 
         mean_cycle_power = float(mean_cycle_power)
+        # Convert from internal Watts to display unit
+        displayed_power = self.my_climate.power_manager.from_watts(mean_cycle_power, self.my_climate.power_manager.power_unit)
 
         old_state = self._attr_native_value
         self._attr_native_value = round(
-            mean_cycle_power,
+            displayed_power,
             self.suggested_display_precision,
         )
         if old_state != self._attr_native_value:

@@ -69,6 +69,7 @@
                     "temp_max": "允许的最高温度",
                     "step_temperature": "温度步进",
                     "device_power": "设备功率",
+                    "power_unit": "功率单位（用于设备功率）",
                     "use_central_mode": "启用中央实体控制（需要中央配置）。勾选后可使用 central_mode 选择实体控制此 VTherm。",
                     "use_main_central_config": "使用额外的中央主配置。勾选后使用中央主配置（室外温度、最小值、最大值、步进等）。",
                     "used_by_controls_central_boiler": "用于中央锅炉。勾选后，此 VTherm 可以控制中央锅炉"
@@ -80,7 +81,8 @@
                     "step_temperature": "设置目标温度的温度步长",
                     "temperature_sensor_entity_id": "室温传感器实体 ID",
                     "last_seen_temperature_sensor_entity_id": "室温传感器最后更新时间实体 ID。应为 datetime 传感器",
-                    "external_temperature_sensor_entity_id": "室外温度传感器实体 ID。如果选择中央配置则不使用"
+                    "external_temperature_sensor_entity_id": "室外温度传感器实体 ID。如果选择中央配置则不使用",
+                    "power_unit": "设备功率消耗单位"
                 }
             },
             "features": {
@@ -455,6 +457,7 @@
                     "temp_max": "允许的最高温度",
                     "step_temperature": "温度步进",
                     "device_power": "设备功率",
+                    "power_unit": "功率单位（用于设备功率）",
                     "use_central_mode": "启用中央实体控制（需要中央配置）。勾选后可使用 central_mode 选择实体控制此 VTherm。",
                     "use_main_central_config": "使用额外的中央主配置。勾选后使用中央主配置（室外温度、最小值、最大值、步进等）。",
                     "used_by_controls_central_boiler": "用于中央锅炉。勾选后，此 VTherm 可以控制中央锅炉"
@@ -466,7 +469,8 @@
                     "step_temperature": "设置目标温度的温度步长",
                     "temperature_sensor_entity_id": "室温传感器实体 ID",
                     "last_seen_temperature_sensor_entity_id": "室温传感器最后更新时间实体 ID。应为 datetime 传感器",
-                    "external_temperature_sensor_entity_id": "室外温度传感器实体 ID。如果选择中央配置则不使用"
+                    "external_temperature_sensor_entity_id": "室外温度传感器实体 ID。如果选择中央配置则不使用",
+                    "power_unit": "设备功率消耗单位"
                 }
             },
             "features": {
@@ -843,6 +847,19 @@
             "options": {
                 "discovery": "发现",
                 "fine_tuning": "微调"
+            }
+        },
+        "power_unit": {
+            "options": {
+                "W": "瓦特 (W)",
+                "kW": "千瓦 (kW)"
+            }
+        },
+        "central_power_unit": {
+            "options": {
+                "W": "瓦特 (W)",
+                "kW": "千瓦 (kW)",
+                "auto": "自动 (从传感器自动检测)"
             }
         }
     },

@@ -70,6 +70,7 @@
                     "temp_max": "Temperatura massima permessa",
                     "step_temperature": "Passi di temperatura",
                     "device_power": "Potenza del dispositivo",
+                    "power_unit": "Unità di potenza (per potenza del dispositivo)",
                     "use_central_mode": "Abilita il controllo tramite entità centrale (richiede configurazione centralizzata). Seleziona per abilitare il controllo di VTherm con le entità central_mode selezionate.",
                     "use_main_central_config": "Utilizzare configurazione principale centralizzata aggiuntiva. Selezionare per utilizzare la configurazione principale centrale (temperatura esterna, min, max, passo, ...).",
                     "used_by_controls_central_boiler": "Utilizzato dalla caldaia centralizzata. Selezionare se questo VTherm deve avere il controllo sulla caldaia centralizzata."
@@ -81,7 +82,8 @@
                     "step_temperature": "Passo di temperatura per l'impostazione della temperatura target",
                     "temperature_sensor_entity_id": "Entity id del sensore di temperatura ambiente",
                     "last_seen_temperature_sensor_entity_id": "Ultima visualizzazione entity id del sensore di temperatura ambiente. Dovrebbe essere il sensore data e ora",
-                    "external_temperature_sensor_entity_id": "Entity id del sensore di temperatura esterna. Non utilizzato se è selezionata la configurazione centralizzata"
+                    "external_temperature_sensor_entity_id": "Entity id del sensore di temperatura esterna. Non utilizzato se è selezionata la configurazione centralizzata",
+                    "power_unit": "Unità di consumo di potenza del dispositivo"
                 }
             },
             "features": {
@@ -213,12 +215,14 @@
                 "data": {
                     "power_sensor_entity_id": "Potenza",
                     "max_power_sensor_entity_id": "Potenza massima",
+                    "power_unit": "Unità di potenza centralizzata",
                     "power_temp": "Distribuzione Temperatura",
                     "use_power_central_config": "Utilizzare configurazione centralizzata della potenza"
                 },
                 "data_description": {
                     "power_sensor_entity_id": "Entity id del sensore di potenza",
                     "max_power_sensor_entity_id": "Entity id del ensore della potenza massima",
+                    "power_unit": "Selezionare l'unità di potenza o Auto per rilevare automaticamente dal sensore",
                     "power_temp": "Temperature per la distribuzione della potenza",
                     "use_power_central_config": "Selezionare per utilizzare la configurazione centralizzata della potenza. Deselezionare per utilizzare una configurazione specifica per questo VTherm."
                 }
@@ -845,6 +849,19 @@
             "options": {
                 "discovery": "Discovery",
                 "fine_tuning": "Fine Tuning"
+            }
+        },
+        "power_unit": {
+            "options": {
+                "W": "Watt (W)",
+                "kW": "Chilowatt (kW)"
+            }
+        },
+        "central_power_unit": {
+            "options": {
+                "W": "Watt (W)",
+                "kW": "Chilowatt (kW)",
+                "auto": "Auto (rilevamento automatico dal sensore)"
             }
         }
     },

@@ -560,6 +560,19 @@
         "auto_fan_high": "High",
         "auto_fan_turbo": "Turbo"
       }
+    },
+    "power_unit": {
+      "options": {
+        "W": "Watt (W)",
+        "kW": "Kilowatt (kW)"
+      }
+    },
+    "central_power_unit": {
+      "options": {
+        "W": "Watt (W)",
+        "kW": "Kilowatt (kW)",
+        "auto": "Αυτόματη (αυτόματη ανίχνευση από τον αισθητήρα)"
+      }
     }
   },
   "entity": {

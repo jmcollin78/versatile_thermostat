@@ -66,6 +66,7 @@
           "temp_max": "Maksymalna temperatura dopuszczalna",
           "step_temperature": "Krok temperatury",
           "device_power": "Moc urządzenia",
+          "power_unit": "Jednostka mocy (dla mocy urządzenia)",
           "use_central_mode": "Załączenie sterowania przez encję centralną (wymaga konfiguracji centralnej). Zaznacz, aby załączyć sterowanie termostatu wybranymi encjami.",
           "use_main_central_config": "Użyj dodatkowej konfiguracji centralnej. Zaznacz, aby korzystać z podstawowej konfiguracji centralnej (temperatura zewnętrzna, min, max, krok, itp.).",
           "used_by_controls_central_boiler": "Używane przez kocioł centralny. Zaznacz, jeśli termostat ma sterować kotłem centralnym."
@@ -77,7 +78,8 @@
           "step_temperature": "Krok temperatury do ustawiania temperatury docelowej",
           "temperature_sensor_entity_id": "Identyfikator encji sensora temperatury pomieszczenia",
           "last_seen_temperature_sensor_entity_id": "Czas ostatniego odczytu temperatury pomieszczenia. Powinien być sensorem typu 'data/czas'",
-          "external_temperature_sensor_entity_id": "Identyfikator encji sensora temperatury zewnętrznej. Nie będzie używany, gdy wybrano konfigurację centralną"
+          "external_temperature_sensor_entity_id": "Identyfikator encji sensora temperatury zewnętrznej. Nie będzie używany, gdy wybrano konfigurację centralną",
+          "power_unit": "Jednostka zużycia mocy urządzenia"
         }
       },
       "features": {
@@ -209,12 +211,14 @@
         "data": {
           "power_sensor_entity_id": "Moc",
           "max_power_sensor_entity_id": "Moc maksymalna",
+          "power_unit": "Centralna jednostka mocy",
           "power_temp": "Temperatura progowa redukująca zużycie energii",
           "use_power_central_config": "Użyj centralnej konfiguracji energii"
         },
         "data_description": {
           "power_sensor_entity_id": "Identyfikator encji sensora energii",
           "max_power_sensor_entity_id": "Identyfikator encji sensora energii maksymalnej",
+          "power_unit": "Wybierz jednostkę mocy lub Automatycznie, aby automatycznie wykryć z sensora",
           "power_temp": "Temperatura progowa redukująca zużycie energii",
           "use_power_central_config": "Wybierz, aby użyć centralnej konfiguracji energii. Wyłącz wybór, aby użyć konfiguracji energii dedykowanej dla tego termostatu"
         }
@@ -778,6 +782,19 @@
       "options": {
         "average": "Średnia",
         "ema": "Zmienna Średnia Wykładnicza (EMA)"
+      }
+    },
+    "power_unit": {
+      "options": {
+        "W": "Waty (W)",
+        "kW": "Kilowaty (kW)"
+      }
+    },
+    "central_power_unit": {
+      "options": {
+        "W": "Waty (W)",
+        "kW": "Kilowaty (kW)",
+        "auto": "Automatycznie (wykrywanie z czujnika)"
       }
     }
   },
