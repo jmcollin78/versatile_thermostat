@@ -171,7 +171,7 @@ async def test_overpowering_binary_sensors(
     await entity.async_set_preset_mode(VThermPreset.COMFORT)
     await entity.async_set_hvac_mode(VThermHvacMode_HEAT)
     await send_temperature_change_event(entity, 15, now)
-    assert entity.power_manager.is_overpowering_detected is False
+    await wait_for_local_condition(lambda: entity.power_manager.is_overpowering_detected is False)
     assert entity.power_manager.overpowering_state is STATE_UNKNOWN
 
     await overpowering_binary_sensor.async_my_climate_changed()

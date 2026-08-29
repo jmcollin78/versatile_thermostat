@@ -379,5 +379,13 @@ class FeaturePowerManager(BaseFeatureManager):
         """Return a stable fallback key for temporary power reservations."""
         return getattr(self._vtherm, "entity_id", None) or self._vtherm.name
 
+    def to_watts(self, power: float | None, unit: str | None) -> float | None:
+        """Convert a power value to Watts"""
+        return power_to_watts(power, unit)
+
+    def from_watts(self, power_w: float | None, target_unit: str | None) -> float | None:
+        """Convert a Watts value to the target power unit"""
+        return power_from_watts(power_w, target_unit)
+
     def __str__(self):
         return f"PowerManager-{self.name}"

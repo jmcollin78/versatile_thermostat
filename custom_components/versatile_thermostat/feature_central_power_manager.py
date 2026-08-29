@@ -136,17 +136,27 @@ class FeatureCentralPowerManager(BaseFeatureManager):
 
         # Retrieve current power
         new_power = get_safe_float(self._hass, self._power_sensor_entity_id)
+        # Normalize to internal Watts based on sensor unit
+        if new_power is not None:
+            sensor_unit = self._resolve_sensor_unit(self._power_sensor_entity_id)
+            new_power = self.to_watts(new_power, sensor_unit)
+
         power_changed = new_power is not None and self._current_power != new_power
         if power_changed:
             self._current_power = new_power
-            _LOGGER.debug("%s - New current power has been retrieved: %.3f", self, self._current_power)
+            _LOGGER.debug("%s - New current power has been retrieved: %.3f (normalized to Watts)", self, self._current_power)
 
         # Retrieve max power
         new_max_power = get_safe_float(self._hass, self._max_power_sensor_entity_id)
+        # Normalize to internal Watts based on sensor unit
+        if new_max_power is not None:
+            sensor_unit = self._resolve_sensor_unit(self._max_power_sensor_entity_id)
+            new_max_power = self.to_watts(new_max_power, sensor_unit)
+
         max_power_changed = new_max_power is not None and self._current_max_power != new_max_power
         if max_power_changed:
             self._current_max_power = new_max_power
-            _LOGGER.debug("%s - New current max power has been retrieved: %.3f", self, self._current_max_power)
+            _LOGGER.debug("%s - New current max power has been retrieved: %.3f (normalized to Watts)", self, self._current_max_power)
 
         # Schedule shedding calculation if there's any change
         if power_changed or max_power_changed:
@@ -246,6 +256,17 @@ class FeatureCentralPowerManager(BaseFeatureManager):
             vtherm.requested_state.force_changed()
             await vtherm.update_states(force=True)
         self._last_shedding_date = self._vtherm_api.now
+
+        # Additionally, clean up any VTherms that are in overpowering state but shouldn't be
+        # This handles cases where is_device_active changed after a VTherm was put in overpowering
+        if available_power >= 0:
+            all_vtherms = self.get_climate_components_entities()
+            for vtherm in all_vtherms:
+                if vtherm.power_manager.overpowering_state != STATE_OFF and vtherm.power_manager.is_configured:
+                    # Check if this VTherm was already processed in the unshedding loop
+                    if vtherm not in vtherms_sorted:
+                        _LOGGER.debug("%s - Cleaning up vtherm %s from overpowering state (not in active list but has positive available power)", self, vtherm.name)
+                        await vtherm.power_manager.set_overpowering(False)
 
         # calculate a state as true if one of the VTherm is in shedding
         self._state = any(vtherm.power_manager.is_overpowering_detected for vtherm in vtherms_sorted)
