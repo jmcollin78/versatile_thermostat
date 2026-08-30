@@ -4,7 +4,6 @@
 from unittest.mock import patch  # , call
 
 # from datetime import datetime  # , timedelta
-from homeassistant import data_entry_flow
 from homeassistant.data_entry_flow import FlowResultType
 from homeassistant.core import HomeAssistant
 
@@ -13,10 +12,6 @@ from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from custom_components.versatile_thermostat.thermostat_switch import (
     ThermostatOverSwitch,
-)
-
-from custom_components.versatile_thermostat.thermostat_climate import (
-    ThermostatOverClimate,
 )
 
 from custom_components.versatile_thermostat.vtherm_central_api import VersatileThermostatAPI
@@ -320,6 +315,12 @@ async def test_full_over_switch_wo_central_config(hass: HomeAssistant, skip_hass
 async def test_full_over_switch_with_central_config(hass: HomeAssistant, skip_hass_states_is_state, init_central_power_manager, fake_underlying_switch: MockSwitch):
     """Tests that a VTherm with central_configuration is working with the central_config attributes"""
 
+    central_config = VersatileThermostatAPI.get_vtherm_api().find_central_configuration()
+    hass.config_entries.async_update_entry(
+        central_config,
+        data={**central_config.data, CONF_POWER_UNIT: POWER_UNIT_AUTO},
+    )
+
     # Add a Switch VTherm
     entry = MockConfigEntry(
         domain=DOMAIN,
@@ -331,6 +332,8 @@ async def test_full_over_switch_with_central_config(hass: HomeAssistant, skip_ha
             CONF_TEMP_SENSOR: "sensor.mock_temp_sensor",
             CONF_EXTERNAL_TEMP_SENSOR: "sensor.mock_ext_temp_sensor",
             CONF_CYCLE_MIN: 5,
+            CONF_DEVICE_POWER: 100,
+            CONF_POWER_UNIT: POWER_UNIT_WATT,
             CONF_TEMP_MIN: 8,
             CONF_TEMP_MAX: 18,
             CONF_STEP_TEMPERATURE: 0.3,
@@ -396,6 +399,7 @@ async def test_full_over_switch_with_central_config(hass: HomeAssistant, skip_ha
         assert entity.proportional_algorithm is not None
         assert entity.proportional_algorithm._tpi_coef_int == 0.5
         assert entity.proportional_algorithm._tpi_coef_ext == 0.02
+        assert entity.power_manager.power_unit == POWER_UNIT_WATT
         assert entity._minimal_activation_delay == 11
         assert entity.safety_manager.safety_delay_min == 61
         assert entity.safety_manager.safety_min_on_percent == 0.5

@@ -289,12 +289,13 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
     ) -> dict[str, Any]:
         """Removes all values from config with are concerned by central_config"""
 
-        def clean_one(cfg, schema: vol.Schema):
+        def clean_one(cfg, schema: vol.Schema, excluded_keys: set[str] | None = None):
             """Clean one schema"""
+            excluded_keys = excluded_keys or set()
             for marker in schema.schema:
                 # Extract the actual key from Voluptuous Marker objects
                 key = marker.schema if hasattr(marker, 'schema') else marker
-                if key in cfg:
+                if key in cfg and key not in excluded_keys:
                     del cfg[key]
 
         cfg = config_entry.copy()
@@ -313,7 +314,14 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
                 clean_one(cfg, STEP_CENTRAL_MOTION_DATA_SCHEMA)
 
             if cfg.get(CONF_USE_POWER_CENTRAL_CONFIG) is True:
-                clean_one(cfg, STEP_CENTRAL_POWER_DATA_SCHEMA)
+                # The central unit may be ``auto``. It only controls how the
+                # central input sensors are read; each VTherm keeps its own
+                # display unit (W or kW) for its power and energy sensors.
+                clean_one(
+                    cfg,
+                    STEP_CENTRAL_POWER_DATA_SCHEMA,
+                    {CONF_POWER_UNIT},
+                )
 
             if cfg.get(CONF_USE_PRESENCE_CENTRAL_CONFIG) is True:
                 clean_one(cfg, STEP_CENTRAL_PRESENCE_DATA_SCHEMA)

@@ -233,10 +233,13 @@ class MeanPowerSensor(VersatileThermostatBaseEntity, SensorEntity):
         displayed_power = self.my_climate.power_manager.from_watts(mean_cycle_power, self.my_climate.power_manager.power_unit)
 
         old_state = self._attr_native_value
-        self._attr_native_value = round(
-            displayed_power,
-            self.suggested_display_precision,
-        )
+        if displayed_power is None:
+            self._attr_native_value = None
+        else:
+            self._attr_native_value = round(
+                displayed_power,
+                self.suggested_display_precision,
+            )
         if old_state != self._attr_native_value:
             self.async_write_ha_state()
         return
@@ -261,7 +264,7 @@ class MeanPowerSensor(VersatileThermostatBaseEntity, SensorEntity):
         return self.my_climate.power_manager.power_unit
 
     @property
-    def suggested_display_precision(self) -> int | None:
+    def suggested_display_precision(self) -> int:
         """Return the suggested number of decimal digits for display."""
         return 3
 
