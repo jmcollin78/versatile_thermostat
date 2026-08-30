@@ -789,7 +789,8 @@ async def test_central_power_manager_start_vtherm_power(
 
         await entity.async_set_preset_mode(VThermPreset.BOOST)
         assert entity.preset_mode == VThermPreset.BOOST
-        assert entity.power_manager.overpowering_state is STATE_UNKNOWN
+        # it is off because the power and max power are set due to patch and side effects above.
+        assert entity.power_manager.overpowering_state is STATE_OFF
         assert entity.target_temperature == 19
         await hass.async_block_till_done()
 

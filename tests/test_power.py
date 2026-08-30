@@ -403,7 +403,7 @@ async def test_power_management_hvac_off(hass: HomeAssistant, skip_hass_states_i
 
         # All configuration is not complete
         assert entity.preset_mode == VThermPreset.BOOST
-        assert entity.power_manager.overpowering_state is STATE_UNKNOWN # due to hvac_off
+        assert entity.power_manager.overpowering_state is STATE_OFF # because power and max_power are set due to patch and side effects above.
 
         # Send power max mesurement
         now = now + timedelta(seconds=30)
@@ -412,7 +412,7 @@ async def test_power_management_hvac_off(hass: HomeAssistant, skip_hass_states_i
         assert entity.power_manager.is_overpowering_detected is False
         # All configuration is complete and power is < power_max
         assert entity.preset_mode == VThermPreset.BOOST
-        assert entity.power_manager.overpowering_state is STATE_UNKNOWN # # due to hvac_off
+        assert entity.power_manager.overpowering_state is STATE_OFF # because power and max_power are set due to patch and side effects above.
 
     # Send power max mesurement too low but VThermHvacMode is off
     side_effects.add_or_update_side_effect("sensor.the_max_power_sensor", State("sensor.the_max_power_sensor", 149))
@@ -429,7 +429,7 @@ async def test_power_management_hvac_off(hass: HomeAssistant, skip_hass_states_i
         assert entity.power_manager.is_overpowering_detected is False
         # All configuration is complete and power is > power_max but we stay in Boost cause thermostat if Off
         assert entity.preset_mode == VThermPreset.BOOST
-        assert entity.power_manager.overpowering_state is STATE_UNKNOWN
+        assert entity.power_manager.overpowering_state is STATE_OFF
 
         assert mock_send_event.call_count == 0
         assert mock_heater_on.call_count == 0
@@ -1091,7 +1091,7 @@ async def test_power_management_over_climate_valve(
     assert vtherm.hvac_action is HVACAction.HEATING
     assert vtherm.vtherm_hvac_mode is VThermHvacMode_HEAT
     assert vtherm.total_energy == 0.0
-    assert vtherm.power_manager.mean_cycle_power == 1 * 0.4  # device_power * on_percent
+    assert vtherm.power_manager.mean_cycle_power == 1000 * 0.4  # device_power(W) * on_percent
 
     await wait_for_local_condition(lambda: fake_underlying_climate.hvac_mode == HVACMode.HEAT, 5)
     await wait_for_local_condition(lambda: fake_underlying_climate.hvac_action == HVACAction.HEATING, 10)
@@ -1102,8 +1102,8 @@ async def test_power_management_over_climate_valve(
     vtherm._set_now(now)
 
     await vtherm.async_control_heating()
-    assert vtherm.total_energy == 0.03 # 5 minutes (1/12 hour) at 0.4 power -> 0.4/12=0.0333 rounded to 0.03
-    assert vtherm.power_manager.mean_cycle_power == 1 * 0.4  # device_power * on_percent
+    assert vtherm.total_energy == 33.33  # 5 minutes (1/12 hour) at 0.4 power -> 0.4/12=0.0333 rounded to 0.03 in Wh
+    assert vtherm.power_manager.mean_cycle_power == 1000 * 0.4  # device_power * on_percent
 
     # 4. limit the power by changing the room temperature closer to target
     now = now + timedelta(minutes=2)
@@ -1114,8 +1114,8 @@ async def test_power_management_over_climate_valve(
 
     # Simulate a cycle
     await vtherm.async_control_heating()
-    assert vtherm.total_energy == 0.03 + 0.02  # 2 minutes (1/30 hour) at 0.25 power -> 0.25/30=0.0083 rounded to 0.01
-    assert vtherm.power_manager.mean_cycle_power == 1 * 0.25  # device_power * on_percent
+    assert vtherm.total_energy == 33.33 + 13.34  # 2 minutes (1/30 hour) at 0.25 power -> 0.25/30=0.0083 rounded to 0.01 in Wh
+    assert vtherm.power_manager.mean_cycle_power == 1000 * 0.25  # device_power * on_percent
 
     # 5. Turn off the VTherm after 3 minutes of heating
     now = now + timedelta(minutes=3)
@@ -1135,7 +1135,7 @@ async def test_power_management_over_climate_valve(
 
     await wait_for_local_condition(lambda: vtherm.proportional_algorithm.on_percent == 0.0)
 
-    assert vtherm.total_energy == 0.06 # 0.03 + 0.02 + 0.01
+    assert vtherm.total_energy == 59.17  # 0.03 + 0.02 + 0.01 in Wh
     assert vtherm.power_manager.mean_cycle_power == 0.0
     assert vtherm.valve_open_percent == 0
 
