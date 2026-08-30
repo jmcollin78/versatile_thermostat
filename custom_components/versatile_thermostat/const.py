@@ -8,7 +8,7 @@ from typing import Literal
 from datetime import datetime
 
 from enum import Enum
-from homeassistant.const import STATE_UNKNOWN, STATE_UNAVAILABLE
+from homeassistant.const import STATE_UNKNOWN, STATE_UNAVAILABLE, UnitOfPower
 from homeassistant.core import HomeAssistant
 from homeassistant.const import CONF_NAME, Platform
 
@@ -73,8 +73,9 @@ CONF_DEVICE_POWER = "device_power"
 CONF_POWER_UNIT = "power_unit"
 
 # Power unit values. "W" and "kW" match homeassistant UnitOfPower values on purpose.
-POWER_UNIT_WATT = "W"
-POWER_UNIT_KILO_WATT = "kW"
+POWER_UNIT_WATT = "w"
+POWER_UNIT_KILO_WATT = "kw"
+POWER_UNIT_MEGA_WATT = "mw"
 POWER_UNIT_AUTO = "auto"
 
 # Selector options
@@ -680,6 +681,16 @@ def power_from_watts(value_w: float | None, unit: str | None) -> float | None:
     if unit == POWER_UNIT_KILO_WATT:
         return value_w / 1000.0
     return value_w
+
+
+def to_legal_power_unit(power_unit: str) -> str:
+    """Map the power unit from the thermostat to Home Assistant's expected unit."""
+    power_unit_mapping = {
+        POWER_UNIT_WATT: UnitOfPower.WATT,
+        POWER_UNIT_KILO_WATT: UnitOfPower.KILO_WATT,
+        POWER_UNIT_MEGA_WATT: UnitOfPower.MEGA_WATT,
+    }
+    return power_unit_mapping.get(power_unit, power_unit)
 
 
 class UnknownEntity(HomeAssistantError):

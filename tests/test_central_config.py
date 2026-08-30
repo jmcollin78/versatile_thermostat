@@ -399,7 +399,7 @@ async def test_full_over_switch_with_central_config(hass: HomeAssistant, skip_ha
         assert entity.proportional_algorithm is not None
         assert entity.proportional_algorithm._tpi_coef_int == 0.5
         assert entity.proportional_algorithm._tpi_coef_ext == 0.02
-        assert entity.power_manager.power_unit == POWER_UNIT_WATT
+        assert entity.power_manager.power_unit == to_legal_power_unit(POWER_UNIT_WATT)
         assert entity._minimal_activation_delay == 11
         assert entity.safety_manager.safety_delay_min == 61
         assert entity.safety_manager.safety_min_on_percent == 0.5

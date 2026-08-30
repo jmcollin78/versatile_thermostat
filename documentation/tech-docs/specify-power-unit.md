@@ -78,13 +78,13 @@ The central power manager acts as the source of truth for the central/global pow
     ```python
     def to_watts(self, power: float, unit: str) -> float:
         """Convert any power value to Watts."""
-        if unit == "kW":
+        if unit == "kw":
             return power * 1000.0
         return power
 
     def from_watts(self, power_w: float, target_unit: str) -> float:
         """Convert a Watts value to a target display unit."""
-        if target_unit == "kW":
+        if target_unit == "kw":
             return power_w / 1000.0
         return power_w
     ```

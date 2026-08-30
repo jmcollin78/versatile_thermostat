@@ -563,14 +563,14 @@
     },
     "power_unit": {
       "options": {
-        "W": "Watt (W)",
-        "kW": "Kilowatt (kW)"
+        "w": "Watt (W)",
+        "kw": "Kilowatt (kW)"
       }
     },
     "central_power_unit": {
       "options": {
-        "W": "Watt (W)",
-        "kW": "Kilowatt (kW)",
+        "w": "Watt (W)",
+        "kw": "Kilowatt (kW)",
         "auto": "Αυτόματη (αυτόματη ανίχνευση από τον αισθητήρα)"
       }
     }

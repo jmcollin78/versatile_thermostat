@@ -786,14 +786,14 @@
     },
     "power_unit": {
       "options": {
-        "W": "Waty (W)",
-        "kW": "Kilowaty (kW)"
+        "w": "Waty (W)",
+        "kw": "Kilowaty (kW)"
       }
     },
     "central_power_unit": {
       "options": {
-        "W": "Waty (W)",
-        "kW": "Kilowaty (kW)",
+        "w": "Waty (W)",
+        "kw": "Kilowaty (kW)",
         "auto": "Automatycznie (wykrywanie z czujnika)"
       }
     }

@@ -350,7 +350,7 @@ class FeaturePowerManager(BaseFeatureManager):
     @property
     def power_unit(self) -> str:
         """Return the configured power unit of the VTherm ("W" or "kW")"""
-        return self._power_unit
+        return to_legal_power_unit(self._power_unit)
 
     @property
     def energy_unit(self) -> str:

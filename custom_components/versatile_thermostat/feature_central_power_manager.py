@@ -375,7 +375,7 @@ class FeatureCentralPowerManager(BaseFeatureManager):
     @property
     def power_unit(self) -> str:
         """Return the resolved central power unit ("W" or "kW")"""
-        return self._resolve_sensor_unit(self._power_sensor_entity_id)
+        return to_legal_power_unit(self._resolve_sensor_unit(self._power_sensor_entity_id))
 
     def to_watts(self, power: float | None, unit: str | None) -> float | None:
         """Convert a power value to Watts"""

@@ -853,14 +853,14 @@
         },
         "power_unit": {
             "options": {
-                "W": "Watt (W)",
-                "kW": "Chilowatt (kW)"
+                "w": "Watt (W)",
+                "kw": "Chilowatt (kW)"
             }
         },
         "central_power_unit": {
             "options": {
-                "W": "Watt (W)",
-                "kW": "Chilowatt (kW)",
+                "w": "Watt (W)",
+                "kw": "Chilowatt (kW)",
                 "auto": "Auto (rilevamento automatico dal sensore)"
             }
         }

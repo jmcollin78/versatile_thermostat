@@ -78,13 +78,13 @@ Le gestionnaire de puissance central fait office de source de vérité pour dét
     ```python
     def to_watts(self, power: float, unit: str) -> float:
         """Convertit une valeur de puissance en Watts."""
-        if unit == "kW":
+        if unit == "kw":
             return power * 1000.0
         return power
 
     def from_watts(self, power_w: float, target_unit: str) -> float:
         """Convertit une valeur de Watts vers l'unité de restitution cible."""
-        if target_unit == "kW":
+        if target_unit == "kw":
             return power_w / 1000.0
         return power_w
     ```

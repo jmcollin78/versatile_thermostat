@@ -851,14 +851,14 @@
         },
         "power_unit": {
             "options": {
-                "W": "Watty (W)",
-                "kW": "Kilowatty (kW)"
+                "w": "Watty (W)",
+                "kw": "Kilowatty (kW)"
             }
         },
         "central_power_unit": {
             "options": {
-                "W": "Watty (W)",
-                "kW": "Kilowatty (kW)",
+                "w": "Watty (W)",
+                "kw": "Kilowatty (kW)",
                 "auto": "Automaticky (automatická detekce ze senzoru)"
             }
         }

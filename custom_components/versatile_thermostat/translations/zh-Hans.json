@@ -851,14 +851,14 @@
         },
         "power_unit": {
             "options": {
-                "W": "瓦特 (W)",
-                "kW": "千瓦 (kW)"
+                "w": "瓦特 (W)",
+                "kw": "千瓦 (kW)"
             }
         },
         "central_power_unit": {
             "options": {
-                "W": "瓦特 (W)",
-                "kW": "千瓦 (kW)",
+                "w": "瓦特 (W)",
+                "kw": "千瓦 (kW)",
                 "auto": "自动 (从传感器自动检测)"
             }
         }
