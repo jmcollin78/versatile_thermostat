@@ -96,14 +96,14 @@ input_number:
         max: 1000
         step: 10
         icon: mdi:flash
-        unit_of_measurement: kW
+        unit_of_measurement: W
     fake_current_power_max:
         name: Current power max threshold
         min: 0
         max: 1000
         step: 10
         icon: mdi:flash
-        unit_of_measurement: kW
+        unit_of_measurement: W
     fake_valve1:
         name: The valve 1
         min: 10

@@ -711,8 +711,9 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
             if old_total_energy is None:
                 # Fallback to root level for backward compatibility
                 old_total_energy = old_state.attributes.get(ATTR_TOTAL_ENERGY)
-            # New states explicitly record their internal Wh unit. Legacy states did not,
-            # so use their persisted configuration before falling back to the current one.
+            # Energy is stored in the unit associated with the configured power unit.
+            # Legacy states did not record that unit, so use their persisted
+            # configuration before falling back to the migrated current one.
             if old_total_energy is not None:
                 stored_unit = specific_states.get(ATTR_TOTAL_ENERGY_UNIT)
                 if stored_unit is None:
@@ -1966,8 +1967,11 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
                 "temperature_slope": round(self.last_temperature_slope or 0, 3),
                 "hvac_off_reason": self.hvac_off_reason,
                 "hvac_mode_reason": self.hvac_mode_reason,
-                ATTR_TOTAL_ENERGY: self.total_energy,
-                ATTR_TOTAL_ENERGY_UNIT: POWER_UNIT_WATT,
+                ATTR_TOTAL_ENERGY: self.power_manager.from_watts(
+                    self.total_energy,
+                    self.power_manager.power_unit,
+                ),
+                ATTR_TOTAL_ENERGY_UNIT: self.power_manager.power_unit,
                 "last_change_time_from_vtherm": (
                     self._last_change_time_from_vtherm.astimezone(self._current_tz).isoformat() if self._last_change_time_from_vtherm is not None else None
                 ),

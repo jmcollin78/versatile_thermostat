@@ -227,16 +227,18 @@ async def test_vtherm_energy_restore_from_kilowatt_hours_is_converted_once(
 
 
 @pytest.mark.parametrize(
-    "specific_states, configuration",
+    "specific_states, configuration, expected_energy_wh",
     [
-        ({"total_energy": 100, "total_energy_unit": POWER_UNIT_WATT}, {}),
-        ({"total_energy": 100}, {CONF_POWER_UNIT: POWER_UNIT_WATT}),
+        ({"total_energy": 100, "total_energy_unit": POWER_UNIT_WATT}, {}, 100),
+        ({"total_energy": 100, "total_energy_unit": POWER_UNIT_KILO_WATT}, {}, 100000),
+        ({"total_energy": 100}, {CONF_POWER_UNIT: POWER_UNIT_WATT}, 100),
     ],
 )
 async def test_vtherm_energy_restore_keeps_the_previously_persisted_unit(
     hass: HomeAssistant,
     specific_states,
     configuration,
+    expected_energy_wh,
 ) -> None:
     """Changing the configured unit must not reinterpret historical energy."""
     vtherm_restored = BaseThermostat(
@@ -257,7 +259,7 @@ async def test_vtherm_energy_restore_keeps_the_previously_persisted_unit(
     with patch.object(vtherm_restored, "async_get_last_state", return_value=mock_state):
         await vtherm_restored.get_my_previous_state()
 
-    assert vtherm_restored.total_energy == 100
+    assert vtherm_restored.total_energy == expected_energy_wh
 
 
 async def test_vtherm_energy_restore_default_zero(hass: HomeAssistant) -> None:
