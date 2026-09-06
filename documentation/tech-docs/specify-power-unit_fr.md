@@ -117,7 +117,7 @@ Ces capteurs utilisent strictement l'unité de puissance configurée pour leur V
 - **Suppression de l'heuristique** : L'ancienne détection d'unité basée sur `THRESHOLD_WATT_KILO` (`sensor.py`) est supprimée au profit de l'unité configurée du VTherm.
 - **Restitution des valeurs** :
   - Bien que calculées et cumulées en Watts / Watt-heures en interne, les valeurs affectées à `_attr_native_value` lors de l'appel à `async_my_climate_changed()` sont converties à la volée vers l'unité configurée du VTherm via `from_watts()` (ou son équivalent énergie).
-  - `total_energy` est persistée dans l'unité associée à `power_unit` (`Wh` pour W, `kWh` pour kW), et `total_energy_unit` identifie cette unité. À la restauration, les états historiques utilisent d'abord `configuration.power_unit` persisté, puis la configuration courante migrée lorsqu'aucune unité historique n'est disponible.
+  - `total_energy` est persistée dans l'unité associée à `power_unit` (`Wh` pour W, `kWh` pour kW), et `total_energy_unit` identifie cette unité. À la restauration, les états historiques utilisent d'abord `configuration.power_unit` persisté, puis la configuration courante migrée lorsqu'aucune unité historique n'est disponible. Une unité restaurée différente de l'unité configurée est convertie puis immédiatement réécrite dans l'unité configurée.
 
 #### TotalPowerActiveDeviceForBoilerSensor
 Ce capteur manquait auparavant de la propriété `native_unit_of_measurement`. Nous l'exposons directement, et elle s'aligne sur l’unité du gestionnaire de puissance central.

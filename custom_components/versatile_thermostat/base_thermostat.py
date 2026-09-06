@@ -152,6 +152,7 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
         self._attr_translation_key = "versatile_thermostat"
 
         self._total_energy = None
+        self._energy_unit_needs_persistence = False
         _LOGGER.debug("%s - _init_ resetting energy to None", self)
 
         # Because energy of climate is calculated in the thermostat we have to keep
@@ -419,6 +420,7 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
         self._last_ext_temperature_measure = self.now
 
         self._total_energy = None
+        self._energy_unit_needs_persistence = False
         _LOGGER.debug("%s - post_init_ resetting energy to None", self)
 
         # Read the parameter from configuration.yaml if it exists
@@ -641,6 +643,7 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
             #    need_write_state = True
 
         await self.update_states(force=True)
+        self._persist_energy_unit_if_needed()
         self.recalculate()
 
         # check initial state should be done after the current state has been calculated and so after the manager has been updated
@@ -654,8 +657,24 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
         restored
         """
 
+    def _persist_energy_unit_if_needed(self) -> None:
+        """Persist restored energy in the current power unit when it changed."""
+        if not self._energy_unit_needs_persistence:
+            return
+
+        _LOGGER.info(
+            "%s - Rewriting restored energy from its previous unit to %s",
+            self,
+            self.power_manager.power_unit,
+        )
+        self.update_custom_attributes()
+        self.async_write_ha_state()
+        self._energy_unit_needs_persistence = False
+
     async def get_my_previous_state(self):
         """Try to get my previous state"""
+        self._energy_unit_needs_persistence = False
+
         # Check If we have an old state
         old_state = await self.async_get_last_state()
         _LOGGER.debug(
@@ -719,6 +738,25 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
                 if stored_unit is None:
                     stored_unit = old_state.attributes.get("configuration", {}).get(
                         CONF_POWER_UNIT,
+                        self.power_manager.power_unit,
+                    )
+                current_unit = to_internal_power_unit(self.power_manager.power_unit) or POWER_UNIT_WATT
+                stored_unit = to_internal_power_unit(stored_unit)
+                has_invalid_stored_unit = stored_unit not in (POWER_UNIT_WATT, POWER_UNIT_KILO_WATT)
+                if has_invalid_stored_unit:
+                    _LOGGER.warning(
+                        "%s - Restored energy has an unsupported unit %s. Using %s",
+                        self,
+                        stored_unit,
+                        self.power_manager.power_unit,
+                    )
+                    stored_unit = current_unit
+                self._energy_unit_needs_persistence = has_invalid_stored_unit or stored_unit != current_unit
+                if self._energy_unit_needs_persistence:
+                    _LOGGER.info(
+                        "%s - Restored energy unit %s differs from configured unit %s",
+                        self,
+                        to_legal_power_unit(stored_unit),
                         self.power_manager.power_unit,
                     )
                 self._total_energy = power_to_watts(old_total_energy, stored_unit) if old_total_energy else 0

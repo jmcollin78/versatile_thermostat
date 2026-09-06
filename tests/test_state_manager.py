@@ -227,11 +227,11 @@ async def test_vtherm_energy_restore_from_kilowatt_hours_is_converted_once(
 
 
 @pytest.mark.parametrize(
-    "specific_states, configuration, expected_energy_wh",
+    "specific_states, configuration, expected_energy_wh, should_persist",
     [
-        ({"total_energy": 100, "total_energy_unit": POWER_UNIT_WATT}, {}, 100),
-        ({"total_energy": 100, "total_energy_unit": POWER_UNIT_KILO_WATT}, {}, 100000),
-        ({"total_energy": 100}, {CONF_POWER_UNIT: POWER_UNIT_WATT}, 100),
+        ({"total_energy": 100, "total_energy_unit": POWER_UNIT_WATT}, {}, 100, True),
+        ({"total_energy": 100, "total_energy_unit": POWER_UNIT_KILO_WATT}, {}, 100000, False),
+        ({"total_energy": 100}, {CONF_POWER_UNIT: POWER_UNIT_WATT}, 100, True),
     ],
 )
 async def test_vtherm_energy_restore_keeps_the_previously_persisted_unit(
@@ -239,6 +239,7 @@ async def test_vtherm_energy_restore_keeps_the_previously_persisted_unit(
     specific_states,
     configuration,
     expected_energy_wh,
+    should_persist,
 ) -> None:
     """Changing the configured unit must not reinterpret historical energy."""
     vtherm_restored = BaseThermostat(
@@ -260,6 +261,48 @@ async def test_vtherm_energy_restore_keeps_the_previously_persisted_unit(
         await vtherm_restored.get_my_previous_state()
 
     assert vtherm_restored.total_energy == expected_energy_wh
+    assert vtherm_restored._energy_unit_needs_persistence is should_persist
+
+
+async def test_vtherm_energy_unit_is_rewritten_after_loading(hass: HomeAssistant) -> None:
+    """A restored energy unit mismatch is persisted immediately after startup."""
+    vtherm_restored = BaseThermostat(hass, "unique_id", "name", {})
+    vtherm_restored._energy_unit_needs_persistence = True
+
+    with (
+        patch.object(vtherm_restored, "update_custom_attributes") as update_attributes,
+        patch.object(vtherm_restored, "async_write_ha_state") as write_state,
+    ):
+        vtherm_restored._persist_energy_unit_if_needed()
+
+    update_attributes.assert_called_once()
+    write_state.assert_called_once()
+    assert vtherm_restored._energy_unit_needs_persistence is False
+
+
+async def test_vtherm_energy_restore_invalid_unit_uses_configured_unit(
+    hass: HomeAssistant,
+) -> None:
+    """An invalid persisted energy unit cannot corrupt a kW VTherm value."""
+    vtherm_restored = BaseThermostat(
+        hass,
+        "unique_id",
+        "name",
+        {CONF_POWER_UNIT: POWER_UNIT_KILO_WATT},
+    )
+    mock_state = MagicMock()
+    mock_state.attributes = {
+        "preset_mode": "eco",
+        "temperature": 22,
+        "specific_states": {"total_energy": 12.5, "total_energy_unit": "invalid"},
+    }
+    mock_state.state = HVACMode.HEAT
+
+    with patch.object(vtherm_restored, "async_get_last_state", return_value=mock_state):
+        await vtherm_restored.get_my_previous_state()
+
+    assert vtherm_restored.total_energy == 12500
+    assert vtherm_restored._energy_unit_needs_persistence is True
 
 
 async def test_vtherm_energy_restore_default_zero(hass: HomeAssistant) -> None:

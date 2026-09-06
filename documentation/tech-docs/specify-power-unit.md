@@ -117,7 +117,7 @@ These sensors strictly use the respective VTherm's own configured power unit, ra
 - **Heuristic removal**: The old unit detection based on `THRESHOLD_WATT_KILO` (`sensor.py`) is removed in favor of the VTherm's configured unit.
 - **Value Output**:
   - Although computed and accumulated in Watts / Watt-hours internally, the values assigned to `_attr_native_value` inside `async_my_climate_changed()` are converted on-the-fly to the VTherm's configured unit via `from_watts()` (or its energy equivalent).
-  - `total_energy` is persisted in the unit associated with `power_unit` (`Wh` for W, `kWh` for kW), with `total_energy_unit` identifying that unit. On restore, legacy states fall back to the previously persisted `configuration.power_unit`, then to the migrated current configuration when no historical unit is available.
+  - `total_energy` is persisted in the unit associated with `power_unit` (`Wh` for W, `kWh` for kW), with `total_energy_unit` identifying that unit. On restore, legacy states fall back to the previously persisted `configuration.power_unit`, then to the migrated current configuration when no historical unit is available. A restored unit that differs from the configured unit is converted and immediately rewritten in the configured unit.
 
 #### TotalPowerActiveDeviceForBoilerSensor
 This sensor previously lacked a `native_unit_of_measurement` property. We expose it directly, and it aligns with the central manager's resolved unit.
