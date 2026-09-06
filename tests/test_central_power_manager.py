@@ -5,6 +5,8 @@ from unittest.mock import patch, AsyncMock, MagicMock, PropertyMock
 from datetime import datetime, timedelta
 import logging
 
+from homeassistant.const import UnitOfPower
+
 from custom_components.versatile_thermostat.feature_power_manager import (
     FeaturePowerManager,
 )
@@ -22,6 +24,84 @@ from custom_components.versatile_thermostat.thermostat_climate import (
 from .commons import *  # pylint: disable=wildcard-import, unused-wildcard-import
 
 logging.getLogger().setLevel(logging.DEBUG)
+
+
+@pytest.mark.parametrize(
+    "unit, expected_watts",
+    [
+        (POWER_UNIT_WATT, 2.0),
+        (UnitOfPower.WATT, 2.0),
+        (POWER_UNIT_KILO_WATT, 2000.0),
+        (UnitOfPower.KILO_WATT, 2000.0),
+    ],
+)
+async def test_power_unit_conversion_accepts_selector_keys_and_ha_units(
+    hass: HomeAssistant,
+    unit,
+    expected_watts,
+):
+    """Both internal selector keys and HA units must use the same conversion."""
+    central_power_manager = FeatureCentralPowerManager(hass, MagicMock())
+
+    assert central_power_manager.to_watts(2.0, unit) == expected_watts
+    assert central_power_manager.from_watts(expected_watts, unit) == 2.0
+
+
+async def test_central_power_unit_auto_recognizes_ha_sensor_unit(
+    hass: HomeAssistant,
+):
+    """Auto mode must normalize the unit exposed by a Home Assistant sensor."""
+    central_power_manager = FeatureCentralPowerManager(hass, MagicMock())
+    central_power_manager._power_unit_config = POWER_UNIT_AUTO
+    central_power_manager._power_sensor_entity_id = "sensor.power"
+    hass.states.async_set(
+        "sensor.power",
+        "2",
+        {"unit_of_measurement": UnitOfPower.KILO_WATT},
+    )
+
+    assert central_power_manager._resolve_sensor_unit("sensor.power") == POWER_UNIT_KILO_WATT
+    assert central_power_manager.power_unit == UnitOfPower.KILO_WATT
+
+
+@pytest.mark.parametrize(
+    "entity_id, attributes",
+    [
+        ("sensor.missing", None),
+        ("sensor.invalid", {}),
+        ("sensor.invalid", {"unit_of_measurement": "VA"}),
+    ],
+)
+async def test_central_power_unit_auto_falls_back_to_watt(
+    hass: HomeAssistant,
+    entity_id,
+    attributes,
+):
+    """Auto mode falls back to W when the sensor unit is missing or invalid."""
+    central_power_manager = FeatureCentralPowerManager(hass, MagicMock())
+    central_power_manager._power_unit_config = POWER_UNIT_AUTO
+    central_power_manager._power_sensor_entity_id = entity_id
+    if attributes is not None:
+        hass.states.async_set(entity_id, "2", attributes)
+
+    assert central_power_manager._resolve_sensor_unit(entity_id) == POWER_UNIT_WATT
+    assert central_power_manager.power_unit == UnitOfPower.WATT
+
+
+async def test_central_power_unit_auto_recognizes_max_power_sensor_unit(
+    hass: HomeAssistant,
+):
+    """Auto mode also normalizes the unit exposed by the maximum power sensor."""
+    central_power_manager = FeatureCentralPowerManager(hass, MagicMock())
+    central_power_manager._power_unit_config = POWER_UNIT_AUTO
+    hass.states.async_set(
+        "sensor.max_power",
+        "3",
+        {"unit_of_measurement": UnitOfPower.KILO_WATT},
+    )
+
+    assert central_power_manager._resolve_sensor_unit("sensor.max_power") == POWER_UNIT_KILO_WATT
+    assert central_power_manager.to_watts(3.0, central_power_manager._resolve_sensor_unit("sensor.max_power")) == 3000.0
 
 
 @pytest.mark.parametrize(

@@ -191,6 +191,75 @@ async def test_vtherm_energy_restore_from_root_level(hass: HomeAssistant) -> Non
     assert vtherm_restored.total_energy == 789.01
 
 
+async def test_vtherm_energy_restore_from_kilowatt_hours_is_converted_once(
+    hass: HomeAssistant,
+) -> None:
+    """A kWh state is normalized once to Wh and remains displayable as kWh."""
+    state_dict = {
+        "preset_mode": "eco",
+        "temperature": 22,
+        "specific_states": {"total_energy": 123.456},
+    }
+    vtherm_restored = BaseThermostat(
+        hass,
+        "unique_id",
+        "name",
+        {CONF_POWER_UNIT: POWER_UNIT_KILO_WATT},
+    )
+    mock_state = MagicMock()
+    mock_state.attributes = state_dict
+    mock_state.state = HVACMode.HEAT
+
+    with patch.object(vtherm_restored, "async_get_last_state", return_value=mock_state):
+        await vtherm_restored.get_my_previous_state()
+        assert vtherm_restored._total_energy == 123456.0
+        assert (
+            vtherm_restored.power_manager.from_watts(
+                vtherm_restored.total_energy,
+                vtherm_restored.power_manager.power_unit,
+            )
+            == 123.456
+        )
+
+        await vtherm_restored.get_my_previous_state()
+
+    assert vtherm_restored._total_energy == 123456.0
+
+
+@pytest.mark.parametrize(
+    "specific_states, configuration",
+    [
+        ({"total_energy": 100, "total_energy_unit": POWER_UNIT_WATT}, {}),
+        ({"total_energy": 100}, {CONF_POWER_UNIT: POWER_UNIT_WATT}),
+    ],
+)
+async def test_vtherm_energy_restore_keeps_the_previously_persisted_unit(
+    hass: HomeAssistant,
+    specific_states,
+    configuration,
+) -> None:
+    """Changing the configured unit must not reinterpret historical energy."""
+    vtherm_restored = BaseThermostat(
+        hass,
+        "unique_id",
+        "name",
+        {CONF_POWER_UNIT: POWER_UNIT_KILO_WATT},
+    )
+    mock_state = MagicMock()
+    mock_state.attributes = {
+        "preset_mode": "eco",
+        "temperature": 22,
+        "specific_states": specific_states,
+        "configuration": configuration,
+    }
+    mock_state.state = HVACMode.HEAT
+
+    with patch.object(vtherm_restored, "async_get_last_state", return_value=mock_state):
+        await vtherm_restored.get_my_previous_state()
+
+    assert vtherm_restored.total_energy == 100
+
+
 async def test_vtherm_energy_restore_default_zero(hass: HomeAssistant) -> None:
     """Test that energy defaults to 0 when not present in saved state"""
     # Save the state without energy

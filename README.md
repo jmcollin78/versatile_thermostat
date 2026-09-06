@@ -27,6 +27,12 @@ Versatile Thermostat UI Card (Available on [Github](https://github.com/jmcollin7
 # What's New?
 ![New](images/new-icon.png)
 
+## Release 10.3.0
+Power units can now be configured. Configuration screens let you select a unit for power measurements (W by default). Calculated energy units match the configured power unit. Existing entries are migrated using the historical device power value: values above 100 are treated as W; other values as kW.
+
+⚠️ **Important change for statistics**
+You may see a repair notification such as: `The unit of “Central configuration Total power active for boiler” (sensor.total_power_active_for_boiler) was changed to “kW”`, or a similar log message. This is expected because the unit was previously not specified. Select the repair action `Update the unit of long-term statistics` to correct the statistics.
+
 ## Release 10.2.0
 The **Auto Fan** feature is now available as an external plugin ([vtherm_auto_fan_extended](https://github.com/jmcollin78/vtherm_auto_fan_extended)). The original (_legacy_) auto-fan version is still available in _VTherm_, but it must be disabled in the thermostat configuration in order to use the plugin. The full documentation is available on the [plugin's GitHub repository](https://github.com/jmcollin78/vtherm_auto_fan_extended).
 

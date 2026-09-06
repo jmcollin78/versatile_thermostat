@@ -1,6 +1,8 @@
 # pylint: disable=unused-argument, line-too-long, too-many-lines
 """ Test the Versatile Thermostat config flow """
 
+from typing import Any, cast
+
 from homeassistant.data_entry_flow import FlowResultType
 from homeassistant.core import HomeAssistant
 from homeassistant.config_entries import SOURCE_USER, ConfigEntry
@@ -21,6 +23,119 @@ async def test_show_form(hass: HomeAssistant, init_vtherm_api) -> None:
 
     assert result["type"] == FlowResultType.FORM
     assert result["step_id"] == SOURCE_USER
+
+
+@pytest.mark.parametrize(
+    "power_unit",
+    [POWER_UNIT_WATT, POWER_UNIT_KILO_WATT],
+)
+async def test_config_flow_main_power_unit_options_and_acceptance(
+    hass: HomeAssistant,
+    init_vtherm_api,
+    skip_hass_states_get,
+    power_unit,
+) -> None:
+    """The main form exposes and accepts each VTherm power unit option."""
+    result = await hass.config_entries.flow.async_init(
+        DOMAIN,
+        context={"source": SOURCE_USER},
+    )
+    result = await hass.config_entries.flow.async_configure(
+        result["flow_id"],
+        user_input={CONF_THERMOSTAT_TYPE: CONF_THERMOSTAT_SWITCH},
+    )
+    result = await hass.config_entries.flow.async_configure(
+        result["flow_id"],
+        user_input={"next_step_id": "main"},
+    )
+
+    form_result = cast(dict[str, Any], result)
+    assert form_result["type"] == FlowResultType.FORM
+    assert form_result["data_schema"].schema[CONF_POWER_UNIT].config["options"] == CONF_POWER_UNITS
+    assert (
+        form_result["data_schema"](
+            {
+                CONF_NAME: "Power unit test",
+                CONF_TEMP_SENSOR: "sensor.temperature",
+                CONF_CYCLE_MIN: 5,
+            }
+        )[CONF_POWER_UNIT]
+        == POWER_UNIT_WATT
+    )
+
+    result = await hass.config_entries.flow.async_configure(
+        result["flow_id"],
+        user_input={
+            CONF_NAME: "Power unit test",
+            CONF_TEMP_SENSOR: "sensor.temperature",
+            CONF_CYCLE_MIN: 5,
+            CONF_DEVICE_POWER: 2.0,
+            CONF_POWER_UNIT: power_unit,
+            CONF_USE_MAIN_CENTRAL_CONFIG: False,
+        },
+    )
+    assert result.get("type") == FlowResultType.FORM
+
+    hass.config_entries.flow.async_abort(result["flow_id"])
+
+
+@pytest.mark.parametrize(
+    "power_unit",
+    CONF_CENTRAL_POWER_UNITS,
+)
+async def test_config_flow_central_power_unit_options_and_acceptance(
+    hass: HomeAssistant,
+    init_vtherm_api,
+    skip_hass_states_get,
+    power_unit,
+) -> None:
+    """The central power form exposes and accepts W, kW, and Auto."""
+    result = await hass.config_entries.flow.async_init(
+        DOMAIN,
+        context={"source": SOURCE_USER},
+    )
+    result = await hass.config_entries.flow.async_configure(
+        result["flow_id"],
+        user_input={CONF_THERMOSTAT_TYPE: CONF_THERMOSTAT_CENTRAL_CONFIG},
+    )
+    result = await hass.config_entries.flow.async_configure(
+        result["flow_id"],
+        user_input={"next_step_id": "features"},
+    )
+    result = await hass.config_entries.flow.async_configure(
+        result["flow_id"],
+        user_input={CONF_USE_POWER_FEATURE: True},
+    )
+    result = await hass.config_entries.flow.async_configure(
+        result["flow_id"],
+        user_input={"next_step_id": "power"},
+    )
+
+    form_result = cast(dict[str, Any], result)
+    assert form_result["type"] == FlowResultType.FORM
+    assert form_result["data_schema"].schema[CONF_POWER_UNIT].config["options"] == CONF_CENTRAL_POWER_UNITS
+    assert (
+        form_result["data_schema"](
+            {
+                CONF_POWER_SENSOR: "sensor.power",
+                CONF_MAX_POWER_SENSOR: "sensor.max_power",
+            }
+        )[CONF_POWER_UNIT]
+        == POWER_UNIT_AUTO
+    )
+
+    result = await hass.config_entries.flow.async_configure(
+        result["flow_id"],
+        user_input={
+            CONF_POWER_SENSOR: "sensor.power",
+            CONF_MAX_POWER_SENSOR: "sensor.max_power",
+            CONF_POWER_UNIT: power_unit,
+            CONF_PRESET_POWER: 13,
+        },
+    )
+    assert result.get("type") == FlowResultType.MENU
+
+    hass.config_entries.flow.async_abort(result["flow_id"])
 
 
 @pytest.mark.parametrize("expected_lingering_tasks", [True])

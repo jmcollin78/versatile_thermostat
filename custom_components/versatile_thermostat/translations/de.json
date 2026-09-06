@@ -210,7 +210,7 @@
       },
       "power": {
         "title": "Powermanagement",
-        "description": "Wählt automatisch die Voreinstellung 'power', wenn der Energieverbrauch ein Maximum überschreitet.\nGibt die Entity-IDs der Sensoren an, die die Gesamtleistung und die maximal zulässige Leistung messen.\nGib anschließend die Leistung des Geräts an.\nAlle Sensoren und die Geräteleistung sollten die gleiche Einheit verwenden (kW oder W).",
+        "description": "Attribute für das Powermanagement.\nWählen Sie W oder kW für die Leistung jedes VTherm sowie W, kW oder Automatisch für die zentrale Konfiguration.\nDie Werte werden intern normalisiert, daher können W und kW sicher gemischt werden.",
         "data": {
           "power_sensor_entity_id": "Gesamtleistungssensor (Entity-ID)",
           "max_power_sensor_entity_id": "Sensor für maximale Leistung (Entity-ID)",

@@ -210,16 +210,18 @@
             },
             "power": {
                 "title": "功率管理",
-                "description": "电源管理属性。\n提供您家的功率和最大功率传感器。\n指定加热器开启时的功耗。\n所有传感器和设备功率应使用相同的单位（kW 或 W）",
+                "description": "功率管理属性。\n为每个 VTherm 的设备功率选择 W 或 kW，并为中央配置选择 W、kW 或自动。\n数值会在内部标准化，因此可以安全地混用 W 和 kW。",
                 "data": {
                     "power_sensor_entity_id": "功率",
                     "max_power_sensor_entity_id": "最大功率",
+                    "power_unit": "中央功率单位",
                     "power_temp": "削峰温度",
                     "use_power_central_config": "采用集中电源配置"
                 },
                 "data_description": {
                     "power_sensor_entity_id": "功率传感器实体 ID",
                     "max_power_sensor_entity_id": "最大功率传感器实体 ID",
+                    "power_unit": "选择功率单位，或选择自动以从传感器自动检测",
                     "power_temp": "削峰温度",
                     "use_power_central_config": "勾选使用中央电源配置。取消选中为此 VTherm 使用特定电源配置"
                 }

@@ -27,6 +27,12 @@ Versatile Thermostat UI Card (K dispozici na [Github](https://github.com/jmcolli
 # Co je nového?
 ![Nové](images/new-icon.png)
 
+## Verze 10.3.0
+Nyní lze konfigurovat jednotky výkonu. Konfigurační obrazovky umožňují vybrat jednotku pro měření výkonu (výchozí je W). Jednotky vypočtené energie odpovídají nakonfigurované jednotce výkonu. Stávající položky jsou migrovány podle historické hodnoty výkonu zařízení: hodnoty vyšší než 100 se považují za W, ostatní za kW.
+
+⚠️ **Důležitá změna pro statistiky**
+Může se zobrazit oznámení o opravě, například: `Jednotka „Central configuration Total power active for boiler“ (sensor.total_power_active_for_boiler) byla změněna na „kW“`, nebo podobná zpráva v protokolu. Je to očekávané, protože jednotka dříve nebyla uvedena. Pro opravu statistik vyberte akci opravy `Aktualizovat jednotku dlouhodobých statistik`.
+
 ## Verze 10.2.0
 Funkce **Auto Fan** je nyní dostupná jako externí plugin ([vtherm_auto_fan_extended](https://github.com/jmcollin78/vtherm_auto_fan_extended)). Původní (_legacy_) verze auto-fan je ve _VTherm_ stále dostupná, ale pro použití pluginu musí být v konfiguraci termostatu vypnuta. Kompletní dokumentace je k dispozici v [GitHub repozitáři pluginu](https://github.com/jmcollin78/vtherm_auto_fan_extended).
 

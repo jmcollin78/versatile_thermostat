@@ -211,7 +211,7 @@
             },
             "power": {
                 "title": "Gestione energetica",
-                "description": "Attributi di gestione dell'eneregia elettrica.\nIndica la potenza e il sensore della potenza massima della tua abitazione.\nSpecifica il consumo energetico del riscaldatore quando è acceso.\nTutti i sensori e l'alimentazione dei dispositivi devono utilizzare la stessa unità di misura (kW o W)",
+                "description": "Attributi di gestione della potenza.\nSelezionare W o kW per la potenza del dispositivo di ogni VTherm e W, kW o Auto per la configurazione centralizzata.\nI valori sono normalizzati internamente, quindi W e kW possono essere combinati in sicurezza.",
                 "data": {
                     "power_sensor_entity_id": "Potenza",
                     "max_power_sensor_entity_id": "Potenza massima",

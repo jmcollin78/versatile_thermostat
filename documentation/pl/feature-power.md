@@ -38,7 +38,7 @@ Wymagane elementy konfiguracji:
 2. **Identyfikator encji** sensora maksymalnej dopuszczalnej mocy,
 3. **Temperatura**, która ma być zastosowana, jeśli aktywowana zostanie redukcja obciążenia.
 
-Upewnij się, że wszystkie wartości mocy używają tych samych jednostek (np. kW lub W).
+Jednostki mocy można konfigurować niezależnie. Dla mocy urządzenia każdego VTherm wybierz W lub kW. W konfiguracji centralnej wybierz W, kW lub Automatycznie; tryb Automatycznie używa jednostki zadeklarowanej przez każdy czujnik centralny. Wartości są wewnętrznie normalizowane do W, dlatego można bezpiecznie łączyć W i kW.
 Posiadanie **sensora maksymalnej dopuszczalnej mocy** pozwala na dynamiczną modyfikację wartości maksymalnej mocy przy użyciu harmonogramu lub automatyzacji.
 
 Ze względu na scentralizowaną redukcję obciążenia nie jest możliwe nadpisanie wartości senssorów zużycia i maksymalnego zużycia na poszczególnych termostatatch. Konfiguracja musi być wykonana w ustawieniach głównych (patrz: [Konfiguracja Centralna](./creation.md#centralized-configuration)).

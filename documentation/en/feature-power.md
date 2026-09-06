@@ -36,7 +36,7 @@ In the centralized configuration, if you have selected the `With power detection
 2. The entity ID of the **sensor for maximum allowed power**,
 3. The temperature to apply if load shedding is activated.
 
-Ensure that all power values use the same units (e.g., kW or W).
+Power units can be configured independently. Select W or kW for each VTherm's device power. In the central configuration, select W, kW, or Auto; Auto uses the unit declared by each central sensor. Values are normalized internally to W, so W and kW can be mixed safely.
 Having a **sensor for maximum allowed power** allows you to modify the maximum power dynamically using a scheduler or automation.
 
 Note that due to centralized load-shedding, it is not possible to override the consumption and maximum consumption sensors on individual _VTherms_. This configuration must be done in the centralized settings. See [Centralized Configuration](./creation.md#centralized-configuration).

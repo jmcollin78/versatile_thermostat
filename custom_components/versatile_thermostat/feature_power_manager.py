@@ -54,10 +54,19 @@ class FeaturePowerManager(BaseFeatureManager):
         # Power management
         self._power_temp = entry_infos.get(CONF_PRESET_POWER)
 
-        self._power_unit = entry_infos.get(CONF_POWER_UNIT) or POWER_UNIT_WATT
+        configured_power_unit = to_internal_power_unit(entry_infos.get(CONF_POWER_UNIT))
+        if configured_power_unit not in (POWER_UNIT_WATT, POWER_UNIT_KILO_WATT):
+            _LOGGER.warning(
+                "%s - Unsupported power unit %s. Falling back to W",
+                self,
+                entry_infos.get(CONF_POWER_UNIT),
+            )
+            self._power_unit = POWER_UNIT_WATT
+        else:
+            self._power_unit = configured_power_unit
         # Normalize device_power to internal Watts based on configured unit
         raw_device_power = entry_infos.get(CONF_DEVICE_POWER)
-        self._device_power = power_to_watts(raw_device_power, self._power_unit) if raw_device_power else 0
+        self._device_power = (power_to_watts(raw_device_power, self._power_unit) or 0.0) if raw_device_power else 0.0
         self._use_power_feature = entry_infos.get(CONF_USE_POWER_FEATURE, False)
         self._is_configured = False
 
@@ -98,30 +107,33 @@ class FeaturePowerManager(BaseFeatureManager):
         )
         if self._is_configured:
             central = vtherm_api.central_power_manager
+            power_unit = self.power_unit
+            central_power_unit = central.power_unit
             extra_state_attributes.update(
                 {
                     "power_manager": {
                         "power_sensor_entity_id": central.power_sensor_entity_id,
                         "max_power_sensor_entity_id": central.max_power_sensor_entity_id,
                         "overpowering_state": self.overpowering_state,
-                        "device_power": self._device_power,
+                        "device_power": self.from_watts(self._device_power, power_unit),
                         "power_temp": self._power_temp,
-                        "current_power": central.current_power,
-                        "current_max_power": central.current_max_power,
-                        "mean_cycle_power": self.mean_cycle_power,
-                        "power_unit": self._power_unit,
+                        "current_power": central.from_watts(central.current_power, central_power_unit),
+                        "current_max_power": central.from_watts(central.current_max_power, central_power_unit),
+                        "mean_cycle_power": self.from_watts(self.mean_cycle_power, power_unit),
+                        "power_unit": power_unit,
                         "energy_unit": self.energy_unit,
-                        "central_power_unit": central.power_unit,
+                        "central_power_unit": central_power_unit,
                     }
                 }
             )
         else:
+            power_unit = self.power_unit
             extra_state_attributes.update(
                 {
                     "power_manager": {
-                        "device_power": self._device_power,
-                        "mean_cycle_power": self.mean_cycle_power,
-                        "power_unit": self._power_unit,
+                        "device_power": self.from_watts(self._device_power, power_unit),
+                        "mean_cycle_power": self.from_watts(self.mean_cycle_power, power_unit),
+                        "power_unit": power_unit,
                         "energy_unit": self.energy_unit,
                     }
                 }

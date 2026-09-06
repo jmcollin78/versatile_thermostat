@@ -36,7 +36,7 @@ Wenn Sie in der zentralisierten Konfiguration die Funktion „Mit Energieerkennu
 2. Die Entity-ID des **Sensors für die maximal zulässige Leistung**,
 3. Die Temperatur, die angewendet werden soll, wenn der Lastabwurf aktiviert ist.
 
-Achten Sie darauf, dass alle Leistungswerte die gleichen Einheiten verwenden (z. B. kW oder W).
+Leistungseinheiten können unabhängig konfiguriert werden. Wählen Sie W oder kW für die Geräteleistung jedes VTherm. Wählen Sie in der zentralen Konfiguration W, kW oder Automatisch; Automatisch verwendet die von jedem zentralen Sensor angegebene Einheit. Die Werte werden intern in W normalisiert, daher können W und kW sicher gemischt werden.
 Mit einem **Sensor für die maximal zulässige Leistung** können Sie die maximale Leistung dynamisch mithilfe eines Zeitplaners oder einer Automatisierung ändern.
 
 Beachten Sie, dass es aufgrund des zentralisierten Lastabwurfs nicht möglich ist, die Sensoren für den Verbrauch und den maximalen Verbrauch an einzelnen _VTherms_ zu überschreiben. Diese Konfiguration muss in den zentralisierten Einstellungen vorgenommen werden. Siehe [Zentrale Konfiguration](./creation.md#centralized-configuration).

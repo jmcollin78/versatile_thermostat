@@ -343,7 +343,7 @@ async def async_migrate_entry(hass: HomeAssistant, config_entry: ConfigEntry):
                 else:
                     device_power = get_safe_float_value(new.get(CONF_DEVICE_POWER))
                     # Reproduce the historical THRESHOLD_WATT_KILO heuristic
-                    new[CONF_POWER_UNIT] = POWER_UNIT_WATT if device_power is not None and device_power >= THRESHOLD_POWER_WATT_KILO else POWER_UNIT_KILO_WATT
+                    new[CONF_POWER_UNIT] = POWER_UNIT_WATT if device_power is not None and device_power > THRESHOLD_POWER_WATT_KILO else POWER_UNIT_KILO_WATT
 
         # Update the config entry with migrated data
         hass.config_entries.async_update_entry(

@@ -72,7 +72,8 @@ CONF_MOTION_SENSOR = "motion_sensor_entity_id"
 CONF_DEVICE_POWER = "device_power"
 CONF_POWER_UNIT = "power_unit"
 
-# Power unit values. "W" and "kW" match homeassistant UnitOfPower values on purpose.
+# Power unit values used by configuration selector translation keys.
+# Convert them to Home Assistant's "W" / "kW" values only at entity boundaries.
 POWER_UNIT_WATT = "w"
 POWER_UNIT_KILO_WATT = "kw"
 POWER_UNIT_MEGA_WATT = "mw"
@@ -535,6 +536,7 @@ DEFAULT_HEATING_FAILURE_DETECTION_DELAY = 15  # 15 minutes
 DEFAULT_TEMPERATURE_CHANGE_TOLERANCE = 0.5  # 0.5°C
 
 ATTR_TOTAL_ENERGY = "total_energy"
+ATTR_TOTAL_ENERGY_UNIT = "total_energy_unit"
 ATTR_MEAN_POWER_CYCLE = "mean_cycle_power"
 
 AUTO_FAN_DTEMP_THRESHOLD = 2
@@ -666,31 +668,50 @@ def get_safe_float_value(value):
 
 def power_to_watts(value: float | None, unit: str | None) -> float | None:
     """Normalize a power (or energy) magnitude to Watts (or Watt-hours).
-    The conversion is driven by the power unit ("W" / "kW")."""
+    The conversion accepts internal selector keys and Home Assistant units."""
+
     if value is None:
         return None
-    if unit == POWER_UNIT_KILO_WATT:
+    if to_internal_power_unit(unit) == POWER_UNIT_KILO_WATT:
         return value * 1000.0
     return value
 
 
 def power_from_watts(value_w: float | None, unit: str | None) -> float | None:
-    """Convert a Watts (or Watt-hours) magnitude to the target power unit ("W" / "kW")."""
+    """Convert a Watts (or Watt-hours) magnitude to the target power unit.
+
+    The conversion accepts internal selector keys and Home Assistant units.
+    """
+
     if value_w is None:
         return None
-    if unit == POWER_UNIT_KILO_WATT:
+    if to_internal_power_unit(unit) == POWER_UNIT_KILO_WATT:
         return value_w / 1000.0
     return value_w
 
 
+def to_internal_power_unit(power_unit: str | None) -> str | None:
+    """Map a selector key or Home Assistant power unit to its internal key."""
+    power_unit_mapping = {
+        POWER_UNIT_WATT: POWER_UNIT_WATT,
+        UnitOfPower.WATT: POWER_UNIT_WATT,
+        POWER_UNIT_KILO_WATT: POWER_UNIT_KILO_WATT,
+        UnitOfPower.KILO_WATT: POWER_UNIT_KILO_WATT,
+        POWER_UNIT_MEGA_WATT: POWER_UNIT_MEGA_WATT,
+        UnitOfPower.MEGA_WATT: POWER_UNIT_MEGA_WATT,
+    }
+    return power_unit_mapping.get(power_unit, power_unit)
+
+
 def to_legal_power_unit(power_unit: str) -> str:
     """Map the power unit from the thermostat to Home Assistant's expected unit."""
-    power_unit_mapping = {
+    power_unit_mapping: dict[str, str] = {
         POWER_UNIT_WATT: UnitOfPower.WATT,
         POWER_UNIT_KILO_WATT: UnitOfPower.KILO_WATT,
         POWER_UNIT_MEGA_WATT: UnitOfPower.MEGA_WATT,
     }
-    return power_unit_mapping.get(power_unit, power_unit)
+    internal_power_unit = to_internal_power_unit(power_unit) or power_unit
+    return power_unit_mapping.get(internal_power_unit, power_unit)
 
 
 class UnknownEntity(HomeAssistantError):

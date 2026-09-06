@@ -66,7 +66,7 @@ class FeatureCentralPowerManager(BaseFeatureManager):
         self._power_sensor_entity_id = entry_infos.get(CONF_POWER_SENSOR)
         self._max_power_sensor_entity_id = entry_infos.get(CONF_MAX_POWER_SENSOR)
         self._power_temp = entry_infos.get(CONF_PRESET_POWER)
-        self._power_unit_config = entry_infos.get(CONF_POWER_UNIT)
+        self._power_unit_config = to_internal_power_unit(entry_infos.get(CONF_POWER_UNIT))
 
         self._is_configured = False
         self._current_power = None
@@ -366,7 +366,7 @@ class FeatureCentralPowerManager(BaseFeatureManager):
             return self._power_unit_config
 
         if entity_id is not None and (state := self._hass.states.get(entity_id)) is not None:
-            unit = state.attributes.get("unit_of_measurement")
+            unit = to_internal_power_unit(state.attributes.get("unit_of_measurement"))
             if unit in (POWER_UNIT_WATT, POWER_UNIT_KILO_WATT):
                 return unit
 

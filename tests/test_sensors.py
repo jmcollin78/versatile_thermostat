@@ -407,6 +407,7 @@ async def test_sensors_over_climate(
             CONF_SAFETY_DELAY_MIN: 5,
             CONF_SAFETY_MIN_ON_PERCENT: 0.3,
             CONF_DEVICE_POWER: 1.5,
+            CONF_POWER_UNIT: POWER_UNIT_KILO_WATT,
             CONF_PRESET_POWER: 12,
         },
     )

@@ -36,7 +36,7 @@ Dans la configuration centralisée, si vous avez choisi la fonctionnalité `Avec
 2. l'id d'entité du **capteur de puissance maximale autorisée**,
 3. la température à appliquer si le délestage est appliqué.
 
-Notez que toutes les valeurs de puissance doivent avoir les mêmes unités (kW ou W par exemple).
+Les unités de puissance sont configurables indépendamment. Sélectionnez W ou kW pour la puissance de chaque VTherm. Dans la configuration centralisée, sélectionnez W, kW ou Auto ; Auto utilise l'unité déclarée par chaque capteur central. Les valeurs sont normalisées en interne en W : les valeurs en W et en kW peuvent donc être mélangées en toute sécurité.
 Le fait d'avoir un **capteur de puissance maximale autorisée**, vous permet de modifier la puissance maximale au fil du temps à l'aide d'un planificateur ou d'une automatisation.
 
 A noter, dû à la centralisation du délestage, il n'est pas possible de sur-charger les capteurs de consommation et de consommation maximale sur les _VTherm_. Cette configuration se fait forcément dans la configuration centralisée. Cf. [Configuration centralisée](./creation.md#configuration-centralisée)

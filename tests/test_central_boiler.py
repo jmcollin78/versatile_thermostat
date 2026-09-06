@@ -8,9 +8,9 @@ import logging
 
 from datetime import datetime, timedelta
 
-from unittest.mock import patch, MagicMock, PropertyMock
+from unittest.mock import patch, AsyncMock, MagicMock, PropertyMock
 
-from homeassistant.const import STATE_ON, STATE_OFF
+from homeassistant.const import STATE_ON, STATE_OFF, UnitOfPower
 from homeassistant.core import HomeAssistant
 
 from homeassistant.config_entries import ConfigEntryState
@@ -36,6 +36,12 @@ from custom_components.versatile_thermostat.vtherm_central_api import VersatileT
 from custom_components.versatile_thermostat.binary_sensor import (
     CentralBoilerBinarySensor,
 )
+from custom_components.versatile_thermostat.feature_central_boiler_manager import (
+    FeatureCentralBoilerManager,
+)
+from custom_components.versatile_thermostat.number import (
+    ActivateBoilerPowerThresholdNumber,
+)
 
 from custom_components.versatile_thermostat.sensor import NbActiveDeviceForBoilerSensor, TotalPowerActiveDeviceForBoilerSensor
 
@@ -43,6 +49,92 @@ from .commons import *  # pylint: disable=wildcard-import, unused-wildcard-impor
 from .const import *  # pylint: disable=wildcard-import, unused-wildcard-import
 
 _LOGGER = logging.getLogger(__name__)
+
+
+async def test_total_power_active_boiler_sensor_converts_to_central_unit(
+    hass: HomeAssistant,
+):
+    """The boiler sensor must expose its internal Watts total in the central unit."""
+    from custom_components.versatile_thermostat.feature_central_power_manager import (
+        FeatureCentralPowerManager,
+    )
+
+    async def refresh_central_boiler_attributes():
+        return None
+
+    central_power_manager = FeatureCentralPowerManager(hass, MagicMock())
+    central_power_manager._power_unit_config = POWER_UNIT_KILO_WATT
+    api = MagicMock()
+    api.central_power_manager = central_power_manager
+    api.central_boiler_manager.refresh_central_boiler_custom_attributes = refresh_central_boiler_attributes
+
+    first_entity = MagicMock()
+    first_entity.name = "1500 W heater"
+    first_entity.power_manager.mean_cycle_power = 1500.0
+    first_entity.activable_underlying_entities = [MagicMock(entity_id="switch.first")]
+    second_entity = MagicMock()
+    second_entity.name = "2 kW heater"
+    second_entity.power_manager.mean_cycle_power = 2000.0
+    second_entity.activable_underlying_entities = [MagicMock(entity_id="switch.second")]
+
+    sensor = object.__new__(TotalPowerActiveDeviceForBoilerSensor)
+    sensor._hass = hass
+    sensor._entities = [first_entity, second_entity]
+    sensor.async_write_ha_state = MagicMock()
+
+    with patch(
+        "custom_components.versatile_thermostat.sensor.VersatileThermostatAPI.get_vtherm_api",
+        return_value=api,
+    ):
+        await sensor.calculate_total_power(None)
+        assert sensor.native_unit_of_measurement == UnitOfPower.KILO_WATT
+
+    assert sensor._attr_native_value == 3.5
+    assert sensor._attr_active_device_ids == ["switch.first", "switch.second"]
+
+
+async def test_central_boiler_power_threshold_uses_the_sensor_unit(
+    hass: HomeAssistant,
+) -> None:
+    """A central kW value must be compared to a kW boiler threshold."""
+    central_boiler_manager = FeatureCentralBoilerManager(hass, MagicMock())
+    central_boiler_manager._total_power_active_entity = MagicMock(
+        native_value=1.5,
+        native_unit_of_measurement=UnitOfPower.KILO_WATT,
+    )
+    central_boiler_manager._total_power_active_threshold_number_entity = MagicMock(
+        native_value=1.0,
+        native_unit_of_measurement=UnitOfPower.KILO_WATT,
+    )
+
+    assert central_boiler_manager.is_total_power_active_for_boiler_exceeded is True
+
+    central_boiler_manager._total_power_active_threshold_number_entity.native_value = 2.0
+
+    assert central_boiler_manager.is_total_power_active_for_boiler_exceeded is False
+
+
+async def test_boiler_power_threshold_restores_legacy_watts_in_kilowatts(
+    hass: HomeAssistant,
+) -> None:
+    """A historical W threshold is converted when the central unit is now kW."""
+    api = MagicMock()
+    api.central_power_manager.power_unit = UnitOfPower.KILO_WATT
+    number = ActivateBoilerPowerThresholdNumber(hass, "id", "name", {CONF_NAME: "name"})
+    old_state = MagicMock(state="1000", attributes={})
+
+    with (
+        patch(
+            "custom_components.versatile_thermostat.number.VersatileThermostatAPI.get_vtherm_api",
+            return_value=api,
+        ),
+        patch.object(number, "async_get_last_state", AsyncMock(return_value=old_state)),
+    ):
+        await number.async_added_to_hass()
+
+        assert number.native_unit_of_measurement == UnitOfPower.KILO_WATT
+        assert number.native_value == 1.0
+
 
 async def test_add_a_central_config_with_boiler(
     hass: HomeAssistant,

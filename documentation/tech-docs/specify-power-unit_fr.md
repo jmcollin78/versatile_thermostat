@@ -8,6 +8,8 @@ Ce document spécifie la conception technique nécessaire pour résoudre l'issue
 
 Pour prendre en charge des unités personnalisables et adaptatives, la résolution des unités de puissance et d'énergie suit une hiérarchie claire et gère des unités potentiellement hétérogènes entre les thermostats (VTherms) et la configuration centrale :
 
+Les clés internes du sélecteur de configuration et des traductions utilisent les valeurs minuscules `w`, `kw` et `auto`. À la frontière des entités Home Assistant, ces clés sont converties vers les unités d'affichage légales `W` et `kW`. Les helpers de conversion doivent accepter les deux représentations afin que les valeurs issues de Home Assistant et celles issues de la configuration empruntent le même chemin de conversion.
+
 ### 1. Résolution de l'unité centrale (Niveau Central)
 L'unité résolue par le gestionnaire de puissance central sert d'unité de référence pour les opérations globales, les capteurs centraux et les algorithmes de délestage. Elle est résolue comme suit :
 - **Surcharge utilisateur** : Si l'utilisateur choisit explicitement une unité de puissance (`W` ou `kW`) dans la configuration centrale, cette unité est strictement respectée.
@@ -77,14 +79,20 @@ Le gestionnaire de puissance central fait office de source de vérité pour dét
   - Ajouter des helpers pour convertir à l'entrée et à la sortie :
     ```python
     def to_watts(self, power: float, unit: str) -> float:
-        """Convertit une valeur de puissance en Watts."""
-        if unit == "kw":
+      """Convertit une valeur de puissance en Watts.
+
+      Accepte les clés du sélecteur ("w", "kw") et les unités Home Assistant ("W", "kW").
+      """
+        if to_internal_power_unit(unit) == "kw":
             return power * 1000.0
         return power
 
     def from_watts(self, power_w: float, target_unit: str) -> float:
-        """Convertit une valeur de Watts vers l'unité de restitution cible."""
-        if target_unit == "kw":
+      """Convertit une valeur de Watts vers l'unité de restitution cible.
+
+      Accepte les clés du sélecteur ("w", "kw") et les unités Home Assistant ("W", "kW").
+      """
+        if to_internal_power_unit(target_unit) == "kw":
             return power_w / 1000.0
         return power_w
     ```
@@ -109,7 +117,7 @@ Ces capteurs utilisent strictement l'unité de puissance configurée pour leur V
 - **Suppression de l'heuristique** : L'ancienne détection d'unité basée sur `THRESHOLD_WATT_KILO` (`sensor.py`) est supprimée au profit de l'unité configurée du VTherm.
 - **Restitution des valeurs** :
   - Bien que calculées et cumulées en Watts / Watt-heures en interne, les valeurs affectées à `_attr_native_value` lors de l'appel à `async_my_climate_changed()` sont converties à la volée vers l'unité configurée du VTherm via `from_watts()` (ou son équivalent énergie).
-  - Le cumul `total_energy` étant désormais stocké en Watt-heures, la valeur restaurée au démarrage (précédemment dans l'unité configurée) est convertie une seule fois en Watt-heures dans `base_thermostat.py` lors de la restauration d'état.
+  - `total_energy` est persistée avec `total_energy_unit: W`, qui identifie sa représentation interne en Wh. À la restauration, les états historiques utilisent d'abord `configuration.power_unit` persisté, puis la configuration courante uniquement lorsqu'aucune unité historique n'est disponible.
 
 #### TotalPowerActiveDeviceForBoilerSensor
 Ce capteur manquait auparavant de la propriété `native_unit_of_measurement`. Nous l'exposons directement, et elle s'aligne sur l’unité du gestionnaire de puissance central.
@@ -122,11 +130,14 @@ Ce capteur manquait auparavant de la propriété `native_unit_of_measurement`. N
   - Lors des cycles d'évaluation dans `calculate_total_power()`, normaliser la puissance de chaque VTherm actif en Watts (via `to_watts(entity.power_manager.mean_cycle_power, entity.power_unit)`) avant de calculer leur cumul brut en Watts.
   - Convertir ce cumul brut en Watts dans l'unité centrale cible via `from_watts()` avant d'assigner l'état final à `_attr_native_value`.
 
+#### Seuil de puissance d'activation de la chaudière
+Le `ActivateBoilerPowerThresholdNumber` expose la même unité résolue que le capteur de puissance chaudière. Les deux valeurs sont normalisées en Watts avant comparaison. Les anciens seuils restaurés sans unité enregistrée sont considérés comme des Watts, puis convertis dans l'unité d'affichage courante.
+
 ### Attributs d'état additionnels (Extra State Attributes)
 Exposer les unités résolues dans les attributs d'état supplémentaires pour faciliter le dépannage et le rendu dans l'interface utilisateur.
 
 - **Fichier** : [custom_components/versatile_thermostat/feature_power_manager.py](custom_components/versatile_thermostat/feature_power_manager.py)
-- **Mises à jour** : Ajouter les valeurs `power_unit` et `energy_unit` issues de la configuration de chaque VTherm dans le dictionnaire `power_manager` dans `add_custom_attributes`. Ajouter `central_power_unit` pointant vers l'unité centrale résolue.
+- **Mises à jour** : Ajouter les valeurs `power_unit` et `energy_unit` issues de la configuration de chaque VTherm dans le dictionnaire `power_manager` dans `add_custom_attributes`. Ajouter `central_power_unit` pointant vers l'unité centrale résolue. Convertir `device_power` et `mean_cycle_power` vers `power_unit`, ainsi que `current_power` et `current_max_power` vers `central_power_unit`, avant leur exposition.
 
 ### Traductions
 Le nouveau champ `CONF_POWER_UNIT` et les libellés des options du menu déroulant doivent être traduits.
@@ -161,21 +172,22 @@ Le nouveau champ `CONF_POWER_UNIT` et les libellés des options du menu déroula
   - ✅ zh-Hans.json (Chinois simplifié)
 - Tous les fichiers JSON validés comme syntaxiquement corrects
 
-### Tests unitaires et d'intégration (Phase 2 - À implémenter)
+### Tests unitaires et d'intégration (Phase 2 - Complétée)
 
-1. **Vérification de la cohérence des unités et conversions** :
-   - Ajout de tests de classe dans [tests/test_sensors.py](tests/test_sensors.py) pour s'assurer que la configuration `power_unit` d'un VTherm détermine bien l'unité de ses entités de mesure (`W`/`kW` et `Wh`/`kWh`).
-   - Écriture d'un test unitaire validant les fonctions de normalisation `to_watts` et `from_watts` dans `FeatureCentralPowerManager`.
-   - Entériner que si le mode central est `Auto` sans état de capteur, l'unité centrale par défaut est bien forcée à `W`.
+1. ✅ **Vérification de la cohérence des unités et conversions** :
+  - [tests/test_sensors.py](tests/test_sensors.py) vérifie que la configuration `power_unit` d'un VTherm détermine l'unité de ses entités de mesure (`W`/`kW` et `Wh`/`kWh`).
+  - [tests/test_central_power_manager.py](tests/test_central_power_manager.py) vérifie les helpers de normalisation et le repli sur `W` lorsqu'un capteur central est absent ou utilise une unité invalide.
+  - [tests/test_config_flow.py](tests/test_config_flow.py) vérifie les valeurs par défaut et disponibles des formulaires VTherm (`W`, `kW`) et central (`W`, `kW`, `Auto`).
 
-2. **Délestage et comportement face à des unités hétérogènes** :
-   - Ajouter de nouveaux scénarios de test dans [tests/test_power.py](tests/test_power.py) et [tests/test_central_power_manager.py](tests/test_central_power_manager.py) dans lesquels le capteur de puissance globale est configuré en `W` mais certains chauffages possèdent un `device_power` en `kW` et d'autres en `W`. Vérifier que les calculs de délestage et de récupération de charge demeurent parfaitement corrects grâce au traitement unifié en Watts.
+2. ✅ **Délestage et comportement face à des unités hétérogènes** :
+  - [tests/test_power.py](tests/test_power.py) vérifie qu'un VTherm configuré en `kW` est normalisé en Watts avant le calcul de puissance disponible.
 
-3. **Conformité et somme du capteur chaudière globale** :
-   - Suite de tests dans [tests/test_central_boiler.py](tests/test_central_boiler.py) pour confirmer que `TotalPowerActiveDeviceForBoilerSensor` expose un attribut d'unité de mesure conforme (corrige #2022), et que le calcul de la somme totale d'équipements actifs d'unités mixtes (par exemple un chauffage de 1500W et un second de 2.0kW actif) effectue bien les conversions appropriées (somme calculée valant 3500W ou 3.5kW selon l'unité de référence).
+3. ✅ **Conformité et somme du capteur chaudière globale** :
+  - [tests/test_central_boiler.py](tests/test_central_boiler.py) vérifie l'unité de mesure et la somme convertie d'unités mixtes (1500 W + 2,0 kW = 3,5 kW).
+  - Il vérifie aussi les seuils d'activation de chaudière et la restauration d'un ancien seuil de 1000 W avec une centrale en kW.
 
-4. **Migration de configuration** :
-   - Test dans [tests/test_migration.py](tests/test_migration.py) vérifiant que la migration fige `CONF_POWER_UNIT` à `W` si `device_power > 100` et à `kW` sinon pour un VTherm, et à `Auto` pour la configuration centrale, en préservant l'unité précédemment affichée.
+4. ✅ **Migration de configuration** :
+  - [tests/test_migration.py](tests/test_migration.py) vérifie la migration de `CONF_POWER_UNIT` aux frontières 99, 100 et 101, ainsi que `Auto` pour la configuration centrale.
 
-5. **Continuité de l'énergie persistée** :
-   - Test vérifiant que la valeur `total_energy` restaurée (exprimée dans l'unité configurée) est convertie une seule fois en Watt-heures en interne et restituée sans rupture dans l'unité d'affichage.
+5. ✅ **Continuité de l'énergie persistée** :
+  - [tests/test_state_manager.py](tests/test_state_manager.py) vérifie qu'une énergie restaurée en `kWh` est convertie une seule fois en Wh interne et reste correctement affichable en kWh, y compris après le changement de l'unité configurée d'un VTherm.

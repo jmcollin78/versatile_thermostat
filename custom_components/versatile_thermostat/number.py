@@ -45,6 +45,9 @@ from .const import (
     CONF_USE_CENTRAL_BOILER_FEATURE,
     overrides,
     CONF_USE_MAIN_CENTRAL_CONFIG,
+    POWER_UNIT_WATT,
+    power_from_watts,
+    power_to_watts,
 )
 
 from .vtherm_preset import VThermPreset, VThermPresetWithAC, VThermPresetWithAway, VThermPresetWithACAway, PRESET_TEMP_SUFFIX, PRESET_AWAY_SUFFIX
@@ -252,6 +255,11 @@ class ActivateBoilerPowerThresholdNumber(NumberEntity, RestoreEntity):  # pylint
         return "mdi:water-boiler-auto"
 
     @property
+    def native_unit_of_measurement(self) -> str | None:
+        """Return the unit used by the central boiler power sensor."""
+        return VersatileThermostatAPI.get_vtherm_api(self._hass).central_power_manager.power_unit
+
+    @property
     def device_info(self) -> DeviceInfo:
         """Return the device info."""
         return DeviceInfo(
@@ -272,7 +280,12 @@ class ActivateBoilerPowerThresholdNumber(NumberEntity, RestoreEntity):  # pylint
         old_state: CoreState = await self.async_get_last_state()
         _LOGGER.debug("%s - Calling async_added_to_hass old_state is %s", self, old_state)
         if old_state is not None:
-            self._attr_value = self._attr_native_value = float(old_state.state)
+            stored_unit = old_state.attributes.get("unit_of_measurement", POWER_UNIT_WATT)
+            restored_watts = power_to_watts(float(old_state.state), stored_unit)
+            self._attr_value = self._attr_native_value = power_from_watts(
+                restored_watts,
+                self.native_unit_of_measurement,
+            )
 
     @overrides
     def set_native_value(self, value: float) -> None:

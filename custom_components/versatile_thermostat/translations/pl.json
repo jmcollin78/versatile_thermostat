@@ -207,7 +207,7 @@
       },
       "power": {
         "title": "Energia",
-        "description": "Atrybuty zarządzania energią.\nWskazują moc i maksymalną moc sensora.\nOkreślają pobór mocy grzejnika, gdy jest włączony.\nWszystkie sensory i urządzenia powinny mieć tę samą jednostkę mocy (kW lub W).",
+        "description": "Atrybuty zarządzania mocą.\nDla mocy urządzenia każdego VTherm wybierz W lub kW, a dla konfiguracji centralnej W, kW lub Automatycznie.\nWartości są wewnętrznie normalizowane, dlatego można bezpiecznie łączyć W i kW.",
         "data": {
           "power_sensor_entity_id": "Moc",
           "max_power_sensor_entity_id": "Moc maksymalna",

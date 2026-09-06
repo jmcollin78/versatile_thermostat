@@ -210,7 +210,7 @@
             },
             "power": {
                 "title": "Správa výkonu",
-                "description": "Atributy správy výkonu.\nUdává výkon a maximální výkonový senzor vašeho domova.\nUveďte spotřebu energie ohřívače při zapnutí.\nVšechny senzory a výkon zařízení by měly používat stejnou jednotku (kW nebo W)&nbsp;[![?](https://img.icons8.com/color/18/help.png)](https://github.com/jmcollin78/versatile_thermostat/blob/main/documentation/cs/feature-power.md)",
+                "description": "Atributy správy výkonu.\nPro výkon zařízení každého VTherm vyberte W nebo kW a pro centralizovanou konfiguraci W, kW nebo Automaticky.\nHodnoty jsou interně normalizovány, takže lze bezpečně kombinovat W a kW.&nbsp;[![?](https://img.icons8.com/color/18/help.png)](https://github.com/jmcollin78/versatile_thermostat/blob/main/documentation/cs/feature-power.md)",
                 "data": {
                     "power_sensor_entity_id": "Výkon",
                     "max_power_sensor_entity_id": "Maximální výkon",

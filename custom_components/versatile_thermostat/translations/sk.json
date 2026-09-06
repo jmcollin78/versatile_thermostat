@@ -209,16 +209,18 @@
       },
       "power": {
         "title": "Správa napájania",
-        "description": "Atribúty správy napájania.\nPoskytuje senzor výkonu a maximálneho výkonu vášho domova.\nPotom zadajte spotrebu energie ohrievača, keď je zapnutý.\nVšetky senzory a výkon zariadenia by mali mať rovnakú jednotku (kW alebo W).\nPonechajte zodpovedajúce entity_id prázdne ak sa nepoužíva.",
+        "description": "Atribúty správy výkonu.\nPre výkon zariadenia každého VTherm vyberte W alebo kW a pre centrálnu konfiguráciu W, kW alebo Automaticky.\nHodnoty sú interne normalizované, takže W a kW možno bezpečne kombinovať.",
         "data": {
           "power_sensor_entity_id": "ID entity snímača výkonu",
           "max_power_sensor_entity_id": "ID entity snímača maximálneho výkonu",
+          "power_unit": "Centrálna jednotka výkonu",
           "power_temp": "Teplota pre zníženie výkonu",
           "use_power_central_config": "Použite centrálnu konfiguráciu napájania"
         },
         "data_description": {
           "power_sensor_entity_id": "ID entity snímača výkonu",
           "max_power_sensor_entity_id": "ID entity snímača maximálneho výkonu",
+          "power_unit": "Vyberte jednotku výkonu alebo Automaticky pre automatické rozpoznanie zo senzora",
           "power_temp": "Teplota pre zníženie výkonu",
           "use_power_central_config": "Začiarknite, ak chcete použiť konfiguráciu centrálneho napájania. Zrušte začiarknutie, ak chcete použiť špecifickú konfiguráciu napájania pre tento VTherm"
         }

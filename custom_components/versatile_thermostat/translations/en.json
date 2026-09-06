@@ -210,7 +210,7 @@
             },
             "power": {
                 "title": "Power management",
-                "description": "Power management attributes.\nGives the power and max power sensor of your home.\nSpecify the power consumption of the heater when on.\nAll sensors and device power should use the same unit (kW or W)",
+                "description": "Power management attributes.\nSelect W or kW for each VTherm device power, and W, kW, or Auto for the central configuration.\nValues are normalized internally, so W and kW can be mixed safely.",
                 "data": {
                     "power_sensor_entity_id": "Power",
                     "max_power_sensor_entity_id": "Max power",

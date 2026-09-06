@@ -1076,7 +1076,11 @@ class TotalPowerActiveDeviceForBoilerSensor(NbActiveDeviceForBoilerSensor):
 
             total_active_power += mean_cycle_power
 
-        self._attr_native_value = total_active_power
+        central_power_manager = VersatileThermostatAPI.get_vtherm_api(self._hass).central_power_manager
+        self._attr_native_value = central_power_manager.from_watts(
+            total_active_power,
+            central_power_manager.power_unit,
+        )
         self._attr_active_device_ids = active_device_ids
 
         self.async_write_ha_state()

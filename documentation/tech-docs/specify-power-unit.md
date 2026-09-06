@@ -8,6 +8,8 @@ This document specifies the technical design to resolve issue #1671. The goal is
 
 To support customizable and adaptive units, the power and energy unit resolution follows a clear hierarchy:
 
+The configuration selector and translation keys use the internal lowercase values `w`, `kw`, and `auto`. At the Home Assistant entity boundary, these keys are converted to the legal display units `W` and `kW`. Conversion helpers must accept both representations so that values retrieved from Home Assistant and values obtained from configuration use the same conversion path.
+
 ### 1. Central Power Unit Resolution (Central Level)
 The central power manager resolved unit is used for central operations, central sensors, and power shedding calculations. It is resolved as follows:
 - **User Override**: If the user explicitly selects a power unit (`W` or `kW`) in the central power configuration, this unit is strictly respected.
@@ -77,14 +79,20 @@ The central power manager acts as the source of truth for the central/global pow
   - Add normalization helpers inside the central power manager:
     ```python
     def to_watts(self, power: float, unit: str) -> float:
-        """Convert any power value to Watts."""
-        if unit == "kw":
+      """Convert any power value to Watts.
+
+      Accepts selector keys ("w", "kw") and Home Assistant units ("W", "kW").
+      """
+        if to_internal_power_unit(unit) == "kw":
             return power * 1000.0
         return power
 
     def from_watts(self, power_w: float, target_unit: str) -> float:
-        """Convert a Watts value to a target display unit."""
-        if target_unit == "kw":
+      """Convert a Watts value to a target display unit.
+
+      Accepts selector keys ("w", "kw") and Home Assistant units ("W", "kW").
+      """
+        if to_internal_power_unit(target_unit) == "kw":
             return power_w / 1000.0
         return power_w
     ```
@@ -109,7 +117,7 @@ These sensors strictly use the respective VTherm's own configured power unit, ra
 - **Heuristic removal**: The old unit detection based on `THRESHOLD_WATT_KILO` (`sensor.py`) is removed in favor of the VTherm's configured unit.
 - **Value Output**:
   - Although computed and accumulated in Watts / Watt-hours internally, the values assigned to `_attr_native_value` inside `async_my_climate_changed()` are converted on-the-fly to the VTherm's configured unit via `from_watts()` (or its energy equivalent).
-  - Since `total_energy` is now stored in Watt-hours, the value restored on startup (previously in the configured unit) is converted once to Watt-hours in `base_thermostat.py` on state restore.
+  - `total_energy` is persisted with `total_energy_unit: W`, which identifies its internal Wh representation. On restore, legacy states fall back to the previously persisted `configuration.power_unit`, then to the current configuration only when no historical unit is available.
 
 #### TotalPowerActiveDeviceForBoilerSensor
 This sensor previously lacked a `native_unit_of_measurement` property. We expose it directly, and it aligns with the central manager's resolved unit.
@@ -122,11 +130,14 @@ This sensor previously lacked a `native_unit_of_measurement` property. We expose
   - When totaling active VTherm power in `calculate_total_power()`, sum each active VTherm's `mean_cycle_power` after normalizing it to Watts (using `to_watts(entity.power_manager.mean_cycle_power, entity.power_unit)`).
   - Convert this aggregated Watts sum to the boiler sensor's unit (the central manager's resolved unit) using the helper `from_watts()` before writing to `_attr_native_value` on the boiler active power sensor.
 
+#### Boiler activation power threshold
+The `ActivateBoilerPowerThresholdNumber` exposes the same resolved unit as the central boiler power sensor. Both values are normalized to Watts before comparison. Restored historical threshold values without a stored unit are treated as Watts, then converted to the current display unit.
+
 ### Extra State Attributes
 Expose the resolved units in the extra state attributes to aid in troubleshooting and UI rendering.
 
 - **File**: [custom_components/versatile_thermostat/feature_power_manager.py](custom_components/versatile_thermostat/feature_power_manager.py)
-- **Updates**: Add `power_unit` and `energy_unit` values (originating from each VTherm's own configured `power_unit`) inside the `power_manager` dictionary under `add_custom_attributes`. Add `central_power_unit` referring to the central manager's resolved unit.
+- **Updates**: Add `power_unit` and `energy_unit` values (originating from each VTherm's own configured `power_unit`) inside the `power_manager` dictionary under `add_custom_attributes`. Add `central_power_unit` referring to the central manager's resolved unit. Convert `device_power` and `mean_cycle_power` to `power_unit`, and `current_power` and `current_max_power` to `central_power_unit` before exposing them.
 
 ### Translations
 The new `CONF_POWER_UNIT` field and its dropdown option labels must be translated.
@@ -161,21 +172,22 @@ The new `CONF_POWER_UNIT` field and its dropdown option labels must be translate
   - ✅ zh-Hans.json (Simplified Chinese)
 - All JSON files validated as syntactically correct
 
-### Unit and Integration Tests (Phase 2 - To be Implemented)
+### Unit and Integration Tests (Phase 2 - Completed)
 
-1. **Unit Consistency and Conversion Checks**:
-   - Class tests added in [tests/test_sensors.py](tests/test_sensors.py) to check that a VTherm's configured `power_unit` drives the unit of its measurement entities (`W`/`kW` and `Wh`/`kWh`).
-   - Test the `to_watts`/`from_watts` normalization helpers in `FeatureCentralPowerManager`.
-   - Assert that if the central power configuration is set to `Auto` and the power sensor has no state, the central unit falls back to `W`.
+1. ✅ **Unit Consistency and Conversion Checks**:
+  - [tests/test_sensors.py](tests/test_sensors.py) verifies that a VTherm's configured `power_unit` drives the unit of its measurement entities (`W`/`kW` and `Wh`/`kWh`).
+  - [tests/test_central_power_manager.py](tests/test_central_power_manager.py) verifies normalization helpers and the `W` fallback when a central sensor is absent or has an invalid unit.
+  - [tests/test_config_flow.py](tests/test_config_flow.py) verifies the default and available values for VTherm (`W`, `kW`) and central (`W`, `kW`, `Auto`) configuration forms.
 
-2. **Power Shedding and Allocation with Mixed Units**:
-   - Add targeted test cases in [tests/test_power.py](tests/test_power.py) / [tests/test_central_power_manager.py](tests/test_central_power_manager.py) where the central power sensor is in `W` but some VTherms are configured with `device_power` in `kW` and others in `W`. Verify that shedding decisions remain correct thanks to the unified Watts processing.
+2. ✅ **Power Shedding and Allocation with Mixed Units**:
+  - [tests/test_power.py](tests/test_power.py) verifies that a VTherm configured in `kW` is normalized to Watts before the available-power calculation.
 
-3. **Central Boiler Sensor Conformity and Summation**:
-   - Test suite [tests/test_central_boiler.py](tests/test_central_boiler.py) verifying that `TotalPowerActiveDeviceForBoilerSensor` consistently reports an appropriate unit of measurement (fixes #2022), and when summing VTherms with mixed units (e.g. one 1500W and one 2.0kW), the computed total is correctly converted and summed (e.g. 3500W or 3.5kW, matching the sensor's unit).
+3. ✅ **Central Boiler Sensor Conformity and Summation**:
+  - [tests/test_central_boiler.py](tests/test_central_boiler.py) verifies the measurement unit and the converted sum of mixed units (1500 W + 2.0 kW = 3.5 kW).
+  - It also verifies boiler activation thresholds and restoration of a legacy 1000 W threshold with a kW central unit.
 
-4. **Configuration Migration**:
-   - Test in [tests/test_migration.py](tests/test_migration.py) verifying that migration freezes `CONF_POWER_UNIT` to `W` if `device_power > 100` and to `kW` otherwise for a VTherm, and to `Auto` for the central configuration, preserving the previously displayed unit.
+4. ✅ **Configuration Migration**:
+  - [tests/test_migration.py](tests/test_migration.py) verifies `CONF_POWER_UNIT` migration at the 99, 100, and 101 boundaries and verifies `Auto` for the central configuration.
 
-5. **Persisted Energy Continuity**:
-   - Test verifying that the restored `total_energy` value (expressed in the configured unit) is converted once to Watt-hours internally and rendered without disruption in the display unit.
+5. ✅ **Persisted Energy Continuity**:
+  - [tests/test_state_manager.py](tests/test_state_manager.py) verifies that a restored `kWh` energy value is converted once to internal Wh and remains correctly displayable in kWh, including when a VTherm's configured unit changes after the state was saved.

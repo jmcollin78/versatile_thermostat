@@ -211,7 +211,7 @@
       },
       "power": {
         "title": "Gestion de la puissance",
-        "description": "Sélectionne automatiquement le preset 'power' si la puissance consommée est supérieure à un maximum.\nDonnez les entity id des capteurs qui mesurent la puissance totale et la puissance max autorisée.\nEnsuite donnez la puissance de l'équipement.\nTous les capteurs et la puissance consommée par l'équipement doivent avoir la même unité de mesure (kW ou W)",
+        "description": "Attributs de gestion de la puissance.\nSélectionnez W ou kW pour la puissance de chaque VTherm, et W, kW ou Auto pour la configuration centralisée.\nLes valeurs sont normalisées en interne : les valeurs en W et en kW peuvent donc être mélangées en toute sécurité.",
         "data": {
           "power_sensor_entity_id": "Capteur de puissance totale (entity id)",
           "max_power_sensor_entity_id": "Capteur de puissance Max (entity id)",

@@ -401,7 +401,16 @@ class FeatureCentralBoilerManager(BaseFeatureManager):
         total_power = self.total_power_active_for_boiler
         power_threshold = self.total_power_active_for_boiler_threshold
 
-        return total_power >= power_threshold
+        total_power_watts = power_to_watts(
+            total_power,
+            self._total_power_active_entity.native_unit_of_measurement,
+        )
+        power_threshold_watts = power_to_watts(
+            power_threshold,
+            self._total_power_active_threshold_number_entity.native_unit_of_measurement,
+        )
+
+        return total_power_watts >= power_threshold_watts
 
     def _get_all_boiler_entity_ids(self, force=False) -> list[str]:
         """Returns the list of all VTherm entity ids which have an influence

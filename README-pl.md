@@ -30,6 +30,12 @@ Karta integracji VTherm UI (dostępna na [Github](https://github.com/jmcollin78/
 # Co nowego?
 ![New](images/new-icon.png)
 
+## Wydanie 10.3.0
+Jednostki mocy można teraz konfigurować. Ekrany konfiguracji umożliwiają wybór jednostki dla pomiarów mocy (domyślnie W). Jednostki obliczonej energii są zgodne ze skonfigurowaną jednostką mocy. Istniejące wpisy są migrowane na podstawie historycznej wartości mocy urządzenia: wartości większe niż 100 są traktowane jako W, pozostałe jako kW.
+
+⚠️ **Ważna zmiana dla statystyk**
+Może pojawić się powiadomienie o naprawie, na przykład: `Jednostka „Central configuration Total power active for boiler” (sensor.total_power_active_for_boiler) została zmieniona na „kW”`, lub podobny wpis w logach. Jest to oczekiwane, ponieważ wcześniej jednostka nie była określona. Aby poprawić statystyki, wybierz akcję naprawy `Zaktualizuj jednostkę statystyk długoterminowych`.
+
 ## Wydanie 10.2.0
 Funkcja **Auto Fan** jest teraz dostępna jako zewnętrzna wtyczka ([vtherm_auto_fan_extended](https://github.com/jmcollin78/vtherm_auto_fan_extended)). Oryginalna (_legacy_) wersja auto-fan jest nadal dostępna w _VTherm_, ale aby korzystać z wtyczki, musi zostać wyłączona w konfiguracji termostatu. Pełna dokumentacja jest dostępna w [repozytorium GitHub wtyczki](https://github.com/jmcollin78/vtherm_auto_fan_extended).
 

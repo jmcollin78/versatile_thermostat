@@ -15,6 +15,7 @@
           "temp_min": "Ελάχιστη επιτρεπτή θερμοκρασία",
           "temp_max": "Μέγιστη επιτρεπτή θερμοκρασία",
           "device_power": "Ισχύς συσκευής",
+          "power_unit": "Μονάδα ισχύος (για την ισχύ της συσκευής)",
           "use_window_feature": "Χρήση ανίχνευσης παραθύρου",
           "use_motion_feature": "Χρήση ανίχνευσης κίνησης",
           "use_power_feature": "Χρήση διαχείρισης ισχύος",
@@ -27,7 +28,16 @@
           "step_temperature": "Temperature step for setting the target temperature",
           "temperature_sensor_entity_id": "Room temperature sensor entity id",
           "last_seen_temperature_sensor_entity_id": "Last seen room temperature sensor entity id. Should be datetime sensor",
-          "external_temperature_sensor_entity_id": "Outdoor temperature sensor entity id. Not used if central configuration is selected"
+          "external_temperature_sensor_entity_id": "Outdoor temperature sensor entity id. Not used if central configuration is selected",
+          "power_unit": "Μονάδα κατανάλωσης ισχύος της συσκευής"
+        }
+      },
+      "main": {
+        "data": {
+          "power_unit": "Μονάδα ισχύος (για την ισχύ της συσκευής)"
+        },
+        "data_description": {
+          "power_unit": "Μονάδα κατανάλωσης ισχύος της συσκευής"
         }
       },
       "lock": {
@@ -151,11 +161,15 @@
       },
       "power": {
         "title": "Διαχείριση Ενέργειας",
-        "description": "Χαρακτηριστικά διαχείρισης ενέργειας.\nΔίνει τον αισθητήρα ενέργειας και τον μέγιστο αισθητήρα ενέργειας του σπιτιού σας.\nΣτη συνέχεια καθορίστε την κατανάλωση ενέργειας του θερμαντήρα όταν είναι ενεργοποιημένος.\nΌλοι οι αισθητήρες και η ισχύς της συσκευής πρέπει να έχουν την ίδια μονάδα (kW ή W).\nΑφήστε το αντίστοιχο entity_id κενό αν δεν χρησιμοποιείται.",
+        "description": "Χαρακτηριστικά διαχείρισης ισχύος.\nΕπιλέξτε W ή kW για την ισχύ συσκευής κάθε VTherm και W, kW ή Αυτόματα για την κεντρική διαμόρφωση.\nΟι τιμές κανονικοποιούνται εσωτερικά, επομένως οι μονάδες W και kW μπορούν να συνδυαστούν με ασφάλεια.",
         "data": {
           "power_sensor_entity_id": "Ταυτότητα οντότητας αισθητήρα ενέργειας",
           "max_power_sensor_entity_id": "Ταυτότητα οντότητας αισθητήρα μέγιστης ενέργειας",
+          "power_unit": "Κεντρική μονάδα ισχύος",
           "power_temp": "Θερμοκρασία για Αποβολή Ενέργειας"
+        },
+        "data_description": {
+          "power_unit": "Επιλέξτε μονάδα ισχύος ή Αυτόματα για αυτόματη ανίχνευση από τον αισθητήρα"
         }
       },
       "presence": {

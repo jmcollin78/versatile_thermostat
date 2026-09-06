@@ -722,6 +722,7 @@ async def test_multiple_switch_power_management(hass: HomeAssistant, fake_temp_s
             CONF_TPI_COEF_INT: 0.3,
             CONF_TPI_COEF_EXT: 0.01,
             CONF_DEVICE_POWER: 100,
+            CONF_POWER_UNIT: POWER_UNIT_WATT,
             CONF_PRESET_POWER: 12,
         },
     )

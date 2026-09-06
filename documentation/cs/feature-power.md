@@ -36,7 +36,7 @@ V centralizované konfiguraci, pokud jste vybrali funkci `S detekcí výkonu`, n
 2. ID entity **senzoru pro maximální povolenou spotřebu**,
 3. Teplotu k aplikaci, pokud je aktivováno omezení zátěže.
 
-Ujistěte se, že všechny hodnoty výkonu používají stejné jednotky (např. kW nebo W).
+Jednotky výkonu lze konfigurovat nezávisle. Pro výkon zařízení každého VTherm vyberte W nebo kW. V centralizované konfiguraci vyberte W, kW nebo Automaticky; Automaticky použije jednotku uvedenou každým centrálním senzorem. Hodnoty jsou interně normalizovány na W, takže lze bezpečně kombinovat W a kW.
 Mít **senzor pro maximální povolenou spotřebu** vám umožní dynamicky upravovat maximální spotřebu pomocí scheduleru nebo automatizace.
 
 Uvědomte si, že kvůli centralizovanému omezení zátěže není možné přepsat senzory spotřeby a maximální spotřeby na jednotlivých _VTherm_. Tato konfigurace musí být provedena v centralizovaných nastaveních. Viz [Centralizovaná konfigurace](./creation.md#centralized-configuration).

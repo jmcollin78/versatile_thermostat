@@ -711,10 +711,15 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
             if old_total_energy is None:
                 # Fallback to root level for backward compatibility
                 old_total_energy = old_state.attributes.get(ATTR_TOTAL_ENERGY)
-            # Convert from previously stored unit to internal Wh (energy values are normalized like power values)
+            # New states explicitly record their internal Wh unit. Legacy states did not,
+            # so use their persisted configuration before falling back to the current one.
             if old_total_energy is not None:
-                # Get the configured power unit (energy unit is derived from power unit)
-                stored_unit = self.power_manager.power_unit
+                stored_unit = specific_states.get(ATTR_TOTAL_ENERGY_UNIT)
+                if stored_unit is None:
+                    stored_unit = old_state.attributes.get("configuration", {}).get(
+                        CONF_POWER_UNIT,
+                        self.power_manager.power_unit,
+                    )
                 self._total_energy = power_to_watts(old_total_energy, stored_unit) if old_total_energy else 0
             else:
                 self._total_energy = 0
@@ -1962,6 +1967,7 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
                 "hvac_off_reason": self.hvac_off_reason,
                 "hvac_mode_reason": self.hvac_mode_reason,
                 ATTR_TOTAL_ENERGY: self.total_energy,
+                ATTR_TOTAL_ENERGY_UNIT: POWER_UNIT_WATT,
                 "last_change_time_from_vtherm": (
                     self._last_change_time_from_vtherm.astimezone(self._current_tz).isoformat() if self._last_change_time_from_vtherm is not None else None
                 ),
@@ -1983,6 +1989,7 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
                 "max_on_percent": self._max_on_percent,
                 "have_valve_regulation": self.have_valve_regulation,
                 "cycle_min": self._cycle_min,
+                CONF_POWER_UNIT: self.power_manager.power_unit,
             },
             "preset_temperatures": {
                 "frost_temp": self._presets.get(VThermPreset.FROST, 0),

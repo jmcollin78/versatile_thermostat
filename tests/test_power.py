@@ -5,6 +5,7 @@ from datetime import datetime, timedelta
 import logging
 
 from homeassistant.components.number import SERVICE_SET_VALUE
+from homeassistant.const import UnitOfPower
 
 from custom_components.versatile_thermostat.thermostat_switch import ThermostatOverSwitch
 from custom_components.versatile_thermostat.thermostat_climate_valve import ThermostatOverClimateValve
@@ -142,6 +143,120 @@ async def test_power_feature_manager(
             assert power_consumption_max == 0
         else:
             assert power_consumption_max == 1234
+
+
+async def test_power_manager_custom_attributes_use_configured_units(
+    hass: HomeAssistant,
+):
+    """Diagnostic attributes must use the unit they advertise."""
+    fake_vtherm = MagicMock(spec=BaseThermostat)
+    type(fake_vtherm).name = PropertyMock(return_value="the name")
+    fake_vtherm.async_get_last_state = AsyncMock(return_value=None)
+    fake_vtherm.proportional_algorithm = None
+    fake_vtherm.is_over_climate = True
+    fake_vtherm.is_device_active = True
+
+    vtherm_api: VersatileThermostatAPI = VersatileThermostatAPI.get_vtherm_api(hass)
+    vtherm_api.find_central_configuration = MagicMock(return_value=object())
+    central_power_manager = vtherm_api.central_power_manager
+    central_power_manager.post_init(
+        {
+            CONF_POWER_SENSOR: "sensor.the_power_sensor",
+            CONF_MAX_POWER_SENSOR: "sensor.the_max_power_sensor",
+            CONF_USE_POWER_FEATURE: True,
+            CONF_PRESET_POWER: 13,
+            CONF_POWER_UNIT: POWER_UNIT_KILO_WATT,
+        }
+    )
+    central_power_manager._current_power = 1500.0
+    central_power_manager._current_max_power = 3000.0
+
+    power_manager = FeaturePowerManager(fake_vtherm, hass)
+    power_manager.post_init(
+        {
+            CONF_USE_POWER_FEATURE: True,
+            CONF_PRESET_POWER: 10,
+            CONF_DEVICE_POWER: 2.0,
+            CONF_POWER_UNIT: POWER_UNIT_KILO_WATT,
+        }
+    )
+    await power_manager.start_listening()
+
+    custom_attributes = {}
+    power_manager.add_custom_attributes(custom_attributes)
+    attributes = custom_attributes["power_manager"]
+
+    assert attributes["device_power"] == 2.0
+    assert attributes["mean_cycle_power"] == 2.0
+    assert attributes["power_unit"] == UnitOfPower.KILO_WATT
+    assert attributes["current_power"] == 1.5
+    assert attributes["current_max_power"] == 3.0
+    assert attributes["central_power_unit"] == UnitOfPower.KILO_WATT
+
+
+async def test_power_manager_checks_available_power_with_kilowatt_device(
+    hass: HomeAssistant,
+):
+    """Availability checks use the Watts-normalized device power of a kW VTherm."""
+    fake_vtherm = MagicMock(spec=BaseThermostat)
+    fake_vtherm.entity_id = "climate.kilowatt_vtherm"
+    type(fake_vtherm).name = PropertyMock(return_value="kilowatt vtherm")
+    type(fake_vtherm).is_device_active = PropertyMock(return_value=False)
+    type(fake_vtherm).is_over_climate = PropertyMock(return_value=False)
+    type(fake_vtherm).nb_underlying_entities = PropertyMock(return_value=1)
+    fake_vtherm.async_get_last_state = AsyncMock(return_value=None)
+
+    vtherm_api: VersatileThermostatAPI = VersatileThermostatAPI.get_vtherm_api(hass)
+    vtherm_api.find_central_configuration = MagicMock(return_value=object())
+    central_power_manager = vtherm_api.central_power_manager
+    central_power_manager.post_init(
+        {
+            CONF_POWER_SENSOR: "sensor.the_power_sensor",
+            CONF_MAX_POWER_SENSOR: "sensor.the_max_power_sensor",
+            CONF_USE_POWER_FEATURE: True,
+            CONF_PRESET_POWER: 13,
+            CONF_POWER_UNIT: POWER_UNIT_WATT,
+        }
+    )
+    central_power_manager._current_power = 2000.0
+    central_power_manager._current_max_power = 3500.0
+
+    power_manager = FeaturePowerManager(fake_vtherm, hass)
+    power_manager.post_init(
+        {
+            CONF_USE_POWER_FEATURE: True,
+            CONF_PRESET_POWER: 10,
+            CONF_DEVICE_POWER: 2.0,
+            CONF_POWER_UNIT: POWER_UNIT_KILO_WATT,
+        }
+    )
+    await power_manager.start_listening()
+
+    available, startup_power = await power_manager.check_power_available()
+
+    assert power_manager.device_power == 2000.0
+    assert startup_power == 2000.0
+    assert available is False
+
+
+@pytest.mark.parametrize("persisted_unit", [POWER_UNIT_MEGA_WATT, POWER_UNIT_AUTO])
+async def test_power_manager_falls_back_to_watt_for_an_invalid_persisted_unit(
+    hass: HomeAssistant,
+    persisted_unit,
+) -> None:
+    """Only W and kW are accepted for a VTherm persisted power unit."""
+    power_manager = FeaturePowerManager(MagicMock(), hass)
+
+    power_manager.post_init(
+        {
+            CONF_USE_POWER_FEATURE: True,
+            CONF_DEVICE_POWER: 2.0,
+            CONF_POWER_UNIT: persisted_unit,
+        }
+    )
+
+    assert power_manager.power_unit == UnitOfPower.WATT
+    assert power_manager.device_power == 2.0
 
 
 async def test_power_feature_manager_reserves_startup_power_per_underlying_for_multi_underlyings(
@@ -365,6 +480,7 @@ async def test_power_management_hvac_off(hass: HomeAssistant, skip_hass_states_i
             CONF_SAFETY_DELAY_MIN: 5,
             CONF_SAFETY_MIN_ON_PERCENT: 0.3,
             CONF_DEVICE_POWER: 100,
+            CONF_POWER_UNIT: POWER_UNIT_WATT,
             CONF_PRESET_POWER: 12,
         },
     )
@@ -472,6 +588,7 @@ async def test_power_management_hvac_on(hass: HomeAssistant, skip_hass_states_is
             CONF_SAFETY_DELAY_MIN: 5,
             CONF_SAFETY_MIN_ON_PERCENT: 0.3,
             CONF_DEVICE_POWER: 100,
+            CONF_POWER_UNIT: POWER_UNIT_WATT,
             CONF_PRESET_POWER: 12,
         },
     )
@@ -644,6 +761,7 @@ async def test_power_management_energy_over_switch(hass: HomeAssistant, skip_has
             CONF_SAFETY_DELAY_MIN: 5,
             CONF_SAFETY_MIN_ON_PERCENT: 0.3,
             CONF_DEVICE_POWER: 100,
+            CONF_POWER_UNIT: POWER_UNIT_WATT,
             CONF_PRESET_POWER: 12,
         },
     )
@@ -787,6 +905,7 @@ async def test_power_management_energy_over_climate(
             CONF_SAFETY_DELAY_MIN: 5,
             CONF_SAFETY_MIN_ON_PERCENT: 0.3,
             CONF_DEVICE_POWER: 100,
+            CONF_POWER_UNIT: POWER_UNIT_WATT,
             CONF_PRESET_POWER: 12,
         },
     )

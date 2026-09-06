@@ -31,10 +31,10 @@ Le composant Versatile Thermostat UI Card (Disponible sur [Github](https://githu
 ![Nouveau](images/new-icon.png)
 
 ## Release 10.3.0
-VOus pouvez maintenant spécifier les unités de puissance. Les écrans de configuration proposent une unité pour les mesures de puissance (W par défaut). Les unités d'énergie calculées sont alignées avec les unités de puissance donnée. Une migration des entités existantes a été effectuée en prenant en compte la valeur spécifiée actuelle: > 100, le script de migration considère que la valeur est donnée en W et sinon en kW.
+Vous pouvez maintenant spécifier les unités de puissance. Les écrans de configuration proposent une unité pour les mesures de puissance (W par défaut). Les unités d'énergie calculées sont alignées avec l'unité de puissance configurée. Les entités existantes sont migrées en fonction de leur valeur historique de puissance : au-delà de 100, la valeur est considérée en W, sinon en kW.
 
 ⚠️ Changement important dans les statistiques
-Vous pourrez voir apparaitre des messages de réparation comme : `L'unité de « Central configuration Total power active for boiler » (sensor.total_power_active_for_boiler) a été modifiée en « kWh »` ou des messages dans les logs avec ce genre de message. C'est normal car auparavant, l'unité n'était précisée. Donc vous pouvez choisir l'action de réparation `Mettre à jour l'unité des valeurs statistiques ...` pour corriger le problème.
+Vous pourrez voir apparaître des messages de réparation comme : `L'unité de « Central configuration Total power active for boiler » (sensor.total_power_active_for_boiler) a été modifiée en « kW »`, ou des messages similaires dans les logs. C'est normal car auparavant, l'unité n'était pas précisée. Vous pouvez choisir l'action de réparation `Mettre à jour l'unité des statistiques à long terme` pour corriger les statistiques.
 
 ## Release 10.2.0
 Intégration de la fonctionnalité **Auto Fan** sous forme de plugin externe ([vtherm_auto_fan_extended](https://github.com/jmcollin78/vtherm_auto_fan_extended)). La version d'origine (_legacy_) de l'auto-fan reste toujours disponible dans _VTherm_, mais elle doit être désactivée dans la configuration du thermostat pour pouvoir utiliser le plugin. Retrouvez la documentation complète sur le [dépôt GitHub du plugin](https://github.com/jmcollin78/vtherm_auto_fan_extended).

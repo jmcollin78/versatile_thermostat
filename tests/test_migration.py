@@ -11,9 +11,48 @@ from custom_components.versatile_thermostat.thermostat_climate import (
 from custom_components.versatile_thermostat.thermostat_switch import (
     ThermostatOverSwitch,
 )
+from custom_components.versatile_thermostat import async_migrate_entry
 from .commons import *  # pylint: disable=wildcard-import, unused-wildcard-import
 
 logging.getLogger().setLevel(logging.DEBUG)
+
+
+@pytest.mark.parametrize(
+    "thermostat_type, device_power, expected_power_unit",
+    [
+        (CONF_THERMOSTAT_SWITCH, 99, POWER_UNIT_KILO_WATT),
+        (CONF_THERMOSTAT_SWITCH, 100, POWER_UNIT_KILO_WATT),
+        (CONF_THERMOSTAT_SWITCH, 101, POWER_UNIT_WATT),
+        (CONF_THERMOSTAT_CENTRAL_CONFIG, None, POWER_UNIT_AUTO),
+    ],
+)
+async def test_migration_freezes_power_unit_from_legacy_configuration(
+    hass: HomeAssistant,
+    thermostat_type,
+    device_power,
+    expected_power_unit,
+):
+    """Migration preserves the legacy unit heuristic, including its boundary."""
+    data = {
+        CONF_NAME: "migrationName",
+        CONF_THERMOSTAT_TYPE: thermostat_type,
+    }
+    if device_power is not None:
+        data[CONF_DEVICE_POWER] = device_power
+
+    config_entry = MockConfigEntry(
+        version=2,
+        minor_version=3,
+        domain=DOMAIN,
+        title="Migration power unit",
+        unique_id=f"migration-power-unit-{thermostat_type}-{device_power}",
+        data=data,
+    )
+    config_entry.add_to_hass(hass)
+
+    assert await async_migrate_entry(hass, config_entry) is True
+    assert config_entry.data[CONF_POWER_UNIT] == expected_power_unit
+
 
 # @pytest.mark.parametrize("expected_lingering_timers", [True])
 async def test_migration_security_safety(

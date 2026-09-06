@@ -27,6 +27,12 @@ Versatile Thermostat UI Card (Verfügbar auf [Github](https://github.com/jmcolli
 # Was ist neu?
 ![Neu](images/new-icon.png)
 
+## Release 10.3.0
+Leistungseinheiten können nun konfiguriert werden. In den Konfigurationsbildschirmen kann eine Einheit für Leistungsmessungen ausgewählt werden (standardmäßig W). Berechnete Energieeinheiten richten sich nach der konfigurierten Leistungseinheit. Bestehende Einträge werden anhand des historischen Geräteleistungswerts migriert: Werte über 100 werden als W behandelt, andere Werte als kW.
+
+⚠️ **Wichtige Änderung für Statistiken**
+Möglicherweise erscheint eine Reparaturbenachrichtigung wie: `Die Einheit von „Central configuration Total power active for boiler“ (sensor.total_power_active_for_boiler) wurde in „kW“ geändert`, oder eine ähnliche Meldung im Protokoll. Dies ist normal, da die Einheit zuvor nicht angegeben war. Wählen Sie die Reparaturaktion `Einheit der Langzeitstatistiken aktualisieren`, um die Statistiken zu korrigieren.
+
 ## Release 10.2.0
 Die Funktion **Auto Fan** ist jetzt als externes Plugin verfügbar ([vtherm_auto_fan_extended](https://github.com/jmcollin78/vtherm_auto_fan_extended)). Die ursprüngliche (_Legacy_) Auto-Fan-Version ist in _VTherm_ weiterhin verfügbar, muss jedoch in der Thermostatkonfiguration deaktiviert werden, um das Plugin verwenden zu können. Die vollständige Dokumentation ist im [GitHub-Repository des Plugins](https://github.com/jmcollin78/vtherm_auto_fan_extended) verfügbar.
 
