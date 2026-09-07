@@ -1,20 +1,21 @@
 # pylint: disable=wildcard-import, unused-wildcard-import, protected-access, unused-argument, line-too-long, too-many-lines
 
 """ Test the over_climate Vtherm """
-from unittest.mock import patch, call, PropertyMock
+from unittest.mock import AsyncMock, MagicMock, patch, call, PropertyMock
 from datetime import datetime, timedelta
 
 import logging
 import pytest
 
-from homeassistant.core import HomeAssistant
-from homeassistant.components.climate import SERVICE_SET_TEMPERATURE, HVACMode, HVACAction
+from homeassistant.core import HomeAssistant, State
+from homeassistant.components.climate import ClimateEntityFeature, SERVICE_SET_TEMPERATURE, HVACMode, HVACAction
 
 from homeassistant.components.switch import DOMAIN as SWITCH_DOMAIN
 
 from custom_components.versatile_thermostat.thermostat_climate import (
     ThermostatOverClimate,
 )
+from custom_components.versatile_thermostat.underlyings import UnderlyingClimate
 
 from custom_components.versatile_thermostat.switch import (
     FollowUnderlyingTemperatureChange,
@@ -1186,6 +1187,70 @@ async def test_multi_climate(
             assert temp_sent == new_regulated_temp, f"Temperature sent ({temp_sent}) should be the new regulated temp ({new_regulated_temp})"
 
     entity.remove_thermostat()
+
+
+@pytest.mark.parametrize(
+    "last_sent_temperature, regulated_target_temperature, target_temperature, expected_temperature",
+    [
+        (23.0, 24.0, 28.0, 23.0),
+        (None, 24.0, 28.0, 24.0),
+        (None, None, 28.0, 28.0),
+        (None, None, None, None),
+    ],
+)
+async def test_delayed_temperature_resend_uses_effective_setpoint(
+    hass: HomeAssistant,
+    last_sent_temperature,
+    regulated_target_temperature,
+    target_temperature,
+    expected_temperature,
+):
+    thermostat = MagicMock(spec=ThermostatOverClimate)
+    thermostat.now = datetime.now(tz=get_tz(hass))
+    thermostat.target_temperature = target_temperature
+    thermostat.regulated_target_temperature = regulated_target_temperature
+    thermostat.power_manager.check_power_available = AsyncMock(return_value=(True, None))
+
+    under = UnderlyingClimate(hass, thermostat, "climate.mock_climate")
+    under._is_initialized = True
+    under._last_sent_temperature = last_sent_temperature
+    under._state_manager.get_state = MagicMock(
+        return_value=State(
+            "climate.mock_climate",
+            HVACMode.OFF,
+            attributes={
+                "supported_features": ClimateEntityFeature.TARGET_TEMPERATURE,
+                "min_temp": 15.0,
+                "max_temp": 30.0,
+            },
+        )
+    )
+
+    callback = None
+
+    def capture_callback(_hass, delay, scheduled_callback):
+        nonlocal callback
+        assert delay == 2
+        callback = scheduled_callback
+        return MagicMock()
+
+    with patch.object(under, "hass_services_async_call", new_callable=AsyncMock) as mock_service_call, patch(
+        "custom_components.versatile_thermostat.underlyings.async_call_later",
+        side_effect=capture_callback,
+    ):
+        assert await under.set_hvac_mode(VThermHvacMode_HEAT)
+        assert callback is not None
+        await callback(None)
+
+    set_temperature_calls = [call_args for call_args in mock_service_call.await_args_list if call_args.args[1] == SERVICE_SET_TEMPERATURE]
+    if expected_temperature is None:
+        assert set_temperature_calls == []
+    else:
+        assert len(set_temperature_calls) == 1
+        assert set_temperature_calls[0].args[2] == {
+            "entity_id": "climate.mock_climate",
+            "temperature": expected_temperature,
+        }
 
 
 @pytest.mark.parametrize(
