@@ -133,6 +133,9 @@ STEP_MAIN_DATA_SCHEMA = vol.Schema(  # pylint: disable=invalid-name
         vol.Required(CONF_TEMP_SENSOR): selector.EntitySelector(
             selector.EntitySelectorConfig(domain=[SENSOR_DOMAIN, INPUT_NUMBER_DOMAIN, NUMBER_DOMAIN]),
         ),
+        vol.Optional(CONF_HUMIDITY_SENSOR): selector.EntitySelector(
+            selector.EntitySelectorConfig(domain=[SENSOR_DOMAIN, INPUT_NUMBER_DOMAIN, NUMBER_DOMAIN]),
+        ),
         vol.Optional(CONF_LAST_SEEN_TEMP_SENSOR): selector.EntitySelector(
             selector.EntitySelectorConfig(domain=[SENSOR_DOMAIN, INPUT_DATETIME_DOMAIN, NUMBER_DOMAIN]),
         ),
