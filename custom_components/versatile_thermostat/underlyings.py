@@ -1130,6 +1130,13 @@ class UnderlyingClimate(UnderlyingEntity):
         if str(hvac_mode) == str(under_hvac_mode):
             return False
 
+        if self._thermostat.now < self._last_command_sent_datetime + timedelta(seconds=resend_delay_sec):
+            _LOGGER.debug(
+                "%s - Skipping climate state repair while waiting for the last command to be applied",
+                self,
+            )
+            return False
+
         await self.set_hvac_mode(hvac_mode)
         return True
 

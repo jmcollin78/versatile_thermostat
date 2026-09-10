@@ -105,6 +105,46 @@ async def test_over_climate_not_initialized(
     entity.remove_thermostat()
 
 
+async def test_over_climate_repair_waits_for_previous_command(
+    hass: HomeAssistant,
+    skip_hass_states_is_state,
+    skip_turn_on_off_heater,
+    skip_send_event,
+):
+    """Do not resend an HVAC command before the underlying climate can update its state."""
+    now = datetime.now(tz=get_tz(hass))
+    entry = MockConfigEntry(
+        domain=DOMAIN,
+        title="TheOverClimateMockName",
+        unique_id="uniqueId",
+        data=PARTIAL_CLIMATE_NOT_REGULATED_CONFIG,
+    )
+
+    await create_and_register_mock_climate(
+        hass,
+        "mock_climate",
+        "MockClimateName",
+        {},
+        hvac_mode=VThermHvacMode_OFF,
+        hvac_action=HVACAction.OFF,
+    )
+    entity = await create_thermostat(hass, entry, "climate.theoverclimatemockname")
+    underlying = entity.underlying_entity(0)
+    entity.current_state.set_hvac_mode(VThermHvacMode_HEAT)
+    entity._set_now(now)
+    underlying._last_command_sent_datetime = now
+
+    with patch.object(underlying, "set_hvac_mode") as mock_set_hvac_mode:
+        assert await underlying.check_and_repair() is False
+        mock_set_hvac_mode.assert_not_called()
+
+        entity._set_now(now + timedelta(seconds=2))
+        assert await underlying.check_and_repair() is True
+        mock_set_hvac_mode.assert_called_once_with(VThermHvacMode_HEAT)
+
+    entity.remove_thermostat()
+
+
 async def test_bug_82(hass: HomeAssistant, skip_hass_states_is_state, skip_turn_on_off_heater, skip_send_event, fake_underlying_climate):
     """Test that when a underlying climate is not available the VTherm doesn't go into safety mode"""
 
