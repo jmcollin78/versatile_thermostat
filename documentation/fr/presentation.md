@@ -40,7 +40,7 @@ Pour faire fonctionner _VTherm_ vous aurez besoin de matériels. La liste ci-des
 ## Thermomètres
 Indispensables dans une installation _VTherm_ une mesure de température externalisée de l'appareil et placé où là où vous vivez, vous assure une température fiable, confortable et stable.
 
-- [⭐ Sonoff SNZB Zigbee](https://www.domadoo.fr/fr/suivi-energie/6614-sonoff-capteur-de-temperature-et-d-humidite-zigbee-30-avec-ecran-6920075740004.html??domid=97)
+- [⭐ Sonoff SNZB Zigbee](https://www.domadoo.fr/fr/suivi-energie/6614-sonoff-capteur-de-temperature-et-d-humidite-zigbee-30-avec-ecran-6920075740004.html?domid=97)
 - [ Neo Tuya Wifi](https://www.domadoo.fr/fr/produits-compatibles-jeedom/7564-neo-capteur-de-temperature-et-humidite-zigbee-30-tuya.html?domid=97)
 
 ## Commutateurs (switchs)
@@ -62,8 +62,6 @@ Pour commander un radiateur électrique équipé d'un fil pilote directement. Ut
 Pour contrôler un radiateur à eau. Fonctionne avec un _VTherm_ [`over_valve`](over-valve.md) ou [`over_climate` avec contrôle direct de la vanne](over-climate.md#thermostat-de-type-over_climate) :
 
 - [⭐ Sonoff TRVZB Zigbee](https://www.domadoo.fr/fr/chauffage-connecte/6776-sonoff-tete-thermostatique-connectee-zigbee-30.html?domid=97) avec [`over_climate` avec contrôle direct de la vanne](over-climate.md#thermostat-de-type-over_climate),
-- [⭐ 2 x Sonoff TRVZB Zigbee](https://www.domadoo.fr/fr/chauffage-connecte/7477-sonoff-pack-de-2x-tete-thermostatique-connectee-zigbee-30.html?domid=97) avec [`over_climate` avec contrôle direct de la vanne](over-climate.md#thermostat-de-type-over_climate),
-- [⭐ 4 x Sonoff TRVZB Zigbee](https://www.domadoo.fr/fr/chauffage-connecte/7478-sonoff-pack-de-4x-tete-thermostatique-connectee-zigbee-30.html?domid=97) avec [`over_climate` avec contrôle direct de la vanne](over-climate.md#thermostat-de-type-over_climate),
 - [Shelly BLU TRV BLE](https://www.domadoo.fr/fr/black-friday-domotique/7567-shelly-robinet-thermostatique-de-radiateur-a-commande-bluetooth-shelly-blu-trv-3800235264980.html?domid=97) avec [`over_valve`](over-valve.md),
 - [Moes TRV Zigbee](https://www.domadoo.fr/fr/peripheriques/5783-moes-tete-thermostatique-intelligente-zigbee-30-brt-100-trv-blanc.html?domid=97) avec [`over_climate` (sans contrôle direct de la vanne)](over-climate.md#thermostat-de-type-over_climate)
 - [Schneider Wiser TRV Zigbee](https://www.domadoo.fr/fr/controle-chauffage-clim/5497-schneider-electric-tete-de-vanne-thermostatique-connectee-zigbee-3606489582821.html?domid=97) avec [`over_climate` (sans contrôle direct de la vanne)](over-climate.md#thermostat-de-type-over_climate)
