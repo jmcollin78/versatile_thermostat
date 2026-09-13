@@ -622,7 +622,13 @@ class UnderlyingClimate(UnderlyingEntity):
         if hvac_mode in (VThermHvacMode_HEAT, VThermHvacMode_COOL):
 
             async def callback_resend_temp(_):
-                await self.set_temperature(self._thermostat.target_temperature, None, None)
+                temperature = self.last_sent_temperature
+                if temperature is None:
+                    temperature = getattr(self._thermostat, "regulated_target_temperature", None)
+                if temperature is None:
+                    temperature = self._thermostat.target_temperature
+                if temperature is not None:
+                    await self.set_temperature(temperature, None, None)
 
             if self._cancel_set_temperature_later:
                 self._cancel_set_temperature_later()
