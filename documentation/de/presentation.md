@@ -33,41 +33,38 @@ Alle diese Funktionen sind je nach Bedarf entweder zentral oder individuell konf
 
 # Equipment
 
-Für den Betrieb von _VTherm_ werden einige Geräte benötigt. Die folgende Liste ist nicht vollständig, enthält aber die am häufigsten verwendeten Geräte, die vollständig mit Home Assistant und _VTherm_ kompatibel sind. Dies sind Affiliate-Links zum französischen Partnershop [Domadoo](https://www.domadoo.fr/fr/?domid=97), wodurch ich einen kleinen Prozentsatz erhalte, wenn Sie über diese Links einkaufen. Sollten Sie bei [Domadoo](https://www.domadoo.fr/fr/?domid=97) bestellen, erhalten Sie günstige Preise, eine Rückgabegarantie und eine sehr kurze Lieferzeit, die mit der anderer großer Online-Händler vergleichbar ist. Ihre 4.8/5 Bewertung spricht für sich selbst.
+Für den Betrieb von _VTherm_ werden einige Geräte benötigt. Die folgende Liste ist nicht vollständig, enthält aber die am häufigsten verwendeten Geräte, die vollständig mit Home Assistant und _VTherm_ kompatibel sind. Dies sind Affiliate-Links zum französischen Partnershop [Domadoo](https://www.domadoo.fr/de/?domid=97), wodurch ich einen kleinen Prozentsatz erhalte, wenn Sie über diese Links einkaufen. Sollten Sie bei [Domadoo](https://www.domadoo.fr/de/?domid=97) bestellen, erhalten Sie günstige Preise, eine Rückgabegarantie und eine sehr kurze Lieferzeit, die mit der anderer großer Online-Händler vergleichbar ist. Ihre 4.8/5 Bewertung spricht für sich selbst.
 
 ⭐ : Die meistgenutzte und daher beste Wahl.
 
 ## Thermometer
 Um ein zuverlässige, komfortable und stabile Temperaturregelung zu gewährleisten, ist für eine _VTherm_-Einrichtung ein externes Temperaturmessgerät, welches dort ist, wo sie leben, unerlässlich.
 
-- [⭐ Sonoff SNZB Zigbee](https://www.domadoo.fr/fr/suivi-energie/6614-sonoff-capteur-de-temperature-et-d-humidite-zigbee-30-avec-ecran-6920075740004.html??domid=97)
-- [⭐ 4 x Sonoff SNZB Zigbee](https://www.domadoo.fr/fr/suivi-energie/6968-sonoff-pack-4x-capteurs-de-temperature-et-d-humidite-zigbee-ecran.html?domid=97)
-- [ Neo Tuya Zigbee](https://www.domadoo.fr/fr/produits-compatibles-jeedom/7564-neo-capteur-de-temperature-et-humidite-zigbee-30-tuya.html?domid=97)
-- [ Moes Tuya Zigbee](https://www.domadoo.fr/fr/domotique/6667-moes-capteur-de-temperature-et-humidite-avec-ecran-zigbee-tuya.html?domid=97)
+- [⭐ Sonoff SNZB Zigbee](https://www.domadoo.fr/de/suivi-energie/6614-sonoff-capteur-de-temperature-et-d-humidite-zigbee-30-avec-ecran-6920075740004.html?domid=97)
+- [ Neo Tuya Zigbee](https://www.domadoo.fr/de/produits-compatibles-jeedom/7564-neo-capteur-de-temperature-et-humidite-zigbee-30-tuya.html?domid=97)
+- [ Moes Tuya Zigbee](https://www.domadoo.fr/de/domotique/6667-moes-capteur-de-temperature-et-humidite-avec-ecran-zigbee-tuya.html?domid=97)
 
 ## Schalter (Switches)
 Zur direkten Steuerung einer elektrischen Heizung. Verwendbar mit _VTherm_ [`over_switch`](over-switch.md):
 
-- [⭐ Sonoff Power Switch 25 A Wifi](https://www.domadoo.fr/fr/peripheriques/5853-sonoff-commutateur-intelligent-wifi-haute-puissance-25a-6920075776768.html?domid=97)
-- [⭐ Nodon SIN-4-1-20 Zigbee](https://www.domadoo.fr/fr/peripheriques/5688-nodon-micromodule-commutateur-multifonctions-zigbee-16a-3700313925188.html?domid=97)
-- [Sonoff 4-channel Wifi](https://www.domadoo.fr/fr/peripheriques/5279-sonoff-commutateur-intelligent-wifi-433-mhz-4-canaux-6920075775815.html?domid=97)
-- [Smart plug for small heating equipment Zigbee](https://www.domadoo.fr/fr/peripheriques/5880-sonoff-prise-intelligente-16a-zigbee-30-version-fr.html?domid=97)
+- [⭐ Sonoff Power Switch 25 A Wifi](https://www.domadoo.fr/de/peripheriques/5853-sonoff-commutateur-intelligent-wifi-haute-puissance-25a-6920075776768.html?domid=97)
+- [⭐ Nodon SIN-4-1-20 Zigbee](https://www.domadoo.fr/de/peripheriques/5688-nodon-micromodule-commutateur-multifonctions-zigbee-16a-3700313925188.html?domid=97)
+- [Sonoff 4-channel Wifi](https://www.domadoo.fr/de/peripheriques/5279-sonoff-commutateur-intelligent-wifi-433-mhz-4-canaux-6920075775815.html?domid=97)
+- [Smart plug for small heating equipment Zigbee](https://www.domadoo.fr/de/peripheriques/5880-sonoff-prise-intelligente-16a-zigbee-30-version-fr.html?domid=97)
 
 ## Pilotdraht (Pilot wire) Schalter
 Zur direkten Steuerung eines elektrischen Heizgeräts mit Pilotdraht. Verwendbar mit _VTherm_ [`over_switch`](over-switch.md) und [individuellen Befehlen](over-switch.md#befehlsanpassung):
 
-- [⭐ Nodon SIN-4-1-21 Zigbee](https://www.domadoo.fr/fr/chauffage-connecte/6828-nodon-module-chauffage-fil-pilote-connecte-zigbee-30.html?domid=97)
-- [⭐ 4 x Nodon SIN-4-1-21 Zigbee](https://www.domadoo.fr/fr/chauffage-connecte/7050-nodon-pack-4x-modules-chauffage-fil-pilote-connecte-zigbee-30.html?domid=97)
+- [⭐ Nodon SIN-4-1-21 Zigbee](https://www.domadoo.fr/de/chauffage-connecte/6828-nodon-module-chauffage-fil-pilote-connecte-zigbee-30.html?domid=97)
+- [⭐ 4 x Nodon SIN-4-1-21 Zigbee](https://www.domadoo.fr/de/chauffage-connecte/7050-nodon-pack-4x-modules-chauffage-fil-pilote-connecte-zigbee-30.html?domid=97)
 
 ## Thermostatventile
 Zur Steuerung eines Wasserheizkörpers. Funktioniert mit einem _VTherm_. [`over_valve`](over-valve.md) oder [`over_climate` mit direkter Ventilsteuerung](over-climate.md#over_climate-thermostattyp):
 
-- [⭐ Sonoff TRVZB Zigbee](https://www.domadoo.fr/fr/chauffage-connecte/6776-sonoff-tete-thermostatique-connectee-zigbee-30.html?domid=97) mit [`over_climate` mit direkter Ventilsteuerung](over-climate.md#over_climate-thermostattyp),
-- [⭐ 2 x Sonoff TRVZB Zigbee](https://www.domadoo.fr/fr/chauffage-connecte/7477-sonoff-pack-de-2x-tete-thermostatique-connectee-zigbee-30.html?domid=97) mit [`over_climate` mit direkter Ventilsteuerung](over-climate.md#over_climate-thermostattyp),
-- [⭐ 4 x Sonoff TRVZB Zigbee](https://www.domadoo.fr/fr/chauffage-connecte/7478-sonoff-pack-de-4x-tete-thermostatique-connectee-zigbee-30.html?domid=97) mit [`over_climate` mit direkter Ventilsteuerung](over-climate.md#over_climate-thermostattyp),
-- [Shelly BLU TRV BLE](https://www.domadoo.fr/fr/black-friday-domotique/7567-shelly-robinet-thermostatique-de-radiateur-a-commande-bluetooth-shelly-blu-trv-3800235264980.html?domid=97) mit [`over_valve`](over-valve.md),
-- [Moes TRV Zigbee](https://www.domadoo.fr/fr/peripheriques/5783-moes-tete-thermostatique-intelligente-zigbee-30-brt-100-trv-blanc.html?domid=97) mit [`over_climate` (ohne direkte Ventilsteuerung)](over-climate.md#over_climate-thermostattyp)
-- [Schneider Wiser TRV Zigbee](https://www.domadoo.fr/fr/controle-chauffage-clim/5497-schneider-electric-tete-de-vanne-thermostatique-connectee-zigbee-3606489582821.html?domid=97) mit [`over_climate` (ohne direkte Ventilsteuerung)](over_climate-thermostattyp)
+- [⭐ Sonoff TRVZB Zigbee](https://www.domadoo.fr/de/chauffage-connecte/6776-sonoff-tete-thermostatique-connectee-zigbee-30.html?domid=97) mit [`over_climate` mit direkter Ventilsteuerung](over-climate.md#over_climate-thermostattyp),
+- [Shelly BLU TRV BLE](https://www.domadoo.fr/de/black-friday-domotique/7567-shelly-robinet-thermostatique-de-radiateur-a-commande-bluetooth-shelly-blu-trv-3800235264980.html?domid=97) mit [`over_valve`](over-valve.md),
+- [Moes TRV Zigbee](https://www.domadoo.fr/de/peripheriques/5783-moes-tete-thermostatique-intelligente-zigbee-30-brt-100-trv-blanc.html?domid=97) mit [`over_climate` (ohne direkte Ventilsteuerung)](over-climate.md#over_climate-thermostattyp)
+- [Schneider Wiser TRV Zigbee](https://www.domadoo.fr/de/controle-chauffage-clim/5497-schneider-electric-tete-de-vanne-thermostatique-connectee-zigbee-3606489582821.html?domid=97) mit [`over_climate` (ohne direkte Ventilsteuerung)](over_climate-thermostattyp)
 
 ## Inkompatibilitäten
 Einige Thermostate vom Typ TRV sind bekanntermaßen nicht mit dem Versatile Thermostat kompatibel. Dazu gehören die folgenden Ventile:
