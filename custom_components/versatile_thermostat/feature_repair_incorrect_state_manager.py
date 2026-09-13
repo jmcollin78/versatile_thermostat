@@ -28,8 +28,9 @@ class FeatureRepairIncorrectStateManager(BaseFeatureManager):
     On each control heating cycle, if the feature is enabled, it compares
     the desired state (should_device_be_active) with the actual state
     (is_device_active) for each underlying entity. If they differ, it
-    re-emits the desired command. The number of consecutive repairs is
-    capped at REPAIR_MAX_ATTEMPTS to prevent infinite loops.
+    re-emits the desired command. After REPAIR_MAX_ATTEMPTS consecutive
+    repairs, repairs are paused for REPAIR_MAX_ATTEMPTS - 1 cycles and then
+    retried, to prevent infinite loops.
 
     The feature only activates at least REPAIR_MIN_DELAY_AFTER_INIT_SEC
     seconds after VTherm has become fully operational (is_ready).
@@ -105,21 +106,24 @@ class FeatureRepairIncorrectStateManager(BaseFeatureManager):
         if elapsed < REPAIR_MIN_DELAY_AFTER_INIT_SEC:
             return False
 
-        # Stop if the maximum consecutive repair count is reached
+        # Pause repairs if the maximum consecutive repair count is reached.
+        # The pause lasts REPAIR_MAX_ATTEMPTS - 1 cycles, then repairs are retried.
         if self._consecutive_repair_count >= REPAIR_MAX_ATTEMPTS:
-            _LOGGER.error(
-                "%s - RepairIncorrectStateManager: maximum repair attempts (%d) " "reached. Stopped attempting repairs to avoid infinite loop.",
-                self._vtherm.name,
-                REPAIR_MAX_ATTEMPTS,
-            )
             self._consecutive_repair_count += 1
             if self._consecutive_repair_count >= 2 * REPAIR_MAX_ATTEMPTS:
                 _LOGGER.info(
-                    "%s - RepairIncorrectStateManager: consecutive repair count has doubled the max attempts, resetting the counter to allow new repair attempts.",
+                    "%s - RepairIncorrectStateManager: repair pause is over, resetting the counter and retrying repairs.",
                     self._vtherm.name,
                 )
                 self._consecutive_repair_count = 0
             else:
+                _LOGGER.error(
+                    "%s - RepairIncorrectStateManager: maximum consecutive repair attempts (%d) reached. Repairs are paused (skipped cycle %d/%d) and will be retried afterwards.",
+                    self._vtherm.name,
+                    REPAIR_MAX_ATTEMPTS,
+                    self._consecutive_repair_count - REPAIR_MAX_ATTEMPTS,
+                    REPAIR_MAX_ATTEMPTS - 1,
+                )
                 return False
 
         repaired = False
