@@ -739,6 +739,11 @@ class ValveRegulationNbEntitiesIncorrect(HomeAssistantError):
     The number of specific entities is incorrect."""
 
 
+class ValveRegulationCardinalityIncorrect(HomeAssistantError):
+    """Error to indicate that the min/max opening degrees lists cannot contain
+    more values than the number of underlying valves."""
+
+
 class SyncDeviceInternalTempNbEntitiesIncorrect(HomeAssistantError):
     """Error to indicate there is an error in the configuration of the TRV with synchronize device internal temperature.
     The number of specific entities is incorrect."""

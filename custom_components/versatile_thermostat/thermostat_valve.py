@@ -44,6 +44,11 @@ class ThermostatOverValve(ThermostatProp[UnderlyingValve]):  # pylint: disable=a
         self._last_calculation_timestamp: datetime | None = None
         self._auto_regulation_dpercent: float | None = None
         self._auto_regulation_period_min: int | None = None
+        self._opening_threshold_degree: int = 0
+        self._max_closing_degree: int = 100
+        self._min_opening_degrees: list[int] = []
+        self._max_opening_degrees: list[int] = []
+        self._have_valve_control = False
 
         # Call to super must be done after initialization because it calls post_init at the end
         super().__init__(hass, unique_id, name, config_entry)
@@ -78,11 +83,54 @@ class ThermostatOverValve(ThermostatProp[UnderlyingValve]):  # pylint: disable=a
             else 0
         )
 
+        self._opening_threshold_degree = config_entry.get(
+            CONF_OPENING_THRESHOLD_DEGREE, 0
+        )
+        self._max_closing_degree = config_entry.get(CONF_MAX_CLOSING_DEGREE, 100)
+        min_opening_degrees = config_entry.get(CONF_MIN_OPENING_DEGREES, "")
+        max_opening_degrees = config_entry.get(CONF_MAX_OPENING_DEGREES, "")
+        self._min_opening_degrees = (
+            [int(value.strip()) for value in min_opening_degrees.split(",")]
+            if min_opening_degrees
+            else []
+        )
+        self._max_opening_degrees = (
+            [int(value.strip()) for value in max_opening_degrees.split(",")]
+            if max_opening_degrees
+            else []
+        )
+        self._have_valve_control = (
+            self._opening_threshold_degree != 0
+            or self._max_closing_degree != 100
+            or bool(self._min_opening_degrees)
+            or bool(self._max_opening_degrees)
+        )
+
         lst_valves = config_entry.get(CONF_UNDERLYING_LIST)
 
-        for _, valve in enumerate(lst_valves):
+        for index, valve in enumerate(lst_valves):
+            valve_state = self._hass.states.get(valve)
+            default_max = (
+                valve_state.attributes.get("max", 100) if valve_state else 100
+            )
             self._underlyings.append(
-                UnderlyingValve(hass=self._hass, thermostat=self, valve_entity_id=valve)
+                UnderlyingValve(
+                    hass=self._hass,
+                    thermostat=self,
+                    valve_entity_id=valve,
+                    min_opening_degree=(
+                        self._min_opening_degrees[index]
+                        if index < len(self._min_opening_degrees)
+                        else 0
+                    ),
+                    max_opening_degree=(
+                        self._max_opening_degrees[index]
+                        if index < len(self._max_opening_degrees)
+                        else default_max
+                    ),
+                    max_closing_degree=self._max_closing_degree,
+                    opening_threshold=self._opening_threshold_degree,
+                )
             )
 
         self._bind_scheduler(CycleScheduler(
@@ -136,8 +184,7 @@ class ThermostatOverValve(ThermostatProp[UnderlyingValve]):  # pylint: disable=a
         """Custom attributes"""
         super().update_custom_attributes()
 
-        self._attr_extra_state_attributes.update(
-            {
+        attributes = {
                 "is_over_valve": self.is_over_valve,
                 "on_percent": self.safe_on_percent,
                 "power_percent": self.power_percent,
@@ -163,7 +210,31 @@ class ThermostatOverValve(ThermostatProp[UnderlyingValve]):  # pylint: disable=a
                     ),
                 },
             }
-        )
+        if self._have_valve_control:
+            commands = [underlying.command_percent for underlying in self._underlyings]
+            attributes["vtherm_over_valve"].update(
+                {
+                    "have_valve_control": True,
+                    "opening_threshold_degree": self._opening_threshold_degree,
+                    "max_closing_degree": self._max_closing_degree,
+                    "min_opening_degrees": self._min_opening_degrees,
+                    "max_opening_degrees": self._max_opening_degrees,
+                    "underlying_valves": [
+                        {
+                            "entity_id": underlying.entity_id,
+                            "command_percent": underlying.command_percent,
+                            "last_sent_opening_value": underlying.last_sent_opening_value,
+                        }
+                        for underlying in self._underlyings
+                    ],
+                }
+            )
+            if len(commands) == 1:
+                attributes["valve_command_percent"] = commands[0]
+            else:
+                attributes["valve_command_by_valve"] = commands
+
+        self._attr_extra_state_attributes.update(attributes)
 
         # _LOGGER.debug("%s - Calling update_custom_attributes: %s", self, self._attr_extra_state_attributes)
 

@@ -30,6 +30,9 @@ Le composant Versatile Thermostat UI Card (Disponible sur [Github](https://githu
 
 ![Nouveau](images/new-icon.png)
 
+## Release 10.4.0
+Les thermostats `over_valve` ont maintenant les mêmes paramètres de controle de la vanne que les `over_climate` avec régulation par contrôle direct de la vanne. Il s'agit des paramètres `opening_threshold_degree`, `min_opening_degrees`, `max_closing_degree` et `max_opening_degrees`. Plus d'informations ici: [contrôle de la vanne](documentation/fr/over_valve.md)
+
 ## Release 10.3.0
 Vous pouvez maintenant spécifier les unités de puissance. Les écrans de configuration proposent une unité pour les mesures de puissance (W par défaut). Les unités d'énergie calculées sont alignées avec l'unité de puissance configurée. Les entités existantes sont migrées en fonction de leur valeur historique de puissance : au-delà de 100, la valeur est considérée en W, sinon en kW.
 
@@ -46,25 +49,6 @@ L'auto-régulation est désormais désactivée lorsqu'un _VTherm_ de type `over_
 
 ## Release 10.0
 Introduction du mécanisme de plugin. Cela va permettre d'utiliser des intégrations externes comme des plugins à _VTherm_. La liste des plugins disponibles est sur le [Versatile Thermostat Web site](https://www.versatile-thermostat.org/fr/plugins).
-
-## Release 9.3 - version stable
-> 1. **Diagnostic des vannes bloquées** : Amélioration majeure de la détection d'anomalie de chauffe. Lorsqu'une anomalie est détectée sur les VTherms de type `over_climate_valve`, le thermostat diagnostique maintenant si le problème est causé par une vanne TRV bloquée (bloquée ouverte ou fermée) en comparant l'état commandé avec l'état réel. Cette information - `root_cause` - est envoyée dans l'événement d'anomalie, vous permettant de prendre les actions appropriées (notification, relance de la vanne, etc.). Plus d'informations [ici](documentation/fr/feature-heating-failure-detection.md),
-> 2. **Relockage automatique du verrou** : Ajout du paramètre `auto_relock_sec` à la fonctionnalité de verrouillage. Lorsque configuré, le thermostat se relockera automatiquement après le délai spécifié (en secondes) suivant un déverrouillage. Vous pouvez complètement désactiver cette fonctionnalité en le mettant à 0. Par défaut, le relockage automatique est configuré à 30 secondes pour améliorer la sécurité. Plus d'informations [ici](documentation/fr/feature-lock.md),
-> 3. **Re-émission des commandes** : Nouvelle fonctionnalité permettant de détecter et corriger automatiquement les discrepancies entre l'état désiré du thermostat et l'état réel des équipements sous-jacents. Si une commande n'a pas été correctement appliquée à l'équipement, elle est renvoyée. Cela améliore la fiabilité du système en les environnements instables ou avec des équipements non fiables. Plus d'informations [ici](documentation/fr/feature-advanced.md),
-> 4. **Restoration du preset temporisé après redémarrage** : Le preset temporisé configuré est maintenant correctement restauré après un redémarrage du thermostat ou d'Home Assistant. Ce preset continue de fonctionner normalement après le redémarrage. Plus d'informations [ici](documentation/fr/feature-timed-preset.md),
-> 5. **Précision accrue du contrôle de puissance** : Le seuil d'activation de la chaudière (`power_activation_threshold`) accepte maintenant des valeurs décimales (0.1, 0.5, etc.) pour un contrôle plus fin de la puissance d'activation. Cela offre une meilleure flexibilité pour optimiser votre consommation d'énergie. Plus d'informations [ici](documentation/fr/feature-power.md),
-> 6. **Améliorations de disponibilité des capteurs** : Meilleur support de la détermination de la disponibilité des capteurs de température en utilisant la métadonnée `last_updated` de Home Assistant, améliorant ainsi la détection de la perte de signal des capteurs,
-
-## Release 9.2
-> 1. Nouvelle façon de gérer les cycles de chauffe/arrêt pour les VTherm `over_switch`. L'algorithme actuel a une dérive dans le temps et les premiers cycles ne sont pas optimum. Ca perturbe le TPI et notamment l'auto-TPI. Le nouveau `Cycle Scheduler` résoud ces difficultés. Cette modification est totalement transparente pour vous,
-> 2. Un collecteur de logs. Vos demandes de support échouent souvent sur votre capacité à fournir des logs, sur la bonne période, ciblé sur le thermostat en erreur et au bon niveau de log. C'est particulièrement le cas des bugs difficilement reproductible. Le collecteur de logs vise à résoudre cette difficulté. Il collecte les logs pour vous en arrière plan dans le niveau le plus fin et une action (anciennement service) permet de les extraire dans un fichier. Vous pouvez alors les télécharger pour les joindre à votre demande de support. L'analyseur de logs associé au site web - lancé en 9.1 cf. ci-dessous - s'adapte pour être capable de digérer ces logs. Plus d'informations sur le collecteur de logs [ici](documentation/fr/feature-logs-collector.md),
-> 3. stabilisation de la 9.x. La version majeure 9 a amené beaucoup de changement qui ont générés quelques anomalies. Cette version apporte les dernières corrections liées à cette version 9.
-
-## Release 9.1
-> 1. Nouveau logo . Inspiré par les travaux de @Krzysztonek (voir [ici](https://github.com/jmcollin78/versatile_thermostat/pull/1598)), VTherm profite d'une nouvelle fonction de [HA 206.03](https://developers.home-assistant.io/blog/2026/02/24/brands-proxy-api/) pour changer de logo. Toute l'équipe espère qu'il vous plaira. Enjoy !
-> 2. Un site web réalisé par @bontiv va résoudre une des difficulté majeure de VTherm : la documentation. Ce site permet en plus d'analyser vos logs ! Donnez lui vos logs (en mode debug) et vous pourrez les analyser, zoomer sur un thermostat, sur une période, filter ce qui vous intéresse, ... Je vous laisse découvrir ce site en 1ère version : [Versatile Thermostat Web site](https://www.versatile-thermostat.org/). Un énorme merci à @bontiv pour cette belle réalisation.
-> 3. La publication en version officielle de l'auto-TPI. Cette fonction permet de déterminer par le calcul les meilleurs valeurs des coefficients du [TPI](documentation/fr/algorithms.md#lalgorithme-tpi). On peut saluer le travail incroyable de @KipK et de @gael1980 sur ce sujet. Ne faites pas l'économie de lire la documentation si vous souhaitez l'utiliser.
-> 4. VTherm se repose maintenant sur l'état remonté par équipements sous-jacents dans HA. Tant que tous les sous-jacents n'ont pas d'état connu dans HA, alors le VTherm est désactivé.
 
 L'historique des releases est accessible [ici](documentation/fr/releases.md)
 

@@ -28,4 +28,26 @@ Then, click on the "Underlying Entities" option from the menu, and you will see 
 
 The algorithm currently available is TPI. See [algorithm](#algorithm).
 
+### Valve opening control
+
+`over_valve` can adjust the TPI opening command to match the physical limits of
+each valve. The configuration uses the same parameters as direct valve control
+with `over_climate`:
+
+1. `opening_threshold_degree`: below this raw TPI percentage, the valve is
+	considered closed.
+2. `max_closing_degree`: maximum closing percentage. The command under the
+	threshold is `100 - max_closing_degree`; keep the default `100` to close it
+	fully.
+3. `min_opening_degrees`: comma-separated minimum opening values, one per
+	underlying valve. A value is applied as soon as the threshold is reached.
+4. `max_opening_degrees`: comma-separated maximum opening values, one per
+	underlying valve. Omitted values use the maximum supported by the related
+	`number` entity.
+
+For several valves, values are applied in the same order as the underlying
+entities. Short lists use defaults for remaining valves; lists longer than the
+underlying list are rejected. With the defaults (`0`, empty lists, `100`), the
+command sent to the valve remains identical to the raw TPI percentage.
+
 It is possible to choose a `thermostat_over_valve` to control an air conditioner by checking the "AC Mode" box. In this case, only the cooling mode will be visible.

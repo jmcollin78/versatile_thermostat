@@ -27,6 +27,9 @@ Versatile Thermostat UI Card (Verfügbar auf [Github](https://github.com/jmcolli
 # Was ist neu?
 ![Neu](images/new-icon.png)
 
+## Release 10.4.0
+`over_valve`-Thermostate verfügen jetzt über dieselben Ventilsteuerungsparameter wie `over_climate`-Thermostate mit direkter Ventilregelung: `opening_threshold_degree`, `min_opening_degrees`, `max_closing_degree` und `max_opening_degrees`. Weitere Informationen: [Ventilsteuerung](documentation/de/over-valve.md).
+
 ## Release 10.3.0
 Leistungseinheiten können nun konfiguriert werden. In den Konfigurationsbildschirmen kann eine Einheit für Leistungsmessungen ausgewählt werden (standardmäßig W). Berechnete Energieeinheiten richten sich nach der konfigurierten Leistungseinheit. Bestehende Einträge werden anhand des historischen Geräteleistungswerts migriert: Werte über 100 werden als W behandelt, andere Werte als kW.
 
@@ -44,24 +47,7 @@ Die Selbstregulierung ist nun deaktiviert, wenn sich ein _VTherm_ vom Typ `over_
 ## Release 10.0
 Einführung des Plugin-Mechanismus. Dadurch können externe Integrationen als Plugins für _VTherm_ verwendet werden. Die Liste der verfügbaren Plugins ist auf der [Versatile Thermostat Web site](https://www.versatile-thermostat.org/de/plugins) verfügbar.
 
-## Release 9.3 - stabile Version
-> 1. **Erkennung feststeckender Ventile**: Wesentliche Verbesserung der Heizungsfehlererkennung. Wenn eine Anomalie bei VTherms vom Typ `over_climate_valve` erkannt wird, diagnostiziert der Thermostat nun, ob das Problem durch ein feststeckendes TRV-Ventil (offen oder geschlossen feststeckend) verursacht wird, indem der Sollzustand mit dem Istzustand verglichen wird. Diese Information - `root_cause` - wird im Anomalieereignis gesendet und ermöglicht es Ihnen, angemessene Maßnahmen zu ergreifen (Benachrichtigung, Ventilwiederherstellung usw.). Weitere Informationen [hier](documentation/de/feature-heating-failure-detection.md),
-> 2. **Automatisches Erneut-Verriegeln nach Entsperrung**: Der Parameter `auto_relock_sec` wurde zur Verriegelungsfunktion hinzugefügt. Wenn konfiguriert, verriegelt sich der Thermostat nach der angegebenen Anzahl von Sekunden nach einer Entsperrung automatisch wieder. Diese Funktion kann vollständig deaktiviert werden, indem sie auf 0 gesetzt wird. Standardmäßig ist die automatische Wiederverriegelung auf 30 Sekunden eingestellt, um die Sicherheit zu verbessern. Weitere Informationen [hier](documentation/de/feature-lock.md),
-> 3. **Befehlswiederholung**: Neue Funktionalität zur automatischen Erkennung und Behebung von Unstimmigkeiten zwischen dem Sollzustand des Thermostats und dem Istzustand der verknüpften Geräte. Wenn ein Befehl nicht ordnungsgemäß auf das Gerät angewendet wird, wird er erneut gesendet. Dies verbessert die Systemzuverlässigkeit in instabilen Umgebungen oder mit unzuverlässigen Geräten. Weitere Informationen [hier](documentation/de/feature-advanced.md),
-> 4. **Wiederherstellung des zeitgesteuerten Voreinstellung nach Neustart**: Die konfigurierte zeitgesteuerte Voreinstellung wird nun nach einem Thermostat- oder Home Assistant-Neustart korrekt wiederhergestellt. Diese Voreinstellung funktioniert nach dem Neustart weiterhin normal. Weitere Informationen [hier](documentation/de/feature-timed-preset.md),
-> 5. **Erhöhte Genauigkeit der Leistungssteuerung**: Die Aktivierungsschwelle des Kessels (`power_activation_threshold`) akzeptiert nun Dezimalwerte (0,1, 0,5 usw.) für eine feinere Kontrolle der Aktivierungsleistung. Dies bietet mehr Flexibilität zur Optimierung des Energieverbrauchs. Weitere Informationen [hier](documentation/de/feature-power.md),
-> 6. **Verbesserungen der Sensorzuverlässigkeit**: Bessere Unterstützung zur Bestimmung der Verfügbarkeit von Temperatursensoren mithilfe der `last_updated`-Metadaten von Home Assistant, verbesserte Erkennung von Sensorsignalverlust,
 
-## Release 9.2
-> 1. Neue Art der Verwaltung von Heiz-/Stoppzyklen für VTherm `over_switch`. Der aktuelle Algorithmus hat einen Zeitdrift, und die ersten Zyklen sind nicht optimal. Dies beeinträchtigt das TPI und insbesondere das Auto-TPI. Der neue `Cycle Scheduler` löst diese Schwierigkeiten. Diese Änderung ist völlig transparent,
-> 2. Ein Protokollkollektor. Support-Anfragen scheitern oft an der Möglichkweit, Protokolle im richtigen Zeitraum bereitzustellen, konzentriert auf den fehlerhaften Thermostat und auf der richtigen Protokollebene. Dies ist besonders bei schwer reproduzierbaren Fehlern der Fall. Der Protokollkollektor soll diese Schwierigkeit lösen. Er sammelt Protokolle im Hintergrund auf der niedrigsten Ebene, und eine Aktion (ehemals Dienst) ermöglicht deren Export in eine Datei. Diese kann dann heruntergeladen und der Support-Anfrage beigefügt werden. Der mit der Website verbundene Protokollanalysator – der in Version 9.1 (siehe unten) gestartet wurde – passt sich an, um diese Protokolle verarbeiten zu können. Weitere Informationen zum Protokollkollektor [hier](documentation/de/feature-logs-collector.md),
-> 3. Stabilisierung der Version 9.x. Die Hauptversion 9 brachte viele Änderungen mit sich, die einige Anomalien verursachten. Diese Version bringt die neuesten Korrektionen zur Version 9.
-
-## Release 9.1
-> 1. Neues Logo. Inspiriert von der Arbeit von @Krzysztonek (siehe [hier](https://github.com/jmcollin78/versatile_thermostat/pull/1598)) nutzt VTherm eine neue Funktion aus [HA 206.03](https://developers.home-assistant.io/blog/2026/02/24/brands-proxy-api/), um sein Logo zu ändern. Das gesamte Team hofft, dass es Ihnen gefällt. Viel Spaß!
-> 2. Eine von @bontiv erstellte Website löst eine der größten Herausforderungen von VTherm: die Dokumentation. Diese Website ermöglicht es außerdem, Ihre Logs zu analysieren! Geben Sie Ihre Logs (im Debug-Modus) ein, und Sie können sie analysieren, auf einen Thermostat zoomen, einen Zeitraum auswählen, interessante Elemente filtern usw. Entdecken Sie diese erste Version hier: [Versatile Thermostat Web site](https://www.versatile-thermostat.org/). Ein großes Dankeschön an @bontiv für diese großartige Umsetzung.
-> 3. Offizielle Veröffentlichung der Auto-TPI-Funktion. Diese Funktion berechnet die optimalen Werte der Koeffizienten für den [TPI](documentation/fr/algorithms.md#lalgorithme-tpi). Hervorzuheben ist die unglaubliche Arbeit von @KipK und @gael1980 zu diesem Thema. Lesen Sie unbedingt die Dokumentation, wenn Sie diese Funktion verwenden möchten.
-> 4. VTherm basiert nun auf dem von den verbundenen Geräten in HA gemeldeten Status. Solange nicht alle zugeordnete Geräte einen bekannten Status in HA haben, bleibt VTherm deaktiviert.
 
 Weitere Informationen [hier](documentation/de/feature-central-boiler.md).
 
