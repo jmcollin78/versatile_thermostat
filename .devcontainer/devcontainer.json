@@ -12,6 +12,8 @@
     "mounts": [
         // The .ssh config to access github
         "source=${localEnv:HOME}${localEnv:USERPROFILE}/.ssh,target=/home/vscode/.ssh,type=bind,consistency=cached",
+        // The common agents directory
+        "source=/Users/jmcollin/.copilot/agents,target=/home/vscode/.copilot/agents,type=bind",
         // comment/uncomment/adapt this to get some usefull cards
         // the versatile-thermostat-ui-card
         "source=/Users/jmcollin/SugarSync/Projets/home-assistant/versatile-thermostat-ui-card/dist,target=/workspaces/versatile_thermostat/config/www/community/versatile-thermostat-ui-card,type=bind",
