@@ -30,6 +30,8 @@ Versatile Thermostat UI Card (Available on [Github](https://github.com/jmcollin7
 ## Release 10.4.0
 `over_valve` thermostats now have the same valve control parameters as `over_climate` thermostats with direct valve control regulation: `opening_threshold_degree`, `min_opening_degrees`, `max_closing_degree`, and `max_opening_degrees`. More information: [valve control](documentation/en/over-valve.md).
 
+`over_valve` thermostats now also support Sleep mode. Sleep displays VTherm as off and sends a raw 100% opening request without requesting central boiler heating. Configured valve-control limits can cap the physical opening. More information: [Sleep mode](documentation/en/over-valve.md#sleep-mode).
+
 ## Release 10.3.0
 Power units can now be configured. Configuration screens let you select a unit for power measurements (W by default). Calculated energy units match the configured power unit. Existing entries are migrated using the historical device power value: values above 100 are treated as W; other values as kW.
 

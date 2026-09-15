@@ -5,6 +5,7 @@
 - **Branche de développement indiquée par GitHub :** `1938-feature-request-implement-sleep-mode-for-vtherm-over_valve`, créée et actuellement annoncée comme trois commits en avance sur `main`. Ses commits visibles portent sur l’issue #1348, pas sur l’implémentation de #1938.
 - **Date de revue :** 15 septembre 2026
 - **Recommandation :** **retenir**. Le comportement sera aligné sur l’implémentation existante de `over_climate` avec régulation directe de vanne : thermostat arrêté, demande de vanne brute à 100 % et aucune demande de chauffage/chaudière centrale.
+- **Suivi post-développement :** implémentation réalisée, revue de conception effectuée et fonctionnement validé manuellement par l’utilisateur le 15 septembre 2026. La carte VTherm UI prend déjà en charge ce comportement nativement ; aucune évolution de cette carte n’est requise.
 
 ## 1. Résumé fidèle de l’issue
 

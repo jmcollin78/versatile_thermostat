@@ -973,6 +973,10 @@
         }
     },
     "services": {
+        "set_hvac_mode_sleep": {
+            "name": "将 HVAC 模式设为休眠",
+            "description": "将 VTherm 设为季节性休眠。它会显示为关闭；对于采用直接阀门调节的 over_climate 和 over_valve，会发送原始的 100% 阀门开度请求。实际开度仍受已配置的阀门控制和 number 实体限制。"
+        },
         "set_auto_tpi_mode": {
             "name": "设置自动 TPI 模式",
             "description": "启用或禁用自动 TPI 学习模式",

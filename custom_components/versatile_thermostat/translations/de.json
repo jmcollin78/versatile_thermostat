@@ -973,7 +973,7 @@
   "services": {
     "set_hvac_mode_sleep": {
       "name": "HVAC-Modus auf Ruhemodus setzen",
-      "description": "Versetzt einen VTherm in den saisonalen Ruhemodus: aus mit zu 100 % geöffnetem Ventil, für over_climate mit Ventilregelung und over_valve."
+      "description": "Versetzt einen VTherm in den saisonalen Ruhemodus. Er wird als ausgeschaltet angezeigt und sendet bei over_climate mit direkter Ventilregelung und over_valve eine rohe Ventilöffnungsanforderung von 100 %. Die physische Öffnung unterliegt weiterhin der konfigurierten Ventilsteuerung und den Grenzen der number-Entity."
     },
     "set_auto_tpi_mode": {
       "name": "Auto-TPI-Modus einstellen",

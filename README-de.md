@@ -30,6 +30,8 @@ Versatile Thermostat UI Card (Verfügbar auf [Github](https://github.com/jmcolli
 ## Release 10.4.0
 `over_valve`-Thermostate verfügen jetzt über dieselben Ventilsteuerungsparameter wie `over_climate`-Thermostate mit direkter Ventilregelung: `opening_threshold_degree`, `min_opening_degrees`, `max_closing_degree` und `max_opening_degrees`. Weitere Informationen: [Ventilsteuerung](documentation/de/over-valve.md).
 
+`over_valve`-Thermostate unterstützen jetzt auch den Ruhemodus. Er zeigt VTherm als ausgeschaltet an und sendet eine rohe Öffnungsanforderung von 100 %, ohne die Zentralheizung anzufordern. Konfigurierte Grenzen der Ventilsteuerung können die physische Öffnung begrenzen. Weitere Informationen: [Ruhemodus](documentation/de/over-valve.md#ruhemodus).
+
 ## Release 10.3.0
 Leistungseinheiten können nun konfiguriert werden. In den Konfigurationsbildschirmen kann eine Einheit für Leistungsmessungen ausgewählt werden (standardmäßig W). Berechnete Energieeinheiten richten sich nach der konfigurierten Leistungseinheit. Bestehende Einträge werden anhand des historischen Geräteleistungswerts migriert: Werte über 100 werden als W behandelt, andere Werte als kW.
 

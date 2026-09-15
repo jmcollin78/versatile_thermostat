@@ -3,8 +3,8 @@
 - **Référence :** [jmcollin78/versatile_thermostat#1938](https://github.com/jmcollin78/versatile_thermostat/issues/1938) (ouverte ; `enhancement`, `Vote needed`, `P1`)
 - **Spécification fonctionnelle :** `documentation/tech-docs/issue-1938-specification.md` (v1.0, brouillon soumis à validation)
 - **Rapport de revue :** `documentation/tech-docs/issue-1938-review.md` (recommandation : retenir)
-- **Statut :** Implémentation réalisée et revue de conception satisfaite
-- **Version :** 1.0
+- **Statut :** Implémentation réalisée, revue de conception satisfaite et fonctionnement validé manuellement
+- **Version :** 1.1
 - **Date :** 15 septembre 2026
 - **Propriétaire :** Équipe Versatile Thermostat
 

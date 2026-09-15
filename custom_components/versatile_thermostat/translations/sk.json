@@ -797,5 +797,11 @@
         "name": "Boost ac mimo"
       }
     }
+  },
+  "services": {
+    "set_hvac_mode_sleep": {
+      "name": "Nastaviť režim HVAC na spánok",
+      "description": "Prepne VTherm do sezónneho režimu spánku. Zobrazuje sa ako vypnutý a pre over_climate s priamym riadením ventilu a over_valve odošle hrubú požiadavku na otvorenie ventilu na 100 %. Fyzické otvorenie naďalej podlieha nastavenému riadeniu ventilu a limitom entity number."
+    }
   }
 }

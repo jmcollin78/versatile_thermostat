@@ -33,6 +33,8 @@ Karta integracji VTherm UI (dostępna na [Github](https://github.com/jmcollin78/
 ## Wydanie 10.4.0
 Termostaty `over_valve` mają teraz takie same parametry sterowania zaworem jak termostaty `over_climate` z regulacją przez bezpośrednie sterowanie zaworem: `opening_threshold_degree`, `min_opening_degrees`, `max_closing_degree` oraz `max_opening_degrees`. Więcej informacji: [sterowanie zaworem](documentation/pl/over-valve.md).
 
+Termostaty `over_valve` obsługują teraz również tryb uśpienia. Tryb ten wyświetla VTherm jako wyłączony i wysyła surowe żądanie otwarcia na 100%, nie żądając ogrzewania z centralnego kotła. Skonfigurowane ograniczenia sterowania zaworem mogą ograniczyć fizyczne otwarcie. Więcej informacji: [tryb uśpienia](documentation/pl/over-valve.md#tryb-uśpienia).
+
 ## Wydanie 10.3.0
 Jednostki mocy można teraz konfigurować. Ekrany konfiguracji umożliwiają wybór jednostki dla pomiarów mocy (domyślnie W). Jednostki obliczonej energii są zgodne ze skonfigurowaną jednostką mocy. Istniejące wpisy są migrowane na podstawie historycznej wartości mocy urządzenia: wartości większe niż 100 są traktowane jako W, pozostałe jako kW.
 

@@ -11,8 +11,8 @@
 | Champ                       | Valeur                                                                                                                                                         |
 | --------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **Nom**                     | Mode sommeil pour `ThermostatOverValve` (`over_valve`)                                                                                                         |
-| **Version**                 | 1.0                                                                                                                                                            |
-| **Statut**                  | Brouillon soumis à validation                                                                                                                                  |
+| **Version**                 | 1.1                                                                                                                                                            |
+| **Statut**                  | Validée, implémentée, revue de conception et testée manuellement                                                                                               |
 | **Date**                    | 15 septembre 2026                                                                                                                                              |
 | **Propriétaire**            | Équipe Versatile Thermostat                                                                                                                                    |
 | **Référence issue**         | [jmcollin78/versatile_thermostat#1938](https://github.com/jmcollin78/versatile_thermostat/issues/1938) (ouverte ; libellés `enhancement`, `Vote needed`, `P1`) |
@@ -268,8 +268,8 @@ Cette spécification reprend fidèlement le périmètre inclus/exclus du rapport
 | Field                      | Value                                                                                                                                                    |
 | -------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **Name**                   | Sleep Mode for `ThermostatOverValve` (`over_valve`)                                                                                                      |
-| **Version**                | 1.0                                                                                                                                                      |
-| **Status**                 | Draft submitted for approval                                                                                                                             |
+| **Version**                | 1.1                                                                                                                                                      |
+| **Status**                 | Approved, implemented, design-reviewed and manually tested                                                                                               |
 | **Date**                   | September 15, 2026                                                                                                                                       |
 | **Owner**                  | Versatile Thermostat team                                                                                                                                |
 | **Issue reference**        | [jmcollin78/versatile_thermostat#1938](https://github.com/jmcollin78/versatile_thermostat/issues/1938) (open; labels `enhancement`, `Vote needed`, `P1`) |
