@@ -135,7 +135,7 @@ set_auto_fan_mode:
 
 set_hvac_mode_sleep:
     name: Set HVAC Mode to Sleep
-    description: Turns a VTherm climate into seasonal sleep - OFF with valve 100% open (only for VTherm over climate with valve regulation).
+    description: Turns a VTherm climate into seasonal sleep - OFF with valve 100% open (for VTherm over climate with valve regulation and VTherm over valve).
     target:
         entity:
             integration: versatile_thermostat

@@ -971,6 +971,10 @@
         }
     },
     "services": {
+        "set_hvac_mode_sleep": {
+            "name": "Nastavit režim HVAC na spánek",
+            "description": "Přepne VTherm do sezónního režimu spánku: vypnuto s ventilem otevřeným na 100 %, pro over_climate s regulací ventilu a over_valve."
+        },
         "set_auto_tpi_mode": {
             "name": "Nastavte režim Auto TPI",
             "description": "Povolte nebo zakažte režim automatického učení TPI",

@@ -983,6 +983,10 @@
     }
   },
   "services": {
+    "set_hvac_mode_sleep": {
+      "name": "Passer le mode HVAC en sommeil",
+      "description": "Place un VTherm en sommeil saisonnier : arrêté avec sa vanne ouverte à 100 %, pour over_climate avec régulation de vanne et over_valve."
+    },
     "set_auto_tpi_mode": {
       "name": "Définir le mode Auto TPI",
       "description": "Active ou désactive le mode d'apprentissage Auto TPI",

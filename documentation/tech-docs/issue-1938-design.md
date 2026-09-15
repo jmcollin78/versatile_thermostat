@@ -3,7 +3,7 @@
 - **Référence :** [jmcollin78/versatile_thermostat#1938](https://github.com/jmcollin78/versatile_thermostat/issues/1938) (ouverte ; `enhancement`, `Vote needed`, `P1`)
 - **Spécification fonctionnelle :** `documentation/tech-docs/issue-1938-specification.md` (v1.0, brouillon soumis à validation)
 - **Rapport de revue :** `documentation/tech-docs/issue-1938-review.md` (recommandation : retenir)
-- **Statut :** Conception soumise à validation — **aucune implémentation autorisée à ce stade**
+- **Statut :** Implémentation réalisée et revue de conception satisfaite
 - **Version :** 1.0
 - **Date :** 15 septembre 2026
 - **Propriétaire :** Équipe Versatile Thermostat
@@ -116,7 +116,9 @@ classDiagram
 | `async_added_to_hass()` / chemin d'appel de `check_initial_state` | À compléter                                                                                                                       | FR-012 — au démarrage, un VTherm endormi doit renvoyer la commande convertie aux vannes. `UnderlyingValve.check_initial_state` existe déjà (`underlyings.py` ~l. 1262-1286) ; il utilise `should_device_be_active` (que l'override mettra à `True` au niveau underlying car `_percent_open` vaut 100) et `send_percent_open`. Vérifier que le chemin d'appel au démarrage de `over_valve` appelle bien `check_initial_state` de chaque `UnderlyingValve` (point à confirmer en implémentation — voir § 9 hypothèses) |
 | `incremente_energy()`                                             | Garde existante suffisante                                                                                                        | Vérifié : court-circuite déjà si `OFF`... **mais `SLEEP` n'est pas `VThermHvacMode_OFF`** → à sécuriser en ajoutant `is_sleeping` à la garde (H-004 : aucune énergie comptée pendant sommeil, car aucun équipement n'est physiquement actif du point de vue comptage)                                                                                                                                                                                                                                                |
 
-**Aucune modification de :** `CycleScheduler` (le 100 % transite par `_resolve_valve_on_percent` → `apply_valve_command_percent` qui gère déjà la valeur), `UnderlyingValve` (la conversion `_get_controlled_percent(100)` s'applique telle quelle), `state_manager.py`, `sensor.py` (le capteur chaudière lit `device_actives`, qui sera vide), `thermostat_climate_valve.py`, `UnderlyingValveRegulation`, paramètres #1348 (`const.py`).
+**Aucune modification de :** `CycleScheduler` (le 100 % transite par `_resolve_valve_on_percent` → `apply_valve_command_percent` qui gère déjà la valeur), `UnderlyingValve` (la conversion `_get_controlled_percent(100)` s'applique telle quelle), `state_manager.py`, `thermostat_climate_valve.py`, `UnderlyingValveRegulation`, paramètres #1348 (`const.py`).
+
+**Décision d'implémentation complémentaire — capteurs chaudière :** le rafraîchissement de la chaudière est explicite lors d'une transition vers ou depuis `SLEEP`, afin d'actualiser les capteurs même si la commande physique de vanne ne change pas. `TotalPowerActiveDeviceForBoilerSensor` ignore également explicitement les VTherm dont `is_sleeping` vaut `true`, ce qui garantit que leur puissance de cycle résiduelle ne participe pas au total de chaudière.
 
 ## 4. Modèle d'entités, données persistées et états
 
@@ -382,7 +384,7 @@ Critères de vérification : suite `pytest tests/test_valve.py tests/test_overcl
 
 ## 13. Confirmation de faisabilité et de cohérence
 
-**Faisabilité : CONFIRMÉE.** Toutes les exigences FR-001 à FR-016 de la spécification sont satisfaisables par des overrides dans `ThermostatOverValve` seulement, sans modification de `state_manager.py`, `sensor.py`, `cycle_scheduler.py`, `underlyings.py`, `const.py`, ou de l'implémentation `over_climate`. L'arithmétique de la commande (demande brute 100 % → `calculate_opening_closing_degree` → clamp bornes entité ; commande = 70 avec `max_opening_degrees = 70`) est déterministe et vérifiée dans le code. La contradiction potentielle avec `UnderlyingValve.is_device_active` (BR-009) est résolue de manière non intrusive (override `device_actives`).
+**Faisabilité : CONFIRMÉE.** Toutes les exigences FR-001 à FR-016 de la spécification sont satisfaisables par des overrides dans `ThermostatOverValve`, complétés par un rafraîchissement explicite des capteurs de chaudière pendant les transitions de sommeil. `state_manager.py`, `cycle_scheduler.py`, `underlyings.py`, `const.py` et l'implémentation `over_climate` restent inchangés. L'arithmétique de la commande (demande brute 100 % → `calculate_opening_closing_degree` → clamp bornes entité ; commande = 70 avec `max_opening_degrees = 70`) est déterministe et vérifiée dans le code. La contradiction potentielle avec `UnderlyingValve.is_device_active` (BR-009) est résolue de manière non intrusive (override `device_actives`), renforcée par l'exclusion explicite des VTherm endormis du total de puissance chaudière.
 
 **Cohérence avec la spécification : CONFIRMÉE.** Périmètre identique, exigences toutes couvertes, aucune contradiction bloquante. Les deux corrections non bloquantes formulées au cycle précédent (§ 9) — précision terminologique sur FR-008 (demande brute exposée/injectée dans le chemin de régulation) et consolidation d'AC-006 (valeur attendue 70, déterministe) — **ont été intégrées dans la spécification v1.0** (cycle de convergence 1) : la conception et la spécification sont désormais alignées.
 

@@ -51,3 +51,12 @@ underlying list are rejected. With the defaults (`0`, empty lists, `100`), the
 command sent to the valve remains identical to the raw TPI percentage.
 
 It is possible to choose a `thermostat_over_valve` to control an air conditioner by checking the "AC Mode" box. In this case, only the cooling mode will be visible.
+
+### Sleep mode
+
+`over_valve` supports sleep mode. Selecting `sleep`, or calling the
+`versatile_thermostat.set_hvac_mode_sleep` action, presents VTherm as off while
+sending a raw 100% opening request to every underlying valve. This request still
+uses the normal opening-control conversion: `max_opening_degrees` and the
+underlying `number` limits can therefore cap the physical opening. Sleep mode
+does not request central boiler heating; `is_sleeping` identifies this state.

@@ -1062,6 +1062,9 @@ class TotalPowerActiveDeviceForBoilerSensor(NbActiveDeviceForBoilerSensor):
         active_device_ids = []
 
         for entity in self._entities:
+            if getattr(entity, "is_sleeping", False) is True:
+                continue
+
             mean_cycle_power = entity.power_manager.mean_cycle_power
             if mean_cycle_power is None or mean_cycle_power <= 0:
                 continue

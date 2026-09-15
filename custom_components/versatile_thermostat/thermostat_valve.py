@@ -1,6 +1,6 @@
 # pylint: disable=line-too-long, abstract-method
-""" A climate over switch classe """
-import logging
+"""A climate over switch classe"""
+
 from vtherm_api.log_collector import get_vtherm_logger
 from datetime import timedelta, datetime
 
@@ -20,7 +20,15 @@ from .commons import write_event_log
 
 from .underlyings import UnderlyingValve
 from .cycle_scheduler import CycleScheduler
-from .vtherm_hvac_mode import VThermHvacMode_OFF
+from .vtherm_central_api import VersatileThermostatAPI
+from .vtherm_hvac_mode import (
+    VThermHvacMode_OFF,
+    VThermHvacMode_HEAT,
+    VThermHvacMode_COOL,
+    VThermHvacMode_SLEEP,
+)
+from homeassistant.components.climate import HVACAction
+from homeassistant.core import State
 
 _LOGGER = get_vtherm_logger(__name__)
 
@@ -58,10 +66,96 @@ class ThermostatOverValve(ThermostatProp[UnderlyingValve]):  # pylint: disable=a
         """True if the Thermostat is over_valve"""
         return True
 
+    @overrides
+    def build_hvac_list(self) -> list[VThermHvacMode]:
+        """Build the hvac list depending on ac_mode"""
+        if self._ac_mode:
+            return [VThermHvacMode_COOL, VThermHvacMode_SLEEP, VThermHvacMode_OFF]
+        else:
+            return [VThermHvacMode_HEAT, VThermHvacMode_SLEEP, VThermHvacMode_OFF]
+
+    @overrides
+    @property
+    def is_sleeping(self) -> bool:
+        """True if the thermostat is in sleep mode"""
+        return self.vtherm_hvac_mode == VThermHvacMode_SLEEP
+
+    @overrides
+    async def service_set_hvac_mode_sleep(self):
+        """Set the hvac_mode to SLEEP mode (valid for over_valve and over_climate with valve regulation):
+        service: versatile_thermostat.set_hvac_mode_sleep
+        target:
+            entity_id: climate.thermostat_1
+        """
+        if self.lock_manager.check_is_locked("service_set_hvac_mode_sleep"):
+            return
+        write_event_log(_LOGGER, self, "Calling SERVICE_SET_HVAC_MODE_SLEEP")
+        # Pre-inject the 100% raw demand to avoid a transitory window
+        # displaying the previous valve position (issue 1938 - design Q2)
+        self._valve_open_percent = 100
+        await self.async_set_hvac_mode(hvac_mode=VThermHvacMode_SLEEP)
+
+    @overrides
+    async def async_set_hvac_mode(self, hvac_mode: VThermHvacMode):
+        """Refresh central boiler accounting when entering or leaving sleep."""
+        was_sleeping = self.is_sleeping
+        await super().async_set_hvac_mode(hvac_mode)
+
+        if was_sleeping == self.is_sleeping or not self.is_used_by_central_boiler:
+            return
+
+        central_boiler_manager = VersatileThermostatAPI.get_vtherm_api(self._hass).central_boiler_manager
+        if central_boiler_manager is not None:
+            await central_boiler_manager.refresh_active_devices()
+
+    @overrides
+    def calculate_hvac_action(self, _: list = None) -> HVACAction | None:
+        """Calculate the HVAC action. Force OFF if sleeping (BR-009)."""
+        if self.is_sleeping:
+            self._attr_hvac_action = HVACAction.OFF
+        else:
+            super().calculate_hvac_action(None)
+
+    @overrides
+    @property
+    def should_device_be_active(self) -> bool:
+        """A sleeping VTherm never requires its devices to be active"""
+        if self.is_sleeping:
+            return False
+        return super().should_device_be_active
+
+    @overrides
+    @property
+    def is_device_active(self) -> bool:
+        """A sleeping VTherm is never active"""
+        if self.is_sleeping:
+            return False
+        return super().is_device_active
+
+    @overrides
+    @property
+    def device_actives(self) -> list[str]:
+        """Calculate the active devices.
+        A sleeping over_valve VTherm must never trigger the central boiler,
+        whatever the physical valve opening or the #1348 opening-parameter
+        profile (invariant BR-009 / FR-007).
+        """
+        if self.is_sleeping:
+            return []
+        return super().device_actives
+
+    @overrides
+    def restore_specific_previous_state(self, old_state: State):
+        """Restore my specific attributes from previous state"""
+        super().restore_specific_previous_state(old_state)
+
+        if self.is_sleeping:
+            self.set_hvac_off_reason(HVAC_OFF_REASON_SLEEP_MODE)
+
     @property
     def valve_open_percent(self) -> int:
         """Gives the percentage of valve needed"""
-        if self.vtherm_hvac_mode is VThermHvacMode_OFF:
+        if (self.vtherm_hvac_mode is VThermHvacMode_OFF and not self.is_sleeping) or self._valve_open_percent is None:
             return 0
         else:
             return self._valve_open_percent
@@ -247,6 +341,12 @@ class ThermostatOverValve(ThermostatProp[UnderlyingValve]):  # pylint: disable=a
 
         self.stop_recalculate_later()
 
+        # Issue 1938 - during sleep the raw 100% demand must not be
+        # recomputed by the TPI algorithm (FR-008 / BR-004)
+        if self.is_sleeping:
+            self.apply_valve_command_percent(1.0, force=True)
+            return
+
         if self._auto_regulation_period_min is None or self._auto_regulation_dpercent is None:
             _LOGGER.warning(
                 "%s - auto_regulation_period_min or auto_regulation_dpercent is not set. Stopping TPI calculation.",
@@ -296,6 +396,16 @@ class ThermostatOverValve(ThermostatProp[UnderlyingValve]):  # pylint: disable=a
         continuous output and the integer command exposed by the thermostat.
         """
         self.stop_recalculate_later()
+
+        # Issue 1938 - during sleep, the raw 100% demand is injected directly,
+        # bypassing the dpercent / period_min filters which could otherwise
+        # retain the previous TPI position (design decision D1/D2)
+        if self.is_sleeping:
+            self._valve_open_percent = 100
+            self._last_calculation_timestamp = self.now
+            self.update_custom_attributes()
+            self.async_write_ha_state()
+            return 1.0
 
         if self._auto_regulation_period_min is None or self._auto_regulation_dpercent is None:
             _LOGGER.warning(
@@ -378,6 +488,10 @@ class ThermostatOverValve(ThermostatProp[UnderlyingValve]):  # pylint: disable=a
     @overrides
     def incremente_energy(self):
         """increment the energy counter if device is active"""
+        # Issue 1938 - no energy is counted while sleeping: no device is
+        # considered active (H-004)
+        if self.is_sleeping:
+            return
         if self.vtherm_hvac_mode == VThermHvacMode_OFF:
             return
 
