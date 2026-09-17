@@ -82,10 +82,9 @@ Demande de fonctionnalité : permettre d'affecter un **capteur d'humidité exter
   3. **Auto-détection** : chercher un capteur d'humidité sur le même appareil que le capteur de température configuré ; si trouvé, l'utiliser.
   4. L'utilisateur peut **spécifier explicitement** un capteur ; l'auto-détection ne s'applique que si rien n'est spécifié → **compatibilité ascendante préservée** (aucune configuration existante n'est impactée). Si plusieurs candidats sont trouvés en auto-détection, **le premier est retenu** (décision du 2026-09-17).
   5. UX config flow : **option de menu dédiée « Humidité »** plutôt que champ sur la page du capteur de température (qui ne permettrait pas d'afficher le résultat de l'auto-détection). L'option est facultative : l'auto-détection fonctionne même sans visiter cette page (décision du 2026-09-17).
-- **Hypothèses restantes** : le capteur est un entity_id de domaine `sensor` (device_class humidity) ; l'humidité est purement informative pour VTherm (aucun usage dans les algorithmes de régulation actuels) ; si plusieurs candidats ou aucun trouvé en auto-détection → aucun choix automatique (log informatif).
-- **Questions ouvertes** :
-  1. Faut-il un attribut complémentaire (ex. date de dernière mesure d'humidité) par symétrie avec la température ?
-  2. UX exacte du config flow pour exposer le résultat de l'auto-détection (à trancher en spécification).
+  6. **Pas d'entité datetime pour l'humidité** : l'humidité est purement **affichée** (aucun usage à ce jour dans les algorithmes de VTherm), donc une entité « date de dernière mesure d'humidité » n'est **pas nécessaire** — à confirmer en spécification/conception (décision du 2026-09-17).
+- **Hypothèses restantes** : le capteur est un entity_id de domaine `sensor` (device_class humidity) ; l'humidité est purement informative pour VTherm (aucun usage dans les algorithmes de régulation actuels) ; si aucun candidat n'est trouvé en auto-détection → `None` (log informatif), pas d'erreur.
+- **Questions ouvertes** : aucune bloquante. Point de contrôle en spécification/conception : confirmer l'inutilité d'une entité datetime humidité (orientation actuelle : non nécessaire).
 
 ## 8. Proposition de suite du processus et critères de passage au développement
 
