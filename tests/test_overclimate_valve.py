@@ -949,6 +949,8 @@ async def test_over_climate_valve_period_min(hass: HomeAssistant, fake_temp_sens
         (1,                        10,                   100,                  100,                  0,                   11),   # 10-100 range and 0 -> fully close cause max_close = 100%
         # Error test when min_opening_degree >= max_opening_degree (then threshold is used)
         (40,                       50,                   80,                    40,                  15,                  22),  # use threshold instead of min_opening_degree
+        # A threshold at 100 must not divide by zero and reaches max opening at full need
+        (100,                      10,                   100,                  100,                 100,                 100),
     ],
     # fmt: on
 )

@@ -79,16 +79,20 @@ def build_step_thermostat_valve_schema() -> vol.Schema:
     return vol.Schema(
         {
             vol.Required(CONF_UNDERLYING_LIST): selector.EntitySelector(
-                selector.EntitySelectorConfig(
-                    domain=[NUMBER_DOMAIN, INPUT_NUMBER_DOMAIN], multiple=True
-                ),
+                selector.EntitySelectorConfig(domain=[NUMBER_DOMAIN, INPUT_NUMBER_DOMAIN], multiple=True),
             ),
-            vol.Required(CONF_PROP_FUNCTION, default=PROPORTIONAL_FUNCTION_TPI): vol.In(
-                get_prop_function_options()
-            ),
+            vol.Required(CONF_PROP_FUNCTION, default=PROPORTIONAL_FUNCTION_TPI): vol.In(get_prop_function_options()),
             vol.Optional(CONF_AC_MODE, default=False): cv.boolean,
             vol.Optional(CONF_AUTO_REGULATION_DTEMP, default=10): vol.Coerce(float),
             vol.Optional(CONF_AUTO_REGULATION_PERIOD_MIN, default=5): cv.positive_int,
+            vol.Optional(CONF_OPENING_THRESHOLD_DEGREE, default=0): vol.All(
+                cv.positive_int, vol.Range(min=0, max=100)
+            ),
+            vol.Optional(CONF_MIN_OPENING_DEGREES, default=""): str,
+            vol.Optional(CONF_MAX_OPENING_DEGREES, default=""): str,
+            vol.Optional(CONF_MAX_CLOSING_DEGREE, default=100): vol.All(
+                cv.positive_int, vol.Range(min=0, max=100)
+            ),
         }
     )
 
@@ -106,10 +110,14 @@ def build_step_valve_regulation_schema() -> vol.Schema:
             vol.Required(CONF_PROP_FUNCTION, default=PROPORTIONAL_FUNCTION_TPI): vol.In(
                 get_prop_function_options()
             ),
-            vol.Optional(CONF_OPENING_THRESHOLD_DEGREE, default=0): cv.positive_int,
+            vol.Optional(CONF_OPENING_THRESHOLD_DEGREE, default=0): vol.All(
+                cv.positive_int, vol.Range(min=0, max=100)
+            ),
             vol.Optional(CONF_MIN_OPENING_DEGREES, default=""): str,
             vol.Optional(CONF_MAX_OPENING_DEGREES, default=""): str,
-            vol.Optional(CONF_MAX_CLOSING_DEGREE, default=100): cv.positive_int,
+            vol.Optional(CONF_MAX_CLOSING_DEGREE, default=100): vol.All(
+                cv.positive_int, vol.Range(min=0, max=100)
+            ),
         }
     )
 

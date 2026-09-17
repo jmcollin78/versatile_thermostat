@@ -254,6 +254,7 @@ class VersatileThermostatBaseConfigFlow(FlowHandler):
                 CONF_USE_PRESENCE_CENTRAL_CONFIG,
                 CONF_USE_PRESETS_CENTRAL_CONFIG,
                 CONF_USE_ADVANCED_CENTRAL_CONFIG,
+                CONF_USE_LOCK_CENTRAL_CONFIG,
                 CONF_USE_CENTRAL_MODE,
                 # CONF_USE_CENTRAL_BOILER_FEATURE, this is for Central Config
                 CONF_USED_BY_CENTRAL_BOILER,
@@ -283,15 +284,42 @@ class VersatileThermostatBaseConfigFlow(FlowHandler):
         if not self.check_sync_device_internal_temp_nb_entities(data, step_id):
             raise SyncDeviceInternalTempNbEntitiesIncorrect()
 
+        # Validate the min/max opening degrees control parameters.
+        # This is shared between over_valve (step 'type': valves are the underlying
+        # entities) and over_climate with valve regulation (step 'valve_regulation':
+        # valves are the opening degree entities)
+        valve_entities = data.get(CONF_OPENING_DEGREE_LIST) or data.get(
+            CONF_UNDERLYING_LIST
+        )
+        self._validate_valve_control_parameters(data, valve_entities or [])
+
+        # These validations depend on the active configuration-flow step and
+        # do not belong to the shared valve parameter validation.
+        if (
+            self._infos.get(CONF_THERMOSTAT_TYPE) == CONF_THERMOSTAT_SWITCH
+            and step_id == "type"
+        ):
+            if not self.check_vswitch_configuration(data):
+                raise VirtualSwitchConfigurationIncorrect(CONF_VSWITCH_ON_CMD_LIST)
+
+        if data.get(CONF_LOCK_CODE) is not None:
+            if not re.match(r"^\d{4}$", str(data.get(CONF_LOCK_CODE))):
+                raise LockCodeIncorrect()
+
+    def _validate_valve_control_parameters(
+        self, data: dict, valve_entities: list
+    ) -> None:
+        """Validate the valve control parameters (min/max opening degrees, cardinality).
+
+        Shared between over_valve (step 'type') and over_climate valve regulation
+        (step 'valve_regulation'). Raises the ValveRegulation* exceptions.
+        """
         # Check that the min_opening_degrees is correctly set
+        min_opening_degrees_list: list[int] = []
         raw_list = data.get(CONF_MIN_OPENING_DEGREES, None)
-        min_opening_degrees_list = []
         if raw_list:
             try:
-                # Validation : Convertir la liste saisie
                 min_opening_degrees_list = [int(x.strip()) for x in raw_list.split(",")]
-
-                # Optionnel : Vérifiez des conditions supplémentaires sur la liste
                 if any(x < 0 for x in min_opening_degrees_list):
                     raise ValueError
             except ValueError as exc:
@@ -300,46 +328,59 @@ class VersatileThermostatBaseConfigFlow(FlowHandler):
                 ) from exc
 
         # Check that the max_opening_degrees is correctly set
+        max_opening_degrees_list: list[int] = []
         raw_list = data.get(CONF_MAX_OPENING_DEGREES, None)
-        max_opening_degrees_list = []
         if raw_list:
             try:
-                # Validation : Convertir la liste saisie
                 max_opening_degrees_list = [int(x.strip()) for x in raw_list.split(",")]
-
-                # Check that max opening degrees are <= the underlying valve max opening and > 0
-                valves_entities = data.get(CONF_OPENING_DEGREE_LIST, [])
+                if len(max_opening_degrees_list) > len(valve_entities):
+                    raise ValveRegulationCardinalityIncorrect(
+                        CONF_MAX_OPENING_DEGREES
+                    )
+                # max opening degrees should be > 0 and <= the max of the underlying valve
                 for valve_idx, valve_max in enumerate(max_opening_degrees_list):
-                    if valve_max <= 0 or valve_max > self.hass.states.get(valves_entities[valve_idx]).attributes.get("max", 100):
+                    valve_state = self.hass.states.get(valve_entities[valve_idx])
+                    if (
+                        valve_max <= 0
+                        or valve_state is None
+                        or valve_max > valve_state.attributes.get("max", 100)
+                    ):
                         raise ValueError
+            except ValveRegulationCardinalityIncorrect:
+                raise
             except ValueError as exc:
                 raise ValveRegulationMaxOpeningDegreesIncorrect(
                     CONF_MAX_OPENING_DEGREES
                 ) from exc
 
-        # Check that max_opening_degrees > min_opening_degrees for each underlying
-        # If both lists exist, check that max > min for each index
-        if min_opening_degrees_list and max_opening_degrees_list:
-            # Get the number of underlyings to know how many values to check
-            nb_underlyings = len(self._infos.get(CONF_UNDERLYING_LIST, []))
-            for idx in range(nb_underlyings):
-                min_val = min_opening_degrees_list[idx] if idx < len(min_opening_degrees_list) else 0
-                max_val = max_opening_degrees_list[idx] if idx < len(max_opening_degrees_list) else 100
+        # Check that the min/max lists don't contain more values than the number of valves
+        # (the rule is now also applied to over_climate valve regulation)
+        nb_valves = len(valve_entities or [])
+        for lst in (min_opening_degrees_list, max_opening_degrees_list):
+            if len(lst) > nb_valves:
+                raise ValveRegulationCardinalityIncorrect(
+                    CONF_MIN_OPENING_DEGREES
+                    if lst is min_opening_degrees_list
+                    else CONF_MAX_OPENING_DEGREES
+                )
 
-                if max_val <= min_val:
-                    raise ValveRegulationMinMaxOpeningDegreesIncorrect(
-                        CONF_MAX_OPENING_DEGREES
-                    )
-
-        # Check the VSWITCH configuration. There should be the same number of vswitch_on (resp. vswitch_off) than the number of underlying entity
-        if self._infos.get(CONF_THERMOSTAT_TYPE) == CONF_THERMOSTAT_SWITCH and step_id == "type":
-            if not self.check_vswitch_configuration(data):
-                raise VirtualSwitchConfigurationIncorrect(CONF_VSWITCH_ON_CMD_LIST)
-
-        # Check the lock code format
-        if data.get(CONF_LOCK_CODE) is not None:
-            if not re.match(r"^\d{4}$", str(data.get(CONF_LOCK_CODE))):
-                raise LockCodeIncorrect()
+        # Check that max_opening_degrees > min_opening_degrees for each valve
+        # (default values are 0 and 100 for indexes beyond the lists)
+        for idx in range(nb_valves):
+            min_val = (
+                min_opening_degrees_list[idx]
+                if idx < len(min_opening_degrees_list)
+                else 0
+            )
+            max_val = (
+                max_opening_degrees_list[idx]
+                if idx < len(max_opening_degrees_list)
+                else self.hass.states.get(valve_entities[idx]).attributes.get("max", 100)
+            )
+            if max_val <= min_val:
+                raise ValveRegulationMinMaxOpeningDegreesIncorrect(
+                    CONF_MAX_OPENING_DEGREES
+                )
 
     def check_vswitch_configuration(self, data) -> bool:
         """Check the Virtual switch configuration and return True if the configuration is correct"""
@@ -506,6 +547,8 @@ class VersatileThermostatBaseConfigFlow(FlowHandler):
                 errors[str(err)] = "max_opening_degrees_format"
             except ValveRegulationMinMaxOpeningDegreesIncorrect as err:
                 errors[str(err)] = "min_max_opening_degrees_inconsistent"
+            except ValveRegulationCardinalityIncorrect as err:
+                errors[str(err)] = "valve_control_parameters_cardinality_incorrect"
             except VirtualSwitchConfigurationIncorrect as err:
                 errors["base"] = "vswitch_configuration_incorrect"
             except LockCodeIncorrect:

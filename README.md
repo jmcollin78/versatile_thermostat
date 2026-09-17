@@ -27,6 +27,9 @@ Versatile Thermostat UI Card (Available on [Github](https://github.com/jmcollin7
 # What's New?
 ![New](images/new-icon.png)
 
+## Release 10.4.0
+`over_valve` thermostats now have the same valve control parameters as `over_climate` thermostats with direct valve control regulation: `opening_threshold_degree`, `min_opening_degrees`, `max_closing_degree`, and `max_opening_degrees`. More information: [valve control](documentation/en/over-valve.md).
+
 ## Release 10.3.0
 Power units can now be configured. Configuration screens let you select a unit for power measurements (W by default). Calculated energy units match the configured power unit. Existing entries are migrated using the historical device power value: values above 100 are treated as W; other values as kW.
 
@@ -44,37 +47,7 @@ Self-regulation is now disabled when an `over_climate` _VTherm_ is not in `Heat`
 ## Release 10.0
 Introduction of the plugin mechanism. This allows the use of external integrations as plugins for _VTherm_. The list of available plugins is available on the [Versatile Thermostat Web site](https://www.versatile-thermostat.org/en/plugins).
 
-## Release 9.3 - stable version
-> 1. **Stuck valve detection**: Major improvement to heating failure detection. When an anomaly is detected on `over_climate_valve` type VTherms, the thermostat now diagnoses whether the problem is caused by a stuck TRV valve (stuck open or closed) by comparing the commanded state with the real state. This information - `root_cause` - is sent in the anomaly event, allowing you to take appropriate actions (notification, valve recovery, etc.). More information [here](documentation/en/feature-heating-failure-detection.md),
-> 2. **Auto-relock after unlock**: Added `auto_relock_sec` parameter to the lock feature. When configured, the thermostat will automatically re-lock after the specified number of seconds following an unlock. You can completely disable this feature by setting it to 0. By default, auto-relock is set to 30 seconds for improved security. More information [here](documentation/en/feature-lock.md),
-> 3. **Command resend**: New feature to automatically detect and correct discrepancies between the thermostat's desired state and the actual state of underlying devices. If a command is not properly applied to the device, it is resent. This improves system reliability in unstable environments or with unreliable equipment. More information [here](documentation/en/feature-advanced.md),
-> 4. **Timed preset restoration after restart**: The configured timed preset is now correctly restored after a thermostat or Home Assistant restart. This preset continues to work normally after the restart. More information [here](documentation/en/feature-timed-preset.md),
-> 5. **Increased power control precision**: The boiler activation threshold (`power_activation_threshold`) now accepts decimal values (0.1, 0.5, etc.) for finer control of activation power. This provides greater flexibility to optimize your energy consumption. More information [here](documentation/en/feature-power.md),
-> 6. **Sensor availability improvements**: Better support for determining temperature sensor availability using Home Assistant's `last_updated` metadata, improving detection of sensor signal loss,
 
-## Release 9.2
-> 1. New way of managing heating/off cycles for `over_switch` VTherms. The current algorithm has a time drift and the first cycles are not optimal. This disrupts the TPI and especially the auto-TPI. The new `Cycle Scheduler` solves these issues. This change is completely transparent for you,
-> 2. A log collector. Your support requests often fail due to your ability to provide logs, over the right period, targeted at the faulty thermostat and at the right log level. This is especially the case for hard-to-reproduce bugs. The log collector aims to solve this difficulty. It collects logs for you in the background at the finest level and an action (formerly service) allows you to extract them into a file. You can then download them to attach to your support request. The log analyzer associated with the website - launched in 9.1 see below - adapts to be able to digest these logs. More information about the log collector [here](documentation/en/feature-logs-collector.md),
-> 3. stabilization of 9.x. The major version 9 brought many changes that generated some anomalies. This version provides the latest fixes related to this version 9.
-
-## Release 9.1
-> 1. New logo. Inspired by the work of @Krzysztonek (see [here](https://github.com/jmcollin78/versatile_thermostat/pull/1598)), VTherm benefits from a new feature introduced in [HA 206.03](https://developers.home-assistant.io/blog/2026/02/24/brands-proxy-api/) to change its logo. The whole team hopes you will like it. Enjoy!
-> 2. A website created by @bontiv addresses one of VTherm’s major challenges: documentation. This site also allows you to analyze your logs! Provide your logs (in debug mode) and you will be able to analyze them, zoom in on a thermostat, focus on a time period, filter what interests you, and more. Discover this first version here: [Versatile Thermostat Web site](https://www.versatile-thermostat.org/). A huge thank you to @bontiv for this great work.
-> 3. Official release of the auto-TPI feature. This function calculates the optimal coefficient values for the [TPI](documentation/fr/algorithms.md#lalgorithme-tpi). We would like to highlight the incredible work of @KipK and @gael1980 on this topic. Do not skip the documentation if you plan to use it.
-> 4. VTherm now relies on the state reported by underlying devices in HA. As long as all underlying devices do not have a known state in HA, the VTherm remains disabled.
-
-## Release 8.6
-> 1. added `max_opening_degrees` parameter for `over_climate_valve` VTherms allowing to limit the maximum opening percentage of each valve to control hot water flow and optimize energy consumption or other use cases.
-> 2. added a valve recalibration function for an _VTherm_ `over_climate_valve` allowing to force a maximum opening then a maximum closing to attempt recalibration of a TRV. More information [here](documentation/en/feature-recalibrate-valves.md).
-
-## Release 8.5
-> 1. added heating failure detection for VTherms using the TPI algorithm. This feature detects two types of anomalies:
->    - **heating failure**: the radiator is heating strongly (high on_percent) but the temperature is not increasing,
->    - **cooling failure**: the radiator is not heating (on_percent at 0) but the temperature keeps rising.
->
-> These anomalies may indicate an open window, a faulty radiator, or an external heat source. The feature sends events that can be used to trigger automations (notifications, alerts, etc.). More information [here](documentation/en/feature-heating-failure-detection.md).
-
-More informations [here](documentation/en/feature-central-boiler.md).
 
 # 🍻 Thanks for the beers 🍻
 [!["Buy Me A Coffee"](https://www.buymeacoffee.com/assets/img/custom_images/orange_img.png)](https://www.buymeacoffee.com/jmcollin78)

@@ -76,6 +76,10 @@
           "auto_regulation_mode": "Αυτόματη ρύθμιση",
           "auto_regulation_dtemp": "Όριο ρύθμισης",
           "auto_regulation_periode_min": "Ελάχιστη περίοδος ρύθμισης",
+          "opening_threshold_degree": "Κατώφλι ανοίγματος",
+          "min_opening_degrees": "Ελάχιστοι βαθμοί ανοίγματος",
+          "max_opening_degrees": "Μέγιστος βαθμός ανοίγματος",
+          "max_closing_degree": "Μέγιστος βαθμός κλεισίματος",
           "inverse_switch_command": "Αντίστροφη εντολή διακόπτη",
           "auto_fan_mode": "Auto fan mode"
         },
@@ -98,6 +102,10 @@
           "auto_regulation_mode": "Αυτόματη προσαρμογή της στοχευμένης θερμοκρασίας",
           "auto_regulation_dtemp": "Το όριο σε ° κάτω από το οποίο η αλλαγή θερμοκρασίας δεν θα αποστέλλεται",
           "auto_regulation_periode_min": "Διάρκεια σε λεπτά μεταξύ δύο ενημερώσεων ρύθμισης",
+          "opening_threshold_degree": "Τιμή ανοίγματος της βαλβίδας κάτω από την οποία η βαλβίδα πρέπει να θεωρείται κλειστή (και τότε θα ισχύει το 'max_closing_degree')",
+          "min_opening_degrees": "Ελάχιστη τιμή βαθμού ανοίγματος για κάθε υποκείμενη συσκευή, διαχωρισμένη με κόμμα. Προεπιλεγμένη τιμή 0. Παράδειγμα: 20, 25, 30",
+          "max_opening_degrees": "Μέγιστη τιμή του βαθμού ανοίγματος. Η βαλβίδα δεν θα ανοίξει ποτέ περισσότερο από αυτήν την τιμή",
+          "max_closing_degree": "Μέγιστη τιμή του βαθμού κλεισίματος. Η βαλβίδα δεν θα κλείσει ποτέ περισσότερο από αυτήν την τιμή. Ορίστε το στο 100 για πλήρες κλείσιμο της βαλβίδας",
           "inverse_switch_command": "Για διακόπτη με πιλοτικό καλώδιο και δίοδο μπορεί να χρειαστεί να αντιστρέψετε την εντολή",
           "auto_fan_mode": "Automatically activate fan when huge heating/cooling is necessary"
         }
@@ -274,6 +282,7 @@
       "min_opening_degrees_format": "A comma separated list of positive integer is expected. Example: 20, 25, 30",
       "max_opening_degrees_format": "Αναμένεται μια λίστα θετικών ακεραίων μεταξύ 0 και 100 χωρισμένη με κόμματα. Παράδειγμα: 80, 85, 90",
       "min_max_opening_degrees_inconsistent": "Για κάθε υποκείμενη συσκευή, το max_opening_degrees πρέπει να είναι αυστηρά μεγαλύτερο από το min_opening_degrees. Ελέγξτε τη διαμόρφωσή σας.",
+      "valve_control_parameters_cardinality_incorrect": "Οι λίστες ελάχιστου και μέγιστου βαθμού ανοίγματος δεν μπορούν να περιέχουν περισσότερες τιμές από τις διαμορφωμένες βαλβίδες",
       "vswitch_configuration_incorrect": "The command customization configuration is incorrect. It is required for underlying entities that are not switches, and the format must be service_name[/attribute:value]. More information is available in the README"
     },
     "abort": {
@@ -333,7 +342,11 @@
           "auto_regulation_dtemp": "Όριο ρύθμισης",
           "auto_regulation_periode_min": "Ελάχιστη περίοδος ρύθμισης",
           "inverse_switch_command": "Αντίστροφη εντολή διακόπτη",
-          "auto_fan_mode": "Auto fan mode"
+          "auto_fan_mode": "Auto fan mode",
+          "opening_threshold_degree": "Κατώφλι ανοίγματος",
+          "min_opening_degrees": "Ελάχιστοι βαθμοί ανοίγματος",
+          "max_opening_degrees": "Μέγιστος βαθμός ανοίγματος",
+          "max_closing_degree": "Μέγιστος βαθμός κλεισίματος"
         },
         "data_description": {
           "heater_entity_id": "Υποχρεωτική ταυτότητα οντότητας θερμαντήρα",
@@ -355,7 +368,11 @@
           "auto_regulation_dtemp": "Το κατώφλι σε °C κάτω από το οποίο η αλλαγή της θερμοκρασίας δεν θα αποστέλλεται",
           "auto_regulation_periode_min": "Διάρκεια σε λεπτά μεταξύ δύο ενημερώσεων ρύθμισης",
           "inverse_switch_command": "Για διακόπτες με πιλοτικό καλώδιο και δίοδο μπορεί να χρειαστεί να αντιστραφεί η εντολή",
-          "auto_fan_mode": "Automatically activate fan when huge heating/cooling is necessary"
+          "auto_fan_mode": "Automatically activate fan when huge heating/cooling is necessary",
+          "opening_threshold_degree": "Τιμή ανοίγματος της βαλβίδας κάτω από την οποία η βαλβίδα πρέπει να θεωρείται κλειστή (και τότε θα ισχύει το 'max_closing_degree')",
+          "min_opening_degrees": "Ελάχιστη τιμή βαθμού ανοίγματος για κάθε υποκείμενη συσκευή, διαχωρισμένη με κόμμα. Προεπιλεγμένη τιμή 0. Παράδειγμα: 20, 25, 30",
+          "max_opening_degrees": "Μέγιστη τιμή του βαθμού ανοίγματος. Η βαλβίδα δεν θα ανοίξει ποτέ περισσότερο από αυτήν την τιμή",
+          "max_closing_degree": "Μέγιστη τιμή του βαθμού κλεισίματος. Η βαλβίδα δεν θα κλείσει ποτέ περισσότερο από αυτήν την τιμή. Ορίστε το στο 100 για πλήρες κλείσιμο της βαλβίδας"
         }
       },
       "tpi": {
@@ -542,6 +559,7 @@
       "min_opening_degrees_format": "A comma separated list of positive integer is expected. Example: 20, 25, 30",
       "max_opening_degrees_format": "Αναμένεται μια λίστα θετικών ακεραίων μεταξύ 0 και 100 χωρισμένη με κόμματα. Παράδειγμα: 80, 85, 90",
       "min_max_opening_degrees_inconsistent": "Για κάθε υποκείμενη συσκευή, το max_opening_degrees πρέπει να είναι αυστηρά μεγαλύτερο από το min_opening_degrees. Ελέγξτε τη διαμόρφωσή σας.",
+      "valve_control_parameters_cardinality_incorrect": "Οι λίστες ελάχιστου και μέγιστου βαθμού ανοίγματος δεν μπορούν να περιέχουν περισσότερες τιμές από τις διαμορφωμένες βαλβίδες",
       "vswitch_configuration_incorrect": "The command customization configuration is incorrect. It is required for underlying entities that are not switches, and the format must be service_name[/attribute:value]. More information is available in the README"
     },
     "abort": {

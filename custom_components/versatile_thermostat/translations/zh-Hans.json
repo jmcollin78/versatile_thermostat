@@ -110,6 +110,10 @@
                     "auto_regulation_mode": "自调节",
                     "auto_regulation_dtemp": "调节阈值",
                     "auto_regulation_periode_min": "调节最短周期",
+                    "opening_threshold_degree": "开启阈值度数",
+                    "min_opening_degrees": "最小开度",
+                    "max_opening_degrees": "最大开度",
+                    "max_closing_degree": "最大关闭度",
                     "auto_regulation_use_device_temp": "使用底层内部温度",
                     "inverse_switch_command": "反向开关指令",
                     "auto_fan_mode": "自动风扇模式",
@@ -127,6 +131,10 @@
                     "auto_regulation_mode": "自动调节目标温度",
                     "auto_regulation_dtemp": "以 °（或阀门的 %）为单位的阈值，低于该阈值将不会发送温度变化",
                     "auto_regulation_periode_min": "两次调节更新之间的时间间隔（分钟）",
+                    "opening_threshold_degree": "阀门开度低于此值时应视为关闭（并应用 max_closing_degree）",
+                    "min_opening_degrees": "当超过先前阈值时每个底层设备的开度最小值，以逗号分隔。默认为 0。示例：20,25,30",
+                    "max_opening_degrees": "开度最大值。阀门的开度永远不会超过该值",
+                    "max_closing_degree": "关闭度最大值。阀门永远不会在高于该值时关闭。将其设置为 100 以完全关闭阀门",
                     "auto_regulation_use_device_temp": "使用底层设备可能提供的内部温度传感器来加速自调节（大多数情况下不需要）",
                     "inverse_switch_command": "对于带导引线和二极管的开关，可能需要反转命令",
                     "auto_fan_mode": "当需要大量加热/冷却时自动启动风扇",
@@ -387,6 +395,7 @@
             "min_opening_degrees_format": "需要逗号分隔的正整数列表。示例：20,25,30",
             "max_opening_degrees_format": "需要一个介于 0 和最大阀门开度之间的逗号分隔的正整数列表。示例：80,85,90",
             "min_max_opening_degrees_inconsistent": "对于每个底层设备，max_opening_degrees 必须严格大于 min_opening_degrees。请检查你的配置。",
+            "valve_control_parameters_cardinality_incorrect": "最小和最大开度列表中的值不能多于已配置的阀门数量",
             "vswitch_configuration_incorrect": "命令自定义配置不正确。对于不是 switch 的底层实体，这是必需的，格式必须为 service_name[/attribute:value]。更多信息请参阅 README。"
         },
         "abort": {
@@ -506,7 +515,11 @@
                     "on_command_text": "开启命令自定义",
                     "vswitch_on_command": "可选开启命令",
                     "off_command_text": "关闭命令自定义",
-                    "vswitch_off_command": "可选关闭命令"
+                    "vswitch_off_command": "可选关闭命令",
+                    "opening_threshold_degree": "开启阈值度数",
+                    "min_opening_degrees": "最小开度",
+                    "max_opening_degrees": "最大开度",
+                    "max_closing_degree": "最大关闭度"
                 },
                 "data_description": {
                     "underlying_entity_ids": "要控制的设备 - 1 为必填项",
@@ -520,7 +533,11 @@
                     "auto_regulation_use_device_temp": "使用底层设备可能提供的内部温度传感器来加速自调节（大多数情况下不需要）",
                     "inverse_switch_command": "对于带导引线和二极管的开关，可能需要反转命令",
                     "auto_fan_mode": "当需要大量加热/冷却时自动启动风扇",
-                    "on_command_text": "对于 `select` 或 `climate` 类型的底层，您必须自定义命令。"
+                    "on_command_text": "对于 `select` 或 `climate` 类型的底层，您必须自定义命令。",
+                    "opening_threshold_degree": "阀门开度低于此值时应视为关闭（并应用 max_closing_degree）",
+                    "min_opening_degrees": "当超过先前阈值时每个底层设备的开度最小值，以逗号分隔。默认为 0。示例：20,25,30",
+                    "max_opening_degrees": "开度最大值。阀门的开度永远不会超过该值",
+                    "max_closing_degree": "关闭度最大值。阀门永远不会在高于该值时关闭。将其设置为 100 以完全关闭阀门"
                 }
             },
             "tpi": {
@@ -779,6 +796,7 @@
             "min_opening_degrees_format": "需要逗号分隔的正整数列表。示例：20,25,30",
             "max_opening_degrees_format": "需要一个介于 0 和阀门最大值之间的逗号分隔的正整数列表。示例：80,85,90",
             "min_max_opening_degrees_inconsistent": "对于每个底层设备，max_opening_degrees 必须严格大于 min_opening_degrees。请检查你的配置。",
+            "valve_control_parameters_cardinality_incorrect": "最小和最大开度列表中的值不能多于已配置的阀门数量",
             "vswitch_configuration_incorrect": "命令自定义配置不正确。对于不是 switch 的底层实体，这是必需的，格式必须为 service_name[/attribute:value]。更多信息请参阅 README。"
         },
         "abort": {

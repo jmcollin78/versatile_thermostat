@@ -16,7 +16,7 @@ Instalacja powinna być zbliżona do konfiguracji `termostat na przełączniku`,
 3. Na podstawie wartości zadanych, różnicy temperatur oraz parametrów algorytmu **TPI** (patrz: [TPI](algorithms.md#lalgorithme-tpi)), _VTherm_ obliczy procentowy stopień otwarcia zaworu.
 4. Następnie VTherm zmodyfikuje wartość encji typu `number`.
 5. Te encje podrzędne będą kontrolować stopień otwarcia zaworu w _TRV_.
-6. W ten sposób regulowane będzie ogrzewanie grzejnika.  
+6. W ten sposób regulowane będzie ogrzewanie grzejnika.
 
 Wartość procentowa otwarcia zaworu jest przeliczana przy każdym cyklu na nowo, co umozliwia regulację temperatury pomieszczenia.
 
@@ -31,5 +31,20 @@ W pierwszej kolejności skonfiguruj ustawienia główne, wspólne dla wszystkich
 ![image](images/config-linked-entity3.png)
 
 Aktualnie dostępny algorytm to TPI. Zobacz: [algorytm](#algorithm).
+
+### Sterowanie otwarciem zaworu
+
+`over_valve` może dostosować polecenie otwarcia TPI do fizycznych ograniczeń
+każdego zaworu. Próg `opening_threshold_degree` jest oceniany na podstawie
+surowej wartości procentowej TPI. Poniżej progu wartość zadana wynosi
+`100 - max_closing_degree`. Następnie stosowany jest minimalny stopień
+otwarcia, a potem maksymalny stopień otwarcia. `opening_threshold_degree` i
+`max_closing_degree` dotyczą całego termostatu. Przy wartościach domyślnych
+wysłane polecenie jest zgodne z surowym procentem TPI.
+
+`min_opening_degrees` oraz `max_opening_degrees` są listami CSV w kolejności
+zaworów podrzędnych. Niepełne listy są dozwolone: brakujące wartości używają
+ustawień domyślnych. Listy z większą liczbą wartości niż skonfigurowanych
+zaworów są odrzucane.
 
 Możliwy jest wybór `termostatu na zaworze` do sterowania klimatyzatorem, jeśli dodatkowo wybierzesz opcję `Tryb AC`. W takm wypadku dostępny będzie jedynie tryb chłodzenia.

@@ -28,4 +28,19 @@ Poté klikněte na možnost "Podkladové entity" z menu a uvidíte tuto konfigur
 
 Aktuálně dostupný algoritmus je TPI. Viz [algoritmus](#algorithm).
 
+### Řízení otevření ventilu
+
+`over_valve` může upravit povel otevření TPI podle fyzických limitů každého
+ventilu. `opening_threshold_degree` se vyhodnocuje podle surového procenta
+TPI. Je-li tato hodnota pod prahem, cílová hodnota je
+`100 - max_closing_degree`. Poté se použije minimální stupeň otevření a
+následně maximální stupeň otevření. `opening_threshold_degree` a
+`max_closing_degree` platí pro celý termostat. Při výchozím nastavení zůstává
+odeslaný povel stejný jako surové procento TPI.
+
+`min_opening_degrees` a `max_opening_degrees` jsou seznamy CSV v pořadí
+podkladových ventilů. Neúplné seznamy jsou povoleny: chybějící hodnoty použijí
+výchozí nastavení. Seznamy s více hodnotami než nakonfigurovaných ventilů jsou
+odmítnuty.
+
 Je možné vybrat `thermostat_over_valve` pro ovládání klimatizace zaškrtnutím políčka "AC režim". V tomto případě bude viditelný pouze chladicí režim.

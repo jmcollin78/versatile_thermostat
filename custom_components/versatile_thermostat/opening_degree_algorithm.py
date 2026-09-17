@@ -56,8 +56,11 @@ class OpeningClosingDegreeCalculation:
         # if heating need is >= opening_threshold (and heating is > 0) -> open and calculate with interpolation,
         if bvop >= ot and bvop > 0:
             # interpolation is just here to normalize the max opening which can be != 100. Some TRV has a max which not 100
-            slope = (max_od - min_od) / (1 - ot)
-            calculated_degree = min_od + slope * (bvop - ot)
+            if ot >= 1:
+                calculated_degree = max_od
+            else:
+                slope = (max_od - min_od) / (1 - ot)
+                calculated_degree = min_od + slope * (bvop - ot)
         else:
             calculated_degree = 1 - max_cd
 
