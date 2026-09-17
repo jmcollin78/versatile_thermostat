@@ -973,6 +973,10 @@
         }
     },
     "services": {
+        "set_hvac_mode_sleep": {
+            "name": "Imposta la modalità HVAC su sospensione",
+            "description": "Imposta un VTherm in sospensione stagionale. Viene mostrato come spento e, per over_climate con regolazione diretta della valvola e over_valve, invia una richiesta grezza di apertura della valvola al 100%. L'apertura fisica resta soggetta al controllo valvola configurato e ai limiti dell'entità number."
+        },
         "set_auto_tpi_mode": {
             "name": "Imposta modo Auto TPI",
             "description": "Abilita o disabilita la modalità di apprendimento automatico TPI",

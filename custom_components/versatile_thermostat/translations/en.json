@@ -981,6 +981,10 @@
         }
     },
     "services": {
+        "set_hvac_mode_sleep": {
+            "name": "Set HVAC Mode to Sleep",
+            "description": "Sets a VTherm to seasonal sleep. It is shown as off and, for over_climate with direct valve regulation and over_valve, sends a raw 100% valve-opening request. The physical opening remains subject to configured valve control and number entity limits."
+        },
         "set_auto_tpi_mode": {
             "name": "Set Auto TPI mode",
             "description": "Enable or disable the Auto TPI learning mode",

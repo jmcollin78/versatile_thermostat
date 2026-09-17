@@ -54,3 +54,13 @@ vides, `100`), la commande envoyée reste identique au pourcentage TPI brut.
 
 Il est possible de choisir un thermostat `over-valve` qui commande une climatisation en cochant la case "AC Mode". Dans ce cas, seul le mode refroidissement sera visible.
 
+### Mode sommeil
+
+`over_valve` prend en charge le mode sommeil. La sélection de `sleep`, ou
+l'appel de l'action `versatile_thermostat.set_hvac_mode_sleep`, présente le
+VTherm comme arrêté tout en envoyant une demande brute d'ouverture à 100 % à
+chaque vanne sous-jacente. Cette demande conserve la conversion normale de
+contrôle d'ouverture : `max_opening_degrees` et les bornes de l'entité `number`
+peuvent donc plafonner l'ouverture physique. Le sommeil ne sollicite pas la
+chaudière centrale ; l'attribut `is_sleeping` identifie cet état.
+

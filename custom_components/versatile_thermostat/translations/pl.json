@@ -880,6 +880,10 @@
     }
   },
   "services": {
+    "set_hvac_mode_sleep": {
+      "name": "Ustaw tryb HVAC na uśpienie",
+      "description": "Przełącza VTherm w sezonowy tryb uśpienia. Jest wyświetlany jako wyłączony, a dla over_climate z bezpośrednim sterowaniem zaworem i over_valve wysyła surowe żądanie otwarcia zaworu na 100%. Fizyczne otwarcie nadal podlega skonfigurowanemu sterowaniu zaworem i ograniczeniom encji number."
+    },
     "set_auto_tpi_mode": {
       "name": "Tryb Auto TPI",
       "description": "Załącz lub wyłącz tryb nauki Auto TPI",

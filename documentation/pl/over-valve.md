@@ -48,3 +48,13 @@ ustawień domyślnych. Listy z większą liczbą wartości niż skonfigurowanych
 zaworów są odrzucane.
 
 Możliwy jest wybór `termostatu na zaworze` do sterowania klimatyzatorem, jeśli dodatkowo wybierzesz opcję `Tryb AC`. W takm wypadku dostępny będzie jedynie tryb chłodzenia.
+
+### Tryb uśpienia
+
+`over_valve` obsługuje tryb uśpienia. Wybranie `sleep` lub wywołanie akcji
+`versatile_thermostat.set_hvac_mode_sleep` pokazuje VTherm jako wyłączony, a
+jednocześnie wysyła surowe żądanie otwarcia 100% do każdego zaworu podrzędnego.
+Zachowany zostaje zwykły mechanizm przeliczenia sterowania otwarciem:
+`max_opening_degrees` oraz ograniczenia encji `number` mogą więc ograniczyć
+fizyczne otwarcie. Tryb uśpienia nie żąda ogrzewania z centralnego kotła; stan
+ten identyfikuje atrybut `is_sleeping`.

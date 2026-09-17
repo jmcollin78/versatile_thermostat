@@ -44,3 +44,13 @@ sind zulässig: fehlende Werte verwenden die Standardwerte. Listen mit mehr
 Werten als konfigurierte Ventile werden abgelehnt.
 
 Es ist möglich, einen `Thermostat_over_valve` zur Steuerung einer Klimaanlage zu wählen, indem man das Kästchen "AC Mode" aktiviert. In diesem Fall wird nur der Kühlmodus angezeigt.
+
+### Ruhemodus
+
+`over_valve` unterstützt den Ruhemodus. Die Auswahl von `sleep` oder der Aufruf
+der Aktion `versatile_thermostat.set_hvac_mode_sleep` zeigt VTherm als
+ausgeschaltet an und sendet gleichzeitig eine rohe Öffnungsanforderung von 100 %
+an jedes untergeordnete Ventil. Die normale Umrechnung der Öffnungssteuerung
+bleibt erhalten: `max_opening_degrees` und die Grenzen der `number`-Entity
+können die physische Öffnung begrenzen. Der Ruhemodus fordert keine zentrale
+Kesselheizung an; das Attribut `is_sleeping` kennzeichnet diesen Zustand.

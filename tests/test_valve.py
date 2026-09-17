@@ -85,7 +85,7 @@ async def test_over_valve_full_start(hass: HomeAssistant, skip_hass_states_is_st
         assert entity.ac_mode is False
         assert entity.vtherm_hvac_mode is VThermHvacMode_OFF
         assert entity.hvac_action is HVACAction.OFF
-        assert entity.vtherm_hvac_modes == [VThermHvacMode_HEAT, VThermHvacMode_OFF]
+        assert entity.vtherm_hvac_modes == [VThermHvacMode_HEAT, VThermHvacMode_SLEEP, VThermHvacMode_OFF]
         assert entity.target_temperature == entity.min_temp
         assert entity.preset_modes == [
             VThermPreset.NONE,
@@ -258,6 +258,99 @@ async def test_over_valve_full_start(hass: HomeAssistant, skip_hass_states_is_st
             assert entity.target_temperature == 17.1  # eco away
             assert entity.valve_open_percent == 0
             await wait_for_local_condition(lambda: fake_underlying_valve.native_value == 0)
+
+
+@pytest.mark.parametrize(
+    (
+        "ac_mode",
+        "max_opening_degrees",
+        "expected_hvac_modes",
+        "expected_regulation_command",
+        "expected_command",
+        "current_temperature",
+    ),
+    [
+        (False, "", [VThermHvacMode_HEAT, VThermHvacMode_SLEEP, VThermHvacMode_OFF], 40, 100, 18),
+        (False, "70", [VThermHvacMode_HEAT, VThermHvacMode_SLEEP, VThermHvacMode_OFF], 28, 70, 18),
+        (True, "", [VThermHvacMode_COOL, VThermHvacMode_SLEEP, VThermHvacMode_OFF], 40, 100, 20),
+    ],
+)
+async def test_over_valve_sleep_mode(
+    hass: HomeAssistant,
+    fake_underlying_valve: MockNumber,
+    ac_mode: bool,
+    max_opening_degrees: str,
+    expected_hvac_modes: list,
+    expected_regulation_command: int,
+    expected_command: int,
+    current_temperature: int,
+):
+    """Test sleep mode opens an over_valve without counting it as heating."""
+    entry = MockConfigEntry(
+        domain=DOMAIN,
+        title="OverValveSleep",
+        unique_id=f"overValveSleep-{ac_mode}-{max_opening_degrees}",
+        data={
+            CONF_NAME: "OverValveSleep",
+            CONF_THERMOSTAT_TYPE: CONF_THERMOSTAT_VALVE,
+            CONF_TEMP_SENSOR: "sensor.mock_temp_sensor",
+            CONF_EXTERNAL_TEMP_SENSOR: "sensor.mock_ext_temp_sensor",
+            CONF_UNDERLYING_LIST: ["number.mock_valve"],
+            CONF_CYCLE_MIN: 5,
+            CONF_TEMP_MIN: 15,
+            CONF_TEMP_MAX: 30,
+            CONF_PROP_FUNCTION: PROPORTIONAL_FUNCTION_TPI,
+            CONF_TPI_COEF_INT: 0.3,
+            CONF_TPI_COEF_EXT: 0.1,
+            CONF_AUTO_REGULATION_DTEMP: 0,
+            CONF_AUTO_REGULATION_PERIOD_MIN: 0,
+            CONF_MAX_OPENING_DEGREES: max_opening_degrees,
+            CONF_USE_WINDOW_FEATURE: False,
+            CONF_USE_MOTION_FEATURE: False,
+            CONF_USE_POWER_FEATURE: False,
+            CONF_USE_PRESENCE_FEATURE: False,
+            CONF_AC_MODE: ac_mode,
+        },
+    )
+    vtherm: ThermostatOverValve = await create_thermostat(hass, entry, "climate.overvalvesleep", temps=default_temperatures)
+    now = datetime.now(tz=get_tz(hass))
+    active_mode = VThermHvacMode_COOL if ac_mode else VThermHvacMode_HEAT
+
+    assert vtherm.vtherm_hvac_modes == expected_hvac_modes
+    if not ac_mode:
+        await send_temperature_change_event(vtherm, current_temperature, now)
+        await send_ext_temperature_change_event(vtherm, 18, now)
+        await vtherm.async_set_hvac_mode(active_mode)
+        await vtherm.async_set_preset_mode(VThermPreset.COMFORT)
+        await wait_for_local_condition(lambda: fake_underlying_valve.native_value == expected_regulation_command)
+
+    await vtherm.service_set_hvac_mode_sleep()
+    await hass.async_block_till_done()
+    await wait_for_local_condition(lambda: fake_underlying_valve.native_value == expected_command)
+
+    assert vtherm.vtherm_hvac_mode is VThermHvacMode_SLEEP
+    assert vtherm.hvac_mode.value == "off"
+    assert vtherm.is_sleeping is True
+    assert vtherm.hvac_off_reason == HVAC_OFF_REASON_SLEEP_MODE
+    assert vtherm.hvac_action is HVACAction.OFF
+    assert vtherm.valve_open_percent == 100
+    assert vtherm.device_actives == []
+    assert vtherm.nb_device_actives == 0
+    if ac_mode:
+        vtherm.remove_thermostat()
+        return
+
+    assert vtherm.target_temperature == 19
+    assert vtherm.preset_mode == VThermPreset.COMFORT
+
+    await vtherm.async_set_hvac_mode(active_mode)
+    await hass.async_block_till_done()
+    await wait_for_local_condition(lambda: fake_underlying_valve.native_value == expected_regulation_command)
+
+    assert vtherm.is_sleeping is False
+    assert vtherm.hvac_off_reason is None
+    assert vtherm.valve_open_percent == 40
+    vtherm.remove_thermostat()
 
 
 @pytest.mark.parametrize("expected_lingering_timers", [True])

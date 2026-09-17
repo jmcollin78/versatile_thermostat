@@ -807,16 +807,40 @@ async def test_update_central_boiler_state_multiple(
 
 
 # @pytest.mark.skip(reason="This test don't work when execute in // of other tests. It should be run alone")
+@pytest.mark.parametrize(
+    (
+        "min_opening_degrees",
+        "max_opening_degrees",
+        "max_closing_degree",
+        "opening_threshold_degree",
+        "valve_max",
+        "expected_valve_opening",
+    ),
+    [
+        ("", "", 100, 0, 100, 100),
+        ("", "70", 100, 0, 100, 70),
+        ("15", "70", 100, 0, 100, 70),
+        ("", "", 100, 30, 100, 100),
+        ("", "", 100, 0, 90, 90),
+        ("15", "70", 90, 30, 100, 70),
+    ],
+)
 async def test_update_central_boiler_state_simple_valve(
     hass: HomeAssistant,
     # skip_hass_states_is_state,
     init_central_config_with_boiler_fixture,
+    min_opening_degrees: str,
+    max_opening_degrees: str,
+    max_closing_degree: int,
+    opening_threshold_degree: int,
+    valve_max: int,
+    expected_valve_opening: int,
 ):
     """Test that the central boiler state behavoir"""
 
     api = VersatileThermostatAPI.get_vtherm_api(hass)
 
-    valve1 = MockNumber(hass, "valve1", "theValve1")
+    valve1 = MockNumber(hass, "valve1", "theValve1", max=valve_max)
     await register_mock_entity(hass, valve1, NUMBER_DOMAIN)
 
     switch_pompe_chaudiere = MockSwitch(hass, "pompe_chaudiere", "SwitchPompeChaudiere")
@@ -855,6 +879,10 @@ async def test_update_central_boiler_state_simple_valve(
             CONF_USE_ADVANCED_CENTRAL_CONFIG: True,
             CONF_USED_BY_CENTRAL_BOILER: True,
             CONF_DEVICE_POWER: 1500,
+            CONF_MIN_OPENING_DEGREES: min_opening_degrees,
+            CONF_MAX_OPENING_DEGREES: max_opening_degrees,
+            CONF_MAX_CLOSING_DEGREE: max_closing_degree,
+            CONF_OPENING_THRESHOLD_DEGREE: opening_threshold_degree,
         },
     )
 
@@ -904,18 +932,21 @@ async def test_update_central_boiler_state_simple_valve(
     assert nb_device_active_sensor.active_device_ids == ["number.valve1"]
     assert total_power_active_sensor.active_device_ids == ["number.valve1"]
 
-    # 2. stop a heater
-    await send_temperature_change_event(entity, 25, now)
-    # Change the valve value to 0
-    valve1.set_native_value(0)
-    valve1.async_write_ha_state()
-    await wait_for_local_condition(lambda: entity.hvac_action == HVACAction.IDLE, 10)
-    await wait_for_local_condition(lambda: entity.device_actives == [], 10)
-    await wait_for_local_condition(lambda: api.central_boiler_manager.nb_active_device_for_boiler == 0, 10)
+    # A sleeping valve remains physically open but must never request the boiler.
+    await entity.service_set_hvac_mode_sleep()
+    await wait_for_local_condition(
+        lambda: valve1.native_value == expected_valve_opening, 10
+    )
+    await wait_for_local_condition(
+        lambda: api.central_boiler_manager.nb_active_device_for_boiler == 0, 10
+    )
     await wait_for_local_condition(lambda: boiler_binary_sensor.state == STATE_OFF, 10)
     await wait_for_local_condition(lambda: nb_device_active_sensor.state == 0, 10)
     await wait_for_local_condition(lambda: total_power_active_sensor.state == 0, 10)
 
+    assert entity.vtherm_hvac_mode is VThermHvacMode_SLEEP
+    assert entity.device_actives == []
+    assert entity.nb_device_actives == 0
     assert nb_device_active_sensor.active_device_ids == []
     assert total_power_active_sensor.active_device_ids == []
 

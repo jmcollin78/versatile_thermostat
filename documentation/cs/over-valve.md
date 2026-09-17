@@ -44,3 +44,12 @@ výchozí nastavení. Seznamy s více hodnotami než nakonfigurovaných ventilů
 odmítnuty.
 
 Je možné vybrat `thermostat_over_valve` pro ovládání klimatizace zaškrtnutím políčka "AC režim". V tomto případě bude viditelný pouze chladicí režim.
+
+### Režim spánku
+
+`over_valve` podporuje režim spánku. Výběr `sleep` nebo volání akce
+`versatile_thermostat.set_hvac_mode_sleep` zobrazí VTherm jako vypnutý a zároveň
+odešle požadavek na otevření 100 % do každého podkladového ventilu. Běžný převod
+řízení otevření se zachová: `max_opening_degrees` a limity entity `number` tak
+stále mohou omezit fyzické otevření. Režim spánku nevyžaduje vytápění z
+centrálního kotle; tento stav označuje atribut `is_sleeping`.
