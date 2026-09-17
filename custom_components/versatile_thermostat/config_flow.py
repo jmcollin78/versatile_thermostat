@@ -24,6 +24,7 @@ from .const import *  # pylint: disable=wildcard-import, unused-wildcard-import
 from .config_schema import *  # pylint: disable=wildcard-import, unused-wildcard-import
 from .vtherm_central_api import VersatileThermostatAPI
 from .commons import check_and_extract_service_configuration
+from .humidity import find_humidity_sensor_candidates
 
 COMES_FROM = "comes_from"
 PLUGINS_LINK_PLACEHOLDER = "plugins_link"
@@ -209,6 +210,7 @@ class VersatileThermostatBaseConfigFlow(FlowHandler):
         for conf in [
             CONF_UNDERLYING_LIST,
             CONF_TEMP_SENSOR,
+            CONF_HUMIDITY_SENSOR,
             CONF_EXTERNAL_TEMP_SENSOR,
             CONF_WINDOW_SENSOR,
             CONF_MOTION_SENSOR,
@@ -665,6 +667,8 @@ class VersatileThermostatBaseConfigFlow(FlowHandler):
 
         menu_options.append("advanced")
         menu_options.append("lock")
+        if not is_central_config:
+            menu_options.append("humidity")
 
         # Add heating failure detection menu if feature is enabled
         if self._infos.get(CONF_USE_HEATING_FAILURE_DETECTION_FEATURE, False) is True:
@@ -837,6 +841,23 @@ class VersatileThermostatBaseConfigFlow(FlowHandler):
         next_step = self.async_step_menu
 
         return await self.generic_step("sync_device_internal_temp", schema, user_input, next_step)
+
+    async def async_step_humidity(self, user_input: dict | None = None) -> FlowResult:
+        """Handle the optional external humidity sensor configuration."""
+        _LOGGER.debug("Into ConfigFlow.async_step_humidity user_input=%s", user_input)
+
+        if user_input is not None and not user_input.get(CONF_USE_HUMIDITY_FEATURE):
+            user_input = user_input.copy()
+            user_input.pop(CONF_HUMIDITY_SENSOR, None)
+
+        candidates = find_humidity_sensor_candidates(self.hass, self._infos.get(CONF_TEMP_SENSOR))
+        detected_sensor = candidates[0] if candidates else None
+        self._placeholders["humidity_detected"] = detected_sensor or "none"
+        schema = STEP_HUMIDITY_DATA_SCHEMA
+        if user_input is None and self._infos.get(CONF_HUMIDITY_SENSOR) is None:
+            schema = add_suggested_values_to_schema(schema, {CONF_HUMIDITY_SENSOR: detected_sensor})
+
+        return await self.generic_step("humidity", schema, user_input, self.async_step_menu)
 
     async def async_step_tpi(self, user_input: dict | None = None) -> FlowResult:
         """Handle the TPI flow steps"""

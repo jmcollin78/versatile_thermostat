@@ -69,6 +69,7 @@ from .feature_lock_manager import FeatureLockManager
 from .feature_timed_preset_manager import FeatureTimedPresetManager
 from .feature_heating_failure_detection_manager import FeatureHeatingFailureDetectionManager
 from .feature_repair_incorrect_state_manager import FeatureRepairIncorrectStateManager
+from .feature_humidity_manager import FeatureHumidityManager
 from .state_manager import StateManager
 from .vtherm_state import VThermState
 from .vtherm_preset import VThermPreset, HIDDEN_PRESETS, PRESET_AC_SUFFIX
@@ -95,6 +96,7 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
         .union(FeatureTimedPresetManager.unrecorded_attributes)
         .union(FeatureHeatingFailureDetectionManager.unrecorded_attributes)
         .union(FeatureRepairIncorrectStateManager.unrecorded_attributes)
+        .union(FeatureHumidityManager.unrecorded_attributes)
     )
 
     ##
@@ -139,7 +141,6 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
         self._ac_mode = None
 
         self._cur_temp = None
-
         self._temp_sensor_entity_id = None
         self._last_seen_temp_sensor_entity_id = None
         self._ext_temp_sensor_entity_id = None
@@ -230,6 +231,7 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
         self._timed_preset_manager: FeatureTimedPresetManager = FeatureTimedPresetManager(self, hass)
         self._heating_failure_detection_manager: FeatureHeatingFailureDetectionManager = FeatureHeatingFailureDetectionManager(self, hass)
         self._repair_incorrect_state_manager: FeatureRepairIncorrectStateManager = FeatureRepairIncorrectStateManager(self, hass)
+        self._humidity_manager: FeatureHumidityManager = FeatureHumidityManager(self, hass)
 
         self.register_manager(self._presence_manager)
         self.register_manager(self._power_manager)
@@ -240,6 +242,7 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
         self.register_manager(self._timed_preset_manager)
         self.register_manager(self._heating_failure_detection_manager)
         self.register_manager(self._repair_incorrect_state_manager)
+        self.register_manager(self._humidity_manager)
 
         self._cancel_recalculate_later: Callable[[], None] | None = None
 
@@ -613,6 +616,11 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
 
         if self.is_ready:
             await self.init_underlyings_completed()
+
+    @property
+    def current_humidity(self) -> float | None:
+        """Return humidity supplied by the external humidity manager."""
+        return self._humidity_manager.current_humidity
 
     async def init_underlyings_completed(self, under_entity_id: Optional[str] = None):
         """All underlyings have been initialized. Then we can finish our initialization"""
@@ -1995,6 +2003,7 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
                 "last_central_mode": self.last_central_mode,
                 "last_update_datetime": self.now.isoformat(),
                 "ext_current_temperature": self._cur_ext_temp,
+                "humidity_sensor_entity_id": self._humidity_manager.humidity_sensor_entity_id,
                 "last_temperature_datetime": self._last_temperature_measure.astimezone(self._current_tz).isoformat(),
                 "last_ext_temperature_datetime": self._last_ext_temperature_measure.astimezone(self._current_tz).isoformat(),
                 "should_device_be_active": self.should_device_be_active,

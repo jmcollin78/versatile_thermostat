@@ -31,6 +31,7 @@
                     "auto_start_stop": "Automatické spuštění a zastavení",
                     "valve_regulation": "Konfigurace regulace ventilu",
                     "sync_device_internal_temp": "Synchronizace teploty zařízení",
+                    "humidity": "Vlhkost",
                     "heating_failure_detection": "Detekce poruchy vytápění",
                     "lock": "Správa zámku",
                     "finalize": "Vše hotovo",
@@ -313,6 +314,14 @@
                 "data_description": {
                     "sync_with_calibration": "Zaškrtněte, chcete-li použít kalibraci offsetu při synchronizaci vnitřní teploty. Zrušte zaškrtnutí, chcete-li přímo zkopírovat teplotu z vybraných entit",
                     "sync_entity_ids": "Seznam entit používaných k synchronizaci vnitřní teploty základních zařízení. Na každé základní zařízení by měl být jeden. Pokud je zaškrtnuto políčko, měla by to být kalibrační entita nebo jinak entita teploty. Oba jsou entity typu „číslo“."
+                }
+            },
+            "humidity": {
+                "title": "Vlhkost",
+                "description": "Použít externí senzor vlhkosti. Zjištěný senzor: {humidity_detected}",
+                "data": {
+                    "use_humidity_feature": "Použít senzor vlhkosti",
+                    "humidity_sensor_entity_id": "Senzor vlhkosti"
                 }
             },
             "heating_failure_detection": {

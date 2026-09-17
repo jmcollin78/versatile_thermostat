@@ -1,6 +1,6 @@
 # pylint: disable=line-too-long, too-many-lines, abstract-method
-""" A climate over climate classe """
-import logging
+"""A climate over climate classe"""
+
 from vtherm_api.log_collector import get_vtherm_logger
 from typing import Optional
 
@@ -9,7 +9,7 @@ from datetime import timedelta, datetime
 from homeassistant.const import STATE_UNAVAILABLE, STATE_UNKNOWN
 from homeassistant.core import Event, HomeAssistant, State, callback
 from homeassistant.exceptions import HomeAssistantError
-from homeassistant.helpers.event import async_track_state_change_event, async_track_time_interval, EventStateChangedData, async_call_later
+from homeassistant.helpers.event import async_track_time_interval, async_call_later
 from homeassistant.components.climate import (
     HVACAction,
     ClimateEntityFeature,
@@ -1158,6 +1158,8 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
     @property
     def current_humidity(self) -> float | None:
         """Return the humidity."""
+        if self._humidity_manager.humidity_source != "none":
+            return self._humidity_manager.current_humidity
         if self.underlying_entity(0):
             return self.underlying_entity(0).current_humidity
 

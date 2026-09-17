@@ -294,6 +294,15 @@ STEP_SYNC_DEVICE_INTERNAL_TEMP = vol.Schema(  # pylint: disable=invalid-name
     }
 )
 
+STEP_HUMIDITY_DATA_SCHEMA = vol.Schema(  # pylint: disable=invalid-name
+    {
+        vol.Required(CONF_USE_HUMIDITY_FEATURE, default=False): cv.boolean,
+        vol.Optional(CONF_HUMIDITY_SENSOR): selector.EntitySelector(
+            selector.EntitySelectorConfig(domain=[SENSOR_DOMAIN, INPUT_NUMBER_DOMAIN, NUMBER_DOMAIN]),
+        ),
+    }
+)
+
 STEP_TPI_DATA_SCHEMA = vol.Schema(  # pylint: disable=invalid-name
     {
         vol.Required(CONF_USE_TPI_CENTRAL_CONFIG, default=True): cv.boolean,

@@ -31,6 +31,7 @@
           "auto_start_stop": "Allumage/extinction automatique",
           "valve_regulation": "Configuration de la regulation par vanne",
           "sync_device_internal_temp": "Synchronisation de la température de l'appareil",
+          "humidity": "Humidité",
           "lock": "Gestion du verrouilage",
           "heating_failure_detection": "Détection de panne de chauffage",
           "auto_tpi_configuration": "Auto TPI - Configuration",
@@ -362,6 +363,18 @@
           "sync_entity_ids": "La liste des entités utilisées pour synchroniser la température interne des appareils sous-jacents. Il doit y en avoir une par appareil sous-jacent. Doit être une entité de calibrage si la case est cochée ou une entité de température sinon. Les deux sont des entités de type `number`."
         }
       },
+      "humidity": {
+        "title": "Humidité",
+        "description": "Utilisez un capteur d'humidité externe. Capteur détecté : {humidity_detected}",
+        "data": {
+          "use_humidity_feature": "Utiliser un capteur d'humidité",
+          "humidity_sensor_entity_id": "Capteur d'humidité"
+        },
+        "data_description": {
+          "use_humidity_feature": "Désactivez cette option pour utiliser uniquement l'humidité du climate sous-jacent.",
+          "humidity_sensor_entity_id": "Laissez vide pour utiliser automatiquement le capteur détecté."
+        }
+      },
       "heating_failure_detection": {
         "title": "Détection de panne de chauffage",
         "description": "Configuration de la détection de panne de chauffage. Cette fonctionnalité détecte les anomalies lorsque le chauffage est demandé mais que la température n'augmente pas, ou lorsque le chauffage est éteint mais que la température continue de monter.",
@@ -434,6 +447,7 @@
           "auto_start_stop": "Allumage/extinction automatique",
           "valve_regulation": "Configuration de la regulation par vanne",
           "sync_device_internal_temp": "Synchronisation de la température de l'appareil",
+          "humidity": "Humidité",
           "lock": "Verrouillage",
           "heating_failure_detection": "Détection de panne de chauffage",
           "finalize": "Finaliser les modifications",
@@ -760,6 +774,18 @@
         "data_description": {
           "sync_with_calibration": "Cochez pour appliquer le calibrage du décalage lors de la synchronisation de la température interne. Décochez pour copier directement la température vers les entités sélectionnées",
           "sync_entity_ids": "La liste des entités utilisées pour synchroniser la température interne des appareils sous-jacents. Il doit y en avoir une par appareil sous-jacent. Doit être une entité de calibrage si la case est cochée ou une entité de température sinon. Les deux sont des entités de type `number`."
+        }
+      },
+      "humidity": {
+        "title": "Humidité - {name}",
+        "description": "Utilisez un capteur d'humidité externe. Capteur détecté : {humidity_detected}",
+        "data": {
+          "use_humidity_feature": "Utiliser un capteur d'humidité",
+          "humidity_sensor_entity_id": "Capteur d'humidité"
+        },
+        "data_description": {
+          "use_humidity_feature": "Désactivez cette option pour utiliser uniquement l'humidité du climate sous-jacent.",
+          "humidity_sensor_entity_id": "Laissez vide pour utiliser automatiquement le capteur détecté."
         }
       },
       "heating_failure_detection": {

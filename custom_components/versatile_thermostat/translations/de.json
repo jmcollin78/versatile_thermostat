@@ -31,6 +31,7 @@
           "auto_start_stop": "Auto Start und Stop",
           "valve_regulation": "Konfiguration Ventilsteuerung",
           "sync_device_internal_temp": "Synchronisierung der Gerätetemperatur",
+          "humidity": "Luftfeuchtigkeit",
           "lock": "Sperrenverwaltung",
           "heating_failure_detection": "Heizungsausfallerkennung",
           "auto_tpi_configuration": "Auto TPI - Konfiguration",
@@ -359,6 +360,14 @@
         "data_description": {
           "sync_with_calibration": "Aktiviert, wird die Offset-Kalibrierung bei der Synchronisierung der Innentemperatur angewenden. Deaktiviert, wird die Temperatur direkt aus den ausgewählten Entities kopiert.",
           "sync_entity_ids": "Entitie-Liste, die zur Synchronisierung der internen Temperatur der zugeordneten Geräte verwendet werden. Es muss eine pro zugeordnetem Gerät vorhanden sein. Wenn es aktiviert ist, muss eine Kalibrierungsentität vorhanden sein, ansonsten eine Temperaturentity. Beides sind Entities vom Typ `number`."
+        }
+      },
+      "humidity": {
+        "title": "Luftfeuchtigkeit",
+        "description": "Externen Luftfeuchtigkeitssensor verwenden. Erkannter Sensor: {humidity_detected}",
+        "data": {
+          "use_humidity_feature": "Luftfeuchtigkeitssensor verwenden",
+          "humidity_sensor_entity_id": "Luftfeuchtigkeitssensor"
         }
       },
       "heating_failure_detection": {

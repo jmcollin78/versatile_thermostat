@@ -28,6 +28,8 @@ Versatile Thermostat UI Card (Available on [Github](https://github.com/jmcollin7
 ![New](images/new-icon.png)
 
 ## Release 10.4.0
+VTherm can now expose `current_humidity` from an external humidity sensor for all thermostat types. The sensor can be selected in the Humidity menu or automatically detected on the room-temperature sensor device.
+
 `over_valve` thermostats now have the same valve control parameters as `over_climate` thermostats with direct valve control regulation: `opening_threshold_degree`, `min_opening_degrees`, `max_closing_degree`, and `max_opening_degrees`. More information: [valve control](documentation/en/over-valve.md).
 
 `over_valve` thermostats now also support Sleep mode. Sleep displays VTherm as off and sends a raw 100% opening request without requesting central boiler heating. Configured valve-control limits can cap the physical opening. More information: [Sleep mode](documentation/en/over-valve.md#sleep-mode).

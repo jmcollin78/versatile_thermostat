@@ -31,6 +31,7 @@
           "auto_start_stop": "AutoSTART i autoSTOP",
           "valve_regulation": "Konfiguracja regulacji zaworu",
           "sync_device_internal_temp": "Synchronizacja temperatury urządzenia",
+          "humidity": "Wilgotność",
           "lock": "Zarządzanie blokadą",
           "finalize": "Wszystko zrobione",
           "configuration_not_complete": "Konfiguracja niekompletna",
@@ -310,6 +311,14 @@
         "data_description": {
           "sync_with_calibration": "Zaznacz, aby zastosować kalibrację offsetu podczas synchronizacji temperatury wewnętrznej. Odznacz, aby skopiować temperaturę bezpośrednio z wybranych encji.",
           "sync_entity_ids": "Lista encji używanych do synchronizacji temperatury wewnętrznej urządzeń bazowych. Każde urządzenie bazowe musi mieć jedną taką encję. Jeśli pole wyboru jest zaznaczone, powinna to być encja kalibracji. W przeciwnym razie powinna to być encja temperatury. Obie encje mają typ numeryczny `number`."
+        }
+      },
+      "humidity": {
+        "title": "Wilgotność",
+        "description": "Użyj zewnętrznego czujnika wilgotności. Wykryty czujnik: {humidity_detected}",
+        "data": {
+          "use_humidity_feature": "Użyj czujnika wilgotności",
+          "humidity_sensor_entity_id": "Czujnik wilgotności"
         }
       },
       "heating_failure_detection": {

@@ -31,6 +31,7 @@
           "auto_start_stop": "Auto start and stop",
           "valve_regulation": "Valve regulation configuration",
           "sync_device_internal_temp": "Synchronize device temperature",
+          "humidity": "Humidity",
           "lock": "Lock",
           "heating_failure_detection": "Heating failure detection",
           "auto_tpi_configuration": "Auto TPI - Configuration",
@@ -361,6 +362,18 @@
           "sync_entity_ids": "The list of the entities used to synchronize the internal temperature of the underlying devices. There should be one per underlying device. Should be a calibration entity if checkbox is selected or a temperature entity otherwise. Both are `number` entities."
         }
       },
+      "humidity": {
+        "title": "Humidity",
+        "description": "Use an external humidity sensor. Detected sensor: {humidity_detected}",
+        "data": {
+          "use_humidity_feature": "Use humidity sensor",
+          "humidity_sensor_entity_id": "Humidity sensor"
+        },
+        "data_description": {
+          "use_humidity_feature": "Disable this option to use the underlying climate humidity only.",
+          "humidity_sensor_entity_id": "Leave empty to automatically use the detected sensor."
+        }
+      },
       "heating_failure_detection": {
         "title": "Heating failure detection",
         "description": "Configure the heating failure detection feature. This detects anomalies when heating is expected but temperature doesn't increase, or when heating is off but temperature keeps rising.",
@@ -433,6 +446,7 @@
           "auto_start_stop": "Auto start and stop",
           "valve_regulation": "Valve regulation configuration",
           "sync_device_internal_temp": "Synchronize device temperature",
+          "humidity": "Humidity",
           "lock": "Lock",
           "heating_failure_detection": "Heating failure detection",
           "finalize": "All done",
@@ -712,6 +726,18 @@
         "data_description": {
           "sync_with_calibration": "Check to apply the offset calibration when synchronizing the internal temperature. Uncheck to directly copy the temperature from the selected entities",
           "sync_entity_ids": "The list of the entities used to synchronize the internal temperature of the underlying devices. There should be one per underlying device. Should be a calibration entity if checkbox is selected or a temperature entity otherwise. Both are `number` entities."
+        }
+      },
+      "humidity": {
+        "title": "Humidity - {name}",
+        "description": "Use an external humidity sensor. Detected sensor: {humidity_detected}",
+        "data": {
+          "use_humidity_feature": "Use humidity sensor",
+          "humidity_sensor_entity_id": "Humidity sensor"
+        },
+        "data_description": {
+          "use_humidity_feature": "Disable this option to use the underlying climate humidity only.",
+          "humidity_sensor_entity_id": "Leave empty to automatically use the detected sensor."
         }
       },
       "auto_tpi_configuration": {

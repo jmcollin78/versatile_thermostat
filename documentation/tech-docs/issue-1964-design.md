@@ -2,8 +2,9 @@
 
 - **Fichier / File** : `documentation/tech-docs/issue-1964-design.md`
 - **Issue** : [jmcollin78/versatile_thermostat#1964](https://github.com/jmcollin78/versatile_thermostat/issues/1964)
-- **Version** : 1.0 · **Statut** : Draft (en attente de validation utilisateur / pending user validation)
+- **Version** : 1.1 · **Statut** : Draft (en attente de validation utilisateur / pending user validation)
 - **Date** : 2026-09-17 · **Propriétaire / Owner** : Équipe Versatile Thermostat
+- **Révision v1.1 (2026-09-17)** : refactor de la responsabilité humidité vers un `FeatureHumidityManager` dédié (décision utilisateur explicite). Aucune règle fonctionnelle changée. Voir §2 fait n°8, §3, §4.2, §5, §6, §7, §8, §10.
 - **Documents amont / Upstream documents** :
   - Rapport de revue / Review report : `documentation/tech-docs/issue-1964-review.md`
   - Spécification fonctionnelle / Functional specification : `documentation/tech-docs/issue-1964-specification.md` (FR-001..FR-018, BR-001..BR-008, AC-1..AC-12, Q1..Q4)
@@ -41,38 +42,69 @@ Tous les faits ci-dessous ont été vérifiés sur la branche courante du dépô
 
 ## 3. Architecture — composants affectés et responsabilités
 
-| Composant                              | Responsabilité                                                                                               | Nature de la modification                                                                                                         |
-| -------------------------------------- | ------------------------------------------------------------------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------- |
-| `const.py`                             | Nouvelles constantes de configuration                                                                        | Ajout `CONF_HUMIDITY_SENSOR`, `CONF_USE_HUMIDITY_FEATURE`                                                                         |
-| `config_schema.py`                     | Nouveau schéma d'étape `STEP_HUMIDITY_DATA_SCHEMA`                                                           | Ajout (toggle + sélecteur, pré-remplissage via `generic_step`)                                                                    |
-| `config_flow.py`                       | Option de menu « humidity » + `async_step_humidity` + validation entity_id                                   | Ajout (pattern `window`/`sync_device_internal_temp`)                                                                              |
-| `base_thermostat.py`                   | Résolution de la source, listener, lecture initiale, stockage, exposition `current_humidity` pour tous types | Ajout (initialisation, listeners dans `async_added_to_hass`, lecture dans `async_startup`, nouvelle propriété `current_humidity`) |
-| `thermostat_climate.py`                | `current_humidity` privilégie le capteur externe, repli underlying                                           | Override de la propriété existante (l. 1159)                                                                                      |
-| `underlyings.py`                       | Aucune modification (lecture `current_humidity` existante)                                                   | —                                                                                                                                 |
-| `strings.json` + `translations/*.json` | Clés UI menu + page + erreurs                                                                                | Ajout                                                                                                                             |
-| `tests/`                               | Tests unitaires (voir §8)                                                                                    | Ajout fichiers/cas                                                                                                                |
-| `documentation/{en,fr,de,cs,pl}`       | Doc utilisateur                                                                                              | Mise à jour                                                                                                                       |
+| Composant                                   | Responsabilité                                                                                                                                                                                                                                      | Nature de la modification                                                                                                                                                                                                                                                    |
+| ------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `const.py`                                  | Nouvelles constantes de configuration                                                                                                                                                                                                               | Ajout `CONF_HUMIDITY_SENSOR`, `CONF_USE_HUMIDITY_FEATURE`                                                                                                                                                                                                                    |
+| **`feature_humidity_manager.py` (nouveau)** | **Toute la responsabilité humidité** : résolution de la source (explicite/auto via `find_humidity_sensor_candidates`), état `_cur_humidity`, sensor id résolu, source, listener HA, lecture initiale, re-tentatives de démarrage et leur annulation | **Ajout** — classe `FeatureHumidityManager(BaseFeatureManager)` (§3.1)                                                                                                                                                                                                       |
+| `config_schema.py`                          | Nouveau schéma d'étape `STEP_HUMIDITY_DATA_SCHEMA`                                                                                                                                                                                                  | Ajout (toggle + sélecteur, pré-remplissage via `generic_step`)                                                                                                                                                                                                               |
+| `config_flow.py`                            | Option de menu « humidity » + `async_step_humidity` + validation entity_id                                                                                                                                                                          | Ajout (pattern `window`/`sync_device_internal_temp`)                                                                                                                                                                                                                         |
+| `base_thermostat.py`                        | Instancie `FeatureHumidityManager` et l'enregistre via `register_manager` ; délègue l'accès à l'humidité au manager ; **ne contient plus** la logique de listener/retry/résolution spécifique humidité                                              | Ajout limité : instanciation + délégation (propriété `current_humidity`) ; **suppression** de `_resolve_humidity_source`/`_async_setup_humidity_sensor`/`_async_retry_humidity_source`/`_async_humidity_changed`/`_async_update_humidity` et des attributs humidité courante |
+| `humidity.py`                               | Helper partagé `find_humidity_sensor_candidates(hass, temp_sensor_entity_id)` — utilisé par le manager **et** le config flow                                                                                                                        | Inchangé (déjà existant)                                                                                                                                                                                                                                                     |
+| `thermostat_climate.py`                     | `current_humidity` conserve uniquement le repli underlying si le manager n'a pas de source                                                                                                                                                          | Override de la propriété existante (l. 1159-1164)                                                                                                                                                                                                                            |
+| `underlyings.py`                            | Aucune modification (lecture `current_humidity` existante)                                                                                                                                                                                          | —                                                                                                                                                                                                                                                                            |
+| `strings.json` + `translations/*.json`      | Clés UI menu + page + erreurs                                                                                                                                                                                                                       | Ajout                                                                                                                                                                                                                                                                        |
+| `tests/`                                    | Tests unitaires (voir §8)                                                                                                                                                                                                                           | Ajout fichiers/cas                                                                                                                                                                                                                                                           |
+| `documentation/{en,fr,de,cs,pl}`            | Doc utilisateur                                                                                                                                                                                                                                     | Mise à jour                                                                                                                                                                                                                                                                  |
+
+### 3.1 `FeatureHumidityManager` (nouveau composant, v1.1)
+
+Fichier `custom_components/versatile_thermostat/feature_humidity_manager.py`, classe `FeatureHumidityManager(BaseFeatureManager)`, modelé sur `FeaturePresenceManager` (§2 fait n°9). Le manager **possède** (états internes) :
+
+- `_cur_humidity: float | None` — humidité courante (jamais persistée) ;
+- `_humidity_sensor_entity_id: str | None` — source résolue (explicite ou auto-détectée) ;
+- `_humidity_source: str` — `"explicit"` / `"auto"` / `"none"` ;
+- `_humidity_listener_entity_id: str | None` — dédoublonnage du listener (re-résolution sans fuite de listener) ;
+- `_humidity_retry_count: int` et `_cancel_humidity_retry: CALLBACK_TYPE | None` — re-tentatives de démarrage et leur annulation.
+
+Cycle de vie héritant des conventions réelles de `BaseFeatureManager` :
+
+| Méthode/propriété                | Comportement                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
+| -------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `__init__(vtherm, hass)`         | `super().__init__(vtherm, hass)` ; initialise tous les états ci-dessus à `None`/`"none"`/`0` (pattern `FeaturePresenceManager.__init__`)                                                                                                                                                                                                                                                                                                                                                                                                                       |
+| `post_init(entry_infos)`         | Lit `CONF_HUMIDITY_SENSOR`/`CONF_USE_HUMIDITY_FEATURE` depuis `entry_infos` et mémorise le capteur de température du VTherm (`vtherm._temp_sensor_entity_id`) pour la détection ; remet `_humidity_retry_count = 0` ; **ne résout pas encore** la source (résolution différée à `start_listening`/`refresh_state`, quand `hass`/le registre sont disponibles, pattern des autres managers)                                                                                                                                                                     |
+| `start_listening()`              | (1) `_resolve_humidity_source()` (algorithme §5) ; (2) si une source est résolue et différente du listener en place : `stop_listening()` puis `add_listener(async_track_state_change_event(self.hass, [sensor_entity_id], self._humidity_sensor_changed))` (pattern `FeaturePresenceManager.start_listening`) ; (3) si `source == "none"` et `_humidity_retry_count < 3` : planifie une re-tentative via `async_call_later(self.hass, 30, self._retry_humidity_source)` (délai et bornage 3 repris de l'implémentation en cours, FR-018) et mémorise le cancel |
+| `stop_listening()`               | Hérité de `BaseFeatureManager.stop_listening()` (dépile `_active_listener`) **+** annulation de la re-tentative en cours (`_cancel_humidity_retry`) et remise à zéro — appelé automatiquement par `remove_thermostat` via la boucle sur `_managers`, ce qui remplace le nettoyage ad-hoc actuel dans `remove_thermostat`                                                                                                                                                                                                                                       |
+| `refresh_state()`                | Lecture initiale : si une source est résolue, `hass.states.get(sensor_entity_id)` ; état présent et non `unavailable`/`unknown` → conversion via la shared `_async_update_humidity`-equivalente ; sinon `_cur_humidity = None` (retourne `True` si changement, convention `BaseFeatureManager`)                                                                                                                                                                                                                                                                |
+| `is_configured`                  | `True` si une source est résolue (`_humidity_source != "none"`) — même sémantique que « la feature a de quoi travailler »                                                                                                                                                                                                                                                                                                                                                                                                                                      |
+| `is_detected`                    | `True` si `is_configured` (une source explicite ou auto-détectée existe) ; aligné sur la sémantique de détection des autres managers                                                                                                                                                                                                                                                                                                                                                                                                                           |
+| `humidity_sensor_changed(event)` | Reçoit `new_state` de l'événement ; états `unavailable`/`unknown`/conversion impossible → `_cur_humidity = None` + log (warning/error, sans répétition) ; `float()` avec rejet `NaN`/`Inf` (`ValueError`/`TypeError` attrapées) ; ensuite `_vtherm.update_custom_attributes()` + `_vtherm.async_write_ha_state()` — **pas de** `recalculate` (FR-012)                                                                                                                                                                                                          |
+
+Propriétés d'exposition : `current_humidity -> float | None` (retourne `_cur_humidity` si `_humidity_source != "none"`, sinon `None`) et `humidity_source / humidity_sensor_entity_id` pour diagnostics et pour le repli `ThermostatClimate`.
+
+`BaseThermostat` l'instancie dans `__init__` (pattern l. ~240 : `self._humidity_manager: FeatureHumidityManager = FeatureHumidityManager(self, hass)`) et l'enregistre via `self.register_manager(self._humidity_manager)` ; la boucle générique de `async_startup` (`await manager.start_listening()`) et celle de `init_underlyings_completed`/`remove_thermostat` pilotent tout le cycle — **aucun appel spécifique humidité ne reste dans `BaseThermostat`**. La propriété `BaseThermostat.current_humidity` devient une simple délégation : `return self._humidity_manager.current_humidity` (ou `None` si manager sans source). `ThermostatClimate` interroge le manager : si le manager n'a pas de source → repli `underlying_entity(0).current_humidity` (§7.2).
 
 Diagramme de composants et flux :
 
 ```mermaid
 flowchart TD
     subgraph Config flow
-        MENU[async_step_menu] --> HUM[async_step_humidity<br/>nouveau]
+        MENU[async_step_menu] --> HUM[async_step_humidity]
         HUM --> VAL[validate_input:<br/>entity_id existera?]
+        HUM --> HELP[find_humidity_sensor_candidates<br/>humidity.py - helper partagé]
     end
     subgraph Entité VTherm
-        INIT[post_init / async_startup] --> RESOLVER[_resolve_humidity_source]
-        RESOLVER -->|non explicite| AUTO[auto-détection:<br/>entity_registry, device_id du capteur de température]
-        LISTENER[async_track_state_change_event<br/>humidity_sensor_entity_id] --> UPD[_async_update_humidity]
-        CURHUM[current_humidity property]
+        INIT[BaseThermostat __init__] -->|"register_manager"| HM[FeatureHumidityManager<br/>feature_humidity_manager.py]
+        START[async_startup:<br/>boucle générique sur _managers] -->|"start_listening"| HM
+        INITCOMPLETE[init_underlyings_completed:<br/>boucle générique] -->|"refresh_state"| HM
+        REMOVE[remove_thermostat:<br/>boucle générique] -->|"stop_listening"| HM
+        BT[current_humidity property<br/>délégation] --> HM
     end
-    VAL --> STORE[(config entry: humidity_sensor_entity_id,<br/>use_humidity_feature)]
-    STORE --> RESOLVER
-    AUTO --> CURHUM
-    UPD --> CURHUM
-    CURHUM -->|over_climate, pas de capteur| UNDER[underlying_entity.current_humidity]
-    CURHUM -->|over_switch / over_valve, pas de capteur| NONE[None]
+    HM -->|"si non explicite"| HELP
+    HELP --> ER[(entity_registry)]
+    HM -->|state_change_event| SENS[capteur humidité]
+    SENS --> HM
+    BTU[ThermostatClimate.current_humidity<br/>over_climate] -->|"manager sans source"| UNDER[underlying_entity.current_humidity]
+    BTU -->|"manager avec source"| HM
 ```
 
 ## 4. Modèle de données
@@ -91,16 +123,18 @@ CONF_USE_HUMIDITY_FEATURE = "use_humidity_feature"    # boolean, défaut None (=
 
 Cela garantit FR-011/BR-002 : l'auto-détection couvre les configs existantes sans aucune action utilisateur, et la désactivation reste possible (BR-005) — le retrait de `humidity_sensor_entity_id` du `user_input` par `merge_user_input` déclenche une nouvelle détection (AC-9).
 
-### 4.2 Attributs internes (BaseThermostat)
+### 4.2 Attributs internes
 
-L'ambiguïté constatée dans l'issue est levée ainsi :
+L'ambiguïté constatée dans l'issue est levée ainsi. **Depuis la v1.1, les attributs d'humidité courante appartiennent au `FeatureHumidityManager`** (§3.1) et non plus à `BaseThermostat` :
 
-| Attribut                                                                    | Sémantique                                                                                                        | Existante ? |
-| --------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------- | ----------- |
-| `_humidity`                                                                 | **humidité cible** (target humidity, écrite par `async_set_humidity uniquement) — **inchangé, ne pas réutiliser** | Oui         |
-| `_cur_humidity` (nouveau)                                                   | **humidité courante** issue de la source résolue (capteur explicite/détecté) ; `None` si jamais de valeur valide  | Non         |
-| `_humidity_sensor_entity_id` (nouveau)                                      | entity_id de la source résolue (explicite ou auto-détecté) ; `None` sinon                                         | Non         |
-| `_humidity_source` (nouveau, enum str : `"explicit"` / `"auto"` / `"none"`) | provenance, pour diagnostic et log Q1                                                                             | Non         |
+| Attribut (porteur)                                                                         | Sémantique                                                                                                         | Existante ?      |
+| ------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------ | ---------------- |
+| `_humidity` (BaseThermostat)                                                               | **humidité cible** (target humidity, écrite par `async_set_humidity` uniquement) — **inchangé, ne pas réutiliser** | Oui              |
+| `_cur_humidity` (FeatureHumidityManager)                                                   | **humidité courante** issue de la source résolue (capteur explicite/détecté) ; `None` si jamais de valeur valide   | Oui (à déplacer) |
+| `_humidity_sensor_entity_id` (FeatureHumidityManager)                                      | entity_id de la source résolue (explicite ou auto-détecté) ; `None` sinon                                          | Oui (à déplacer) |
+| `_humidity_source` (FeatureHumidityManager, enum str : `"explicit"` / `"auto"` / `"none"`) | provenance, pour diagnostic                                                                                        | Oui (à déplacer) |
+| `_humidity_listener_entity_id` (FeatureHumidityManager)                                    | dernier entity_id écouté, pour éviter les listeners dupliqués lors des re-résolutions                              | Oui (à déplacer) |
+| `_humidity_retry_count` / `_cancel_humidity_retry` (FeatureHumidityManager)                | compteur de re-tentatives et callback d'annulation (`async_call_later`, borné 3, délai 30 s)                       | Oui (à déplacer) |
 
 On **n'utilise pas** `_attr_current_humidity` : la propriété `current_humidity` est surchargée dans `BaseThermostat` et `ThermostatClimate` (les hands off vers `_cur_humidity`), ce qui évite la double source de vérité et respecte le style du code existant (propriété plutôt qu'attribut "ha").
 
@@ -112,12 +146,14 @@ On **n'utilise pas** `_attr_current_humidity` : la propriété `current_humidity
 
 ## 5. Algorithme de résolution de la source
 
-Point d'appel : nouvelle méthode `BaseThermostat._resolve_humidity_source()`, appelée :
-1. dans `async_startup` (après la lecture de la config, avant la lecture initiale) — FR-011 ;
-2. après `post_init` / rechargement de l'entité lors d'une modification de config (cannot: la modification de config déclenche un reload complet de l'entité, qui repasse par `post_init` + `async_startup`) — AC-9.
+Point d'appel (v1.1) : méthode **privée du `FeatureHumidityManager`** `_resolve_humidity_source()` — `BaseThermostat` n'héberge plus cet algorithme. Appels :
+1. en tête de `FeatureHumidityManager.start_listening()` (elle-même appelée par la boucle générique de `async_startup` sur `self._managers`) — FR-011 ;
+2. à chaque re-tentative de démarrage (§6.4) et après rechargement de l'entité lors d'une modification de config (le reload repasse par `post_init` + `async_startup`) — AC-9.
+
+L'algorithme lui-même est **inchangé** ; il s'appuie sur le helper partagé `find_humidity_sensor_candidates(hass, temp_sensor_entity_id)` de `humidity.py` (déjà existant, également utilisé par le config flow) :
 
 ```
-_resolve_humidity_source():
+FeatureHumidityManager._resolve_humidity_source():
     1. Si CONF_USE_HUMIDITY_FEATURE est explicitement False →
        _humidity_sensor_entity_id = None ; _humidity_source = "none"
        log info "humidity disabled by configuration" ; return
@@ -125,27 +161,18 @@ _resolve_humidity_source():
        _humidity_sensor_entity_id = <explicite> ; _humidity_source = "explicit"
        log info "humidity sensor configured: <id>" ; return
     3. Auto-détection (aucun capteur explicite):
-       a. temp_sensor_entity_id = self._temp_sensor_entity_id ; si absent → log info, source "none", return
-       b. registre =entity_registry.async_get(hass)
-          entry = registre.async_get(temp_sensor_entity_id)
-          si entry est None ou entry.device_id est None → log info "temperature sensor not attached to a device",
-             source "none", return
-       c. candidats = [e for e in registre.entities.values()
-                       si e.device_id == entry.device_id
-                       et e.domain == "sensor"
-                       et e.device_class == "sensor.DeviceClass.HUMIDITY"]
-          (équivalent : registre.entities_for_device(entry.device_id) filtré ensuite par domain/device_class)
-       d. si candidats vide → log info "no humidity candidate on device <id>", source "none", return
-       e. si len(candidats)>1 → log info "multiples humidity candidates %s, taking first one",
-             [e.entity_id pour e dans candidats]  (FR-005, AC-4)
-       f. _humidity_sensor_entity_id = candidats[0].entity_id ; _humidity_source = "auto"
+       candidats = find_humidity_sensor_candidates(hass, vtherm._temp_sensor_entity_id)
+       a. si le capteur de température est absent / sans entrée registre / sans device → log info, source "none", return
+       b. si candidats vide → log info "no humidity candidate", source "none", return
+       c. si len(candidats)>1 → log info "multiples humidity candidates %s, taking first one"  (FR-005, AC-4)
+       d. _humidity_sensor_entity_id = candidats[0] ; _humidity_source = "auto"
           log info "auto-detected humidity sensor: <id>"
-    4. Conformer le listener (§6) et effectuer la lecture initiale.
+    4. Le listener et la lecture initiale sont conformés par start_listening()/refresh_state() (§6).
 ```
 
-API HA utilisées (stables, `homeassistant.helpers.entity_registry`) : `async_get(hass)` (instance `EntityRegistry`), `RegistryEntry.device_id`, `RegistryEntry.domain`, `RegistryEntry.device_class`, itération de `registry.entities` (mapping entity_id → RegistryEntry) ou `async_get_entity_id` si nécessaire. Domaine : constante `Platform.SENSOR` / `SENSOR_DOMAIN`. Le `device_class` est lu du **registre** (préférence), avec repli sur `hass.states.get(entity_id).attributes.get("device_class")` si l'entrée registre n'existe pas (cas des entités sans registre, rare pour un capteur) — FR-004/H1/H3.
+API HA utilisées (stables, `homeassistant.helpers.entity_registry`, encapsulées dans `humidity.py`) : `async_get(hass)` (instance `EntityRegistry`), `RegistryEntry.device_id`, `RegistryEntry.domain`, `RegistryEntry.device_class`, itération de `registry.entities`. Domaine : constante `Platform.SENSOR` / `SENSOR_DOMAIN`. Le `device_class` est lu du **registre** (préférence), avec repli sur `hass.states.get(entity_id).attributes.get("device_class")` si l'entrée registre n'existe pas — FR-004/H1/H3.
 
-Note : l'auto-détection n'ajoute **pas** de `device_class` validation pour le capteur explicite (l'utilisateur peut légitimement choisir un `input_number` ou un capteur sans device_class ; l'entity_id est valide dès lors qu'il expose un état numérique). C'est cohérent avec `CONF_TEMP_SENSOR` qui accepte plusieurs domaines.
+Note : l'auto-détection n'ajoute **pas** de validation `device_class` pour le capteur explicite (l'utilisateur peut légitimement choisir un `input_number` ou un capteur sans device_class ; l'entity_id est valide dès lors qu'il expose un état numérique). C'est cohérent avec `CONF_TEMP_SENSOR` qui accepte plusieurs domaines.
 
 ## 6. Flux
 
@@ -155,35 +182,41 @@ Note : l'auto-détection n'ajoute **pas** de `device_class` validation pour le c
 sequenceDiagram
     participant HA
     participant BT as BaseThermostat
+    participant HM as FeatureHumidityManager
     participant ER as EntityRegistry
-    BT->>BT: post_init (config entry lue: humidity_sensor_entity_id, use_humidity_feature)
+    BT->>HM: __init__ + register_manager (pattern des autres managers)
     HA->>BT: async_added_to_hass
-    Note over BT: listeners température (inchangés)
     HA->>BT: async_startup
-    BT->>BT: _resolve_humidity_source()
+    Note over BT: boucle génique: pour chaque manager de _managers
+    BT->>HM: start_listening()
+    HM->>HM: _resolve_humidity_source()
     opt auto-détection
-        BT->>ER: async_get(temp_sensor_entity_id)
-        BT->>ER: entities du device_id, filtrage sensor/humidity
-        BT->>BT: 1er candidat retenu + logs
+        HM->>ER: find_humidity_sensor_candidates(hass, temp_sensor)
+        HM->>HM: 1er candidat retenu + logs
     end
     opt source résolue (explicit|auto)
-        BT->>BT: async_track_state_change_event(humidity_sensor_entity_id, _async_humidity_changed)
-        BT->>HA: hass.states.get(humidity_sensor_entity_id)
-        opt état présent et non unavailable/unknown
-            BT->>BT: _async_update_humidity(state) → _cur_humidity, update_custom_attributes
-        end
+        HM->>HA: async_track_state_change_event(humidity_sensor_entity_id, humidity_sensor_changed)
+    end
+    opt re-tentative nécessaire (FR-018)
+        HM->>HM: async_call_later(30 s, _retry_humidity_source) - max 3, cancel mémorisé
+    end
+    Note over BT: init_underlyings_completed: boucle générique refresh_state()
+    BT->>HM: refresh_state()
+    HM->>HA: hass.states.get(humidity_sensor_entity_id)
+    opt état présent et non unavailable/unknown
+        HM->>HM: _cur_humidity mis à jour ; vtherm.update_custom_attributes()
     end
 ```
 
-- Le listener d'humidité est enregistré dans `async_added_to_hass` **après résolution** (la résolution doit avoir eu lieu ; ordre garanti car `async_startup` est déclenchée par le VTherm API après `async_added_to_hass`). Deux options d'implémentation acceptables : (a) résolution dans `async_added_to_hass` avant l'enregistrement du listener ; (b) listener enregistré dans `async_startup` (le différé de `async_track_state_change_event` n'exige pas l'enregistrement dans `async_added_to_hass`). **Décision : (b)** — la résolution se fait en tête de `async_startup`, le listener suit immédiatement, avec `async_on_remove` comme pour les autres (cohérent avec le chargement dynamique des underlyings déjà différé au `startup`).
+- **Décision v1.1** : la résolution, l'écoute et la lecture initiale sont portées par le manager et déclenchées par les **boucles génériques existantes** (`async_startup` → `start_listening()`, `init_underlyings_completed` → `refresh_state()`). `BaseThermostat` ne contient **aucun** appel spécifique humidité dans son cycle de vie ; le nettoyage (listeners + re-tentative en cours) est assuré par `remove_thermostat` → boucle générique `stop_listening()`, **plus** annulation du `_cancel_humidity_retry` dans le `stop_listening()` surchargé du manager (remplace le nettoyage ad-hoc actuellement dans `remove_thermostat`).
 - Pour `over_climate`, `current_humidity` (§7) n'a pas besoin de lecture du sous-jacent au démarrage : la propriété délègue à la demande.
 
 ### 6.2 Changement d'état du capteur (temps réel — AC-1, révisé FR-017)
 
-`_async_humidity_changed(event)` (pattern `_async_ext_temperature_changed`, avec propagation d'invalidité) :
+`FeatureHumidityManager.humidity_sensor_changed(event)` (portage de `_async_humidity_changed`, pattern `_async_ext_temperature_changed`, avec propagation d'invalidité) :
 1. `new_state = event.data.get("new_state")` ; si `None` ou état `STATE_UNAVAILABLE`/`STATE_UNKNOWN` → propagation de l'invalidité : `_cur_humidity = None` + log warning (sans répétition à chaque tick) ; pas de crash.
-2. `_async_update_humidity(new_state)` : conversion `float`, rejet `NaN`/`Inf` (ValueError attrapée, log `_LOGGER.error`, **`_cur_humidity = None`** — propagation, FR-017).
-3. `update_custom_attributes()` + `async_write_ha_state()` (l'humidité n'affecte aucune régulation : **pas de** `recalculate`, FR-012).
+2. Conversion `float`, rejet `NaN`/`Inf` (ValueError attrapée, log `_LOGGER.error`, **`_cur_humidity = None`** — propagation, FR-017).
+3. `_vtherm.update_custom_attributes()` + `_vtherm.async_write_ha_state()` (l'humidité n'affecte aucune régulation : **pas de** `recalculate`, FR-012).
 
 ### 6.3 Modification de configuration (AC-9)
 
@@ -197,7 +230,7 @@ Le sélecteur pré-rempli : `generic_step` affiche le schéma avec `add_suggeste
 ### 6.4 États invalides et repli (AC-7, BR-003 — révisé par décisions utilisateur du 2026-09-17, FR-017/FR-018)
 
 - Conversion impossible / `NaN` / `Inf` / état `unavailable`/`unknown` : l'invalidité est **propagée** — `_cur_humidity = None` (et non conservation de la dernière valeur valide), log (error pour conversion impossible, warning pour unavailable/unknown, sans répétition à chaque tick). `current_humidity` retourne `None`, valeur standard de l'API `ClimateEntity` (`float | None`) pour l'indéfini. Au retour d'une valeur valide, le capteur reprend immédiatement la priorité.
-- Démarrage avec capteur/registry non encore chargés (ordre de chargement HA, cas fréquent — FR-018) : humidité `None` en attendant ; re-tentatives plus tard (listener déjà en place qui se déclenche à la première publication du capteur, et/ou re-tentative différée bornée au démarrage, ex. `async_call_later`).
+- Démarrage avec capteur/registry non encore chargés (ordre de chargement HA, cas fréquent — FR-018) : humidité `None` en attendant ; **re-tentatives différées bornées portées par le manager** : `async_call_later(hass, 30, _retry_humidity_source)` tant que `_humidity_source == "none"` et `_humidity_retry_count < 3` (délai 30 s, maximum 3 re-tentatives — repris de l'implémentation en cours) ; le cancel est mémorisé dans `_cancel_humidity_retry` et annulé dans `stop_listening()` (pas de callback orphelin après retrait de l'entité). Ce mécanisme complète le listener, qui se déclenche dès la première publication du capteur.
 - `over_climate` sans source résolue : délégation à `underlying_entity(0).current_humidity` — comportement à l'identique de l'actuel (AC-6, FR-009).
 - Jamais d'exception non gérée vers HA : tous les chemins sont dans des `try/except ValueError` (conversion) et gardes `None`/états.
 
@@ -211,35 +244,60 @@ Le sélecteur pré-rempli : `generic_step` affiche le schéma avec `add_suggeste
 
 ## 7. Interfaces et contrats
 
-### 7.1 `BaseThermostat` (nouveau)
+### 7.1 `FeatureHumidityManager` (nouveau — v1.1) et `BaseThermostat` (délégation)
 
 ```python
-@property
-def current_humidity(self) -> float | None:
-    """Humidité courante ; None si aucune source."""
-    return self._cur_humidity if self._humidity_source != "none" else None
+# feature_humidity_manager.py
+class FeatureHumidityManager(BaseFeatureManager):
+    unrecorded_attributes = frozenset(
+        {"is_humidity_configured", "humidity_manager"}
+    )  # pattern des autres managers (ex. FeaturePresenceManager)
 
-# listeners privés :
-async def _async_humidity_changed(self, event: Event) -> None
-async def _async_update_humidity(self, state: State) -> None
-def _resolve_humidity_source(self) -> None   # helper registre potentiellement async (async_get est sync)
+    def __init__(self, vtherm: Any, hass: HomeAssistant): ...
+    def post_init(self, entry_infos: ConfigData): ...          # lit CONF_*, reset retry
+    async def start_listening(self): ...                        # résolution + listener + retry
+    def stop_listening(self) -> bool: ...                       # super() + cancel du retry
+    async def refresh_state(self) -> bool: ...                  # lecture initiale
+    @property
+    def is_configured(self) -> bool: ...                         # source résolue
+    @property
+    def is_detected(self) -> bool: ...
+    @property
+    def current_humidity(self) -> float | None:
+        """Humidité courante ; None si aucune source."""
+        return self._cur_humidity if self._humidity_source != "none" else None
+    @property
+    def humidity_source(self) -> str: ...                       # "explicit" / "auto" / "none"
+    @property
+    def humidity_sensor_entity_id(self) -> str | None: ...
+    async def humidity_sensor_changed(self, event: Event) -> None   # callback listener
+    def _resolve_humidity_source(self) -> None                  # sync ; registre lu en mémoire
+    async def _retry_humidity_source(self, _now) -> None        # re-tentative async_call_later
 ```
 
-(Le registre d'entités `entity_registry.async_get(hass)` est synchrone → `_resolve_humidity_source` reste une méthode sync appelée depuis un contexte async, sans I/O bloquante — la lecture registre est en mémoire.)
+```python
+# base_thermostat.py — délégation pure
+@property
+def current_humidity(self) -> float | None:
+    """Humidité courante déléguée au FeatureHumidityManager."""
+    return self._humidity_manager.current_humidity if self._humidity_manager else None
+```
+
+Contrats : `current_humidity` ne lève jamais ; `is_configured`/`is_detected` ne dépendent que de la source résolue ; `start_listening` est ré-entrante (re-résolution sans listener dupliqué, idémpotente grâce à `_humidity_listener_entity_id`) ; `stop_listening` annule listeners **et** re-tentative en cours.
 
 ### 7.2 `ThermostatClimate` (modification)
 
 ```python
 @property
 def current_humidity(self) -> float | None:   # override existant l. 1159
-    if self._humidity_source != "none":
-        return self._cur_humidity
+    if self._humidity_manager.humidity_source != "none":
+        return self._humidity_manager.current_humidity
     if self.underlying_entity(0):
         return self.underlying_entity(0).current_humidity
     return None
 ```
 
-Aucune autre modification dans `thermostat_climate.py` ; `async_set_humidity` et `set_humidity` restent strictement inchangés (AC-10, FR-012).
+`ThermostatClimate` ne conserve **que** le repli underlying pour `over_climate` quand le manager n'a pas de source. Aucune autre modification dans `thermostat_climate.py` ; `async_set_humidity` et `set_humidity` restent strictement inchangés (AC-10, FR-012).
 
 ### 7.3 Config flow / schéma
 
@@ -265,41 +323,39 @@ Contrats clés :
 
 ## 8. Stratégie de tests (mapping AC-1..AC-12)
 
-Fichiers : `tests/test_humidity.py` (nouveau — entité & runtime), extensions de `tests/test_config_flow.py` (option, page, validation), extensions de `tests/test_sensors.py`/`test_thermostat_climate.py` si leurs harness sont plus adaptés. Mocks : entity registry via `MockConfigEntry`/statemock du pattern existant ; helper `send_humidity_change_event(hass, entity_id, humidity, date)` dans `tests/commons.py` (clone de `send_temperature_change_event`, `hass.bus.async_fire(EVENT_STATE_CHANGED, ...)`) + mock des états `hass.states.async_set`.
+Fichiers : `tests/test_humidity.py` (existant, à retargeter vers le manager), extensions de `tests/test_config_flow.py` (option, page, validation), extensions de `tests/test_sensors.py`/`test_thermostat_climate.py` si leurs harness sont plus adaptés. Mocks : entity registry via `MockConfigEntry`/statemock du pattern existant ; helper `send_humidity_change_event(hass, entity_id, humidity, date)` dans `tests/commons.py` (clone de `send_temperature_change_event`, `hass.bus.async_fire(EVENT_STATE_CHANGED, ...)`) + mock des états `hass.states.async_set`. **v1.1** : les tests existants `test_explicit_humidity_updates_and_invalid_states` (cible aujourd'hui `BaseThermostat._async_update_humidity`), `test_auto_detection_returns_no_candidate_without_temperature_registry_entry` et `test_auto_detection_returns_first_registry_humidity_candidate` (helpers `humidity.py`) sont **re-ciblés sur `FeatureHumidityManager`** (via l'instance du manager obtenue depuis le VTherm, ou une construction directe `FeatureHumidityManager(vtherm, hass)` modelée sur `tests/test_external_feature_manager.py`). De nouveaux tests couvrent le cycle de vie du manager (voir ci-dessous).
 
-| AC    | Cas de test (fichier)                                                                                                                                                                                                                                                                                                                                                                           |
-| ----- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| AC-1  | `test_humidity.py` : VTherm over_climate/over_switch/over_valve avec `humidity_sensor_entity_id` configuré → lecture initiale + `send_humidity_change_event` → `current_humidity` suit                                                                                                                                                                                                          |
-| AC-2  | `test_humidity.py` : reload de l'entité (`async_startup` re-joué / re-création de l'entité) → valeur présente sans événement                                                                                                                                                                                                                                                                    |
-| AC-3  | `test_humidity.py` : mock registry avec 1 capteur humidity sur le device du capteur de température → détecté + log info (assert via `caplog`)                                                                                                                                                                                                                                                   |
-| AC-4  | idem avec 2-3 candidats → premier retenu (ordre d'insertion du mock registry) + log listant                                                                                                                                                                                                                                                                                                     |
-| AC-5  | idem avec 0 candidat → source none + log info, pas d'erreur                                                                                                                                                                                                                                                                                                                                     |
-| AC-6  | `test_humidity.py` : over_climate sans capteur sans candidat → `current_humidity` == `underlying.current_humidity` mocké ; over_switch/over_valve → `None` ; aucun log d'erreur                                                                                                                                                                                                                 |
-| AC-7  | `test_humidity.py` : événements `unavailable`, `unknown`, `"NaN"`, `"Inf"`, `"abc"` → pas d'exception, `current_humidity` devient **`None`** (invalidité propagée, pas de conservation de l'ancienne valeur — FR-017/BR-003) ; retour à la normale dès valeur valide ; au démarrage avec capteur non chargé → `None` puis valeur après re-tentative réussie (FR-018)                            |
-| AC-8  | `test_config_flow.py` : `"humidity" in menu_options` ; sélection → `_infos` correctes ; entity_id inexistant → erreur `unknown_entity` ; sélecteur pré-rempli avec le détecté (mock registry dans le flow) ; finalisation sans visiter la page possible (check_config_complete inchangé)                                                                                                        |
-| AC-9  | `test_config_flow.py` + `test_humidity.py` : ajout explicite prime ; suppression explicite → re-détection ; toggle off → repli                                                                                                                                                                                                                                                                  |
-| AC-10 | non-régression : la suite existante doit passer à l'identique (l'humidité n'entre dans aucun calcul) ; test dédié : cycle TPI/presets identiques avec et sans humidité active                                                                                                                                                                                                                   |
-| AC-11 | exécution complète de la suite (tâche `./container coverage`) sans erreurs récurrentes                                                                                                                                                                                                                                                                                                          |
-| AC-12 | inspection : clés présentes dans `strings.json` et **tous** les fichiers `translations/{en,fr,cs,de,pl}.json` ; documentation à jour dans **toutes** les langues (`documentation/{cs,de,en,fr,pl}/`) ; paragraphe « Release 10.4 » complété dans **tous** les README (`README{,-cs,-de,-fr,-pl}.md`) avec la fonctionnalité humidité (exigences FR-014/FR-015, décision utilisateur 2026-09-17) |
+### 8.1 Tests spécifiques au composant `FeatureHumidityManager` (v1.1)
+
+| Cas de test                                                                                                           | Vérification                                                                                                                                                                                                         |
+| --------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `test_humidity_manager_registered` : VTherm (3 types) créé avec une config humidité                                   | `_humidity_manager in vtherm._managers` ; instance de `FeatureHumidityManager` (pattern d'assertion de `tests/test_external_feature_manager.py` l. 129-131)                                                          |
+| `test_humidity_manager_lifecycle_explicit` : `post_init` + `start_listening` + `refresh_state` avec capteur explicite | listener enregistré (state change → `_cur_humidity` mis à jour), lecture initiale effectuée, `is_configured`/`is_detected` vrais, `BaseThermostat.current_humidity` délègue bien                                     |
+| `test_humidity_manager_lifecycle_auto` : idem avec mock registry 1 candidat                                           | source = `"auto"`, listener sur le candidat, logs                                                                                                                                                                    |
+| `test_humidity_manager_retry` : source `"none"` au premier passage (registry vide) puis candidat au 2e                | `async_call_later` appelé (mock/patch), `_humidity_retry_count` incrémenté, borné à 3 ; après succès, plus de retry planifié ; `stop_listening()` annule le retry en cours (cancel appelé, pas de callback orphelin) |
+| `test_humidity_manager_no_duplicates` : appels répétés de `start_listening` (reload) avec la même source              | un seul listener ré-enregistré (`stop_listening` d'abord, pattern presence), pas de fuite                                                                                                                            |
+| `test_humidity_manager_removal` : `remove_thermostat` (ou `stop_listening` via la boucle générique)                   | listeners et re-tentatives nettoyés **sans** code spécifique humidité dans `BaseThermostat.remove_thermostat` (l'appel ad-hoc `_cancel_humidity_retry` est supprimé du cœur)                                         |
+| `test_thermostat_climate_fallback` : over_climate, manager sans source                                                | `current_humidity` == underlying mocké ; manager avec source → valeur du manager (repli exclusivement dans `ThermostatClimate`)                                                                                      |
 
 ## 9. Réponses aux questions ouvertes Q1..Q4
 
 - **Q1 — log de l'écrasement en `over_climate`** : **Non — aucun log** (décision utilisateur du 2026-09-17, tranche Q1). Si un capteur externe est explicitement spécifié, l'utilisateur sait ce qu'il a configuré ; aucun log info/warning de l'écrasement de l'humidité sous-jacente. *(Révision : le log info unique à la résolution initialement proposé est retiré.)*
 - **Q2 — état invalide** : **propager l'invalidité** (décision utilisateur du 2026-09-17, tranche Q2) : ne **pas** conserver la dernière valeur valide. Le VTherm doit permettre de « forcer » une valeur invalide : retourner `None` (`ClimateEntity.current_humidity` est typée `float | None`); do not keep the last valid value (user decision of 2026-09-17, FR-017).
 - **Q3 — option toujours au menu** : **Oui, faisable et conforme** (confirmé par décision utilisateur du 2026-09-17 — FR-016 : la page « features » ne change pas). `async_step_menu` contient déjà des options inconditionnelles (`advanced`, `lock`) : `menu_options.append("humidity")` lorsque non central config. Le toggle est sur la page elle-même. Aucune condition préalable n'est requise. (Ne pas l'ajouter à `STEP_FEATURES_DATA_SCHEMA` : le toggle vit dans la page dédiée, conformément à D5 — divergence évitée de justesse avec la spec, qui est cohérente.)
-- **Q4 — re-tentative si capteur de température unavailable/sans appareil** : **réessayer plus tard** (décision utilisateur du 2026-09-17, tranche Q4 — révise la proposition initiale de « pas de re-tentative »). Au démarrage, le capteur d'humidité (ou le capteur de température utilisé pour la détection) est souvent momentanément indisponible selon l'ordre de chargement des capteurs par HA. Le système doit donc : (1) remonter l'humidité comme **indéfinie** (`None`) tant que le capteur n'est pas disponible ; (2) **re-tenter** la lecture/détection plus tard — mécanisme proposé : re-tentative pilotée par le retour d'une valeur valide du capteur d'humidité (le listener `async_track_state_change_event` déjà en place reçoit l'événement dès que le capteur publie) et/ou temporisation de re-tentative au démarrage (à définir finement en implémentation, ex. `async_call_later` avec retry borné). *(Révision : la re-résolution au seul prochain démarrage/rechargement est jugée insuffisante par l'utilisateur — FR-018/BR-004.)*
+- **Q4 — re-tentative si capteur de température unavailable/sans appareil** : **réessayer plus tard** (décision utilisateur du 2026-09-17, tranche Q4 — révise la proposition initiale de « pas de re-tentative »). Au démarrage, le capteur d'humidité (ou le capteur de température utilisé pour la détection) est souvent momentanément indisponible selon l'ordre de chargement des capteurs par HA. Le système doit donc : (1) remonter l'humidité comme **indéfinie** (`None`) tant que le capteur n'est pas disponible ; (2) **re-tenter** la lecture/détection plus tard — mécanisme **v1.1 : re-tentatives portées par le `FeatureHumidityManager`** : `async_call_later` (délai 30 s, maximum 3, cancel dans `stop_listening()`), complémenté par le listener qui se déclenche dès que le capteur publie (FR-018/BR-004). Le cancel de la re-tentative est annulé dans `stop_listening()`. *(Révision : la re-résolution au seul prochain démarrage/rechargement est jugée insuffisante par l'utilisateur.)*
 
 ## 10. Risques résiduels, hypothèses, traçabilité
 
 ### Risques et points de vigilance d'implémentation
 
 1. **`merge_user_input` retire les clés absentes** : la désactivation doit bien retirer `humidity_sensor_entity_id` d'`_infos` (test AC-9). Même mécanisme : vider le sélecteur + toggle off.
-2. **`_humidity` vs `_cur_humidity`** : vigilance code review — ne jamais écrire l'humidité courante dans `_humidity` (conflit avec `async_set_humidity`/`target_humidity`). L'issue originale propose un stockage à 3 étages (`_cur_humidity`, `_attr_current_humidity`, `_humidity`) — la conception le réduit à `_cur_humidity` seul (une seule source de vérité).
+2. **`_humidity` vs `_cur_humidity`** : vigilance code review — ne jamais écrire l'humidité courante dans `_humidity` (conflit avec `async_set_humidity`/`target_humidity`). L'issue originale propose un stockage à 3 étages (`_cur_humidity`, `_attr_current_humidity`, `_humidity`) — la conception le réduit à `_cur_humidity` seul, **détenu par le `FeatureHumidityManager`** depuis la v1.1 (une seule source de vérité, hors du cœur `BaseThermostat`).
 3. **Ordre du registre** : le « premier candidat dans l'ordre du registre » = ordre d'itération de `registry.entities` (dict d'insertion côté HA) — stabilité supposée H4 ; documenter dans le code que le choix est arbitraire mais déterministe.
-4. **Auto-détection dans le config flow** : le helper de détection doit être partagé (pas de duplication d'algorithme) et exécuté avec `self.hass` du flow ; tests à mocker différemment du runtime entité.
+4. **Auto-détection dans le config flow** : le helper `find_humidity_sensor_candidates` (`humidity.py`) est **partagé** entre le `FeatureHumidityManager` et le config flow (déjà le cas sur la branche) — pas de duplication d'algorithme ; tests à mocker différemment du runtime entité.
 5. **`_attr_current_humidity` non utilisé** : vérifier qu'aucune classe ne définit `_attr_current_humidity` (résultat de l'inspection : non — seule la propriété de `thermostat_climate.py` existe).
 6. **Traductions multiples** : 5 langues (en, fr, cs, de, pl) **toutes obligatoires** (décision utilisateur 2026-09-17) : `strings.json` + `translations/`, fichiers de documentation `documentation/{cs,de,en,fr,pl}/`, et paragraphe « Release 10.4 » de chaque README (`README{,-cs,-de,-fr,-pl}.md`) complété avec la fonctionnalité humidité.
 7. **Listener non enregistré si page jamais visitée + détection** : la source résolue doit exister même sans visiter la page — les tests AC-3/AC-5 en configuration initiale le vérifient.
+8. **Refactor `FeatureHumidityManager` (v1.1)** : portage de l'implémentation en cours (§2 fait n°8) vers le manager — points de vigilance : (a) l'appel ad-hoc `_cancel_humidity_retry` dans `BaseThermostat.remove_thermostat` doit être **supprimé** (remplacé par le `stop_listening()` surchargé du manager) ; (b) les re-tentatives ne doivent pas se cumuler avec un listener éventuel ; (c) `post_init` est sans doute appelé avant que `hass`/le registre ne soient pleinement disponibles — la résolution reste différée à `start_listening` (convention des autres managers) ; (d) retirer l'import `find_humidity_sensor_candidates` de `base_thermostat.py` (le manager et le config flow l'importent).
 
 ### Hypothèses de conception
 
@@ -312,24 +368,24 @@ Fichiers : `tests/test_humidity.py` (nouveau — entité & runtime), extensions 
 | Exigences      | Élément de conception                                                                                                       |
 | -------------- | --------------------------------------------------------------------------------------------------------------------------- |
 | FR-001         | §4.1 clés de config, §7.3 schéma, disponible tous types (§3)                                                                |
-| FR-002         | §6.5 tableau, §7.1/§7.2 propriétés `current_humidity`                                                                       |
-| FR-003         | §6.1 lecture initiale, §6.2 listener (pattern température §2 fait 3)                                                        |
-| FR-004         | §5 algorithme étapes 3a-3c (entity_registry, device_id, device_class humidity)                                              |
-| FR-005         | §5 étape 3e (premier + log listant)                                                                                         |
-| FR-006         | §5 étapes 3a/3d (log info, aucun candidat)                                                                                  |
+| FR-002         | §6.5 tableau, §7.1 propriétés `current_humidity` (manager) / §7.2 `ThermostatClimate`                                       |
+| FR-003         | §6.1 lecture initiale (`refresh_state`) et listener (`start_listening`) portés par le manager (§3.1, §2 fait n°9)           |
+| FR-004         | §5 algorithme étape 3 (via `find_humidity_sensor_candidates`, entity_registry, device_id, device_class humidity)            |
+| FR-005         | §5 étape 3c (premier + log listant)                                                                                         |
+| FR-006         | §5 étapes 3a/3b (log info, aucun candidat)                                                                                  |
 | FR-007         | §7.3 (option menu dédiée, toggle, sélecteur pré-rempli via auto-détection à la volée)                                       |
 | FR-008         | §5 (ordre de résolution) + §6.5 (tableau des priorités)                                                                     |
-| FR-009         | §6.5 lignes « none » = comportement actuel strict (AC-6)                                                                    |
+| FR-009         | §6.5 lignes « none » = comportement actuel strict (AC-6), repli isolé dans `ThermostatClimate` (§7.2)                       |
 | FR-010         | §6.4 (gardes + try/except, propagation de l'invalidité via `None`)                                                          |
-| FR-011         | §5 points d'appel 1 et 2 (startup + reload sur modification de config)                                                      |
+| FR-011         | §5 points d'appel (start_listening du manager au startup + reload sur modification de config)                               |
 | FR-012         | §6.2 (pas de recalculate), §7.2 (async_set_humidity inchangé), AC-10                                                        |
 | FR-013         | §7.3 (validate_input + check_config_complete inchangé)                                                                      |
 | FR-014         | §8 impacts doc/traductions — couverture **complète CS, DE, EN, FR, PL** obligatoire                                         |
 | FR-015         | §8 impacts doc/traductions — paragraphe « Release 10.4 » **de chaque README** (`README{,-cs,-de,-fr,-pl}.md`) complété      |
 | FR-016         | §7.3 — `STEP_FEATURES_DATA_SCHEMA` **inchangé** ; option menu « Humidité » **inconditionnelle** ; toggle sur la page dédiée |
 | FR-017         | §6.2/§6.4 — invalidité propagée (`None`), pas de conservation de la dernière valeur                                         |
-| FR-018         | §6.4 — démarrage avec capteur non chargé : re-tentatives + `None` en attendant                                              |
-| BR-001..BR-008 | respectivement §6.3/§5, §5, §6.4/§9-Q2, §6.1/§6.3, §4.1 (sémantique 3 états), §6.5/AC-6, §6.2, §6.5 (par type)              |
+| FR-018         | §6.4 — re-tentatives (30 s, max 3, cancel dans `stop_listening`) + `None` en attendant, portées par le manager (§3.1)       |
+| BR-001..BR-008 | respectivement §6.3/§5, §5, §6.4/§9-Q2, §6.1/§6.4, §4.1 (sémantique 3 états), §6.5/AC-6, §6.2, §6.5 (par type)              |
 
 ### Impacts documentation
 
@@ -357,27 +413,29 @@ This design translates `issue-1964-specification.md` into technical elements cov
 
 ## 3..7. Architecture, data model, algorithm, flows, contracts
 
-Identical to Part 1 §3..§7 (see the French sections for Mermaid diagrams, tables, code snippets and the resolution algorithm):
-- New keys: `CONF_HUMIDITY_SENSOR = "humidity_sensor_entity_id"`, `CONF_USE_HUMIDITY_FEATURE = "use_humidity_feature"` (3-state semantics: absent → auto-détection enabled; `False` → disabled; `True` → explicit sensor or detection).
-- New internal attributes: `_cur_humidity`, `_humidity_sensor_entity_id`, `_humidity_source` (`explicit`/`auto`/`none`); `_humidity` untouched (target).
-- Resolution in `_resolve_humidity_source()` called at `async_startup` and on config-change reload; auto-détection over the temp-sensor's `device_id` (first registry candidate, info log listing all candidates, none → fallback).
-- Listener `async_track_state_change_event` on the resolved sensor, registered in `async_startup` with `async_on_remove`; `_async_update_humidity`: on invalid state (`unavailable`/`unknown`/`NaN`/`Inf`/non-numeric) the invalidity is **propagated** (`_cur_humidity = None`, logs without repetition), per user decision of 2026-09-17 (FR-017/FR-018); at startup with sensor not yet loaded, retry later and report `None` until available.
-- `BaseThermostat.current_humidity` returns `_cur_humidity` when a source is resolved; `ThermostatClimate.current_humidity` overrides to fall back to `underlying_entity(0).current_humidity` when no source — strictly preserving today's behaviour (AC-6).
-- Config flow: `STEP_HUMIDITY_DATA_SCHEMA` (toggle + entity selector), `async_step_humidity` (pattern `sync_device_internal_temp`), unconditional `menu_options.append("humidity")` for non-central configs, `CONF_HUMIDITY_SENSOR` added to `validate_input` checks; selector pre-filled via a shared detection helper executed against the flow's `hass`; no change to `check_config_complete`.
+Identical to Part 1 §3..§7 (see the French sections for Mermaid diagrams, tables, code snippets and the resolution algorithm). **v1.1 refactor (explicit user decision): humidity responsibility moves from `BaseThermostat` into a dedicated `FeatureHumidityManager`.**
+- **New file `feature_humidity_manager.py`** — class `FeatureHumidityManager(BaseFeatureManager)`, modelled on `FeaturePresenceManager`. The manager **owns** `_cur_humidity`, the resolved sensor id, the source (`explicit`/`auto`/`none`), the HA listener (`async_track_state_change_event`, deduplicated via a stored listener entity id), the start-up retries (`async_call_later`, 30 s delay, max 3, cancellable — the cancel handle is cleared in `stop_listening()`).
+- Lifecycle follows the real `BaseFeatureManager` conventions: `post_init` (reads `CONF_HUMIDITY_SENSOR`/`CONF_USE_HUMIDITY_FEATURE`, resets retry counter; resolution deferred), `start_listening` (resolve → register listener → schedule retry if `source == "none"`), `stop_listening` (inherited listener cleanup **plus** retry cancellation, invoked by the generic `remove_thermostat` loop), `refresh_state` (initial read via `hass.states.get` with `unavailable`/`unknown` guards), `is_configured` / `is_detected` (a source is resolved).
+- `BaseThermostat` instantiates the manager in `__init__` and registers it via `register_manager` (`_managers`); it **no longer contains** any humidity-specific listener/retry/source logic (the ad-hoc `_cancel_humidity_retry` clean-up in `remove_thermostat` is removed). Its `current_humidity` property purely delegates to the manager.
+- `ThermostatClimate` keeps **only** the `over_climate` underlying fallback (`underlying_entity(0).current_humidity`) when the manager has no source; `async_set_humidity`/`set_humidity` unchanged.
+- `find_humidity_sensor_candidates` remains a shared helper (`humidity.py`) used by both the manager and the config flow.
+- New keys: `CONF_HUMIDITY_SENSOR = "humidity_sensor_entity_id"`, `CONF_USE_HUMIDITY_FEATURE = "use_humidity_feature"` (3-state semantics: absent → auto-détection enabled; `False` → disabled; `True` → explicit sensor or detection); `_humidity` untouched (target).
+- Sensor-change handling propagates invalidity (`_cur_humidity = None` on `unavailable`/`unknown`/`NaN`/`Inf`/non-numeric, logs without repetition), per user decisions of 2026-09-17 (FR-017/FR-018); no `recalculate`.
+- Config flow: `STEP_HUMIDITY_DATA_SCHEMA`, `async_step_humidity`, unconditional `menu_options.append("humidity")`, `CONF_HUMIDITY_SENSOR` in `validate_input`; selector pre-filled via the shared helper; no change to `check_config_complete`.
 
 ## 8. Tests mapped to AC-1..AC-12
 
-Same table as Part 1 §8: new `tests/test_humidity.py` (explicit sensor all 3 types, initial read/reload persistence, auto-detection 1/many/none candidate, invalid states, fallback), extensions in `tests/test_config_flow.py` (menu option, pre-filled selector, unknown entity rejection, finalize without visiting the page, re-detection on config change), plus `send_humidity_change_event` helper in `tests/commons.py`; AC-10 non-regression via the full existing suite; AC-12 via inspection of `strings.json`, **all** `translations/{en,fr,cs,de,pl}.json`, documentation in all languages, and the "Release 10.4" paragraph in every README.
+Same table as Part 1 §8. **v1.1**: the existing `tests/test_humidity.py` cases (`test_explicit_humidity_updates_and_invalid_states`, auto-detection helper cases) are **re-targeted to `FeatureHumidityManager`**, plus a new dedicated sub-suite (Part 1 §8.1): manager registration in `_managers` (assertion pattern of `tests/test_external_feature_manager.py`), explicit/auto lifecycle through `post_init`/`start_listening`/`refresh_state`, retry scheduling/cancellation and 3-attempt bound, no duplicate listeners on repeated `start_listening`, cleanup through the generic `remove_thermostat` loop (no humidity-specific code left in the core), `ThermostatClimate` underlying fallback only when the manager has no source. AC-10 non-regression via the full existing suite; AC-12 via inspection of `strings.json`, **all** `translations/{en,fr,cs,de,pl}.json`, documentation in all languages, and the "Release 10.4" paragraph in every README.
 
 ## 9. Answers to Q1..Q4
 
 - **Q1**: No — no log at all when an external sensor is explicitly configured (user decision of 2026-09-17).
 - **Q2**: Propagate the invalid value: return `None` (`ClimateEntity.current_humidity` is typed `float | None`); do not keep the last valid value (user decision of 2026-09-17, FR-017).
 - **Q3**: Yes — technically feasible: unconditional menu option like `advanced`/`lock`, toggle lives on the page itself.
-- **Q4**: No in-session retry; re-resolution at startup and config-change reload, with clear info logs; possible future extension.
+- **Q4**: Yes — retry later (user decision of 2026-09-17): report `None` while the sensor is not yet available; retries are **owned by the `FeatureHumidityManager`** (`async_call_later`, 30 s, max 3, cancelled in `stop_listening()`), complemented by the listener firing on first publication (FR-018/BR-004).
 
 ## 10. Risks, assumptions, traceability
 
-See Part 1 §10: main residual risks — `merge_user_input` key removal on disable (tested by AC-9), strict separation `_humidity` (target) vs `_cur_humidity` (current), deterministic-but-arbitrary first-candidate rule (assume H4), shared detection helper between flow and entity, **5-language translation sync (all mandatory: CS, DE, EN, FR, PL, including documentation files and the "Release 10.4" paragraph in every README — FR-014/FR-015)**, and the three-state semantics of `use_humidity_feature`. Full requirement-to-design traceability table in Part 1 §10. Documentation impacts: **all of** `documentation/{cs,de,en,fr,pl}/`, `strings.json`, `translations/{en,fr,cs,de,pl}.json`, and `README{,-cs,-de,-fr,-pl}.md`.
+See Part 1 §10: main residual risks — `merge_user_input` key removal on disable (tested by AC-9), strict separation `_humidity` (target) vs `_cur_humidity` (current, owned by the manager), deterministic-but-arbitrary first-candidate rule (assume H4), shared detection helper between manager and flow, **5-language translation sync (all mandatory: CS, DE, EN, FR, PL, including documentation files and the "Release 10.4" paragraph in every README — FR-014/FR-015)**, the three-state semantics of `use_humidity_feature`, and the v1.1 refactor vigilance points (remove the ad-hoc retry cancellation from `remove_thermostat`, no duplicated listeners, resolution deferred to `start_listening`, drop the `find_humidity_sensor_candidates` import from `base_thermostat.py`). Full requirement-to-design traceability table in Part 1 §10. Documentation impacts: **all of** `documentation/{cs,de,en,fr,pl}/`, `strings.json`, `translations/{en,fr,cs,de,pl}.json`, and `README{,-cs,-de,-fr,-pl}.md`.
 
-**Deviations from the specification: none.**
+**Deviations from the specification: none.** The v1.1 revision is a purely structural refactoring (responsibility moved into a `FeatureHumidityManager`) — **no functional rule changes** (Q1 no explicit-override log, invalidity = `None`, start-up retries, features page unchanged, unconditional humidity menu, etc. all preserved).
