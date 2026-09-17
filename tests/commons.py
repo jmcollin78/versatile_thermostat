@@ -1048,6 +1048,27 @@ async def send_temperature_change_event(
     return dearm_window_auto
 
 
+async def send_humidity_change_event(
+    entity: BaseThermostat, new_humidity, date, sleep=True
+):
+    """Send a humidity event to a thermostat's resolved humidity sensor."""
+    humidity_event = Event(
+        EVENT_STATE_CHANGED,
+        {
+            "new_state": State(
+                entity_id=entity._humidity_manager.humidity_sensor_entity_id,
+                state=new_humidity,
+                last_changed=date,
+                last_updated=date,
+            )
+        },
+    )
+    await entity._humidity_manager._humidity_sensor_changed(humidity_event)
+    if sleep:
+        await entity.hass.async_block_till_done()
+        await asyncio.sleep(0.1)
+
+
 async def send_last_seen_temperature_change_event(
     entity: BaseThermostat, date, sleep=True
 ):

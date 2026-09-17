@@ -31,6 +31,8 @@ Karta integracji VTherm UI (dostępna na [Github](https://github.com/jmcollin78/
 ![New](images/new-icon.png)
 
 ## Wydanie 10.4.0
+VTherm może teraz udostępniać `current_humidity` z zewnętrznego czujnika wilgotności dla wszystkich typów termostatów. Czujnik można wybrać w menu Wilgotność lub wykryć automatycznie na urządzeniu czujnika temperatury pokojowej.
+
 Termostaty `over_valve` mają teraz takie same parametry sterowania zaworem jak termostaty `over_climate` z regulacją przez bezpośrednie sterowanie zaworem: `opening_threshold_degree`, `min_opening_degrees`, `max_closing_degree` oraz `max_opening_degrees`. Więcej informacji: [sterowanie zaworem](documentation/pl/over-valve.md).
 
 Termostaty `over_valve` obsługują teraz również tryb uśpienia. Tryb ten wyświetla VTherm jako wyłączony i wysyła surowe żądanie otwarcia na 100%, nie żądając ogrzewania z centralnego kotła. Skonfigurowane ograniczenia sterowania zaworem mogą ograniczyć fizyczne otwarcie. Więcej informacji: [tryb uśpienia](documentation/pl/over-valve.md#tryb-uśpienia).

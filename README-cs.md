@@ -28,6 +28,8 @@ Versatile Thermostat UI Card (K dispozici na [Github](https://github.com/jmcolli
 ![Nové](images/new-icon.png)
 
 ## Verze 10.4.0
+VTherm nyní může poskytovat `current_humidity` z externího senzoru vlhkosti pro všechny typy termostatů. Senzor lze vybrat v nabídce Vlhkost nebo jej automaticky najít na zařízení pokojového teploměru.
+
 Termostaty `over_valve` mají nyní stejné parametry řízení ventilu jako termostaty `over_climate` s regulací přímým řízením ventilu: `opening_threshold_degree`, `min_opening_degrees`, `max_closing_degree` a `max_opening_degrees`. Více informací: [řízení ventilu](documentation/cs/over-valve.md).
 
 Termostaty `over_valve` nyní podporují také režim spánku. Tento režim zobrazí VTherm jako vypnutý a odešle hrubý požadavek na otevření 100 %, aniž by vyžadoval vytápění z centrálního kotle. Nastavené limity řízení ventilu mohou omezit fyzické otevření. Více informací: [režim spánku](documentation/cs/over-valve.md#režim-spánku).

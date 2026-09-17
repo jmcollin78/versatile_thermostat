@@ -31,6 +31,8 @@ Le composant Versatile Thermostat UI Card (Disponible sur [Github](https://githu
 ![Nouveau](images/new-icon.png)
 
 ## Release 10.4.0
+VTherm peut désormais exposer `current_humidity` depuis un capteur d’humidité externe pour tous les types de thermostats. Le capteur se sélectionne dans le menu Humidité ou est détecté automatiquement sur l’appareil du capteur de température ambiante.
+
 Les thermostats `over_valve` ont maintenant les mêmes paramètres de controle de la vanne que les `over_climate` avec régulation par contrôle direct de la vanne. Il s'agit des paramètres `opening_threshold_degree`, `min_opening_degrees`, `max_closing_degree` et `max_opening_degrees`. Plus d'informations ici: [contrôle de la vanne](documentation/fr/over_valve.md)
 
 Les thermostats `over_valve` prennent également en charge le mode sommeil. Le sommeil affiche le VTherm comme arrêté et envoie une demande brute d'ouverture à 100 % sans solliciter la chaudière centrale. Les limites configurées du contrôle de vanne peuvent plafonner l'ouverture physique. Plus d'informations : [mode sommeil](documentation/fr/over-valve.md#mode-sommeil).

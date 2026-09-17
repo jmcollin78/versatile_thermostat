@@ -451,6 +451,7 @@ async def test_user_config_flow_over_climate(
         "presets",
         "advanced",
         "lock",
+        "humidity",
         "configuration_not_complete",
     ]
     assert result.get("errors") is None
@@ -523,6 +524,7 @@ async def test_user_config_flow_over_climate(
         "presets",
         "advanced",
         "lock",
+        "humidity",
         "configuration_not_complete",
         # "finalize",  # because we need Advanced default parameters
     ]
@@ -571,6 +573,7 @@ async def test_user_config_flow_over_climate(
         "presets",
         "advanced",
         "lock",
+        "humidity",
         "configuration_not_complete",
         # "finalize", finalize is not present waiting for advanced configuration
     ]
@@ -609,6 +612,7 @@ async def test_user_config_flow_over_climate(
         "presets",
         "advanced",
         "lock",
+        "humidity",
         "finalize",  # Now finalize is present
     ]
 
@@ -683,6 +687,7 @@ async def test_user_config_flow_over_climate_auto_start_stop(
         "presets",
         "advanced",
         "lock",
+        "humidity",
         "configuration_not_complete",
     ]
     assert result.get("errors") is None
@@ -716,6 +721,7 @@ async def test_user_config_flow_over_climate_auto_start_stop(
         "auto_start_stop",
         "advanced",
         "lock",
+        "humidity",
         "configuration_not_complete",
         # "finalize", finalize is not present waiting for advanced configuration
     ]
@@ -806,6 +812,7 @@ async def test_user_config_flow_over_climate_auto_start_stop(
         "auto_start_stop",
         "advanced",
         "lock",
+        "humidity",
         "configuration_not_complete",
         # "finalize",  # because we need Advanced default parameters
     ]
@@ -860,6 +867,7 @@ async def test_user_config_flow_over_climate_auto_start_stop(
         "auto_start_stop",
         "advanced",
         "lock",
+        "humidity",
         "finalize",  # Now finalize is present
     ]
 
@@ -937,6 +945,7 @@ async def test_user_config_flow_over_switch_bug_552_tpi(
         "presets",
         "advanced",
         "lock",
+        "humidity",
         "configuration_not_complete",
     ]
     assert result.get("errors") is None
@@ -988,6 +997,7 @@ async def test_user_config_flow_over_switch_bug_552_tpi(
         "presets",
         "advanced",
         "lock",
+        "humidity",
         "configuration_not_complete",  # tpi and presets are not configured and there is no central configuration
     ]
 
@@ -1022,6 +1032,7 @@ async def test_user_config_flow_over_switch_bug_552_tpi(
         "presets",
         "advanced",
         "lock",
+        "humidity",
         "configuration_not_complete",  # advanced, tpi and presets are not configured and there is no central configuration
     ]
 
@@ -1064,6 +1075,7 @@ async def test_user_config_flow_over_switch_bug_552_tpi(
         "presets",
         "advanced",
         "lock",
+        "humidity",
         "configuration_not_complete",  # tpi is not configured and there is no central configuration
     ]
 
@@ -1114,6 +1126,7 @@ async def test_user_config_flow_over_switch_bug_552_tpi(
         "presets",
         "advanced",
         "lock",
+        "humidity",
         "finalize",  # all is now configured
     ]
 
@@ -1199,6 +1212,7 @@ async def test_user_config_flow_over_climate_valve(
         "presets",
         "advanced",
         "lock",
+        "humidity",
         "configuration_not_complete",
     ]
     assert result.get("errors") is None
@@ -1275,6 +1289,7 @@ async def test_user_config_flow_over_climate_valve(
         "sync_device_internal_temp",
         "advanced",
         "lock",
+        "humidity",
         "configuration_not_complete",
         # "finalize",  # because we need Advanced default parameters
     ]
@@ -1364,6 +1379,7 @@ async def test_user_config_flow_over_climate_valve(
         "sync_device_internal_temp",
         "advanced",
         "lock",
+        "humidity",
         "configuration_not_complete",
         # "finalize", finalize is not present waiting for advanced configuration
     ]
@@ -1489,6 +1505,7 @@ async def test_user_config_flow_over_climate_valve(
         "sync_device_internal_temp",
         "advanced",
         "lock",
+        "humidity",
         "configuration_not_complete",
         # "finalize", finalize is not present waiting for advanced configuration
     ]
@@ -1530,6 +1547,7 @@ async def test_user_config_flow_over_climate_valve(
         "sync_device_internal_temp",
         "advanced",
         "lock",
+        "humidity",
         "configuration_not_complete",
         # "finalize",  finalize is not present awaiting for sync_device_internal_temp configuration
     ]
@@ -1590,6 +1608,7 @@ async def test_user_config_flow_over_climate_valve(
         "sync_device_internal_temp",
         "advanced",
         "lock",
+        "humidity",
         "finalize",  # This time finalize is present
     ]
 

@@ -31,6 +31,7 @@
           "auto_start_stop": "Auto Start und Stop",
           "valve_regulation": "Konfiguration Ventilsteuerung",
           "sync_device_internal_temp": "Synchronisierung der Gerätetemperatur",
+          "humidity": "Luftfeuchtigkeit",
           "lock": "Sperrenverwaltung",
           "heating_failure_detection": "Heizungsausfallerkennung",
           "auto_tpi_configuration": "Auto TPI - Konfiguration",
@@ -361,6 +362,18 @@
           "sync_entity_ids": "Entitie-Liste, die zur Synchronisierung der internen Temperatur der zugeordneten Geräte verwendet werden. Es muss eine pro zugeordnetem Gerät vorhanden sein. Wenn es aktiviert ist, muss eine Kalibrierungsentität vorhanden sein, ansonsten eine Temperaturentity. Beides sind Entities vom Typ `number`."
         }
       },
+      "humidity": {
+        "title": "Luftfeuchtigkeit",
+        "description": "Externen Luftfeuchtigkeitssensor verwenden. Erkannter Sensor: {humidity_detected}",
+        "data": {
+          "use_humidity_feature": "Luftfeuchtigkeitssensor verwenden",
+          "humidity_sensor_entity_id": "Luftfeuchtigkeitssensor"
+        },
+        "data_description": {
+          "use_humidity_feature": "Deaktivieren Sie diese Option, um nur die Luftfeuchtigkeit der zugrunde liegenden Klimaanlage zu verwenden.",
+          "humidity_sensor_entity_id": "Leer lassen, um den erkannten Sensor automatisch zu verwenden."
+        }
+      },
       "heating_failure_detection": {
         "title": "Erkennung von Heizungsausfällen",
         "description": "Konfiguration der Heizungsausfallerkennung. Diese Funktion erkennt Anomalien, wenn Heizleistung angefordert wird, die Temperatur jedoch nicht steigt, oder wenn die Heizung ausgeschaltet ist, die Temperatur jedoch weiter steigt.",
@@ -433,6 +446,7 @@
           "auto_start_stop": "Auto Start/Stopp",
           "valve_regulation": "Ventilsteuerung",
           "sync_device_internal_temp": "Synchronisierung der Gerätetemperatur",
+          "humidity": "Luftfeuchtigkeit",
           "lock": "Sperrenverwaltung",
           "heating_failure_detection": "Heizungsausfallerkennung",
           "finalize": "Abschliessen",
@@ -712,6 +726,18 @@
         "data_description": {
           "sync_with_calibration": "Ist die Option aktiviert, wird die Offset-Kalibrierung bei der Synchronisierung der Innentemperatur angewendet. Deaktivieren, um die Temperatur direkt in die ausgewählten Elemente zu kopieren.",
           "sync_entity_ids": "Entitie-Liste, die zur Synchronisierung der internen Temperatur der zugeordneten Geräte verwendet werden. Es muss eine pro zugeordnetem Gerät vorhanden sein. Wenn es aktiviert ist, muss eine Kalibrierungsentität vorhanden sein, ansonsten eine Temperaturentity. Beides sind Entities vom Typ `number`."
+        }
+      },
+      "humidity": {
+        "title": "Luftfeuchtigkeit - {name}",
+        "description": "Externen Luftfeuchtigkeitssensor verwenden. Erkannter Sensor: {humidity_detected}",
+        "data": {
+          "use_humidity_feature": "Luftfeuchtigkeitssensor verwenden",
+          "humidity_sensor_entity_id": "Luftfeuchtigkeitssensor"
+        },
+        "data_description": {
+          "use_humidity_feature": "Deaktivieren Sie diese Option, um nur die Luftfeuchtigkeit der zugrunde liegenden Klimaanlage zu verwenden.",
+          "humidity_sensor_entity_id": "Leer lassen, um den erkannten Sensor automatisch zu verwenden."
         }
       },
       "auto_tpi_configuration": {
