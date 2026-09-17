@@ -230,10 +230,8 @@ async def test_humidity_manager_retries_at_most_three_times_and_cleans_up(hass):
         side_effect=schedule_retry,
     ):
         await manager.start_listening()
-        for callback in tuple(scheduled_callbacks):
-            await callback(None)
-        for callback in tuple(scheduled_callbacks[1:]):
-            await callback(None)
+        while len(scheduled_callbacks) < 3:
+            await scheduled_callbacks[-1](None)
 
     assert len(scheduled_callbacks) == 3
     assert manager._humidity_retry_count == 3

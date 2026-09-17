@@ -319,6 +319,10 @@
         "data": {
           "use_humidity_feature": "Użyj czujnika wilgotności",
           "humidity_sensor_entity_id": "Czujnik wilgotności"
+        },
+        "data_description": {
+          "use_humidity_feature": "Wyłącz tę opcję, aby używać tylko wilgotności z bazowego termostatu climate.",
+          "humidity_sensor_entity_id": "Pozostaw puste, aby automatycznie użyć wykrytego czujnika."
         }
       },
       "heating_failure_detection": {
@@ -393,6 +397,7 @@
           "auto_start_stop": "AutoSTART i autoSTOP",
           "valve_regulation": "Konfiguracja regulacji zaworu",
           "sync_device_internal_temp": "Synchronizacja temperatury urządzenia",
+          "humidity": "Wilgotność",
           "lock": "Blokada",
           "auto_tpi_configuration": "Auto TPI - Ogólne",
           "auto_tpi_avg_settings": "Auto TPI - Średnia",
@@ -663,6 +668,18 @@
           "min_opening_degrees": "Minimalne wartości stopnia otwarcia zaworu dla każdego urządzenia, oddzielone przecinkiem. Domyślnie: 0. Przykład: 20, 25, 30",
           "max_opening_degrees": "Maksymalna wartość stopnia otwarcia zaworu. Zawór nigdy się nie otworzy więcej niż ta wartość",
           "max_closing_degree": "Maksymalna wartość stopnia zamknięcia zaworu. Powyżej tej wartości zawór nigdy nie zostanie zamknięty. Ustaw wartość tego parametru na `100`, aby całkowicie zamknąć zawór, jeśli ogrzewanie jest już niepotrzebne"
+        }
+      },
+      "humidity": {
+        "title": "Wilgotność - {name}",
+        "description": "Użyj zewnętrznego czujnika wilgotności. Wykryty czujnik: {humidity_detected}",
+        "data": {
+          "use_humidity_feature": "Użyj czujnika wilgotności",
+          "humidity_sensor_entity_id": "Czujnik wilgotności"
+        },
+        "data_description": {
+          "use_humidity_feature": "Wyłącz tę opcję, aby używać tylko wilgotności z bazowego termostatu climate.",
+          "humidity_sensor_entity_id": "Pozostaw puste, aby automatycznie użyć wykrytego czujnika."
         }
       },
       "auto_tpi_configuration": {

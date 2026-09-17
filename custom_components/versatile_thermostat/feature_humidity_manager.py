@@ -110,6 +110,7 @@ class FeatureHumidityManager(BaseFeatureManager):
 
         if (
             self._humidity_source == "none"
+            and self._use_humidity_feature is not False
             and self._humidity_retry_count < _MAX_HUMIDITY_RETRIES
             and self._cancel_humidity_retry is None
         ):
