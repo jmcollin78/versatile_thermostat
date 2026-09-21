@@ -370,7 +370,7 @@
           "humidity_sensor_entity_id": "Luftfeuchtigkeitssensor"
         },
         "data_description": {
-          "use_humidity_feature": "Deaktivieren Sie diese Option, um nur die Luftfeuchtigkeit der zugrunde liegenden Klimaanlage zu verwenden.",
+          "use_humidity_feature": "Deaktivieren Sie diese Option, um nur die Luftfeuchtigkeit der zugeordneten Klimaanlage zu verwenden.",
           "humidity_sensor_entity_id": "Leer lassen, um den erkannten Sensor automatisch zu verwenden."
         }
       },
@@ -736,7 +736,7 @@
           "humidity_sensor_entity_id": "Luftfeuchtigkeitssensor"
         },
         "data_description": {
-          "use_humidity_feature": "Deaktivieren Sie diese Option, um nur die Luftfeuchtigkeit der zugrunde liegenden Klimaanlage zu verwenden.",
+          "use_humidity_feature": "Deaktivieren Sie diese Option, um nur die Luftfeuchtigkeit der zugeordneten Klimaanlage zu verwenden.",
           "humidity_sensor_entity_id": "Leer lassen, um den erkannten Sensor automatisch zu verwenden."
         }
       },
