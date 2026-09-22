@@ -175,12 +175,14 @@ ajoute les attributs sous la clé existante `heating_failure_detection_manager`,
 préserver les tableaux de bord et automatisations qui les lisent.
 
 Le capteur binaire est créé par le plugin et se met à jour via un signal dispatcher émis
-par le manager. La reprise de l'identifiant historique n'est pas retenue : les capteurs
-appartiennent à deux intégrations distinctes et Home Assistant ne fournit pas de
-migration sûre du registre d'entités entre ces domaines. Le README, les guides de
-migration et les notes de release doivent annoncer explicitement qu'un nouvel
-`unique_id`, donc potentiellement un nouvel `entity_id`, est créé ; les tableaux de bord
-et automatisations doivent alors être mis à jour par l'utilisateur.
+par le manager. Son `unique_id` devient nécessairement celui du plugin, mais une reprise
+de confort de l'ancien `entity_id` est effectuée lorsque le capteur legacy est déjà
+inactif : le plugin identifie l'entrée legacy associée au même appareil VTherm, retire
+uniquement son entrée de registre devenue obsolète, puis suggère son ancien `object_id`
+au capteur plugin. Les tableaux de bord et automatisations continuent alors de
+fonctionner. Si le capteur legacy est encore actif, aucune entrée n'est retirée afin
+d'éviter un conflit ; le README et les guides indiquent de désactiver la feature legacy
+et de recharger l'entrée plugin avant de migrer.
 
 ## Migration utilisateur
 
@@ -263,8 +265,9 @@ Migrer les 29 tests actuels vers le plugin, puis ajouter au minimum :
   exclusion des VTherm spécialisés, absence de doublon et mise à jour dispatcher ;
 - diagnostic de vannes au travers de la nouvelle vue typée, sans import du core ;
 - import legacy explicite et réparation d'une configuration non migrée ;
-- absence de reprise inter-intégration du `unique_id` du capteur, avec avertissement
-  documentaire sur le nouvel `entity_id` potentiel ;
+- reprise de l'ancien `entity_id` d'un capteur legacy inactif ; conservation du nouveau
+  `unique_id` plugin et avertissement documentaire lorsque le capteur legacy est encore
+  actif ;
 - tests de contrats `vtherm_api` des seules primitives ajoutées et tests d'intégration
   Home Assistant du plugin.
 

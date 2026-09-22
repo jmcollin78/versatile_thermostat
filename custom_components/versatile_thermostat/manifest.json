@@ -22,6 +22,6 @@
     "vtherm_api>=0.5.0"
   ],
   "ssdp": [],
-  "version": "10.4.0",
+  "version": "10.5.0",
   "zeroconf": []
 }

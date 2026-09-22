@@ -27,6 +27,24 @@ Versatile Thermostat UI Card (Available on [Github](https://github.com/jmcollin7
 # What's New?
 ![New](images/new-icon.png)
 
+## Release 10.5.0
+
+Heating failure detection can now be used as the external
+`vtherm_heating_failure_detection` plugin. The plugin provides central settings
+and per-VTherm overrides; its forms pre-fill the existing core settings to make
+migration easier.
+
+During the transition period, plugin settings take precedence, while values not
+defined by the plugin continue to use the legacy core configuration. Disable the
+legacy feature for a VTherm before enabling the plugin to avoid duplicate
+configuration.
+
+The heating-failure binary sensor is now provided by the plugin. When this can
+be done without a conflict, its existing `entity_id` is retained so dashboards
+and automations keep working. Reload the plugin entry after disabling the legacy
+sensor; if it remains active, Home Assistant may create a new `entity_id` that
+must be used by existing consumers.
+
 ## Release 10.4.0
 VTherm can now expose `current_humidity` from an external humidity sensor for all thermostat types. The sensor can be selected in the Humidity menu or automatically detected on the room-temperature sensor device.
 

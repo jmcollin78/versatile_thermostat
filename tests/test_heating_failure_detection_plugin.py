@@ -4,6 +4,9 @@ from datetime import datetime, timedelta
 from unittest.mock import AsyncMock, MagicMock, patch
 
 from custom_components.vtherm_heating_failure_detection import _async_update_options
+from custom_components.vtherm_heating_failure_detection.binary_sensor import (
+    HeatingFailureBinarySensor,
+)
 from custom_components.vtherm_heating_failure_detection.config_flow import _target_overrides
 from custom_components.vtherm_heating_failure_detection.const import (
     CONF_COOLING_PERCENT_THRESHOLD,
@@ -124,7 +127,19 @@ def test_target_overrides_only_keeps_values_different_from_global() -> None:
     assert overrides == {CONF_DELAY_MINUTES: 30}
 
 
-async def test_detects_heating_failure_and_keeps_event_contract(hass) -> None:
+def test_binary_sensor_reuses_legacy_suggested_object_id(hass) -> None:
+    """The plugin sensor keeps dashboards working after legacy sensor migration."""
+    sensor = HeatingFailureBinarySensor(
+        hass,
+        "test-thermostat",
+        "binary_sensor.thermostat_valve_etat_d_anomalie_de_chauffe",
+    )
+
+    assert sensor.unique_id == "test-thermostat_heating_failure_state"
+    assert sensor.suggested_object_id == "thermostat_valve_etat_d_anomalie_de_chauffe"
+
+
+async def test_detects_heating_failure_and_keeps_event_contract(hass, caplog) -> None:
     """A high output with insufficient heat gain starts a heating failure."""
     now = datetime.now()
     thermostat = FakeThermostat(now)
@@ -145,6 +160,7 @@ async def test_detects_heating_failure_and_keeps_event_contract(hass) -> None:
     assert payload["failure_type"] == "heating"
     assert payload["threshold"] == 0.9
     assert payload["detection_delay_min"] == 15
+    assert "heating failure detected" in caplog.text
 
 
 async def test_template_disable_ends_an_active_failure(hass) -> None:

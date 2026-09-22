@@ -27,6 +27,23 @@ Versatile Thermostat UI Card (K dispozici na [Github](https://github.com/jmcolli
 # Co je nového?
 ![Nové](images/new-icon.png)
 
+## Verze 10.5.0
+
+Detekci poruchy vytápění lze nyní používat jako externí plugin
+`vtherm_heating_failure_detection`. Plugin nabízí centrální konfiguraci a
+vlastní nastavení pro jednotlivé VThermy; jeho formuláře předvyplní stávající
+nastavení core pro snazší migraci.
+
+Během přechodného období mají nastavení pluginu přednost. Hodnoty, které nejsou
+v pluginu definované, nadále používají legacy konfiguraci core. Před aktivací
+pluginu vypněte legacy funkci pro daný VTherm, abyste předešli dvojí konfiguraci.
+
+Binární senzor poruchy vytápění nyní poskytuje plugin. Pokud to lze provést bez
+konfliktu, jeho stávající `entity_id` zůstane zachováno, aby dashboardy a
+automatizace fungovaly dál. Po vypnutí legacy senzoru znovu načtěte položku
+pluginu; pokud senzor zůstane aktivní, Home Assistant může vytvořit nové
+`entity_id`, které je nutné použít ve stávajících spotřebitelích.
+
 ## Verze 10.4.0
 VTherm nyní může poskytovat `current_humidity` z externího senzoru vlhkosti pro všechny typy termostatů. Senzor lze vybrat v nabídce Vlhkost nebo jej automaticky najít na zařízení pokojového teploměru.
 
