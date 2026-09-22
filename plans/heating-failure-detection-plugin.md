@@ -92,9 +92,45 @@ custom_components/vtherm_heating_failure_detection/
 
 Le modèle de configuration est celui de `vtherm_hysteresis` : une entrée globale porte
 les valeurs par défaut, et une entrée ciblée les surcharge pour un `unique_id` de
-VTherm. Une factory ne crée un manager que si une configuration effective existe pour
-le thermostat. Une modification, création ou suppression d'entrée recharge seulement
-les VTherm concernés.
+VTherm. Une entrée ciblée ne stocke que les champs explicitement renseignés : elle ne
+doit jamais écraser les autres valeurs par des valeurs par défaut de formulaire.
+
+Pendant la transition, le plugin est la première source de configuration lorsqu'une
+valeur y est explicitement configurée. Pour chaque paramètre, la résolution doit être
+la suivante, du plus prioritaire au moins prioritaire :
+
+1. valeur spécialisée du plugin pour le VTherm ;
+2. valeur centrale du plugin ;
+3. valeur spécialisée legacy du VTherm dans le core ;
+4. valeur centrale legacy du core, lorsque le VTherm est configuré pour l'utiliser ;
+5. valeur par défaut historique.
+
+L'absence d'une valeur plugin signifie donc un repli vers le core, tandis qu'une valeur
+explicite, y compris `enabled: false`, prévaut sur le core. Les clés legacy sont lues
+via la vue runtime publique `entry_infos`; le plugin ne doit pas importer les constantes
+ni les modules privés du core. Une factory crée un manager lorsqu'au moins une
+configuration plugin ou legacy est effective pour le thermostat. Une modification,
+création ou suppression d'entrée recharge seulement les VTherm concernés.
+
+### Pérennité après retrait du core
+
+Le retrait futur de la feature du core est une rupture fonctionnelle planifiée pour une
+version majeure, plusieurs mois après la release de transition. Cette mise à jour doit
+être transparente pour un utilisateur ayant déjà configuré le plugin : aucune entrée du
+plugin ne doit être recréée, modifiée manuellement ou reconfigurée.
+
+Le core majeur retire le manager, le ConfigFlow, le capteur et les chaînes legacy, mais
+préserve les clés historiques déjà persistées dans les config entries centrale et
+spécialisées. Elles deviennent des données de compatibilité en lecture seule. Le plugin
+continue de les lire par `entry_infos` et leur applique le même ordre de priorité ; il
+ne dépend donc pas de l'implémentation fonctionnelle supprimée du core. Les clés ne
+peuvent être supprimées qu'à l'occasion d'une version majeure ultérieure, après la fin
+annoncée de cette compatibilité.
+
+Les entrées du plugin restent la source prioritaire. Ainsi, une configuration plugin
+existante conserve strictement son comportement après la mise à jour majeure, tandis
+qu'une valeur plugin non renseignée continue de bénéficier du repli legacy préservé,
+sans action de l'utilisateur.
 
 ### Contrat runtime restant à compléter
 
@@ -139,9 +175,12 @@ ajoute les attributs sous la clé existante `heating_failure_detection_manager`,
 préserver les tableaux de bord et automatisations qui les lisent.
 
 Le capteur binaire est créé par le plugin et se met à jour via un signal dispatcher émis
-par le manager. Son `unique_id` doit reprendre l'identifiant historique lorsque Home
-Assistant permet la reprise de registre ; sinon la migration annonce explicitement le
-nouvel `entity_id` avant la suppression de l'ancien.
+par le manager. La reprise de l'identifiant historique n'est pas retenue : les capteurs
+appartiennent à deux intégrations distinctes et Home Assistant ne fournit pas de
+migration sûre du registre d'entités entre ces domaines. Le README, les guides de
+migration et les notes de release doivent annoncer explicitement qu'un nouvel
+`unique_id`, donc potentiellement un nouvel `entity_id`, est créé ; les tableaux de bord
+et automatisations doivent alors être mis à jour par l'utilisateur.
 
 ## Migration utilisateur
 
@@ -149,13 +188,23 @@ La migration est en deux releases afin d'éviter de désactiver une détection e
 sans action visible :
 
 1. Release de transition : publier le plugin, conserver la feature dans le core et
-   afficher dans la documentation la procédure de configuration du plugin. Le ConfigFlow
-   du plugin préremplit son formulaire ciblé à partir des clés legacy encore présentes
-   dans l'entrée VTherm sélectionnée.
-2. Release d'extraction : retirer la feature du core. Les clés legacy restent lisibles
-   uniquement par le formulaire d'import du plugin, mais ne sont plus modifiées par le
-   ConfigFlow VTherm. Une réparation persistante avertit lorsqu'une ancienne
-   configuration active n'a pas été importée.
+  afficher dans la documentation la procédure de configuration du plugin. Le ConfigFlow
+  du plugin crée explicitement l'entrée centrale puis les entrées ciblées : les deux
+  formulaires sont préremplis depuis les clés legacy pertinentes et restent soumis à
+  confirmation de l'utilisateur. Pour une entrée ciblée, le flow lit soit les valeurs
+  spécialisées du VTherm, soit les valeurs de la configuration centrale core lorsque
+  ce VTherm l'utilise. Tant qu'aucune valeur plugin ne surcharge un paramètre, la valeur
+  spécialisée ou centrale du core continue de s'appliquer selon l'ordre de priorité
+  défini ci-dessus. Un seul manager doit être actif par VTherm : dès qu'une
+  configuration plugin est pertinente, il remplace le manager legacy pour ce VTherm et
+  applique lui-même les replis legacy.
+2. Release majeure d'extraction, plusieurs mois plus tard : retirer la feature du core
+  sans toucher aux entrées du plugin. Le core cesse de modifier les clés legacy mais
+  les préserve dans les entrées centrale et spécialisées existantes comme données de
+  compatibilité en lecture seule. Le plugin les lit encore comme valeurs de repli ; ses
+  entrées existantes conservent donc leur comportement sans intervention utilisateur.
+  Une réparation persistante avertit lorsqu'une ancienne configuration active n'a pas
+  été importée ou qu'elle fournit encore une valeur de repli utilisée par le plugin.
 
 Une migration automatique qui crée des entrées de configuration de plugin sans
 interaction n'est pas retenue : elle rend les conflits d'entrées globales/ciblées et les
@@ -163,35 +212,59 @@ identifiants de capteur difficiles à expliquer et à annuler.
 
 ## Plan de développement
 
-1. **Contrat API complémentaire** : ajouter les seules primitives runtime manquantes,
+1. **Contrat API complémentaire** *(réalisé)* : ajouter les seules primitives runtime manquantes,
   la vue de diagnostic typée et le hook d'attributs documenté dans `vtherm_api`, avec
   des tests unitaires. Publier une version supérieure à 0.4.0.
-2. **Support core minimal** : implémenter ces primitives et la recherche générique de
+2. **Support core minimal** *(réalisé)* : implémenter ces primitives et la recherche générique de
   manager ; réutiliser sans modification le registre, le chargement différé et le
   rafraîchissement externe déjà présents. Faire passer le TPI par cette recherche et
   tester plugin absent, manager présent et manager détectant une panne.
-3. **Plugin** : créer la factory et son enregistrement idempotent en s'appuyant sur
+3. **Plugin** *(réalisé, couverture à compléter)* : créer la factory et son enregistrement idempotent en s'appuyant sur
   l'API 0.4.0, puis le stockage de configuration effective et la logique du manager,
-  en déplaçant l'algorithme sans changement de règle ni de payload.
-4. **Entités plugin** : implémenter le ConfigFlow global/ciblé, le capteur binaire,
-   les signaux de mise à jour, le rechargement ciblé des VTherm et le flow d'import.
-5. **Nettoyage core** : retirer le manager et toutes ses surfaces ConfigFlow, constantes,
+  en déplaçant l'algorithme sans changement de règle ni de payload. Implémenter une
+  résolution par champ : spécialisation plugin, centrale plugin, spécialisation core,
+  centrale core, puis défaut historique. Les formulaires de spécialisation doivent
+  distinguer les champs non renseignés des valeurs explicitement choisies.
+4. **Entités plugin** *(réalisé, couverture à compléter)* : implémenter le ConfigFlow
+  global/ciblé, le capteur binaire, les signaux de mise à jour, le rechargement ciblé
+  des VTherm et le flow d'import explicite. Il reste à couvrir le parcours ConfigFlow
+  complet, la création des capteurs par configuration centrale et l'absence de doublon
+  avec une spécialisation.
+5. **Nettoyage core majeur** : retirer le manager et toutes ses surfaces ConfigFlow,
    capteur et textes seulement après que les tests plugin valident le contrat complet.
-6. **Migration et documentation** : publier la release de transition, puis l'extraction,
-   avec réparation, guide de migration et notes de release.
+   Conserver les clés déjà persistées et une lecture runtime compatible, sans les
+   exposer ni les modifier, afin que le plugin puisse assurer le repli legacy.
+6. **Migration et documentation** *(partiellement réalisé)* : publier la release de
+  transition, puis l'extraction, avec réparation, guide de migration et notes de
+  release. Le README du plugin documente déjà le flow d'import et l'absence de reprise
+  de l'identifiant de capteur ; il reste à mettre à jour les cinq guides VTherm, les
+  notes de release et l'index de documentation.
 
 ## Tests et critères d'acceptation
 
 Migrer les 29 tests actuels vers le plugin, puis ajouter au minimum :
 
 - factory enregistrée, désenregistrée et chargée après un VTherm déjà construit ;
-- configuration globale, surcharge ciblée, mise à jour d'options et rechargement ciblé ;
+- configuration globale, surcharge ciblée partielle, mise à jour d'options et
+  rechargement ciblé ;
+- parcours ConfigFlow complet : préremplissage et confirmation de l'entrée centrale,
+  puis préremplissage d'un VTherm spécialisé et d'un VTherm utilisant la centrale core ;
+- priorité par champ : spécialisation plugin, centrale plugin, spécialisation core,
+  centrale core et défaut historique, y compris le cas `enabled: false` explicite ;
+- absence de valeur plugin : maintien de la configuration legacy spécialisée ou
+  centrale du core, sans double exécution de manager ;
+- mise à jour majeure du core : conservation des entrées plugin existantes et du
+  comportement effectif, avec lecture des clés legacy centrale et spécialisée
+  préservées, sans reconfiguration utilisateur ;
 - absence de configuration et absence de plugin : aucune erreur et TPI reçoit `False` ;
 - parité chauffage/refroidissement, template, arrêt HVAC, capteur binaire, attributs et
   payload d'événement complet ;
+- capteurs binaires : création pour tous les VTherm couverts par une entrée globale,
+  exclusion des VTherm spécialisés, absence de doublon et mise à jour dispatcher ;
 - diagnostic de vannes au travers de la nouvelle vue typée, sans import du core ;
-- import legacy, réparation d'une configuration non migrée et stabilité des identifiants
-  d'entités lorsque cela est pris en charge ;
+- import legacy explicite et réparation d'une configuration non migrée ;
+- absence de reprise inter-intégration du `unique_id` du capteur, avec avertissement
+  documentaire sur le nouvel `entity_id` potentiel ;
 - tests de contrats `vtherm_api` des seules primitives ajoutées et tests d'intégration
   Home Assistant du plugin.
 
@@ -202,7 +275,9 @@ API/core/plugin passent indépendamment.
 ## Documentation et traductions
 
 Mettre à jour les cinq guides actuels de détection dans `documentation/cs`, `de`, `en`,
-`fr` et `pl` pour pointer vers le plugin et expliquer l'import. Traduire les chaînes du
-plugin dans au moins les langues actuellement maintenues par le plugin avant la release ;
-la publication de l'extraction doit aussi synchroniser README, index de documentation,
-notes de release et traductions Home Assistant concernées.
+`fr` et `pl` pour pointer vers le plugin et expliquer l'import, la configuration
+centrale du plugin, la spécialisation d'un VTherm et l'ordre de priorité avec le repli
+legacy préservé après la future extraction majeure du core. Traduire les chaînes du plugin dans au moins les langues
+actuellement maintenues par le plugin avant la release ; la publication de l'extraction
+doit aussi synchroniser README, index de documentation, notes de release et traductions
+Home Assistant concernées.

@@ -246,9 +246,14 @@ class TPIHandler:
     async def _get_tpi_data(self) -> dict[str, Any]:
         """Calculate and return TPI cycle parameters."""
         t = self._thermostat
-        heating_failure_manager = t.get_feature_manager("heating_failure_detection")
+        get_feature_manager = getattr(t, "get_feature_manager", None)
+        heating_failure_manager = (
+            get_feature_manager("heating_failure_detection")
+            if callable(get_feature_manager)
+            else None
+        )
         is_heating_failure = bool(
-            heating_failure_manager and heating_failure_manager.is_detected
+            getattr(heating_failure_manager, "is_detected", False)
         )
 
         # Feed current temperatures to AutoTpiManager BEFORE getting params
@@ -308,9 +313,14 @@ class TPIHandler:
         """TPI-specific control heating logic."""
         del timestamp
         t = self._thermostat
-        heating_failure_manager = t.get_feature_manager("heating_failure_detection")
+        get_feature_manager = getattr(t, "get_feature_manager", None)
+        heating_failure_manager = (
+            get_feature_manager("heating_failure_detection")
+            if callable(get_feature_manager)
+            else None
+        )
         is_heating_failure = bool(
-            heating_failure_manager and heating_failure_manager.is_detected
+            getattr(heating_failure_manager, "is_detected", False)
         )
 
         # Feed the Auto TPI manager

@@ -4,6 +4,7 @@ from datetime import datetime, timedelta
 from unittest.mock import AsyncMock, MagicMock, patch
 
 from custom_components.vtherm_heating_failure_detection import _async_update_options
+from custom_components.vtherm_heating_failure_detection.config_flow import _target_overrides
 from custom_components.vtherm_heating_failure_detection.const import (
     CONF_COOLING_PERCENT_THRESHOLD,
     CONF_DELAY_MINUTES,
@@ -14,6 +15,10 @@ from custom_components.vtherm_heating_failure_detection.const import (
 )
 from custom_components.vtherm_heating_failure_detection.manager import (
     HeatingFailureManager,
+)
+from custom_components.vtherm_heating_failure_detection.models import (
+    effective_config,
+    legacy_config,
 )
 from vtherm_api.const import EventType
 
@@ -48,6 +53,75 @@ def _configure_plugin(hass) -> None:
             }
         }
     }
+
+
+def test_effective_config_prefers_plugin_values_and_falls_back_to_legacy() -> None:
+    """A targeted plugin value overrides plugin global then legacy core values."""
+    entries = {
+        "global": {
+            CONF_ENABLED: True,
+            CONF_HEATING_PERCENT_THRESHOLD: 0.95,
+        },
+        "target": {
+            "vtherm_unique_id": "test-thermostat",
+            CONF_DELAY_MINUTES: 30,
+        },
+    }
+    legacy = {
+        "use_heating_failure_detection_feature": True,
+        "heating_failure_threshold": 0.8,
+        "cooling_failure_threshold": 0.2,
+        "temperature_change_tolerance": 0.3,
+    }
+
+    config = effective_config(entries, "test-thermostat", legacy)
+
+    assert config == {
+        CONF_ENABLED: True,
+        CONF_HEATING_PERCENT_THRESHOLD: 0.95,
+        CONF_COOLING_PERCENT_THRESHOLD: 0.2,
+        CONF_TEMPERATURE_DELTA: 0.3,
+        CONF_DELAY_MINUTES: 30,
+    }
+
+
+def test_effective_config_honors_explicit_plugin_disable() -> None:
+    """An explicit plugin disable must take precedence over legacy activation."""
+    config = effective_config(
+        {"target": {"vtherm_unique_id": "test-thermostat", CONF_ENABLED: False}},
+        "test-thermostat",
+        {"use_heating_failure_detection_feature": True},
+    )
+
+    assert config[CONF_ENABLED] is False
+
+
+def test_legacy_config_only_enables_configured_legacy_feature() -> None:
+    """Legacy values are imported only when the core feature was enabled."""
+    assert legacy_config({"heating_failure_threshold": 0.8}) == {}
+    assert legacy_config(
+        {
+            "use_heating_failure_detection_feature": True,
+            "heating_failure_threshold": 0.8,
+        }
+    ) == {CONF_ENABLED: True, CONF_HEATING_PERCENT_THRESHOLD: 0.8}
+
+
+def test_target_overrides_only_keeps_values_different_from_global() -> None:
+    """A targeted entry must not persist form defaults as overrides."""
+    global_defaults = {
+        CONF_ENABLED: True,
+        CONF_HEATING_PERCENT_THRESHOLD: 0.9,
+        CONF_COOLING_PERCENT_THRESHOLD: 0.0,
+        CONF_TEMPERATURE_DELTA: 0.5,
+        CONF_DELAY_MINUTES: 15,
+    }
+    overrides = _target_overrides(
+        {**global_defaults, CONF_DELAY_MINUTES: 30, "activation_template": ""},
+        global_defaults,
+    )
+
+    assert overrides == {CONF_DELAY_MINUTES: 30}
 
 
 async def test_detects_heating_failure_and_keeps_event_contract(hass) -> None:
@@ -87,6 +161,21 @@ async def test_template_disable_ends_an_active_failure(hass) -> None:
     event_type, payload = thermostat.send_event.call_args.args
     assert event_type is EventType.HEATING_FAILURE_EVENT
     assert payload["type"] == "heating_failure_end"
+
+
+async def test_hvac_off_publishes_an_active_failure_reset(hass) -> None:
+    """Turning HVAC off updates the climate and binary sensor after a failure."""
+    now = datetime.now()
+    thermostat = FakeThermostat(now)
+    _configure_plugin(hass)
+    manager = HeatingFailureManager(thermostat, hass)
+    manager.post_init({})
+    manager._heating_state = "on"  # pylint: disable=protected-access
+    thermostat.requested_hvac_mode = "off"
+
+    assert await manager.refresh_state() is False
+    thermostat.update_custom_attributes.assert_called_once()
+    thermostat.async_write_ha_state.assert_called_once()
 
 
 async def test_options_update_replaces_cached_entry(hass) -> None:
