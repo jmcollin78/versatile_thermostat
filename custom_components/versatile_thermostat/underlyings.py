@@ -1244,7 +1244,8 @@ class UnderlyingValve(UnderlyingEntity):
                 self._last_sent_opening_value or 9999,
                 self._entity_id,
             )
-            await self.send_percent_open(fixed_value=self._min_open)
+            # Close to the position used for a null demand (kept open by max_closing_degree if any)
+            await self.send_percent_open(fixed_value=self._get_controlled_percent(0))
 
     async def send_percent_open(self, fixed_value: int = None):
         """Send the percent open to the underlying valve"""
@@ -1282,10 +1283,19 @@ class UnderlyingValve(UnderlyingEntity):
             return False
 
     @property
+    def _active_threshold(self) -> float:
+        """The opening above which the valve is considered active (heating). It is the highest of:
+        - the opening_threshold configured on the VTherm,
+        - the opening kept by max_closing_degree (the valve is never closed below it, so it carries no demand),
+        - the minimum of the underlying number entity.
+        """
+        return max(self._opening_threshold, 100 - self._max_closing_degree, self._min_open or 0)
+
+    @property
     def should_device_be_active(self) -> bool:
         """If the toggleable device is currently active."""
         try:
-            return self._percent_open > (self._min_open or 0) if isinstance(self._percent_open, (int, float)) else False
+            return self._percent_open > self._active_threshold if isinstance(self._percent_open, (int, float)) else False
         except Exception:  # pylint: disable=broad-exception-caught
             return False
 
@@ -1295,7 +1305,7 @@ class UnderlyingValve(UnderlyingEntity):
         if (current_opening := self.current_valve_opening) is None:
             return None
 
-        return current_opening > (self._min_open or 0)
+        return current_opening > self._active_threshold
 
     @overrides
     def clamp_sent_value(self, value) -> float:

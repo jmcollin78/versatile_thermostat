@@ -153,6 +153,46 @@ async def test_check_initial_state_underlying_valve(hass, hvac_mode, percent_ope
             assert u.send_percent_open.await_args.kwargs.get("fixed_value") == min_open
 
 @pytest.mark.asyncio
+@pytest.mark.parametrize("percent_open", [None, 10])
+async def test_check_initial_state_underlying_valve_closes_to_max_closing_floor(hass, percent_open):
+    """PR #2062 - At startup, a valve which is open but has no demand must be closed to the position kept by
+    max_closing_degree (never fully closed), not to the min of the underlying number entity (0)."""
+
+    hass.services = MagicMock()
+    hass.services.async_call = AsyncMock()
+
+    thermostat = MagicMock()
+    thermostat.hvac_mode = VThermHvacMode_HEAT
+    thermostat.vtherm_hvac_mode = VThermHvacMode_HEAT
+    thermostat.valve_open_percent = 0
+    thermostat.init_underlyings_completed = AsyncMock()
+    thermostat.underlying_changed = AsyncMock()
+    thermostat.now = None
+
+    u = UnderlyingValve(
+        hass=hass,
+        thermostat=thermostat,
+        valve_entity_id="number.valve",
+        min_opening_degree=10,
+        max_opening_degree=100,
+        max_closing_degree=90,
+        opening_threshold=10,
+    )
+    u.send_percent_open = AsyncMock()
+    u._percent_open = percent_open
+
+    # the valve is fully open, the number entity min is 0
+    hass.states.async_set("number.valve", "100", attributes={"min": 0, "max": 100})
+    await hass.async_block_till_done()
+
+    u.startup()
+    assert u.state_manager.is_all_states_initialized is True
+
+    assert u.send_percent_open.await_count == 1
+    assert u.send_percent_open.await_args.kwargs.get("fixed_value") == 10
+
+
+@pytest.mark.asyncio
 @pytest.mark.parametrize(
     "hvac_mode, last_state, expect_hvac_call",
     [

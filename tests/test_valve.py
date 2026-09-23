@@ -767,3 +767,81 @@ async def test_bug_533(hass: HomeAssistant, skip_hass_states_is_state, fake_unde
                 ),
             ]
         )
+
+
+@pytest.mark.parametrize("expected_lingering_timers", [True])
+@pytest.mark.parametrize(
+    ("opening_threshold_degree", "min_opening_degrees"),
+    [
+        (30, ""),  # floor (10) below the opening threshold
+        (0, "10"),  # no opening threshold: the floor set by max_closing_degree alone must read idle
+        (5, "10"),  # opening threshold below the floor
+    ],
+)
+async def test_over_valve_floored_by_max_closing_degree_is_idle(
+    hass: HomeAssistant,
+    skip_hass_states_is_state,  # pylint: disable=unused-argument
+    fake_underlying_valve: MockNumber,
+    opening_threshold_degree: int,
+    min_opening_degrees: str,
+):
+    """PR #2062 - A valve kept open at the max_closing_degree floor has no real heating demand.
+    It must be reported as idle, not heating."""
+
+    entry = MockConfigEntry(
+        domain=DOMAIN,
+        title="OverValveFloored",
+        unique_id=f"overValveFloored-{opening_threshold_degree}-{min_opening_degrees}",
+        data={
+            CONF_NAME: "OverValveFloored",
+            CONF_THERMOSTAT_TYPE: CONF_THERMOSTAT_VALVE,
+            CONF_TEMP_SENSOR: "sensor.mock_temp_sensor",
+            CONF_EXTERNAL_TEMP_SENSOR: "sensor.mock_ext_temp_sensor",
+            CONF_UNDERLYING_LIST: ["number.mock_valve"],
+            CONF_CYCLE_MIN: 5,
+            CONF_TEMP_MIN: 15,
+            CONF_TEMP_MAX: 30,
+            CONF_PROP_FUNCTION: PROPORTIONAL_FUNCTION_TPI,
+            CONF_TPI_COEF_INT: 0.3,
+            CONF_TPI_COEF_EXT: 0.1,
+            CONF_AUTO_REGULATION_DTEMP: 0,
+            CONF_AUTO_REGULATION_PERIOD_MIN: 0,
+            # never close below 10% (100 - 90)
+            CONF_MAX_CLOSING_DEGREE: 90,
+            CONF_OPENING_THRESHOLD_DEGREE: opening_threshold_degree,
+            CONF_MIN_OPENING_DEGREES: min_opening_degrees,
+            CONF_USE_WINDOW_FEATURE: False,
+            CONF_USE_MOTION_FEATURE: False,
+            CONF_USE_POWER_FEATURE: False,
+            CONF_USE_PRESENCE_FEATURE: False,
+        },
+    )
+
+    vtherm: ThermostatOverValve = await create_thermostat(hass, entry, "climate.overvalvefloored", temps=default_temperatures)
+    now = datetime.now(tz=get_tz(hass))
+
+    # 1. Real demand: temperature far below the target -> valve fully open, heating
+    await send_temperature_change_event(vtherm, 10, now)
+    await send_ext_temperature_change_event(vtherm, 10, now)
+    await vtherm.async_set_hvac_mode(VThermHvacMode_HEAT)
+    await vtherm.async_set_preset_mode(VThermPreset.COMFORT)
+    await wait_for_local_condition(lambda: fake_underlying_valve.native_value == 100)
+    await wait_for_local_condition(lambda: vtherm.hvac_action == HVACAction.HEATING)
+    assert vtherm.underlying_entity(0).should_device_be_active is True
+    assert vtherm.underlying_entity(0).is_device_active is True
+
+    # 2. No demand: temperature above the target -> valve floored at 10%
+    now = now + timedelta(minutes=1)
+    await send_temperature_change_event(vtherm, 25, now)
+    await wait_for_local_condition(lambda: fake_underlying_valve.native_value == 10)
+    await hass.async_block_till_done()
+
+    assert vtherm.valve_open_percent == 0
+    assert vtherm.underlying_entity(0).percent_open == 10
+    assert vtherm.underlying_entity(0).current_valve_opening == 10
+    assert vtherm.underlying_entity(0).should_device_be_active is False
+    assert vtherm.underlying_entity(0).is_device_active is False
+    assert vtherm.hvac_action == HVACAction.IDLE
+    assert vtherm.device_actives == []
+
+    vtherm.remove_thermostat()

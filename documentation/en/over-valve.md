@@ -50,6 +50,11 @@ entities. Short lists use defaults for remaining valves; lists longer than the
 underlying list are rejected. With the defaults (`0`, empty lists, `100`), the
 command sent to the valve remains identical to the raw TPI percentage.
 
+A valve kept open at the `100 - max_closing_degree` floor, or at or below
+`opening_threshold_degree`, has no heating demand: VTherm reports it as `idle`
+rather than `heating`, and closes it to that floor (not to `0`) when it starts
+with the valve open and no demand.
+
 It is possible to choose a `thermostat_over_valve` to control an air conditioner by checking the "AC Mode" box. In this case, only the cooling mode will be visible.
 
 ### Sleep mode
