@@ -10,11 +10,11 @@
 | --- | --- |
 | Nom | Corrections du plancher `max_closing_degree` et de la détection d'activité des vannes (`over_valve` et régulation de vanne `over_climate`) |
 | Identifiant | SPEC-2069-2070 |
-| Version | 1.0 |
-| Statut | Brouillon pour revue |
-| Date | 2026-09-24 |
+| Version | 1.1 |
+| Statut | Convergé avec la conception DESIGN-2069-2070 v1.0 |
+| Date | 2026-09-24 (v1.1 : clôture QC-001/QC-002) |
 | Propriétaire | Mainteneur versatile_thermostat |
-| Sources analysées | `documentation/tech-docs/issue-2069-2070.md`, `documentation/tech-docs/issue-2069-2070-en.md`, `custom_components/versatile_thermostat/opening_degree_algorithm.py` (`OpeningClosingDegreeCalculation`), `custom_components/versatile_thermostat/underlyings.py` (`UnderlyingValve`, `UnderlyingValveRegulation`), `custom_components/versatile_thermostat/config_schema.py` (revue, pas de relecture ligne à ligne), issues GitHub #2069 (PR) et #2070 |
+| Sources analysées | `documentation/tech-docs/issue-2069-2070.md`, `documentation/tech-docs/issue-2069-2070-en.md`, `documentation/tech-docs/issue-2069-2070-design.md` (DESIGN-2069-2070 v1.0), `custom_components/versatile_thermostat/opening_degree_algorithm.py` (`OpeningClosingDegreeCalculation`), `custom_components/versatile_thermostat/underlyings.py` (`UnderlyingValve`, `UnderlyingValveRegulation`), `custom_components/versatile_thermostat/config_schema.py` (revue, pas de relecture ligne à ligne), issues GitHub #2069 (PR) et #2070 |
 
 ### 2. Contexte et objectifs
 
@@ -43,20 +43,20 @@ Déroulement nominal `over_valve` : la demande TPI brute est calculée → `set_
 
 - **FR-001** — Le système doit garantir que, pour toute demande TPI brute de 0 à 100 %, la commande effective d'ouverture envoyée à la vanne reste supérieure ou égale au plancher `100 - max_closing_degree`, après application des bornes de l'entité sous-jacente, pour `over_valve`.
 - **FR-002** — Le système doit garantir que la fonction de conversion demande brute → commande effective est monotone croissante (au sens large) sur [0 ; 100], y compris au franchissement de `opening_threshold_degree`.
-- **FR-003** — Le système doit déterminer l'activité d'une vanne `over_valve` dans une échelle unique : l'activité doit être évaluée en comparant la demande TPI brute à `opening_threshold_degree`, ou en comparant une ouverture physique effective à un seuil physique calculé avec la même formule et les mêmes bornes que la commande. Le système ne doit jamais comparer directement `opening_threshold_degree` (échelle de demande brute) à la commande effective ou à l'état de la vanne (échelle physique).
-- **FR-004** — Le système doit déclarer inactive une vanne `over_valve` sans demande de chauffage (demande brute nulle) même si sa commande effective (au plancher) est supérieure au minimum de l'entité `number`. L'état publié correspondant (`hvac_action`) doit être cohérent avec cette inactivité.
+- **FR-003** — Le système doit déterminer l'activité d'une vanne `over_valve` avec une échelle unique **pour chaque prédicat** : (a) l'activité *désirée* (`should_device_be_active`) doit être évaluée en comparant la demande TPI brute à `opening_threshold_degree` ; (b) l'activité *observée* (`is_device_active`) doit être évaluée en comparant l'ouverture physique réelle de la vanne au plancher physique effectif `max(100 - max_closing_degree, min de l'entité)`. Le système ne doit jamais comparer `opening_threshold_degree` (échelle de demande brute) à la commande effective ou à l'état de la vanne (échelle physique). *(Décision QC-001 entérinée, option 1 — voir DESIGN-2069-2070 §5.3, décision D1.)*
+- **FR-004** — Le système doit déclarer inactive une vanne `over_valve` sans demande de chauffage (demande brute nulle) même si sa commande effective (au plancher) est supérieure au minimum de l'entité `number`. La valeur mémorisée de la demande brute doit être remise à zéro lors de l'arrêt (`turn_off`) et de la refermeture au démarrage, afin que les prédicats d'activité restent cohérents avec l'absence de demande. L'état publié correspondant (`hvac_action`) doit être cohérent avec cette inactivité.
 - **FR-005** — Le système doit déclarer active une vanne `over_valve` recevant une demande brute supérieure ou égale à `opening_threshold_degree` (et strictement positive), y compris dans le cas valide `opening_threshold_degree > max_opening_degrees` avec une demande brute de 100 %.
 - **FR-006** — Lors de `check_initial_state` (démarrage ou rechargement) d'un VTherm `over_valve`, le système doit renvoyer une vanne sans demande au plancher effectif `100 - max_closing_degree` (borné aux limites de l'entité), et non systématiquement au minimum de l'entité `number`.
 - **FR-007** — Les exigences FR-001, FR-002 et FR-003 doivent s'appliquer également au VTherm `over_climate` avec régulation de vanne pour la partie relevant de l'algorithme partagé `OpeningClosingDegreeCalculation` (commandes `opening_degree` et `closing_degree`).
 - **FR-008** — Le système doit conserver la compatibilité des configurations par défaut et existantes : aucune combinaison aujourd'hui admise par le flux de configuration et le schéma (notamment `max_opening_degrees < opening_threshold_degree`, `max_closing_degree = 100`) ne doit être rejetée ni voir son comportement se dégrader hors des corrections visées.
-- **FR-009** — La documentation utilisateur du comportement (plancher, détection d'activité, monotonie) doit être publiée de façon équivalente dans les cinq guides localisés (`en`, `fr`, `cs`, `de`, `pl` — `documentation/*/over-valve.md`), selon la décision de traduction à acter (voir QC-001).
+- **FR-009** — La documentation utilisateur du comportement (plancher, détection d'activité, monotonie) doit être publiée de façon équivalente dans les cinq guides localisés (`en`, `fr`, `cs`, `de`, `pl` — `documentation/*/over-valve.md`) **dans la même livraison que le correctif**. *(Décision QC-002 entérinée — voir DESIGN-2069-2070 §5.5, décision D2.)*
 
 ### 5. Règles métier
 
-- **BR-001** — Pour `over_valve` : une vanne est considérée active si et seulement si la demande TPI brute est `> 0` et `>= opening_threshold_degree` (sémantique actuelle de l'algorithme). Exception : demande brute nulle → toujours inactive. Priorité : haute.
+- **BR-001** — Pour `over_valve` : une vanne est considérée active si et seulement si la demande TPI brute est `> 0` et `>= opening_threshold_degree` (sémantique actuelle de l'algorithme). Exceptions : demande brute nulle → toujours inactive ; demande brute inconnue (avant le premier cycle) → inactive ; configurations sans `opening_threshold_degree` ni `min/max_opening_degrees` configurés (configurations par défaut) → le comportement existant (comparaison de la commande effective au minimum de l'entité) est conservé. Priorité : haute.
 - **BR-002** — Plancher effectif : pour toute demande, la commande effective `>= max(100 - max_closing_degree, min de l'entité)` — le plancher algorithmique et la borne basse de l'entité sont appliqués ensemble, sans que l'un annule l'autre. Priorité : haute.
 - **BR-003** — Cas valide `opening_threshold_degree > max_opening_degrees` avec demande brute de 100 % : la commande effective vaut `max_opening_degrees` (le maximum configuré, borné au maximum de l'entité) ; l'état doit être `heating` / sous-jacent actif. Priorité : haute.
-- **BR-004** — À l'arrêt ou sans demande (`turn_off`, `check_initial_state`), la commande d'une vanne `over_valve` est l'image du plancher : conversion de la demande 0 par le même algorithme que la commande normale (cohérent avec `turn_off` qui appelle `_get_controlled_percent(0)`). Priorité : moyenne.
+- **BR-004** — À l'arrêt ou sans demande (`turn_off`, `check_initial_state`), la commande d'une vanne `over_valve` est l'image du plancher : conversion de la demande 0 par le même algorithme que la commande normale (cohérent avec `turn_off` qui appelle `_get_controlled_percent(0)`), et la demande brute mémorisée est remise à zéro dans la même opération. Priorité : moyenne.
 - **BR-005** — Pour `UnderlyingValveRegulation` (régulation de vanne `over_climate`) : ses prédicats d'activité déjà redéfinis (comparaison de l'état réel au plancher `100 - max_closing_degree` pour `is_device_active`, comparaison de la demande à `opening_threshold` pour `should_device_be_active`) ne doivent pas être modifiés au titre de #2069 ; seule la correction algorithmique partagée #2070 le concerne. Priorité : moyenne.
 
 ### 6. Contraintes fonctionnelles
@@ -102,7 +102,8 @@ Le passage de la demande de 29 à 31 (seuil 30) dans A2 ne doit jamais faire dim
 #### CA-E — Compatibilité et documentation (FR-008, FR-009)
 
 - E1 : les tests existants de `tests/test_valve.py`, `tests/test_check_initial_state.py`, `tests/test_overclimate_valve.py` non liés aux défauts corrigés restent valides en dehors des attentes explicitement corrigées.
-- E2 : les cinq guides `over-valve.md` contiennent le même paragraphe de comportement traduit (ou une tâche de traduction suivie est créée si QC-001 tranche autrement).
+- E2 : les cinq guides `over-valve.md` (`en`, `fr`, `cs`, `de`, `pl`) contiennent le même paragraphe de comportement traduit, livrés dans la même PR que le correctif (décision QC-002 entérinée).
+- E3 (nouveau, traçant la garde de compatibilité D3) : pour une configuration `over_valve` sans `opening_threshold_degree` ni `min/max_opening_degrees` configurés, les prédicats d'activité conservent le comportement antérieur (non-régression des configurations par défaut).
 
 ### 8. Fonctions non prises en compte
 
@@ -113,7 +114,7 @@ Le passage de la demande de 29 à 31 (seuil 30) dans A2 ne doit jamais faire dim
 
 ### 9. Évolutions futures proposées
 
-- Ajout d'un avertissement (non bloquant) dans le flux de configuration lorsque `max_opening_degrees < opening_threshold_degree` — dépend de QC-001 et de la politique de validation.
+- Ajout d'un avertissement (non bloquant) dans le flux de configuration lorsque `max_opening_degrees < opening_threshold_degree` ou `max_opening_degrees < 100 - max_closing_degree` — dépend de QC-003 et de la politique de validation.
 - Exposition de la demande TPI brute comme attribut/diagnostic pour faciliter l'observation de l'échelle de référence.
 
 ### 10. Hypothèses, questions ouvertes et traçabilité
@@ -132,7 +133,15 @@ Le passage de la demande de 29 à 31 (seuil 30) dans A2 ne doit jamais faire dim
 
 **Décisions actées :**
 - #2069 et #2070 sont corrigés ensemble sur la branche de résolution #2070 ; la PR #2069 est fermée sans fusion et ses correctifs repris.
+- **QC-001 (tranché — DESIGN-2069-2070 v1.0, décision D1)** : échelle unique *par prédicat*. L'activité désirée (`should_device_be_active`) est évaluée sur la demande TPI brute comparée à `opening_threshold_degree` ; l'activité observée (`is_device_active`) est évaluée sur l'ouverture physique réelle comparée au plancher physique effectif `max(100 - max_closing_degree, min de l'entité)`. L'alternative 2 (conversion du seuil en seuil physique par vanne) est écartée : elle exigerait de dupliquer la formule de conversion (clamp entité inclus) pour un seuil jamais envoyé, avec risque de divergence entre envoi et comparaison. FR-003, FR-004 et BR-001 reflètent cette décision ; BR-001 intègre les exceptions de la garde de compatibilité (configurations par défaut, demande inconnue).
+- **QC-002 (tranché — DESIGN-2069-2070 v1.0, décision D2)** : les cinq documentations localisées (`en`, `fr`, `cs`, `de`, `pl`) sont livrées dans la même PR que le correctif, afin d'éviter une fenêtre d'incohérence documentaire entre versions publiées. FR-009 et CA-E2 reflètent cette décision.
 
-**Questions ouvertes (décision requise avant développement) :**
-- **QC-001** : échelle de référence pour FR-003 (alternative 1 : activité sur demande brute ; alternative 2 : conversion du seuil en seuil physique par vanne). La revue recommande l'option 1 ou 2 sans en imposer une.
-- **QC-002** : report du paragraphe documentaire dans les 4 autres langues dans la même PR, ou retrait de la documentation de la PR et création d'une tâche de traduction suivie.
+**Questions ouvertes (non bloquantes pour le développement) :**
+- **QC-003 (nouveau, hérité de la conception — DESIGN-2069-2070 QO-1)** : dans le cas dégénéré où `max_opening_degrees < 100 - max_closing_degree` (le plancher algorithmique dépasse le maximum configuré), le clamp au plancher peut produire une commande supérieure à `max_opening_degree` ; le clamp aux bornes de l'entité `number` reste l'arbitre physique. Ce cas, admis par le flux de configuration actuel, doit être observé à l'implémentation ; le lever éventuel d'un avertissement non bloquant dans le flux de configuration reste une évolution future (section 9).
+
+**Traçabilité de convergence (v1.1) :** la présente spécification v1.1 et DESIGN-2069-2070 v1.0 couvrent le même périmètre (`over_valve` + algorithme partagé `OpeningClosingDegreeCalculation` pour la régulation de vanne `over_climate`) ; toutes les exigences FR-001 à FR-009, règles BR-001 à BR-005 et critères CA-A à CA-E sont couverts par la conception (matrice de traçabilité DESIGN §11) ; aucune contradiction entre les deux documents n'a été relevée lors du cycle de convergence ; les deux questions initiales (QC-001, QC-002) sont fermées et les questions restantes (QC-003/QO) sont déclarées non bloquantes.
+
+### 11. Historique des versions
+
+- Version 1.1 (2026-09-24) — cycle de convergence avec la conception : QC-001 clôturée (option 1, décision D1) et reflétée dans FR-003/FR-004/BR-001/BR-004 ; QC-002 clôturée (décision D2) et reflétée dans FR-009/CA-E2 ; FR-003 précisé en échelle unique *par prédicat* ; garde de compatibilité des configurations par défaut tracée par BR-001 et le nouveau critère CA-E3 ; question QC-003 créée (cas dégénéré `max_opening_degrees < 100 - max_closing_degree`, non bloquante). Aucune exigence supprimée ni affaiblie.
+- Version 1.0 (2026-09-24) — création initiale.
