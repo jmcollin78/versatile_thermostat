@@ -150,7 +150,209 @@ async def test_check_initial_state_underlying_valve(hass, hvac_mode, percent_ope
         assert u._last_known_underlying_state.state == last_state
         if expect_percent_open_call:
             assert u.send_percent_open.await_count == 1
-            assert u.send_percent_open.await_args.kwargs.get("fixed_value") == min_open
+            assert u.send_percent_open.await_args.kwargs == {}
+            assert u.percent_open == min_open
+
+
+@pytest.mark.asyncio
+async def test_underlying_valve_activity_uses_raw_demand_and_physical_floor(hass):
+    """Keep raw TPI activity separate from the physical valve floor."""
+    thermostat = MagicMock()
+    thermostat.valve_open_percent = 100
+    thermostat.now = None
+    thermostat.init_underlyings_completed = AsyncMock()
+    thermostat.underlying_changed = AsyncMock()
+
+    valve = UnderlyingValve(
+        hass=hass,
+        thermostat=thermostat,
+        valve_entity_id="number.valve",
+        min_opening_degree=10,
+        max_opening_degree=50,
+        max_closing_degree=60,
+        opening_threshold=60,
+        has_valve_control=True,
+    )
+    valve.send_percent_open = AsyncMock()
+    hass.states.async_set("number.valve", "50", attributes={"min": 0, "max": 100})
+    await hass.async_block_till_done()
+    valve.startup()
+    await hass.async_block_till_done()
+
+    await valve.set_valve_open_percent()
+    assert valve.should_device_be_active is True
+    assert valve.is_device_active is True
+
+    thermostat.valve_open_percent = 0
+    hass.states.async_set("number.valve", "40", attributes={"min": 0, "max": 100})
+    await hass.async_block_till_done()
+    await valve.set_valve_open_percent()
+    assert valve.should_device_be_active is False
+    assert valve.is_device_active is False
+
+
+@pytest.mark.asyncio
+async def test_underlying_valve_is_active_at_opening_threshold(hass):
+    """Treat a raw demand equal to the opening threshold as active."""
+    thermostat = MagicMock()
+    thermostat.valve_open_percent = 30
+    thermostat.now = None
+    thermostat.init_underlyings_completed = AsyncMock()
+    thermostat.underlying_changed = AsyncMock()
+
+    valve = UnderlyingValve(
+        hass=hass,
+        thermostat=thermostat,
+        valve_entity_id="number.valve",
+        min_opening_degree=10,
+        max_opening_degree=100,
+        max_closing_degree=60,
+        opening_threshold=30,
+        has_valve_control=True,
+    )
+    valve.send_percent_open = AsyncMock()
+    hass.states.async_set("number.valve", "40", attributes={"min": 0, "max": 100})
+    await hass.async_block_till_done()
+    valve.startup()
+    await hass.async_block_till_done()
+
+    await valve.set_valve_open_percent()
+
+    assert valve._raw_percent_open == 30
+    assert valve.should_device_be_active is True
+
+
+@pytest.mark.asyncio
+async def test_underlying_valve_turn_off_resets_raw_demand(hass):
+    """Reset both cached demands when turning a controlled valve off."""
+    thermostat = MagicMock()
+    thermostat.valve_open_percent = 100
+    thermostat.now = None
+    thermostat.init_underlyings_completed = AsyncMock()
+    thermostat.underlying_changed = AsyncMock()
+
+    valve = UnderlyingValve(
+        hass=hass,
+        thermostat=thermostat,
+        valve_entity_id="number.valve",
+        min_opening_degree=10,
+        max_opening_degree=100,
+        max_closing_degree=60,
+        opening_threshold=30,
+        has_valve_control=True,
+    )
+    valve.send_percent_open = AsyncMock()
+    hass.states.async_set("number.valve", "50", attributes={"min": 0, "max": 100})
+    await hass.async_block_till_done()
+    valve.startup()
+    await hass.async_block_till_done()
+
+    await valve.set_valve_open_percent()
+    await valve.turn_off()
+
+    assert valve._raw_percent_open == 0
+    assert valve.percent_open == 40
+    assert valve.should_device_be_active is False
+    assert valve.send_percent_open.await_count == 1
+
+
+@pytest.mark.asyncio
+async def test_underlying_valve_activity_falls_back_to_entity_minimum(hass):
+    """Preserve activity detection for valves without valve control settings."""
+    thermostat = MagicMock()
+    thermostat.valve_open_percent = 30
+    thermostat.now = None
+    thermostat.init_underlyings_completed = AsyncMock()
+    thermostat.underlying_changed = AsyncMock()
+
+    valve = UnderlyingValve(
+        hass=hass,
+        thermostat=thermostat,
+        valve_entity_id="number.valve",
+    )
+    hass.states.async_set("number.valve", "30", attributes={"min": 0, "max": 100})
+    await hass.async_block_till_done()
+    valve.startup()
+    await hass.async_block_till_done()
+
+    valve._percent_open = 30
+
+    assert valve.should_device_be_active is True
+    assert valve.is_device_active is True
+
+
+@pytest.mark.asyncio
+async def test_check_initial_state_underlying_valve_closes_to_effective_floor(hass):
+    """Close an inactive valve to the command produced for a zero demand."""
+    thermostat = MagicMock()
+    thermostat.valve_open_percent = 0
+    thermostat.now = None
+    thermostat.init_underlyings_completed = AsyncMock()
+    thermostat.underlying_changed = AsyncMock()
+
+    valve = UnderlyingValve(
+        hass=hass,
+        thermostat=thermostat,
+        valve_entity_id="number.valve",
+        min_opening_degree=10,
+        max_opening_degree=100,
+        max_closing_degree=60,
+        opening_threshold=30,
+        has_valve_control=True,
+    )
+    valve.send_percent_open = AsyncMock()
+    hass.states.async_set("number.valve", "60", attributes={"min": 0, "max": 100})
+    await hass.async_block_till_done()
+    valve.startup()
+    await hass.async_block_till_done()
+
+    await valve.check_initial_state()
+    assert valve.percent_open == 40
+    assert valve._raw_percent_open == 0
+    assert valve.send_percent_open.await_args.kwargs == {}
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize(
+    ("demand", "current_opening"),
+    [
+        (100, "40"),
+        (70, "0"),
+    ],
+    ids=["catchup-with-demand", "incoherent-state"],
+)
+async def test_check_initial_state_underlying_valve_catches_up_with_restored_demand(hass, demand, current_opening):
+    """Synchronize restored TPI demand before deciding whether to catch up."""
+    thermostat = MagicMock()
+    thermostat.valve_open_percent = demand
+    thermostat.now = None
+    thermostat.init_underlyings_completed = AsyncMock()
+    thermostat.underlying_changed = AsyncMock()
+
+    valve = UnderlyingValve(
+        hass=hass,
+        thermostat=thermostat,
+        valve_entity_id="number.valve",
+        min_opening_degree=10,
+        max_opening_degree=100,
+        max_closing_degree=60,
+        opening_threshold=30,
+        has_valve_control=True,
+    )
+    valve.send_percent_open = AsyncMock()
+    hass.states.async_set("number.valve", current_opening, attributes={"min": 0, "max": 100})
+    await hass.async_block_till_done()
+    valve.startup()
+    await hass.async_block_till_done()
+    valve.send_percent_open.reset_mock()
+
+    await valve.check_initial_state()
+
+    assert valve._raw_percent_open == demand
+    assert valve.percent_open == valve._get_controlled_percent(demand)
+    assert valve.should_device_be_active is True
+    valve.send_percent_open.assert_awaited_once_with()
+
 
 @pytest.mark.asyncio
 @pytest.mark.parametrize(

@@ -38,6 +38,14 @@ anschließend der Höchstöffnungsgrad. `opening_threshold_degree` und
 `max_closing_degree` gelten für den gesamten Thermostat. Mit den Standardwerten
 bleibt der gesendete Befehl identisch zum TPI-Rohwert.
 
+Der physische Befehl unterschreitet niemals `100 - max_closing_degree`, auch
+nicht wenn die rohe TPI-Anforderung `opening_threshold_degree` erreicht, und
+nimmt bei steigender Anforderung nicht ab. Die Heizanforderung wird anhand des
+positiven rohen TPI-Prozentsatzes am oder über dem Schwellenwert bestimmt; das
+beobachtete Ventil ist nur oberhalb seines wirksamen physischen Minimums aktiv,
+das auch durch das Entity-Minimum begrenzt wird. Beim Start oder Neuladen kehrt
+ein Ventil ohne Anforderung zu diesem Minimum zurück.
+
 `min_opening_degrees` und `max_opening_degrees` sind durch Kommata getrennte
 Listen in der Reihenfolge der untergeordneten Ventile. Unvollständige Listen
 sind zulässig: fehlende Werte verwenden die Standardwerte. Listen mit mehr

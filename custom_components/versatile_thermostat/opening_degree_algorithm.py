@@ -64,6 +64,8 @@ class OpeningClosingDegreeCalculation:
         else:
             calculated_degree = 1 - max_cd
 
+        calculated_degree = max(calculated_degree, 1 - max_cd)
+
         # set to base 100
         calculated_degree = round(calculated_degree * 100)
         _LOGGER.debug(

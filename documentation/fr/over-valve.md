@@ -47,6 +47,14 @@ direct de vanne avec `over_climate` :
 	virgules, une par vanne sous-jacente. Les valeurs absentes utilisent le
 	maximum supporté par l'entité `number` concernée.
 
+La commande physique ne descend jamais sous `100 - max_closing_degree`, y
+compris lorsque la demande TPI brute atteint `opening_threshold_degree`, et
+elle reste monotone lorsque la demande augmente. La demande de chauffage est
+déterminée à partir du pourcentage TPI brut positif, supérieur ou égal au
+seuil ; la vanne observée n'est active qu'au-dessus de son plancher physique
+effectif, également borné par le minimum de l'entité. Au démarrage ou après un
+rechargement, une vanne sans demande revient à ce plancher.
+
 Pour plusieurs vannes, les valeurs suivent l'ordre des entités sous-jacentes.
 Les listes courtes utilisent les valeurs par défaut pour les vannes restantes ;
 les listes plus longues sont refusées. Avec les valeurs par défaut (`0`, listes
