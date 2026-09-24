@@ -27,6 +27,25 @@ Versatile Thermostat UI Card (Verfügbar auf [Github](https://github.com/jmcolli
 # Was ist neu?
 ![Neu](images/new-icon.png)
 
+## Release 10.5.0
+
+Die Erkennung von Heizungsanomalien kann jetzt als externes Plugin
+`vtherm_heating_failure_detection` verwendet werden. Das Plugin bietet eine
+zentrale Konfiguration und Überschreibungen pro VTherm; seine Formulare füllen
+die vorhandenen Core-Einstellungen vor, um die Migration zu erleichtern.
+
+Während der Übergangsphase haben die Plugin-Einstellungen Vorrang. Werte, die
+im Plugin nicht definiert sind, verwenden weiterhin die Legacy-Konfiguration
+des Core. Deaktivieren Sie die Legacy-Funktion für einen VTherm, bevor Sie das
+Plugin aktivieren, um eine doppelte Konfiguration zu vermeiden.
+
+Der Binärsensor für Heizungsanomalien wird nun vom Plugin bereitgestellt. Wenn
+dies konfliktfrei möglich ist, bleibt seine bestehende `entity_id` erhalten,
+damit Dashboards und Automatisierungen weiterhin funktionieren. Laden Sie den
+Plugin-Eintrag nach dem Deaktivieren des Legacy-Sensors neu; bleibt dieser aktiv,
+kann Home Assistant eine neue `entity_id` erzeugen, die in bestehenden
+Verbrauchern verwendet werden muss.
+
 ## Release 10.4.0
 VTherm kann jetzt `current_humidity` mit einem externen Luftfeuchtigkeitssensor für alle Thermostattypen bereitstellen. Der Sensor wird im Menü Luftfeuchtigkeit ausgewählt oder am Gerät des Raumtemperatursensors automatisch erkannt.
 

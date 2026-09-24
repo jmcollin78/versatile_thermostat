@@ -30,6 +30,24 @@ Le composant Versatile Thermostat UI Card (Disponible sur [Github](https://githu
 
 ![Nouveau](images/new-icon.png)
 
+## Release 10.5.0
+
+La détection d'anomalie de chauffe peut désormais être utilisée sous forme de plugin
+externe `vtherm_heating_failure_detection`. Le plugin propose une configuration
+centrale et des surcharges par VTherm ; ses formulaires préremplissent les paramètres
+existants du core pour faciliter la migration.
+
+Pendant la période de transition, la configuration du plugin est prioritaire, tandis
+que les valeurs non définies dans le plugin continuent de reprendre les réglages legacy
+du core. Désactivez la fonction legacy pour un VTherm avant d'activer le plugin afin
+d'éviter une double configuration.
+
+Le capteur binaire de détection est désormais fourni par le plugin. Lorsqu'il est
+possible de le faire sans conflit, son `entity_id` existant est conservé afin de ne pas
+casser les tableaux de bord et automatisations. Rechargez l'entrée du plugin après
+avoir désactivé le capteur legacy ; si ce dernier reste actif, Home Assistant peut créer
+un nouveau `entity_id` qu'il faudra utiliser dans les consommateurs existants.
+
 ## Release 10.4.0
 VTherm peut désormais exposer `current_humidity` depuis un capteur d’humidité externe pour tous les types de thermostats. Le capteur se sélectionne dans le menu Humidité ou est détecté automatiquement sur l’appareil du capteur de température ambiante.
 
