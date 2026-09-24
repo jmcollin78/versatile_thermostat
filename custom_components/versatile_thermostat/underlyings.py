@@ -609,6 +609,13 @@ class UnderlyingClimate(UnderlyingEntity):
         if hvac_mode in (VThermHvacMode_HEAT, VThermHvacMode_COOL) and not await self.check_overpowering():
             return False
 
+        # Always cancel a pending delayed temperature resend, whatever the new mode is.
+        # Otherwise a HEAT -> OFF sequence within resend_delay_sec would send a set_temperature
+        # to an underlying that is now off, which turns some devices (e.g. Sonoff TRVZB) back on.
+        if self._cancel_set_temperature_later:
+            self._cancel_set_temperature_later()
+            self._cancel_set_temperature_later = None
+
         await super().set_hvac_mode(hvac_mode)
 
         data = {ATTR_ENTITY_ID: self._entity_id, "hvac_mode": to_legacy_ha_hvac_mode(hvac_mode)}
@@ -630,8 +637,6 @@ class UnderlyingClimate(UnderlyingEntity):
                 if temperature is not None:
                     await self.set_temperature(temperature, None, None)
 
-            if self._cancel_set_temperature_later:
-                self._cancel_set_temperature_later()
             self._cancel_set_temperature_later = async_call_later(self._hass, resend_delay_sec, callback_resend_temp)
 
         return True
