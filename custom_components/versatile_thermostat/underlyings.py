@@ -1189,7 +1189,7 @@ class UnderlyingValve(UnderlyingEntity):
         )
         self._hvac_mode = None
         self._percent_open: int | None = None  # self._thermostat.valve_open_percent
-        self._raw_percent_open: int | None = None
+        self._raw_percent_open: float | None = None
         self._min_open: float | None = None
         self._max_open: float | None = None
         self._last_sent_temperature = None
@@ -1226,6 +1226,11 @@ class UnderlyingValve(UnderlyingEntity):
         # Initialize percent_open to current state
 
         self.init_valve_state_min_max_open()
+
+        raw_percent = self._thermostat.valve_open_percent
+        if self._has_valve_control and isinstance(raw_percent, (int, float)):
+            self._raw_percent_open = raw_percent
+            self._percent_open = self._get_controlled_percent(raw_percent)
 
         should_device_be_active = self.should_device_be_active
         is_device_active = self.is_device_active

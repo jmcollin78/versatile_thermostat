@@ -1,7 +1,7 @@
 # pylint: disable=wildcard-import, unused-wildcard-import, protected-access, unused-argument, line-too-long, too-many-lines
 
 """ Test the over_climate with valve regulation """
-from unittest.mock import patch, call, PropertyMock
+from unittest.mock import AsyncMock, MagicMock, patch, call, PropertyMock
 from datetime import datetime, timedelta
 
 import logging
@@ -14,6 +14,7 @@ from custom_components.versatile_thermostat.thermostat_climate_valve import (
     ThermostatOverClimateValve,
 )
 from custom_components.versatile_thermostat.opening_degree_algorithm import OpeningClosingDegreeCalculation
+from custom_components.versatile_thermostat.underlyings import UnderlyingValveRegulation
 
 from .commons import *
 from .const import *
@@ -928,7 +929,7 @@ async def test_over_climate_valve_period_min(hass: HomeAssistant, fake_temp_sens
         (0,                        10,                   100,                  100,                  10,                  0),  # 10-100 range and 0 -> fully close cause max_close = 100%
         (0,                        10,                   80,                   100,                  10,                  20),   # 10-80 range and 0 -> close -> open to the 1-max_closing
         (5,                        10,                   80,                   100,                  10,                  20),   # 10-80 range and 5 -> close -> open to the 1-max_closing
-        (10,                       10,                   80,                   100,                  10,                  10),   # 10-80 range and 10 -> open -> 10% opening
+        (10,                       10,                   80,                   100,                  10,                  20),   # 10-80 range and 10 -> effective floor
         (20,                       10,                   80,                   100,                  10,                  20),   # 10-80 range and 20 -> open -> 20% opening
         (30,                       10,                   80,                   100,                  10,                  30),   # 10-80 range and 30 -> open -> 30% opening
         (50,                       10,                   80,                   100,                  10,                  50),   # 10-80 range and 50 -> open -> 50% opening
@@ -948,7 +949,7 @@ async def test_over_climate_valve_period_min(hass: HomeAssistant, fake_temp_sens
         # The opening command remains at the floor when interpolation starts below it.
         (29,                       10,                   60,                   100,                  30,                  40),
         (30,                       10,                   60,                   100,                  30,                  40),
-        (35,                       10,                   60,                   100,                  30,                  41),
+        (35,                       10,                   60,                   100,                  30,                  40),
         # A physical maximum below the raw threshold remains valid at full demand.
         (100,                      10,                   100,                   50,                   60,                  50),
         # Test of @Tomtom13
@@ -978,6 +979,37 @@ async def test_min_max_closing_degrees_algo(
     assert opening == expected_opening, f"Expected opening {expected_opening}%, got {opening}%"
     assert closing == 100 - expected_opening, f"Expected closing {100 - expected_opening}%, got {closing}%"
     assert opening + closing == 100, "Opening + Closing should equal 100%"
+
+
+async def test_valve_regulation_never_sends_below_effective_floor(hass: HomeAssistant):
+    """Keep opening and closing commands coherent around the control threshold."""
+    valve = UnderlyingValveRegulation(
+        hass=hass,
+        thermostat=MagicMock(),
+        climate_underlying=MagicMock(),
+        opening_degree_entity_id="number.opening",
+        closing_degree_entity_id="number.closing",
+        min_opening_degree=10,
+        max_opening_degree=100,
+        max_closing_degree=60,
+        opening_threshold=30,
+    )
+    valve.send_value_to_number = AsyncMock()
+
+    for demand in (29, 31, 0):
+        valve._percent_open = demand
+        await valve.send_percent_open()
+
+    valve.send_value_to_number.assert_has_awaits(
+        [
+            call("number.opening", 40),
+            call("number.closing", 60),
+            call("number.opening", 40),
+            call("number.closing", 60),
+            call("number.opening", 40),
+            call("number.closing", 60),
+        ]
+    )
 
 
 # @pytest.mark.parametrize("expected_lingering_timers", [True])
