@@ -224,6 +224,7 @@ class ThermostatOverValve(ThermostatProp[UnderlyingValve]):  # pylint: disable=a
                     ),
                     max_closing_degree=self._max_closing_degree,
                     opening_threshold=self._opening_threshold_degree,
+                    has_valve_control=self._have_valve_control,
                 )
             )
 

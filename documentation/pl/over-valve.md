@@ -42,6 +42,14 @@ otwarcia, a potem maksymalny stopień otwarcia. `opening_threshold_degree` i
 `max_closing_degree` dotyczą całego termostatu. Przy wartościach domyślnych
 wysłane polecenie jest zgodne z surowym procentem TPI.
 
+Fizyczne polecenie nigdy nie spada poniżej `100 - max_closing_degree`, również
+gdy surowe zapotrzebowanie TPI osiąga `opening_threshold_degree`, i nie maleje
+wraz ze wzrostem zapotrzebowania. Zapotrzebowanie na ogrzewanie jest określane
+na podstawie dodatniego surowego procentu TPI równego progowi lub większego;
+obserwowany zawór jest aktywny tylko powyżej skutecznego fizycznego minimum,
+ograniczonego także minimum encji. Przy uruchomieniu lub ponownym załadowaniu
+zawór bez zapotrzebowania wraca do tego minimum.
+
 `min_opening_degrees` oraz `max_opening_degrees` są listami CSV w kolejności
 zaworów podrzędnych. Niepełne listy są dozwolone: brakujące wartości używają
 ustawień domyślnych. Listy z większą liczbą wartości niż skonfigurowanych

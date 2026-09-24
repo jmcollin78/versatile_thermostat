@@ -38,6 +38,13 @@ následně maximální stupeň otevření. `opening_threshold_degree` a
 `max_closing_degree` platí pro celý termostat. Při výchozím nastavení zůstává
 odeslaný povel stejný jako surové procento TPI.
 
+Fyzický povel nikdy neklesne pod `100 - max_closing_degree`, ani když surový
+požadavek TPI dosáhne `opening_threshold_degree`, a při růstu požadavku je
+neklesající. Požadavek na vytápění se určuje z kladného surového procenta TPI
+na prahu nebo nad ním; pozorovaný ventil je aktivní pouze nad svým účinným
+fyzickým minimem, omezeným také minimem entity. Při spuštění nebo opětovném
+načtení se ventil bez požadavku vrátí na toto minimum.
+
 `min_opening_degrees` a `max_opening_degrees` jsou seznamy CSV v pořadí
 podkladových ventilů. Neúplné seznamy jsou povoleny: chybějící hodnoty použijí
 výchozí nastavení. Seznamy s více hodnotami než nakonfigurovaných ventilů jsou
