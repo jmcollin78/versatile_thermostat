@@ -1293,6 +1293,47 @@ async def test_delayed_temperature_resend_uses_effective_setpoint(
         }
 
 
+async def test_delayed_temperature_resend_cancelled_on_hvac_off(hass: HomeAssistant):
+    """A HEAT -> OFF sequence must cancel the pending temperature resend scheduled by HEAT,
+    otherwise a set_temperature is sent to an underlying that is off (and wakes up e.g. a Sonoff TRVZB)"""
+    thermostat = MagicMock(spec=ThermostatOverClimate)
+    thermostat.now = datetime.now(tz=get_tz(hass))
+    thermostat.target_temperature = 20.0
+    thermostat.regulated_target_temperature = 20.0
+    thermostat.power_manager.check_power_available = AsyncMock(return_value=(True, None))
+
+    under = UnderlyingClimate(hass, thermostat, "climate.mock_climate")
+    under._is_initialized = True
+    under._state_manager.get_state = MagicMock(
+        return_value=State(
+            "climate.mock_climate",
+            HVACMode.HEAT,
+            attributes={
+                "supported_features": ClimateEntityFeature.TARGET_TEMPERATURE,
+                "min_temp": 15.0,
+                "max_temp": 30.0,
+            },
+        )
+    )
+
+    cancel_resend = MagicMock()
+
+    with patch.object(under, "hass_services_async_call", new_callable=AsyncMock), patch(
+        "custom_components.versatile_thermostat.underlyings.async_call_later",
+        return_value=cancel_resend,
+    ) as mock_call_later:
+        assert await under.set_hvac_mode(VThermHvacMode_HEAT)
+        assert mock_call_later.call_count == 1
+        assert under._cancel_set_temperature_later is cancel_resend
+
+        assert await under.set_hvac_mode(VThermHvacMode_OFF)
+
+    # the resend scheduled by HEAT is cancelled and no new one is scheduled for OFF
+    cancel_resend.assert_called_once()
+    assert mock_call_later.call_count == 1
+    assert under._cancel_set_temperature_later is None
+
+
 @pytest.mark.parametrize(
     "under_state, hvac_mode, hvac_action, target_temp, current_temp, expected_result, description",
     [
