@@ -45,6 +45,14 @@ with `over_climate`:
 	underlying valve. Omitted values use the maximum supported by the related
 	`number` entity.
 
+The physical command never falls below `100 - max_closing_degree`, including
+when the raw TPI demand reaches `opening_threshold_degree`; it is monotonically
+non-decreasing as demand rises. Heating demand is determined from the positive
+raw TPI percentage at or above the threshold, while the observed valve is
+active only above its effective physical floor (also constrained by the entity
+minimum). At startup or reload, a valve without demand is returned to this
+floor.
+
 For several valves, values are applied in the same order as the underlying
 entities. Short lists use defaults for remaining valves; lists longer than the
 underlying list are rejected. With the defaults (`0`, empty lists, `100`), the
