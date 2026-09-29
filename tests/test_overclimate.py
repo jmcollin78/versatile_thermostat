@@ -1246,6 +1246,7 @@ async def test_delayed_temperature_resend_uses_effective_setpoint(
     expected_temperature,
 ):
     thermostat = MagicMock(spec=ThermostatOverClimate)
+    thermostat.get_underlying_hvac_mode.side_effect = lambda hvac_mode: hvac_mode
     thermostat.now = datetime.now(tz=get_tz(hass))
     thermostat.target_temperature = target_temperature
     thermostat.regulated_target_temperature = regulated_target_temperature
@@ -1297,6 +1298,7 @@ async def test_delayed_temperature_resend_cancelled_on_hvac_off(hass: HomeAssist
     """A HEAT -> OFF sequence must cancel the pending temperature resend scheduled by HEAT,
     otherwise a set_temperature is sent to an underlying that is off (and wakes up e.g. a Sonoff TRVZB)"""
     thermostat = MagicMock(spec=ThermostatOverClimate)
+    thermostat.get_underlying_hvac_mode.side_effect = lambda hvac_mode: hvac_mode
     thermostat.now = datetime.now(tz=get_tz(hass))
     thermostat.target_temperature = 20.0
     thermostat.regulated_target_temperature = 20.0

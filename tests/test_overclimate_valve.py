@@ -720,7 +720,7 @@ async def test_over_climate_valve_vtherm_hvac_mode_sleep(hass: HomeAssistant, fa
     # fmt: on
         await vtherm.async_set_hvac_mode(VThermHvacMode_SLEEP)
         await hass.async_block_till_done()
-        await wait_for_local_condition(lambda: vtherm._underlyings[0].state_manager.get_state('climate.mock_climate').state == HVACMode.OFF)
+        await wait_for_local_condition(lambda: vtherm._underlyings[0].state_manager.get_state('climate.mock_climate').state == HVACMode.HEAT)
         assert vtherm.hvac_mode == VThermHvacMode_OFF
 
         assert vtherm.vtherm_hvac_mode is VThermHvacMode_SLEEP
@@ -768,6 +768,15 @@ async def test_over_climate_valve_vtherm_hvac_mode_sleep(hass: HomeAssistant, fa
 
     await hass.async_block_till_done()
     vtherm.remove_thermostat()
+
+
+def test_over_climate_valve_sleep_uses_cool_in_ac_mode(hass: HomeAssistant):
+    """Sleep keeps an AC-mode TRV physically active in COOL mode."""
+    thermostat = MagicMock(spec=ThermostatOverClimateValve)
+    thermostat.ac_mode = True
+
+    assert ThermostatOverClimateValve.get_underlying_hvac_mode(thermostat, VThermHvacMode_SLEEP) is VThermHvacMode_COOL
+    assert ThermostatOverClimateValve.get_underlying_hvac_mode(thermostat, VThermHvacMode_OFF) is VThermHvacMode_OFF
 
 
 async def test_over_climate_valve_period_min(hass: HomeAssistant, fake_temp_sensor, fake_ext_temp_sensor):
