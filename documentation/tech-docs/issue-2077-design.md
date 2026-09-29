@@ -1,6 +1,6 @@
 # Conception technique - issue #2077 : sommeil / maintenance de `ThermostatOverClimateValve`
 
-- **Statut :** proposition de conception, prête pour validation de développement
+- **Statut :** implémentée, validation locale réussie
 - **Version :** 1.0
 - **Date :** 2026-09-29
 - **Propriétaire :** a désigner

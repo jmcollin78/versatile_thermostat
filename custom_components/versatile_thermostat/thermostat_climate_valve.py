@@ -21,7 +21,7 @@ from .cycle_scheduler import CycleScheduler
 
 from .const import *  # pylint: disable=wildcard-import, unused-wildcard-import
 from .commons import write_event_log
-from .vtherm_hvac_mode import VThermHvacMode, VThermHvacMode_OFF, VThermHvacMode_SLEEP
+from .vtherm_hvac_mode import VThermHvacMode, VThermHvacMode_COOL, VThermHvacMode_HEAT, VThermHvacMode_OFF, VThermHvacMode_SLEEP
 
 # from .vtherm_central_api import VersatileThermostatAPI
 
@@ -407,6 +407,8 @@ class ThermostatOverClimateValve(ThermostatProp[UnderlyingClimate], ThermostatOv
     @property
     def is_device_active(self) -> bool:
         """Returns true if one underlying is active"""
+        if self.is_sleeping:
+            return False
         if ThermostatOverClimate.is_device_active.fget(self) is not True:
             return False
         for under in self._underlyings_valve_regulation:
@@ -430,6 +432,13 @@ class ThermostatOverClimateValve(ThermostatProp[UnderlyingClimate], ThermostatOv
     def is_sleeping(self) -> bool:
         """True if the thermostat is in sleep mode"""
         return self.vtherm_hvac_mode == VThermHvacMode_SLEEP
+
+    @overrides
+    def get_underlying_hvac_mode(self, hvac_mode: VThermHvacMode) -> VThermHvacMode:
+        """Keep the TRV active while the VTherm is sleeping."""
+        if hvac_mode == VThermHvacMode_SLEEP:
+            return VThermHvacMode_COOL if self.ac_mode else VThermHvacMode_HEAT
+        return hvac_mode
 
     @overrides
     async def service_set_auto_regulation_mode(self, auto_regulation_mode: str):

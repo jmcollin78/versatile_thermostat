@@ -1573,6 +1573,10 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
         self._state_manager.requested_state.set_hvac_mode(hvac_mode)
         await self.update_states(force=False)
 
+    def get_underlying_hvac_mode(self, hvac_mode: VThermHvacMode) -> VThermHvacMode:
+        """Return the physical HVAC mode to apply to underlyings."""
+        return hvac_mode
+
     @overrides
     @check_lock
     async def async_set_preset_mode(self, preset_mode: str):

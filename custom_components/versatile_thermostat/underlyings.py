@@ -593,6 +593,7 @@ class UnderlyingClimate(UnderlyingEntity):
 
     async def set_hvac_mode(self, hvac_mode: VThermHvacMode) -> bool:
         """Set the HVACmode of the underlying climate. Returns true if something have change"""
+        hvac_mode = self._thermostat.get_underlying_hvac_mode(hvac_mode)
         state = self._state_manager.get_state(self._entity_id)
         if state is None:
             return False
@@ -1470,6 +1471,11 @@ class UnderlyingValveRegulation(UnderlyingValve):
 
         # Initialize valve state and min max opening
         self.init_valve_state_min_max_open()
+
+        if self._thermostat.is_sleeping:
+            self._percent_open = 100
+            await self.send_percent_open()
+            return
 
         hvac_mode = self._thermostat.vtherm_hvac_mode
         device_valve_opening = self.current_valve_opening  # the real opening value
