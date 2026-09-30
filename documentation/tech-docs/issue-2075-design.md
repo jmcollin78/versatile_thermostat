@@ -1,227 +1,160 @@
-# Conception technique - Issue #2075 : cohérence AC
+# Conception technique - Issue #2075 : contrat AC cohérent
 
 - **Statut :** proposée pour validation avant développement
-- **Version :** 1.0
+- **Version :** 1.1
 - **Date :** 2026-09-30
 - **Propriétaire :** à désigner
 - **Sources normatives :** [revue #2075](issue-2075-review.md), [spécification #2075](issue-2075-specification.md)
-- **Périmètre de dépôt vérifié :** intégration Home Assistant `versatile_thermostat`. Le code source et la version de la VTherm UI Card à prendre en charge ne sont pas établis par les sources analysées.
+- **Périmètre vérifié :** intégration Home Assistant `versatile_thermostat`. La version déployée de la VTherm UI Card n'est pas établie par les sources.
 
-## 1. Objectif et décision de périmètre
+## 1. Objectif et périmètre
 
-Cette conception couvre exactement les trois corrections validées :
+Cette conception couvre exactement les deux corrections de production et leurs tests :
 
 1. un VTherm `over_valve` avec `ac_mode=True` expose et accepte `HEAT`, `COOL`, `SLEEP` et `OFF` ;
-2. un VTherm `over_climate` AC sélectionne, publie et envoie une consigne COOL en `COOL`, puis de nouveau une consigne HEAT en `HEAT` ;
-3. `preset_temperatures` expose à la VTherm UI Card les températures COOL, y compris les variantes absence lorsqu'elles sont configurées.
+2. un VTherm `over_climate` avec `ac_mode=True` publie dans `preset_temperatures` les clés COOL lues par la carte : `eco_cool_temp`, `comfort_cool_temp`, `boost_cool_temp` et, lorsqu'elles sont configurées, `${preset}_cool_away_temp`.
 
-La correction ne change ni les algorithmes de régulation, ni les entités `number`, ni la configuration, ni le code de la carte, ni les autres types de VTherm. Elle ne requiert aucune migration.
+La preuve runtime distingue les deux couches `over_climate` : avec `HEAT=19.0` et `COOL=25.0`, la cible interne devient `25.0` en `COOL` et `find_preset_temp(ECO)` retourne `25.0`. Le défaut est le contrat public : l'absence de `eco_cool_temp` fait retomber le lecteur local de carte sur `eco_temp=19.0`.
 
-**Faisabilité : confirmée.** Les modes, les tables de presets AC, le calcul d'état et l'attribut public existent déjà dans le dépôt. Aucune contradiction bloquante avec la spécification n'a été trouvée. La cause précise de la mauvaise consigne observée reste à démontrer par le test de reproduction défini en section 8 ; cette incertitude ne bloque pas les deux autres corrections, mais bloque la sélection d'un changement de production supplémentaire dans le chemin de consigne.
+Le plan minimal est donc limité à `ThermostatOverValve.build_hvac_list()` et à `BaseThermostat.update_custom_attributes()`, cette dernière étant limitée aux `over_climate` AC. Aucun changement n'est conçu pour `find_preset_temp()`, `init_presets()`, `update_states()`, la régulation, les nombres de configuration ou le code de la carte.
 
-## 2. Faits vérifiés, diagnostic et hypothèses
+**Faisabilité : confirmée.** Les deux défauts sont localisés et couverts par des tests rouges. Il n'existe pas de contradiction bloquante ; la version de carte déployée est une compatibilité à confirmer, pas un bloqueur du contrat attesté.
 
-| Sujet | Fait vérifié | Diagnostic / hypothèse | Conséquence de conception |
+## 2. Faits vérifiés et historique causal
+
+| Sujet | Fait vérifié | Confiance | Conséquence |
 | --- | --- | --- | --- |
-| Modes `over_valve` | `ThermostatOverValve.build_hvac_list()` retourne actuellement `[COOL, SLEEP, OFF]` si AC est actif. Le test paramétré de `test_over_valve_sleep_mode` attend cette liste. | Défaut déterministe et local : `HEAT` est explicitement omis. | Ajouter `HEAT` dans cette surcharge et mettre à jour le test existant ; conserver `SLEEP`. |
-| Tables AC | `init_presets()` charge `CONF_PRESETS_WITH_AC` et `CONF_PRESETS_AWAY_WITH_AC`. Les nombres AC existent et `TemperatureNumber.async_set_native_value()` transmet leur nom canonique au VTherm. | Les données COOL existent ; ce n'est pas une absence de nombres ou de configuration. | Ne pas créer ni renommer de nombre. Vérifier le rafraîchissement de la table active par les tests. |
-| Sélection de preset | `find_preset_temp()` ajoute `_ac` en `COOL` et conserve aussi `_ac` si l'état courant transitoire est `OFF`, `FAN_ONLY` ou `DRY` et l'état demandé est `COOL`. | La sélection nominale COOL est présente dans le code lu. Elle dépend toutefois d'états implicites (`current_state`/`requested_state`) et non d'un mode source explicitement fourni. | Ne pas conclure à une cause racine sur lecture statique. Écrire le test discriminant avant le correctif ; centraliser la règle seulement si ce test montre un chemin non couvert ou un écrasement ultérieur. |
-| Ordre de calcul | `StateManager.calculate_current_state()` calcule HVAC, puis preset, puis température. Dans une transition nominale, le HVAC courant devient donc `COOL` avant l'appel à `find_preset_temp()`. | L'hypothèse « `current_state` reste à HEAT durant la transition nominale » est contredite par ce chemin. | Le test doit observer chaque étape et la commande sous-jacente, pas seulement la valeur finale. |
-| Réapplication | `init_presets()` réapplique le preset courant ; `set_preset_temperature()` force un recalcul seulement si le nom du preset modifié commence par le preset actif ; `update_states()` publie l'état puis lance le contrôle et la commande sous-jacente. | Cause probable, non prouvée : une réapplication d'initialisation, de preset ou de nombre peut appeler la sélection avec un état courant transitoire non couvert, ou remplacer après coup une cible correctement calculée. | Tester séparément changement HVAC, re-sélection de preset, mise à jour de nombre et initialisation/restauration. Ajouter des traces de test sur les états demandé/courant et la dernière température envoyée. |
-| Attribut public | `update_custom_attributes()` publie aujourd'hui seulement `frost`, `eco`, `comfort`, `boost` et leurs clés `*_away_temp` ; aucune clé AC n'est publiée. | Défaut déterministe de contrat public, indépendant de la consigne effective. | Ajouter des clés AC distinctes, sans supprimer ni modifier les clés chauffage existantes. |
-
-La cause racine du symptôme `over_climate` n'est donc **pas établie** par les sources disponibles. Le comportement nominal lu semble déjà satisfaire la sélection COOL. Les hypothèses restent : état transitoire non couvert (notamment `SLEEP`), restauration/initialisation sans changement détecté, ou réécriture ultérieure par une notification sous-jacente. Le test de la section 8 est le contrôle peu coûteux qui les départage.
+| Modes `over_valve` | Avec AC, `build_hvac_list()` retourne `[COOL, SLEEP, OFF]`. | Élevée : runtime et `git blame`. | Ajouter `HEAT` sans retirer `SLEEP`. |
+| Cause `over_valve` | `e095f54036365fca1cd6f7e5b4733d7b7cce568c` (2026-09-17) a introduit cette branche AC. | Élevée : attribution directe par `git blame`. | Corriger la surcharge introduite par ce commit. |
+| Calcul interne | Le scénario `19.0 -> 25.0` donne cible interne `25.0` et `find_preset_temp(ECO)=25.0`. | Élevée : test runtime discriminant. | Ne modifier aucun chemin interne de calcul ou d'état. |
+| Contrat public | `preset_temperatures` n'a ni `eco_cool_temp`, ni autres clés COOL / COOL-away. | Élevée : test rouge et lecture de `update_custom_attributes()`. | Compléter l'attribut pour `over_climate` AC seulement. |
+| Lecteur de carte | La copie locale ignorée cherche `${preset}_cool_temp`, puis `${preset}_cool_away_temp`, avant repli HEAT. | Élevée pour la copie ; moyenne pour le déploiement. | Publier `*_cool_temp`, jamais un nom dérivé du suffixe interne AC. |
+| Cause du contrat incomplet | `27b0b364bae9315338a715257835248cab51647d` (2025-11-09) a introduit `preset_temperatures` sans clés COOL ; `7ea0b86220e322e5e36c50d4f19f5c90a291d267` et `0ab8aca006c1a2b10bdba2fca39c11800dc3ebcc` l'ont conservé. | Élevée : historique Git vérifié. | Ajouter les clés sans modifier les clés HEAT. |
+| Historique de carte | L'artefact est ignoré, sans version, manifeste ni commit attribuable ici. | Faible pour son antériorité. | Ne pas lui attribuer de cause Git ; confirmer la version déployée. |
 
 ## 3. Composants et responsabilités
 
-| Composant | Responsabilité dans la correction | Modification minimale envisagée |
+| Composant | Responsabilité | Modification conçue |
 | --- | --- | --- |
-| `ThermostatOverValve.build_hvac_list()` | Construire les capacités HVAC propres aux vannes. | Avec AC : retourner dans un ordre stable `HEAT`, `COOL`, `SLEEP`, `OFF`. Sans AC : ne rien changer. |
-| `BaseThermostat.init_presets()` | Charger les tables chauffage/AC et absence, puis réappliquer le preset restauré. | Pas de modification prévue sans test de défaillance. Couvrir sa réapplication dans les tests de restauration. |
-| `StateManager` | Résoudre l'état courant à partir de l'état demandé et des gestionnaires de sécurité, fenêtre, central et auto start/stop. | Pas de modification prévue : son ordre HVAC -> preset -> température est l'invariant requis. |
-| `BaseThermostat.find_preset_temp()` | Convertir preset + état effectif/intention en valeur chauffage ou refroidissement. | Point de correction conditionnel : factoriser au besoin la décision « table AC » dans une règle unique, sans changer les règles existantes OFF/FAN_ONLY/DRY. |
-| `BaseThermostat.update_states()` | Publier cible/HVAC, déclencher le contrôle et l'envoi au sous-jacent. | Pas de modification prévue sans preuve d'écrasement. Les assertions doivent vérifier son ordre observable. |
-| `ThermostatOverClimate` / `UnderlyingClimate` | Réguler et envoyer la consigne effective au climat sous-jacent. | Aucun changement d'algorithme. Vérifier la dernière consigne envoyée et l'appel de service. |
-| `BaseThermostat.update_custom_attributes()` | Publier le contrat `preset_temperatures`. | Ajouter les clés AC pour un `over_climate` AC ; conserver toutes les clés actuelles et leur sémantique de valeur `0` absente. |
-| `TemperatureNumber.async_set_native_value()` et `BaseThermostat.set_preset_temperature()` | Propager un changement de nombre vers la table de preset, puis demander un recalcul. | Aucun changement prévu. Les tests doivent prouver l'isolement HEAT/COOL et l'absence/présence. |
-| Copie locale ignorée de la VTherm UI Card | Lire `preset_temperatures` et rechercher les clés de preset. | Hors périmètre de code. L'artefact `config/www/community/versatile-thermostat-ui-card/versatile-thermostat-ui-card.js` a été inspecté : pour cette copie seulement, son lecteur construit `${preset}_${suffix}_temp` et `${preset}_${suffix}_away_temp`. |
+| `ThermostatOverValve.build_hvac_list()` | Capacités HVAC de vanne. | Avec AC : ordre stable `HEAT`, `COOL`, `SLEEP`, `OFF`. Sans AC : inchangé. |
+| `BaseThermostat.update_custom_attributes()` | Contrat public `preset_temperatures`. | Ajouter les clés COOL et COOL-away pour les seuls `over_climate` AC ; conserver toutes les clés HEAT et leur convention away actuelle. |
+| `BaseThermostat.find_preset_temp()` | Sélection interne de preset. | Aucun changement : la sélection COOL est déjà prouvée correcte. |
+| `BaseThermostat.init_presets()` / `update_states()` | Initialisation et publication d'état. | Aucun changement : aucun écrasement interne ne reste à rechercher. |
+| `StateManager`, `ThermostatOverClimate`, régulation, sous-jacent | Calcul, régulation et commande. | Aucun changement ; non-régressions seulement. |
+| Entités `number` | Valeurs HEAT, COOL et absence. | Aucune migration, renommage ou modification. |
+| VTherm UI Card | Lecture des attributs. | Hors périmètre de code ; version déployée à confirmer. |
 
-## 4. Modèle d'état, données et invariants
+## 4. Modèle de données et contrat
 
-### États pertinents
+Les clés HEAT existantes restent inchangées. Pour un `over_climate` AC, le contrat ajoute uniquement :
 
-- `requested_state` exprime l'intention utilisateur ou automatisation ; `current_state` est l'état rendu effectif par `StateManager`.
-- Pour un état normal, `current_state.hvac_mode` doit devenir `requested_state.hvac_mode` avant le calcul de température.
-- Les modes `OFF`, `FAN_ONLY` et `DRY` sont transitoires connus : lorsque `requested_state.hvac_mode == COOL`, ils doivent conserver la table `_ac`.
-- `SLEEP` est une capacité propre à `over_valve`. La spécification demande de préserver son comportement, sans lui attribuer une nouvelle règle de régulation ou de table de preset.
-
-### Tables de température
-
-| Contexte | Source attendue pour `ECO`, `COMFORT`, `BOOST` | Exemple discriminant |
+| Clé publique | Source | Publication |
 | --- | --- | --- |
-| HEAT, présent | `<preset>` | `eco_temp = 19.0` |
-| COOL, présent | `<preset>_ac` | `eco_ac_temp = 25.0` |
-| HEAT, absence configurée | `<preset>_away` | `eco_away_temp = 16.0` |
-| COOL, absence configurée | `<preset>_ac_away` | `eco_ac_away_temp = 29.0` |
+| `eco_cool_temp` | preset COOL `ECO` | toujours |
+| `comfort_cool_temp` | preset COOL `COMFORT` | toujours |
+| `boost_cool_temp` | preset COOL `BOOST` | toujours |
+| `eco_cool_away_temp` | preset COOL-away `ECO` | selon convention away existante |
+| `comfort_cool_away_temp` | preset COOL-away `COMFORT` | selon convention away existante |
+| `boost_cool_away_temp` | preset COOL-away `BOOST` | selon convention away existante |
 
-`FROST` n'a pas de variante AC : aucune clé `frost_ac_*` n'est proposée. Une valeur indisponible ne doit jamais être remplacée par une valeur de l'autre table ; le comportement actuel d'indisponibilité ou de valeur par défaut reste applicable et doit être observé dans les tests.
+`FROST` n'a pas de variante COOL. Aucune clé fondée sur le suffixe interne AC ne doit être proposée, publiée ou documentée : elle ne correspond pas au lecteur attesté.
 
-### Invariants à préserver
+Les valeurs de validation sont `eco_temp=19.0`, `eco_cool_temp=25.0`, `eco_away_temp=16.0` et `eco_cool_away_temp=29.0`. Elles distinguent les tables sans imposer de valeur utilisateur.
 
-1. En mode normal, la table est déterminée par le HVAC courant ; en mode transitoire documenté, elle est déterminée par l'intention HVAC demandée.
-2. Toute consigne publiée comme cible doit être la même valeur fonctionnelle que celle transmise au climat, sous réserve du décalage de régulation existant et explicitement testé.
-3. Un changement de nombre COOL ne change pas la valeur HEAT stockée, et inversement.
-4. Les clés historiques de `preset_temperatures` restent inchangées et continuent d'être publiées.
-5. La présence ne choisit une variante `*_away` que lorsque la fonctionnalité est configurée et que l'absence est détectée.
+### Invariants
 
-## 5. Contrats et point minimal de publication
+1. `find_preset_temp(ECO)` reste à `25.0` en `COOL` et à `19.0` en `HEAT` dans le scénario discriminant.
+2. La régulation et la commande sous-jacente restent inchangées ; la commande régulée peut différer de la cible fonctionnelle.
+3. Les changements de preset, nombre et présence/absence ne mélangent pas les tables HEAT et COOL.
+4. `OFF`, `SLEEP`, `FAN_ONLY` et `DRY` conservent leur comportement existant ; aucune règle ne leur est ajoutée.
+5. Les VTherm hors `over_valve` pour les modes, et hors `over_climate` AC pour les clés, restent inchangés.
 
-### Contrat Home Assistant
-
-- `hvac_modes` de `over_valve` AC contient exactement `HEAT`, `COOL`, `SLEEP`, `OFF` dans l'ordre choisi et stabilisé par le test. `async_set_hvac_mode(HEAT)` et `async_set_hvac_mode(COOL)` restent acceptés par l'entité.
-- La cible publique du climate (`target_temperature`) doit correspondre à la consigne fonctionnelle sélectionnée. Pour un `over_climate` régulé, la commande transmise peut être la température régulée existante : le test doit alors comparer aussi la valeur attendue selon la règle de régulation, plutôt que supposer une égalité brute non existante.
-- Les attributs `current_state` et `requested_state` restent observables ; aucun nouveau format n'est requis.
-
-### Contrat `preset_temperatures` proposé
-
-Pour un `over_climate` avec `ac_mode=True`, conserver les clés chauffage existantes et ajouter :
-
-| Clé | Valeur source | Condition |
-| --- | --- | --- |
-| `eco_ac_temp` | `_presets[ECO_AC]` | toujours pour AC |
-| `comfort_ac_temp` | `_presets[COMFORT_AC]` | toujours pour AC |
-| `boost_ac_temp` | `_presets[BOOST_AC]` | toujours pour AC |
-| `eco_ac_away_temp` | `_presets_away[ECO_AC_AWAY]` | valeur effective si configurée, sinon `0` comme les clés away historiques |
-| `comfort_ac_away_temp` | `_presets_away[COMFORT_AC_AWAY]` | même règle |
-| `boost_ac_away_temp` | `_presets_away[BOOST_AC_AWAY]` | même règle |
-
-Ces six clés sont une proposition de conception fondée sur les conventions de nommage des presets et des entités `number`, et confirmée pour la copie locale ignorée inspectée `config/www/community/versatile-thermostat-ui-card/versatile-thermostat-ui-card.js` : son lecteur construit les clés `${preset}_${suffix}_temp` et `${preset}_${suffix}_away_temp`. Cette inspection confirme ce schéma uniquement pour cet artefact local ; elle ne constitue pas un contrat de carte déployée et n'établit ni sa version ni son manifeste.
-
-**Condition de livraison :** avant de figer l'implémentation et d'exécuter AC-010, relever la version réellement prise en charge et vérifier son schéma dans son code source, sa documentation versionnée ou un test navigateur. Si elle attend un autre schéma, ne pas renommer les clés historiques : ajouter uniquement les alias explicitement validés, tester ces alias et documenter la compatibilité.
-
-## 6. Flux de contrôle conçu
+## 5. Flux de contrôle
 
 ```mermaid
 sequenceDiagram
     participant U as Utilisateur / automatisation
-    participant B as BaseThermostat
-    participant S as StateManager
-    participant P as find_preset_temp
-    participant O as ThermostatOverClimate
-    participant C as Climate sous-jacent
+    participant V as VTherm over_climate AC
+    participant P as Calcul interne de preset
+    participant A as update_custom_attributes
     participant UI as VTherm UI Card
 
-    U->>B: HVAC COOL ou preset / nombre
-    B->>S: requested_state modifié
-    S->>S: HVAC courant, preset, cible
-    S->>P: preset + état résolu
-    P-->>S: valeur *_ac ou *_ac_away
-    S-->>B: current_state COOL, cible COOL
-    B->>O: update_states puis contrôle
-    O->>C: mode et consigne régulée associée
-    B-->>UI: target_temperature + preset_temperatures
+    U->>V: Sélectionne COOL et ECO
+    V->>P: Résout la table COOL existante
+    P-->>V: cible interne 25.0
+    V->>A: Publie preset_temperatures
+    A-->>UI: eco_cool_temp = 25.0
+    UI->>UI: Lit la clé COOL, sans fallback HEAT
 ```
 
-### Séquence nominale HEAT -> COOL -> HEAT
+Pour `over_valve`, le flux se limite à la liste de capacités : avec AC, l'entité publie `HEAT`, `COOL`, `SLEEP`, `OFF`, puis les transitions existantes conservent leur comportement.
 
-1. L'appel `async_set_hvac_mode(COOL)` met uniquement `requested_state.hvac_mode` à `COOL`.
-2. `update_states()` appelle `StateManager` ; en absence de gestionnaire prioritaire, celui-ci met `current_state.hvac_mode` à `COOL`, puis recalcule preset et cible.
-3. `find_preset_temp(ECO)` choisit `eco_ac`; avec le jeu discriminant, la cible est `25.0`, et non `19.0`.
-4. `update_states()` publie la cible, applique le HVAC aux sous-jacents, puis lance le contrôle qui transmet la consigne pertinente au climat.
-5. Le retour à `HEAT` refait exactement la séquence en sélectionnant `eco`, soit `19.0`.
+## 6. Plan minimal de production
 
-### Preset, nombre et présence
+1. Compléter la branche AC de `ThermostatOverValve.build_hvac_list()` avec `HEAT`, en gardant `SLEEP` et la surcharge.
+2. Compléter `BaseThermostat.update_custom_attributes()` avec les trois clés COOL et, uniquement lorsque configurées, les trois clés COOL-away, seulement pour `over_climate` AC.
+3. Ajouter ou adapter les deux tests rouges, puis exécuter les validations complémentaires.
 
-- La re-sélection ou la réapplication de `ECO` passe par la même résolution de table et doit conserver `eco_ac` en COOL.
-- La modification du nombre `eco_ac` appelle `set_preset_temperature("eco_ac", ...)`. Si ECO est actif, le recalcul forcé met à jour cible, publication et commande sans modifier `_presets[ECO]`.
-- En absence, `find_preset_temp()` prend la variante away de la clé déjà suffixée `_ac`. Le test doit donc contrôler `eco_ac_away`, pas seulement le dictionnaire publié.
+Il n'y a pas de modification conditionnelle dans `find_preset_temp()`, `init_presets()` ou `update_states()`. Le test $19\,°C / 25\,°C$ prouve déjà le calcul interne ; il ne doit plus servir à localiser un écrasement interne.
 
-### Modes transitoires, annulations et indisponibilité
+## 7. Stratégie de tests
 
-- `OFF`, `FAN_ONLY` et `DRY` conservent les règles actuelles : intention COOL -> table AC. Les tests existants de fenêtre/FAN_ONLY et d'auto-start-stop/DRY sont des non-régressions à conserver et compléter seulement si nécessaire.
-- `SLEEP` ne doit pas introduire une nouvelle sélection de table. Son entrée/sortie pour `over_valve` garde les comportements d'ouverture, d'action HVAC et de chaudière existants.
-- Si le climat sous-jacent est `unavailable` ou `unknown`, `ThermostatOverClimate.underlying_changed()` conserve le chemin actuel sans commande de remplacement. Il est interdit d'ajouter un repli HEAT dans ce cas.
-- Lors d'une restauration, `init_presets()` doit réappliquer le preset restauré avec l'état HVAC résolu. Cette séquence est à tester, car elle est la piste probable la plus proche pour une cible réécrite après initialisation.
+### Tests rouges de correction
 
-## 7. Plan de modification minimal et garde-fous
+| ID | Test ciblé | Échec prouvé | Attendu |
+| --- | --- | --- | --- |
+| RT-001 | `tests/test_valve.py::test_over_valve_sleep_mode` : test `over_valve` AC de `build_hvac_list()` et acceptation HVAC. | `[COOL, SLEEP, OFF]` exclut `HEAT`. | `[HEAT, COOL, SLEEP, OFF]`; `HEAT` et `COOL` acceptés, `SLEEP` conservé. |
+| RT-002 | `tests/test_auto_regulation.py::test_over_climate_ac_preset_temperatures_publish_cool_target` : test `over_climate` AC de contrat public avec `19.0`, `25.0` et variants away. | Cible / `find_preset_temp(ECO)` à `25.0`, mais pas de `eco_cool_temp`; le lecteur résout `eco_temp=19.0`. | Clés `*_cool_temp` et `${preset}_cool_away_temp` présentes lorsqu'elles sont configurées ; aucun fallback HEAT. |
 
-1. Modifier `ThermostatOverValve.build_hvac_list()` pour inclure `HEAT` dans la branche AC, sans supprimer la surcharge ni `SLEEP`.
-2. Étendre uniquement la construction de `preset_temperatures` dans `BaseThermostat.update_custom_attributes()` avec les six clés AC proposées, limitée à `over_climate` AC conformément au périmètre. Ne pas toucher aux nombres ni aux clés historiques.
-3. Ajouter d'abord le test de reproduction de consigne. Seulement s'il échoue sur le commit cible, corriger le plus proche des trois points qui l'explique :
-   - `find_preset_temp()` si la valeur retournée est déjà HEAT avec HVAC/intentions COOL observées ;
-   - l'appel depuis `init_presets()` ou `set_preset_temperature()` si le recalcul n'est pas déclenché ou lit le mauvais état ;
-   - `update_states()` ou le flux `ThermostatOverClimate` si la cible est COOL avant le contrôle, puis la commande sous-jacente redevient HEAT.
-4. Préférer, si une correction de sélection est nécessaire, un unique résolveur interne de « source de preset AC » réutilisé par les branches normal, OFF, FAN_ONLY et DRY. Il doit prendre explicitement HVAC courant et HVAC demandé, afin que la règle soit testable ; ne pas élargir silencieusement cette règle à `SLEEP`.
+### Validations complémentaires
 
-Cette stratégie évite une modification spéculative : le code lu contient déjà les gardes conçues pour COOL et les modes transitoires connus. Elle corrige néanmoins le défaut observé au point qui sera effectivement démontré par la reproduction.
-
-## 8. Stratégie de tests et critère discriminant préalable
-
-### Test de reproduction obligatoire avant toute correction de consigne
-
-Ajouter dans le fichier de tests `over_climate` le scénario suivant, avec un climat sous-jacent fictif qui supporte `HEAT` et `COOL` :
-
-1. Configurer `ac_mode=True`, preset `ECO`, `eco_temp=19.0`, `eco_ac_temp=25.0`; ajouter `eco_away_temp=16.0` et `eco_ac_away_temp=29.0` pour les sous-cas présence.
-2. Activer `HEAT`, sélectionner `ECO`, attendre la fin des tâches et affirmer : état courant HEAT, cible publique `19.0`, et commande sous-jacente associée à 19.0 ou à sa valeur régulée HEAT explicitement calculée.
-3. Activer `COOL` sans changer le preset. Après `update_states()` et après le cycle de contrôle, affirmer : `requested_state=COOL`, `current_state=COOL`, `find_preset_temp(ECO)=25.0`, cible publique `25.0`, et dernière commande sous-jacente COOL associée à 25.0 ou à sa valeur régulée COOL.
-4. Réappliquer `ECO`, puis modifier le nombre `eco_ac` à `26.0`; réaffirmer cible/commande à 26.0 et `eco_temp` encore à 19.0.
-5. Revenir à `HEAT`; affirmer 19.0. Modifier `eco_temp` à `18.0`; affirmer 18.0 et `eco_ac` encore à 26.0.
-
-Ce test discrimine les causes : une divergence dès l'étape 3 identifie la sélection/ordre d'état ; une valeur correcte à l'étape 3 puis erronée aux étapes 4 ou 5 identifie une réapplication ; une cible correcte mais une commande incorrecte localise l'écrasement après `update_states()`.
-
-### Matrice de validation
-
-| Test ciblé | Preuve attendue | Exigences et critères couverts |
+| ID | Validation | Preuve attendue |
 | --- | --- | --- |
-| Extension de `test_over_valve_sleep_mode` ou test dédié | Liste AC exacte, acceptation de HEAT et COOL, `SLEEP` toujours fonctionnel | FR-001, FR-002, BR-001, AC-001, AC-002 |
-| Nouveau scénario discriminant HEAT=19 / COOL=25 | État demandé/courant, cible et commande sous-jacente utilisent la table correcte dans les deux sens | FR-003 à FR-007, BR-002 à BR-004, AC-003, AC-004 |
-| Réapplication de preset COOL | Réappliquer ECO ne repasse pas à 19 | FR-008, AC-005 |
-| Mise à jour des deux `number` | Mise à jour isolée de chaque table, cible et commande rafraîchies | FR-009, BR-004, AC-006 |
-| Présence/absence | 16 en HEAT-away et 29 en COOL-away, sans échange | FR-010, BR-005, AC-007 |
-| Régression transitoire | OFF/FAN_ONLY/DRY avec intention COOL garde `_ac`; SLEEP conserve son comportement de vanne | FR-011, AC-008, FR-015 |
-| Test d'attribut public | Les six clés AC ont les valeurs attendues; les clés HEAT historiques et `frost_*` restent inchangées | FR-012, FR-015, AC-009, AC-012 |
-| Indisponibilité sous-jacente / valeur absente | Aucun repli implicite COOL -> HEAT ; comportement existant observable | FR-014, AC-011 |
-| Validation manuelle ou navigateur avec version de carte déclarée | La carte affiche 25 et 29 dans son mode COOL | FR-013, NFR-002, AC-010, AC-013 |
+| VC-001 | Calcul HEAT -> COOL -> HEAT | `19.0`, `25.0`, puis `19.0`, sans changement de calcul. |
+| VC-002 | Régulation `over_climate` | La commande suit la régulation HEAT/COOL existante depuis la cible fonctionnelle. |
+| VC-003 | Preset et nombres | Réapplication et mises à jour isolent les tables HEAT et COOL, avec publication correcte. |
+| VC-004 | Présence / absence | `16.0` HEAT-away et `29.0` COOL-away restent distincts. |
+| VC-005 | Modes transitoires | Tests existants `OFF`, `FAN_ONLY`, `DRY` et comportement `SLEEP` ne régressent pas. |
+| VC-006 | Périmètre et indisponibilité | VTherm hors périmètre, clés HEAT, `frost_*` et comportement d'indisponibilité restent inchangés. |
+| VC-007 | Carte compatible | Une version déclarée compatible affiche 25.0 / 29.0 sans fallback HEAT. |
 
-Les tests HEAT existants, les tests de `number`, `test_window_action_fan_only_ac_mode_uses_ac_preset_temp` et les tests DRY existants doivent être exécutés comme régressions ciblées. Une assertion spécifique sur `preset_temperatures` est nécessaire : aucun test actuel ne couvre les valeurs AC publiées.
+## 8. Exploitation, sécurité et limites
 
-## 9. Observabilité, sécurité et exploitation
+- Aucun secret, accès réseau, stockage, permission ou événement Home Assistant n'est ajouté.
+- Les preuves observables sont `hvac_modes`, la cible interne, `find_preset_temp(ECO)`, `preset_temperatures` et, pour la non-régression, la commande régulée existante.
+- Les clés historiques ne sont ni supprimées ni renommées.
+- Le risque résiduel est la compatibilité de version de la carte. La copie locale établit le lecteur de clés COOL, mais la version déployée reste à identifier avant la validation d'affichage.
 
-- Aucun secret, accès réseau, stockage persistant ou permission Home Assistant supplémentaire n'est ajouté.
-- Les attributs existants `current_state`, `requested_state`, `target_temperature` et `preset_temperatures` suffisent à diagnostiquer la sélection ; les tests doivent les capturer lorsque le défaut est reproduit.
-- Les événements HVAC/preset existants restent les sources d'audit ; aucun nouvel événement n'est nécessaire.
-- Le risque opérationnel principal est un écart entre la copie locale ignorée inspectée et la carte réellement installée. L'inspection confirme le schéma `${preset}_${suffix}_temp` et `${preset}_${suffix}_away_temp` pour cette copie seulement ; la version déployée reste à identifier et sa compatibilité de schéma doit être vérifiée avant AC-010.
+## 9. Décisions, risques et questions
 
-## 10. Décisions, risques, questions ouvertes et traçabilité
+1. La liste `over_valve` reste explicite afin de préserver `SLEEP`, avec ajout de `HEAT`.
+2. Le contrat public COOL est `*_cool_temp` et `${preset}_cool_away_temp`, uniquement pour les `over_climate` AC.
+3. Le calcul interne $19\,°C / 25\,°C$ est une non-régression déjà prouvée, non une piste de correction.
+4. La carte n'est pas modifiée dans ce dépôt et aucune compatibilité non vérifiée n'est inventée.
 
-### Décisions proposées
-
-1. Conserver une liste explicite `over_valve` avec les quatre modes, plutôt que supprimer sa surcharge et perdre `SLEEP`.
-2. Publier les clés `*_ac_temp` et `*_ac_away_temp` en addition des clés existantes ; ne pas substituer les clés chauffage.
-3. Rendre le test $19\,°C$ HEAT / $25\,°C$ COOL bloquant avant toute modification de `find_preset_temp()`, `init_presets()` ou `update_states()`.
-4. Déclarer la compatibilité UI Card seulement après identification et vérification de la version effectivement prise en charge ; le schéma est confirmé pour la copie locale ignorée inspectée, mais cette preuve ne vaut pas pour la carte déployée.
-
-### Risques et questions à décider
-
-| Élément | Risque ou question | Décision / action requise |
+| Élément | Risque ou question | Action |
 | --- | --- | --- |
-| Cause de consigne | Le défaut rapporté peut appartenir à un état de démarrage ou à un commit/configuration non reproduit par le chemin statique actuel. | Exécuter le test discriminant sur le commit de correction visé et conserver les états/calls observés. |
-| Carte déployée | La carte installée peut être d'une version différente de la copie locale ignorée inspectée, dont le lecteur construit `${preset}_${suffix}_temp` et `${preset}_${suffix}_away_temp`. | Identifier la version déployée et vérifier son schéma avant AC-010 ; ajouter des alias seulement s'ils sont prouvés nécessaires. |
-| Transitoires | `SLEEP` n'est pas explicitement traité comme source AC dans `find_preset_temp()`. | Préserver son comportement ; ne pas inventer de règle. Ouvrir une décision séparée seulement si un scénario réel exige une consigne en SLEEP. |
-| Régulation | Une assertion naïve d'égalité entre cible et commande peut échouer avec un offset de régulation légitime. | Tester la valeur régulée attendue ou désactiver/rendre neutre la régulation dans le scénario de sélection. |
-| Indisponibilité | Une valeur manquante peut aujourd'hui donner `0` dans les attributs, ce qui n'est pas la même chose qu'une valeur de consigne. | Conserver cette convention d'attribut pour compatibilité, et vérifier qu'elle n'entraîne pas un repli HEAT. |
+| Carte déployée | Son schéma peut différer de la copie ignorée. | Confirmer sa version et son lecteur avant VC-007 / AC-010. |
+| Valeurs away absentes | La convention actuelle doit être préservée. | Vérifier les assertions d'attribut de RT-002 et VC-004. |
+| Périmètre `over_climate` | Une publication élargie modifierait un contrat non demandé. | Garde explicite de type et AC, vérifiée par VC-006. |
 
-### Traçabilité complète
+Il n'y a aucune contradiction bloquante. La question de version limite uniquement l'affirmation de compatibilité d'affichage pour un déploiement donné.
 
-| Exigence / critère | Composant principal | Validation |
-| --- | --- | --- |
-| FR-001, FR-002, AC-001, AC-002 | `ThermostatOverValve.build_hvac_list()` | Test modes/sleep over_valve |
-| FR-003 à FR-009, AC-003 à AC-006 | `StateManager`, `find_preset_temp()`, `update_states()`, `ThermostatOverClimate`, nombres | Reproduction 19/25, reapply preset, mises à jour de nombres |
-| FR-010, AC-007 | `find_preset_temp()`, tables `_away` | Scénarios absence HEAT/COOL |
-| FR-011, AC-008 | Règles transitoires de `find_preset_temp()` et `StateManager` | Régressions OFF/FAN_ONLY/DRY/SLEEP |
-| FR-012, AC-009 | `update_custom_attributes()` | Test de dictionnaire `preset_temperatures` |
-| FR-013, AC-010, AC-013, NFR-002 | Contrat public et version de UI Card | Inspection de version et validation carte |
-| FR-014, AC-011 | Gestion sous-jacente indisponible | Test indisponibilité sans repli croisé |
-| FR-015, AC-012, NFR-001 à NFR-005 | Ensemble des modifications minimales | Tests HEAT existants, nombres et VTherm hors périmètre |
+## 10. Traçabilité
 
-La conception confirme donc le même périmètre que la spécification, sans contradiction bloquante. Les deux défauts structurels (`over_valve` et attributs de carte) sont directement localisés ; la correction du flux `over_climate` est faisable et testable, mais son point de modification définitif doit être choisi après le résultat du test de reproduction, non sur une hypothèse statique.
+`RT-001` et `RT-002` sont les deux tests rouges. La colonne « validations » référence les vérifications complémentaires à exécuter avec eux.
+
+| Exigence / critère | Production concernée | Tests rouges | Validations |
+| --- | --- | --- | --- |
+| FR-001, FR-002, BR-001, AC-001, AC-002 | `ThermostatOverValve.build_hvac_list()` | RT-001 | VC-005, VC-006 |
+| FR-003, FR-004, BR-002, AC-003, AC-004 | Invariant de calcul interne | RT-002 | VC-001, VC-002 |
+| FR-005, BR-003 | Régulation inchangée | RT-002 | VC-002 |
+| FR-006, FR-012, FR-013, BR-006, BR-007, AC-005, AC-009, AC-013 | `BaseThermostat.update_custom_attributes()` | RT-002 | VC-003, VC-004, VC-007 |
+| FR-007, FR-008, BR-004, AC-006 | Attribut public et tables existantes | RT-002 | VC-001, VC-003 |
+| FR-009, FR-010, BR-005, AC-007 | Attribut public et comportements existants | RT-002 | VC-003, VC-004 |
+| FR-011, AC-008 | Aucun changement transitoire | RT-001, RT-002 | VC-005 |
+| FR-014, AC-011 | Gestion d'indisponibilité inchangée | RT-002 | VC-006 |
+| FR-015, NFR-001 à NFR-005, AC-012 | Ensemble minimal des deux méthodes | RT-001, RT-002 | VC-001 à VC-006 |
+| AC-010 | Contrat public compatible avec carte | RT-002 | VC-007 |
+
+La conception conserve le périmètre de la spécification, couvre tous les FR et AC mis à jour, et est faisable et testable avec les deux tests rouges et les validations complémentaires définies.

@@ -1,12 +1,16 @@
 # Conception technique — Issue #1938 : Mode sommeil (Sleep Mode) pour `ThermostatOverValve`
 
 - **Référence :** [jmcollin78/versatile_thermostat#1938](https://github.com/jmcollin78/versatile_thermostat/issues/1938) (ouverte ; `enhancement`, `Vote needed`, `P1`)
-- **Spécification fonctionnelle :** `documentation/tech-docs/issue-1938-specification.md` (v1.0, brouillon soumis à validation)
+- **Spécification fonctionnelle :** `documentation/tech-docs/issue-1938-specification.md` (v1.2, validée ; correction post-implémentation #2075)
 - **Rapport de revue :** `documentation/tech-docs/issue-1938-review.md` (recommandation : retenir)
 - **Statut :** Implémentation réalisée, revue de conception satisfaite et fonctionnement validé manuellement
-- **Version :** 1.1
-- **Date :** 15 septembre 2026
+- **Version :** 1.2
+- **Date :** 30 septembre 2026
 - **Propriétaire :** Équipe Versatile Thermostat
+
+**Historique :** v1.1 du 15 septembre 2026 ; v1.2 du 30 septembre 2026 (alignement post-implémentation avec l'erratum #2075).
+
+> **Erratum post-implémentation #2075.** La décision initiale, calquée à tort sur le modèle `COOL`-only, a conduit le commit `e095f540...` à exposer `COOL`, `SLEEP`, `OFF` pour `over_valve` avec `ac_mode=True`, retirant `HEAT`. Cette régression est révélée par le test rouge **RT-001**. Le contrat corrigé exige `HEAT`, `COOL`, `SLEEP`, `OFF` : `SLEEP` est additif et ne retire aucune capacité HVAC existante.
 
 ---
 
@@ -59,7 +63,7 @@ classDiagram
     }
     class ThermostatOverValve {
         <<à modifier>>
-        +build_hvac_list() -> [HEAT/COOL, SLEEP, OFF]
+        +build_hvac_list() -> [HEAT, SLEEP, OFF] / [HEAT, COOL, SLEEP, OFF]
         +is_sleeping bool
         +service_set_hvac_mode_sleep()
         +valve_open_percent -> 100 si sleeping
@@ -162,7 +166,7 @@ Points de détail :
 
 ### 5.2 SLEEP → HEAT/COOL (sortie)
 
-- `requested_state.set_hvac_mode(HEAT)` → `update_states` : `current_state = HEAT`, `hvac_off_reason` effacé (state_manager l. ~185-186).
+- `requested_state.set_hvac_mode(HEAT ou COOL)` → `update_states` : `current_state` reprend le mode demandé, `hvac_off_reason` est effacé (state_manager l. ~185-186). `HEAT` reste donc une sortie valide de sommeil avec `ac_mode=True`, conformément à RT-001.
 - `recalculate()` redevient opérationnel : `_prop_algorithm.calculate(...)` déroule, `apply_valve_command_percent(on_percent_tpi)` reprend les filtres standard, `valve_open_percent` retrouve la valeur TPI (ex. 40 % dans le test de référence), `CycleScheduler._apply_valve_command` envoie la commande convertie.
 - Consigne/préréglage restaurés par l'état persistant (aucune modification du sommeil ne les a touchés) : le mode sommeil n'écrit jamais `set_target_temperature`/`set_preset` — vérifié dans `thermostat_climate_valve.py` (aucune écriture de preset/consigne dans le chemin sommeil).
 
@@ -180,9 +184,10 @@ Points de détail :
 
 - `CycleScheduler._apply_valve_command` (l. 396-420) boucle déjà sur tous les `self._underlyings` : chaque `UnderlyingValve` reçoit son `set_valve_open_percent()` avec sa propre conversion (ses propres `min/max_opening_degree` par index — construits dans `post_init` de `ThermostatOverValve` l. 129-149). Aucune modification nécessaire.
 
-### 5.6 AC mode (FR-002)
+### 5.6 AC mode (FR-002, BR-005, AC-002, RT-001)
 
-- `build_hvac_list` override : si `_ac_mode` → `[COOL, SLEEP, OFF]`, sinon `[HEAT, SLEEP, OFF]` — calqué sur `thermostat_climate_valve.py` l. 341-348. Le chemin de commande est identique (TPI traité de la même façon pour `COOL`, vérifié : `prop_algorithm.calculate` reçoit `vtherm_hvac_mode` et le TPI symétrique heat/cool s'applique pareillement).
+- `build_hvac_list` override : si `_ac_mode` → `[HEAT, COOL, SLEEP, OFF]`, sinon `[HEAT, SLEEP, OFF]`. `SLEEP` est une capacité additive : `HEAT` doit rester exposé lorsque le refroidissement est activé. Cette règle corrige la régression #2075 du commit `e095f540...`, détectée par RT-001, où un modèle `COOL`-only avait retiré `HEAT`.
+- Les transitions `HEAT → SLEEP → HEAT` et `COOL → SLEEP → COOL` empruntent le même chemin : l'entrée injecte la demande brute de 100 %, tandis que la sortie rétablit la régulation TPI correspondant au mode choisi. Le chemin de commande est identique pour `HEAT` et `COOL` (le TPI reçoit `vtherm_hvac_mode` et applique la régulation symétrique heat/cool).
 
 ## 6. Arithmétique de la commande pour `over_valve` (point critique demandé)
 
@@ -240,7 +245,7 @@ La demande brute (`valve_open_percent = 100`) passe par `_get_controlled_percent
 
 | Exigence                                      | Couverture par cette conception                                                                                                                                                        | Statut                                                     |
 | --------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------- |
-| FR-001, FR-002 (modes exposés)                | `build_hvac_list` override (§ 5.6)                                                                                                                                                     | ✔ Couvert                                                  |
+| FR-001, FR-002 (modes exposés)                | `build_hvac_list` override (§ 5.6) : sans AC `HEAT`, `SLEEP`, `OFF` ; avec AC `HEAT`, `COOL`, `SLEEP`, `OFF`, vérifié par RT-001                                                       | ✔ Couvert                                                  |
 | FR-003 (service)                              | `service_set_hvac_mode_sleep` override                                                                                                                                                 | ✔ Couvert                                                  |
 | FR-004 (`is_sleeping`)                        | Override property                                                                                                                                                                      | ✔ Couvert                                                  |
 | FR-005/FR-006 (affichage `off`, action `off`) | state_manager générique (vérifié l. ~189-191) + override `calculate_hvac_action`                                                                                                       | ✔ Couvert                                                  |
@@ -259,14 +264,15 @@ La demande brute (`valve_open_percent = 100`) passe par `_get_controlled_percent
 
 1. **BR-007 « indépendance mécanisme » vs sous-classes `UnderlyingValve` :** la spécification interdit de réutiliser `UnderlyingValveRegulation`. La conception respecte strictement cette contrainte : toutes les modifications sont dans `ThermostatOverValve` ; `UnderlyingValve.set_valve_open_percent` / `_get_controlled_percent` sont **appelés** (pas modifiés) — c'est leur usage normal pour tout `over_valve`, donc conforme.
 2. **BR-009 vs `UnderlyingValve.is_device_active` (contradiction potentielle identifiée) :** résolue par l'override `device_actives` au niveau thermostat (§ 8) — **aucune modification de `UnderlyingValve` requise**, pré servant la non-régression `over_climate` (BR-006).
-3. **Propriété `valve_open_percent` — l'override `over_climate` (`thermostat_climate_valve.py` l. 373-377) conditionne à `OFF and not sleeping` :** cohérent si l'implémentation applique le modèle verbatim (`(mode == OFF and not is_sleeping) or _valve_open_percent is None → 0 ; sinon _valve_open_percent`). **Précision intégrée dans la spécification v1.0 (FR-008) :** `valve_open_percent` expose la demande brute de 100 % via la property publique, injectée dans le chemin de régulation existant — la property renvoie `_valve_open_percent`, la valeur 100 y étant injectée par `apply_valve_command_percent`, pas par la property elle-même. (Correction historiquement suggérée par la conception ; désormais actée.)
-4. **H-001 (persistance consigne/préréglage) confirmée par le code :** aucun chemin sommeil (vérifié dans `thermostat_climate_valve.py`) n'écrit sur consigne/préréglage — hypothèse validée ; la spécification v1.0 la marque désormais « confirmée par l'analyse de conception ».
+3. **Propriété `valve_open_percent` — l'override `over_climate` (`thermostat_climate_valve.py` l. 373-377) conditionne à `OFF and not sleeping` :** cohérent si l'implémentation applique le modèle verbatim (`(mode == OFF and not is_sleeping) or _valve_open_percent is None → 0 ; sinon _valve_open_percent`). **Précision intégrée dans la spécification v1.2 (FR-008) :** `valve_open_percent` expose la demande brute de 100 % via la property publique, injectée dans le chemin de régulation existant — la property renvoie `_valve_open_percent`, la valeur 100 y étant injectée par `apply_valve_command_percent`, pas par la property elle-même. (Correction historiquement suggérée par la conception ; désormais actée.)
+4. **H-001 (persistance consigne/préréglage) confirmée par le code :** aucun chemin sommeil (vérifié dans `thermostat_climate_valve.py`) n'écrit sur consigne/préréglage — hypothèse validée ; la spécification v1.2 la marque désormais « confirmée par l'analyse de conception ».
 5. **OQ-003 (test direct chaudière) :** traité au plan de tests (§ 11, T-SLEEP-06/T-SLEEP-09).
-6. **OQ-002 :** résolue conjointement — la spécification v1.0 (AC-006) fixe la commande physique à **70** avec `max_opening_degrees = 70` et bornes 0-100, valeur confirmée déterministe par l'analyse § 6.2.
+6. **OQ-002 :** résolue conjointement — la spécification v1.2 (AC-006) fixe la commande physique à **70** avec `max_opening_degrees = 70` et bornes 0-100, valeur confirmée déterministe par l'analyse § 6.2.
 
-**Corrections non bloquantes proposées : INTEGRÉES dans la spécification v1.0 (cycle de convergence 1).** Les deux ajustements formulés ci-dessous ont été repris par la spécification :
+**Corrections non bloquantes proposées : intégrées dans la spécification v1.2 (cycles de convergence 1 et 2).** Les deux ajustements formulés ci-dessous ont été repris par la spécification :
 - FR-008 précise désormais que la demande brute 100 % est « exposée via la property publique `valve_open_percent` » et « injectée dans le chemin de régulation existant » — la nuance « exposée vs calculée par la property » est actée.
 - AC-006 fixe explicitement la commande physique à **70** (bornes 0-100, `max_opening_degrees = 70`), consolidant l'analyse § 6.2.
+- FR-002, BR-005 et AC-002 corrigent le contrat AC mode : `HEAT`, `COOL`, `SLEEP`, `OFF`. L'erratum #2075 impose RT-001 pour démontrer que `HEAT` est accepté et qu'aucune capacité existante n'est retirée.
 
 **Renforcement de la spécification — cycle de convergence 2 (FR-007, BR-009, AC-008.a) : intégrées sans changement de conception.** La spécification impose désormais un **test unitaire paramétré (matrice)** couvrant tous les profils pertinents de paramètres #1348, incluant explicitement `max_opening_degrees = 70` avec vanne physiquement ouverte à 70, et vérifiant pour chaque profil : `device_actives = []`, `nb_device_actives = 0`, absence de variation des capteurs `Nb device active for boiler` / `Total power active device for boiler` et absence d'activation des conditions chaudière. Analyse de convergence :
 1. **Fond couvert sans modification :** l'override `device_actives` → `[]` (§ 3, § 8, décision D3) est déterminé uniquement par `is_sleeping` au niveau du thermostat ; il ne dépend ni du profil #1348, ni de l'ouverture physique (l'agrégation des underlyings n'est pas consultée pendant sommeil). L'exigence renforcée est donc satisfaite par la conception existante.
@@ -301,7 +307,7 @@ Tests dans `tests/test_valve.py` (extension du module existant, mocks `number` d
 | ID         | Test (calqué sur `test_over_climate_valve_vtherm_hvac_mode_sleep` l. 597-777)                                  | Critères / AC                                                                                                                                                                                |
 | ---------- | -------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | T-SLEEP-01 | `test_over_valve_hvac_modes` : liste exposée                                                                   | Modes `heat`, `sleep`, `off` (AC-001) ; non-régression `test_over_valve_full_start` existant (AC-014)                                                                                        |
-| T-SLEEP-02 | idem avec `CONF_AC_MODE: True`                                                                                 | Modes `cool`, `sleep`, `off` (AC-002)                                                                                                                                                        |
+| T-SLEEP-02 | idem avec `CONF_AC_MODE: True` ; régression RT-001                                                             | Modes `heat`, `cool`, `sleep`, `off` ; `HEAT` est accepté avant et après `SLEEP` (AC-002, FR-002, BR-005, RT-001)                                                                            |
 | T-SLEEP-03 | Entrée en sommeil (via `async_set_hvac_mode(SLEEP)` puis via `service_set_hvac_mode_sleep`)                    | AC-003/004 : `is_sleeping`, `hvac_action = OFF`, `hvac_off_reason = sleep_mode`, consigne/préréglage inchangés, `valve_open_percent = 100`, vanne `number` native = 100 (paramètres neutres) |
 | T-SLEEP-04 | Sommeil avec `CONF_MAX_OPENING_DEGREES: "70"`                                                                  | AC-005/006 : brut 100 ; commande physique = 70 ; `valve_command_percent = 70`                                                                                                                |
 | T-SLEEP-05 | Sommeil avec entité `number` `max=90`                                                                          | AC-007 : commande physique = 90                                                                                                                                                              |
@@ -371,7 +377,7 @@ Critères de vérification : suite `pytest tests/test_valve.py tests/test_overcl
 - Q2 (mineure, à confirmer en implémentation) : l'override `valve_open_percent` doit être calé sur `(vtherm_hvac_mode == OFF and not is_sleeping) or _valve_open_percent is None → 0` — si pendant sommeil la property doit retourner 100 même avant le premier cycle (vanse encore à l'ancienne position), pré-ré-injecter `_valve_open_percent = 100` dans `service_set_hvac_mode_sleep` en plus du path cyclique, pour éviter une fenêtre transitoire d'affichage à l'ancienne valeur.
 
 **Traçabilité :** spécification → conception → tests :
-- FR-001/002 → § 3 (`build_hvac_list`) → T-SLEEP-01/02
+- **FR-001/FR-002 / BR-005 / AC-002 → § 3 et § 5.6 (`build_hvac_list`) → T-SLEEP-01/02 et RT-001 : avec AC, `HEAT`, `COOL`, `SLEEP`, `OFF` sont exposés et `HEAT` est accepté.**
 - FR-003/004 → § 3 (`service_set_hvac_mode_sleep`, `is_sleeping`) → T-SLEEP-03
 - FR-005/006 → § 3 (`calculate_hvac_action`) + state_manager → T-SLEEP-03
 - **FR-007 / BR-001 / BR-009 / AC-008 / AC-008.a** → **§ 3 (`device_actives`, `is_device_active`, `should_device_be_active`) + § 8 (invariant insensible au profil #1348) → T-SLEEP-06 (test unitaire paramétré, matrice P1-P6 des profils #1348 incluant `max_opening_degrees = 70` avec vanne physiquement ouverte à 70 — P2 ; vérifie `device_actives = []`, `nb_device_actives = 0`, absence de variation de `Nb device active for boiler` / `Total power active device for boiler` et absence d'activation des conditions chaudière, profil par profil)**
@@ -386,7 +392,7 @@ Critères de vérification : suite `pytest tests/test_valve.py tests/test_overcl
 
 **Faisabilité : CONFIRMÉE.** Toutes les exigences FR-001 à FR-016 de la spécification sont satisfaisables par des overrides dans `ThermostatOverValve`, complétés par un rafraîchissement explicite des capteurs de chaudière pendant les transitions de sommeil. `state_manager.py`, `cycle_scheduler.py`, `underlyings.py`, `const.py` et l'implémentation `over_climate` restent inchangés. L'arithmétique de la commande (demande brute 100 % → `calculate_opening_closing_degree` → clamp bornes entité ; commande = 70 avec `max_opening_degrees = 70`) est déterministe et vérifiée dans le code. La contradiction potentielle avec `UnderlyingValve.is_device_active` (BR-009) est résolue de manière non intrusive (override `device_actives`), renforcée par l'exclusion explicite des VTherm endormis du total de puissance chaudière.
 
-**Cohérence avec la spécification : CONFIRMÉE.** Périmètre identique, exigences toutes couvertes, aucune contradiction bloquante. Les deux corrections non bloquantes formulées au cycle précédent (§ 9) — précision terminologique sur FR-008 (demande brute exposée/injectée dans le chemin de régulation) et consolidation d'AC-006 (valeur attendue 70, déterministe) — **ont été intégrées dans la spécification v1.0** (cycle de convergence 1) : la conception et la spécification sont désormais alignées.
+**Cohérence avec la spécification v1.2 et l'erratum #2075 : CONFIRMÉE.** Périmètre identique, exigences toutes couvertes, aucune contradiction bloquante. Les corrections de convergence portent sur FR-008 (demande brute exposée/injectée dans le chemin de régulation), AC-006 (valeur attendue 70, déterministe) et, après implémentation, sur FR-002/BR-005/AC-002 : avec `ac_mode=True`, la liste est `HEAT`, `COOL`, `SLEEP`, `OFF`. L'erratum documente que le choix initial `COOL`-only a produit le commit `e095f540...` et la régression #2075 ; RT-001 vérifie désormais que `HEAT` reste exposé et accepté. La conception et la spécification v1.2 sont alignées.
 
 **Blocages : AUCUN.**
 
