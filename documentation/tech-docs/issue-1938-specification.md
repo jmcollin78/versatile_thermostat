@@ -11,9 +11,9 @@
 | Champ                       | Valeur                                                                                                                                                         |
 | --------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **Nom**                     | Mode sommeil pour `ThermostatOverValve` (`over_valve`)                                                                                                         |
-| **Version**                 | 1.1                                                                                                                                                            |
+| **Version**                 | 1.2                                                                                                                                                            |
 | **Statut**                  | Validée, implémentée, revue de conception et testée manuellement                                                                                               |
-| **Date**                    | 15 septembre 2026                                                                                                                                              |
+| **Date**                    | 30 septembre 2026 (correction post-implémentation)                                                                                                             |
 | **Propriétaire**            | Équipe Versatile Thermostat                                                                                                                                    |
 | **Référence issue**         | [jmcollin78/versatile_thermostat#1938](https://github.com/jmcollin78/versatile_thermostat/issues/1938) (ouverte ; libellés `enhancement`, `Vote needed`, `P1`) |
 | **Rapport de revue validé** | `documentation/tech-docs/issue-1938-review.md` (revue du 15 septembre 2026, recommandation : retenir)                                                          |
@@ -26,7 +26,7 @@
   - `service_set_hvac_mode_sleep()` (l. ~2274-2291) : lève `NotImplementedError` hors `over_climate` avec régulation directe de vanne ;
   - `activable_underlying_entities` (l. ~1385-1388), `device_actives` / `nb_device_actives` (l. ~1063-1077) : base du comptage des équipements actifs pour la chaudière centrale ;
   - `update_custom_attributes()` (l. ~1990-2050) : expose déjà l'attribut `is_sleeping`.
-- `custom_components/versatile_thermostat/thermostat_climate_valve.py` : implémentation de référence — `build_hvac_list()` exposant `HEAT`, `SLEEP`, `OFF` / `COOL`, `SLEEP`, `OFF` (l. ~341-348), `recalculate()` plafonnant la demande brute à 100 % pendant le sommeil (l. ~341-348 et ~426-447), `calculate_hvac_action()` forçant `OFF` pendant le sommeil, `should_device_be_active` / `device_actives` vides pendant le sommeil, `is_sleeping` (l. ~430), `service_set_hvac_mode_sleep()` (l. ~438-447), `restore_specific_previous_state()` restaurant `hvac_off_reason = HVAC_OFF_REASON_SLEEP_MODE`.
+- `custom_components/versatile_thermostat/thermostat_climate_valve.py` : implémentation de référence — `build_hvac_list()` exposant `HEAT`, `SLEEP`, `OFF` / `HEAT`, `COOL`, `SLEEP`, `OFF` (l. ~341-348), `recalculate()` plafonnant la demande brute à 100 % pendant le sommeil (l. ~341-348 et ~426-447), `calculate_hvac_action()` forçant `OFF` pendant le sommeil, `should_device_be_active` / `device_actives` vides pendant le sommeil, `is_sleeping` (l. ~430), `service_set_hvac_mode_sleep()` (l. ~438-447), `restore_specific_previous_state()` restaurant `hvac_off_reason = HVAC_OFF_REASON_SLEEP_MODE`.
 - `custom_components/versatile_thermostat/thermostat_valve.py` : `ThermostatOverValve` ne redéfinit ni `build_hvac_list`, ni `is_sleeping`, ni le service sommeil ; `recalculate()`/`apply_valve_command_percent()` (l. ~242-358) constituent le chemin de conversion TPI actuel ; `update_custom_attributes()` expose `valve_command_percent` / `valve_command_by_valve`.
 - `custom_components/versatile_thermostat/underlyings.py` :
   - `UnderlyingValve` (l. ~1167-1405) : `set_valve_open_percent()` transmet `thermostat.valve_open_percent` via `_get_controlled_percent()` qui applique `calculate_opening_closing_degree` (plafonnement par `min_opening_degrees`/`max_opening_degrees`/`max_closing_degree`/`opening_threshold_degree`) puis `clamp_sent_value` (bornes min/max de l'entité `number`) ; `is_device_active` retourne `current_opening > min_open`.
@@ -39,6 +39,10 @@
 - `tests/test_valve.py` (`test_over_valve_full_start`, l. 19-120) : confirme que `over_valve` n'expose aujourd'hui que `HEAT`/`OFF` et qu'aucun test sommeil n'existe pour ce type.
 - `documentation/fr/reference.md` (l. 438-446), `documentation/en/reference.md` (l. 445), `documentation/en/over-climate.md` (l. 102-104), `documentation/fr/over-valve.md` : étendue documentaire actuelle du mode sommeil (restreinte à `over_climate`).
 - Traductions : `custom_components/versatile_thermostat/translations/` (10 fichiers ; aucune clé sommeil identifiée dans `en.json` — les libellés de service proviennent de `services.yaml`).
+
+### Note de correction post-implémentation — #2075 (30 septembre 2026)
+
+La spécification initiale demandait à tort, pour `over_valve` avec `ac_mode=True`, la liste `COOL, SLEEP, OFF`. Cette convention COOL-only était erronée : dans ce contexte, `ac_mode=True` signifie que le VTherm prend en charge le chauffage et le refroidissement. Le contrat corrigé est donc `HEAT, SLEEP, OFF` sans AC et `HEAT, COOL, SLEEP, OFF` avec AC. Le mode `SLEEP` est additif et ne doit retirer aucun mode HVAC précédemment disponible. Cette correction est liée à la régression #2075 provoquée par le commit `e095f540...` et au test rouge **RT-001**. Les identifiants FR/AC sont conservés.
 
 ### 2. Contexte et objectifs
 
@@ -98,7 +102,7 @@ Voir § 4 (exigences) et § 8 (exclusions).
 
 **UC-006 — Mode sommeil en `AC mode`**
 - **Déclencheur** : VTherm `over_valve` configuré avec `ac_mode` activé.
-- **Résultat attendu** : modes exposés `COOL`, `SLEEP`, `OFF` ; sémantique de sommeil identique.
+- **Résultat attendu** : modes exposés `HEAT`, `COOL`, `SLEEP`, `OFF` ; sémantique de sommeil identique, sans retrait du mode `HEAT`.
 
 ### 4. Exigences fonctionnelles
 
@@ -106,7 +110,7 @@ Voir § 4 (exigences) et § 8 (exclusions).
 
 **FR-001** — Le système doit exposer, pour tout VTherm de type `over_valve` sans `AC mode`, la liste de modes HVAC `heat`, `sleep`, `off` (voir note vocabulaire § Vocabulaire).
 
-**FR-002** — Le système doit exposer, pour tout VTherm de type `over_valve` avec `AC mode` activé, la liste de modes HVAC `cool`, `sleep`, `off` (conformément à la convention déjà appliquée par `ThermostatOverClimateValve.build_hvac_list()` ; ce cas, bien qu'atypique pour une vanne, est inclus car l'option `ac_mode` est proposée par le type `over_valve`).
+**FR-002** — Le système doit exposer, pour tout VTherm de type `over_valve` avec `AC mode` activé, la liste de modes HVAC `heat`, `cool`, `sleep`, `off`. `AC mode=True` signifie la prise en charge du chauffage et du refroidissement ; l'ajout de `SLEEP` ne doit retirer aucun mode précédemment disponible.
 
 **FR-003** — Le système doit faire aboutir, pour un VTherm `over_valve`, l'appel du service `versatile_thermostat.set_hvac_mode_sleep` en sélectionnant le mode interne `SLEEP`, sans lever d'exception.
 
@@ -144,9 +148,9 @@ Voir § 4 (exigences) et § 8 (exclusions).
 
 **BR-004** — *Conservation de la consigne et du préréglage.* Le sommeil ne modifie ni la consigne, ni le préréglage, ni les paramètres. À la sortie de sommeil, la régulation reprend avec les valeurs en vigueur avant l'entrée en sommeil. Priorité : haute.
 
-**BR-005** — *Inclusion du `AC mode`.* Bien qu'atypique pour une vanne, le mode `ac_mode` est exposé par le type `over_valve` ; le sommeil doit y être disponible avec la liste `cool`, `sleep`, `off` et la même sémantique. Priorité : moyenne.
+**BR-005** — *Inclusion du `AC mode`.* `AC mode=True` signifie que `over_valve` prend en charge le chauffage et le refroidissement ; le sommeil doit y être disponible avec la liste `heat`, `cool`, `sleep`, `off`, sans retirer `heat`, et avec la même sémantique. Priorité : moyenne.
 
-**BR-006** — *Non-régression hors sommeil.* Aucun chemin de régulation, conversion ou comptage existant ne doit changer de comportement tant que `SLEEP` n'est pas sélectionné. Les installations `over_valve` existantes continuent d'exposer et de se comporter comme avant (hors ajout du mode `SLEEP` à la liste exposée). Priorité : haute.
+**BR-006** — *Non-régression hors sommeil.* Aucun chemin de régulation, conversion ou comptage existant ne doit changer de comportement tant que `SLEEP` n'est pas sélectionné. Les installations `over_valve` existantes continuent d'exposer et de se comporter comme avant ; `SLEEP` est ajouté sans retirer `HEAT`, et avec `AC mode`, `COOL` est ajouté à la liste existante. Priorité : haute.
 
 **BR-007** — *Indépendance du mécanisme `over_climate`.* L'implémentation doit être spécifique au chemin `over_valve` (`UnderlyingValve`) et ne doit pas réutiliser ni altérer le mécanisme `UnderlyingValveRegulation` propre à l'architecture `over_climate`, dont le cycle de vie diffère. Priorité : haute (contrainte de conception fonctionnelle : homogénéité de comportement, distinction de mécanisme).
 
@@ -169,7 +173,7 @@ Voir § 4 (exigences) et § 8 (exclusions).
 
 **AC-001 (disponibilité du mode)** — Étant donné un VTherm `over_valve` sans `ac_mode`, ses modes HVAC exposés contiennent exactement `heat`, `sleep`, `off`. Réf. FR-001.
 
-**AC-002 (disponibilité en AC mode)** — Étant donné un VTherm `over_valve` avec `ac_mode`, ses modes HVAC exposés contiennent exactement `cool`, `sleep`, `off`. Réf. FR-002, BR-005.
+**AC-002 (disponibilité en AC mode)** — Étant donné un VTherm `over_valve` avec `ac_mode`, ses modes HVAC exposés contiennent exactement `heat`, `cool`, `sleep`, `off`. Le mode `heat` doit être conservé ; `SLEEP` est une capacité additive. Réf. FR-002, BR-005.
 
 **AC-003 (service)** — L'appel de `versatile_thermostat.set_hvac_mode_sleep` sur l'entité `over_valve` aboutit sans exception et le mode interne devient `SLEEP`. Réf. FR-003.
 
@@ -195,7 +199,7 @@ Voir § 4 (exigences) et § 8 (exclusions).
 
 **AC-013 (interaction avec #1348)** — L'entrée/sortie de sommeil ne modifie la valeur d'aucun paramètre `opening_threshold_degree`, `min_opening_degrees`, `max_opening_degrees`, `max_closing_degree`, et la conversion hors sommeil après réveil reste conforme aux paramètres configurés. Réf. FR-016, BR-002, BR-006.
 
-**AC-014 (non-régression HEAT/OFF)** — Un VTherm `over_valve` existant n'ayant jamais sélectionné `SLEEP` présente un comportement de régulation et de comptage identique à l'existant. Réf. BR-006.
+**AC-014 (non-régression HEAT/OFF)** — Un VTherm `over_valve` existant n'ayant jamais sélectionné `SLEEP` présente un comportement de régulation et de comptage identique à l'existant ; avec `ac_mode`, `HEAT` reste également exposé. Réf. BR-006.
 
 **AC-015 (documentation)** — Les pages `over-valve.md`, `reference.md` (attribut `is_sleeping`, description service) et pages associées existent et décrivent le mode sommeil `over_valve` dans les cinq langues (EN, FR, DE, CS, PL); la description du service `set_hvac_mode_sleep` reflète le support des deux types. Réf. FR-014, FR-015.
 
@@ -257,7 +261,7 @@ Voir § 4 (exigences) et § 8 (exclusions).
 
 #### Cohérence avec le périmètre du rapport de revue
 
-Cette spécification reprend fidèlement le périmètre inclus/exclus du rapport `issue-1938-review.md` § 4 (incl. `AC mode`, demande brute 100 % convertie sans promesse d'ouverture physique 100 %, thermostat `OFF` sans sollicitation de chaudière, reprise de régulation à la sortie, mises à jour EN/FR/DE/CS/PL, tests listés) et ses exclusions (aucune modification de `over_climate`, de #1348, pas de paramètre supplémentaire, pas d'entité `climate` factice, aucune modification d'état HA).
+Cette spécification reprend le périmètre inclus/exclus du rapport `issue-1938-review.md` § 4, corrigé par l'erratum post-implémentation (avec `AC mode` exposant `HEAT`, `COOL`, `SLEEP`, `OFF`, demande brute 100 % convertie sans promesse d'ouverture physique 100 %, thermostat `OFF` sans sollicitation de chaudière, reprise de régulation à la sortie, mises à jour EN/FR/DE/CS/PL et tests listés), et ses exclusions (aucune modification de `over_climate`, de #1348, pas de paramètre supplémentaire, pas d'entité `climate` factice, aucune modification d'état HA).
 
 ---
 
@@ -268,14 +272,18 @@ Cette spécification reprend fidèlement le périmètre inclus/exclus du rapport
 | Field                      | Value                                                                                                                                                    |
 | -------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **Name**                   | Sleep Mode for `ThermostatOverValve` (`over_valve`)                                                                                                      |
-| **Version**                | 1.1                                                                                                                                                      |
+| **Version**                | 1.2                                                                                                                                                      |
 | **Status**                 | Approved, implemented, design-reviewed and manually tested                                                                                               |
-| **Date**                   | September 15, 2026                                                                                                                                       |
+| **Date**                   | September 30, 2026 (post-implementation correction)                                                                                                      |
 | **Owner**                  | Versatile Thermostat team                                                                                                                                |
 | **Issue reference**        | [jmcollin78/versatile_thermostat#1938](https://github.com/jmcollin78/versatile_thermostat/issues/1938) (open; labels `enhancement`, `Vote needed`, `P1`) |
 | **Approved review report** | `documentation/tech-docs/issue-1938-review.md` (review dated September 15, 2026; recommendation: accept)                                                 |
 
 **Sources analysed (verified):** identical to the French version, see § 1 (French) — `base_thermostat.py`, `thermostat_climate_valve.py`, `thermostat_valve.py`, `underlyings.py`, `state_manager.py`, `sensor.py`, `services.yaml`, `const.py`, `tests/test_overclimate_valve.py`, `tests/test_valve.py`, `documentation/*/reference.md`, `documentation/*/over-climate.md`, `documentation/fr/over-valve.md`, `translations/`.
+
+### Post-implementation correction note — #2075 (September 30, 2026)
+
+The initial specification incorrectly required `COOL, SLEEP, OFF` for `over_valve` with `ac_mode=True`. This COOL-only convention was wrong: in this context, `ac_mode=True` means that the VTherm supports both heating and cooling. The corrected contract is therefore `HEAT, SLEEP, OFF` without AC and `HEAT, COOL, SLEEP, OFF` with AC. `SLEEP` is additive and shall not remove any previously available HVAC mode. This correction is linked to regression #2075 caused by commit `e095f540...` and to the red **RT-001** test. FR/AC identifiers remain stable.
 
 ### 2. Context and objectives
 
@@ -335,7 +343,7 @@ See § 4 (requirements) and § 8 (exclusions).
 
 **UC-006 — Sleep in `AC mode`**
 - **Trigger**: an `over_valve` VTherm configured with `ac_mode` enabled.
-- **Expected result**: exposed modes `cool`, `sleep`, `off`; identical sleep semantics.
+- **Expected result**: exposed modes `heat`, `cool`, `sleep`, `off`; identical sleep semantics, without removing `heat`.
 
 ### 4. Functional requirements
 
@@ -343,7 +351,7 @@ See § 4 (requirements) and § 8 (exclusions).
 
 **FR-001** — The system shall expose, for any `over_valve` VTherm without `AC mode`, the HVAC mode list `heat`, `sleep`, `off`.
 
-**FR-002** — The system shall expose, for any `over_valve` VTherm with `AC mode` enabled, the HVAC mode list `cool`, `sleep`, `off` (consistent with the convention already applied by `ThermostatOverClimateValve.build_hvac_list()`; although atypical for a valve, this case is included because `ac_mode` is offered by the `over_valve` type).
+**FR-002** — The system shall expose, for any `over_valve` VTherm with `AC mode` enabled, the HVAC mode list `heat`, `cool`, `sleep`, `off`. `AC mode=True` means support for both heating and cooling; adding `SLEEP` shall not remove any previously available mode.
 
 **FR-003** — The system shall make the `versatile_thermostat.set_hvac_mode_sleep` service succeed on an `over_valve` VTherm by selecting the internal `SLEEP` mode, without raising an exception.
 
@@ -383,9 +391,9 @@ See § 4 (requirements) and § 8 (exclusions).
 
 **BR-004** — *Target and preset preservation.* Sleep modifies neither the target temperature, nor the preset, nor the parameters. Upon exit, regulation resumes with the values in force before entering sleep. Priority: high.
 
-**BR-005** — *`AC mode` inclusion.* Although atypical for a valve, `ac_mode` is exposed by the `over_valve` type; sleep shall be available there with the `cool`, `sleep`, `off` list and the same semantics. Priority: medium.
+**BR-005** — *`AC mode` inclusion.* `AC mode=True` means that `over_valve` supports both heating and cooling; sleep shall be available there with the `heat`, `cool`, `sleep`, `off` list, without removing `heat`, and with the same semantics. Priority: medium.
 
-**BR-006** — *Non-regression outside sleep.* No existing regulation, conversion or counting path shall change behaviour as long as `SLEEP` is not selected. Existing `over_valve` setups keep behaving as before (besides the addition of `SLEEP` to the exposed list). Priority: high.
+**BR-006** — *Non-regression outside sleep.* No existing regulation, conversion or counting path shall change behaviour as long as `SLEEP` is not selected. Existing `over_valve` setups keep exposing and behaving as before; `SLEEP` is added without removing `HEAT`, and with `AC mode`, `COOL` is added to the existing list. Priority: high.
 
 **BR-007** — *Independence from the `over_climate` mechanism.* The implementation shall be specific to the `over_valve` path (`UnderlyingValve`) and shall neither reuse nor alter the `UnderlyingValveRegulation` mechanism specific to the `over_climate` architecture, whose lifecycle differs. Priority: high (functional design constraint: behavioural homogeneity, mechanism distinction).
 
@@ -408,7 +416,7 @@ See § 4 (requirements) and § 8 (exclusions).
 
 **AC-001 (mode availability)** — Given an `over_valve` VTherm without `ac_mode`, its exposed HVAC modes contain exactly `heat`, `sleep`, `off`. Ref. FR-001.
 
-**AC-002 (AC mode availability)** — Given an `over_valve` VTherm with `ac_mode`, its exposed HVAC modes contain exactly `cool`, `sleep`, `off`. Ref. FR-002, BR-005.
+**AC-002 (AC mode availability)** — Given an `over_valve` VTherm with `ac_mode`, its exposed HVAC modes contain exactly `heat`, `cool`, `sleep`, `off`. The `heat` mode shall be preserved; `SLEEP` is additive. Ref. FR-002, BR-005.
 
 **AC-003 (service)** — Calling `versatile_thermostat.set_hvac_mode_sleep` on the `over_valve` entity succeeds without exception and the internal mode becomes `SLEEP`. Ref. FR-003.
 
@@ -434,7 +442,7 @@ See § 4 (requirements) and § 8 (exclusions).
 
 **AC-013 (interaction with #1348)** — Entering/exiting sleep does not modify the value of any `opening_threshold_degree`, `min_opening_degrees`, `max_opening_degrees`, `max_closing_degree` parameter, and the out-of-sleep conversion after wake-up remains conformant to the configured parameters. Ref. FR-016, BR-002, BR-006.
 
-**AC-014 (HEAT/OFF non-regression)** — An existing `over_valve` VTherm that never selected `SLEEP` behaves identically to the current regulation and counting behaviour. Ref. BR-006.
+**AC-014 (HEAT/OFF non-regression)** — An existing `over_valve` VTherm that never selected `SLEEP` behaves identically to the current regulation and counting behaviour; with `ac_mode`, `HEAT` remains exposed as well. Ref. BR-006.
 
 **AC-015 (documentation)** — The `over-valve.md` pages, `reference.md` pages (`is_sleeping` attribute, service description) and related pages exist and describe the `over_valve` sleep mode in the five languages (EN, FR, DE, CS, PL); the `set_hvac_mode_sleep` service description reflects both supported types. Ref. FR-014, FR-015.
 

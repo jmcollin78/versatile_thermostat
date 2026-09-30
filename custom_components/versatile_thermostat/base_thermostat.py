@@ -2086,6 +2086,24 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
             },
         }
 
+        if self.is_over_climate and self._ac_mode:
+            self._attr_extra_state_attributes["preset_temperatures"].update(
+                {
+                    "eco_cool_temp": self._presets.get(VThermPreset.ECO + PRESET_AC_SUFFIX, 0),
+                    "boost_cool_temp": self._presets.get(VThermPreset.BOOST + PRESET_AC_SUFFIX, 0),
+                    "comfort_cool_temp": self._presets.get(VThermPreset.COMFORT + PRESET_AC_SUFFIX, 0),
+                    "eco_cool_away_temp": self._presets_away.get(
+                        self.get_preset_away_name(VThermPreset.ECO + PRESET_AC_SUFFIX), 0
+                    ),
+                    "boost_cool_away_temp": self._presets_away.get(
+                        self.get_preset_away_name(VThermPreset.BOOST + PRESET_AC_SUFFIX), 0
+                    ),
+                    "comfort_cool_away_temp": self._presets_away.get(
+                        self.get_preset_away_name(VThermPreset.COMFORT + PRESET_AC_SUFFIX), 0
+                    ),
+                }
+            )
+
         self._state_manager.add_custom_attributes(self._attr_extra_state_attributes)
 
         for manager in self._managers:

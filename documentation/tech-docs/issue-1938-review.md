@@ -7,6 +7,12 @@
 - **Recommandation :** **retenir**. Le comportement sera aligné sur l’implémentation existante de `over_climate` avec régulation directe de vanne : thermostat arrêté, demande de vanne brute à 100 % et aucune demande de chauffage/chaudière centrale.
 - **Suivi post-développement :** implémentation réalisée, revue de conception effectuée et fonctionnement validé manuellement par l’utilisateur le 15 septembre 2026. La carte VTherm UI prend déjà en charge ce comportement nativement ; aucune évolution de cette carte n’est requise.
 
+## Erratum post-développement — régression #2075 (30 septembre 2026)
+
+La revue initiale du 15 septembre 2026 est conservée comme état historique. Elle formulait toutefois à tort, dans son périmètre `AC mode`, la convention `COOL, SLEEP, OFF`. Cette convention COOL-only était erronée et a contribué à la régression #2075 : le commit `e095f540...` a implémenté cette liste et supprimé `HEAT`.
+
+Le périmètre corrigé est le suivant : `over_valve` sans AC expose `HEAT, SLEEP, OFF`; `over_valve` avec AC expose `HEAT, COOL, SLEEP, OFF`. Ici, `AC mode=True` signifie la prise en charge du chauffage et du refroidissement, et `SLEEP` est une capacité additive qui ne retire aucun mode HVAC précédemment disponible. Le test rouge **RT-001** vérifie cette non-régression. Cet erratum corrige la recommandation fonctionnelle sans réécrire les faits observés dans la revue initiale.
+
 ## 1. Résumé fidèle de l’issue
 
 L’issue demande d’étendre le **Sleep Mode** aux VTherm de type `over_valve`. Ce mode est actuellement disponible uniquement pour un VTherm `over_climate` utilisant la régulation directe de vanne.
@@ -52,13 +58,13 @@ Le cas d’usage du demandeur est d’ouvrir les TRV à 100 % sans demander de c
 
 ### Inclus
 
-- Rendre `SLEEP` disponible dans la liste des modes HVAC de `ThermostatOverValve` : `HEAT`, `SLEEP`, `OFF` (et `COOL`, `SLEEP`, `OFF` en mode climatisation, conformément à la convention existante).
+- Rendre `SLEEP` disponible dans la liste des modes HVAC de `ThermostatOverValve` : `HEAT`, `SLEEP`, `OFF` (et `HEAT`, `COOL`, `SLEEP`, `OFF` avec `AC mode`, sans retirer `HEAT`).
 - Faire aboutir le service `versatile_thermostat.set_hvac_mode_sleep` pour `over_valve` et le faire sélectionner `SLEEP`.
 - Définir `is_sleeping` pour `over_valve` à partir du mode interne `SLEEP`.
 - Pendant le sommeil, appliquer à toutes les vannes `number` sous-jacentes une demande brute de 100 %, puis conserver la conversion habituelle de contrôle d’ouverture. Ainsi, comme pour `over_climate`, `max_opening_degrees` et les limites de l’entité peuvent plafonner la commande physique.
 - Conserver le thermostat présenté dans l’état HVAC `OFF`, avec `hvac_action` à `OFF`, aucun équipement actif et aucune demande transmise au contrôle de chaudière centrale.
 - À la sortie de sommeil, restaurer le comportement de régulation normal (mode demandé, consigne et préréglage inchangés), puis renvoyer la commande TPI/vanne effective courante.
-- Inclure les configurations `AC mode` : bien qu’atypique pour une vanne, cette option est proposée par `over_valve`; elle doit donc exposer `COOL`, `SLEEP`, `OFF` et respecter la même sémantique de sommeil.
+- Inclure les configurations `AC mode` : cette option signifie que `over_valve` prend en charge le chauffage et le refroidissement ; elle doit donc exposer `HEAT`, `COOL`, `SLEEP`, `OFF` et respecter la même sémantique de sommeil.
 - Ajouter des tests couvrant au minimum : disponibilité du mode, service dédié, transition `HEAT → SLEEP → HEAT`, demande brute à 100 %, commande plafonnée lorsque `max_opening_degrees` l’impose, états/action/activité, absence de sollicitation de chaudière, plusieurs vannes, `AC mode` et interaction avec les paramètres #1348.
 - Mettre à jour la description du service, les traductions et toutes les documentations existantes concernées dans les cinq langues publiées : anglais, français, allemand, tchèque et polonais.
 

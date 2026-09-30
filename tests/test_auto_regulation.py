@@ -225,6 +225,45 @@ async def test_over_climate_regulation_ac_mode(hass: HomeAssistant, skip_send_ev
     entity.remove_thermostat()
 
 
+async def test_over_climate_ac_preset_temperatures_publish_cool_target(
+    hass: HomeAssistant,
+    skip_send_event,
+    fake_temp_sensor,
+    fake_ext_temp_sensor,
+    fake_underlying_climate,
+):
+    """Test that preset temperatures publish the COOL target used by the UI card."""
+    entry = MockConfigEntry(
+        domain=DOMAIN,
+        title="TheOverClimateMockName",
+        unique_id="uniqueId",
+        data=PARTIAL_CLIMATE_AC_CONFIG,
+    )
+
+    entity = await create_thermostat(
+        hass,
+        entry,
+        "climate.theoverclimatemockname",
+        temps={**default_temperatures_ac, "eco": 19.0, "eco_ac": 25.0},
+    )
+
+    await wait_for_local_condition(lambda: entity.is_ready is True)
+    await entity.async_set_hvac_mode(VThermHvacMode_HEAT)
+    await entity.async_set_preset_mode(VThermPreset.ECO)
+    assert entity.target_temperature == 19.0
+
+    await entity.async_set_hvac_mode(VThermHvacMode_COOL)
+    assert entity.vtherm_hvac_mode is VThermHvacMode_COOL
+    assert entity.target_temperature == 25.0
+    assert entity.find_preset_temp(VThermPreset.ECO) == 25.0
+
+    preset_temperatures = entity.extra_state_attributes["preset_temperatures"]
+    card_eco_temperature = preset_temperatures.get("eco_cool_temp", preset_temperatures["eco_temp"])
+    assert card_eco_temperature == 25.0, "The UI card resolves the ECO COOL temperature to " f"{card_eco_temperature} because eco_cool_temp is not published"
+
+    entity.remove_thermostat()
+
+
 async def test_over_climate_regulation_limitations(
     hass: HomeAssistant, skip_hass_states_is_state, skip_send_event
 ):

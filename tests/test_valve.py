@@ -272,7 +272,7 @@ async def test_over_valve_full_start(hass: HomeAssistant, skip_hass_states_is_st
     [
         (False, "", [VThermHvacMode_HEAT, VThermHvacMode_SLEEP, VThermHvacMode_OFF], 40, 100, 18),
         (False, "70", [VThermHvacMode_HEAT, VThermHvacMode_SLEEP, VThermHvacMode_OFF], 28, 70, 18),
-        (True, "", [VThermHvacMode_COOL, VThermHvacMode_SLEEP, VThermHvacMode_OFF], 40, 100, 20),
+        (True, "", [VThermHvacMode_HEAT, VThermHvacMode_COOL, VThermHvacMode_SLEEP, VThermHvacMode_OFF], 40, 100, 20),
     ],
 )
 async def test_over_valve_sleep_mode(
@@ -317,6 +317,9 @@ async def test_over_valve_sleep_mode(
     active_mode = VThermHvacMode_COOL if ac_mode else VThermHvacMode_HEAT
 
     assert vtherm.vtherm_hvac_modes == expected_hvac_modes
+    if ac_mode:
+        await vtherm.async_set_hvac_mode(VThermHvacMode_HEAT)
+        assert vtherm.vtherm_hvac_mode is VThermHvacMode_HEAT
     if not ac_mode:
         await send_temperature_change_event(vtherm, current_temperature, now)
         await send_ext_temperature_change_event(vtherm, 18, now)
