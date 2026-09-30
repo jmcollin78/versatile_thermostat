@@ -240,6 +240,58 @@ async def test_should_learn_failures(manager):
     manager.state.consecutive_failures = 3
     assert manager._should_learn() is False
 
+
+@pytest.mark.parametrize("hvac_mode,start_temp,end_temp", [("heat", 19.0, 18.5), ("cool", 23.0, 23.5)])
+@pytest.mark.parametrize("continuous_kext", [False, True])
+async def test_disabled_learning_does_not_report_cycle_failures(manager, mock_hass, hvac_mode, start_temp, end_temp, continuous_kext):
+    """Completed cycles must not report failures for a stopped learning session."""
+    manager.state.autolearn_enabled = False
+    manager._continuous_kext = continuous_kext
+    manager.state.coeff_indoor_autolearn = 30
+    manager.state.consecutive_failures = 2
+    mock_hass.services = MagicMock(async_call=AsyncMock())
+
+    with patch("custom_components.versatile_thermostat.auto_tpi_manager.translation.async_get_translations", new_callable=AsyncMock, return_value={}):
+        for _ in range(2):
+            await manager.update(room_temp=start_temp, ext_temp=5.0, target_temp=21.0, hvac_mode=hvac_mode)
+            await manager.on_cycle_started(on_time_sec=300, off_time_sec=0, on_percent=1.0, hvac_mode=hvac_mode)
+            manager.state.cycle_start_date = datetime.now(timezone.utc) - timedelta(minutes=5)
+            manager._current_temp_in = end_temp
+            await manager.on_cycle_completed()
+
+    assert manager.state.total_cycles == 2
+    assert manager.state.cycle_active is False
+    assert manager.learning_active is False
+    assert manager.state.consecutive_failures == 2
+    mock_hass.services.async_call.assert_not_called()
+
+
+@pytest.mark.parametrize("hvac_mode,start_temp,end_temp", [("heat", 19.0, 18.5), ("cool", 23.0, 23.5)])
+async def test_active_learning_reports_failure_once(manager, mock_hass, hvac_mode, start_temp, end_temp):
+    """Active learning stops at three failures without repeating the notification."""
+    manager.state.autolearn_enabled = True
+    manager.state.coeff_indoor_autolearn = 30
+    manager.state.consecutive_failures = 2
+    mock_hass.services = MagicMock(async_call=AsyncMock())
+
+    with patch("custom_components.versatile_thermostat.auto_tpi_manager.translation.async_get_translations", new_callable=AsyncMock, return_value={}):
+        await manager.update(room_temp=start_temp, ext_temp=5.0, target_temp=21.0, hvac_mode=hvac_mode)
+        await manager.on_cycle_started(on_time_sec=300, off_time_sec=0, on_percent=1.0, hvac_mode=hvac_mode)
+        manager.state.cycle_start_date = datetime.now(timezone.utc) - timedelta(minutes=5)
+        manager._current_temp_in = end_temp
+        await manager.on_cycle_completed()
+
+        assert manager.learning_active is False
+        assert manager.state.consecutive_failures == 3
+        mock_hass.services.async_call.assert_awaited_once()
+        assert mock_hass.services.async_call.call_args.args[:2] == ("persistent_notification", "create")
+        assert mock_hass.services.async_call.call_args.args[2]["notification_id"] == "autotpi_learning_stopped_test_id"
+
+        await manager._detect_failures(end_temp)
+
+    assert manager.state.consecutive_failures == 3
+    mock_hass.services.async_call.assert_awaited_once()
+
 async def test_perform_learning_indoor(manager):
     """Test indoor coefficient learning."""
     manager.state.autolearn_enabled = True

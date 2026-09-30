@@ -1904,6 +1904,9 @@ class AutoTpiManager:
 
     async def _detect_failures(self, current_temp_in: float):
         """Detect system failures."""
+        if not self.learning_active:
+            return
+
         OFFSET_FAILURE = 1.0
         MIN_LEARN_FOR_DETECTION = 25
 
