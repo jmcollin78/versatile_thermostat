@@ -30,6 +30,25 @@ Karta integracji VTherm UI (dostępna na [Github](https://github.com/jmcollin78/
 # Co nowego?
 ![New](images/new-icon.png)
 
+## Wydanie 10.5.0
+
+Wykrywanie anomalii ogrzewania może być teraz używane jako zewnętrzna wtyczka
+`vtherm_heating_failure_detection`. Wtyczka oferuje konfigurację centralną oraz
+nadpisania dla poszczególnych VThermów; jej formularze wstępnie uzupełniają
+istniejące ustawienia core, aby ułatwić migrację.
+
+W okresie przejściowym ustawienia wtyczki mają pierwszeństwo, a wartości
+niezdefiniowane we wtyczce nadal korzystają ze starszej konfiguracji core.
+Wyłącz starszą funkcję dla danego VThermu przed włączeniem wtyczki, aby uniknąć
+podwójnej konfiguracji.
+
+Binarny czujnik anomalii ogrzewania jest teraz udostępniany przez wtyczkę. Jeśli
+można to zrobić bez konfliktu, jego istniejący `entity_id` zostanie zachowany,
+aby dashboardy i automatyzacje nadal działały. Po wyłączeniu starszego czujnika
+przeładuj wpis wtyczki; jeśli pozostanie aktywny, Home Assistant może utworzyć
+nowy `entity_id`, którego należy użyć w istniejących elementach korzystających
+z czujnika.
+
 ## Wydanie 10.4.0
 VTherm może teraz udostępniać `current_humidity` z zewnętrznego czujnika wilgotności dla wszystkich typów termostatów. Czujnik można wybrać w menu Wilgotność lub wykryć automatycznie na urządzeniu czujnika temperatury pokojowej.
 

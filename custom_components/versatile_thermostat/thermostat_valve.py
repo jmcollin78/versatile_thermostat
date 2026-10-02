@@ -70,7 +70,7 @@ class ThermostatOverValve(ThermostatProp[UnderlyingValve]):  # pylint: disable=a
     def build_hvac_list(self) -> list[VThermHvacMode]:
         """Build the hvac list depending on ac_mode"""
         if self._ac_mode:
-            return [VThermHvacMode_COOL, VThermHvacMode_SLEEP, VThermHvacMode_OFF]
+            return [VThermHvacMode_HEAT, VThermHvacMode_COOL, VThermHvacMode_SLEEP, VThermHvacMode_OFF]
         else:
             return [VThermHvacMode_HEAT, VThermHvacMode_SLEEP, VThermHvacMode_OFF]
 
@@ -224,6 +224,7 @@ class ThermostatOverValve(ThermostatProp[UnderlyingValve]):  # pylint: disable=a
                     ),
                     max_closing_degree=self._max_closing_degree,
                     opening_threshold=self._opening_threshold_degree,
+                    has_valve_control=self._have_valve_control,
                 )
             )
 

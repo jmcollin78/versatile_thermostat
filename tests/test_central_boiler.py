@@ -820,6 +820,7 @@ async def test_update_central_boiler_state_multiple(
         ("", "", 100, 0, 100, 100),
         ("", "70", 100, 0, 100, 70),
         ("15", "70", 100, 0, 100, 70),
+        ("10", "50", 100, 60, 100, 50),
         ("", "", 100, 30, 100, 100),
         ("", "", 100, 0, 90, 90),
         ("15", "70", 90, 30, 100, 70),
@@ -949,6 +950,98 @@ async def test_update_central_boiler_state_simple_valve(
     assert entity.nb_device_actives == 0
     assert nb_device_active_sensor.active_device_ids == []
     assert total_power_active_sensor.active_device_ids == []
+
+    entity.remove_thermostat()
+
+
+async def test_central_boiler_over_valve_floor_and_initial_state_catchup(
+    hass: HomeAssistant,
+    init_central_config_with_boiler_fixture,
+):
+    """A valve at its physical floor must not heat or request the boiler."""
+    api = VersatileThermostatAPI.get_vtherm_api(hass)
+
+    valve = MockNumber(hass, "floor_valve", "FloorValve")
+    await register_mock_entity(hass, valve, NUMBER_DOMAIN)
+    boiler = MockSwitch(hass, "pompe_chaudiere", "FloorBoiler")
+    await register_mock_entity(hass, boiler, SWITCH_DOMAIN)
+
+    entry = MockConfigEntry(
+        domain=DOMAIN,
+        title="FloorValveThermostat",
+        unique_id="floorValveThermostat",
+        data={
+            CONF_NAME: "FloorValveThermostat",
+            CONF_THERMOSTAT_TYPE: CONF_THERMOSTAT_VALVE,
+            CONF_TEMP_SENSOR: "sensor.mock_temp_sensor",
+            CONF_EXTERNAL_TEMP_SENSOR: "sensor.mock_ext_temp_sensor",
+            CONF_CYCLE_MIN: 5,
+            CONF_TEMP_MIN: 8,
+            CONF_TEMP_MAX: 18,
+            CONF_USE_WINDOW_FEATURE: False,
+            CONF_USE_MOTION_FEATURE: False,
+            CONF_USE_POWER_FEATURE: False,
+            CONF_USE_PRESENCE_FEATURE: False,
+            CONF_UNDERLYING_LIST: [valve.entity_id],
+            CONF_PROP_FUNCTION: PROPORTIONAL_FUNCTION_TPI,
+            CONF_TPI_COEF_INT: 0.3,
+            CONF_TPI_COEF_EXT: 0.01,
+            CONF_USE_MAIN_CENTRAL_CONFIG: True,
+            CONF_USE_TPI_CENTRAL_CONFIG: True,
+            CONF_USE_PRESETS_CENTRAL_CONFIG: False,
+            CONF_USE_ADVANCED_CENTRAL_CONFIG: True,
+            CONF_USED_BY_CENTRAL_BOILER: True,
+            CONF_DEVICE_POWER: 1500,
+            CONF_MIN_OPENING_DEGREES: "10",
+            CONF_MAX_OPENING_DEGREES: "100",
+            CONF_MAX_CLOSING_DEGREE: 60,
+            CONF_OPENING_THRESHOLD_DEGREE: 30,
+        },
+    )
+
+    entity: ThermostatOverValve = await create_thermostat(hass, entry, "climate.floorvalvethermostat", temps=default_temperatures)
+    api.central_boiler_manager._set_nb_active_device_threshold(0)
+    api.central_boiler_manager._set_total_power_active_threshold(1000)
+
+    boiler_sensor: CentralBoilerBinarySensor = search_entity(hass, "binary_sensor.central_configuration_central_boiler", "binary_sensor")
+    nb_device_sensor: NbActiveDeviceForBoilerSensor = search_entity(hass, "sensor.central_configuration_nb_device_active_for_boiler", "sensor")
+    assert boiler_sensor is not None
+    assert nb_device_sensor is not None
+
+    await entity.async_set_hvac_mode(VThermHvacMode_HEAT)
+    await entity.async_set_preset_mode(VThermPreset.BOOST)
+    now = datetime.now(tz=get_tz(hass))
+
+    await send_temperature_change_event(entity, 10, now)
+    await wait_for_local_condition(lambda: valve.native_value == 100, 10)
+    await wait_for_local_condition(lambda: boiler.is_on, 10)
+
+    # CA-F1: a zero TPI demand leaves the valve at the 40% physical floor.
+    await send_temperature_change_event(entity, 30, now + timedelta(minutes=1))
+    await wait_for_local_condition(lambda: valve.native_value == 40, 10)
+    await wait_for_local_condition(lambda: not boiler.is_on, 10)
+    await wait_for_local_condition(lambda: nb_device_sensor.state == 0, 10)
+
+    assert entity.hvac_action is HVACAction.IDLE
+    assert entity.device_actives == []
+    assert nb_device_sensor.active_device_ids == []
+
+    # CA-F3: simulate the first observed valve state after a restart. The
+    # thermostat still has a real TPI demand, while the valve is at its floor.
+    await send_temperature_change_event(entity, 10, now + timedelta(minutes=2))
+    await wait_for_local_condition(lambda: valve.native_value == 100, 10)
+    valve.set_native_value(40)
+    await hass.async_block_till_done()
+    await wait_for_local_condition(lambda: entity.device_actives == [], 10)
+
+    await entity.underlying_entity(0).check_initial_state()
+    await wait_for_local_condition(lambda: valve.native_value == 100, 10)
+    await wait_for_local_condition(lambda: boiler.is_on, 10)
+    await wait_for_local_condition(lambda: nb_device_sensor.state == 1, 10)
+
+    assert entity.hvac_action is HVACAction.HEATING
+    assert entity.device_actives == [valve.entity_id]
+    assert nb_device_sensor.active_device_ids == [valve.entity_id]
 
     entity.remove_thermostat()
 

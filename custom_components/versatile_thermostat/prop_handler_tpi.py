@@ -246,6 +246,15 @@ class TPIHandler:
     async def _get_tpi_data(self) -> dict[str, Any]:
         """Calculate and return TPI cycle parameters."""
         t = self._thermostat
+        get_feature_manager = getattr(t, "get_feature_manager", None)
+        heating_failure_manager = (
+            get_feature_manager("heating_failure_detection")
+            if callable(get_feature_manager)
+            else None
+        )
+        is_heating_failure = bool(
+            getattr(heating_failure_manager, "is_detected", False)
+        )
 
         # Feed current temperatures to AutoTpiManager BEFORE getting params
         if self._auto_tpi_manager:
@@ -256,7 +265,7 @@ class TPIHandler:
                 hvac_mode=str(t.vtherm_hvac_mode),
                 is_overpowering_detected=t.power_manager.is_overpowering_detected,
                 is_central_boiler_off=self._is_central_boiler_off(),
-                is_heating_failure=t.heating_failure_detection_manager.is_failure_detected,
+                is_heating_failure=is_heating_failure,
             )
 
         # Sync coefficients from AutoTpiManager before calculating
@@ -304,6 +313,15 @@ class TPIHandler:
         """TPI-specific control heating logic."""
         del timestamp
         t = self._thermostat
+        get_feature_manager = getattr(t, "get_feature_manager", None)
+        heating_failure_manager = (
+            get_feature_manager("heating_failure_detection")
+            if callable(get_feature_manager)
+            else None
+        )
+        is_heating_failure = bool(
+            getattr(heating_failure_manager, "is_detected", False)
+        )
 
         # Feed the Auto TPI manager
         if self._auto_tpi_manager:
@@ -315,7 +333,7 @@ class TPIHandler:
                 hvac_mode=str(t.vtherm_hvac_mode),
                 is_overpowering_detected=t.power_manager.is_overpowering_detected,
                 is_central_boiler_off=self._is_central_boiler_off(),
-                is_heating_failure=t.heating_failure_detection_manager.is_failure_detected,
+                is_heating_failure=is_heating_failure,
             )
 
             # 2. Synchronize parameters if learning is active

@@ -1,5 +1,11 @@
 # Erkennung von Heizungsstörungen
 
+> [!IMPORTANT]
+> Das Plugin `vtherm_heating_failure_detection` steht für die Migration bereit.
+> Die Core-Konfiguration wird in dieser Übergangsversion weiterhin unterstützt.
+> Konfigurieren Sie für einen Thermostat entweder das Plugin oder die
+> Core-Funktion, aber nicht beides.
+
 - [Erkennung von Heizungsstörungen](#erkennung-von-heizungsstörungen)
   - [Warum diese Funktion?](#warum-diese-funktion)
   - [Funktionsprinzip](#funktionsprinzip)

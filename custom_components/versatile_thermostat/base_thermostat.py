@@ -7,6 +7,7 @@ from typing import Optional, Any, Generic
 from datetime import datetime
 from collections.abc import Callable
 
+from vtherm_api import ValveDiagnosticState
 from vtherm_api.log_collector import get_vtherm_logger
 from homeassistant.util import dt as dt_util
 
@@ -54,7 +55,7 @@ from .commons_type import ConfigData
 from .config_schema import *  # pylint: disable=wildcard-import, unused-wildcard-import
 
 from .vtherm_central_api import VersatileThermostatAPI
-from .underlyings import UnderlyingEntity, T
+from .underlyings import UnderlyingEntity, UnderlyingValve, T
 
 from .ema import ExponentialMovingAverage
 
@@ -251,6 +252,13 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
     def register_manager(self, manager: BaseFeatureManager):
         """Register a manager"""
         self._managers.append(manager)
+
+    def get_feature_manager(self, name: str):
+        """Return the newest manager registered under a stable name."""
+        for manager in reversed(self._managers):
+            if getattr(manager, "name", None) == name:
+                return manager
+        return None
 
     def _load_external_feature_managers(self):
         """Instantiate feature managers provided by external plugins.
@@ -1007,6 +1015,24 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
         return self._state_manager.current_state.hvac_mode
 
     @property
+    def requested_hvac_mode(self) -> VThermHvacMode | None:
+        """Return the mode requested by the user before feature overrides."""
+        return self._state_manager.requested_state.hvac_mode
+
+    @property
+    def valve_diagnostics(self) -> tuple[ValveDiagnosticState, ...]:
+        """Expose valve commanded and observed states without leaking underlyings."""
+        return tuple(
+            ValveDiagnosticState(
+                entity_id=underlying.entity_id,
+                should_be_active=underlying.should_device_be_active,
+                is_active=underlying.is_device_active,
+            )
+            for underlying in self._underlyings
+            if isinstance(underlying, UnderlyingValve)
+        )
+
+    @property
     def is_recalculate_scheduled(self) -> bool:
         """Return true if a recalculation is scheduled."""
         return self._cancel_recalculate_later is not None
@@ -1547,6 +1573,10 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
         self._state_manager.requested_state.set_hvac_mode(hvac_mode)
         await self.update_states(force=False)
 
+    def get_underlying_hvac_mode(self, hvac_mode: VThermHvacMode) -> VThermHvacMode:
+        """Return the physical HVAC mode to apply to underlyings."""
+        return hvac_mode
+
     @overrides
     @check_lock
     async def async_set_preset_mode(self, preset_mode: str):
@@ -1776,8 +1806,10 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
                     exc,
                 )
 
-        # Check for heating/cooling failures (only for TPI VTherms)
-        await self._heating_failure_detection_manager.refresh_state()
+        # Preserve the legacy manager until existing entries have migrated, but
+        # let an external manager with the same stable name take precedence.
+        if "heating_failure_detection" not in self._external_manager_names:
+            await self._heating_failure_detection_manager.refresh_state()
 
         # Check and repair state discrepancies
         await self._repair_incorrect_state_manager.check_and_repair()
@@ -2053,6 +2085,24 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
                 "comfort_away_temp": self._presets_away.get(self.get_preset_away_name(VThermPreset.COMFORT), 0),
             },
         }
+
+        if self.is_over_climate and self._ac_mode:
+            self._attr_extra_state_attributes["preset_temperatures"].update(
+                {
+                    "eco_cool_temp": self._presets.get(VThermPreset.ECO + PRESET_AC_SUFFIX, 0),
+                    "boost_cool_temp": self._presets.get(VThermPreset.BOOST + PRESET_AC_SUFFIX, 0),
+                    "comfort_cool_temp": self._presets.get(VThermPreset.COMFORT + PRESET_AC_SUFFIX, 0),
+                    "eco_cool_away_temp": self._presets_away.get(
+                        self.get_preset_away_name(VThermPreset.ECO + PRESET_AC_SUFFIX), 0
+                    ),
+                    "boost_cool_away_temp": self._presets_away.get(
+                        self.get_preset_away_name(VThermPreset.BOOST + PRESET_AC_SUFFIX), 0
+                    ),
+                    "comfort_cool_away_temp": self._presets_away.get(
+                        self.get_preset_away_name(VThermPreset.COMFORT + PRESET_AC_SUFFIX), 0
+                    ),
+                }
+            )
 
         self._state_manager.add_custom_attributes(self._attr_extra_state_attributes)
 

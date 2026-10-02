@@ -1,5 +1,10 @@
 # Detekce poruchy vytápění
 
+> [!IMPORTANT]
+> Plugin `vtherm_heating_failure_detection` je připraven k migraci.
+> Konfigurace v jádře zůstává během této přechodové verze podporována.
+> Pro jeden termostat nastavte plugin nebo funkci jádra, ale ne obojí.
+
 - [Detekce poruchy vytápění](#detekce-poruchy-vytápění)
   - [Proč tato funkce?](#proč-tato-funkce)
   - [Princip fungování](#princip-fungování)

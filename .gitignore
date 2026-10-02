@@ -119,6 +119,7 @@ custom_components/auto-tpi-learning-card
 custom_components/heating_simulator
 custom_components/vtherm_pellet_stove
 custom_components/vtherm_auto_fan_extended
+custom_components/vtherm_heating_failure_detection
 
 .coverage
 htmlcov

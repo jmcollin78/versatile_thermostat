@@ -1,5 +1,10 @@
 # Wykrywanie awarii ogrzewania
 
+> [!IMPORTANT]
+> Wtyczka `vtherm_heating_failure_detection` jest dostępna do migracji.
+> Konfiguracja w rdzeniu pozostaje obsługiwana w tej wersji przejściowej.
+> Dla jednego termostatu skonfiguruj wtyczkę albo funkcję rdzenia, ale nie obie.
+
 - [Wykrywanie awarii ogrzewania](#wykrywanie-awarii-ogrzewania)
   - [Dlaczego ta funkcja?](#dlaczego-ta-funkcja)
   - [Zasada działania](#zasada-działania)
