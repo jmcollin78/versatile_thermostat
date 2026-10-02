@@ -948,6 +948,56 @@
                 "name": "Central boiler"
             }
         },
+        "sensor": {
+            "energy": {
+                "name": "Energy"
+            },
+            "mean_power_cycle": {
+                "name": "Mean power cycle"
+            },
+            "power_percent": {
+                "name": "Power percent"
+            },
+            "auto_tpi_learning": {
+                "name": "Auto TPI Learning State",
+                "state": {
+                "disabled": "Disabled",
+                "bootstrap": "Bootstrap",
+                "active": "Active",
+                "off": "Off"
+                }
+            },
+            "valve_open_percent": {
+                "name": "Valve open percent"
+            },
+            "on_time": {
+                "name": "On time"
+            },
+            "off_time": {
+                "name": "Off time"
+            },
+            "last_temperature_date": {
+                "name": "Last temperature date"
+            },
+            "last_external_temperature_date": {
+                "name": "Last external temperature date"
+            },
+            "temperature_slope": {
+                "name": "Temperature slope"
+            },
+            "regulated_temperature": {
+                "name": "Regulated temperature"
+            },
+            "ema_temperature": {
+                "name": "EMA temperature"
+            },
+            "nb_device_active_boiler": {
+                "name": "Number of active devices for boiler"
+            },
+            "total_power_active_boiler": {
+                "name": "Total active power for boiler"
+            }
+        },
         "number": {
             "frost_temp": {
                 "name": "Frost"

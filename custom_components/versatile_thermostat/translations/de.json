@@ -948,6 +948,56 @@
         "name": "Zentralheizungskessel"
       }
     },
+    "sensor": {
+      "energy": {
+        "name": "Energie"
+      },
+      "mean_power_cycle": {
+        "name": "Mittlere Zyklusleistung"
+      },
+      "power_percent": {
+        "name": "Leistungsanteil"
+      },
+      "auto_tpi_learning": {
+        "name": "Auto-TPI-Lernstatus",
+        "state": {
+          "disabled": "Deaktiviert",
+          "bootstrap": "Initialisierung",
+          "active": "Aktiv",
+          "off": "Aus"
+        }
+      },
+      "valve_open_percent": {
+        "name": "Ventilöffnungsgrad"
+      },
+      "on_time": {
+        "name": "Einschaltzeit"
+      },
+      "off_time": {
+        "name": "Ausschaltzeit"
+      },
+      "last_temperature_date": {
+        "name": "Zeitpunkt der letzten Temperaturmessung"
+      },
+      "last_external_temperature_date": {
+        "name": "Zeitpunkt der letzten Außentemperaturmessung"
+      },
+      "temperature_slope": {
+        "name": "Temperaturänderungsrate"
+      },
+      "regulated_temperature": {
+        "name": "Geregelte Temperatur"
+      },
+      "ema_temperature": {
+        "name": "EMA-Temperatur"
+      },
+      "nb_device_active_boiler": {
+        "name": "Anzahl aktiver Geräte für Heizkessel"
+      },
+      "total_power_active_boiler": {
+        "name": "Gesamte aktive Leistung für Heizkessel"
+      }
+    },
     "number": {
       "frost_temp": {
         "name": "Frostschutz"
