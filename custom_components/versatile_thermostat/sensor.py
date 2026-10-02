@@ -338,7 +338,6 @@ class AutoTpiSensor(VersatileThermostatBaseEntity, SensorEntity):
     def __init__(self, hass: HomeAssistant, unique_id, name, entry_infos) -> None:
         """Initialize the Auto TPI sensor"""
         super().__init__(hass, unique_id, entry_infos.get(CONF_NAME))
-        self._attr_name = "Auto TPI Learning State"
         self._attr_unique_id = f"{self._device_name}_auto_tpi_learning"
         self._attr_icon = "mdi:brain"
 
@@ -363,11 +362,11 @@ class AutoTpiSensor(VersatileThermostatBaseEntity, SensorEntity):
         # Determine state
         if manager.learning_active:
             if manager.is_in_bootstrap:
-                self._attr_native_value = "Bootstrap"
+                self._attr_native_value = "bootstrap"
             else:
-                self._attr_native_value = "Active"
+                self._attr_native_value = "active"
         else:
-            self._attr_native_value = "Off" # Or "Completed" / "Idle" depending on context, but "Off" implies not learning.
+            self._attr_native_value = "off" # Or "Completed" / "Idle" depending on context, but "Off" implies not learning.
 
         # Update attributes
         # Update attributes
