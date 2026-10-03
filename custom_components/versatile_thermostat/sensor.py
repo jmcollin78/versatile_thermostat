@@ -151,10 +151,11 @@ async def async_setup_entry(
 class EnergySensor(VersatileThermostatBaseEntity, SensorEntity):
     """Representation of a Energy sensor which exposes the energy"""
 
+    _attr_translation_key = "energy"
+
     def __init__(self, hass: HomeAssistant, unique_id, name, entry_infos) -> None:
         """Initialize the energy sensor"""
         super().__init__(hass, unique_id, entry_infos.get(CONF_NAME))
-        self._attr_name = "Energy"
         self._attr_unique_id = f"{self._device_name}_energy"
 
     @callback
@@ -210,10 +211,11 @@ class EnergySensor(VersatileThermostatBaseEntity, SensorEntity):
 class MeanPowerSensor(VersatileThermostatBaseEntity, SensorEntity):
     """Representation of a power sensor which exposes the mean power in a cycle"""
 
+    _attr_translation_key = "mean_power_cycle"
+
     def __init__(self, hass: HomeAssistant, unique_id, name, entry_infos) -> None:
         """Initialize the energy sensor"""
         super().__init__(hass, unique_id, entry_infos.get(CONF_NAME))
-        self._attr_name = "Mean power cycle"
         self._attr_unique_id = f"{self._device_name}_mean_power_cycle"
 
     @callback
@@ -272,10 +274,11 @@ class MeanPowerSensor(VersatileThermostatBaseEntity, SensorEntity):
 class OnPercentSensor(VersatileThermostatBaseEntity, SensorEntity):
     """Representation of a on percent sensor which exposes the on_percent in a cycle"""
 
+    _attr_translation_key = "power_percent"
+
     def __init__(self, hass: HomeAssistant, unique_id, name, entry_infos) -> None:
         """Initialize the energy sensor"""
         super().__init__(hass, unique_id, entry_infos.get(CONF_NAME))
-        self._attr_name = "Power percent"
         self._attr_unique_id = f"{self._device_name}_power_percent"
 
     @callback
@@ -330,10 +333,11 @@ class OnPercentSensor(VersatileThermostatBaseEntity, SensorEntity):
 class AutoTpiSensor(VersatileThermostatBaseEntity, SensorEntity):
     """Representation of the Auto TPI Learning state"""
 
+    _attr_translation_key = "auto_tpi_learning"
+
     def __init__(self, hass: HomeAssistant, unique_id, name, entry_infos) -> None:
         """Initialize the Auto TPI sensor"""
         super().__init__(hass, unique_id, entry_infos.get(CONF_NAME))
-        self._attr_name = "Auto TPI Learning State"
         self._attr_unique_id = f"{self._device_name}_auto_tpi_learning"
         self._attr_icon = "mdi:brain"
 
@@ -358,11 +362,11 @@ class AutoTpiSensor(VersatileThermostatBaseEntity, SensorEntity):
         # Determine state
         if manager.learning_active:
             if manager.is_in_bootstrap:
-                self._attr_native_value = "Bootstrap"
+                self._attr_native_value = "bootstrap"
             else:
-                self._attr_native_value = "Active"
+                self._attr_native_value = "active"
         else:
-            self._attr_native_value = "Off" # Or "Completed" / "Idle" depending on context, but "Off" implies not learning.
+            self._attr_native_value = "off" # Or "Completed" / "Idle" depending on context, but "Off" implies not learning.
 
         # Update attributes
         # Update attributes
@@ -405,10 +409,11 @@ class AutoTpiSensor(VersatileThermostatBaseEntity, SensorEntity):
 class ValveOpenPercentSensor(VersatileThermostatBaseEntity, SensorEntity):
     """Representation of a on percent sensor which exposes the on_percent in a cycle"""
 
+    _attr_translation_key = "valve_open_percent"
+
     def __init__(self, hass: HomeAssistant, unique_id, name, entry_infos) -> None:
         """Initialize the energy sensor"""
         super().__init__(hass, unique_id, entry_infos.get(CONF_NAME))
-        self._attr_name = "Valve open percent"
         self._attr_unique_id = f"{self._device_name}_valve_open_percent"
 
     @callback
@@ -451,10 +456,11 @@ class ValveOpenPercentSensor(VersatileThermostatBaseEntity, SensorEntity):
 class OnTimeSensor(VersatileThermostatBaseEntity, SensorEntity):
     """Representation of a on time sensor which exposes the on_time_sec in a cycle"""
 
+    _attr_translation_key = "on_time"
+
     def __init__(self, hass: HomeAssistant, unique_id, name, entry_infos) -> None:
         """Initialize the energy sensor"""
         super().__init__(hass, unique_id, entry_infos.get(CONF_NAME))
-        self._attr_name = "On time"
         self._attr_unique_id = f"{self._device_name}_on_time"
 
     @callback
@@ -500,10 +506,11 @@ class OnTimeSensor(VersatileThermostatBaseEntity, SensorEntity):
 class OffTimeSensor(VersatileThermostatBaseEntity, SensorEntity):
     """Representation of a on time sensor which exposes the off_time_sec in a cycle"""
 
+    _attr_translation_key = "off_time"
+
     def __init__(self, hass: HomeAssistant, unique_id, name, entry_infos) -> None:
         """Initialize the energy sensor"""
         super().__init__(hass, unique_id, entry_infos.get(CONF_NAME))
-        self._attr_name = "Off time"
         self._attr_unique_id = f"{self._device_name}_off_time"
 
     @callback
@@ -548,10 +555,11 @@ class OffTimeSensor(VersatileThermostatBaseEntity, SensorEntity):
 class LastTemperatureSensor(VersatileThermostatBaseEntity, SensorEntity):
     """Representation of a last temperature datetime sensor"""
 
+    _attr_translation_key = "last_temperature_date"
+
     def __init__(self, hass: HomeAssistant, unique_id, name, entry_infos) -> None:
         """Initialize the last temperature datetime sensor"""
         super().__init__(hass, unique_id, entry_infos.get(CONF_NAME))
-        self._attr_name = "Last temperature date"
         self._attr_entity_registry_enabled_default = False
         self._attr_unique_id = f"{self._device_name}_last_temp_datetime"
 
@@ -578,10 +586,11 @@ class LastTemperatureSensor(VersatileThermostatBaseEntity, SensorEntity):
 class LastExtTemperatureSensor(VersatileThermostatBaseEntity, SensorEntity):
     """Representation of a last external temperature datetime sensor"""
 
+    _attr_translation_key = "last_external_temperature_date"
+
     def __init__(self, hass: HomeAssistant, unique_id, name, entry_infos) -> None:
         """Initialize the last temperature datetime sensor"""
         super().__init__(hass, unique_id, entry_infos.get(CONF_NAME))
-        self._attr_name = "Last external temperature date"
         self._attr_entity_registry_enabled_default = False
         self._attr_unique_id = f"{self._device_name}_last_ext_temp_datetime"
 
@@ -608,10 +617,11 @@ class LastExtTemperatureSensor(VersatileThermostatBaseEntity, SensorEntity):
 class TemperatureSlopeSensor(VersatileThermostatBaseEntity, SensorEntity):
     """Representation of a sensor which exposes the temperature slope curve"""
 
+    _attr_translation_key = "temperature_slope"
+
     def __init__(self, hass: HomeAssistant, unique_id, name, entry_infos) -> None:
         """Initialize the slope sensor"""
         super().__init__(hass, unique_id, entry_infos.get(CONF_NAME))
-        self._attr_name = "Temperature slope"
         self._attr_unique_id = f"{self._device_name}_temperature_slope"
 
     @callback
@@ -665,10 +675,11 @@ class TemperatureSlopeSensor(VersatileThermostatBaseEntity, SensorEntity):
 class RegulatedTemperatureSensor(VersatileThermostatBaseEntity, SensorEntity):
     """Representation of a Energy sensor which exposes the energy"""
 
+    _attr_translation_key = "regulated_temperature"
+
     def __init__(self, hass: HomeAssistant, unique_id, name, entry_infos) -> None:
         """Initialize the regulated temperature sensor"""
         super().__init__(hass, unique_id, entry_infos.get(CONF_NAME))
-        self._attr_name = "Regulated temperature"
         self._attr_unique_id = f"{self._device_name}_regulated_temperature"
 
     @callback
@@ -716,10 +727,11 @@ class RegulatedTemperatureSensor(VersatileThermostatBaseEntity, SensorEntity):
 class EMATemperatureSensor(VersatileThermostatBaseEntity, SensorEntity):
     """Representation of a Exponential Moving Average temp"""
 
+    _attr_translation_key = "ema_temperature"
+
     def __init__(self, hass: HomeAssistant, unique_id, name, entry_infos) -> None:
         """Initialize the regulated temperature sensor"""
         super().__init__(hass, unique_id, entry_infos.get(CONF_NAME))
-        self._attr_name = "EMA temperature"
         self._attr_unique_id = f"{self._device_name}_ema_temperature"
 
     @callback
@@ -768,6 +780,10 @@ class NbActiveDeviceForBoilerSensor(SensorEntity):
     """Representation of the  number of VTherm
     which are active and configured to activate the boiler"""
 
+
+    _attr_has_entity_name = True
+    _attr_translation_key = "nb_device_active_boiler"
+
     # TODO remove all listener mecanisms
     _entity_component_unrecorded_attributes = SensorEntity._entity_component_unrecorded_attributes.union(  # pylint: disable=protected-access
         frozenset({"active_device_ids"})
@@ -778,7 +794,6 @@ class NbActiveDeviceForBoilerSensor(SensorEntity):
         self._hass = hass
         self._config_id = unique_id
         self._device_name = entry_infos.get(CONF_NAME)
-        self._attr_name = "Nb device active for boiler"
         self._attr_unique_id = "nb_device_active_boiler"
         self._attr_value = self._attr_native_value = None  # default value
         self._entities = []
@@ -951,10 +966,11 @@ class TotalPowerActiveDeviceForBoilerSensor(NbActiveDeviceForBoilerSensor):
     """Representation of the total power of VTherm
     which are active and configured to activate the boiler"""
 
+    _attr_translation_key = "total_power_active_boiler"
+
     def __init__(self, hass: HomeAssistant, unique_id, name, entry_infos) -> None:
         """Initialize the energy sensor"""
         super().__init__(hass, unique_id, name, entry_infos)
-        self._attr_name = "Total power active for boiler"
         self._attr_unique_id = "total_power_active_boiler"
         self._attr_value = self._attr_native_value = None  # default value
         self._cancel_listener_power: callable | None = None
