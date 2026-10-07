@@ -471,8 +471,8 @@ async def test_add_number_for_over_switch_use_central(
         vtherm_entry.add_to_hass(hass)
         await hass.config_entries.async_setup(vtherm_entry.entry_id)
 
-        # Get last state is called for the VTherm and for the window state manager
-        assert mock_restore_state.call_count == 2
+        # Get last state is called once for the VTherm
+        assert mock_restore_state.call_count == 1
 
     assert vtherm_entry.state is ConfigEntryState.LOADED
 
@@ -687,7 +687,7 @@ async def test_add_number_for_over_switch_use_central_presets_and_restore(hass: 
         assert vtherm.use_central_config_temperature is True
 
         # We should try to restore all 0 temp entities and the VTherm itself
-        assert mock_restore_state.call_count == 0 + 2
+        assert mock_restore_state.call_count == 0 + 1
 
     # 1. We search for NumberEntities
     for preset_name, value in temps.items():

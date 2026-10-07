@@ -119,6 +119,7 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
         self._enable_turn_on_off_backwards_compatibility = False
         self._is_removed = False
         self._is_startup_done = False
+        self._restored_last_state: State | None = None
 
         self._hass = hass
         self._entry_infos = None
@@ -471,6 +472,9 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
 
         await super().async_added_to_hass()
 
+        # HA >= 2026.10 drops the restore cache before async_startup runs
+        self._restored_last_state = await super().async_get_last_state()
+
         self.async_on_remove(
             async_track_state_change_event(
                 self.hass,
@@ -686,6 +690,12 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
         self.update_custom_attributes()
         self.async_write_ha_state()
         self._energy_unit_needs_persistence = False
+
+    async def async_get_last_state(self) -> State | None:
+        """Get the entity state from the previous run"""
+        if self._restored_last_state is not None:
+            return self._restored_last_state
+        return await super().async_get_last_state()
 
     async def get_my_previous_state(self):
         """Try to get my previous state"""
