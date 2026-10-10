@@ -655,3 +655,19 @@ The `specific_states.messages` custom attribute contains a list of message codes
 | `target_temp_absence_detected`      | The target temperature was forced by absence detection                              |
 
 Note: these messages are available in the [VTherm UI Card](documentation/en/additions.md#versatile-thermostat-ui-card) under the information icon.
+
+## `hvac_action` with direct valve control
+
+For an `over_climate` VTherm with direct valve control, `hvac_action` is calculated from the actual valve opening and the last opening command. It does not rely on the action reported by the underlying climate entity.
+
+| VTherm condition         | Valve condition                                                                                     | Resulting `hvac_action` | Notes                                                                                |
+| ------------------------ | --------------------------------------------------------------------------------------------------- | ----------------------- | ------------------------------------------------------------------------------------ |
+| Internal mode is `SLEEP` | Any physical opening, including 100%                                                                | `off`                   | Forced state: the valve can remain open without a heating or central-boiler request. |
+| Not `SLEEP`              | At least one regulated valve has an actual opening strictly greater than `100 - max_closing_degree` | `heating`               | The comparison is strict.                                                            |
+| Not `SLEEP`              | No valve is heating, but at least one valve has a positive last opening command                     | `idle`                  | The valve is commanded open but is not considered physically active.                 |
+| Not `SLEEP`              | All valves have a last opening command of `0`                                                       | `off`                   | No opening is pending.                                                               |
+| Not `SLEEP`              | All valves have no previous opening command                                                         | `off`                   | Typical startup or no-command case.                                                  |
+| Not `SLEEP`              | A valve opening equals `100 - max_closing_degree`                                                   | `idle`                  | Equality does not produce `heating` when a positive command remains.                 |
+| Not `SLEEP`              | Multiple valves, with at least one heating                                                          | `heating`               | `heating` has priority.                                                              |
+| Not `SLEEP`              | Multiple valves, none heating, with at least one idle                                               | `idle`                  | Fallback after `heating`.                                                            |
+| Not `SLEEP`              | Multiple valves, all off                                                                            | `off`                   | No active or pending valve remains.                                                  |

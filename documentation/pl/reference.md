@@ -510,3 +510,19 @@ device_class: running
 icon: mdi:water-boiler-off
 friendly_name: Central boiler
 ```
+
+## `hvac_action` przy bezpośrednim sterowaniu zaworem
+
+Dla VTherm `over_climate` z bezpośrednim sterowaniem zaworem wartość `hvac_action` jest obliczana na podstawie rzeczywistego otwarcia zaworu i ostatniego polecenia otwarcia. Nie zależy ona od akcji zgłaszanej przez podrzędną encję climate.
+
+| Warunek VTherm             | Warunek zaworu                                                                                           | Wynikowe `hvac_action` | Uwagi                                                                                     |
+| -------------------------- | -------------------------------------------------------------------------------------------------------- | ---------------------- | ----------------------------------------------------------------------------------------- |
+| Wewnętrzny tryb to `SLEEP` | Dowolne fizyczne otwarcie, również 100%                                                                  | `off`                  | Stan wymuszony: zawór może pozostać otwarty bez żądania ogrzewania ani centralnego kotła. |
+| Nie jest to `SLEEP`        | Co najmniej jeden regulowany zawór ma rzeczywiste otwarcie ściśle większe niż `100 - max_closing_degree` | `heating`              | Porównanie jest ścisłe.                                                                   |
+| Nie jest to `SLEEP`        | Żaden zawór nie grzeje, ale co najmniej jeden zawór ma dodatnie ostatnie polecenie otwarcia              | `idle`                 | Zawór ma polecenie otwarcia, lecz nie jest uznawany za fizycznie aktywny.                 |
+| Nie jest to `SLEEP`        | Wszystkie zawory mają ostatnie polecenie otwarcia równe `0`                                              | `off`                  | Żadne otwarcie nie jest oczekiwane.                                                       |
+| Nie jest to `SLEEP`        | Żaden zawór nie ma wcześniejszego polecenia otwarcia                                                     | `off`                  | Typowy przypadek uruchomienia lub braku polecenia.                                        |
+| Nie jest to `SLEEP`        | Otwarcie zaworu jest równe `100 - max_closing_degree`                                                    | `idle`                 | Równość nie daje `heating`, gdy pozostaje dodatnie polecenie.                             |
+| Nie jest to `SLEEP`        | Wiele zaworów, z których co najmniej jeden grzeje                                                        | `heating`              | `heating` ma priorytet.                                                                   |
+| Nie jest to `SLEEP`        | Wiele zaworów, żaden nie grzeje, ale co najmniej jeden jest bezczynny                                    | `idle`                 | Stan zastępczy po `heating`.                                                              |
+| Nie jest to `SLEEP`        | Wiele zaworów, wszystkie są wyłączone                                                                    | `off`                  | Nie pozostaje żaden aktywny ani oczekujący zawór.                                         |

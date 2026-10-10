@@ -653,3 +653,19 @@ L'attribut personnalisé `specific_states.messages` contient une liste de code m
 | `target_temp_absence_detected`      | La température cible a été forcée par la détection d'absence                                 |
 
 Note : ces messages sont disponibles dans la [VTherm UI Card](documentation/fr/additions.md#versatile-thermostat-ui-card) sous l'icone d'information.
+
+## `hvac_action` avec contrôle direct de la vanne
+
+Pour un VTherm `over_climate` avec contrôle direct de la vanne, `hvac_action` est calculé à partir de l'ouverture réelle de la vanne et de la dernière commande d'ouverture. Il ne dépend pas de l'action renvoyée par l'entité climate sous-jacente.
+
+| Condition du VTherm         | Condition de la vanne                                                                                 | `hvac_action` résultant | Remarques                                                                                     |
+| --------------------------- | ----------------------------------------------------------------------------------------------------- | ----------------------- | --------------------------------------------------------------------------------------------- |
+| Le mode interne est `SLEEP` | Toute ouverture physique, y compris 100 %                                                             | `off`                   | État forcé : la vanne peut rester ouverte sans demande de chauffage ni de chaudière centrale. |
+| Pas en `SLEEP`              | Au moins une vanne régulée a une ouverture réelle strictement supérieure à `100 - max_closing_degree` | `heating`               | La comparaison est stricte.                                                                   |
+| Pas en `SLEEP`              | Aucune vanne ne chauffe, mais au moins une vanne a une dernière commande d'ouverture positive         | `idle`                  | La vanne est commandée ouverte mais n'est pas considérée comme physiquement active.           |
+| Pas en `SLEEP`              | Toutes les vannes ont une dernière commande d'ouverture à `0`                                         | `off`                   | Aucune ouverture n'est en attente.                                                            |
+| Pas en `SLEEP`              | Toutes les vannes n'ont aucune commande d'ouverture précédente                                        | `off`                   | Cas typique au démarrage ou sans commande.                                                    |
+| Pas en `SLEEP`              | L'ouverture d'une vanne est égale à `100 - max_closing_degree`                                        | `idle`                  | L'égalité ne produit pas `heating` lorsqu'une commande positive reste présente.               |
+| Pas en `SLEEP`              | Plusieurs vannes, dont au moins une chauffe                                                           | `heating`               | `heating` est prioritaire.                                                                    |
+| Pas en `SLEEP`              | Plusieurs vannes, aucune ne chauffe, mais au moins une est inactive                                   | `idle`                  | Repli après `heating`.                                                                        |
+| Pas en `SLEEP`              | Plusieurs vannes, toutes sont arrêtées                                                                | `off`                   | Aucune vanne active ou en attente ne reste.                                                   |

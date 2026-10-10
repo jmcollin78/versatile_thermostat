@@ -21,6 +21,7 @@
   - [Für ein _VTherm_](#für-ein-vtherm)
   - [Für die zentrale Konfiguration](#für-die-zentrale-konfiguration)
 - [Statusmeldungen](#statusmeldungen)
+  - [`hvac_action` mit direkter Ventilsteuerung](#hvac_action-mit-direkter-ventilsteuerung)
 
 ## Parameterübersicht
 
@@ -655,3 +656,19 @@ Das benutzerdefinierte Attribut `specific_states.messages` enthält eine Liste v
 | `target_temp_absence_detected`      | Die Solltemperatur wurde durch die Abwesenheitserkennung erzwungen.                                                  |
 
 Hinweis: Diese Meldungen sind in der [VTherm UI Card](documentation/de/additions.md#versatile-thermostat-ui-card) unter dem Informationssymbol verfügbar.
+
+## `hvac_action` mit direkter Ventilsteuerung
+
+Bei einem `over_climate`-VTherm mit direkter Ventilsteuerung wird `hvac_action` anhand der tatsächlichen Ventilöffnung und des letzten Öffnungsbefehls berechnet. Der Wert hängt nicht von der von der zugrunde liegenden Climate-Entität gemeldeten Aktion ab.
+
+| VTherm-Bedingung           | Ventilbedingung                                                                                                      | Ergebnis für `hvac_action` | Hinweise                                                                                          |
+| -------------------------- | -------------------------------------------------------------------------------------------------------------------- | -------------------------- | ------------------------------------------------------------------------------------------------- |
+| Interner Modus ist `SLEEP` | Jede physische Öffnung, auch 100 %                                                                                   | `off`                      | Erzwungener Zustand: Das Ventil kann ohne Heiz- oder Zentralheizungsanforderung geöffnet bleiben. |
+| Nicht `SLEEP`              | Mindestens ein geregeltes Ventil hat eine tatsächliche Öffnung, die strikt größer als `100 - max_closing_degree` ist | `heating`                  | Der Vergleich ist strikt.                                                                         |
+| Nicht `SLEEP`              | Kein Ventil heizt, aber mindestens ein Ventil hat einen positiven letzten Öffnungsbefehl                             | `idle`                     | Das Ventil wurde zum Öffnen angewiesen, gilt aber nicht als physisch aktiv.                       |
+| Nicht `SLEEP`              | Alle Ventile haben als letzten Öffnungsbefehl `0`                                                                    | `off`                      | Es steht keine Öffnung aus.                                                                       |
+| Nicht `SLEEP`              | Alle Ventile haben keinen vorherigen Öffnungsbefehl                                                                  | `off`                      | Typischer Fall beim Start oder ohne Befehl.                                                       |
+| Nicht `SLEEP`              | Die Ventilöffnung entspricht `100 - max_closing_degree`                                                              | `idle`                     | Gleichheit führt nicht zu `heating`, wenn ein positiver Befehl erhalten bleibt.                   |
+| Nicht `SLEEP`              | Mehrere Ventile, von denen mindestens eines heizt                                                                    | `heating`                  | `heating` hat Vorrang.                                                                            |
+| Nicht `SLEEP`              | Mehrere Ventile, keines heizt, aber mindestens eines ist im Leerlauf                                                 | `idle`                     | Rückfall nach `heating`.                                                                          |
+| Nicht `SLEEP`              | Mehrere Ventile, alle sind aus                                                                                       | `off`                      | Es bleibt kein aktives oder ausstehendes Ventil.                                                  |
