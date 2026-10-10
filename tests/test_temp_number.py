@@ -760,7 +760,10 @@ async def test_add_number_for_over_switch_use_central_presets_and_restore(hass: 
 
 
 @pytest.mark.parametrize("expected_lingering_timers", [True])
-async def test_change_central_config_temperature(hass: HomeAssistant, skip_hass_states_is_state, init_central_config, fake_underlying_valve: MockNumber):
+@pytest.mark.parametrize("hidden_preset", [VThermPreset.SAFETY, VThermPreset.POWER])
+async def test_change_central_config_temperature(
+    hass: HomeAssistant, skip_hass_states_is_state, init_central_config, fake_underlying_valve: MockNumber, hidden_preset: VThermPreset
+):
     """Test the construction of a over valve vtherm with
     use central config for PRESET and PRESENCE.
     When changing the central configuration temperature, the VTherm
@@ -801,6 +804,12 @@ async def test_change_central_config_temperature(hass: HomeAssistant, skip_hass_
     )
 
     assert vtherm.use_central_config_temperature is True
+
+    await vtherm.async_set_hvac_mode(VThermHvacMode_HEAT)
+    await vtherm.async_set_preset_mode(VThermPreset.BOOST)
+    vtherm.current_state.set_preset(hidden_preset)
+    assert vtherm.current_state.preset == hidden_preset
+    assert vtherm.requested_state.preset == VThermPreset.BOOST
 
     # Creates another VTherm which is NOT binded to central configuration
     vtherm2_entry = MockConfigEntry(
@@ -867,10 +876,12 @@ async def test_change_central_config_temperature(hass: HomeAssistant, skip_hass_
     await temp_entity.async_set_native_value(20.3)
     assert temp_entity
     assert temp_entity.value == 20.3
-    # Wait for async job to complete
-    await asyncio.sleep(0.1)
+    await hass.async_block_till_done()
 
     assert vtherm.find_preset_temp(preset_name) == 20.3
+    await vtherm._state_manager.calculate_current_preset(vtherm)
+    assert vtherm.current_state.preset == VThermPreset.BOOST
+    assert vtherm.requested_state.preset == VThermPreset.BOOST
     # No change for VTherm 2
     assert (
         vtherm2.find_preset_temp(preset_name) == 15

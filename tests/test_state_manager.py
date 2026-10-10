@@ -1,7 +1,7 @@
 # pylint: disable=unused-argument, line-too-long, protected-access, too-many-lines
 """ Test the Window management """
 import logging
-from unittest.mock import patch, PropertyMock, MagicMock
+from unittest.mock import AsyncMock, patch, PropertyMock, MagicMock
 
 from homeassistant.components.climate import HVACMode
 
@@ -147,6 +147,47 @@ async def test_vtherm_state_save_and_restor_oldfmt(hass: HomeAssistant) -> None:
     assert vtherm_restored.requested_state.hvac_mode == VThermHvacMode_HEAT
     assert vtherm_restored.requested_state.preset == VThermPreset.ECO
     assert vtherm_restored.requested_state.target_temperature == 22
+
+
+@pytest.mark.parametrize("hidden_preset", [VThermPreset.SAFETY, VThermPreset.POWER])
+async def test_init_presets_restores_visible_requested_preset_after_hidden_override(hass: HomeAssistant, hidden_preset: VThermPreset) -> None:
+    """Keep the restored user preset when a hidden override was current at shutdown."""
+    vtherm = BaseThermostat(hass, "unique_id", "name", {CONF_TEMP_MIN: 7, CONF_TEMP_MAX: 30})
+    old_state = MagicMock(
+        state=HVACMode.HEAT,
+        attributes={
+            "current_state": VThermState(VThermHvacMode_HEAT, target_temperature=18, preset=hidden_preset).to_dict(),
+            "requested_state": VThermState(VThermHvacMode_HEAT, target_temperature=18, preset=VThermPreset.COMFORT).to_dict(),
+        },
+    )
+
+    with patch.object(vtherm, "async_get_last_state", return_value=old_state):
+        await vtherm.get_my_previous_state()
+
+    await vtherm.init_presets(None)
+
+    assert vtherm.requested_state.preset == VThermPreset.COMFORT
+    assert vtherm.current_state.preset == hidden_preset
+
+    await vtherm._state_manager.calculate_current_preset(vtherm)
+
+    assert vtherm.current_state.preset == VThermPreset.COMFORT
+    assert vtherm.requested_state.preset == VThermPreset.COMFORT
+
+
+@pytest.mark.parametrize("hidden_preset", [VThermPreset.SAFETY, VThermPreset.POWER])
+async def test_init_presets_does_not_invent_visible_preset_from_hidden_history(hass: HomeAssistant, hidden_preset: VThermPreset) -> None:
+    """Do not reapply or infer a visible preset when persisted history is hidden only."""
+    vtherm = BaseThermostat(hass, "unique_id", "name", {CONF_TEMP_MIN: 7, CONF_TEMP_MAX: 30})
+    vtherm.current_state.set_preset(hidden_preset)
+    vtherm.requested_state.set_preset(hidden_preset)
+
+    with patch.object(vtherm, "async_set_preset_mode_internal", new_callable=AsyncMock) as set_preset:
+        await vtherm.init_presets(None)
+
+    set_preset.assert_not_awaited()
+    assert vtherm.current_state.preset == hidden_preset
+    assert vtherm.requested_state.preset == hidden_preset
 
 
 async def test_vtherm_energy_restore_from_specific_states(hass: HomeAssistant) -> None:
