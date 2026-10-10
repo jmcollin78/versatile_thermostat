@@ -80,6 +80,8 @@ async def test_total_power_active_boiler_sensor_converts_to_central_unit(
     sensor = object.__new__(TotalPowerActiveDeviceForBoilerSensor)
     sensor._hass = hass
     sensor._entities = [first_entity, second_entity]
+    sensor._attr_translation_key = None
+    sensor._attr_name = "Total active power for boiler"
     sensor.async_write_ha_state = MagicMock()
 
     with patch(
@@ -141,7 +143,7 @@ async def test_central_boiler_logs_missing_entities(hass: HomeAssistant, caplog)
     manager = FeatureCentralBoilerManager(hass, MagicMock())
     manager._is_configured = True
     manager._nb_active_device_threshold_number_entity = MagicMock(entity_id="number.central_configuration_number_activation_threshold")
-    manager._nb_active_device_number_entity = MagicMock(entity_id="sensor.central_configuration_nb_device_active_for_boiler")
+    manager._nb_active_device_number_entity = MagicMock(entity_id="sensor.central_configuration_number_of_active_devices_for_boiler")
 
     with caplog.at_level(logging.WARNING):
         assert manager._get_all_boiler_entity_ids(force=True) == []
@@ -310,12 +312,12 @@ async def test_update_central_boiler_state_simple(
     assert boiler_binary_sensor is not None
     assert boiler_binary_sensor.state == STATE_OFF
 
-    nb_device_active_sensor: NbActiveDeviceForBoilerSensor = search_entity(hass, "sensor.central_configuration_nb_device_active_for_boiler", "sensor")
+    nb_device_active_sensor: NbActiveDeviceForBoilerSensor = search_entity(hass, "sensor.central_configuration_number_of_active_devices_for_boiler", "sensor")
     assert nb_device_active_sensor is not None
     assert nb_device_active_sensor.state == 0
     assert nb_device_active_sensor.active_device_ids == []
 
-    total_power_active_sensor: TotalPowerActiveDeviceForBoilerSensor = search_entity(hass, "sensor.central_configuration_total_power_active_for_boiler", "sensor")
+    total_power_active_sensor: TotalPowerActiveDeviceForBoilerSensor = search_entity(hass, "sensor.central_configuration_total_active_power_for_boiler", "sensor")
     assert total_power_active_sensor is not None
     assert total_power_active_sensor.state == 0
     assert total_power_active_sensor.active_device_ids == []
@@ -538,14 +540,12 @@ async def test_update_central_boiler_state_multiple(
     api.central_boiler_manager._set_total_power_active_threshold(1000)
     await hass.async_block_till_done()
 
-    nb_device_active_sensor: NbActiveDeviceForBoilerSensor = search_entity(
-        hass, "sensor.central_configuration_nb_device_active_for_boiler", "sensor"
-    )
+    nb_device_active_sensor: NbActiveDeviceForBoilerSensor = search_entity(hass, "sensor.central_configuration_number_of_active_devices_for_boiler", "sensor")
     assert nb_device_active_sensor is not None
     assert nb_device_active_sensor.state == 0
     assert nb_device_active_sensor.active_device_ids == []
 
-    total_power_active_sensor: TotalPowerActiveDeviceForBoilerSensor = search_entity(hass, "sensor.central_configuration_total_power_active_for_boiler", "sensor")
+    total_power_active_sensor: TotalPowerActiveDeviceForBoilerSensor = search_entity(hass, "sensor.central_configuration_total_active_power_for_boiler", "sensor")
     assert total_power_active_sensor is not None
     assert total_power_active_sensor.state == 0
     assert total_power_active_sensor.active_device_ids == []
@@ -912,8 +912,8 @@ async def test_update_central_boiler_state_simple_valve(
     assert api.central_boiler_manager.nb_active_device_for_boiler_threshold == 0
     assert api.central_boiler_manager.total_power_active_for_boiler_threshold == 1000
 
-    assert (nb_device_active_sensor := search_entity(hass, "sensor.central_configuration_nb_device_active_for_boiler", "sensor")) is not None
-    assert (total_power_active_sensor := search_entity(hass, "sensor.central_configuration_total_power_active_for_boiler", "sensor")) is not None
+    assert (nb_device_active_sensor := search_entity(hass, "sensor.central_configuration_number_of_active_devices_for_boiler", "sensor")) is not None
+    assert (total_power_active_sensor := search_entity(hass, "sensor.central_configuration_total_active_power_for_boiler", "sensor")) is not None
 
     # Force the VTherm to heat
     await entity.async_set_hvac_mode(VThermHvacMode_HEAT)
@@ -1018,7 +1018,7 @@ async def test_central_boiler_over_valve_floor_and_initial_state_catchup(
     api.central_boiler_manager._set_total_power_active_threshold(1000)
 
     boiler_sensor: CentralBoilerBinarySensor = search_entity(hass, "binary_sensor.central_configuration_central_boiler", "binary_sensor")
-    nb_device_sensor: NbActiveDeviceForBoilerSensor = search_entity(hass, "sensor.central_configuration_nb_device_active_for_boiler", "sensor")
+    nb_device_sensor: NbActiveDeviceForBoilerSensor = search_entity(hass, "sensor.central_configuration_number_of_active_devices_for_boiler", "sensor")
     assert boiler_sensor is not None
     assert nb_device_sensor is not None
 
@@ -1116,8 +1116,8 @@ async def test_update_central_boiler_state_simple_climate(
     assert api.central_boiler_manager.nb_active_device_for_boiler_threshold == 1
     assert api.central_boiler_manager.nb_active_device_for_boiler == 0
 
-    assert (nb_device_active_sensor := search_entity(hass, "sensor.central_configuration_nb_device_active_for_boiler", "sensor")) is not None
-    assert (total_power_active_sensor := search_entity(hass, "sensor.central_configuration_total_power_active_for_boiler", "sensor")) is not None
+    assert (nb_device_active_sensor := search_entity(hass, "sensor.central_configuration_number_of_active_devices_for_boiler", "sensor")) is not None
+    assert (total_power_active_sensor := search_entity(hass, "sensor.central_configuration_total_active_power_for_boiler", "sensor")) is not None
 
     assert nb_device_active_sensor.state == 0
     assert nb_device_active_sensor.active_device_ids == []
@@ -1254,8 +1254,8 @@ async def test_update_central_boiler_state_simple_climate_power(
     assert api.central_boiler_manager.total_power_active_for_boiler_threshold == 1000
     assert api.central_boiler_manager.total_power_active_for_boiler == 0
 
-    assert (nb_device_active_sensor := search_entity(hass, "sensor.central_configuration_nb_device_active_for_boiler", "sensor")) is not None
-    assert (total_power_active_sensor := search_entity(hass, "sensor.central_configuration_total_power_active_for_boiler", "sensor")) is not None
+    assert (nb_device_active_sensor := search_entity(hass, "sensor.central_configuration_number_of_active_devices_for_boiler", "sensor")) is not None
+    assert (total_power_active_sensor := search_entity(hass, "sensor.central_configuration_total_active_power_for_boiler", "sensor")) is not None
 
     assert nb_device_active_sensor.state == 0
     assert nb_device_active_sensor.active_device_ids == []
@@ -1401,8 +1401,8 @@ async def test_update_central_boiler_state_simple_climate_valve_regulation(
     assert api.central_boiler_manager.nb_active_device_for_boiler_threshold == 2
     assert api.central_boiler_manager.total_power_active_for_boiler_threshold == 1000
 
-    assert (nb_device_active_sensor := search_entity(hass, "sensor.central_configuration_nb_device_active_for_boiler", "sensor")) is not None
-    assert (total_power_active_sensor := search_entity(hass, "sensor.central_configuration_total_power_active_for_boiler", "sensor")) is not None
+    assert (nb_device_active_sensor := search_entity(hass, "sensor.central_configuration_number_of_active_devices_for_boiler", "sensor")) is not None
+    assert (total_power_active_sensor := search_entity(hass, "sensor.central_configuration_total_active_power_for_boiler", "sensor")) is not None
 
     assert nb_device_active_sensor.state == 0
     assert nb_device_active_sensor.active_device_ids == []
@@ -1553,7 +1553,7 @@ async def test_bug_339(
     api.central_boiler_manager._set_nb_active_device_threshold(1)
     assert api.central_boiler_manager.nb_active_device_for_boiler_threshold == 1
 
-    assert (nb_device_active_sensor := search_entity(hass, "sensor.central_configuration_nb_device_active_for_boiler", "sensor")) is not None
+    assert (nb_device_active_sensor := search_entity(hass, "sensor.central_configuration_number_of_active_devices_for_boiler", "sensor")) is not None
 
     await entity.async_set_hvac_mode(VThermHvacMode_AUTO)
     # Simulate a state change in underlying
@@ -1695,7 +1695,7 @@ async def test_central_boiler_excludes_offline_climate(
 
     api.central_boiler_manager._set_nb_active_device_threshold(1)
 
-    nb_device_active_sensor = search_entity(hass, "sensor.central_configuration_nb_device_active_for_boiler", "sensor")
+    nb_device_active_sensor = search_entity(hass, "sensor.central_configuration_number_of_active_devices_for_boiler", "sensor")
     assert nb_device_active_sensor is not None
 
     boiler_binary_sensor: CentralBoilerBinarySensor = search_entity(
