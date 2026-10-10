@@ -292,6 +292,45 @@ async def test_active_learning_reports_failure_once(manager, mock_hass, hvac_mod
     assert manager.state.consecutive_failures == 3
     mock_hass.services.async_call.assert_awaited_once()
 
+
+async def test_resume_after_failure_shutdown_resets_failure_count(manager, mock_hass):
+    """Resuming learning keeps learned data and starts a fresh failure streak."""
+    manager.state.autolearn_enabled = True
+    manager.state.coeff_indoor_autolearn = 30
+    manager.state.consecutive_failures = 2
+    manager.state.last_state = "heat"
+    manager.state.last_power = 1.0
+    manager.state.last_order = 21.0
+    manager.state.last_temp_in = 19.0
+    manager.state.max_capacity_heat = 1.0
+    mock_hass.services = MagicMock(async_call=AsyncMock())
+
+    with patch("custom_components.versatile_thermostat.auto_tpi_manager.translation.async_get_translations", new_callable=AsyncMock, return_value={}):
+        await manager._detect_failures(18.5)
+
+    assert manager.learning_active is False
+    assert manager.state.consecutive_failures == 3
+    mock_hass.services.async_call.assert_awaited_once()
+
+    await manager.start_learning(reset_data=False)
+
+    assert manager.learning_active is True
+    assert manager.state.consecutive_failures == 0
+    assert manager.state.coeff_indoor_autolearn == 30
+
+    manager.state.last_power = 0.5
+    manager.state.previous_state = "heat"
+    manager._current_temp_out = 5.0
+    assert manager._should_learn() is True
+
+    manager.state.last_power = 1.0
+    await manager._detect_failures(18.5)
+
+    assert manager.learning_active is True
+    assert manager.state.consecutive_failures == 1
+    mock_hass.services.async_call.assert_awaited_once()
+
+
 async def test_perform_learning_indoor(manager):
     """Test indoor coefficient learning."""
     manager.state.autolearn_enabled = True

@@ -3122,6 +3122,7 @@ class AutoTpiManager:
             )
             # Update status to indicate learning has resumed
             self.state.last_learning_status = "learning_resumed"
+            self.state.consecutive_failures = 0
 
         # Always enable learning when activating
         self.state.autolearn_enabled = True
