@@ -1904,6 +1904,9 @@ class AutoTpiManager:
 
     async def _detect_failures(self, current_temp_in: float):
         """Detect system failures."""
+        if not self.learning_active:
+            return
+
         OFFSET_FAILURE = 1.0
         MIN_LEARN_FOR_DETECTION = 25
 
@@ -3119,6 +3122,7 @@ class AutoTpiManager:
             )
             # Update status to indicate learning has resumed
             self.state.last_learning_status = "learning_resumed"
+            self.state.consecutive_failures = 0
 
         # Always enable learning when activating
         self.state.autolearn_enabled = True
