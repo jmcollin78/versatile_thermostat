@@ -202,6 +202,7 @@ async def test_security_feature(
 
         assert entity.safety_state is STATE_ON
         assert entity.preset_mode == VThermPreset.SAFETY
+        assert entity.requested_state.preset == VThermPreset.COMFORT
         # assert entity._saved_preset_mode == VThermPreset.COMFORT
         assert entity.on_percent == 0.1
         assert entity._prop_algorithm.calculated_on_percent == 0.9
@@ -254,6 +255,7 @@ async def test_security_feature(
         assert entity._prop_algorithm.calculated_on_percent == 1
         # assert entity._saved_preset_mode == VThermPreset.BOOST
         assert entity.preset_mode is VThermPreset.SAFETY
+        assert entity.requested_state.preset == VThermPreset.BOOST
         assert entity.target_temperature == 19  # Boost
 
     # 5. resolve the datetime issue
@@ -273,6 +275,7 @@ async def test_security_feature(
         assert entity.safety_manager.is_safety_detected is False
 
         assert entity.preset_mode == VThermPreset.BOOST
+        assert entity.requested_state.preset == VThermPreset.BOOST
         assert entity.target_temperature == 19  # Boost
         assert entity.on_percent == 1.0
         assert entity._prop_algorithm.calculated_on_percent == 1.0

@@ -899,9 +899,16 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
         # transform _attr_preset_modes into _vtherm_preset_modes
         self._vtherm_preset_modes = [VThermPreset(mode) for mode in self._attr_preset_modes]
 
-        # Re-applicate the last preset if any to take change into account
-        if self._state_manager.current_state.preset and self._state_manager.current_state.preset != VThermPreset.NONE:
-            await self.async_set_preset_mode_internal(self._state_manager.current_state.preset)
+        # Re-apply the requested visible preset, if it is still configured.
+        # The current preset can be a temporary hidden override (safety/power)
+        # and must never become the requested user preset during initialization.
+        requested_preset = self._state_manager.requested_state.preset
+        if (
+            requested_preset != VThermPreset.NONE
+            and requested_preset in self._vtherm_preset_modes
+            and requested_preset not in HIDDEN_PRESETS
+        ):
+            await self.async_set_preset_mode_internal(requested_preset)
 
     ##
     ## Properties overriden from ClimateEntity (or not)
