@@ -312,6 +312,7 @@
                     "heater_heating_time": "Heating time (min)",
                     "heater_cooling_time": "Cooling time (min)",
                     "auto_tpi_heating_rate": "Heating Rate ({unit}/h)",
+                    "auto_tpi_cooling_rate": "Cooling Rate ({unit}/h)",
                     "auto_tpi_aggressiveness": "Aggressiveness",
                     "auto_tpi_enable_advanced_settings": "Enable Advanced Parameters",
                     "auto_tpi_continuous_kext": "Continuous Kext Learning"
@@ -321,6 +322,7 @@
                     "heater_heating_time": "Time to reach full power (minutes)",
                     "heater_cooling_time": "Time to cool down after stop (minutes)\n\n| Type | Heating time | Cooling time |\n| :--- | :--- | :--- |\n| Electric radiator | 5mn | 7mn |\n| Water radiator | 15mn | 20mn |\n| Underfloor heating | 30mn | 45mn |",
                     "auto_tpi_heating_rate": "Radiator temperature rise capacity ({unit} per hour). Leave at 0 for automatic learning (bootstrap).",
+                    "auto_tpi_cooling_rate": "Radiator temperature cooling capacity ({unit} per hour). Leave at 0 for automatic learning (bootstrap).",
                     "auto_tpi_aggressiveness": "Reduction factor for learned coefficients (50-100%). Lower values result in more conservative coefficients and reduce overshoot risk.",
                     "auto_tpi_enable_advanced_settings": "Check to access parameter fine-tuning (Alpha, Decay, Weight).",
                     "auto_tpi_continuous_kext": "Check to enable continuous learning of the external coefficient (Kext) outside of AutoTPI sessions."
@@ -746,6 +748,7 @@
                 "data": {
                     "auto_tpi_learning_type": "Learning Type",
                     "auto_tpi_heating_rate": "Heating Rate ({unit}/h)",
+                    "auto_tpi_cooling_rate": "Cooling Rate ({unit}/h)",
                     "heater_heating_time": "Heating time (min)",
                     "heater_cooling_time": "Cooling time (min)",
                     "auto_tpi_aggressiveness": "Aggressiveness",
@@ -755,6 +758,7 @@
                 "data_description": {
                     "auto_tpi_learning_type": "Choose 'Discovery' for initial startup (Weighted Average, weight 1) or 'Fine Tuning' for continuous adjustments (EWMA, Alpha 0.08).",
                     "auto_tpi_heating_rate": "Radiator temperature rise capacity ({unit} per hour). Leave at 0 for automatic learning (bootstrap).",
+                    "auto_tpi_cooling_rate": "Radiator temperature cooling capacity ({unit} per hour). Leave at 0 for automatic learning (bootstrap).",
                     "heater_heating_time": "Time to reach full power (minutes)",
                     "heater_cooling_time": "Time to cool down after stop (minutes)\n\n| Type | Heating time | Cooling time |\n| :--- | :--- | :--- |\n| Electric radiator | 5mn | 7mn |\n| Water radiator | 15mn | 20mn |\n| Underfloor heating | 30mn | 45mn |",
                     "auto_tpi_aggressiveness": "Reduction factor for learned coefficients (50-100%). Lower values result in more conservative coefficients and reduce overshoot risk.",
@@ -961,10 +965,10 @@
             "auto_tpi_learning": {
                 "name": "Auto TPI Learning State",
                 "state": {
-                "disabled": "Disabled",
-                "bootstrap": "Bootstrap",
-                "active": "Active",
-                "off": "Off"
+                    "disabled": "Disabled",
+                    "bootstrap": "Bootstrap",
+                    "active": "Active",
+                    "off": "Off"
                 }
             },
             "valve_open_percent": {

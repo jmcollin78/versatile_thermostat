@@ -312,6 +312,7 @@
                     "heater_heating_time": "Tempo riscaldamento (min)",
                     "heater_cooling_time": "Tempo raffrescamento (min)",
                     "auto_tpi_heating_rate": "Velocità di riscaldamento ({unit}/h)",
+                    "auto_tpi_cooling_rate": "Velocità di raffreddamento ({unit}/h)",
                     "auto_tpi_aggressiveness": "Aggressività",
                     "auto_tpi_enable_advanced_settings": "Abilita paramnetri avanzati",
                     "auto_tpi_continuous_kext": "Apprendimento continuo di Kext"
@@ -321,6 +322,7 @@
                     "heater_heating_time": "Tempo necessario per raggiungere la piena potenza (minuti)",
                     "heater_cooling_time": "Tempo di raffreddamento dopo l'arresto (minuti)\n\n| Tipo | Tempo di riscaldamento | Tempo di raffreddamento |\n| :--- | :--- | :--- |\n| Radiatore elettrico | 5 min | 7 min |\n| Radiatore ad acqua | 15 min | 20 min |\n| Riscaldamento a pavimento | 30 min | 45 min |",
                     "auto_tpi_heating_rate": "Capacità di aumento della temperatura del radiatore ({unit} all'ora). Lasciare a 0 per l'apprendimento automatico (bootstrap).",
+                    "auto_tpi_cooling_rate": "Capacità di raffreddamento del radiatore ({unit} all'ora). Lasciare a 0 per l'apprendimento automatico (bootstrap).",
                     "auto_tpi_aggressiveness": "Fattore di riduzione per i coefficienti appresi (50-100%). Valori inferiori determinano coefficienti più conservativi e riducono il rischio di sovra-riscaldamento.",
                     "auto_tpi_enable_advanced_settings": "Controlla per accedere alla regolazione fine dei parametri (Alpha, Decadimento, Peso).",
                     "auto_tpi_continuous_kext": "Selezionare per attivare la regolazione continua del coefficiente esterno (Kext) al di fuori della sessione AutoTPI."
@@ -710,6 +712,7 @@
                 "data": {
                     "auto_tpi_learning_type": "Tipo di apprendimento",
                     "auto_tpi_heating_rate": "Velocità di riscaldamento ({unit}/h)",
+                    "auto_tpi_cooling_rate": "Velocità di raffreddamento ({unit}/h)",
                     "heater_heating_time": "Tempo di riscaldamento (min)",
                     "heater_cooling_time": "Tempo di raffrescamento (min)",
                     "auto_tpi_aggressiveness": "Aggressività",
@@ -719,6 +722,7 @@
                 "data_description": {
                     "auto_tpi_learning_type": "Scegliere “Discovery” per l'avvio iniziale (media ponderata, peso 1) o “Fine Tuning” per le regolazioni continue (EWMA, Alpha 0,08).",
                     "auto_tpi_heating_rate": "Capacità di aumento della temperatura del radiatore ({unit} all'ora). Lasciare a 0 per l'apprendimento automatico (bootstrap).",
+                    "auto_tpi_cooling_rate": "Capacità di raffreddamento del radiatore ({unit} all'ora). Lasciare a 0 per l'apprendimento automatico (bootstrap).",
                     "heater_heating_time": "Tempo necessario per raggiungere la piena potenza (minuti)",
                     "heater_cooling_time": "Tempo di raffreddamento dopo l'arresto (minuti)\n\n| Tipo | Tempo di riscaldamento | Tempo di raffreddamento |\n| :--- | :--- | :--- |\n| Radiatore elettrico | 5 min | 7 min |\n| Radiatore ad acqua | 15 min | 20 min |\n| Riscaldamento a pavimento | 30 min | 45 min |",
                     "auto_tpi_aggressiveness": "Fattore di riduzione per i coefficienti appresi (50-100%). Valori inferiori determinano coefficienti più conservativi e riducono il rischio di sovrariscaldamento.",

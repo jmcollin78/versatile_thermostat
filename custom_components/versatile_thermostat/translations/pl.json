@@ -325,6 +325,14 @@
           "humidity_sensor_entity_id": "Pozostaw puste, aby automatycznie użyć wykrytego czujnika."
         }
       },
+      "auto_tpi_configuration": {
+        "data": {
+          "auto_tpi_cooling_rate": "Szybkość chłodzenia ({unit}/h)"
+        },
+        "data_description": {
+          "auto_tpi_cooling_rate": "Zdolność chłodzenia grzejnika ({unit} na godzinę). Pozostaw 0 dla automatycznego uczenia (bootstrap)."
+        }
+      },
       "heating_failure_detection": {
         "title": "Wykrywanie awarii ogrzewania",
         "description": "Konfiguracja funkcji wykrywania awarii ogrzewania. Wykrywa anomalie, gdy ogrzewanie jest oczekiwane, ale temperatura nie wzrasta, lub gdy ogrzewanie jest wyłączone, ale temperatura nadal rośnie.",
@@ -693,8 +701,8 @@
           "heater_heating_time": "Czas nagrzewania się grzejnika (w min.)",
           "heater_cooling_time": "Czas wychładzania się grzejnika (w min.)",
           "auto_tpi_max_coef_int": "Maksymalna wartość współczynnika wewnętrznego",
-          "auto_tpi_heating_rate": "Szybkość nagrzewania (°C/h)",
-          "auto_tpi_cooling_rate": "Szybkość wystudzania (°C/h)"
+          "auto_tpi_heating_rate": "Szybkość nagrzewania ({unit}/h)",
+          "auto_tpi_cooling_rate": "Szybkość wystudzania ({unit}/h)"
         },
         "data_description": {
           "auto_tpi_enable_update_config": "Automatycznie aktualizuj konfigurację o wyuczone współczynniki",
@@ -703,7 +711,8 @@
           "auto_tpi_continuous_learning": "Po zakończeniu procesu nauki system będzie obliczał i aplikował w tle nowe wartości współczynników (zalecana metoda EMA).",
           "heater_heating_time": "Czas osiągnięcia pełnej mocy (w min.)",
           "heater_cooling_time": "Czas wychłodzenia po zatrzymaniu (w min.)",
-          "auto_tpi_max_coef_int": "Maksymalna dopuszczalna wartość współczynnika wewnętrznego"
+          "auto_tpi_max_coef_int": "Maksymalna dopuszczalna wartość współczynnika wewnętrznego",
+          "auto_tpi_cooling_rate": "Zdolność chłodzenia grzejnika ({unit} na godzinę). Pozostaw 0 dla automatycznego uczenia (bootstrap)."
         }
       },
       "auto_tpi_avg_settings": {
@@ -729,7 +738,7 @@
         }
       },
       "heating_failure_detection": {
-        "title": "Wykrywanie awarii ogrzewania",
+        "title": "Wykrywanie awarii ogrzewania - {name}",
         "description": "Konfiguracja funkcji wykrywania awarii ogrzewania. Wykrywa anomalie, gdy ogrzewanie jest oczekiwane, ale temperatura nie wzrasta, lub gdy ogrzewanie jest wyłączone, ale temperatura nadal rośnie.",
         "data": {
           "use_heating_failure_detection_feature": "Włącz wykrywanie awarii ogrzewania",
@@ -737,7 +746,7 @@
           "heating_failure_threshold": "Próg awarii ogrzewania",
           "cooling_failure_threshold": "Próg awarii chłodzenia",
           "heating_failure_detection_delay": "Opóźnienie wykrywania (minuty)",
-          "temperature_change_tolerance": "Tolerancja zmiany temperatury (°C)",
+          "temperature_change_tolerance": "Tolerancja zmiany temperatury ({unit})",
           "failure_detection_enable_template": "Szablon włączenia wykrywania"
         },
         "data_description": {

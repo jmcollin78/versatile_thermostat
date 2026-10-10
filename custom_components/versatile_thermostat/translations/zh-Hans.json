@@ -311,6 +311,7 @@
                     "heater_heating_time": "加热时间（分钟）",
                     "heater_cooling_time": "冷却时间（分钟）",
                     "auto_tpi_heating_rate": "升温速率（{unit}/h）",
+                    "auto_tpi_cooling_rate": "冷却速率 ({unit}/小时)",
                     "auto_tpi_aggressiveness": "激进程度",
                     "auto_tpi_enable_advanced_settings": "启用高级参数",
                     "auto_tpi_continuous_kext": "持续学习 Kext"
@@ -320,6 +321,7 @@
                     "heater_heating_time": "达到满功率的时间（分钟）",
                     "heater_cooling_time": "停止后的冷却时间（分钟）\n\n| 类型 | 加热时间 | 冷却时间 |\n| :--- | :--- | :--- |\n| 电暖器 | 5mn | 7mn |\n| 水暖散热器 | 15mn | 20mn |\n| 地暖 | 30mn | 45mn |",
                     "auto_tpi_heating_rate": "散热器升温能力（{unit}每小时）。保留为 0 以进行自动学习（引导程序）。",
+                    "auto_tpi_cooling_rate": "散热器降温能力（每小时 {unit}）。保留为 0 以进行自动学习（bootstrap）。",
                     "auto_tpi_aggressiveness": "学习系数的缩减因子 (50-100%)。较低的值会产生更保守的系数并降低超调风险。",
                     "auto_tpi_enable_advanced_settings": "勾选后可访问参数微调（Alpha、衰减、权重）。",
                     "auto_tpi_continuous_kext": "选中以启用 AutoTPI 会话之外的外部系数 (Kext) 的持续学习。"
@@ -722,6 +724,7 @@
                 "data": {
                     "auto_tpi_learning_type": "学习类型",
                     "auto_tpi_heating_rate": "升温速率（{unit}/h）",
+                    "auto_tpi_cooling_rate": "冷却速率 ({unit}/小时)",
                     "heater_heating_time": "加热时间（分钟）",
                     "heater_cooling_time": "冷却时间（分钟）",
                     "auto_tpi_aggressiveness": "激进程度",
@@ -731,6 +734,7 @@
                 "data_description": {
                     "auto_tpi_learning_type": "选择“发现”用于初始启动（加权平均，权重 1），或选择“微调”用于持续调整（EWMA，Alpha 0.08）。",
                     "auto_tpi_heating_rate": "散热器升温能力（{unit}每小时）。保留为 0 以进行自动学习（引导程序）。",
+                    "auto_tpi_cooling_rate": "散热器降温能力（每小时 {unit}）。保留为 0 以进行自动学习（bootstrap）。",
                     "heater_heating_time": "达到满功率的时间（分钟）",
                     "heater_cooling_time": "停止后的冷却时间（分钟）\n\n| 类型 | 加热时间 | 冷却时间 |\n| :--- | :--- | :--- |\n| 电暖器 | 5mn | 7mn |\n| 水暖散热器 | 15mn | 20mn |\n| 地暖 | 30mn | 45mn |",
                     "auto_tpi_aggressiveness": "学习系数的缩减因子 (50-100%)。较低的值会产生更保守的系数并降低超调风险。",

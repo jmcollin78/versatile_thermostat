@@ -307,6 +307,14 @@
           "sync_entity_ids": "The list of the entities used to synchronize the internal temperature of the underlying devices. There should be one per underlying device. Should be a calibration entity if checkbox is selected or a temperature entity otherwise. Both are `number` entities."
         }
       },
+      "auto_tpi_configuration": {
+        "data": {
+          "auto_tpi_cooling_rate": "Скорость охлаждения ({unit}/ч)"
+        },
+        "data_description": {
+          "auto_tpi_cooling_rate": "Способность радиатора к охлаждению ({unit} в час). Оставьте 0 для автоматического обучения (bootstrap)."
+        }
+      },
       "heating_failure_detection": {
         "title": "Обнаружение сбоев отопления",
         "description": "Настройка функции обнаружения сбоев отопления. Обнаруживает аномалии, когда ожидается нагрев, но температура не повышается, или когда отопление выключено, но температура продолжает расти.",
@@ -652,6 +660,14 @@
         "data_description": {
           "sync_with_calibration": "Check to apply the offset calibration when synchronizing the internal temperature. Uncheck to directly copy the temperature from the selected entities",
           "sync_entity_ids": "The list of the entities used to synchronize the internal temperature of the underlying devices. There should be one per underlying device. Should be a calibration entity if checkbox is selected or a temperature entity otherwise. Both are `number` entities."
+        }
+      },
+      "auto_tpi_configuration": {
+        "data": {
+          "auto_tpi_cooling_rate": "Скорость охлаждения ({unit}/ч)"
+        },
+        "data_description": {
+          "auto_tpi_cooling_rate": "Способность радиатора к охлаждению ({unit} в час). Оставьте 0 для автоматического обучения (bootstrap)."
         }
       },
       "heating_failure_detection": {
