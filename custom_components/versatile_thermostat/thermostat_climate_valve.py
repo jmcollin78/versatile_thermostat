@@ -151,7 +151,7 @@ class ThermostatOverClimateValve(ThermostatProp[UnderlyingClimate], ThermostatOv
         for under in self._underlyings_valve_regulation:
             _LOGGER.debug("%s - starting underlying valve regulation %s", self, under)
             try:
-                under.startup()
+                await under.async_startup()
                 _LOGGER.debug("%s - underlying valve regulation %s started successfully", self, under)
             except Exception as ex:  # pylint: disable=broad-except
                 _LOGGER.error("%s - Error starting underlying valve regulation %s: %s", self, under, ex)
@@ -190,6 +190,7 @@ class ThermostatOverClimateValve(ThermostatProp[UnderlyingClimate], ThermostatOv
                         "last_sent_opening_value": under.last_sent_opening_value,
                         "min_opening_degree": under._min_opening_degree,  # pylint: disable=protected-access
                         "max_opening_degree": under._max_opening_degree,  # pylint: disable=protected-access
+                        **under.bootstrap_diagnostics,
                     }
                 }
             )

@@ -55,6 +55,16 @@ To avoid overloading the underlying equipment (some may beep unpleasantly, other
 
 Improperly setting these thresholds may prevent correct self-regulation as new setpoints won't be sent.
 
+### Valve regulation startup with write-only degrees
+
+With `auto_regulation_valve`, some `number` entities used for opening and closing degrees are write-only setpoints. After a Home Assistant restart or an integration reload, they can remain `unknown` even though the underlying `climate` entity is usable.
+
+After installing its normal listeners, VTherm inspects the configured opening/closing pair once. Only when every target is numeric or exactly `unknown`, all regulation limits and every number entity `min`/`max` bound are valid, it calculates the normal closing pair with demand `0`. It writes at most once, through the regular number helper, and only to targets that are exactly `unknown`; numeric targets are never rewritten.
+
+If a target is `unavailable`, absent, `None`, non-numeric, or has invalid bounds, VTherm writes nothing to either target. A service call or its absence of error is not feedback: the underlying remains uninitialized until `UnderlyingStateManager` receives normal numeric state events for every required target. There is no timeout, retry, fallback, or readiness override.
+
+The diagnostics under `vtherm_over_climate_valve.underlying_valves` expose `seed_targets` and `seed_attempted_targets`; these fields describe attempts only and never availability. Check the configured entities, their `min`/`max` bounds, and numeric feedback. After correcting a configuration or device problem, reload the integration or restart Home Assistant to create a new one-shot budget.
+
 ### Auto-Fan (Auto Ventilation)
 
 This mode, introduced in version 4.3, forces the use of ventilation if the temperature difference is significant. By activating ventilation, heat distribution occurs more quickly, which helps achieve the target temperature faster.
