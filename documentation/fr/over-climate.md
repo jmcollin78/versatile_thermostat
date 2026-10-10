@@ -56,6 +56,16 @@ Afin d'éviter de trop solliciter l'équipement sous-jacent (certain font un bip
 
 S'ils sont mal réglés, ces seuils peuvent empêcher une auto-régulation correcte puisque les nouvelles consignes ne seront pas envoyées.
 
+### Démarrage de la régulation par vanne avec des degrés sans retour
+
+Avec `auto_regulation_valve`, certaines entités `number` utilisées pour les degrés d’ouverture et de fermeture sont des consignes d’écriture sans retour d’état. Après un redémarrage de Home Assistant ou un rechargement de l’intégration, elles peuvent rester `unknown` alors que l’entité `climate` sous-jacente reste utilisable.
+
+Après l’installation de ses listeners normaux, VTherm inspecte une fois la paire ouverture/fermeture configurée. Seulement si chaque cible est numérique ou exactement `unknown`, si toutes les limites de régulation et toutes les bornes `min`/`max` des entités `number` sont valides, il calcule la paire de fermeture nominale avec une demande `0`. Il écrit au plus une fois, via le helper normal des nombres, et uniquement sur les cibles exactement `unknown` ; les cibles numériques ne sont jamais réécrites.
+
+Si une cible est `unavailable`, absente, `None`, non numérique ou possède des bornes invalides, VTherm n’écrit rien sur les deux cibles. Un appel de service, même sans erreur, n’est pas un retour d’état : le sous-jacent reste non initialisé jusqu’aux événements numériques normaux reçus pour toutes les cibles requises par `UnderlyingStateManager`. Il n’y a ni timeout, ni retry, ni fallback, ni override de readiness.
+
+Les diagnostics sous `vtherm_over_climate_valve.underlying_valves` exposent `seed_targets` et `seed_attempted_targets` ; ils décrivent seulement les tentatives et jamais une disponibilité. Vérifiez les entités configurées, leurs bornes `min`/`max` et le retour numérique. Après correction d’une configuration ou d’un appareil, rechargez l’intégration ou redémarrez Home Assistant afin de créer un nouveau budget one-shot.
+
 ### L'auto-ventilation (auto-fan)
 
 Ce mode introduit en 4.3 permet de forcer l'usage de la ventilation si l'écart de température est important. En effet, en activant la ventilation, la répartition se fait plus rapidement ce qui permet de gagner du temps dans l'atteinte de la température cible.

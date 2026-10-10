@@ -1,6 +1,7 @@
 # pylint: disable=unused-argument, line-too-long, too-many-lines, broad-exception-caught
 
 """Underlying entities classes"""
+import math
 import re
 from typing import Any, Dict, List, Optional, Tuple, TypeVar
 from collections.abc import Callable
@@ -1456,6 +1457,8 @@ class UnderlyingValveRegulation(UnderlyingValve):
         self._min_opening_degree: int = min_opening_degree
         self._max_closing_degree: int = max_closing_degree
         self._opening_threshold: int = opening_threshold
+        self._seed_attempted_targets: set[str] = set()
+        self._seed_diagnostics: dict[str, str] = {}
 
         if self._min_opening_degree >= self._max_opening_degree:
             self._min_opening_degree = self._opening_threshold
@@ -1541,6 +1544,122 @@ class UnderlyingValveRegulation(UnderlyingValve):
         if self._has_max_closing_degree:
             entities.append(self._closing_degree_entity_id)
         self._state_manager.add_underlying_entities(entities)
+
+    async def async_startup(self) -> None:
+        """Install normal listeners then run the bounded one-shot seed."""
+        self.startup()
+        await self._seed_unknown_degrees_once()
+
+    @staticmethod
+    def _is_finite_number(value: Any) -> bool:
+        """Return whether a value is a finite numeric value, excluding bool."""
+        return isinstance(value, (int, float)) and not isinstance(value, bool) and math.isfinite(value)
+
+    def _target_state_kind(self, entity_id: str) -> str:
+        """Classify a configured degree state for the one-shot seed."""
+        state = self._state_manager.get_state(entity_id)
+        if state is None:
+            return "state_absent"
+        if state.state == STATE_UNKNOWN:
+            return "unknown"
+        if state.state == STATE_UNAVAILABLE:
+            return "state_unavailable"
+        value = get_safe_float_value(state.state)
+        return "numeric" if value is not None and math.isfinite(value) else "invalid_target_state"
+
+    def _seed_pair_if_valid(self, targets: list[str]) -> tuple[int, int] | None:
+        """Return the safe d=0 pair only when all pair preconditions hold."""
+        configured_bounds = (
+            self._min_opening_degree,
+            self._max_opening_degree,
+            self._max_closing_degree,
+            self._opening_threshold,
+        )
+        if not all(self._is_finite_number(value) for value in configured_bounds):
+            return None
+        if not (0 <= self._min_opening_degree < self._max_opening_degree <= 100 and 0 <= self._max_closing_degree <= 100 and 0 <= self._opening_threshold <= 100):
+            return None
+
+        opening_degree, closing_degree = OpeningClosingDegreeCalculation.calculate_opening_closing_degree(
+            brut_valve_open_percent=0,
+            min_opening_degree=self._min_opening_degree,
+            max_closing_degree=self._max_closing_degree,
+            max_opening_degree=self._max_opening_degree,
+            opening_threshold=self._opening_threshold,
+        )
+        if not all(isinstance(value, int) and not isinstance(value, bool) for value in (opening_degree, closing_degree)):
+            return None
+
+        values = {
+            self._opening_degree_entity_id: opening_degree,
+            self._closing_degree_entity_id: closing_degree,
+        }
+        for entity_id in targets:
+            state = self._state_manager.get_state(entity_id)
+            if state is None:
+                return None
+            minimum = state.attributes.get("min")
+            maximum = state.attributes.get("max")
+            if not self._is_finite_number(minimum) or not self._is_finite_number(maximum):
+                return None
+            minimum_value = float(minimum)
+            maximum_value = float(maximum)
+            if minimum_value > maximum_value:
+                return None
+            if not minimum_value <= values[entity_id] <= maximum_value:
+                return None
+
+        return opening_degree, closing_degree
+
+    async def _seed_unknown_degrees_once(self) -> None:
+        """Seed exact unknown degree targets once without affecting readiness."""
+        targets = self.valve_entity_ids
+        state_kinds = {entity_id: self._target_state_kind(entity_id) for entity_id in targets}
+        invalid_targets = {entity_id: kind for entity_id, kind in state_kinds.items() if kind not in ("numeric", "unknown")}
+        if invalid_targets:
+            self._seed_diagnostics.update(invalid_targets)
+            _LOGGER.warning("%s - Valve-regulation seed skipped: %s", self, invalid_targets)
+            return
+
+        unknown_targets = [entity_id for entity_id, kind in state_kinds.items() if kind == "unknown"]
+        if not unknown_targets:
+            for entity_id in targets:
+                self._seed_diagnostics[entity_id] = "already_numeric"
+            return
+
+        pair = self._seed_pair_if_valid(targets)
+        if pair is None:
+            for entity_id in targets:
+                self._seed_diagnostics[entity_id] = "invalid_bounds"
+            _LOGGER.warning("%s - Valve-regulation seed skipped: invalid_bounds", self)
+            return
+
+        values = dict(zip((self._opening_degree_entity_id, self._closing_degree_entity_id), pair))
+        for entity_id in unknown_targets:
+            if entity_id in self._seed_attempted_targets:
+                continue
+            self._seed_attempted_targets.add(entity_id)
+            try:
+                await self.send_value_to_number(entity_id, values[entity_id])
+            except Exception:  # pragma: no cover - helper errors are integration-dependent
+                self._seed_diagnostics[entity_id] = "service_error"
+                _LOGGER.warning("%s - Valve-regulation seed service_error for %s", self, entity_id)
+            else:
+                self._seed_diagnostics[entity_id] = "seed_attempted"
+                _LOGGER.info("%s - Valve-regulation seed_attempted for %s with value %s", self, entity_id, values[entity_id])
+
+    @property
+    def bootstrap_diagnostics(self) -> dict[str, Any]:
+        """Return seed diagnostics without inferring target readiness."""
+        return {
+            "seed_targets": dict(self._seed_diagnostics),
+            "seed_attempted_targets": sorted(self._seed_attempted_targets),
+        }
+
+    @overrides
+    def remove_entity(self):
+        """Remove the listener without issuing a compensating command."""
+        super().remove_entity()
 
     @overrides
     def _get_controlled_percent(self, raw_percent: int) -> int:

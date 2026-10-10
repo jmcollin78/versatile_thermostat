@@ -1,7 +1,6 @@
 # pylint: disable=missing-function-docstring, missing-module-docstring, protected-access
 
-from types import SimpleNamespace
-from unittest.mock import AsyncMock, MagicMock
+from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
@@ -9,6 +8,174 @@ from homeassistant.const import STATE_ON, STATE_OFF, STATE_UNAVAILABLE, STATE_UN
 
 from custom_components.versatile_thermostat.underlyings import UnderlyingSwitch, UnderlyingClimate, UnderlyingValve, UnderlyingValveRegulation
 from custom_components.versatile_thermostat.vtherm_hvac_mode import VThermHvacMode_OFF, VThermHvacMode_HEAT, VThermHvacMode_FAN_ONLY, VThermHvacMode_COOL, VThermHvacMode_AUTO
+
+
+def _make_valve_regulation_thermostat():
+    """Build the minimum thermostat contract used by bootstrap tests."""
+    thermostat = MagicMock()
+    thermostat.valve_open_percent = None
+    thermostat.now = None
+    thermostat.is_sleeping = False
+    thermostat.vtherm_hvac_mode = VThermHvacMode_OFF
+    thermostat.is_initialized = False
+    thermostat.init_underlyings_completed = AsyncMock()
+    return thermostat
+
+
+@pytest.mark.asyncio
+async def test_valve_regulation_bootstraps_unknown_degrees_without_feedback(hass):
+    """An unknown degree gets one d=0 seed but remains uninitialized."""
+    thermostat = _make_valve_regulation_thermostat()
+    climate = MagicMock()
+    hass.states.async_set("number.opening", STATE_UNKNOWN, {"min": 0, "max": 100})
+    hass.states.async_set("number.closing", "80", {"min": 0, "max": 100})
+
+    valve = UnderlyingValveRegulation(
+        hass,
+        thermostat,
+        "number.opening",
+        "number.closing",
+        climate,
+        min_opening_degree=0,
+        max_opening_degree=100,
+        max_closing_degree=100,
+    )
+    valve.check_initial_state = AsyncMock()
+    with patch("homeassistant.core.ServiceRegistry.async_call", new_callable=AsyncMock) as async_call:
+        await valve.async_startup()
+        await hass.async_block_till_done()
+
+        assert valve.is_initialized is False
+        assert valve.state_manager.is_all_states_initialized is False
+        assert valve.bootstrap_diagnostics["seed_targets"] == {"number.opening": "seed_attempted"}
+        assert valve.bootstrap_diagnostics["seed_attempted_targets"] == ["number.opening"]
+        assert async_call.await_count == 1
+        assert async_call.await_args.args[5]["entity_id"] == "number.opening"
+        assert async_call.await_args.args[2]["value"] == 0
+        await valve._seed_unknown_degrees_once()
+        assert async_call.await_count == 1
+
+        hass.states.async_set("number.opening", "0", {"min": 0, "max": 100})
+        await hass.async_block_till_done()
+        assert valve.is_initialized is True
+        valve.check_initial_state.assert_awaited_once()
+    valve.remove_entity()
+
+
+@pytest.mark.asyncio
+async def test_valve_regulation_bootstrap_rejection_remains_uninitialized(hass):
+    """A helper error consumes the one-shot attempt without false readiness."""
+    thermostat = _make_valve_regulation_thermostat()
+    hass.states.async_set("number.opening", STATE_UNKNOWN, {"min": 0, "max": 100})
+
+    valve = UnderlyingValveRegulation(
+        hass,
+        thermostat,
+        "number.opening",
+        None,
+        MagicMock(),
+        min_opening_degree=0,
+        max_opening_degree=100,
+        max_closing_degree=100,
+    )
+    valve.send_value_to_number = AsyncMock(side_effect=RuntimeError("rejected"))
+    await valve.async_startup()
+    await hass.async_block_till_done()
+
+    assert valve.is_initialized is False
+    assert valve.bootstrap_diagnostics["seed_targets"] == {"number.opening": "service_error"}
+    valve.send_value_to_number.assert_awaited_once_with("number.opening", 0)
+    await valve._seed_unknown_degrees_once()
+    valve.send_value_to_number.assert_awaited_once()
+    valve.remove_entity()
+
+
+@pytest.mark.asyncio
+async def test_valve_regulation_bootstrap_invalid_bounds_do_not_write(hass):
+    """Missing or inconsistent bounds are diagnosed before any service call."""
+    thermostat = _make_valve_regulation_thermostat()
+    hass.states.async_set("number.opening", STATE_UNKNOWN, {"min": 100, "max": 0})
+
+    valve = UnderlyingValveRegulation(
+        hass,
+        thermostat,
+        "number.opening",
+        None,
+        MagicMock(),
+        min_opening_degree=0,
+        max_opening_degree=100,
+        max_closing_degree=100,
+    )
+    with patch("homeassistant.core.ServiceRegistry.async_call", new_callable=AsyncMock) as async_call:
+        await valve.async_startup()
+        await hass.async_block_till_done()
+
+        assert valve.is_initialized is False
+        assert valve.bootstrap_diagnostics["seed_targets"] == {"number.opening": "invalid_bounds"}
+        async_call.assert_not_awaited()
+    valve.remove_entity()
+
+
+@pytest.mark.asyncio
+async def test_valve_regulation_unavailable_target_blocks_the_entire_pair(hass):
+    """An unavailable target forbids writing even the other unknown target."""
+    thermostat = _make_valve_regulation_thermostat()
+    hass.states.async_set("number.opening", STATE_UNKNOWN, {"min": 0, "max": 100})
+    hass.states.async_set("number.closing", STATE_UNAVAILABLE, {"min": 0, "max": 100})
+    valve = UnderlyingValveRegulation(
+        hass,
+        thermostat,
+        "number.opening",
+        "number.closing",
+        MagicMock(),
+        min_opening_degree=0,
+        max_opening_degree=100,
+        max_closing_degree=100,
+    )
+
+    with patch("homeassistant.core.ServiceRegistry.async_call", new_callable=AsyncMock) as async_call:
+        await valve.async_startup()
+        await hass.async_block_till_done()
+
+        assert valve.is_initialized is False
+        assert valve.bootstrap_diagnostics["seed_targets"] == {"number.closing": "state_unavailable"}
+        async_call.assert_not_awaited()
+    valve.remove_entity()
+
+
+@pytest.mark.asyncio
+async def test_valve_regulation_numeric_degrees_keep_normal_initialization_flow(hass):
+    """Numeric degrees preserve the existing initialization and parent notification flow."""
+    thermostat = _make_valve_regulation_thermostat()
+    thermostat.is_initialized = True
+    hass.states.async_set("number.opening", "20", {"min": 0, "max": 100})
+    hass.states.async_set("number.closing", "80", {"min": 0, "max": 100})
+
+    valve = UnderlyingValveRegulation(
+        hass,
+        thermostat,
+        "number.opening",
+        "number.closing",
+        MagicMock(),
+        min_opening_degree=0,
+        max_opening_degree=100,
+        max_closing_degree=100,
+    )
+    valve.check_initial_state = AsyncMock()
+    with patch("homeassistant.core.ServiceRegistry.async_call", new_callable=AsyncMock) as async_call:
+        await valve.async_startup()
+        await hass.async_block_till_done()
+
+        assert valve.is_initialized is True
+        assert valve.state_manager.is_all_states_initialized is True
+        assert valve.bootstrap_diagnostics["seed_targets"] == {
+            "number.opening": "already_numeric",
+            "number.closing": "already_numeric",
+        }
+        async_call.assert_not_awaited()
+        valve.check_initial_state.assert_awaited_once()
+        thermostat.init_underlyings_completed.assert_awaited_once_with("number.opening")
+    valve.remove_entity()
 
 
 @pytest.mark.asyncio
@@ -501,7 +668,7 @@ async def test_check_initial_state_underlying_climate_valve(hass, hvac_mode, is_
         await hass.async_block_till_done()
 
     # startup after init this time
-    u.startup()
+    await u.async_startup()
     assert u.state_manager.is_all_states_initialized is False  # closing degree is missing
 
     # Init closing state
