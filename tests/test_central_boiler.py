@@ -136,6 +136,20 @@ async def test_boiler_power_threshold_restores_legacy_watts_in_kilowatts(
         assert number.native_value == 1.0
 
 
+async def test_central_boiler_logs_missing_entities(hass: HomeAssistant, caplog):
+    """The incomplete-manager warning names every entity that is not registered."""
+    manager = FeatureCentralBoilerManager(hass, MagicMock())
+    manager._is_configured = True
+    manager._nb_active_device_threshold_number_entity = MagicMock(entity_id="number.central_configuration_number_activation_threshold")
+    manager._nb_active_device_number_entity = MagicMock(entity_id="sensor.central_configuration_nb_device_active_for_boiler")
+
+    with caplog.at_level(logging.WARNING):
+        assert manager._get_all_boiler_entity_ids(force=True) == []
+
+    assert "Found only 2/4 entities" in caplog.text
+    assert "Missing entities: power activation threshold, total active power" in caplog.text
+
+
 async def test_add_a_central_config_with_boiler(
     hass: HomeAssistant,
     skip_hass_states_is_state,

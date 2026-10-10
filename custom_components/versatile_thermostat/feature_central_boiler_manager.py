@@ -418,24 +418,27 @@ class FeatureCentralBoilerManager(BaseFeatureManager):
         if self._is_configured and not force:
             return self._all_boiler_entities
 
+        required_entities = {
+            "number activation threshold": self._nb_active_device_threshold_number_entity,
+            "power activation threshold": self._total_power_active_threshold_number_entity,
+            "number of active devices": self._nb_active_device_number_entity,
+            "total active power": self._total_power_active_entity,
+        }
         self._all_boiler_entities = []
-        if self._nb_active_device_threshold_number_entity:
-            self._all_boiler_entities.append(self._nb_active_device_threshold_number_entity.entity_id)
-        if self._total_power_active_threshold_number_entity:
-            self._all_boiler_entities.append(self._total_power_active_threshold_number_entity.entity_id)
-        if self._nb_active_device_number_entity:
-            self._all_boiler_entities.append(self._nb_active_device_number_entity.entity_id)
-        if self._total_power_active_entity:
-            self._all_boiler_entities.append(self._total_power_active_entity.entity_id)
+        for entity in required_entities.values():
+            if entity:
+                self._all_boiler_entities.append(entity.entity_id)
 
         old_ready = self._is_ready
         self._is_ready = self.is_configured and len(self._all_boiler_entities) == 4 and self._central_boiler_entity is not None
         if not self._is_ready and self.is_configured:
+            missing_entities = [name for name, entity in required_entities.items() if entity is None]
             _LOGGER.warning(
-                "%s - central boiler manager is not fully configured. Found only %d/4 entities and central boiler entity=%s. Central boiler control will not work properly. This could a temporary message at startup.",
+                "%s - central boiler manager is not fully configured. Found only %d/4 entities and central boiler entity=%s. Missing entities: %s. Central boiler control will not work properly. This could a temporary message at startup.",
                 self,
                 len(self._all_boiler_entities),
                 self._central_boiler_entity,
+                ", ".join(missing_entities) or "none",
             )
             return []
         if not self._is_ready and not self.is_configured:
