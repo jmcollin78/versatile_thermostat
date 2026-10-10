@@ -248,6 +248,14 @@
           "max_closing_degree": "Μέγιστη τιμή του βαθμού κλεισίματος. Η βαλβίδα δεν θα κλείσει ποτέ περισσότερο από αυτήν την τιμή. Ορίστε το στο 100 για πλήρες κλείσιμο της βαλβίδας"
         }
       },
+      "auto_tpi_configuration": {
+        "data": {
+          "auto_tpi_cooling_rate": "Ρυθμός ψύξης ({unit}/h)"
+        },
+        "data_description": {
+          "auto_tpi_cooling_rate": "Ικανότητα ψύξης του καλοριφέρ ({unit} ανά ώρα). Αφήστε την τιμή στο 0 για αυτόματη εκμάθηση (bootstrap)."
+        }
+      },
       "heating_failure_detection": {
         "title": "Heating failure detection",
         "description": "Configure the heating failure detection feature. This detects anomalies when heating is expected but temperature doesn't increase, or when heating is off but temperature keeps rising.",
@@ -523,6 +531,14 @@
           "min_opening_degrees": "Ελάχιστη τιμή βαθμού ανοίγματος για κάθε υποκείμενη συσκευή, διαχωρισμένη με κόμμα. Προεπιλεγμένη τιμή 0. Παράδειγμα: 20, 25, 30",
           "max_opening_degrees": "Μέγιστη τιμή του βαθμού ανοίγματος. Η βαλβίδα δεν θα ανοίξει ποτέ περισσότερο από αυτήν την τιμή",
           "max_closing_degree": "Μέγιστη τιμή του βαθμού κλεισίματος. Η βαλβίδα δεν θα κλείσει ποτέ περισσότερο από αυτήν την τιμή. Ορίστε το στο 100 για πλήρες κλείσιμο της βαλβίδας"
+        }
+      },
+      "auto_tpi_configuration": {
+        "data": {
+          "auto_tpi_cooling_rate": "Ρυθμός ψύξης ({unit}/h)"
+        },
+        "data_description": {
+          "auto_tpi_cooling_rate": "Ικανότητα ψύξης του καλοριφέρ ({unit} ανά ώρα). Αφήστε την τιμή στο 0 για αυτόματη εκμάθηση (bootstrap)."
         }
       },
       "heating_failure_detection": {

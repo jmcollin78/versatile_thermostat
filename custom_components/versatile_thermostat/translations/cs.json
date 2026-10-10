@@ -358,6 +358,7 @@
                     "heater_heating_time": "Doba ohřevu (min)",
                     "heater_cooling_time": "Doba chlazení (min)",
                     "auto_tpi_heating_rate": "Rychlost ohřevu ({unit}/h)",
+                    "auto_tpi_cooling_rate": "Rychlost chlazení ({unit}/h)",
                     "auto_tpi_aggressiveness": "Agresivita",
                     "auto_tpi_enable_advanced_settings": "Povolit pokročilé parametry",
                     "auto_tpi_continuous_kext": "Průběžné učení Kext"
@@ -367,6 +368,7 @@
                     "heater_heating_time": "Čas k dosažení plného výkonu (minuty)",
                     "heater_cooling_time": "Čas na ochlazení po zastavení (minuty)\n\n| Typ | Doba ohřevu | Doba chlazení |\n| :--- | :--- | :--- |\n| Elektrický radiátor | 5 min | 7mn |\n| Vodní radiátor | 15 minut | 20 min |\n| Podlahové vytápění | 30 min | 45 min |",
                     "auto_tpi_heating_rate": "Kapacita nárůstu teploty radiátoru ({unit} za hodinu). Ponechejte na 0 pro automatické učení (bootstrap).",
+                    "auto_tpi_cooling_rate": "Kapacita poklesu teploty radiátoru ({unit} za hodinu). Ponechejte na 0 pro automatické učení (bootstrap).",
                     "auto_tpi_aggressiveness": "Redukční faktor pro naučené koeficienty (50-100%). Nižší hodnoty vedou ke konzervativnějším koeficientům a snižují riziko přestřelení.",
                     "auto_tpi_enable_advanced_settings": "Zaškrtněte pro přístup k jemnému doladění parametrů (Alpha, Decay, Weight).",
                     "auto_tpi_continuous_kext": "Zaškrtnutím povolíte průběžné učení externího koeficientu (Kext) mimo relace AutoTPI."
@@ -768,6 +770,7 @@
                 "data": {
                     "auto_tpi_learning_type": "Typ učení",
                     "auto_tpi_heating_rate": "Rychlost ohřevu ({unit}/h)",
+                    "auto_tpi_cooling_rate": "Rychlost chlazení ({unit}/h)",
                     "heater_heating_time": "Doba ohřevu (min)",
                     "heater_cooling_time": "Doba chlazení (min)",
                     "auto_tpi_aggressiveness": "Agresivita",
@@ -777,6 +780,7 @@
                 "data_description": {
                     "auto_tpi_learning_type": "Zvolte 'Discovery' pro počáteční spuštění (vážený průměr, váha 1) nebo 'Fine Tuning' pro průběžné úpravy (EWMA, Alpha 0,08).",
                     "auto_tpi_heating_rate": "Kapacita nárůstu teploty radiátoru ({unit} za hodinu). Ponechejte na 0 pro automatické učení (bootstrap).",
+                    "auto_tpi_cooling_rate": "Kapacita poklesu teploty radiátoru ({unit} za hodinu). Ponechejte na 0 pro automatické učení (bootstrap).",
                     "heater_heating_time": "Čas k dosažení plného výkonu (minuty)",
                     "heater_cooling_time": "Čas na ochlazení po zastavení (minuty)\n\n| Typ | Doba ohřevu | Doba chlazení |\n| :--- | :--- | :--- |\n| Elektrický radiátor | 5 min | 7mn |\n| Vodní radiátor | 15 minut | 20 min |\n| Podlahové vytápění | 30 min | 45 min |",
                     "auto_tpi_aggressiveness": "Redukční faktor pro naučené koeficienty (50-100%). Nižší hodnoty vedou ke konzervativnějším koeficientům a snižují riziko přestřelení.",
