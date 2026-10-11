@@ -921,8 +921,10 @@ behavior: [specification](../specs/issue-2087-inhibition-spec.md) and
    VTherm `post_init()` (the merged configuration `thermostat.entry_infos` and the
    type properties such as `is_over_climate` are available, the underlyings may not
    be built yet), again in `async_startup()`, and when a factory is registered after
-   the startup. An exception is not treated as `False`: the factory takes the slot
-   with an `UNKNOWN` status (`last_error_code: supports_failed`).
+   the startup. During `post_init()` the entity is not added to Home Assistant yet:
+   `thermostat.entity_id` may be `None`, so `supports()` and `create()` match the
+   VTherm on `thermostat.unique_id`. An exception is not treated as `False`: the
+   factory takes the slot with an `UNKNOWN` status (`last_error_code: supports_failed`).
 3. `create(thermostat)` returns the provider bound to that VTherm. The core then
    calls, in this order: `post_init(entry_infos)` (merged VTherm configuration,
    central configuration included), `restore_state(old_state)` (the previous HA
