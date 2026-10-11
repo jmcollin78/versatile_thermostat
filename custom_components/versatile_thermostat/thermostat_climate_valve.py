@@ -55,6 +55,7 @@ class ThermostatOverClimateValve(ThermostatProp[UnderlyingClimate], ThermostatOv
         self._max_closing_degree: int = 100
         self._opening_threshold_degree: int = 0
         self._recalibrate_lock: asyncio.Lock = asyncio.Lock()
+        self._recalibrate_task: asyncio.Task | None = None
         self._climate_under_initialized: bool = False
         self._valve_under_initialized: bool = False
 
@@ -479,6 +480,17 @@ class ThermostatOverClimateValve(ThermostatProp[UnderlyingClimate], ThermostatOv
             await super().async_set_hvac_mode(hvac_mode)
 
     @overrides
+    async def async_inhibition_suspend_control(self):
+        """Issue #2087 - also abort a running valve recalibration: it drives the
+        underlyings directly. Its final state restoration is skipped"""
+        await super().async_inhibition_suspend_control()
+        task = self._recalibrate_task
+        if task is not None and not task.done():
+            _LOGGER.warning("%s - Recalibration aborted: the control is withdrawn by inhibition", self)
+            task.cancel()
+        self._recalibrate_task = None
+
+    @overrides
     async def underlying_changed(  # pylint: disable=too-many-arguments
         self,
         under: UnderlyingClimate,
@@ -649,9 +661,9 @@ class ThermostatOverClimateValve(ThermostatProp[UnderlyingClimate], ThermostatOv
 
         # Launch background task and return immediately
         try:
-            self.hass.async_create_task(_recalibrate_task())
+            self._recalibrate_task = self.hass.async_create_task(_recalibrate_task())
         except Exception:  # pylint: disable=broad-except
             # fallback
-            self._hass.create_task(_recalibrate_task())
+            self._recalibrate_task = self._hass.create_task(_recalibrate_task())
 
         return {"message": "calibrage en cours"}

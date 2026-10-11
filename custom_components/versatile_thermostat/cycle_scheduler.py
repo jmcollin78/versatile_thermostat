@@ -255,7 +255,10 @@ class CycleScheduler:
             _from_cycle_end: Internal flag — True when called from _on_master_cycle_end.
         """
         if self._is_control_withdrawn():
+            # Also clear a running (or just ended) cycle: a stale timer handle
+            # would make is_cycle_running stay True after the withdrawal
             _LOGGER.debug("%s - Cycle not started: control withdrawn by inhibition", self._thermostat)
+            await self._cancel_cycle_impl()
             return
 
         if self._is_valve_mode:
@@ -552,6 +555,10 @@ class CycleScheduler:
         the desired state is always enforced unconditionally on the first tick.
         """
         from homeassistant.util import dt as dt_util
+        if self._is_control_withdrawn():
+            # No switching while the control is withdrawn by an inhibition
+            self._tick_unsub = None
+            return
         now = time.time()
         current_t = 0.0 if _is_initial else (now - self._cycle_start_time)
 
