@@ -340,3 +340,251 @@ async def test_restore_manual_override_expired_with_stale_resume(hass: HomeAssis
 
     assert manager.is_timed_preset_active is False
     assert vtherm.requested_state.preset == VThermPreset.ECO
+
+
+#
+# Task 3 - trigger from manual temperature changes
+#
+from datetime import timezone  # pylint: disable=wrong-import-position,wrong-import-order
+
+# Integration tests need an aware datetime in the future, so that the real timers never fire during the test
+NOW_TZ = (datetime.now(timezone.utc) + timedelta(days=1)).replace(microsecond=0)
+OVERRIDE_60 = {CONF_USE_ADVANCED_CENTRAL_CONFIG: False, CONF_MANUAL_OVERRIDE_DURATION_MIN: 60}
+
+
+async def setup_vtherm_in_comfort(hass, extra: dict | None = None) -> BaseThermostat:
+    """Create an over_switch VTherm in heat / comfort (19°) with the given extra config"""
+    entity: BaseThermostat = await create_thermostat(hass, build_over_switch_entry(extra), "climate.theoverswitchmockname")
+    assert entity
+    entity._set_now(NOW_TZ)
+    await entity.async_set_hvac_mode(VThermHvacMode_HEAT)
+    await entity.async_set_preset_mode(VThermPreset.COMFORT)
+    assert entity.preset_mode == VThermPreset.COMFORT
+    assert entity.target_temperature == 19
+    return entity
+
+
+async def expire_override(entity: BaseThermostat, minutes: float):
+    """Move the clock and let the timed preset manager end the expired override"""
+    entity._set_now(NOW_TZ + timedelta(minutes=minutes))
+    await entity.timed_preset_manager.refresh_state()
+
+
+@pytest.mark.parametrize("expected_lingering_tasks", [True])
+@pytest.mark.parametrize("expected_lingering_timers", [True])
+async def test_set_temperature_duration_zero_unchanged(hass: HomeAssistant, skip_hass_states_is_state, fake_underlying_switch):
+    """Duration 0: a manual change behaves as before (preset none forever)"""
+    entity = await setup_vtherm_in_comfort(hass)
+    await entity.async_set_temperature(temperature=23)
+    assert entity.target_temperature == 23
+    assert entity.preset_mode == VThermPreset.NONE
+    assert entity.timed_preset_manager.is_timed_preset_active is False
+    entity.remove_thermostat()
+
+
+@pytest.mark.parametrize("expected_lingering_tasks", [True])
+@pytest.mark.parametrize("expected_lingering_timers", [True])
+async def test_set_temperature_starts_override_and_reverts(hass: HomeAssistant, skip_hass_states_is_state, fake_underlying_switch):
+    """Case 1: the manual temperature applies, then the comfort preset comes back"""
+    entity = await setup_vtherm_in_comfort(hass, OVERRIDE_60)
+    await entity.async_set_temperature(temperature=23)
+    assert entity.target_temperature == 23
+    assert entity.preset_mode == VThermPreset.NONE
+    assert entity.timed_preset_manager.is_manual_override is True
+
+    await expire_override(entity, 61)
+    assert entity.preset_mode == VThermPreset.COMFORT
+    assert entity.target_temperature == 19
+    assert entity.timed_preset_manager.is_timed_preset_active is False
+    entity.remove_thermostat()
+
+
+@pytest.mark.parametrize("expected_lingering_tasks", [True])
+@pytest.mark.parametrize("expected_lingering_timers", [True])
+async def test_set_temperature_no_override_without_preset(hass: HomeAssistant, skip_hass_states_is_state, fake_underlying_switch):
+    """Case 4: no preset before the change, no override"""
+    entity = await setup_vtherm_in_comfort(hass, OVERRIDE_60)
+    await entity.async_set_preset_mode(VThermPreset.NONE)
+    await entity.async_set_temperature(temperature=23)
+    assert entity.target_temperature == 23
+    assert entity.preset_mode == VThermPreset.NONE
+    assert entity.timed_preset_manager.is_timed_preset_active is False
+    entity.remove_thermostat()
+
+
+@pytest.mark.parametrize("expected_lingering_tasks", [True])
+@pytest.mark.parametrize("expected_lingering_timers", [True])
+async def test_select_preset_cancels_manual_override(hass: HomeAssistant, skip_hass_states_is_state, fake_underlying_switch):
+    """Case 5: a preset selected during the override applies and is not reverted later"""
+    entity = await setup_vtherm_in_comfort(hass, OVERRIDE_60)
+    await entity.async_set_temperature(temperature=23)
+    await entity.async_set_preset_mode(VThermPreset.ECO)
+    assert entity.preset_mode == VThermPreset.ECO
+    assert entity.target_temperature == 17
+    assert entity.timed_preset_manager.is_timed_preset_active is False
+
+    await expire_override(entity, 61)
+    assert entity.preset_mode == VThermPreset.ECO
+    entity.remove_thermostat()
+
+
+@pytest.mark.parametrize("expected_lingering_tasks", [True])
+@pytest.mark.parametrize("expected_lingering_timers", [True])
+async def test_set_temperature_locked_no_override(hass: HomeAssistant, skip_hass_states_is_state, fake_underlying_switch):
+    """A locked VTherm ignores the manual change and starts no override"""
+    entity = await setup_vtherm_in_comfort(hass, OVERRIDE_60 | {CONF_LOCK_USERS: True, CONF_LOCK_AUTOMATIONS: True})
+    entity.lock_manager.change_lock_state(True)
+    await entity.async_set_temperature(temperature=23)
+    assert entity.target_temperature == 19
+    assert entity.preset_mode == VThermPreset.COMFORT
+    assert entity.timed_preset_manager.is_timed_preset_active is False
+    entity.remove_thermostat()
+
+
+@pytest.mark.parametrize("expected_lingering_tasks", [True])
+@pytest.mark.parametrize("expected_lingering_timers", [True])
+async def test_override_when_hvac_off(hass: HomeAssistant, skip_hass_states_is_state, fake_underlying_switch):
+    """Review focus 1: a change while off starts the override, the preset is back for the next turn on"""
+    entity = await setup_vtherm_in_comfort(hass, OVERRIDE_60)
+    await entity.async_set_hvac_mode(VThermHvacMode_OFF)
+    await entity.async_set_temperature(temperature=23)
+    assert entity.timed_preset_manager.is_manual_override is True
+
+    await expire_override(entity, 61)
+    assert entity.requested_state.preset == VThermPreset.COMFORT
+    await entity.async_set_hvac_mode(VThermHvacMode_HEAT)
+    assert entity.preset_mode == VThermPreset.COMFORT
+    assert entity.target_temperature == 19
+    entity.remove_thermostat()
+
+
+@pytest.mark.parametrize("expected_lingering_tasks", [True])
+@pytest.mark.parametrize("expected_lingering_timers", [True])
+async def test_repeated_set_temperature_keeps_original(hass: HomeAssistant, skip_hass_states_is_state, fake_underlying_switch):
+    """Review focus 5: repeated changes restart the timer and never lose the original preset"""
+    entity = await setup_vtherm_in_comfort(hass, OVERRIDE_60)
+    for i, temp in enumerate([22, 23, 24]):
+        entity._set_now(NOW_TZ + timedelta(minutes=5 * i))
+        await entity.async_set_temperature(temperature=temp)
+
+    tpm = entity.timed_preset_manager
+    assert tpm._original_preset == VThermPreset.COMFORT
+    assert tpm.timed_preset_end_time == NOW_TZ + timedelta(minutes=70)
+    assert entity.target_temperature == 24
+
+    await expire_override(entity, 71)
+    assert entity.preset_mode == VThermPreset.COMFORT
+    entity.remove_thermostat()
+
+
+@pytest.mark.parametrize("expected_lingering_tasks", [True])
+@pytest.mark.parametrize("expected_lingering_timers", [True])
+async def test_override_during_timed_preset_resumes(hass: HomeAssistant, skip_hass_states_is_state, fake_underlying_switch):
+    """Case 3a end to end: the manual change applies during a timed boost, then boost resumes"""
+    entity = await setup_vtherm_in_comfort(hass, OVERRIDE_60)
+    await entity.service_set_timed_preset("boost", 120)
+    assert entity.preset_mode == VThermPreset.BOOST
+    assert entity.target_temperature == 21
+
+    entity._set_now(NOW_TZ + timedelta(minutes=10))
+    await entity.async_set_temperature(temperature=23)
+    # Before this feature, a manual change during a timed preset was ignored
+    assert entity.preset_mode == VThermPreset.NONE
+    assert entity.target_temperature == 23
+
+    await expire_override(entity, 71)
+    assert entity.preset_mode == VThermPreset.BOOST
+    assert entity.target_temperature == 21
+
+    await expire_override(entity, 121)
+    assert entity.preset_mode == VThermPreset.COMFORT
+    assert entity.target_temperature == 19
+    entity.remove_thermostat()
+
+
+@pytest.mark.parametrize("expected_lingering_tasks", [True])
+@pytest.mark.parametrize("expected_lingering_timers", [True])
+async def test_override_expires_during_window_open(hass: HomeAssistant, skip_hass_states_is_state, fake_underlying_switch):
+    """Review focus 2: the override expires while the window is open, the window keeps precedence"""
+    entity = await setup_vtherm_in_comfort(
+        hass,
+        OVERRIDE_60
+        | {
+            CONF_USE_WINDOW_FEATURE: True,
+            CONF_WINDOW_SENSOR: "binary_sensor.mock_window_sensor",
+            CONF_WINDOW_DELAY: 0,
+            CONF_WINDOW_ACTION: CONF_WINDOW_ECO_TEMP,
+        },
+    )
+    await entity.async_set_temperature(temperature=23)
+    assert entity.target_temperature == 23
+
+    with patch("homeassistant.helpers.condition.state", return_value=True):
+        try_function = await send_window_change_event(entity, True, False, NOW_TZ, sleep=False)
+        await try_function(None)
+    assert entity.window_state == STATE_ON
+    assert entity.target_temperature == 17
+
+    await expire_override(entity, 61)
+    assert entity.requested_state.preset == VThermPreset.COMFORT
+    assert entity.target_temperature == 17
+
+    with patch("homeassistant.helpers.condition.state", return_value=True):
+        try_function = await send_window_change_event(entity, False, True, NOW_TZ + timedelta(minutes=62), sleep=False)
+        await try_function(None)
+    assert entity.window_state == STATE_OFF
+    assert entity.preset_mode == VThermPreset.COMFORT
+    assert entity.target_temperature == 19
+    entity.remove_thermostat()
+
+
+@pytest.mark.parametrize("expected_lingering_tasks", [True])
+@pytest.mark.parametrize("expected_lingering_timers", [True])
+async def test_over_climate_follow_underlying_starts_override_and_echo_ignored(hass: HomeAssistant, skip_hass_states_is_state, skip_turn_on_off_heater, skip_send_event):
+    """Review focus 4: a TRV setpoint change starts the override, the TRV echo after the revert does not start a new one"""
+    temps = {VThermPreset.FROST: 7, VThermPreset.ECO: 16, VThermPreset.COMFORT: 17, VThermPreset.BOOST: 18}
+    entry = MockConfigEntry(
+        domain=DOMAIN,
+        title="TheOverClimateMockName",
+        unique_id="uniqueId",
+        data=PARTIAL_CLIMATE_NOT_REGULATED_CONFIG | OVERRIDE_60,
+    )
+    await create_and_register_mock_climate(hass, "mock_climate", "MockClimateName", {}, hvac_mode=VThermHvacMode_HEAT, hvac_action=HVACAction.OFF)
+
+    with patch("custom_components.versatile_thermostat.underlyings.UnderlyingClimate.set_hvac_mode"):
+        entity = await create_thermostat(hass, entry, "climate.theoverclimatemockname", temps)
+        assert entity
+        entity._set_now(NOW_TZ)
+        entity.set_follow_underlying_temp_change(True)
+
+        await entity.async_set_hvac_mode(VThermHvacMode_HEAT)
+        await entity.async_set_preset_mode(VThermPreset.COMFORT)
+        assert entity.target_temperature == 17
+
+        # The TRV acknowledges the heat mode and the comfort setpoint (inside the echo filter, ignored)
+        await send_climate_change_event_with_temperature(
+            entity, VThermHvacMode_HEAT, VThermHvacMode_HEAT, HVACAction.OFF, HVACAction.OFF, NOW_TZ, 17, True, "climate.mock_climate"
+        )
+        assert entity.preset_mode == VThermPreset.COMFORT
+
+        # The TRV knob is turned 11 s later (outside the echo filter)
+        await send_climate_change_event_with_temperature(
+            entity, VThermHvacMode_HEAT, VThermHvacMode_HEAT, HVACAction.OFF, HVACAction.OFF, NOW_TZ + timedelta(seconds=11), 21, True, "climate.mock_climate"
+        )
+        assert entity.target_temperature == 21
+        assert entity.preset_mode == VThermPreset.NONE
+        assert entity.timed_preset_manager.is_manual_override is True
+
+        # The override expires: back to comfort, the setpoint is sent to the TRV
+        await expire_override(entity, 61)
+        assert entity.preset_mode == VThermPreset.COMFORT
+        assert entity.target_temperature == 17
+
+        # The TRV echoes the new setpoint within the echo filter window: no new override
+        await send_climate_change_event_with_temperature(
+            entity, VThermHvacMode_HEAT, VThermHvacMode_HEAT, HVACAction.OFF, HVACAction.OFF, NOW_TZ + timedelta(minutes=61, seconds=2), 17, True, "climate.mock_climate"
+        )
+        assert entity.preset_mode == VThermPreset.COMFORT
+        assert entity.timed_preset_manager.is_timed_preset_active is False
+
+    entity.remove_thermostat()

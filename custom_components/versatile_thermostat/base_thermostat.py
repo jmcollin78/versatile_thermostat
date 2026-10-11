@@ -1614,6 +1614,9 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
 
             return
 
+        # A preset selected during a manual override cancels it: the selected preset applies
+        self._timed_preset_manager.cancel_manual_override_without_revert()
+
         await self.async_set_preset_mode_internal(vtherm_preset_mode)  # overwrite_saved_preset=overwrite_saved_preset)
         await self.update_states(force=True)
 
@@ -1644,7 +1647,14 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
         if temperature is None:
             return
 
+        # The previous preset must be read before the requested state is changed
+        previous_preset = self._state_manager.requested_state.preset
         self._state_manager.requested_state.set_target_temperature(temperature)
+
+        # With a manual override duration, revert to the previous preset later (issue #1875)
+        if await self._timed_preset_manager.start_manual_override(previous_preset):
+            return
+
         self._state_manager.requested_state.set_preset(VThermPreset.NONE)
         await self.update_states(force=True)
 
