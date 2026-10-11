@@ -176,6 +176,10 @@ class CycleScheduler:
         retained = resolver(self._thermostat, requested, force=force)
         return max(0.0, min(1.0, float(retained)))
 
+    def _is_control_withdrawn(self) -> bool:
+        """Issue #2087 - True if an inhibition withdraws the thermostat control"""
+        return getattr(self._thermostat, "is_inhibition_withdrawn", False) is True
+
     def register_cycle_start_callback(self, callback: Callable):
         """Register a callback to be called at the start of each master cycle.
 
@@ -250,6 +254,10 @@ class CycleScheduler:
             force: If True, cancel any running cycle and restart immediately.
             _from_cycle_end: Internal flag — True when called from _on_master_cycle_end.
         """
+        if self._is_control_withdrawn():
+            _LOGGER.debug("%s - Cycle not started: control withdrawn by inhibition", self._thermostat)
+            return
+
         if self._is_valve_mode:
             on_percent = self._resolve_valve_on_percent(on_percent, force=force)
 
@@ -362,7 +370,7 @@ class CycleScheduler:
         on_percent: float,
     ) -> None:
         """Apply a deferred valve recompute without running a full control cycle."""
-        if not self._is_valve_mode:
+        if not self._is_valve_mode or self._is_control_withdrawn():
             return
 
         on_percent = self._resolve_valve_on_percent(on_percent)

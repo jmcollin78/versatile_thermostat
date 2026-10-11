@@ -163,6 +163,32 @@ class VersatileThermostatAPI(VThermAPI):
                     entity.requested_state.force_changed()  # pyright: ignore[reportAttributeAccessIssue]
                     await entity.update_states(True)  # pyright: ignore[reportAttributeAccessIssue]
 
+    def register_inhibition_provider_factory(self, factory) -> None:
+        """Register an inhibition provider factory (issue #2087) and attach it to
+        the already started VTherms (late plugin)"""
+        super().register_inhibition_provider_factory(factory)
+        self._notify_inhibition_factories_changed(None)
+
+    def unregister_inhibition_provider_factory(self, name: str) -> None:
+        """Unregister an inhibition provider factory (issue #2087). The VTherms
+        using it are withdrawn (UNKNOWN) until a provider confirms INACTIVE"""
+        registered = self.get_inhibition_provider_factory((name or "").strip()) is not None
+        super().unregister_inhibition_provider_factory(name)
+        if registered:
+            self._notify_inhibition_factories_changed((name or "").strip())
+
+    def _notify_inhibition_factories_changed(self, unregistered_name: str | None):
+        """Notify all VTherms that the inhibition factories have changed"""
+        hass = self.hass
+        if hass is None:
+            return
+        component: EntityComponent[ClimateEntity] = hass.data.get(CLIMATE_DOMAIN, None)
+        if not component:
+            return
+        for entity in list(component.entities):
+            if entity.device_info and entity.device_info.get("model", None) == DOMAIN and hasattr(entity, "async_on_inhibition_factories_changed"):
+                hass.async_create_task(entity.async_on_inhibition_factories_changed(unregistered_name))  # pyright: ignore[reportAttributeAccessIssue]
+
     def register_central_mode_select(self, central_mode_select):
         """Register the select entity which holds the central_mode"""
         self._central_mode_select = central_mode_select

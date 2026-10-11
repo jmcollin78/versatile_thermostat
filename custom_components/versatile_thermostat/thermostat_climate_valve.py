@@ -311,6 +311,11 @@ class ThermostatOverClimateValve(ThermostatProp[UnderlyingClimate], ThermostatOv
         #    _LOGGER.debug("%s - don't send regulated temperature cause VTherm is off ", self)
         #    return
 
+        if self.is_inhibition_withdrawn:
+            # Issue #2087 - nothing is sent to the climates nor the valves while the control is withdrawn
+            _LOGGER.debug("%s - don't send regulated temperature cause the control is withdrawn by inhibition", self)
+            return
+
         if self.target_temperature is None:
             _LOGGER.warning(
                 "%s - don't send regulated temperature cause VTherm target_temp (%s) is None. This should be a temporary warning message.",
@@ -520,6 +525,10 @@ class ThermostatOverClimateValve(ThermostatProp[UnderlyingClimate], ThermostatOv
             return {"message": "thermostat locked"}
 
         write_event_log(_LOGGER, self, f"Calling SERVICE_RECALIBRATE_VALVES delay_seconds={delay_seconds}")
+
+        # Issue #2087 - the recalibration drives the underlyings directly
+        if self.is_inhibition_withdrawn:
+            raise ServiceValidationError(f"{self} - The valves cannot be recalibrated while the VTherm control is withdrawn by an inhibition")
 
         # Validate underlyings synchronously before launching background task
         if not self._underlyings_valve_regulation:

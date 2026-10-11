@@ -71,6 +71,7 @@ from .feature_timed_preset_manager import FeatureTimedPresetManager
 from .feature_heating_failure_detection_manager import FeatureHeatingFailureDetectionManager
 from .feature_repair_incorrect_state_manager import FeatureRepairIncorrectStateManager
 from .feature_humidity_manager import FeatureHumidityManager
+from .inhibition_manager import InhibitionManager, ATTR_INHIBITION
 from .state_manager import StateManager
 from .vtherm_state import VThermState
 from .vtherm_preset import VThermPreset, HIDDEN_PRESETS, PRESET_AC_SUFFIX
@@ -247,6 +248,10 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
 
         self._cancel_recalculate_later: Callable[[], None] | None = None
 
+        # Issue #2087 - controlled withdrawal requested by an inhibition plugin.
+        # Not a feature manager: its lifecycle is driven explicitly.
+        self._inhibition: InhibitionManager = InhibitionManager(self)
+
         self.post_init(entry_infos)
 
     def register_manager(self, manager: BaseFeatureManager):
@@ -379,6 +384,10 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
         # already registered at this point. Late-registered plugins are handled
         # by a retry in async_startup.
         self._load_external_feature_managers()
+
+        # Attach the inhibition provider of an already registered plugin,
+        # without starting it. Late plugins are handled in async_startup.
+        self._inhibition.discover()
 
         self._use_central_config_temperature = entry_infos.get(
             CONF_USE_PRESETS_CENTRAL_CONFIG
@@ -526,6 +535,8 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
         for manager in self._managers:
             manager.stop_listening()
 
+        self._inhibition.stop()
+
         for under in self._underlyings:
             under.remove_entity()
 
@@ -565,12 +576,18 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
         # core and the plugin is not guaranteed). Newly created managers are
         # then started in the loop below.
         self._load_external_feature_managers()
+        self._inhibition.discover()
 
         # start listening for all managers
         for manager in self._managers:
             await manager.start_listening()
 
         await self.get_my_previous_state()
+
+        # Start the inhibition provider once the previous withdrawal has been
+        # restored, and reconcile it with the provider initial status. Nothing
+        # is sent to the underlyings before the VTherm is ready.
+        await self._inhibition.async_start()
 
         # Start underlyings and register cycle callbacks on the scheduler
         for under in self._underlyings:
@@ -661,6 +678,9 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
         await self.update_states(force=True)
         self._persist_energy_unit_if_needed()
         self.recalculate()
+
+        # Complete an inhibition entry deferred until the underlyings are ready
+        await self._inhibition.async_on_vtherm_ready()
 
         # check initial state should be done after the current state has been calculated and so after the manager has been updated
         # issue 1654 - initial state check should be done after the underlyings has come to life
@@ -800,6 +820,9 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
                 self,
                 self._total_energy,
             )
+
+        # Restore the inhibition withdrawal before the first reconciliation
+        self._inhibition.restore_state(old_state)
 
         if not self.is_on and self.hvac_off_reason is None:
             self.set_hvac_off_reason(HVAC_OFF_REASON_MANUAL)
@@ -1195,6 +1218,20 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
     def repair_incorrect_state_manager(self) -> FeatureRepairIncorrectStateManager:
         """Get the repair incorrect state manager"""
         return self._repair_incorrect_state_manager
+
+    @property
+    def inhibition_manager(self) -> InhibitionManager:
+        """Get the inhibition runtime (issue #2087)"""
+        return self._inhibition
+
+    @property
+    def is_inhibition_withdrawn(self) -> bool:
+        """True while an inhibition provider withdraws the VTherm control
+        (confirmed ACTIVE or attached provider UNKNOWN). In that case the
+        VTherm sends no command to its underlyings."""
+        # getattr: some callers use a partially built instance (no __init__)
+        inhibition: InhibitionManager | None = getattr(self, "_inhibition", None)
+        return inhibition is not None and inhibition.is_withdrawn
 
     @property
     def current_state(self) -> VThermState | None:
@@ -1750,9 +1787,14 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
                 # Apply hvac_mode
                 if self._state_manager.current_state.is_hvac_mode_changed:
                     _LOGGER.info("%s - Applying new hvac mode: %s", self, self.vtherm_hvac_mode)
-                    # Delegate to all underlying
-                    for under in self._underlyings:
-                        sub_need_control_heating = await under.set_hvac_mode(self.vtherm_hvac_mode) or sub_need_control_heating
+                    if self.is_inhibition_withdrawn:
+                        # Issue #2087 - the control is withdrawn: the single entry stop
+                        # is sent by the inhibition runtime, nothing else is sent here
+                        _LOGGER.info("%s - Control withdrawn by inhibition. The hvac mode is not sent to the underlyings", self)
+                    else:
+                        # Delegate to all underlying
+                        for under in self._underlyings:
+                            sub_need_control_heating = await under.set_hvac_mode(self.vtherm_hvac_mode) or sub_need_control_heating
                     self._attr_hvac_mode = to_legacy_ha_hvac_mode(self.vtherm_hvac_mode)
                     self.send_event(EventType.HVAC_MODE_EVENT, {"hvac_mode": str(self.vtherm_hvac_mode)})
                     # Remove eventual overpowering if we want to turn-off
@@ -1805,6 +1847,16 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
         if self._safety_manager.is_safety_detected and self.is_over_climate:
             _LOGGER.debug("%s - End of cycle (safety and over climate)", self)
 
+            return True
+
+        if self.is_inhibition_withdrawn:
+            # Issue #2087 - no regulation, TPI, scheduler, acting plugin refresh nor
+            # repair while the control is withdrawn: a direct command sent to an
+            # underlying by the user or another integration is never overwritten.
+            _LOGGER.debug("%s - End of cycle (control withdrawn by inhibition)", self)
+            self.calculate_hvac_action()
+            self.update_custom_attributes()
+            self.async_write_ha_state()
             return True
 
         previous_hvac_action = self.hvac_action
@@ -1969,6 +2021,26 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
 
         for under in self._underlyings:
             await under.turn_off()
+
+    async def async_inhibition_suspend_control(self):
+        """Issue #2087 - stop the VTherm own activity on inhibition entry without
+        sending any command: cancel the running cycle and the delayed recalculation"""
+        self.stop_recalculate_later()
+        if self._cycle_scheduler:
+            await self._cycle_scheduler.cancel_cycle()
+
+    async def async_inhibition_physical_stop(self):
+        """Issue #2087 - the single physical stop sent on inhibition entry when the
+        policy is TURN_OFF. Can be overridden when the underlyings have no turn_off"""
+        await self.async_underlying_entity_turn_off()
+
+    async def async_on_inhibition_factories_changed(self, unregistered_name: str | None = None):
+        """Issue #2087 - called by the VTherm API when an inhibition factory is
+        registered (late plugin) or unregistered (plugin unload)"""
+        if unregistered_name is not None:
+            await self._inhibition.async_on_factory_unregistered(unregistered_name)
+        else:
+            await self._inhibition.async_on_factories_changed()
 
     def set_hvac_off_reason(self, hvac_off_reason: str | None):
         """Set the reason of hvac_off"""
@@ -2138,6 +2210,11 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
             )
 
         self._state_manager.add_custom_attributes(self._attr_extra_state_attributes)
+
+        # Issue #2087 - published only when an inhibition provider is attached,
+        # so that a VTherm without provider keeps its historic attributes
+        if self._inhibition.is_attached:
+            self._attr_extra_state_attributes["specific_states"][ATTR_INHIBITION] = self._inhibition.as_dict()
 
         for manager in self._managers:
             # add_custom_attributes is optional for external feature managers
