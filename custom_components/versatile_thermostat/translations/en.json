@@ -254,6 +254,7 @@
                     "safety_min_on_percent": "Minimum power percent to enable safety mode",
                     "safety_default_on_percent": "Power percent to use in safety mode",
                     "repair_incorrect_state": "Repair incorrect state",
+                    "manual_override_duration_min": "Manual override duration (min)",
                     "use_advanced_central_config": "Use central advanced configuration"
                 },
                 "data_description": {
@@ -261,6 +262,7 @@
                     "safety_min_on_percent": "Minimum heating percent value for safety preset activation. Below this amount of power percent the thermostat won't go into safety preset",
                     "safety_default_on_percent": "The default heating power percent value in safety preset. Set to 0 to switch off heater in safety preset",
                     "repair_incorrect_state": "Automatically repair incorrect state of underlying entities when detected. The feature will re-send the desired command if the underlying device state doesn't match the expected state.",
+                    "manual_override_duration_min": "After a manual temperature change, the VTherm reverts to the previous preset after this duration (in minutes). 0 disables the feature.",
                     "use_advanced_central_config": "Check to use the central advanced configuration. Uncheck to use a specific advanced configuration for this VTherm"
                 }
             },
@@ -666,6 +668,7 @@
                     "safety_min_on_percent": "Minimum power percent to enable safety mode",
                     "safety_default_on_percent": "Power percent to use in safety mode",
                     "repair_incorrect_state": "Repair incorrect state",
+                    "manual_override_duration_min": "Manual override duration (min)",
                     "use_advanced_central_config": "Use central advanced configuration"
                 },
                 "data_description": {
@@ -675,6 +678,7 @@
                     "safety_min_on_percent": "Minimum heating percent value for safety preset activation. Below this amount of power percent the thermostat won't go into safety preset",
                     "safety_default_on_percent": "The default heating power percent value in safety preset. Set to 0 to switch off heater in safety preset",
                     "repair_incorrect_state": "Automatically repair incorrect state of underlying entities when detected. The feature will re-send the desired command if the underlying device state doesn't match the expected state.",
+                    "manual_override_duration_min": "After a manual temperature change, the VTherm reverts to the previous preset after this duration (in minutes). 0 disables the feature.",
                     "use_advanced_central_config": "Check to use the central advanced configuration. Uncheck to use a specific advanced configuration for this VTherm"
                 }
             },

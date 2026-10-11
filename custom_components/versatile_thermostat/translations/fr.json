@@ -255,6 +255,7 @@
           "safety_min_on_percent": "Pourcentage minimal de puissance",
           "safety_default_on_percent": "Pourcentage de puissance a utiliser en mode securité",
           "repair_incorrect_state": "Réparer l'état incorrect",
+          "manual_override_duration_min": "Durée de la dérogation manuelle (min)",
           "use_advanced_central_config": "Utiliser la configuration centrale avancée"
         },
         "data_description": {
@@ -262,6 +263,7 @@
           "safety_min_on_percent": "Seuil minimal de pourcentage de chauffage en-dessous duquel le préréglage sécurité ne sera jamais activé",
           "safety_default_on_percent": "Valeur par défaut pour le pourcentage de chauffage en mode sécurité. Mettre 0 pour éteindre le radiateur en mode sécurité",
           "repair_incorrect_state": "Réparer automatiquement l'état incorrect des entités sous-jacentes lorsqu'elles sont détectées. La fonction renverra la commande souhaitée si l'état du dispositif sous-jacent ne correspond pas à l'état attendu.",
+          "manual_override_duration_min": "Après un changement manuel de température, le VTherm revient au preset précédent après cette durée (en minutes). 0 désactive la fonction.",
           "use_advanced_central_config": "Cochez pour utiliser la configuration centrale avancée. Décochez et saisissez les attributs pour utiliser une configuration spécifique avancée"
         }
       },
@@ -668,6 +670,7 @@
           "safety_min_on_percent": "Pourcentage minimal de puissance",
           "safety_default_on_percent": "Pourcentage de puissance a utiliser en mode securité",
           "repair_incorrect_state": "Réparer l'état incorrect",
+          "manual_override_duration_min": "Durée de la dérogation manuelle (min)",
           "use_advanced_central_config": "Utiliser la configuration centrale avancée"
         },
         "data_description": {
@@ -677,6 +680,7 @@
           "safety_min_on_percent": "Seuil minimal de pourcentage de chauffage en-dessous duquel le préréglage sécurité ne sera jamais activé",
           "safety_default_on_percent": "Valeur par défaut pour le pourcentage de chauffage en mode sécurité. Mettre 0 pour éteindre le radiateur en mode sécurité",
           "repair_incorrect_state": "Réparer automatiquement l'état incorrect des entités sous-jacentes lorsqu'elles sont détectées. La fonction renverra la commande souhaitée si l'état du dispositif sous-jacent ne correspond pas à l'état attendu.",
+          "manual_override_duration_min": "Après un changement manuel de température, le VTherm revient au preset précédent après cette durée (en minutes). 0 désactive la fonction.",
           "use_advanced_central_config": "Cochez pour utiliser la configuration centrale avancée. Décochez et saisissez les attributs pour utiliser une configuration spécifique avancée"
         }
       },

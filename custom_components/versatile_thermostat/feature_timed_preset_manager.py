@@ -46,12 +46,14 @@ class FeatureTimedPresetManager(BaseFeatureManager):
         self._original_preset: VThermPreset | None = None
         self._timed_preset_end_time: datetime | None = None
         self._cancel_timer: Any | None = None
+        self._manual_override_duration_min: int = 0
 
     @overrides
     def post_init(self, entry_infos: ConfigData):
         """Reinit of the manager"""
         # The timed preset feature is always available, no configuration needed
-        pass
+        # The manual override duration comes from the advanced configuration (0 = disabled)
+        self._manual_override_duration_min = int(entry_infos.get(CONF_MANUAL_OVERRIDE_DURATION_MIN) or 0)
 
     @overrides
     async def start_listening(self):
@@ -285,6 +287,11 @@ class FeatureTimedPresetManager(BaseFeatureManager):
         remaining = self._timed_preset_end_time - self._vtherm.now
         remaining_minutes = remaining.total_seconds() / 60
         return max(0, round(remaining_minutes))
+
+    @property
+    def manual_override_duration_min(self) -> int:
+        """Return the manual override duration in minutes (0 = disabled)."""
+        return self._manual_override_duration_min
 
     @property
     def is_timed_preset_active(self) -> bool:

@@ -254,6 +254,7 @@
                     "safety_min_on_percent": "Percentuale minima di potenza per attivare la modalità di sicurezza",
                     "safety_default_on_percent": "Percentuale di potenza da utilizzare in modalità di sicurezza",
                     "repair_incorrect_state": "Ripara lo stato errato",
+                    "manual_override_duration_min": "Durata della modifica manuale (min)",
                     "use_advanced_central_config": "Utilizza la configurazione avanzata centrale"
                 },
                 "data_description": {
@@ -261,6 +262,7 @@
                     "safety_min_on_percent": "Valore minimo percentuale di riscaldamento per l'attivazione della preimpostazione di sicurezza. Al di sotto di tale percentuale di potenza, il termostato non entrerà nella preimpostazione di sicurezza",
                     "safety_default_on_percent": "Valore percentuale predefinito della potenza di riscaldamento nell'impostazione di sicurezza. Impostare su 0 per spegnere il riscaldatore nell'impostazione di sicurezza.",
                     "repair_incorrect_state": "Ripara automaticamente lo stato errato delle entità sottostanti quando rilevato. La funzione reinvierà il comando desiderato se lo stato del dispositivo sottostante non corrisponde allo stato previsto.",
+                    "manual_override_duration_min": "Dopo una modifica manuale della temperatura, il VTherm torna al preset precedente dopo questa durata (in minuti). 0 disattiva la funzione.",
                     "use_advanced_central_config": "Selezionare per utilizzare la configurazione avanzata centrale. Deselezionare per utilizzare una configurazione avanzata specifica per questo VTherm."
                 }
             },
@@ -654,6 +656,7 @@
                     "safety_min_on_percent": "Percentuale minima di potenza per attivare la modalità di sicurezza",
                     "safety_default_on_percent": "Percentuale di potenza da utilizzare in modalità di sicurezza",
                     "repair_incorrect_state": "Ripara lo stato non corretto",
+                    "manual_override_duration_min": "Durata della modifica manuale (min)",
                     "use_advanced_central_config": "Utilizza la configurazione avanzata centrale"
                 },
                 "data_description": {
@@ -663,6 +666,7 @@
                     "safety_min_on_percent": "Valore minimo percentuale di riscaldamento per l'attivazione della preimpostazione di sicurezza. Al di sotto di tale percentuale di potenza, il termostato non entrerà nella preimpostazione di sicurezza",
                     "safety_default_on_percent": "Valore percentuale predefinito della potenza di riscaldamento nell'impostazione di sicurezza. Impostare su 0 per spegnere il riscaldatore nell'impostazione di sicurezza",
                     "repair_incorrect_state": "Ripara automaticamente lo stato non corretto delle entità sottostanti quando rilevato. La funzione invia nuovamente il comando desiderato se lo stato del dispositivo sottostante non corrisponde allo stato previsto.",
+                    "manual_override_duration_min": "Dopo una modifica manuale della temperatura, il VTherm torna al preset precedente dopo questa durata (in minuti). 0 disattiva la funzione.",
                     "use_advanced_central_config": "Selezionare per utilizzare la configurazione avanzata centrale. Deselezionare per utilizzare una configurazione avanzata specifica per questo VTherm"
                 }
             },

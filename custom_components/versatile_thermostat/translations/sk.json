@@ -253,6 +253,7 @@
           "safety_min_on_percent": "Minimálne percento výkonu na aktiváciu bezpečnostného režimu",
           "safety_default_on_percent": "Percento výkonu na použitie v bezpečnostnom režime",
           "repair_incorrect_state": "Opraviť nesprávny stav",
+          "manual_override_duration_min": "Trvanie ručného prepísania (min)",
           "use_advanced_central_config": "Použite centrálnu rozšírenú konfiguráciu"
         },
         "data_description": {
@@ -261,6 +262,7 @@
           "safety_min_on_percent": "Minimálna percentuálna hodnota ohrevu pre aktiváciu prednastavenej bezpečnosti. Pod týmto percentom výkonu termostat neprejde do prednastavenia zabezpečenia",
           "safety_default_on_percent": "Predvolená percentuálna hodnota vykurovacieho výkonu v bezpečnostnej predvoľbe. Nastavte na 0, ak chcete vypnúť ohrievač v zabezpečenom stave",
           "repair_incorrect_state": "Automaticky opraviť nesprávny stav základných zariadení pri detekcií. Funkcia znovu pošle požadovaný príkaz, ak stav základného zariadenia nezodpovedá očakávanému stavu.",
+          "manual_override_duration_min": "Po ručnej zmene teploty sa VTherm po uplynutí tohto času (v minútach) vráti k predchádzajúcej predvoľbe. 0 funkciu vypne.",
           "use_advanced_central_config": "Začiarknite, ak chcete použiť centrálnu rozšírenú konfiguráciu. Zrušte začiarknutie, ak chcete použiť špecifickú rozšírenú konfiguráciu pre tento VTherm"
         }
       },
@@ -598,6 +600,7 @@
           "safety_min_on_percent": "Minimálne percento výkonu pre bezpečnostný režim",
           "safety_default_on_percent": "Percento výkonu na použitie v bezpečnostnom režime",
           "repair_incorrect_state": "Opraviť nesprávny stav",
+          "manual_override_duration_min": "Trvanie ručného prepísania (min)",
           "use_advanced_central_config": "Použite centrálnu rozšírenú konfiguráciu"
         },
         "data_description": {
@@ -606,6 +609,7 @@
           "safety_min_on_percent": "Minimálna percentuálna hodnota ohrevu pre aktiváciu prednastavenej bezpečnosti. Pod týmto percentom výkonu termostat neprejde do prednastavenia zabezpečenia",
           "safety_default_on_percent": "Predvolená percentuálna hodnota vykurovacieho výkonu v bezpečnostnej predvoľbe. Nastavte na 0, ak chcete vypnúť ohrievač v zabezpečenom stave",
           "repair_incorrect_state": "Automaticky opraviť nesprávny stav základných zariadení pri detekcií. Funkcia znovu pošle požadovaný príkaz, ak stav základného zariadenia nezodpovedá očakávanému stavu.",
+          "manual_override_duration_min": "Po ručnej zmene teploty sa VTherm po uplynutí tohto času (v minútach) vráti k predchádzajúcej predvoľbe. 0 funkciu vypne.",
           "use_advanced_central_config": "Začiarknite, ak chcete použiť centrálnu rozšírenú konfiguráciu. Zrušte začiarknutie, ak chcete použiť špecifickú rozšírenú konfiguráciu pre tento VTherm"
         }
       },
