@@ -903,6 +903,58 @@ Features are composed rather than inherited:
    - `is_configured` - Check if enabled
 3. Register in `BaseThermostat.post_init()`
 
+### Adding an Inhibition Provider (plugin, issue #2087)
+
+An inhibition plugin tells the core when a VTherm must withdraw its control of
+the underlyings (another heat source is running, an AC is already cooling, a
+manual takeover...). The contract is in `vtherm_api.inhibition` (`vtherm_api>=0.6.0`);
+the core side is `InhibitionManager` (`inhibition_manager.py`). Normative
+behavior: [specification](../specs/issue-2087-inhibition-spec.md) and
+[design](issue-2087-inhibition-design.md).
+
+1. Register a factory: `VThermAPI.get_vtherm_api(hass).register_inhibition_provider_factory(factory)`.
+   The name must be unique (a duplicate raises `ValueError`). Registration order
+   matters: for one VTherm, the first registered factory whose `supports()` returns
+   `True` is attached; a later eligible factory is rejected and logged as a conflict
+   naming both providers (`specific_states.inhibition.rejected_providers`).
+2. `supports(thermostat)` must be pure and synchronous. It is called during the
+   VTherm `post_init()` (the merged configuration `thermostat.entry_infos` and the
+   type properties such as `is_over_climate` are available, the underlyings may not
+   be built yet), again in `async_startup()`, and when a factory is registered after
+   the startup. An exception is not treated as `False`: the factory takes the slot
+   with an `UNKNOWN` status (`last_error_code: supports_failed`).
+3. `create(thermostat)` returns the provider bound to that VTherm. The core then
+   calls, in this order: `post_init(entry_infos)` (merged VTherm configuration,
+   central configuration included), `restore_state(old_state)` (the previous HA
+   `State` of the climate entity, at startup only),
+   `register_transition_callback(callback)`, `async_start_listening()` and
+   `async_refresh_state()` (initial confirmed status). A late provider follows the
+   same path, without `restore_state`.
+4. Report only **confirmed** statuses (`ACTIVE`, `INACTIVE`, `UNKNOWN`), after the
+   plugin delays: return them from `async_refresh_state()` and notify each change
+   by awaiting the registered callbacks with an `InhibitionTransition`
+   (`provider_name` = factory name, monotonic `sequence`; a replayed or older
+   sequence is ignored, `0` disables the check). Same-status notifications are
+   harmless.
+5. `physical_stop_policy` is `TURN_OFF` (default, also used for an invalid value)
+   or `DO_NOT_TURN_OFF`. The core captures it on entry and keeps it until the exit.
+6. While the provider is `ACTIVE`, or `UNKNOWN`, the VTherm resolves `OFF`
+   (`hvac_off_reason` / `hvac_mode_reason` = `hvac_off_inhibition`), sends a single
+   physical stop only with `TURN_OFF`, and sends nothing else to its underlyings
+   (no regulation, TPI cycle, keep-alive, repair). Requested hvac mode, preset and
+   setpoint keep being recorded. Only a confirmed `INACTIVE` resumes, once, with the
+   current requested state. The provider never commands the VTherm nor the
+   underlyings.
+7. On unload, `stop_listening()` (synchronous) must report `UNKNOWN` to the
+   callbacks before detaching them (for example with `hass.async_create_task`),
+   then the plugin unregisters its factory. The VTherms keep the withdrawal until a
+   (reloaded) provider confirms `INACTIVE`. The core calls `stop_listening()` itself
+   when the VTherm is removed and ignores later callbacks.
+
+The core state is published and restored under `specific_states.inhibition`
+(`schema_version: 1`) only when a provider is attached. A VTherm without an
+eligible factory behaves exactly as before.
+
 ### Adding a New Underlying Type
 
 1. Create class inheriting from `UnderlyingEntity`
@@ -929,9 +981,10 @@ Features are composed rather than inherited:
 ### State Priority
 The `StateManager` applies features in priority order to compute the effective state:
 1. Safety constraints (highest)
-2. Physical constraints (window)
-3. Automation features (auto-start)
-4. User requests (lowest)
+2. Inhibition withdrawal (an inhibition provider plugin, always `OFF`)
+3. Physical constraints (window)
+4. Automation features (auto-start)
+5. User requests (lowest)
 
 This ensures safety and energy saving override user commands when necessary.
 
