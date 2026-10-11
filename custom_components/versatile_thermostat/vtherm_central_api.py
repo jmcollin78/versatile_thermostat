@@ -227,6 +227,14 @@ class VersatileThermostatAPI(VThermAPI):
             _LOGGER.debug("No more entries-> Remove the API from DOMAIN")
             if DOMAIN in self.hass.data:
                 self.hass.data.pop(DOMAIN)
+            # Issue #2087 - the inhibition factories are registered once by the plugins
+            # and must survive the reload of the last VTherm: hand them over to the
+            # new API. Creating it now also keeps a VersatileThermostatAPI (and not a
+            # bare VThermAPI created by a plugin) as the shared instance.
+            factories = self.get_inhibition_provider_factories()
+            new_api = VersatileThermostatAPI.get_vtherm_api(self.hass)
+            for factory in factories:
+                VThermAPI.register_inhibition_provider_factory(new_api, factory)
 
     @property
     def self_regulation_expert(self):

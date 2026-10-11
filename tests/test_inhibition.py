@@ -990,6 +990,40 @@ async def test_late_provider(hass: HomeAssistant, skip_hass_states_is_state, fak
     entity.remove_thermostat()
 
 
+async def test_reload_of_the_last_vtherm_keeps_the_factories(hass: HomeAssistant, skip_hass_states_is_state, fake_underlying_switch: MockSwitch):
+    """The API is rebuilt when the last VTherm entry is unloaded: the inhibition factories
+    registered by the plugins are kept and the reloaded VTherm attaches its provider again"""
+    factory = FakeInhibitionFactory(status=InhibitionStatus.ACTIVE)
+    old_api = register_factories(hass, factory)
+    entry = switch_entry()
+
+    with spy_switch_commands() as spies:
+        entity = await create_heating_switch_vtherm(hass, entry)
+        assert entity.is_inhibition_withdrawn is True
+        assert spies.turn_off.call_count == 1
+        reset_spies(spies)
+
+        assert await hass.config_entries.async_reload(entry.entry_id)
+        await hass.async_block_till_done()
+
+        api = VersatileThermostatAPI.get_vtherm_api(hass)
+        assert api is not old_api
+        assert isinstance(api, VersatileThermostatAPI)
+        assert api.get_inhibition_provider_factory("fake_inhibition") is factory
+
+        new_entity = search_entity(hass, SWITCH_ENTITY_ID, CLIMATE_DOMAIN)
+        assert new_entity is not entity
+        assert len(factory.providers) == 2
+        assert new_entity.inhibition_manager.provider is factory.provider
+        assert new_entity.is_inhibition_withdrawn is True
+        assert new_entity.hvac_off_reason == HVAC_OFF_REASON_INHIBITION
+        # the restored withdrawal is kept: no second stop
+        assert spies.turn_off.call_count == 0
+        assert spies.turn_on.call_count == 0
+
+    new_entity.remove_thermostat()
+
+
 ##
 ## Restart (AC-007, AC-008, AC-014)
 ##
