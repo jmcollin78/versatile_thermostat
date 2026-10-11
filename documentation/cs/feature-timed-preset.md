@@ -7,6 +7,7 @@
   - [Zrušení časově omezeného presetu](#zrušení-časově-omezeného-presetu)
   - [Vlastní atributy](#vlastní-atributy)
   - [Události](#události)
+  - [Ruční přepsání s automatickým návratem](#ruční-přepsání-s-automatickým-návratem)
   - [Příklady automatizace](#příklady-automatizace)
 
 ## Účel
@@ -92,6 +93,37 @@ Data události:
 - `timed_preset_preset`: Název časově omezeného presetu
 - `old_preset`: Předchozí preset (před aktivací časově omezeného presetu)
 - `new_preset`: Nový aktivní preset
+
+## Ruční přepsání s automatickým návratem
+
+Když ručně změníte cílovou teplotu, _VTherm_ obvykle přepne na preset `none` a zůstane na něm, dokud znovu nevyberete preset. Pokud je nastavena **doba ručního přepsání**, _VTherm_ se po této době automaticky vrátí.
+
+Doba se nastavuje v pokročilé konfiguraci (`manual_override_duration_min`, v minutách). Lze ji definovat v centrální konfiguraci a přepsat pro jednotlivý _VTherm_. Viz [pokročilá konfigurace](feature-advanced.md#doba-ručního-přepsání). Výchozí hodnota `0` funkci vypíná a chování zůstává beze změny.
+
+Jak to funguje:
+1. Ruční změna cílové teploty (z UI, z automatizace volající `climate.set_temperature` nebo z podkladového zařízení, když je zapnuto `Follow underlying temperature change`) spustí ruční přepsání. Ruční teplota platí okamžitě.
+2. Další ruční změna během přepsání spustí časovač znovu s plnou dobou.
+3. Po vypršení časovače se obnoví preset, který byl aktivní před ruční změnou.
+4. Pokud byl v okamžiku ruční změny aktivní timed preset, po skončení přepsání se obnoví až do svého vlastního času ukončení. Pokud tento čas již uplynul, obnoví se preset, který byl aktivní před timed presetem.
+5. Pokud před ruční změnou nebyl aktivní žádný preset (`none`), přepsání se nespustí.
+
+Ruční přepsání využívá mechanismus timed presetů: zobrazuje se jako timed preset `none` a přežije restart Home Assistant.
+
+> ![Tip](images/tips.png) _*Poznámky*_
+> - Výběr presetu během ručního přepsání ho zruší: platí vybraný preset a později se nic neobnovuje.
+> - Nastavení timed presetu během ručního přepsání ho nahradí.
+> - Zrušení timed presetu během ručního přepsání obnoví preset, který byl aktivní před ruční změnou.
+> - Okno, bezpečnost, odlehčení zátěže a centrální režim si během ručního přepsání zachovávají svou prioritu.
+
+Atributy `timed_preset_manager` obsahují tři další klíče:
+
+| Atribut              | Význam                                                                     |
+| -------------------- | -------------------------------------------------------------------------- |
+| `is_manual_override` | `true`, pokud je aktivní timed preset ruční přepsání                       |
+| `resume_preset`      | Timed preset přerušený ručním přepsáním, obnovený po jeho skončení         |
+| `resume_end_time`    | Datum/čas ukončení přerušeného timed presetu (formát ISO)                  |
+
+Událost `versatile_thermostat_timed_preset_event` obsahuje také pole `manual_override`, které je `true`, když se událost týká ručního přepsání.
 
 ## Příklady automatizace
 

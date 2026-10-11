@@ -13,6 +13,7 @@
   - [Actions disponibles](#actions-disponibles)
   - [Configuration avancée globale](#configuration-avancée-globale)
   - [Conseils pratiques](#conseils-pratiques)
+  - [Durée de dérogation manuelle](#durée-de-dérogation-manuelle)
   - [Réparer l'état incorrect des équipements](#réparer-létat-incorrect-des-équipements)
     - [Pourquoi cette fonctionnalité ?](#pourquoi-cette-fonctionnalité--1)
     - [Cas d'usage](#cas-dusage)
@@ -150,6 +151,16 @@ versatile_thermostat:
    - Le temps écoulé depuis la dernière mise à jour
 
    ![Mode sécurité](images/safety-mode-icon.png).
+
+## Durée de dérogation manuelle
+
+Le paramètre **Durée de dérogation manuelle** (`manual_override_duration_min`, en minutes) permet à _VTherm_ de revenir automatiquement au preset précédent quelque temps après un changement manuel de la température cible. Il est défini dans la configuration centrale et peut être surchargé dans la configuration avancée propre à chaque _VTherm_.
+
+| Paramètre | Description | Valeur par défaut |
+| --- | --- | --- |
+| **Durée de dérogation manuelle** | Durée en minutes au bout de laquelle un changement manuel de température est annulé au profit du preset précédent. `0` désactive la fonction. | 0 |
+
+Voir [dérogation manuelle avec retour automatique](feature-timed-preset.md#dérogation-manuelle-avec-retour-automatique) pour le fonctionnement détaillé.
 
 ## Réparer l'état incorrect des équipements
 

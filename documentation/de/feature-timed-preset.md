@@ -7,6 +7,7 @@
   - [Zeitgesteuerte Voreinstellung abbrechen](#zeitgesteuerte-voreinstellung-abbrechen)
   - [Benutzerdefinierte Attribute](#benutzerdefinierte-attribute)
   - [Ereignisse](#ereignisse)
+  - [Manuelle Übersteuerung mit automatischer Rückkehr](#manuelle-übersteuerung-mit-automatischer-rückkehr)
   - [Automatisierungsbeispiele](#automatisierungsbeispiele)
     - [30-Minuten-Boost bei Ankunft zu Hause](#30-minuten-boost-bei-ankunft-zu-hause)
     - [Benachrichtigung am Ende des Boosts](#benachrichtigung-am-ende-des-boosts)
@@ -95,6 +96,37 @@ Ereignisdaten:
 - `timed_preset_preset`: Der Name des zeitgesteuerten Presets
 - `old_preset`: Das vorherige Preset (vor der Aktivierung des zeitgesteuerten Presets)
 - `new_preset`: Das neue aktive Preset
+
+## Manuelle Übersteuerung mit automatischer Rückkehr
+
+Wenn Sie die Zieltemperatur manuell ändern, wechselt _VTherm_ normalerweise zur Voreinstellung `none` und bleibt dort, bis Sie wieder eine Voreinstellung auswählen. Ist eine **Dauer der manuellen Übersteuerung** konfiguriert, kehrt _VTherm_ nach dieser Dauer automatisch zurück.
+
+Die Dauer wird in der erweiterten Konfiguration festgelegt (`manual_override_duration_min`, in Minuten). Sie kann in der zentralen Konfiguration definiert und pro _VTherm_ überschrieben werden. Siehe [erweiterte Konfiguration](feature-advanced.md#dauer-der-manuellen-übersteuerung). Der Standardwert `0` deaktiviert die Funktion, das Verhalten bleibt dann unverändert.
+
+Funktionsweise:
+1. Eine manuelle Änderung der Zieltemperatur (über die Oberfläche, über eine Automatisierung mit `climate.set_temperature` oder über das zugrunde liegende Gerät, wenn `Follow underlying temperature change` aktiviert ist) startet eine manuelle Übersteuerung. Die manuelle Temperatur gilt sofort.
+2. Eine weitere manuelle Änderung während der Übersteuerung startet den Timer mit der vollen Dauer neu.
+3. Wenn der Timer abläuft, wird die Voreinstellung wiederhergestellt, die vor der manuellen Änderung aktiv war.
+4. War beim manuellen Ändern eine zeitgesteuerte Voreinstellung aktiv, wird sie am Ende der Übersteuerung bis zu ihrer eigenen Endzeit fortgesetzt. Ist diese Endzeit bereits verstrichen, wird die Voreinstellung wiederhergestellt, die vor der zeitgesteuerten Voreinstellung aktiv war.
+5. War vor der manuellen Änderung keine Voreinstellung aktiv (`none`), wird keine Übersteuerung gestartet.
+
+Die manuelle Übersteuerung nutzt den Mechanismus der zeitgesteuerten Voreinstellungen: Sie erscheint als zeitgesteuerte Voreinstellung `none` und übersteht einen Neustart von Home Assistant.
+
+> ![Tipp](images/tips.png) _*Hinweise*_
+> - Die Auswahl einer Voreinstellung während der manuellen Übersteuerung bricht sie ab: Die gewählte Voreinstellung gilt, und später wird nichts zurückgesetzt.
+> - Das Setzen einer zeitgesteuerten Voreinstellung während der manuellen Übersteuerung ersetzt diese.
+> - Das Abbrechen der zeitgesteuerten Voreinstellung während der manuellen Übersteuerung stellt die Voreinstellung wieder her, die vor der manuellen Änderung aktiv war.
+> - Fenster, Sicherheit, Lastabwurf und zentraler Modus behalten während der manuellen Übersteuerung ihre Priorität.
+
+Die Attribute `timed_preset_manager` enthalten drei zusätzliche Schlüssel:
+
+| Attribut             | Bedeutung                                                                          |
+| -------------------- | ---------------------------------------------------------------------------------- |
+| `is_manual_override` | `true`, wenn die aktive zeitgesteuerte Voreinstellung eine manuelle Übersteuerung ist |
+| `resume_preset`      | Die durch die manuelle Übersteuerung unterbrochene zeitgesteuerte Voreinstellung, die an ihrem Ende fortgesetzt wird |
+| `resume_end_time`    | Das Enddatum/-zeitpunkt der unterbrochenen zeitgesteuerten Voreinstellung (ISO-Format) |
+
+Das Ereignis `versatile_thermostat_timed_preset_event` enthält außerdem ein Feld `manual_override`, das auf `true` steht, wenn das Ereignis eine manuelle Übersteuerung betrifft.
 
 ## Automatisierungsbeispiele
 

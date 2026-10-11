@@ -7,6 +7,7 @@
   - [Cancel a timed preset](#cancel-a-timed-preset)
   - [Custom attributes](#custom-attributes)
   - [Events](#events)
+  - [Manual override with automatic revert](#manual-override-with-automatic-revert)
   - [Automation examples](#automation-examples)
     - [30-minute boost when arriving home](#30-minute-boost-when-arriving-home)
     - [Notification at boost end](#notification-at-boost-end)
@@ -95,6 +96,37 @@ Event data:
 - `timed_preset_preset`: The name of the timed preset
 - `old_preset`: The previous preset (before timed preset activation)
 - `new_preset`: The new active preset
+
+## Manual override with automatic revert
+
+When you change the target temperature manually, _VTherm_ normally switches to the `none` preset and stays there until you select a preset again. If a **manual override duration** is configured, _VTherm_ reverts automatically after this duration instead.
+
+The duration is set in the advanced configuration (`manual_override_duration_min`, in minutes). It can be defined in the central configuration and overridden per _VTherm_. See [advanced configuration](feature-advanced.md#manual-override-duration). The default value `0` disables the feature, and the behaviour is then unchanged.
+
+How it works:
+1. A manual change of the target temperature (from the UI, from an automation calling `climate.set_temperature`, or from the underlying device when `Follow underlying temperature change` is enabled) starts a manual override. The manual temperature applies immediately.
+2. Another manual change during the override restarts the timer with the full duration.
+3. When the timer expires, the preset that was active before the manual change is restored.
+4. If a timed preset was active when the manual change happened, it is resumed at the end of the override, until its own end time. If that end time has already passed, the preset that was active before the timed preset is restored.
+5. If no preset was active (`none`) before the manual change, no override is started.
+
+The manual override reuses the timed preset mechanism: it appears as a timed preset of `none` and survives a Home Assistant restart.
+
+> ![Tip](images/tips.png) _*Notes*_
+> - Selecting a preset during the manual override cancels it: the selected preset applies and nothing is reverted later.
+> - Setting a timed preset during the manual override replaces it.
+> - Cancelling the timed preset during the manual override restores the preset that was active before the manual change.
+> - Window, safety, power and central mode keep their priority while the manual override is running.
+
+The `timed_preset_manager` attributes have three additional keys:
+
+| Attribute            | Meaning                                                                        |
+| -------------------- | ------------------------------------------------------------------------------ |
+| `is_manual_override` | `true` if the active timed preset is a manual override                         |
+| `resume_preset`      | The timed preset interrupted by the manual override, resumed at its end        |
+| `resume_end_time`    | The end date/time of the interrupted timed preset (ISO format)                 |
+
+The `versatile_thermostat_timed_preset_event` event also contains a `manual_override` field set to `true` when the event concerns a manual override.
 
 ## Automation examples
 

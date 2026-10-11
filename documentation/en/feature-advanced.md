@@ -13,6 +13,7 @@
   - [Available Actions](#available-actions)
   - [Global Advanced Configuration](#global-advanced-configuration)
   - [Practical Tips](#practical-tips)
+  - [Manual Override Duration](#manual-override-duration)
   - [Fixing Incorrect Equipment State](#fixing-incorrect-equipment-state)
     - [Why this feature?](#why-this-feature-1)
     - [Use cases](#use-cases)
@@ -150,6 +151,16 @@ versatile_thermostat:
    - Time elapsed since last update
 
    ![Safety mode](images/safety-mode-icon.png).
+
+## Manual Override Duration
+
+The **Manual override duration** parameter (`manual_override_duration_min`, in minutes) makes _VTherm_ revert automatically to the previous preset some time after a manual change of the target temperature. It is defined in the central configuration and can be overridden per _VTherm_ in its own advanced configuration.
+
+| Parameter | Description | Default Value |
+| --- | --- | --- |
+| **Manual override duration** | Duration in minutes after which a manual temperature change is reverted to the previous preset. `0` disables the feature. | 0 |
+
+See [manual override with automatic revert](feature-timed-preset.md#manual-override-with-automatic-revert) for the detailed behaviour.
 
 ## Fixing Incorrect Equipment State
 
