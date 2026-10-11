@@ -2030,6 +2030,14 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
                 if not under.is_initialized:
                     not_initialized_entities.extend(under.state_manager.get_uninitialized_entities())
 
+        # Find all underlying entities that became unavailable/unknown after the initialization
+        unavailable_underlying_entities: list[str] = []
+        if self.is_initialized:
+            for under in self._underlyings:
+                unavailable_underlying_entities.extend(under.state_manager.get_uninitialized_entities())
+            if unavailable_underlying_entities:
+                messages.append(MSG_UNDERLYING_UNAVAILABLE)
+
         self._attr_extra_state_attributes: dict[str, Any] = {
             "hvac_action": self.hvac_action,
             "hvac_mode": self.hvac_mode,
@@ -2065,6 +2073,7 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
                 "is_locked": self.lock_manager.is_locked,
                 "is_recalculate_scheduled": self.is_recalculate_scheduled,
                 "not_initialized_entities": not_initialized_entities,
+                "unavailable_underlying_entities": unavailable_underlying_entities,
                 "messages": messages,
             },
             "configuration": {
