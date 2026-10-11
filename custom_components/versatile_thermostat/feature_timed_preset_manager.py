@@ -89,20 +89,25 @@ class FeatureTimedPresetManager(BaseFeatureManager):
             return
 
         try:
-            # 2. Re-parse the end_time and preset mode
+            # 2. Parse everything into locals first: a corrupt value must leave the manager untouched
             end_time = datetime.fromisoformat(end_time_str)
             now = self._vtherm.now
+            timed_preset = VThermPreset(preset_str)
+            original_preset = VThermPreset(original_preset_str) if original_preset_str else None
+            is_manual_override = bool(manager_attr.get("is_manual_override", False))
+            resume_preset_str = manager_attr.get("resume_preset")
+            resume_end_time_str = manager_attr.get("resume_end_time")
+            resume_preset = VThermPreset(resume_preset_str) if resume_preset_str else None
+            resume_end_time = datetime.fromisoformat(resume_end_time_str) if resume_end_time_str else None
 
             # 3. Re-populate internal manager variables
             self._is_timed_preset_active = True
-            self._timed_preset = VThermPreset(preset_str)
-            self._original_preset = VThermPreset(original_preset_str) if original_preset_str else None
+            self._timed_preset = timed_preset
+            self._original_preset = original_preset
             self._timed_preset_end_time = end_time
-            self._is_manual_override = bool(manager_attr.get("is_manual_override", False))
-            resume_preset_str = manager_attr.get("resume_preset")
-            resume_end_time_str = manager_attr.get("resume_end_time")
-            self._resume_preset = VThermPreset(resume_preset_str) if resume_preset_str else None
-            self._resume_end_time = datetime.fromisoformat(resume_end_time_str) if resume_end_time_str else None
+            self._is_manual_override = is_manual_override
+            self._resume_preset = resume_preset
+            self._resume_end_time = resume_end_time
 
             # 4. Reschedule the expiration task if time remains
             if end_time > now:
@@ -322,9 +327,16 @@ class FeatureTimedPresetManager(BaseFeatureManager):
 
         self._vtherm.update_custom_attributes()
 
-    def cancel_manual_override_without_revert(self):
+    def cancel_manual_override_without_revert(self, selected_preset: VThermPreset | None = None):
         """Drop the manual override without restoring the original preset.
-        Used when the user selects a preset during the manual override: the selected preset applies."""
+        Used when the user selects a preset during the manual override: the selected preset applies.
+        The end event has the cause "preset_selected" and its restored_preset is the selected preset
+        (None when not given). The HA attributes and state are refreshed at once, so that a
+        cancelled override is never shown (nor restored after a restart) when the state does not change.
+
+        Args:
+            selected_preset: The preset selected by the user, reported in the end event
+        """
         if not self._is_timed_preset_active or not self._is_manual_override:
             return
 
@@ -340,11 +352,14 @@ class FeatureTimedPresetManager(BaseFeatureManager):
                 "type": "end",
                 "name": self.name,
                 "preset": str(old_preset),
-                "cause": "cancelled",
-                "restored_preset": str(self._vtherm.requested_state.preset),
+                "cause": "preset_selected",
+                "restored_preset": str(selected_preset) if selected_preset is not None else None,
                 "manual_override": True,
             },
         )
+
+        self._vtherm.update_custom_attributes()
+        self._vtherm.async_write_ha_state()
 
     def _reset_state(self):
         """Reset the timed preset and manual override state"""
