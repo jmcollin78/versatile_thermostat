@@ -1,6 +1,7 @@
 # pylint: disable=protected-access
 """Tests for external humidity resolution and the humidity feature manager."""
 
+import logging
 from types import SimpleNamespace
 from unittest.mock import Mock, patch
 
@@ -133,6 +134,46 @@ async def test_humidity_manager_disabled_skips_detection_and_sensor(hass):
     track.assert_not_called()
     assert manager.humidity_source == "none"
     assert manager.current_humidity is None
+
+
+@pytest.mark.parametrize(
+    "entry_infos",
+    [{CONF_USE_HUMIDITY_FEATURE: False}, {}],
+    ids=["disabled", "no_candidate"],
+)
+async def test_humidity_manager_without_source_does_not_warn(hass, caplog, entry_infos):
+    """Having no humidity source is a valid configuration and logs no warning."""
+    thermostat = FakeThermostat()
+    manager = FeatureHumidityManager(thermostat, hass)
+    manager.post_init(entry_infos)
+
+    with caplog.at_level(logging.WARNING), patch(
+        "custom_components.versatile_thermostat.feature_humidity_manager.find_humidity_sensor_candidates",
+        return_value=[],
+    ), patch(
+        "custom_components.versatile_thermostat.feature_humidity_manager.async_call_later",
+    ):
+        await manager.start_listening()
+        await manager.refresh_state()
+
+    assert manager.humidity_source == "none"
+    assert manager.current_humidity is None
+    assert "Humidity sensor is unavailable or unknown" not in caplog.text
+
+
+async def test_humidity_manager_warns_once_when_explicit_sensor_is_unavailable(hass, caplog):
+    """A resolved sensor that becomes unavailable is still reported, once."""
+    thermostat = FakeThermostat()
+    manager = FeatureHumidityManager(thermostat, hass)
+    manager.post_init({CONF_HUMIDITY_SENSOR: "sensor.humidity"})
+
+    hass.states.async_set("sensor.humidity", STATE_UNAVAILABLE)
+    with caplog.at_level(logging.WARNING):
+        await manager.start_listening()
+        await manager.refresh_state()
+
+    assert caplog.text.count("Humidity sensor is unavailable or unknown") == 1
+    manager.stop_listening()
 
 
 async def test_humidity_manager_callback_publishes_valid_and_invalid_values(hass):
