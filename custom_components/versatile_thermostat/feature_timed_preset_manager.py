@@ -47,6 +47,11 @@ class FeatureTimedPresetManager(BaseFeatureManager):
         self._timed_preset_end_time: datetime | None = None
         self._cancel_timer: Any | None = None
         self._manual_override_duration_min: int = 0
+        # Manual override: a timed preset of NONE started by a manual temperature change
+        self._is_manual_override: bool = False
+        # The regular timed preset interrupted by the manual override, to resume it at the end
+        self._resume_preset: VThermPreset | None = None
+        self._resume_end_time: datetime | None = None
 
     @overrides
     def post_init(self, entry_infos: ConfigData):
@@ -93,6 +98,11 @@ class FeatureTimedPresetManager(BaseFeatureManager):
             self._timed_preset = VThermPreset(preset_str)
             self._original_preset = VThermPreset(original_preset_str) if original_preset_str else None
             self._timed_preset_end_time = end_time
+            self._is_manual_override = bool(manager_attr.get("is_manual_override", False))
+            resume_preset_str = manager_attr.get("resume_preset")
+            resume_end_time_str = manager_attr.get("resume_end_time")
+            self._resume_preset = VThermPreset(resume_preset_str) if resume_preset_str else None
+            self._resume_end_time = datetime.fromisoformat(resume_end_time_str) if resume_end_time_str else None
 
             # 4. Reschedule the expiration task if time remains
             if end_time > now:
@@ -153,9 +163,51 @@ class FeatureTimedPresetManager(BaseFeatureManager):
         if not self._is_timed_preset_active:
             self._original_preset = self._vtherm.requested_state.preset
 
-        # Store the timed preset information
+        # A timed preset set during a manual override replaces it
+        self._is_manual_override = False
+        self._resume_preset = None
+        self._resume_end_time = None
+
+        await self._activate_timed_preset(preset, self._vtherm.now + timedelta(minutes=duration_minutes), duration_minutes)
+        return True
+
+    async def start_manual_override(self, previous_preset: VThermPreset | None) -> bool:
+        """Start a manual override after a manual temperature change.
+
+        The manual override is a timed preset of NONE which reverts to the previous preset
+        (or resumes the interrupted timed preset) when the configured duration expires.
+
+        Args:
+            previous_preset: The requested preset before the manual change
+
+        Returns:
+            True if the manual override was started, False if it is disabled or there is nothing to revert to
+        """
+        duration_minutes = self._manual_override_duration_min
+        if duration_minutes <= 0:
+            return False
+
+        if not self._is_timed_preset_active and (previous_preset is None or previous_preset == VThermPreset.NONE):
+            return False
+
+        self._cancel_timed_preset_timer()
+
+        if not self._is_timed_preset_active:
+            self._original_preset = previous_preset
+        elif not self._is_manual_override:
+            # A regular timed preset is interrupted: remember it to resume it later
+            self._resume_preset = self._timed_preset
+            self._resume_end_time = self._timed_preset_end_time
+        # else a manual override is already active: keep the original preset and the resume record
+
+        self._is_manual_override = True
+        await self._activate_timed_preset(VThermPreset.NONE, self._vtherm.now + timedelta(minutes=duration_minutes), duration_minutes)
+        return True
+
+    async def _activate_timed_preset(self, preset: VThermPreset, end_time: datetime, duration_minutes: float):
+        """Activate the timed preset until end_time, schedule its end and update the VTherm"""
         self._timed_preset = preset
-        self._timed_preset_end_time = self._vtherm.now + timedelta(minutes=duration_minutes)
+        self._timed_preset_end_time = end_time
         self._is_timed_preset_active = True
 
         # Keep requested_state aligned with the timed preset while it is active so
@@ -172,7 +224,7 @@ class FeatureTimedPresetManager(BaseFeatureManager):
         write_event_log(
             _LOGGER,
             self._vtherm,
-            f"Timed preset started: {preset} for {duration_minutes} minutes until {self._timed_preset_end_time}",
+            f"{'Manual override' if self._is_manual_override else 'Timed preset'} started: {preset} for {duration_minutes} minutes until {self._timed_preset_end_time}",
         )
 
         # Send an event
@@ -185,6 +237,7 @@ class FeatureTimedPresetManager(BaseFeatureManager):
                 "duration_minutes": duration_minutes,
                 "end_time": self._timed_preset_end_time.isoformat(),
                 "original_preset": str(self._original_preset),
+                "manual_override": self._is_manual_override,
             },
         )
 
@@ -193,8 +246,6 @@ class FeatureTimedPresetManager(BaseFeatureManager):
         await self._vtherm.update_states(force=True)
 
         self._vtherm.update_custom_attributes()
-
-        return True
 
     async def cancel_timed_preset(self) -> bool:
         """Cancel the current timed preset if active.
@@ -215,29 +266,34 @@ class FeatureTimedPresetManager(BaseFeatureManager):
         await self._end_timed_preset()
 
     async def _end_timed_preset(self, cancelled: bool = False):
-        """End the timed preset and restore the original preset."""
+        """End the timed preset and restore the original preset.
+        At the end of a manual override, the interrupted timed preset is resumed if it is not over."""
         if not self._is_timed_preset_active:
             return
 
         old_preset = self._timed_preset
+        was_manual_override = self._is_manual_override
+        original_preset = self._original_preset
+        resume_preset = self._resume_preset
+        resume_end_time = self._resume_end_time
 
         # Cancel the timer if still active
         self._cancel_timed_preset_timer()
 
+        # An explicit cancel never resumes: it goes back to the original preset
+        resume = was_manual_override and not cancelled and resume_preset is not None and resume_end_time is not None and resume_end_time > self._vtherm.now
+
         # Restore the original preset explicitly (handles the post-restart case)
-        if self._original_preset is not None:
-            self._vtherm.requested_state.set_preset(self._original_preset)
+        if not resume and original_preset is not None:
+            self._vtherm.requested_state.set_preset(original_preset)
 
         # Reset state
-        self._is_timed_preset_active = False
-        self._timed_preset = None
-        self._original_preset = None
-        self._timed_preset_end_time = None
+        self._reset_state()
 
         write_event_log(
             _LOGGER,
             self._vtherm,
-            f"Timed preset ended: {old_preset} {'(cancelled)' if cancelled else '(expired)'}",
+            f"{'Manual override' if was_manual_override else 'Timed preset'} ended: {old_preset} {'(cancelled)' if cancelled else '(expired)'}",
         )
 
         # Send an event
@@ -248,15 +304,57 @@ class FeatureTimedPresetManager(BaseFeatureManager):
                 "name": self.name,
                 "preset": str(old_preset),
                 "cause": "cancelled" if cancelled else "expired",
-                "restored_preset": str(self._vtherm.requested_state.preset),
+                "restored_preset": str(resume_preset if resume else self._vtherm.requested_state.preset),
+                "manual_override": was_manual_override,
             },
         )
+
+        if resume:
+            # Resume the interrupted timed preset until its own end time, keeping the original preset
+            self._original_preset = original_preset
+            remaining_minutes = (resume_end_time - self._vtherm.now).total_seconds() / 60
+            await self._activate_timed_preset(resume_preset, resume_end_time, remaining_minutes)
+            return
 
         # Force update of the thermostat state to restore original preset
         self._vtherm.requested_state.force_changed()
         await self._vtherm.update_states(force=True)
 
         self._vtherm.update_custom_attributes()
+
+    def cancel_manual_override_without_revert(self):
+        """Drop the manual override without restoring the original preset.
+        Used when the user selects a preset during the manual override: the selected preset applies."""
+        if not self._is_timed_preset_active or not self._is_manual_override:
+            return
+
+        old_preset = self._timed_preset
+        self._cancel_timed_preset_timer()
+        self._reset_state()
+
+        write_event_log(_LOGGER, self._vtherm, f"Manual override ended: {old_preset} (cancelled by a preset change)")
+
+        self._vtherm.send_event(
+            event_type=EventType.TIMED_PRESET_EVENT,
+            data={
+                "type": "end",
+                "name": self.name,
+                "preset": str(old_preset),
+                "cause": "cancelled",
+                "restored_preset": str(self._vtherm.requested_state.preset),
+                "manual_override": True,
+            },
+        )
+
+    def _reset_state(self):
+        """Reset the timed preset and manual override state"""
+        self._is_timed_preset_active = False
+        self._timed_preset = None
+        self._original_preset = None
+        self._timed_preset_end_time = None
+        self._is_manual_override = False
+        self._resume_preset = None
+        self._resume_end_time = None
 
     def _cancel_timed_preset_timer(self):
         """Cancel the timed preset timer if active."""
@@ -274,6 +372,9 @@ class FeatureTimedPresetManager(BaseFeatureManager):
                     "original_preset": str(self._original_preset) if self._original_preset else None,
                     "end_time": self._timed_preset_end_time.isoformat() if self._timed_preset_end_time else None,
                     "remaining_time_min": self.remaining_time_min,
+                    "is_manual_override": self._is_manual_override,
+                    "resume_preset": str(self._resume_preset) if self._resume_preset else None,
+                    "resume_end_time": self._resume_end_time.isoformat() if self._resume_end_time else None,
                 }
             }
         )
@@ -292,6 +393,11 @@ class FeatureTimedPresetManager(BaseFeatureManager):
     def manual_override_duration_min(self) -> int:
         """Return the manual override duration in minutes (0 = disabled)."""
         return self._manual_override_duration_min
+
+    @property
+    def is_manual_override(self) -> bool:
+        """Return True if the active timed preset is a manual override."""
+        return self._is_timed_preset_active and self._is_manual_override
 
     @property
     def is_timed_preset_active(self) -> bool:
