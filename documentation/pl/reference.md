@@ -253,6 +253,7 @@ Są to kolejno:
 14. stan okna (jeśli skonfigurowano zarządzanie oknem),
 15. stan ruchu (jeśli skonfigurowano zarządzanie ruchem),
 16. procent otwarcia zaworu (dla typu `termostat na zaworze`),
+17. najniższy poziom baterii wśród urządzeń bazowych encji climate (dla typu `over_climate`, `Underlying battery`). Jest wykrywany automatycznie: dla każdej bazowej encji climate _VTherm_ sprawdza pozostałe encje tego samego urządzenia i zachowuje encje `sensor` z klasą urządzenia `battery`. Czujnik jest niedostępny, jeśli nie znaleziono żadnej encji baterii lub żadna nie ma poprawnej wartości (wartości niedostępne, nieznane lub nienumeryczne są ignorowane). Atrybut `battery_entities` wymienia każdą encję baterii wraz z jej poziomem (`null`, jeśli niepoprawny),
 
 Dostępność tych encji zależy od tego, czy odpowiednia funkcja została załączona.
 

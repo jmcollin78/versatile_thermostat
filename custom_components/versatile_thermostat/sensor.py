@@ -5,11 +5,14 @@ from vtherm_api.log_collector import get_vtherm_logger
 import math
 from collections.abc import Callable
 
-from homeassistant.core import HomeAssistant, callback, Event, State
+from homeassistant.core import HomeAssistant, callback, Event, State, CoreState
 
 from homeassistant.const import (
     UnitOfTime,
     PERCENTAGE,
+    EVENT_HOMEASSISTANT_STARTED,
+    STATE_UNAVAILABLE,
+    STATE_UNKNOWN,
 )
 
 from homeassistant.components.sensor import (
@@ -22,6 +25,7 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.entity_component import EntityComponent
+from homeassistant.helpers import entity_registry as er
 from homeassistant.helpers.event import (
     async_track_state_change_event,
 )
@@ -40,6 +44,7 @@ from .const import (
     DOMAIN,
     DEVICE_MANUFACTURER,
     CONF_NAME,
+    CONF_UNDERLYING_LIST,
     CONF_DEVICE_POWER,
     CONF_PROP_FUNCTION,
     PROPORTIONAL_FUNCTION_TPI,
@@ -90,6 +95,10 @@ async def async_setup_entry(
             TemperatureSlopeSensor(hass, unique_id, name, entry.data),
             EMATemperatureSensor(hass, unique_id, name, entry.data),
         ]
+        if vt_type == CONF_THERMOSTAT_CLIMATE:
+            # Batteries of the underlying devices (TRV...), with or without valve regulation
+            entities.append(UnderlyingBatterySensor(hass, unique_id, name, entry.data))
+
         if entry.data.get(CONF_DEVICE_POWER):
             entities.append(EnergySensor(hass, unique_id, name, entry.data))
             if have_valve_regulation or entry.data.get(CONF_THERMOSTAT_TYPE) in [
@@ -146,6 +155,148 @@ async def async_setup_entry(
 
     if entities:
         async_add_entities(entities, True)
+
+
+def find_underlying_battery_entities(hass: HomeAssistant, underlying_entity_ids: list[str]) -> list[str]:
+    """Return the entity_ids of the battery sensors belonging to the devices of the given underlying entities.
+    The result is deduplicated and keeps the discovery order."""
+    ent_reg = er.async_get(hass)
+    battery_entities: list[str] = []
+    for underlying_id in underlying_entity_ids or []:
+        underlying_entry = ent_reg.async_get(underlying_id)
+        if underlying_entry is None or underlying_entry.device_id is None:
+            continue
+        for device_entry in er.async_entries_for_device(ent_reg, underlying_entry.device_id):
+            if device_entry.domain != "sensor":
+                continue
+            if SensorDeviceClass.BATTERY not in (device_entry.device_class, device_entry.original_device_class):
+                continue
+            if device_entry.entity_id not in battery_entities:
+                battery_entities.append(device_entry.entity_id)
+    return battery_entities
+
+
+class UnderlyingBatterySensor(VersatileThermostatBaseEntity, SensorEntity):
+    """Exposes the lowest battery level among the devices of the underlying climates"""
+
+    _attr_translation_key = "underlying_battery"
+
+    def __init__(self, hass: HomeAssistant, unique_id, name, entry_infos) -> None:
+        """Initialize the underlying battery sensor"""
+        super().__init__(hass, unique_id, entry_infos.get(CONF_NAME))
+        self._attr_unique_id = f"{self._device_name}_underlying_battery"
+        self._underlying_ids: list[str] = list(entry_infos.get(CONF_UNDERLYING_LIST) or [])
+        self._battery_entities: list[str] = []
+        self._levels: dict[str, float | None] = {}
+        self._unsub_battery_listener = None
+        self._unsub_started_listener = None
+
+    async def async_added_to_hass(self):
+        """Discover the battery entities once HA is started (the registry of the underlying
+        integrations may not be populated before)"""
+        await super().async_added_to_hass()
+
+        @callback
+        def _discover(*_):
+            self._unsub_started_listener = None
+            self._discover_battery_entities()
+
+        @callback
+        def _registry_updated(event: Event):
+            """A sensor entity was added, removed or got a new device/device class: rediscover (late integrations)"""
+            if not str(event.data.get("entity_id", "")).startswith("sensor."):
+                return
+            action = event.data.get("action")
+            if action in ("create", "remove") or (action == "update" and {"device_id", "device_class"} & set(event.data.get("changes", {}))):
+                self._discover_battery_entities()
+
+        self.async_on_remove(self.hass.bus.async_listen(er.EVENT_ENTITY_REGISTRY_UPDATED, _registry_updated))
+        self.async_on_remove(self._cancel_battery_listener)
+
+        if self.hass.state == CoreState.running:
+            _discover()
+        else:
+            self._unsub_started_listener = self.hass.bus.async_listen_once(EVENT_HOMEASSISTANT_STARTED, _discover)
+
+            @callback
+            def _cancel_started_listener():
+                if self._unsub_started_listener:
+                    self._unsub_started_listener()
+                    self._unsub_started_listener = None
+
+            self.async_on_remove(_cancel_started_listener)
+
+    @callback
+    def _cancel_battery_listener(self):
+        """Stop listening to the battery entities"""
+        if self._unsub_battery_listener:
+            self._unsub_battery_listener()
+            self._unsub_battery_listener = None
+
+    @callback
+    def _discover_battery_entities(self):
+        """Find the battery entities and (re)subscribe to their state changes"""
+        found = find_underlying_battery_entities(self.hass, self._underlying_ids)
+        if found != self._battery_entities or self._unsub_battery_listener is None:
+            self._cancel_battery_listener()
+            self._battery_entities = found
+            if found:
+                self._unsub_battery_listener = async_track_state_change_event(self.hass, found, self._battery_state_changed)
+        self._recompute()
+
+    @callback
+    def _battery_state_changed(self, event: Event):
+        """A battery entity state has changed"""
+        self._recompute()
+
+    @callback
+    def _recompute(self):
+        """Compute the lowest valid level and publish the state"""
+        levels: dict[str, float | None] = {}
+        for entity_id in self._battery_entities:
+            level = None
+            state = self.hass.states.get(entity_id)
+            if state is not None and state.state not in (STATE_UNAVAILABLE, STATE_UNKNOWN):
+                try:
+                    level = float(state.state)
+                    if math.isnan(level) or math.isinf(level):
+                        level = None
+                except (ValueError, TypeError):
+                    level = None
+            levels[entity_id] = level
+
+        valid = [lvl for lvl in levels.values() if lvl is not None]
+        new_value = min(valid) if valid else None
+        if new_value != self._attr_native_value or levels != self._levels:
+            self._levels = levels
+            self._attr_native_value = new_value
+            self.async_write_ha_state()
+
+    @property
+    def available(self) -> bool:
+        """Unavailable when no battery entity is found or none has a valid value"""
+        return self._attr_native_value is not None
+
+    @property
+    def extra_state_attributes(self) -> dict:
+        """The battery entities with their level"""
+        return {"battery_entities": dict(self._levels)}
+
+    @property
+    def icon(self) -> str | None:
+        return "mdi:battery-alert-variant-outline"
+
+    @property
+    def device_class(self) -> SensorDeviceClass | None:
+        return SensorDeviceClass.BATTERY
+
+    @property
+    def state_class(self) -> SensorStateClass | None:
+        return SensorStateClass.MEASUREMENT
+
+    @property
+    def native_unit_of_measurement(self) -> str | None:
+        return PERCENTAGE
 
 
 class EnergySensor(VersatileThermostatBaseEntity, SensorEntity):

@@ -995,6 +995,9 @@
       "ema_temperature": {
         "name": "EMA-Temperatur"
       },
+      "underlying_battery": {
+        "name": "Batterie der Unterliegenden"
+      },
       "nb_device_active_boiler": {
         "name": "Anzahl aktiver Geräte für Heizkessel"
       },

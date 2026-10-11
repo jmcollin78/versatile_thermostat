@@ -995,6 +995,9 @@
             "ema_temperature": {
                 "name": "EMA temperature"
             },
+            "underlying_battery": {
+                "name": "Underlying battery"
+            },
             "nb_device_active_boiler": {
                 "name": "Number of active devices for boiler"
             },

@@ -255,6 +255,7 @@ Dans l'ordre, il y a :
 14. l'état de l'ouverture (si la gestion des ouvertures est configurée),
 15. l'état du mouvement (si la gestion du mouvements est configurée)
 16. le pourcentage d'ouverture de la vanne (pour le type `over_valve`),
+17. le niveau de batterie le plus bas parmi les appareils des climates sous-jacents (pour le type `over_climate`, `Batterie des sous-jacents`). Il est découvert automatiquement : pour chaque climate sous-jacent, _VTherm_ examine les autres entités du même appareil et retient les entités `sensor` de classe `battery`. Le capteur est indisponible si aucune entité de batterie n'est trouvée ou si aucune n'a de valeur valide (les valeurs indisponibles, inconnues ou non numériques sont ignorées). L'attribut `battery_entities` liste chaque entité de batterie avec son niveau (`null` si invalide),
 
 La présence de ces entités est conditionnée au fait que la fonction associée soit présente.
 

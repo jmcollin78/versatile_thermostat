@@ -256,7 +256,8 @@ In der Reihenfolge sind dies:
 13. der Sicherheitsstatus,
 14. der Fensteröffnungsstatus (wenn die Öffnungsverwaltung konfiguriert ist),
 15. der Bewegungsstatus (wenn die Bewegungsverwaltung konfiguriert ist),
-16. der Öffnungsprozentsatz des Ventils (für den Typ `over_valve`).
+16. der Öffnungsprozentsatz des Ventils (für den Typ `over_valve`),
+17. der niedrigste Batteriestand unter den Geräten der zugrunde liegenden Climate-Entitäten (für den Typ `over_climate`, `Batterie der Unterliegenden`). Er wird automatisch erkannt: Für jede zugrunde liegende Climate-Entität prüft _VTherm_ die anderen Entitäten desselben Geräts und behält die `sensor`-Entitäten mit der Geräteklasse `battery`. Der Sensor ist nicht verfügbar, wenn keine Batterie-Entität gefunden wird oder keine einen gültigen Wert hat (nicht verfügbare, unbekannte oder nicht numerische Werte werden ignoriert). Das Attribut `battery_entities` listet jede Batterie-Entität mit ihrem Stand auf (`null`, wenn ungültig).
 
 Die Verfügbarkeit dieser Entities hängt davon ab, ob die zugehörige Funktion vorhanden ist.
 

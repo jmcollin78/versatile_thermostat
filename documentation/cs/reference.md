@@ -256,6 +256,7 @@ V pořadí jde o:
 14. stav okna (pokud je nakonfigurovaná správa oken),
 15. stav pohybu (pokud je nakonfigurovaná správa pohybu),
 16. procento otevření ventilu (pro typ `over_valve`),
+17. nejnižší úroveň baterie mezi zařízeními podřízených climate entit (pro typ `over_climate`, `Underlying battery`). Zjišťuje se automaticky: pro každou podřízenou climate entitu _VTherm_ prohledá ostatní entity stejného zařízení a ponechá entity `sensor` s třídou zařízení `battery`. Senzor je nedostupný, pokud není nalezena žádná entita baterie nebo žádná nemá platnou hodnotu (nedostupné, neznámé nebo nečíselné hodnoty se ignorují). Atribut `battery_entities` uvádí každou entitu baterie s její úrovní (`null`, pokud je neplatná),
 
 Přítomnost těchto entit závisí na tom, zda je příslušná funkce zapnutá.
 

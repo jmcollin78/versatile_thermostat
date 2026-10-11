@@ -256,6 +256,7 @@ In order, there are:
 14. the window state (if window management is configured),
 15. the motion state (if motion management is configured),
 16. the valve opening percentage (for `over_valve` type),
+17. the lowest battery level among the devices of the underlying climates (for `over_climate` type, `Underlying battery`). It is discovered automatically: for each underlying climate, VTherm looks at the other entities of the same device and keeps the `sensor` entities with the `battery` device class. The sensor is unavailable if no battery entity is found or if none has a valid value (unavailable, unknown or non-numeric values are ignored). The `battery_entities` attribute lists each battery entity with its level (`null` if invalid),
 
 The presence of these entities depends on whether the associated feature is enabled.
 
