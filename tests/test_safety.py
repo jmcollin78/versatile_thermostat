@@ -99,6 +99,37 @@ async def test_safety_feature_manager_post_init(
 
 @pytest.mark.parametrize("expected_lingering_tasks", [True])
 @pytest.mark.parametrize("expected_lingering_timers", [True])
+async def test_service_set_safety_with_delay_only(
+    hass: HomeAssistant,
+    skip_hass_states_is_state,
+    fake_underlying_switch: MockSwitch,
+):
+    """Test that the optional safety service fields can be omitted."""
+    entry = MockConfigEntry(
+        domain=DOMAIN,
+        title="TheOverSwitchMockName",
+        unique_id="uniqueId",
+        data=dict(FULL_SWITCH_CONFIG),
+    )
+    entity: ThermostatOverSwitch = await create_thermostat(hass, entry, "climate.theoverswitchmockname")
+
+    previous_min_on_percent = entity.safety_manager.safety_min_on_percent
+    previous_default_on_percent = entity.safety_manager.safety_default_on_percent
+
+    await hass.services.async_call(
+        DOMAIN,
+        SERVICE_SET_SAFETY,
+        {"entity_id": entity.entity_id, "delay_min": 30},
+        blocking=True,
+    )
+
+    assert entity.safety_manager.safety_delay_min == 30
+    assert entity.safety_manager.safety_min_on_percent == previous_min_on_percent
+    assert entity.safety_manager.safety_default_on_percent == previous_default_on_percent
+
+
+@pytest.mark.parametrize("expected_lingering_tasks", [True])
+@pytest.mark.parametrize("expected_lingering_timers", [True])
 async def test_security_feature(
     hass: HomeAssistant,
     skip_hass_states_is_state,
