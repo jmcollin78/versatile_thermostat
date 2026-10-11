@@ -6,14 +6,16 @@ VTherm API. The tests count the commands sent to the underlyings (turn_on,
 turn_off, set_hvac_mode, cycle starts, repairs) and not only the final state.
 """
 
+import asyncio
 import logging
-from contextlib import contextmanager
-from datetime import datetime
+from contextlib import contextmanager, suppress
+from datetime import datetime, timedelta
 from types import SimpleNamespace
 from unittest.mock import AsyncMock, MagicMock, PropertyMock, patch
 
 from homeassistant.core import State
-from pytest_homeassistant_custom_component.common import mock_restore_cache
+from homeassistant.util import dt as dt_util
+from pytest_homeassistant_custom_component.common import async_fire_time_changed, mock_restore_cache
 
 from vtherm_api import (
     InhibitionStatus,
@@ -26,6 +28,7 @@ from custom_components.versatile_thermostat.cycle_scheduler import CycleSchedule
 from custom_components.versatile_thermostat.feature_repair_incorrect_state_manager import FeatureRepairIncorrectStateManager
 from custom_components.versatile_thermostat.inhibition_manager import (
     ATTR_INHIBITION,
+    EXIT_RETRY_MIN_DELAY_SEC,
     InhibitionErrorCode,
     InhibitionPhysicalStopResult,
     InhibitionProviderStatus,
@@ -1410,3 +1413,443 @@ async def test_overpowering_does_not_command_withdrawn_vtherm(hass: HomeAssistan
     type(fake_vtherm).is_inhibition_withdrawn = PropertyMock(return_value=False)
     await power_manager.set_overpowering(True)
     fake_vtherm.async_underlying_entity_turn_off.assert_awaited_once()
+
+
+##
+## Review findings: exit applies the effective state, real scheduler, retries,
+## late registration, plugin replacement, recalibration
+##
+def climate_entry() -> MockConfigEntry:
+    """An over_climate VTherm"""
+    return MockConfigEntry(
+        domain=DOMAIN,
+        title="TheOverClimateMockName",
+        unique_id="uniqueId",
+        data={
+            CONF_NAME: "TheOverClimateMockName",
+            CONF_THERMOSTAT_TYPE: CONF_THERMOSTAT_CLIMATE,
+            CONF_TEMP_SENSOR: "sensor.mock_temp_sensor",
+            CONF_EXTERNAL_TEMP_SENSOR: "sensor.mock_ext_temp_sensor",
+            CONF_CYCLE_MIN: 5,
+            CONF_TEMP_MIN: 15,
+            CONF_TEMP_MAX: 30,
+            "eco_temp": 17,
+            "comfort_temp": 18,
+            "boost_temp": 19,
+            CONF_USE_WINDOW_FEATURE: False,
+            CONF_USE_MOTION_FEATURE: False,
+            CONF_USE_POWER_FEATURE: False,
+            CONF_USE_PRESENCE_FEATURE: False,
+            CONF_UNDERLYING_LIST: ["climate.mock_climate"],
+            CONF_MINIMAL_ACTIVATION_DELAY: 30,
+            CONF_MINIMAL_DEACTIVATION_DELAY: 0,
+            CONF_SAFETY_DELAY_MIN: 5,
+            CONF_SAFETY_MIN_ON_PERCENT: 0.3,
+            CONF_AUTO_REGULATION_MODE: CONF_AUTO_REGULATION_STRONG,
+            CONF_AUTO_REGULATION_DTEMP: 0.01,
+            CONF_AUTO_REGULATION_PERIOD_MIN: 0,
+        },
+    )
+
+
+async def test_exit_applies_requested_off_to_climate(hass: HomeAssistant, skip_hass_states_is_state, skip_send_event, fake_underlying_climate):
+    """Finding 1 - DO_NOT_TURN_OFF, OFF requested during the withdrawal: the exit sends OFF once"""
+    factory = FakeInhibitionFactory(policy=InhibitionStopPolicy.DO_NOT_TURN_OFF)
+    register_factories(hass, factory)
+
+    # fmt: off
+    with patch.object(UnderlyingClimate, "set_hvac_mode", new_callable=AsyncMock, return_value=True) as set_hvac_mode, \
+        patch.object(UnderlyingClimate, "set_temperature", new_callable=AsyncMock):
+        # fmt: on
+        entity = await create_thermostat(hass, climate_entry(), "climate.theoverclimatemockname")
+        now = datetime.now(tz=get_tz(hass))
+        entity._set_now(now)
+        await send_temperature_change_event(entity, 15, now)
+        await entity.async_set_hvac_mode(VThermHvacMode_HEAT)
+        await entity.async_set_preset_mode(VThermPreset.COMFORT)
+        set_hvac_mode.reset_mock()
+
+        await factory.provider.async_notify(InhibitionStatus.ACTIVE)
+        assert set_hvac_mode.call_count == 0
+        await entity.async_set_hvac_mode(VThermHvacMode_OFF)
+        assert set_hvac_mode.call_count == 0
+
+        await factory.provider.async_notify(InhibitionStatus.INACTIVE)
+        assert entity.vtherm_hvac_mode == VThermHvacMode_OFF
+        assert entity.hvac_off_reason == HVAC_OFF_REASON_MANUAL
+        assert set_hvac_mode.call_count == 1
+        assert set_hvac_mode.call_args.args[0] == VThermHvacMode_OFF
+
+    entity.remove_thermostat()
+
+
+async def test_exit_applies_window_off_to_a_directly_started_switch(hass: HomeAssistant, skip_hass_states_is_state, fake_underlying_switch: MockSwitch):
+    """Finding 1 - window still open at exit and switch turned on directly: the exit stops it"""
+    factory = FakeInhibitionFactory(policy=InhibitionStopPolicy.DO_NOT_TURN_OFF)
+    register_factories(hass, factory)
+
+    with spy_switch_commands() as spies:
+        entity = await create_heating_switch_vtherm(hass)
+        await factory.provider.async_notify(InhibitionStatus.ACTIVE)
+        await open_window(entity)
+        hass.states.async_set("switch.mock_switch", STATE_ON)
+        await hass.async_block_till_done()
+        reset_spies(spies)
+
+        await factory.provider.async_notify(InhibitionStatus.INACTIVE)
+        assert entity.vtherm_hvac_mode == VThermHvacMode_OFF
+        assert entity.hvac_off_reason == HVAC_OFF_REASON_WINDOW_DETECTION
+        assert spies.set_hvac_mode.call_count == 1
+        assert spies.set_hvac_mode.call_args.args[1] == VThermHvacMode_OFF
+        assert spies.turn_off.call_count >= 1
+        assert spies.turn_on.call_count == 0
+        assert spies.start_cycle.call_count == 0
+
+    entity.remove_thermostat()
+
+
+async def heat_at_half_power(hass, entity: BaseThermostat):
+    """About 43 % of power: a real TPI cycle with an on and an off part"""
+    now = entity.now
+    await send_ext_temperature_change_event(entity, 5, now)
+    await send_temperature_change_event(entity, 17, now)
+    await entity.async_control_heating(timestamp=now, force=True)
+    assert 0.2 < entity.on_percent < 0.8
+
+
+async def advance(hass, minutes: float, steps: int = 6, block: bool = True):
+    """Fire the timers due in the next minutes"""
+    for step in range(1, steps + 1):
+        async_fire_time_changed(hass, dt_util.utcnow() + timedelta(minutes=minutes * step / steps))
+        if block:
+            await hass.async_block_till_done()
+        else:
+            for _ in range(10):
+                await asyncio.sleep(0)
+
+
+async def test_do_not_turn_off_entry_with_a_real_running_cycle(hass: HomeAssistant, skip_hass_states_is_state, fake_underlying_switch: MockSwitch):
+    """Finding 8 - real scheduler: a running cycle is suspended on entry and does not toggle the switch"""
+    factory = FakeInhibitionFactory(policy=InhibitionStopPolicy.DO_NOT_TURN_OFF)
+    register_factories(hass, factory)
+
+    # fmt: off
+    with patch.object(UnderlyingSwitch, "turn_on", new_callable=AsyncMock) as turn_on, \
+        patch.object(UnderlyingSwitch, "turn_off", new_callable=AsyncMock) as turn_off:
+        # fmt: on
+        entity = await create_heating_switch_vtherm(hass)
+        await heat_at_half_power(hass, entity)
+        scheduler = entity.cycle_scheduler
+        assert scheduler.is_cycle_running is True
+        await advance(hass, 10)
+        assert turn_on.call_count >= 1
+
+        await factory.provider.async_notify(InhibitionStatus.ACTIVE)
+        assert scheduler.is_cycle_running is False
+        turn_on.reset_mock()
+        turn_off.reset_mock()
+
+        await advance(hass, 15)
+        for _ in range(2):
+            await entity.async_control_heating(timestamp=entity.now)
+        assert turn_on.call_count == 0
+        assert turn_off.call_count == 0
+        assert scheduler.is_cycle_running is False
+
+        # exit: the TPI cycle restarts
+        await factory.provider.async_notify(InhibitionStatus.INACTIVE)
+        assert scheduler.is_cycle_running is True
+        await advance(hass, 10)
+        assert turn_on.call_count >= 1
+
+    entity.remove_thermostat()
+
+
+async def test_late_attach_on_a_running_cycle(hass: HomeAssistant, skip_hass_states_is_state, fake_underlying_switch: MockSwitch):
+    """Finding 2 - real scheduler: a late provider suspends the cycle at once, the TPI restarts after INACTIVE"""
+    # fmt: off
+    with patch.object(UnderlyingSwitch, "turn_on", new_callable=AsyncMock) as turn_on, \
+        patch.object(UnderlyingSwitch, "turn_off", new_callable=AsyncMock) as turn_off:
+        # fmt: on
+        entity = await create_heating_switch_vtherm(hass)
+        await heat_at_half_power(hass, entity)
+        scheduler = entity.cycle_scheduler
+        assert scheduler.is_cycle_running is True
+
+        gate = asyncio.Event()
+        factory = FakeInhibitionFactory(status=InhibitionStatus.INACTIVE, policy=InhibitionStopPolicy.DO_NOT_TURN_OFF)
+        original_create = factory.create
+
+        def create(thermostat):
+            provider = original_create(thermostat)
+            original_refresh = provider.async_refresh_state
+
+            async def slow_refresh():
+                await gate.wait()
+                return await original_refresh()
+
+            provider.async_refresh_state = slow_refresh
+            return provider
+
+        factory.create = create
+        register_factories(hass, factory)
+        for _ in range(5):
+            await asyncio.sleep(0)
+
+        # pending UNKNOWN: the cycle is stopped at once, nothing is switched
+        assert entity.is_inhibition_withdrawn is True
+        assert scheduler.is_cycle_running is False
+        turn_on.reset_mock()
+        turn_off.reset_mock()
+        # the provider refresh is still pending: do not wait for it
+        await advance(hass, 15, block=False)
+        assert turn_on.call_count == 0
+        assert turn_off.call_count == 0
+
+        gate.set()
+        await hass.async_block_till_done()
+        assert entity.is_inhibition_withdrawn is False
+        assert scheduler.is_cycle_running is True
+        await advance(hass, 10)
+        for _ in range(2):
+            await entity.async_control_heating(timestamp=entity.now)
+        assert turn_on.call_count >= 1
+
+    entity.remove_thermostat()
+
+
+async def test_scheduler_guards_clear_a_stale_cycle(hass: HomeAssistant, skip_hass_states_is_state, fake_underlying_switch: MockSwitch):
+    """Finding 2 - while withdrawn, start_cycle clears a stale cycle handle and a tick switches nothing"""
+    factory = FakeInhibitionFactory(policy=InhibitionStopPolicy.DO_NOT_TURN_OFF)
+    register_factories(hass, factory)
+
+    # fmt: off
+    with patch.object(UnderlyingSwitch, "turn_on", new_callable=AsyncMock) as turn_on, \
+        patch.object(UnderlyingSwitch, "turn_off", new_callable=AsyncMock) as turn_off:
+        # fmt: on
+        entity = await create_heating_switch_vtherm(hass)
+        await heat_at_half_power(hass, entity)
+        scheduler = entity.cycle_scheduler
+        # keep the running cycle state as if the timers had already fired
+        states = scheduler._states
+        cycle_start_time = scheduler._cycle_start_time
+        tick_unsub = scheduler._tick_unsub
+        end_unsub = scheduler._cycle_end_unsub
+        await factory.provider.async_notify(InhibitionStatus.ACTIVE)
+        turn_on.reset_mock()
+        turn_off.reset_mock()
+
+        # a tick fired before the cancellation: nothing is switched nor rescheduled
+        scheduler._states = states
+        scheduler._cycle_start_time = cycle_start_time
+        await scheduler._tick()
+        assert scheduler._tick_unsub is None
+        assert turn_on.call_count == 0
+        assert turn_off.call_count == 0
+
+        # the master cycle end fired with a stale handle: start_cycle clears it
+        scheduler._cycle_end_unsub = end_unsub
+        scheduler._tick_unsub = tick_unsub
+        await scheduler._on_master_cycle_end(None)
+        assert scheduler.is_cycle_running is False
+        assert turn_on.call_count == 0
+        assert turn_off.call_count == 0
+
+    entity.remove_thermostat()
+
+
+async def test_exit_failure_is_retried(hass: HomeAssistant, skip_hass_states_is_state, fake_underlying_switch: MockSwitch):
+    """Finding 3 - a failing exit reconciliation keeps a consistent withdrawal and is retried"""
+    factory = FakeInhibitionFactory()
+    register_factories(hass, factory)
+
+    with spy_switch_commands() as spies:
+        entity = await create_heating_switch_vtherm(hass)
+        await factory.provider.async_notify(InhibitionStatus.ACTIVE)
+        reset_spies(spies)
+
+        original_set_hvac_mode = spies.set_hvac_mode.side_effect
+        spies.set_hvac_mode.side_effect = RuntimeError("service failed")
+        await factory.provider.async_notify(InhibitionStatus.INACTIVE)
+
+        state = entity.inhibition_manager.state
+        assert state.provider_status == InhibitionProviderStatus.INACTIVE
+        assert state.withdrawal_active is True
+        assert state.last_error_code == InhibitionErrorCode.EXIT_RECONCILIATION_FAILED
+        assert entity.vtherm_hvac_mode == VThermHvacMode_OFF
+        assert entity.hvac_off_reason == HVAC_OFF_REASON_INHIBITION
+        assert spies.turn_off.call_count == 0
+        assert spies.start_cycle.call_count == 0
+
+        # the service works again: the retry resumes without any provider event
+        spies.set_hvac_mode.side_effect = original_set_hvac_mode
+        async_fire_time_changed(hass, dt_util.utcnow() + timedelta(seconds=EXIT_RETRY_MIN_DELAY_SEC + 1))
+        await hass.async_block_till_done()
+
+        assert entity.is_inhibition_withdrawn is False
+        assert entity.inhibition_manager.state.last_error_code is None
+        assert entity.vtherm_hvac_mode == VThermHvacMode_HEAT
+        assert spies.start_cycle.call_count == 1
+
+    entity.remove_thermostat()
+
+
+async def test_restart_factory_registered_during_startup(hass: HomeAssistant, skip_hass_states_is_state, fake_underlying_switch: MockSwitch):
+    """Findings 4 and 7 - a plugin registering after the startup discovery but before the
+    provider start: the restored withdrawal applies, no second stop"""
+    mock_restore_cache(hass, [restored_state("off", inhibition_snapshot(True))])
+    factory = FakeInhibitionFactory(status=InhibitionStatus.ACTIVE)
+    original = BaseThermostat.get_my_previous_state
+
+    async def get_my_previous_state_then_register(self):
+        await original(self)
+        register_factories(hass, factory)
+
+    with spy_switch_commands() as spies, patch.object(BaseThermostat, "get_my_previous_state", get_my_previous_state_then_register):
+        entity = await create_restarted_switch_vtherm(hass)
+        await hass.async_block_till_done()
+
+        assert entity.inhibition_manager.provider is factory.provider
+        assert factory.provider.restored_states and factory.provider.restored_states[0].entity_id == SWITCH_ENTITY_ID
+        state = entity.inhibition_manager.state
+        assert state.withdrawal_active is True
+        assert state.entry_handled is True
+        assert state.physical_stop_emitted is True
+        assert entity.vtherm_hvac_mode == VThermHvacMode_OFF
+        assert entity.hvac_off_reason == HVAC_OFF_REASON_INHIBITION
+        assert_no_command(spies)
+
+    entity.remove_thermostat()
+
+
+async def test_restart_factory_registered_after_resume(hass: HomeAssistant, skip_hass_states_is_state, fake_underlying_switch: MockSwitch):
+    """Finding 4 - the plugin registers after the VTherm has resumed (ABSENT meanwhile): the
+    persisted guard is obsolete, a new activation stops the devices once"""
+    mock_restore_cache(hass, [restored_state("off", inhibition_snapshot(True))])
+
+    with spy_switch_commands() as spies:
+        entity = await create_restarted_switch_vtherm(hass)
+        assert entity.is_inhibition_withdrawn is False
+        assert entity.vtherm_hvac_mode == VThermHvacMode_HEAT
+        reset_spies(spies)
+
+        factory = FakeInhibitionFactory(status=InhibitionStatus.ACTIVE)
+        register_factories(hass, factory)
+        await hass.async_block_till_done()
+
+        assert entity.is_inhibition_withdrawn is True
+        assert entity.inhibition_manager.state.entry_handled is True
+        assert spies.turn_off.call_count == 1
+        assert spies.start_cycle.call_count == 0
+
+    entity.remove_thermostat()
+
+
+@pytest.mark.parametrize("register_b_first", [False, True])
+async def test_plugin_replaced_at_runtime(hass: HomeAssistant, skip_hass_states_is_state, fake_underlying_switch: MockSwitch, register_b_first):
+    """Finding 6 - factory A unregistered, B registered: B takes the slot and confirms INACTIVE"""
+    factory_a = FakeInhibitionFactory(name="plugin_a")
+    api = register_factories(hass, factory_a)
+    factory_b = FakeInhibitionFactory(name="plugin_b")
+
+    with spy_switch_commands() as spies:
+        entity = await create_heating_switch_vtherm(hass)
+        assert entity.inhibition_manager.provider_name == "plugin_a"
+
+        if register_b_first:
+            api.register_inhibition_provider_factory(factory_b)
+            await hass.async_block_till_done()
+            assert [conflict.rejected for conflict in entity.inhibition_manager.conflicts] == ["plugin_b"]
+            assert not factory_b.providers
+
+        factory_a.provider.stop_listening()
+        api.unregister_inhibition_provider_factory("plugin_a")
+        await hass.async_block_till_done()
+        if not register_b_first:
+            assert entity.is_inhibition_withdrawn is True
+            api.register_inhibition_provider_factory(factory_b)
+            await hass.async_block_till_done()
+
+        assert entity.inhibition_manager.provider_name == "plugin_b"
+        assert entity.inhibition_manager.provider is factory_b.provider
+        assert entity.inhibition_manager.conflicts == []
+        assert entity.inhibition_manager.state.provider_status == InhibitionProviderStatus.INACTIVE
+        assert entity.is_inhibition_withdrawn is False
+        assert entity.vtherm_hvac_mode == VThermHvacMode_HEAT
+        assert spies.turn_off.call_count == 1
+
+        await factory_b.provider.async_notify(InhibitionStatus.ACTIVE)
+        assert entity.is_inhibition_withdrawn is True
+
+    entity.remove_thermostat()
+
+
+async def test_recalibration_aborted_on_withdrawal(hass: HomeAssistant, skip_hass_states_get, monkeypatch):
+    """Finding 5 - a running valve recalibration is cancelled on withdrawal, without restoring the state"""
+    entry = MockConfigEntry(
+        domain=DOMAIN,
+        title="name",
+        unique_id="unique",
+        data={
+            CONF_NAME: "name",
+            CONF_TEMP_SENSOR: "sensor.mock_temp_sensor",
+            CONF_CYCLE_MIN: 5,
+            CONF_DEVICE_POWER: 1,
+            CONF_USE_MAIN_CENTRAL_CONFIG: False,
+            CONF_USE_CENTRAL_MODE: False,
+            CONF_THERMOSTAT_TYPE: CONF_THERMOSTAT_CLIMATE,
+            CONF_EXTERNAL_TEMP_SENSOR: "sensor.mock_ext_temp_sensor",
+            CONF_TEMP_MIN: 15,
+            CONF_TEMP_MAX: 30,
+            CONF_STEP_TEMPERATURE: 0.1,
+            CONF_UNDERLYING_LIST: ["climate.mock_climate"],
+            CONF_AC_MODE: False,
+            CONF_AUTO_REGULATION_MODE: CONF_AUTO_REGULATION_VALVE,
+            CONF_AUTO_REGULATION_DTEMP: 0.5,
+            CONF_AUTO_REGULATION_PERIOD_MIN: 2,
+            CONF_PROP_FUNCTION: PROPORTIONAL_FUNCTION_TPI,
+            CONF_TPI_COEF_INT: 0.3,
+            CONF_TPI_COEF_EXT: 0.1,
+            CONF_OPENING_DEGREE_LIST: ["number.mock_opening_degree"],
+            CONF_CLOSING_DEGREE_LIST: ["number.mock_closing_degree"],
+        },
+    )
+    thermostat = await create_thermostat(hass, entry, "climate.name")
+
+    class RecordingValve:
+        """Valve regulation underlying recording the commands"""
+
+        opening_degree_entity_id = "number.mock_opening_degree"
+        closing_degree_entity_id = "number.mock_closing_degree"
+
+        def __init__(self):
+            self.sent = []
+
+        async def send_value_to_number(self, entity_id, value):
+            self.sent.append((entity_id, value))
+
+    valve = RecordingValve()
+    thermostat._underlyings_valve_regulation = [valve]
+    thermostat._underlyings = []
+
+    def create_task(coro):
+        return asyncio.get_running_loop().create_task(coro)
+
+    monkeypatch.setattr(hass, "async_create_task", create_task)
+    restore = AsyncMock()
+    monkeypatch.setattr(thermostat, "update_states", restore)
+
+    await thermostat.service_recalibrate_valves(0)
+    task = thermostat._recalibrate_task
+    for _ in range(5):
+        await asyncio.sleep(0)
+    assert not task.done()
+
+    await thermostat.async_inhibition_suspend_control()
+    with suppress(asyncio.CancelledError):
+        await task
+    assert task.cancelled()
+    assert valve.sent == []
+    # only the initial OFF of the recalibration: its final restoration is skipped
+    assert restore.await_count == 1
+    assert not thermostat._recalibrate_lock.locked()
