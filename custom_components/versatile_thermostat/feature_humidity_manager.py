@@ -130,7 +130,10 @@ class FeatureHumidityManager(BaseFeatureManager):
     async def refresh_state(self) -> bool:
         """Read the latest state of the resolved humidity sensor."""
         if not self._humidity_sensor_entity_id:
-            return self._set_current_humidity(None)
+            old_humidity = self._cur_humidity
+            self._cur_humidity = None
+            self._humidity_is_invalid = False
+            return old_humidity is not None
         return self._set_current_humidity(
             self.hass.states.get(self._humidity_sensor_entity_id)
         )
