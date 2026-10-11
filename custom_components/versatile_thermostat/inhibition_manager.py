@@ -29,6 +29,7 @@ from enum import StrEnum
 from typing import Any, TYPE_CHECKING
 
 from homeassistant.core import CALLBACK_TYPE, State
+from homeassistant.helpers.event import async_call_later
 
 from vtherm_api import (
     DEFAULT_INHIBITION_STOP_POLICY,
@@ -49,6 +50,10 @@ _LOGGER = get_vtherm_logger(__name__)
 
 ATTR_INHIBITION = "inhibition"
 INHIBITION_SCHEMA_VERSION = 1
+
+# Retry of a failed exit reconciliation (doubled after each failure)
+EXIT_RETRY_MIN_DELAY_SEC = 30
+EXIT_RETRY_MAX_DELAY_SEC = 600
 
 
 class InhibitionProviderStatus(StrEnum):
@@ -209,6 +214,14 @@ class InhibitionManager:
         self._conflicts: dict[str, InhibitionProviderConflictError] = {}
         self._lock = asyncio.Lock()
         self._is_started = False
+        # Snapshot and previous HA state read at startup. Kept for a provider
+        # attached after the restoration (late plugin)
+        self._restored_snapshot: InhibitionRuntimeState | None = None
+        self._old_state: State | None = None
+        self._is_restored = False
+        # Pending retry of a failed exit reconciliation
+        self._cancel_exit_retry: CALLBACK_TYPE | None = None
+        self._exit_retry_delay_sec: float = EXIT_RETRY_MIN_DELAY_SEC
 
     def __str__(self) -> str:
         return f"InhibitionManager-{self._vtherm}"
@@ -270,14 +283,27 @@ class InhibitionManager:
         if api is None or not hasattr(api, "get_inhibition_provider_factories"):
             return False
 
-        attached = False
-        for factory in api.get_inhibition_provider_factories():
-            name = self._factory_name(factory)
-            if not name:
-                continue
+        factories = [(self._factory_name(factory), factory) for factory in api.get_inhibition_provider_factories()]
+        factories = [(name, factory) for name, factory in factories if name]
+        registered = {name for name, _ in factories}
 
-            if self._state.provider_name is None:
-                attached = self._try_attach(factory, name) or attached
+        # Forget the conflicts with factories that are not registered anymore
+        for name in [name for name in self._conflicts if name not in registered]:
+            del self._conflicts[name]
+
+        # The slot is vacant when its provider is gone (unregistered or failed) and
+        # its factory is not registered anymore: the next eligible factory takes
+        # it. The withdrawal and its stop guard are kept (UNKNOWN until confirmed).
+        vacant = self.is_attached and self._provider is None and self._state.provider_name not in registered
+        if vacant:
+            self._conflicts.clear()
+
+        attached = False
+        for name, factory in factories:
+            if self._state.provider_name is None or vacant:
+                if self._try_attach(factory, name):
+                    attached = True
+                    vacant = False
                 continue
 
             if name == self._state.provider_name:
@@ -367,8 +393,26 @@ class InhibitionManager:
         self._state.provider_status = InhibitionProviderStatus.UNKNOWN
         self._state.awaiting_confirmation = True
         self._state.last_error_code = error_code
+        snapshot = self._restored_snapshot
+        self._restored_snapshot = None
         if not self._state.withdrawal_active:
-            self._begin_withdrawal(self._resolve_policy(None))
+            if snapshot is not None and snapshot.provider_name == name and not self._vtherm.is_ready:
+                # Attached after the restoration but before the first reconciliation:
+                # the persisted withdrawal and its stop guard apply (no second stop)
+                self._apply_snapshot(snapshot)
+            else:
+                if snapshot is not None and snapshot.provider_name == name:
+                    # The VTherm has resumed its control since the restart: the
+                    # persisted stop guard does not describe the devices anymore
+                    _LOGGER.info(
+                        "%s - the persisted inhibition withdrawal is not applied: the VTherm has resumed its control since the restart",
+                        self._vtherm,
+                    )
+                self._begin_withdrawal(self._resolve_policy(None))
+
+        if provider is not None and self._is_restored and self._old_state is not None and not self._vtherm.is_ready:
+            # Attached after the restoration but during the startup
+            self._restore_provider(provider)
 
         if provider is not None:
             _LOGGER.info(
@@ -420,11 +464,16 @@ class InhibitionManager:
 
         if snapshot is not None:
             self._known_policy = snapshot.effective_stop_policy
+        self._old_state = old_state
+        self._is_restored = True
 
         if not self.is_attached:
             if snapshot is not None and snapshot.withdrawal_active:
+                # Kept for a provider of the same name attached later. While no
+                # provider is attached, the VTherm behaves as before (ABSENT)
+                self._restored_snapshot = snapshot
                 _LOGGER.info(
-                    "%s - a previous inhibition withdrawal is ignored because no inhibition provider supports this VTherm anymore",
+                    "%s - a previous inhibition withdrawal is not applied because no inhibition provider is attached (yet)",
                     self._vtherm,
                 )
             return
@@ -432,34 +481,44 @@ class InhibitionManager:
         if snapshot is not None:
             self._state.last_transition_at = snapshot.last_transition_at
             if snapshot.withdrawal_active:
-                # Keep the guard of the current activation: no second stop
-                self._state.withdrawal_active = True
-                self._state.effective_stop_policy = snapshot.effective_stop_policy
-                self._state.entry_handled = snapshot.entry_handled
-                self._state.physical_stop_emitted = snapshot.physical_stop_emitted
-                self._state.physical_stop_result = snapshot.physical_stop_result
-                _LOGGER.info(
-                    "%s - inhibition withdrawal restored (entry_handled=%s, physical_stop_emitted=%s, policy=%s). Waiting for the provider confirmation",
-                    self._vtherm,
-                    snapshot.entry_handled,
-                    snapshot.physical_stop_emitted,
-                    snapshot.effective_stop_policy,
-                )
+                self._apply_snapshot(snapshot)
             elif not self._state.entry_handled:
                 self._state.effective_stop_policy = self._resolve_policy(None)
 
         if self._provider is not None and old_state is not None:
-            try:
-                self._provider.restore_state(old_state)
-            except Exception as exc:  # pylint: disable=broad-except
-                _LOGGER.error("%s - inhibition provider '%s' failed to restore its state: %s", self._vtherm, self.provider_name, exc)
-                self._state.last_error_code = InhibitionErrorCode.RESTORE_FAILED
+            self._restore_provider(self._provider)
+
+    def _apply_snapshot(self, snapshot: InhibitionRuntimeState):
+        """Keep the guard of the persisted activation: no second stop"""
+        self._state.withdrawal_active = True
+        self._state.effective_stop_policy = snapshot.effective_stop_policy
+        self._state.entry_handled = snapshot.entry_handled
+        self._state.physical_stop_emitted = snapshot.physical_stop_emitted
+        self._state.physical_stop_result = snapshot.physical_stop_result
+        self._state.last_transition_at = snapshot.last_transition_at
+        _LOGGER.info(
+            "%s - inhibition withdrawal restored (entry_handled=%s, physical_stop_emitted=%s, policy=%s). Waiting for the provider confirmation",
+            self._vtherm,
+            snapshot.entry_handled,
+            snapshot.physical_stop_emitted,
+            snapshot.effective_stop_policy,
+        )
+
+    def _restore_provider(self, provider: InterfaceInhibitionProvider):
+        """Give the previous HA state of the VTherm to the provider"""
+        try:
+            provider.restore_state(self._old_state)
+        except Exception as exc:  # pylint: disable=broad-except
+            _LOGGER.error("%s - inhibition provider '%s' failed to restore its state: %s", self._vtherm, self.provider_name, exc)
+            self._state.last_error_code = InhibitionErrorCode.RESTORE_FAILED
 
     async def async_start(self):
         """Start the provider and reconcile its initial status (VTherm startup)"""
         if self._is_started:
             return
         self._is_started = True
+        # A plugin may have registered since the startup discovery
+        self.discover()
         await self._async_start_provider()
 
     async def _async_start_provider(self):
@@ -523,14 +582,23 @@ class InhibitionManager:
         previous_provider = self._provider
         previous_name = self._state.provider_name
         self.discover()
-        if self._provider is not None and self._provider is not previous_provider:
-            await self._async_start_provider()
-        elif self.is_attached and previous_name is None:
-            # new failing provider
-            await self._async_start_provider()
+        changed = self._provider is not previous_provider or self._state.provider_name != previous_name
+        if not changed:
+            return
+
+        if self.is_withdrawn and self._vtherm.is_ready:
+            # A ready VTherm starting a withdrawal stops its own activity at once,
+            # before the provider confirms anything (no command is sent)
+            await self._vtherm.async_inhibition_suspend_control()
+        await self._async_start_provider()
+        self._publish()
 
     async def async_on_factory_unregistered(self, name: str):
-        """The factory of the attached provider has been unregistered (plugin unload)"""
+        """A factory has been unregistered (plugin unload or replacement)"""
+        if name in self._conflicts:
+            del self._conflicts[name]
+            self._publish()
+
         if self._state.provider_name != name or self._provider is None:
             return
 
@@ -553,6 +621,9 @@ class InhibitionManager:
         async with self._lock:
             await self._async_apply_status(InhibitionStatus.UNKNOWN, None, InhibitionErrorCode.PROVIDER_UNREGISTERED)
 
+        # Another registered factory may take the vacant slot
+        await self.async_on_factories_changed()
+
     def stop(self):
         """Detach the provider when the VTherm is removed. No resume command is sent.
 
@@ -564,6 +635,7 @@ class InhibitionManager:
         self._remove_callback = None
         self._provider = None
         self._is_started = False
+        self._cancel_retry()
         if provider is not None:
             try:
                 provider.stop_listening()
@@ -768,6 +840,7 @@ class InhibitionManager:
         """
         state = self._state
         vtherm = self._vtherm
+        self._cancel_retry()
         if state.entry_handled:
             _LOGGER.info("%s - inhibition exit: provider '%s' confirmed inactive. Applying the requested state %s", vtherm, self.provider_name, vtherm.requested_state)
         else:
@@ -784,13 +857,73 @@ class InhibitionManager:
             return
 
         try:
+            # Force the current state as changed too: the effective state is
+            # applied to the underlyings even when it did not change during the
+            # withdrawal (OFF requested, window still open, device turned on
+            # directly by the user...)
             vtherm.requested_state.force_changed()
+            vtherm.current_state.force_changed()
             await vtherm.update_states(force=True)
         except Exception as exc:  # pylint: disable=broad-except
-            _LOGGER.error("%s - inhibition exit reconciliation failed: %s. The VTherm control stays withdrawn", vtherm, exc)
-            state.withdrawal_active = True
-            state.entry_handled = True
-            state.last_error_code = InhibitionErrorCode.EXIT_RECONCILIATION_FAILED
+            await self._async_on_exit_failed(exc)
+            return
+
+        self._exit_retry_delay_sec = EXIT_RETRY_MIN_DELAY_SEC
+        if state.last_error_code == InhibitionErrorCode.EXIT_RECONCILIATION_FAILED:
+            state.last_error_code = None
+
+    async def _async_on_exit_failed(self, exc: Exception):
+        """The exit reconciliation failed: withdraw again and retry later.
+
+        The VTherm goes back to a consistent withdrawn state (OFF with the
+        inhibition reason, no cycle) without any new stop, then the exit is
+        retried with a growing delay while the provider stays INACTIVE.
+        """
+        state = self._state
+        vtherm = self._vtherm
+        delay = self._exit_retry_delay_sec
+        _LOGGER.error(
+            "%s - inhibition exit reconciliation failed: %s. The VTherm control stays withdrawn, retry in %s sec",
+            vtherm,
+            exc,
+            delay,
+        )
+        state.withdrawal_active = True
+        state.entry_handled = True
+        state.last_error_code = InhibitionErrorCode.EXIT_RECONCILIATION_FAILED
+        try:
+            vtherm.requested_state.force_changed()
+            await vtherm.update_states(force=True)
+            await vtherm.async_inhibition_suspend_control()
+        except Exception as err:  # pylint: disable=broad-except
+            _LOGGER.error("%s - error while withdrawing the control again: %s", vtherm, err)
+
+        self._exit_retry_delay_sec = min(delay * 2, EXIT_RETRY_MAX_DELAY_SEC)
+        self._cancel_retry()
+        hass = vtherm.hass
+        if hass is not None:
+            self._cancel_exit_retry = async_call_later(hass, delay, self._async_retry_exit)
+
+    async def _async_retry_exit(self, _now=None):
+        """Retry a failed exit while the provider still reports INACTIVE"""
+        self._cancel_exit_retry = None
+        async with self._lock:
+            if (
+                self._vtherm.is_removed
+                or not self._state.withdrawal_active
+                or self._state.provider_status != InhibitionProviderStatus.INACTIVE
+                or self._state.last_error_code != InhibitionErrorCode.EXIT_RECONCILIATION_FAILED
+            ):
+                return
+            _LOGGER.info("%s - retrying the inhibition exit reconciliation", self._vtherm)
+            await self._async_exit()
+            self._publish()
+
+    def _cancel_retry(self):
+        """Cancel a pending exit retry"""
+        if self._cancel_exit_retry is not None:
+            self._cancel_exit_retry()
+            self._cancel_exit_retry = None
 
     async def _async_release_to_absent(self):
         """The factory does not support the VTherm anymore: historic behavior"""
