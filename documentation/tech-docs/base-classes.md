@@ -928,8 +928,10 @@ behavior: [specification](../specs/issue-2087-inhibition-spec.md) and
    central configuration included), `restore_state(old_state)` (the previous HA
    `State` of the climate entity, at startup only),
    `register_transition_callback(callback)`, `async_start_listening()` and
-   `async_refresh_state()` (initial confirmed status). A late provider follows the
-   same path, without `restore_state`.
+   `async_refresh_state()` (initial confirmed status). A provider attached later
+   follows the same path; it gets `restore_state` only while the VTherm is still
+   starting. A factory registered later may also take the slot of an unregistered
+   one (plugin replaced).
 4. Report only **confirmed** statuses (`ACTIVE`, `INACTIVE`, `UNKNOWN`), after the
    plugin delays: return them from `async_refresh_state()` and notify each change
    by awaiting the registered callbacks with an `InhibitionTransition`
@@ -948,8 +950,10 @@ behavior: [specification](../specs/issue-2087-inhibition-spec.md) and
 7. On unload, `stop_listening()` (synchronous) must report `UNKNOWN` to the
    callbacks before detaching them (for example with `hass.async_create_task`),
    then the plugin unregisters its factory. The VTherms keep the withdrawal until a
-   (reloaded) provider confirms `INACTIVE`. The core calls `stop_listening()` itself
-   when the VTherm is removed and ignores later callbacks.
+   (reloaded) provider confirms `INACTIVE`. With `TURN_OFF`, a plugin reload while the
+   VTherm runs normally therefore sends a precautionary stop (the devices turn off
+   briefly). The core calls `stop_listening()` itself when the VTherm is removed and
+   ignores later callbacks.
 
 The core state is published and restored under `specific_states.inhibition`
 (`schema_version: 1`) only when a provider is attached. A VTherm without an
