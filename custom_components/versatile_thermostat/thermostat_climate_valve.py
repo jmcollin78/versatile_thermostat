@@ -482,7 +482,7 @@ class ThermostatOverClimateValve(ThermostatProp[UnderlyingClimate], ThermostatOv
     @overrides
     async def async_inhibition_suspend_control(self):
         """Issue #2087 - also abort a running valve recalibration: it drives the
-        underlyings directly. Its final state restoration is skipped"""
+        underlyings directly. It restores the memorized requested state"""
         await super().async_inhibition_suspend_control()
         task = self._recalibrate_task
         if task is not None and not task.done():
@@ -597,6 +597,21 @@ class ThermostatOverClimateValve(ThermostatProp[UnderlyingClimate], ThermostatOv
             return {"message": "recalibrage en cours"}
 
         # Define the background coroutine
+        async def _restore_requested_state():
+            """Restore the requested state memorized before the recalibration"""
+            _LOGGER.info("%s - Recalibration - Restoring requested state", self)
+            if expected_state:
+                try:
+                    self.requested_state.set_state(
+                        hvac_mode=expected_state.get("hvac_mode"),
+                        target_temperature=expected_state.get("target_temperature"),
+                        preset=expected_state.get("preset"),
+                    )
+                    self.requested_state.force_changed()
+                    await self.update_states(force=True)
+                except Exception as ex:  # pylint: disable=broad-except
+                    _LOGGER.error("%s - Cannot restore requested state after recalibration: %s", self, ex)
+
         async def _recalibrate_task():
             async with self._recalibrate_lock:
                 try:
@@ -642,22 +657,15 @@ class ThermostatOverClimateValve(ThermostatProp[UnderlyingClimate], ThermostatOv
                             await under.send_value_to_number(closing, close_val2)
                     await asyncio.sleep(delay_seconds)
 
+                except asyncio.CancelledError:
+                    # Aborted (issue #2087 withdrawal): the user intent replaced by the
+                    # temporary OFF is restored. Nothing is sent while withdrawn.
+                    await _restore_requested_state()
+                    raise
                 except Exception as exc:  # pylint: disable=broad-except
                     _LOGGER.error("%s - Error during recalibration: %s", self, exc)
 
-            # Restore requested state
-            _LOGGER.info("%s - Recalibration - Restoring requested state", self)
-            if expected_state:
-                try:
-                    self.requested_state.set_state(
-                        hvac_mode=expected_state.get("hvac_mode"),
-                        target_temperature=expected_state.get("target_temperature"),
-                        preset=expected_state.get("preset"),
-                    )
-                    self.requested_state.force_changed()
-                    await self.update_states(force=True)
-                except Exception as ex:  # pylint: disable=broad-except
-                    _LOGGER.error("%s - Cannot restore requested state after recalibration: %s", self, ex)
+            await _restore_requested_state()
 
         # Launch background task and return immediately
         try:

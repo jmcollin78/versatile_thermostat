@@ -96,12 +96,12 @@ class InhibitionProviderConflictError(Exception):
     """
 
     def __init__(self, vtherm_name: str, retained: str, rejected: str) -> None:
+        """Initialize the instance."""
         self.vtherm_name = vtherm_name
         self.retained = retained
         self.rejected = rejected
         super().__init__(
-            f"{vtherm_name} - inhibition provider conflict: '{retained}' is retained, "
-            f"'{rejected}' is rejected (only one inhibition provider is allowed per VTherm)"
+            f"{vtherm_name} - inhibition provider conflict: '{retained}' is retained, " f"'{rejected}' is rejected (only one inhibition provider is allowed per VTherm)"
         )
 
     def as_dict(self) -> dict[str, str]:
@@ -199,14 +199,17 @@ class InhibitionManager:
     """
 
     def __init__(self, vtherm: "BaseThermostat") -> None:
+        """Initialize the instance."""
         self._vtherm = vtherm
         self._state = InhibitionRuntimeState()
-        self._factory: InterfaceInhibitionProviderFactory | None = None
         self._provider: InterfaceInhibitionProvider | None = None
         self._remove_callback: CALLBACK_TYPE | None = None
         # Incremented on each attach / detach so that a late callback of a
         # previous provider instance is ignored
         self._generation: int = 0
+        # Number of provider transitions applied: a refresh result older than a
+        # transition applied while it was awaited is ignored
+        self._transition_count: int = 0
         self._last_sequence: int | None = None
         # Last policy known from the provider or from the restored snapshot.
         # Used when the provider is unusable (UNKNOWN after an error)
@@ -224,6 +227,7 @@ class InhibitionManager:
         self._exit_retry_delay_sec: float = EXIT_RETRY_MIN_DELAY_SEC
 
     def __str__(self) -> str:
+        """Return the display name."""
         return f"InhibitionManager-{self._vtherm}"
 
     @property
@@ -346,7 +350,7 @@ class InhibitionManager:
                 name,
                 exc,
             )
-            self._attach_slot(name, factory, None, InhibitionErrorCode.SUPPORTS_FAILED)
+            self._attach_slot(name, None, InhibitionErrorCode.SUPPORTS_FAILED)
             return True
 
         if not eligible:
@@ -370,22 +374,20 @@ class InhibitionManager:
                 name,
                 exc,
             )
-            self._attach_slot(name, factory, None, InhibitionErrorCode.CREATE_FAILED)
+            self._attach_slot(name, None, InhibitionErrorCode.CREATE_FAILED)
             return True
 
-        self._attach_slot(name, factory, provider, None)
+        self._attach_slot(name, provider, None)
         return True
 
     def _attach_slot(
         self,
         name: str,
-        factory: InterfaceInhibitionProviderFactory,
         provider: InterfaceInhibitionProvider | None,
         error_code: str | None,
     ):
         """Bind a provider slot. The status is UNKNOWN until the first confirmation."""
         self._generation += 1
-        self._factory = factory
         self._provider = provider
         self._remove_callback = None
         self._last_sequence = None
@@ -431,7 +433,6 @@ class InhibitionManager:
     def _detach_slot(self):
         """Forget the provider slot (back to ABSENT)"""
         self._generation += 1
-        self._factory = None
         self._provider = None
         self._remove_callback = None
         self._state.provider_name = None
@@ -551,6 +552,7 @@ class InhibitionManager:
         """Ask the provider for its confirmed status and apply it"""
         provider = self._provider
         generation = self._generation
+        transition_count = self._transition_count
         if provider is None:
             return
 
@@ -566,6 +568,9 @@ class InhibitionManager:
 
         async with self._lock:
             if generation != self._generation:
+                return
+            if transition_count != self._transition_count:
+                _LOGGER.debug("%s - inhibition refresh result ignored: a newer transition has been applied", self._vtherm)
                 return
             await self._async_apply_status(status, policy, error_code)
 
@@ -611,7 +616,6 @@ class InhibitionManager:
         remove_callback = self._remove_callback
         self._remove_callback = None
         self._provider = None
-        self._factory = None
         if remove_callback:
             try:
                 remove_callback()
@@ -657,6 +661,7 @@ class InhibitionManager:
         """Build the transition callback bound to one provider instance"""
 
         async def _on_transition(transition: InhibitionTransition) -> None:
+            """Forward a provider transition to the manager."""
             await self._async_on_transition(generation, transition)
 
         return _on_transition
@@ -686,6 +691,7 @@ class InhibitionManager:
                         return
                     self._last_sequence = sequence
 
+                self._transition_count += 1
                 await self._async_apply_status(transition.new_status, getattr(transition, "stop_policy", None), None)
         except Exception as exc:  # pylint: disable=broad-except
             _LOGGER.error("%s - error while handling the inhibition transition %s: %s", self._vtherm, transition, exc)
@@ -748,7 +754,10 @@ class InhibitionManager:
                 changed = True
         else:
             self._state.awaiting_confirmation = status == InhibitionStatus.UNKNOWN
-            if not self._state.withdrawal_active:
+            # Still withdrawn after INACTIVE means a failed exit: a new status
+            # after it is a new activation, with its own stop guard
+            if not self._state.withdrawal_active or old_status == InhibitionProviderStatus.INACTIVE:
+                self._cancel_retry()
                 self._begin_withdrawal(self._resolve_policy(raw_policy))
                 changed = True
                 if status == InhibitionStatus.ACTIVE:

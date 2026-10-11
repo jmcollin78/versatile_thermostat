@@ -1046,7 +1046,15 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
         return self.fan_modes
 
     async def async_set_underlying_fan_mode(self, fan_mode: str) -> None:
-        """Send a fan mode to the underlying climate(s)."""
+        """Send a fan mode to the underlying climate(s).
+
+        Used by regulation plugins (auto fan). Nothing is sent while the control
+        is withdrawn by an inhibition (issue #2087); the user fan command goes
+        through async_set_fan_mode and is not concerned.
+        """
+        if self.is_inhibition_withdrawn:
+            _LOGGER.debug("%s - fan mode %s not sent: control withdrawn by inhibition", self, fan_mode)
+            return
         await self.async_set_fan_mode(fan_mode)
 
     @property

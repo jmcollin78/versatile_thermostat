@@ -833,6 +833,8 @@ class UnderlyingClimate(UnderlyingEntity):
         )
 
         async def callback_set_fan_mode(_):
+            if self.is_control_withdrawn():
+                return
             await self.set_fan_mode(fan_mode)
 
         self._cancel_set_fan_mode_later = async_call_later(self._hass, delay, callback_set_fan_mode)
