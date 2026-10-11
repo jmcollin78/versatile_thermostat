@@ -7,6 +7,7 @@ This page outlines the steps to quickly set up a basic yet operational _VTherm_.
   - [Heatzy, eCosy, or similar (`climate` entity)](#heatzy-ecosy-or-similar-climate-entity)
   - [Simple switch such as Aqara T1, Nous B2Z, Sonoff ZBMini, Sonoff POW, ...](#simple-switch-such-as-aqara-t1-nous-b2z-sonoff-zbmini-sonoff-pow-)
   - [Sonoff TRVZB or similar (TRV with valve control)](#sonoff-trvzb-or-similar-trv-with-valve-control)
+  - [Simple TRV such as Avatto TRV06, Moes, Tuya... (TRV without valve control)](#simple-trv-such-as-avatto-trv06-moes-tuya-trv-without-valve-control)
   - [Reversible HP Units, Air Conditioning, or Devices Controlled via a `climate` Entity](#reversible-hp-units-air-conditioning-or-devices-controlled-via-a-climate-entity)
 - [Next Steps](#next-steps)
 - [Call for Contributions](#call-for-contributions)
@@ -72,6 +73,31 @@ To integrate it into _VTherm_, you must:
 For this to work, the `closing degree` must be set to the maximum (100%). Do not immediately enable the `Follow underlying temperature change` option until you have verified that this basic configuration is working properly.
 
 After completing these five steps, you will have a fully functional _VTherm_ that controls your Sonoff TRVZB or similar device.
+
+## Simple TRV such as Avatto TRV06, Moes, Tuya... (TRV without valve control)
+
+This type of _TRV_ (typically Zigbee devices integrated through Zigbee2MQTT or ZHA) appears in _HA_ only as a `climate` entity. The valve opening cannot be controlled: the TRV regulates itself from its internal thermometer and the setpoint it receives.
+
+_VTherm_ will adjust the setpoint sent to the TRV so that the room temperature measured by your own sensor reaches the desired temperature.
+
+To integrate it into _VTherm_, you must:
+1. Create a _VTherm_ of type `over_climate`. See [creating a _VTherm_](creation.md),
+2. Assign it the main attributes (name, room temperature sensor, and outdoor temperature sensor at a minimum). See [main attributes](base-attributes.md),
+3. Assign one or more underlying devices to control. The underlying device here is the `climate` entity of the TRV. See [underlying devices](over-climate.md),
+4. Enable self-regulation: start with `Light` or `Medium` and keep the default values for the regulation threshold and the minimum regulation period. See [self-regulation](self-regulation.md). Leave the option `Use internal temperature of the underlying` unchecked, unless the internal thermometer of your TRV is very inaccurate (it is a last resort, see [compensating for the internal temperature](over-climate.md#compensating-for-the-internal-temperature-of-the-underlying-equipment)),
+5. If your TRV exposes a `number` entity such as `local_temperature_calibration`, enable the internal device temperature synchronization with calibration (mode 1). If it exposes an `external_temperature_input` entity, you can use mode 2 instead. See [internal temperature synchronization](feature-sync_device_temp.md).
+
+Some built-in features of the TRV conflict with _VTherm_. They are device settings that _VTherm_ does not manage, so check them directly on the device (or in Zigbee2MQTT / ZHA):
+- Disable the internal weekly schedule and do not use the `auto` system mode. Keep the TRV in `heat` mode: _VTherm_ handles schedules through [presets](feature-presets.md),
+- Disable the open window detection of the TRV. Use the [_VTherm_ window detection](feature-window.md) instead,
+- Do not use the internal presets of the TRV (eco, comfort, boost, holiday...). _VTherm_ sends the setpoint directly,
+- Optionally, enable the child lock to avoid manual changes on the device.
+
+> ![Tip](images/tips.png) _*Notes*_
+> - The [auto-start/stop](feature-auto-start-stop.md) function is designed for appliances that consume power when idle, such as heat pumps. It is generally of little use with a battery-powered TRV.
+> - Do not immediately enable the `Follow underlying temperature change` option until you have verified that this basic configuration is working properly. See [follow underlying temperature changes](over-climate.md#follow-underlying-temperature-changes).
+
+After completing these five steps and checking the TRV settings, you will have a fully functional _VTherm_ that controls your simple TRV.
 
 ## Reversible HP Units, Air Conditioning, or Devices Controlled via a `climate` Entity
 

@@ -7,6 +7,7 @@ Auf dieser Seite werden die Schritte zur schnellen Einrichtung eines einfachen, 
   - [Heatzy, eCosy, oder ähnlich (`climate`-Entity)](#heatzy-ecosy-oder-ähnlich-climate-entity)
   - [Einfache Schalter wie Aqara T1, Nous B2Z, Sonoff ZBMini, Sonoff POW, ...](#einfache-schalter-wie-aqara-t1-nous-b2z-sonoff-zbmini-sonoff-pow-)
   - [Sonoff TRVZB oder ähnlich (TRV mit Ventilsteuerung)](#sonoff-trvzb-oder-ähnlich-trv-mit-ventilsteuerung)
+  - [Einfaches TRV wie Avatto TRV06, Moes, Tuya... (TRV ohne Ventilsteuerung)](#einfaches-trv-wie-avatto-trv06-moes-tuya-trv-ohne-ventilsteuerung)
   - [Reversible Wärmepumpen, Klimaanlagen oder Geräte, die über eine `climate`-Entity gesteuert werden](#reversible-wärmepumpen-klimaanlagen-oder-geräte-die-über-eine-climate-entity-gesteuert-werden)
 - [Nächste Schritte](#nächste-schritte)
 - [Aufruf zu Beiträgen](#aufruf-zu-beiträgen)
@@ -72,6 +73,31 @@ Für die Integration in _VTherm_, müssen Sie:
 Damit dies funktioniert, muss der `Schließungsgrad` auf den Höchstwert (100 %) eingestellt sein. Aktivieren Sie die Option `Unterliegende Temperaturänderung folgen` erst, wenn Sie sich vergewissert haben, dass diese Grundkonfiguration ordnungsgemäß funktioniert.
 
 Nach Abschluss dieser fünf Schritte haben Sie über ein voll funktionsfähiges _VTherm_, das Ihr Sonoff TRVZB oder ein ähnliches Gerät steuert.
+
+## Einfaches TRV wie Avatto TRV06, Moes, Tuya... (TRV ohne Ventilsteuerung)
+
+Diese Art von _TRV_-Gerät (typischerweise Zigbee-Geräte, die über Zigbee2MQTT oder ZHA eingebunden werden) erscheint in _HA_ nur als `climate`-Entity. Die Ventilöffnung kann nicht gesteuert werden: Das TRV regelt sich selbst anhand seines internen Thermometers und des empfangenen Sollwerts.
+
+_VTherm_ passt den an das TRV gesendeten Sollwert so an, dass die von Ihrem eigenen Sensor gemessene Raumtemperatur die gewünschte Temperatur erreicht.
+
+Für die Integration in _VTherm_, müssen Sie:
+1. Ein _VTherm_ vom Typ `over_climate` erstellen. Siehe [Erstellen eines _VTherm_](creation.md),
+2. Weisen Sie ihm die Hauptattribute zu (mindestens Name, Raumtemperaturfühler und Außentemperaturfühler). Siehe [Hauptattribute](base-attributes.md),
+3. Weisen Sie ein oder mehrere zugehörige Geräte der Steuerung zu. Das zugehörige Gerät ist hier die `climate`-Entity des TRV. Siehe [Zugehörige Geräte](over-climate.md),
+4. Aktivieren Sie die Selbstregulierung: Beginnen Sie mit `Leicht` oder `Mittel` und behalten Sie die Standardwerte für die Regelungsschwelle und den Mindestzeitraum der Regelung bei. Siehe [Selbstregulierung](self-regulation.md). Lassen Sie die Option `Interne Bezugstemperatur ausgleichen` deaktiviert, es sei denn, das interne Thermometer Ihres TRV ist sehr ungenau (das ist der letzte Ausweg, siehe [Kompensation der Innentemperatur](over-climate.md#kompensation-der-innentemperatur-des-zugehörigen-geräts)),
+5. Wenn Ihr TRV eine `number`-Entity wie `local_temperature_calibration` bereitstellt, aktivieren Sie die Synchronisierung der internen Gerätetemperatur mit Kalibrierung (Modus 1). Wenn es eine `external_temperature_input`-Entity bereitstellt, können Sie stattdessen Modus 2 verwenden. Siehe [Synchronisierung der internen Temperatur](feature-sync_device_temp.md).
+
+Einige eingebaute Funktionen des TRV kollidieren mit _VTherm_. Es handelt sich um Geräteeinstellungen, die _VTherm_ nicht verwaltet. Prüfen Sie sie direkt am Gerät (oder in Zigbee2MQTT / ZHA):
+- Deaktivieren Sie den internen Wochenplan und verwenden Sie nicht den Systemmodus `auto`. Lassen Sie das TRV im Modus `heat`: _VTherm_ verwaltet Zeitpläne über [Voreinstellungen](feature-presets.md),
+- Deaktivieren Sie die Fenster-offen-Erkennung des TRV. Verwenden Sie stattdessen die [Fenstererkennung von _VTherm_](feature-window.md),
+- Verwenden Sie nicht die internen Voreinstellungen des TRV (eco, comfort, boost, holiday...). _VTherm_ sendet den Sollwert direkt,
+- Optional: Aktivieren Sie die Kindersicherung, um manuelle Änderungen am Gerät zu vermeiden.
+
+> ![Tipp](images/tips.png) _*Hinweise*_
+> - Die Funktion [Auto-Start/Stopp](feature-auto-start-stop.md) ist für Geräte gedacht, die auch im Leerlauf Strom verbrauchen, wie Wärmepumpen. Bei einem batteriebetriebenen TRV ist sie in der Regel wenig sinnvoll.
+> - Aktivieren Sie die Option `Unterliegende Temperaturänderung folgen` erst, wenn Sie sich vergewissert haben, dass diese Grundkonfiguration ordnungsgemäß funktioniert. Siehe [Verfolgung verknüpfter Temperaturänderungen](over-climate.md#verfolgung-verknüpfter-temperaturänderungen).
+
+Nach Abschluss dieser fünf Schritte und der Prüfung der TRV-Einstellungen haben Sie ein voll funktionsfähiges _VTherm_, das Ihr einfaches TRV steuert.
 
 ## Reversible Wärmepumpen, Klimaanlagen oder Geräte, die über eine `climate`-Entity gesteuert werden
 

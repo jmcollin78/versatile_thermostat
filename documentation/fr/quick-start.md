@@ -7,6 +7,7 @@ Cette page présente les étapes à suivre pour avoir un _VTherm_ basique mais o
   - [Heatzy ou eCosy ou assimilé (entité `climate`)](#heatzy-ou-ecosy-ou-assimilé-entité-climate)
   - [Simple switch comme Aqara T1, Nous B2Z, Sonoff ZBMini, Sonoff POW, ...](#simple-switch-comme-aqara-t1-nous-b2z-sonoff-zbmini-sonoff-pow-)
   - [Sonoff TRVZB ou assimilé (TRV avec contrôle de la vanne)](#sonoff-trvzb-ou-assimilé-trv-avec-contrôle-de-la-vanne)
+  - [Simple TRV comme Avatto TRV06, Moes, Tuya... (TRV sans contrôle de la vanne)](#simple-trv-comme-avatto-trv06-moes-tuya-trv-sans-contrôle-de-la-vanne)
   - [_PAC_ reversibles ou climatisation ou équipements commandables à travers une entité `climate`](#pac-reversibles-ou-climatisation-ou-équipements-commandables-à-travers-une-entité-climate)
 - [La suite](#la-suite)
 - [Appel à contribution](#appel-à-contribution)
@@ -73,6 +74,31 @@ Pour l'intégrer dans _VTherm_ vous devez :
 Pour que cela fonctionne, il faut que le `closing degree` soit réglé au maximum (100%). Ne cocher pas tout de suite l'entité `Follow underlying temperature change` avant d'avoir bien vérifier que cette configuration de base fonctionne.
 
 A l'issue de ces 5 étapes vous avez un _VTherm_ opérationnel ultra simple qui commande votre équipement Sonoff TRVZB ou assimilé.
+
+## Simple TRV comme Avatto TRV06, Moes, Tuya... (TRV sans contrôle de la vanne)
+
+Ce type d'équipement _TRV_ (typiquement des équipements Zigbee intégrés via Zigbee2MQTT ou ZHA) est visible sous _HA_ uniquement sous la forme d'une entité de type `climate`. L'ouverture de la vanne n'est pas contrôlable : le TRV se régule seul à partir de son thermomètre interne et de la consigne qu'il reçoit.
+
+Le _VTherm_ va ajuster la consigne envoyée au TRV pour que la température de la pièce mesurée par votre propre capteur atteigne la température souhaitée.
+
+Pour l'intégrer dans _VTherm_ vous devez :
+1. Créer un _VTherm_ de type `over_climate`. Cf. [création d'un _VTherm_](creation.md),
+2. Lui donner des principaux attributs (nom, capteur de température de la pièce et capteur de température extérieure au minimium). Cf. [principaux attributs](base-attributes.md),
+3. Lui donner un ou plusieurs équipements sous-jacents à contrôler. Le sous-jacent est ici l'entité `climate` du TRV. Cf. [sous-jacent](over-climate.md),
+4. Activer l'auto-régulation : commencez par `Légère` ou `Moyenne` et gardez les valeurs par défaut du seuil de régulation et de la période minimale de régulation. Cf. [auto-régulation](self-regulation.md). Laissez décochée l'option `Compenser la température interne du sous-jacent`, sauf si le thermomètre interne de votre TRV est très faussé (c'est un dernier recours, cf. [compenser la température interne](over-climate.md#compenser-la-température-interne-du-sous-jacent)),
+5. Si votre TRV expose une entité `number` comme `local_temperature_calibration`, activer la synchronisation de la température interne de l'équipement avec calibrage (mode 1). S'il expose une entité `external_temperature_input`, vous pouvez utiliser le mode 2. Cf. [synchronisation de la température interne](feature-sync_device_temp.md).
+
+Certaines fonctions intégrées au TRV entrent en conflit avec _VTherm_. Ce sont des réglages de l'équipement que _VTherm_ ne gère pas, vérifiez-les directement sur l'équipement (ou dans Zigbee2MQTT / ZHA) :
+- Désactivez le programme hebdomadaire interne et n'utilisez pas le mode système `auto`. Gardez le TRV en mode `heat` : _VTherm_ gère les programmations à travers les [presets](feature-presets.md),
+- Désactivez la détection d'ouverture de fenêtre du TRV. Utilisez plutôt la [détection d'ouverture de _VTherm_](feature-window.md),
+- N'utilisez pas les presets internes du TRV (eco, comfort, boost, holiday...). _VTherm_ envoie directement la consigne,
+- Optionnellement, activez le verrouillage enfant pour éviter les changements manuels sur l'équipement.
+
+> ![Astuce](images/tips.png) _*Notes*_
+> - La fonction [auto-start/stop](feature-auto-start-stop.md) est conçue pour les équipements qui consomment de l'énergie même à l'arrêt, comme les _PAC_. Elle est généralement peu utile avec un TRV sur piles.
+> - Ne cochez pas tout de suite l'entité `Follow underlying temperature change` avant d'avoir bien vérifié que cette configuration de base fonctionne. Cf. [suivre les changements de température du sous-jacent](over-climate.md#suivre-les-changements-de-température-du-sous-jacent).
+
+A l'issue de ces 5 étapes et de la vérification des réglages du TRV, vous avez un _VTherm_ opérationnel qui commande votre TRV simple.
 
 ## _PAC_ reversibles ou climatisation ou équipements commandables à travers une entité `climate`
 

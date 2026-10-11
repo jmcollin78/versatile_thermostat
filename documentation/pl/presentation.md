@@ -68,6 +68,7 @@ Służą do sterowania grzejnika wodnego. Współpracują z [`termostatem na zaw
 - [Shelly BLU TRV BLE](https://www.domadoo.fr/pl/black-friday-domotique/7567-shelly-robinet-thermostatique-de-radiateur-a-commande-bluetooth-shelly-blu-trv-3800235264980.html?domid=97) z [`termostatem na zaworze`](over-valve.md),
 - [Moes TRV Zigbee](https://www.domadoo.fr/pl/peripheriques/5783-moes-tete-thermostatique-intelligente-zigbee-30-brt-100-trv-blanc.html?domid=97) z [`termostatem na klimacie` (bez bezpośredniego sterowania zaworem)](over-climate.md#thermostat-de-type-over_climate)
 - [Schneider Wiser TRV Zigbee](https://www.domadoo.fr/pl/controle-chauffage-clim/5497-schneider-electric-tete-de-vanne-thermostatique-connectee-zigbee-3606489582821.html?domid=97) z [`termostatem na klimacie` (bez bezpośredniego sterowania zaworem)](over-climate.md#thermostat-de-type-over_climate)
+- Avatto TRV06 Zigbee (Zigbee2MQTT) z [`termostatem na klimacie` (bez bezpośredniego sterowania zaworem)](over-climate.md) i [samoregulacją](self-regulation.md)
 
 ## Termostaty TRV niekompatybilne z integracją _Versatile Thermostat_
 Niektóre termostaty typu TRV są niekompatybilne z integracją _Versatile Thermostat_. Dotyczy to następujących urządzeń:
