@@ -69,20 +69,28 @@ Gdy anulujesz preset czasowy, oryginalny preset jest natychmiast przywracany.
 
 Gdy preset czasowy jest aktywny, następujące atrybuty są dostępne w sekcji `timed_preset_manager` atrybutów _VTherm_:
 
-| Atrybut                 | Znaczenie                                                                     |
-| ----------------------- | ----------------------------------------------------------------------------- |
-| `timed_preset_active`   | `true` jeśli preset czasowy jest aktywny, w przeciwnym razie `false`          |
-| `timed_preset_preset`   | Nazwa aktywnego presetu czasowego (lub `null` jeśli brak)                     |
-| `timed_preset_end_time` | Data/czas zakończenia presetu czasowego (format ISO)                          |
-| `remaining_time_min`    | Pozostały czas w minutach do zakończenia presetu czasowego (liczba całkowita) |
+| Atrybut              | Znaczenie                                                                                                                     |
+| -------------------- | ----------------------------------------------------------------------------------------------------------------------------- |
+| `is_active`          | `true` jeśli preset czasowy jest aktywny, w przeciwnym razie `false`                                                          |
+| `preset`             | Nazwa aktywnego presetu czasowego (lub `null` jeśli brak)                                                                     |
+| `original_preset`    | Preset przywracany po zakończeniu presetu czasowego (lub `null` jeśli brak)                                                   |
+| `end_time`           | Data/czas zakończenia presetu czasowego (format ISO, lub `null` jeśli brak)                                                   |
+| `remaining_time_min` | Pozostały czas w minutach do zakończenia presetu czasowego (liczba całkowita)                                                 |
+| `is_manual_override` | `true`, jeśli aktywny preset czasowy jest ręcznym nadpisaniem (zobacz [poniżej](#ręczne-nadpisanie-z-automatycznym-powrotem)) |
+| `resume_preset`      | Preset czasowy przerwany przez ręczne nadpisanie, wznawiany po jego zakończeniu (lub `null`)                                  |
+| `resume_end_time`    | Data/godzina zakończenia przerwanego presetu czasowego (format ISO, lub `null`)                                               |
 
 Przykład atrybutów:
 ```yaml
 timed_preset_manager:
-  timed_preset_active: true
-  timed_preset_preset: "boost"
-  timed_preset_end_time: "2024-01-15T14:30:00+00:00"
+  is_active: true
+  preset: "boost"
+  original_preset: "comfort"
+  end_time: "2024-01-15T14:30:00+00:00"
   remaining_time_min: 25
+  is_manual_override: false
+  resume_preset: null
+  resume_end_time: null
 ```
 
 ## Zdarzenia
@@ -92,10 +100,20 @@ Zdarzenie `versatile_thermostat_timed_preset_event` jest emitowane przy zmianach
 Dane zdarzenia:
 - `entity_id`: Identyfikator _VTherm_
 - `name`: Nazwa _VTherm_
-- `timed_preset_active`: `true` jeśli preset czasowy właśnie został aktywowany, `false` jeśli właśnie został dezaktywowany
-- `timed_preset_preset`: Nazwa presetu czasowego
-- `old_preset`: Poprzedni preset (przed aktywacją presetu czasowego)
-- `new_preset`: Nowy aktywny preset
+- `state_attributes`: Atrybuty stanu _VTherm_ w chwili zdarzenia
+- `type`: `start`, gdy preset czasowy (lub ręczne nadpisanie) się rozpoczyna, `end`, gdy się kończy
+- `preset`: Dotyczący preset czasowy (ten, który się rozpoczyna, lub ten, który właśnie się zakończył)
+
+Dodatkowe dane zdarzenia `start`:
+- `duration_minutes`: Czas trwania presetu czasowego w minutach
+- `end_time`: Data/czas zakończenia presetu czasowego (format ISO)
+- `original_preset`: Preset, który zostanie przywrócony na końcu
+- `manual_override`: `true`, jeśli zdarzenie dotyczy ręcznego nadpisania
+
+Dodatkowe dane zdarzenia `end`:
+- `cause`: Powód zakończenia presetu czasowego: `expired` (czas upłynął), `cancelled` (wywołano usługę `cancel_timed_preset`) lub `preset_selected` (preset wybrano ręcznie)
+- `restored_preset`: Preset przywrócony po zakończeniu (może być `null`, gdy preset wybrano ręcznie)
+- `manual_override`: `true`, jeśli zdarzenie dotyczy ręcznego nadpisania
 
 ## Ręczne nadpisanie z automatycznym powrotem
 
@@ -118,15 +136,7 @@ Ręczne nadpisanie wykorzystuje mechanizm presetów czasowych: jest widoczne jak
 > - Anulowanie presetu czasowego w trakcie ręcznego nadpisania przywraca preset aktywny przed ręczną zmianą.
 > - Okno, bezpieczeństwo, ograniczanie mocy i tryb centralny zachowują swój priorytet w trakcie ręcznego nadpisania.
 
-Atrybuty `timed_preset_manager` zawierają trzy dodatkowe klucze:
-
-| Atrybut              | Znaczenie                                                                        |
-| -------------------- | -------------------------------------------------------------------------------- |
-| `is_manual_override` | `true`, jeśli aktywny preset czasowy jest ręcznym nadpisaniem                    |
-| `resume_preset`      | Preset czasowy przerwany przez ręczne nadpisanie, wznawiany po jego zakończeniu  |
-| `resume_end_time`    | Data/godzina zakończenia przerwanego presetu czasowego (format ISO)              |
-
-Zdarzenie `versatile_thermostat_timed_preset_event` zawiera również pole `manual_override` ustawione na `true`, gdy zdarzenie dotyczy ręcznego nadpisania.
+Atrybuty `is_manual_override`, `resume_preset` i `resume_end_time` w `timed_preset_manager` opisano w tabeli [Atrybuty niestandardowe](#atrybuty-niestandardowe). Pole `manual_override` zdarzenia `versatile_thermostat_timed_preset_event` ma wartość `true`, gdy zdarzenie dotyczy ręcznego nadpisania.
 
 ## Przykłady automatyzacji
 
@@ -163,7 +173,7 @@ automation:
         event_type: versatile_thermostat_timed_preset_event
     condition:
       - condition: template
-        value_template: "{{ trigger.event.data.timed_preset_active == false }}"
+        value_template: "{{ trigger.event.data.type == 'end' }}"
     action:
       - service: notify.mobile_app
         data:

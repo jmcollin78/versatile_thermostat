@@ -66,20 +66,28 @@ Při zrušení časově omezeného presetu je okamžitě obnoven původní prese
 
 Když je aktivní časově omezený preset, jsou v sekci `timed_preset_manager` atributů _VTherm_ k dispozici následující atributy:
 
-| Atribut                 | Význam                                                                  |
-| ----------------------- | ----------------------------------------------------------------------- |
-| `timed_preset_active`   | `true` pokud je časově omezený preset aktivní, jinak `false`            |
-| `timed_preset_preset`   | Název aktivního časově omezeného presetu (nebo `null` pokud žádný)      |
-| `timed_preset_end_time` | Datum/čas konce časově omezeného presetu (formát ISO)                   |
-| `remaining_time_min`    | Zbývající čas v minutách do konce časově omezeného presetu (celé číslo) |
+| Atribut              | Význam                                                                                                     |
+| -------------------- | ---------------------------------------------------------------------------------------------------------- |
+| `is_active`          | `true` pokud je časově omezený preset aktivní, jinak `false`                                               |
+| `preset`             | Název aktivního časově omezeného presetu (nebo `null` pokud žádný)                                         |
+| `original_preset`    | Preset obnovený na konci časově omezeného presetu (nebo `null` pokud žádný)                                |
+| `end_time`           | Datum/čas konce časově omezeného presetu (formát ISO, nebo `null` pokud žádný)                             |
+| `remaining_time_min` | Zbývající čas v minutách do konce časově omezeného presetu (celé číslo)                                    |
+| `is_manual_override` | `true`, pokud je aktivní timed preset ruční přepsání (viz [níže](#ruční-přepsání-s-automatickým-návratem)) |
+| `resume_preset`      | Timed preset přerušený ručním přepsáním, obnovený po jeho skončení (nebo `null`)                           |
+| `resume_end_time`    | Datum/čas ukončení přerušeného timed presetu (formát ISO, nebo `null`)                                     |
 
 Příklad atributů:
 ```yaml
 timed_preset_manager:
-  timed_preset_active: true
-  timed_preset_preset: "boost"
-  timed_preset_end_time: "2024-01-15T14:30:00+00:00"
+  is_active: true
+  preset: "boost"
+  original_preset: "comfort"
+  end_time: "2024-01-15T14:30:00+00:00"
   remaining_time_min: 25
+  is_manual_override: false
+  resume_preset: null
+  resume_end_time: null
 ```
 
 ## Události
@@ -89,10 +97,20 @@ Událost `versatile_thermostat_timed_preset_event` je vyslána při změnách č
 Data události:
 - `entity_id`: Identifikátor _VTherm_
 - `name`: Název _VTherm_
-- `timed_preset_active`: `true` pokud byl právě aktivován časově omezený preset, `false` pokud byl právě deaktivován
-- `timed_preset_preset`: Název časově omezeného presetu
-- `old_preset`: Předchozí preset (před aktivací časově omezeného presetu)
-- `new_preset`: Nový aktivní preset
+- `state_attributes`: Stavové atributy _VTherm_ v okamžiku události
+- `type`: `start`, když časově omezený preset (nebo ruční přepsání) začíná, `end`, když končí
+- `preset`: Dotčený časově omezený preset (ten, který začíná, nebo ten, který právě skončil)
+
+Další data události `start`:
+- `duration_minutes`: Doba trvání časově omezeného presetu v minutách
+- `end_time`: Datum/čas konce časově omezeného presetu (formát ISO)
+- `original_preset`: Preset, který bude na konci obnoven
+- `manual_override`: `true`, pokud se událost týká ručního přepsání
+
+Další data události `end`:
+- `cause`: Důvod ukončení časově omezeného presetu: `expired` (doba uplynula), `cancelled` (byla zavolána služba `cancel_timed_preset`) nebo `preset_selected` (preset byl vybrán ručně)
+- `restored_preset`: Preset obnovený po skončení (může být `null`, pokud byl preset vybrán ručně)
+- `manual_override`: `true`, pokud se událost týká ručního přepsání
 
 ## Ruční přepsání s automatickým návratem
 
@@ -115,15 +133,7 @@ Ruční přepsání využívá mechanismus timed presetů: zobrazuje se jako tim
 > - Zrušení timed presetu během ručního přepsání obnoví preset, který byl aktivní před ruční změnou.
 > - Okno, bezpečnost, odlehčení zátěže a centrální režim si během ručního přepsání zachovávají svou prioritu.
 
-Atributy `timed_preset_manager` obsahují tři další klíče:
-
-| Atribut              | Význam                                                                     |
-| -------------------- | -------------------------------------------------------------------------- |
-| `is_manual_override` | `true`, pokud je aktivní timed preset ruční přepsání                       |
-| `resume_preset`      | Timed preset přerušený ručním přepsáním, obnovený po jeho skončení         |
-| `resume_end_time`    | Datum/čas ukončení přerušeného timed presetu (formát ISO)                  |
-
-Událost `versatile_thermostat_timed_preset_event` obsahuje také pole `manual_override`, které je `true`, když se událost týká ručního přepsání.
+Atributy `is_manual_override`, `resume_preset` a `resume_end_time` v `timed_preset_manager` jsou popsány v tabulce [Vlastní atributy](#vlastní-atributy). Pole `manual_override` události `versatile_thermostat_timed_preset_event` je `true`, když se událost týká ručního přepsání.
 
 ## Příklady automatizace
 
@@ -160,7 +170,7 @@ automation:
         event_type: versatile_thermostat_timed_preset_event
     condition:
       - condition: template
-        value_template: "{{ trigger.event.data.timed_preset_active == false }}"
+        value_template: "{{ trigger.event.data.type == 'end' }}"
     action:
       - service: notify.mobile_app
         data:
