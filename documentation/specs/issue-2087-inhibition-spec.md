@@ -118,7 +118,7 @@ Si l’utilisateur demande `OFF` pendant l’inhibition, cette demande doit rest
 - Si l’inhibition est toujours active après redémarrage, le contrôle des sous-jacents doit rester suspendu.
 - Si l’inhibition est inactive après redémarrage, la reprise doit utiliser l’état demandé courant, et non une valeur reconstruite à partir de l’ancien état effectif.
 - Lors d’un chargement tardif, le provider passe par `UNKNOWN` ; aucune reprise n’est autorisée avant `INACTIVE` confirmé. Sans politique connue ou provider exploitable, le repli sûr est « éteindre » et une coupure de précaution unique est appliquée ; une politique désactivée interdit `turn_off`, y compris dans ce cas.
-- Lors d’un unload ou d’un désenregistrement de factory, le core et le plugin doivent attendre `provider.async_stop_listening()` **avant** de retirer le callback ou d’appeler `unregister_inhibition_provider_factory()`. Cette opération livre `UNKNOWN` au core et empêche toute reprise implicite non sûre.
+- Lors d’un unload ou d’un désenregistrement de factory, `unregister_inhibition_provider_factory()` retire l’inscription de façon synchrone. Sa notification déclenche côté core l’attente de `provider.async_stop_listening()` **avant** de retirer le callback. Cette opération livre `UNKNOWN` au core et empêche toute reprise implicite non sûre ; le VTherm reste en retrait jusqu’à un `INACTIVE` confirmé par un éventuel provider remplaçant.
 - Une garantie exactly-once physique de bout en bout n’est pas exigée : l’arrêt est exactement-once logique par activation en processus sain, avec une limite documentée en cas de panne entre l’appel de service et la persistance.
 
 ## 8. Périmètre V1 et exclusions
@@ -351,7 +351,7 @@ If the user requests `OFF` during inhibition, that request shall remain `OFF` af
 - If inhibition remains active after restart, control of underlying devices shall remain suspended.
 - If inhibition is inactive after restart, resumption shall use current requested state, not a value reconstructed from former effective state.
 - When loaded late, the provider enters `UNKNOWN`; resumption is forbidden until confirmed `INACTIVE`. Without a known policy or usable provider, the safe fallback is `turn off` and one precautionary stop is sent; a disabled policy forbids `turn_off`, including in this case.
-- On unload or factory unregistration, core and plugin shall await `provider.async_stop_listening()` **before** removing the callback or calling `unregister_inhibition_provider_factory()`. This delivers `UNKNOWN` to core and prevents an unsafe implicit resumption.
+- On unload or factory unregistration, `unregister_inhibition_provider_factory()` removes the registration synchronously. Its notification makes core await `provider.async_stop_listening()` **before** removing the callback. This delivers `UNKNOWN` to core and prevents unsafe implicit resumption; the VTherm remains withdrawn until a possible replacement provider confirms `INACTIVE`.
 - End-to-end physical exactly-once is not guaranteed: the stop is logically exactly-once per activation in a healthy process, with a documented failure boundary between service call and persistence.
 
 ## 8. V1 scope and exclusions
