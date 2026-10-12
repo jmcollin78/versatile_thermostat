@@ -1,7 +1,7 @@
 # Revue de l’issue #2087 — Inhibition extensible d’un VTherm
 
 - **Issue :** [#2087 — Add an "inhibit" sensor to pause a VTherm](https://github.com/jmcollin78/versatile_thermostat/issues/2087)
-- **Statut de revue :** recommandation à valider avant spécification et conception
+- **Statut de revue :** mise à jour après livraison de l’API 0.6.0 ; conception core/plugin à valider
 - **Décision recommandée :** retenir une évolution du core limitée à un mécanisme d’inhibition extensible, puis réaliser la fonctionnalité de capteur dans un plugin.
 
 ## 1. Résumé fidèle de l’issue
@@ -33,7 +33,7 @@ L’issue suggérait initialement une fonctionnalité core complète nommée *in
 - [custom_components/versatile_thermostat/base_thermostat.py](../../custom_components/versatile_thermostat/base_thermostat.py) : `update_states()` applique les changements d’état aux sous-jacents, et la boucle de contrôle appelle la logique de chauffage puis la réparation d’état.
 - [custom_components/versatile_thermostat/prop_handler_tpi.py](../../custom_components/versatile_thermostat/prop_handler_tpi.py) : le contrôle TPI arrête à nouveau un appareil actif quand le HVAC effectif est `OFF`.
 - [custom_components/versatile_thermostat/feature_repair_incorrect_state_manager.py](../../custom_components/versatile_thermostat/feature_repair_incorrect_state_manager.py) et [custom_components/versatile_thermostat/underlyings.py](../../custom_components/versatile_thermostat/underlyings.py) : le mécanisme de réparation peut réémettre des ordres vers les sous-jacents.
-- [custom_components/vtherm_api/src/vtherm_api/interfaces.py](../../custom_components/vtherm_api/src/vtherm_api/interfaces.py) et [custom_components/vtherm_api/src/vtherm_api/vtherm_api.py](../../custom_components/vtherm_api/src/vtherm_api/vtherm_api.py) : l’API connaît déjà le registre de factories de gestionnaires, mais aucun contrat d’inhibition ni factory dédiée.
+- [custom_components/vtherm_api/src/vtherm_api/inhibition.py](../../custom_components/vtherm_api/src/vtherm_api/inhibition.py), [custom_components/vtherm_api/src/vtherm_api/vtherm_api.py](../../custom_components/vtherm_api/src/vtherm_api/vtherm_api.py) et [custom_components/vtherm_api/src/vtherm_api/__init__.py](../../custom_components/vtherm_api/src/vtherm_api/__init__.py) : `vtherm_api` 0.6.0 (PR [#9](https://github.com/jmcollin78/vtherm_api/pull/9)) fournit désormais le registre dédié, les interfaces d’inhibition, les statuts/politiques et la vue immuable `InhibitionThermostatView`.
 - [custom_components/versatile_thermostat/vtherm_state.py](../../custom_components/versatile_thermostat/vtherm_state.py) : l’état sérialisé ne contient actuellement que HVAC, consigne et preset.
 
 ## 3. Analyse de pertinence
@@ -56,8 +56,8 @@ Un point d’extension core, à sémantique stricte, préserve l’orientation p
 
 **Retenir l’évolution suivante :**
 
-1. Ajouter dans `vtherm_api` un registre dédié de factories : `register_inhibition_provider_factory(factory)`.
-2. Le core instancie au plus un `InhibitionProvider` par VTherm éligible ; tout conflit d’enregistrement doit être explicite.
+1. S’appuyer sur le registre de factories déjà livré par `vtherm_api` 0.6.0 : `VThermAPI.register_inhibition_provider_factory(factory)`.
+2. Le core instancie au plus un `InhibitionProvider` par VTherm éligible à partir de `InhibitionThermostatView` ; tout conflit d’enregistrement doit être explicite.
 3. Le provider plugin détecte la condition, ses délais et son éventuel bypass. Il ne pilote ni HVAC ni sous-jacents.
 4. Le core porte la politique d’inhibition : arrêt une seule fois à l’entrée, retrait du contrôle du VTherm pendant l’inhibition, puis réconciliation avec l’état demandé à la sortie.
 5. Le `StateManager` conserve la responsabilité exclusive de résoudre l’état HVAC effectif. L’inhibition y est une contrainte prioritaire après l’arrêt central et la sécurité, avant fenêtre et auto-start/stop.
@@ -67,7 +67,7 @@ Un point d’extension core, à sémantique stricte, préserve l’orientation p
 
 ### Inclus dans le core et l’API
 
-- Interface `InhibitionProvider` et factory dédiée dans `vtherm_api`.
+- Interface `InhibitionProvider`, factory dédiée et vue immuable `InhibitionThermostatView` déjà livrées dans `vtherm_api` 0.6.0.
 - Unicité du provider par VTherm et cycle de vie core (`post_init`, écoute, restauration, arrêt).
 - Méthode core de recalcul demandée par le provider lors d’une transition confirmée.
 - Règle de résolution HVAC vers `OFF` lorsque l’inhibition est active et que le HVAC demandé n’est pas `OFF`.
@@ -97,13 +97,13 @@ Un point d’extension core, à sémantique stricte, préserve l’orientation p
 
 ### Séparation des responsabilités
 
-| Composant             | Responsabilité                                                                              |
-| --------------------- | ------------------------------------------------------------------------------------------- |
-| Plugin                | Détecter la condition d’inhibition et signaler les transitions.                             |
-| `InhibitionProvider`  | Exposer `is_detected` et assurer son cycle de vie.                                          |
-| Core `BaseThermostat` | Détenir l’état de délégation, piloter les transitions et suspendre les boucles de contrôle. |
-| `StateManager`        | Résoudre l’état effectif à partir de l’état demandé et des contraintes.                     |
-| Sous-jacents          | Recevoir l’arrêt initial et la reprise normale uniquement hors inhibition.                  |
+| Composant             | Responsabilité                                                                                                                                                                                                        |
+| --------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Plugin                | Détecter la condition d’inhibition et signaler les transitions.                                                                                                                                                       |
+| `InhibitionProvider`  | Exposer `InhibitionStatus`, `InhibitionStopPolicy`, les transitions confirmées et assurer son cycle de vie asynchrone. `async_stop_listening()` doit livrer et attendre `UNKNOWN` avant le détachement des callbacks. |
+| Core `BaseThermostat` | Détenir l’état de délégation, piloter les transitions et suspendre les boucles de contrôle.                                                                                                                           |
+| `StateManager`        | Résoudre l’état effectif à partir de l’état demandé et des contraintes.                                                                                                                                               |
+| Sous-jacents          | Recevoir l’arrêt initial et la reprise normale uniquement hors inhibition.                                                                                                                                            |
 
 ### Invariant principal
 
@@ -178,7 +178,7 @@ L’inhibition est plus riche qu’un simple `OFF` forcé : elle transfère temp
 2. Emplacement et format exact des attributs persistés de délégation.
 3. Politique de conflit : refus du second provider, recommandée.
 4. Faut-il fournir dès la V1 un bypass dans le plugin, ou le différer ?
-5. Faut-il livrer la factory et le plugin dans des pull requests séparées ? Recommandé.
+5. L’API/factory est livrée dans `vtherm_api` 0.6.0 ; le core et le plugin doivent être livrés dans des changements séparés et compatibles avec ce contrat.
 
 ### Questions ouvertes non bloquantes
 
