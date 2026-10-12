@@ -917,15 +917,16 @@ behavior: [specification](../specs/issue-2087-inhibition-spec.md) and
    matters: for one VTherm, the first registered factory whose `supports()` returns
    `True` is attached; a later eligible factory is rejected and logged as a conflict
    naming both providers (`specific_states.inhibition.rejected_providers`).
-2. `supports(thermostat)` must be pure and synchronous. It is called during the
-   VTherm `post_init()` (the merged configuration `thermostat.entry_infos` and the
-   type properties such as `is_over_climate` are available, the underlyings may not
-   be built yet), again in `async_startup()`, and when a factory is registered after
-   the startup. During `post_init()` the entity is not added to Home Assistant yet:
-   `thermostat.entity_id` may be `None`, so `supports()` and `create()` match the
-   VTherm on `thermostat.unique_id`. An exception is not treated as `False`: the
-   factory takes the slot with an `UNKNOWN` status (`last_error_code: supports_failed`).
-3. `create(thermostat)` returns the provider bound to that VTherm. The core then
+2. `supports(thermostat)` must be pure and synchronous. `thermostat` is an immutable
+   `InhibitionThermostatView` (`entity_id`, `name`, `unique_id`) built by the core for
+   each call; a factory never receives the thermostat runtime. It is called during the
+   VTherm `post_init()`, again in `async_startup()`, and when a factory is registered
+   after the startup. During `post_init()` the entity is not added to Home Assistant
+   yet: `entity_id` is then `None`, so a factory matches the VTherm on `unique_id`. An
+   exception is not treated as `False`: the factory takes the slot with an `UNKNOWN`
+   status (`last_error_code: supports_failed`).
+3. `create(thermostat)` receives the same view and returns the provider bound to that
+   VTherm; the VTherm configuration is given by `post_init()`. The core then
    calls, in this order: `post_init(entry_infos)` (merged VTherm configuration,
    central configuration included), `restore_state(old_state)` (the previous HA
    `State` of the climate entity, at startup only),
@@ -949,13 +950,15 @@ behavior: [specification](../specs/issue-2087-inhibition-spec.md) and
    setpoint keep being recorded. Only a confirmed `INACTIVE` resumes, once, with the
    current requested state. The provider never commands the VTherm nor the
    underlyings.
-7. On unload, `stop_listening()` (synchronous) must report `UNKNOWN` to the
-   callbacks before detaching them (for example with `hass.async_create_task`),
-   then the plugin unregisters its factory. The VTherms keep the withdrawal until a
-   (reloaded) provider confirms `INACTIVE`. With `TURN_OFF`, a plugin reload while the
-   VTherm runs normally therefore sends a precautionary stop (the devices turn off
-   briefly). The core calls `stop_listening()` itself when the VTherm is removed and
-   ignores later callbacks.
+7. On unload, the plugin awaits `async_stop_listening()`, which delivers `UNKNOWN`
+   to, and awaits, the callbacks before detaching them, then unregisters its factory.
+   The VTherms keep the withdrawal until a (reloaded) provider confirms `INACTIVE`.
+   With `TURN_OFF`, a plugin reload while the VTherm runs normally therefore sends a
+   precautionary stop (the devices turn off briefly). The core also awaits
+   `async_stop_listening()` before detaching its callback: on the factory
+   unregistration (the call must then be harmless) and when the VTherm is removed (the
+   `UNKNOWN` delivered then is not applied: nothing is sent to the underlyings of a
+   VTherm going away).
 
 The core state is published and restored under `specific_states.inhibition`
 (`schema_version: 1`) only when a provider is attached. A VTherm without an
