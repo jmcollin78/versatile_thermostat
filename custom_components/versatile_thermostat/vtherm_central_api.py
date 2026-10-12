@@ -170,8 +170,11 @@ class VersatileThermostatAPI(VThermAPI):
         self._notify_inhibition_factories_changed(None)
 
     def unregister_inhibition_provider_factory(self, name: str) -> None:
-        """Unregister an inhibition provider factory (issue #2087). The VTherms
-        using it are withdrawn (UNKNOWN) until a provider confirms INACTIVE"""
+        """Unregister an inhibition provider factory (issue #2087).
+
+        Each VTherm using it awaits the provider async_stop_listening() before
+        detaching its callback, then stays withdrawn (UNKNOWN) until a provider
+        confirms INACTIVE."""
         registered = self.get_inhibition_provider_factory((name or "").strip()) is not None
         super().unregister_inhibition_provider_factory(name)
         if registered:

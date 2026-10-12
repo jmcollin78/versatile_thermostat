@@ -514,6 +514,8 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
     async def async_will_remove_from_hass(self):
         """Try to force backup of entity"""
         self._is_removed = True
+        # Issue #2087 - await the inhibition provider shutdown before detaching it
+        await self._inhibition.async_stop()
         _LOGGER.debug(
             "%s - force write before remove. Energy is %s", self, self.total_energy
         )

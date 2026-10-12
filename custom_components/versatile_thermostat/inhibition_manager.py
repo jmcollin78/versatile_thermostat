@@ -33,6 +33,7 @@ from homeassistant.helpers.event import async_call_later
 
 from vtherm_api import (
     DEFAULT_INHIBITION_STOP_POLICY,
+    InhibitionThermostatView,
     InhibitionStatus,
     InhibitionStopPolicy,
     InhibitionTransition,
@@ -217,6 +218,8 @@ class InhibitionManager:
         self._conflicts: dict[str, InhibitionProviderConflictError] = {}
         self._lock = asyncio.Lock()
         self._is_started = False
+        # Set when the VTherm is removed: transitions are no longer applied
+        self._is_stopping = False
         # Snapshot and previous HA state read at startup. Kept for a provider
         # attached after the restoration (late plugin)
         self._restored_snapshot: InhibitionRuntimeState | None = None
@@ -320,7 +323,7 @@ class InhibitionManager:
                 continue
 
             try:
-                eligible = bool(factory.supports(self._vtherm))
+                eligible = bool(factory.supports(self._thermostat_view()))
             except Exception as exc:  # pylint: disable=broad-except
                 _LOGGER.error(
                     "%s - inhibition provider factory '%s' failed in supports(): %s",
@@ -337,10 +340,19 @@ class InhibitionManager:
 
         return attached
 
+    def _thermostat_view(self) -> InhibitionThermostatView:
+        """Build the restricted, immutable VTherm view given to a factory.
+
+        A factory never receives the thermostat runtime. During ``post_init()``
+        the entity is not added to Home Assistant yet: ``entity_id`` is then
+        ``None`` and a factory identifies the VTherm by ``unique_id``.
+        """
+        return InhibitionThermostatView.from_thermostat(self._vtherm)
+
     def _try_attach(self, factory: InterfaceInhibitionProviderFactory, name: str) -> bool:
         """Evaluate one factory. Returns True if the slot is taken by it."""
         try:
-            eligible = bool(factory.supports(self._vtherm))
+            eligible = bool(factory.supports(self._thermostat_view()))
         except Exception as exc:  # pylint: disable=broad-except
             # A failing candidate is never silently ignored: it takes the slot
             # in UNKNOWN so that the VTherm is safely withdrawn
@@ -365,7 +377,7 @@ class InhibitionManager:
             return False
 
         try:
-            provider = factory.create(self._vtherm)
+            provider = factory.create(self._thermostat_view())
             provider.post_init(self._vtherm.entry_infos)
         except Exception as exc:  # pylint: disable=broad-except
             _LOGGER.error(
@@ -612,15 +624,13 @@ class InhibitionManager:
             self._vtherm,
             name,
         )
-        self._generation += 1
+        provider = self._provider
         remove_callback = self._remove_callback
         self._remove_callback = None
         self._provider = None
-        if remove_callback:
-            try:
-                remove_callback()
-            except Exception as exc:  # pylint: disable=broad-except
-                _LOGGER.debug("%s - error while removing the inhibition callback: %s", self._vtherm, exc)
+        # The callback stays attached until the provider has delivered UNKNOWN
+        await self._async_shutdown_provider(provider, remove_callback)
+        self._generation += 1
 
         async with self._lock:
             await self._async_apply_status(InhibitionStatus.UNKNOWN, None, InhibitionErrorCode.PROVIDER_UNREGISTERED)
@@ -628,21 +638,11 @@ class InhibitionManager:
         # Another registered factory may take the vacant slot
         await self.async_on_factories_changed()
 
-    def stop(self):
-        """Detach the provider when the VTherm is removed. No resume command is sent.
-
-        The runtime state is kept, so the last safe withdrawal stays persisted.
-        """
-        provider = self._provider
-        remove_callback = self._remove_callback
-        self._generation += 1
-        self._remove_callback = None
-        self._provider = None
-        self._is_started = False
-        self._cancel_retry()
+    async def _async_shutdown_provider(self, provider: InterfaceInhibitionProvider | None, remove_callback: CALLBACK_TYPE | None):
+        """Await the provider shutdown (it delivers UNKNOWN), then detach the callback"""
         if provider is not None:
             try:
-                provider.stop_listening()
+                await provider.async_stop_listening()
             except Exception as exc:  # pylint: disable=broad-except
                 _LOGGER.error("%s - inhibition provider '%s' failed to stop listening: %s", self._vtherm, self.provider_name, exc)
         if remove_callback is not None:
@@ -652,6 +652,35 @@ class InhibitionManager:
                 _LOGGER.debug("%s - error while removing the inhibition callback: %s", self._vtherm, exc)
         if provider is not None:
             _LOGGER.info("%s - inhibition provider '%s' detached", self._vtherm, self.provider_name)
+
+    def _take_provider_for_stop(self) -> tuple[InterfaceInhibitionProvider | None, CALLBACK_TYPE | None]:
+        """Mark the manager as stopping and hand over the provider to shut down"""
+        provider = self._provider
+        remove_callback = self._remove_callback
+        self._is_stopping = True
+        self._remove_callback = None
+        self._provider = None
+        self._is_started = False
+        self._cancel_retry()
+        return provider, remove_callback
+
+    async def async_stop(self):
+        """Stop the provider when the VTherm is removed. No resume command is sent.
+
+        ``async_stop_listening()`` is awaited before the callback is detached.
+        The ``UNKNOWN`` it delivers is received but not applied: the VTherm is
+        going away and the last persisted withdrawal state is kept.
+        """
+        provider, remove_callback = self._take_provider_for_stop()
+        await self._async_shutdown_provider(provider, remove_callback)
+        self._generation += 1
+
+    def stop(self):
+        """Synchronous variant of async_stop() (the shutdown runs as a task)"""
+        provider, remove_callback = self._take_provider_for_stop()
+        self._generation += 1
+        if provider is not None or remove_callback is not None:
+            self._schedule(self._async_shutdown_provider(provider, remove_callback))
 
     ##
     ## Transitions
@@ -670,7 +699,7 @@ class InhibitionManager:
         """Handle a confirmed transition notified by the provider"""
         try:
             async with self._lock:
-                if generation != self._generation or self._vtherm.is_removed:
+                if generation != self._generation or self._vtherm.is_removed or self._is_stopping:
                     _LOGGER.debug("%s - stale inhibition transition ignored: %s", self._vtherm, transition)
                     return
 

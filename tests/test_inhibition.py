@@ -18,6 +18,8 @@ from homeassistant.util import dt as dt_util
 from pytest_homeassistant_custom_component.common import async_fire_time_changed, mock_restore_cache
 
 from vtherm_api import (
+    InhibitionThermostatView,
+    InterfaceInhibitionThermostatView,
     InhibitionStatus,
     InhibitionStopPolicy,
     InhibitionTransition,
@@ -28,6 +30,7 @@ from custom_components.versatile_thermostat.cycle_scheduler import CycleSchedule
 from custom_components.versatile_thermostat.feature_repair_incorrect_state_manager import FeatureRepairIncorrectStateManager
 from custom_components.versatile_thermostat.inhibition_manager import (
     ATTR_INHIBITION,
+    InhibitionManager,
     EXIT_RETRY_MIN_DELAY_SEC,
     InhibitionErrorCode,
     InhibitionPhysicalStopResult,
@@ -64,6 +67,8 @@ class FakeInhibitionProvider:
         self.post_init_calls = 0
         self.start_listening_calls = 0
         self.stop_listening_calls = 0
+        # Number of core callbacks still attached when UNKNOWN was delivered
+        self.callbacks_at_stop: list[int] = []
         self.refresh_calls = 0
         self.restored_states = []
 
@@ -91,14 +96,16 @@ class FakeInhibitionProvider:
         """Record the start of the listening."""
         self.start_listening_calls += 1
 
-    def stop_listening(self):
-        """Report UNKNOWN to the callbacks before detaching them (contract)"""
+    async def async_stop_listening(self):
+        """Deliver UNKNOWN to, and await, the callbacks before detaching them (contract)"""
         self.stop_listening_calls += 1
         old = self._status
         self._status = InhibitionStatus.UNKNOWN
         transition = self._build(InhibitionStatus.UNKNOWN, old, None)
-        for callback in list(self._callbacks):
-            self._thermostat.hass.async_create_task(callback(transition))
+        callbacks = list(self._callbacks)
+        self.callbacks_at_stop.append(len(callbacks))
+        for callback in callbacks:
+            await callback(transition)
         self._callbacks.clear()
 
     def restore_state(self, old_state):
@@ -173,6 +180,8 @@ class FakeInhibitionFactory:
         self.supports_error = supports_error
         self.create_error = create_error
         self.supports_calls = 0
+        # The views received by supports() and create()
+        self.views: list = []
         self.providers: list[FakeInhibitionProvider] = []
 
     @property
@@ -183,12 +192,14 @@ class FakeInhibitionFactory:
     def supports(self, thermostat) -> bool:
         """Return the configured eligibility, or raise the configured error."""
         self.supports_calls += 1
+        self.views.append(thermostat)
         if self.supports_error:
             raise self.supports_error
         return self.supports_result
 
     def create(self, thermostat) -> FakeInhibitionProvider:
         """Create a provider bound to the thermostat."""
+        self.views.append(thermostat)
         if self.create_error:
             raise self.create_error
         provider = FakeInhibitionProvider(self._name, thermostat, self.status, self.policy)
@@ -728,10 +739,11 @@ async def test_replayed_sequence_and_stale_callbacks(hass: HomeAssistant, skip_h
         assert entity.is_inhibition_withdrawn is False
         assert entity.inhibition_manager.state.last_error_code is None
 
-        # removal detaches the provider (stop_listening reports UNKNOWN, ignored)
+        # removal detaches the provider (async_stop_listening reports UNKNOWN, ignored)
         entity.remove_thermostat()
-        assert provider.stop_listening_calls == 1
         await hass.async_block_till_done()
+        assert provider.stop_listening_calls == 1
+        assert provider.callbacks_at_stop == [1]
         reset_spies(spies)
         await provider.async_send(InhibitionTransition("fake_inhibition", InhibitionStatus.ACTIVE, InhibitionStatus.INACTIVE, InhibitionStopPolicy.TURN_OFF, datetime.now(), 2000))
         assert_no_command(spies)
@@ -943,7 +955,7 @@ async def test_plugin_reload(hass: HomeAssistant, skip_hass_states_is_state, fak
         reset_spies(spies)
 
         # 1. plugin unload: the provider reports UNKNOWN, then the factory is unregistered
-        provider.stop_listening()
+        await provider.async_stop_listening()
         api.unregister_inhibition_provider_factory("fake_inhibition")
         await hass.async_block_till_done()
 
@@ -1775,7 +1787,7 @@ async def test_plugin_replaced_at_runtime(hass: HomeAssistant, skip_hass_states_
             assert [conflict.rejected for conflict in entity.inhibition_manager.conflicts] == ["plugin_b"]
             assert not factory_b.providers
 
-        factory_a.provider.stop_listening()
+        await factory_a.provider.async_stop_listening()
         api.unregister_inhibition_provider_factory("plugin_a")
         await hass.async_block_till_done()
         if not register_b_first:
@@ -1965,5 +1977,89 @@ async def test_refresh_result_older_than_a_transition_is_ignored(hass: HomeAssis
 
         assert entity.inhibition_manager.state.provider_status == InhibitionProviderStatus.ACTIVE
         assert entity.is_inhibition_withdrawn is True
+
+    entity.remove_thermostat()
+
+
+##
+## vtherm_api 0.6.0 contract: restricted view and asynchronous shutdown
+##
+async def test_factory_receives_the_restricted_view(hass: HomeAssistant, skip_hass_states_is_state, fake_underlying_switch: MockSwitch):
+    """supports() and create() receive an immutable identity view, never the thermostat runtime"""
+    factory = FakeInhibitionFactory()
+    register_factories(hass, factory)
+
+    with spy_switch_commands():
+        entity = await create_heating_switch_vtherm(hass)
+
+        assert factory.views
+        for view in factory.views:
+            assert isinstance(view, InhibitionThermostatView)
+            assert isinstance(view, InterfaceInhibitionThermostatView)
+            assert not isinstance(view, BaseThermostat)
+            assert view.unique_id == entity.unique_id
+            assert view.name == entity.name
+            assert not hasattr(view, "async_set_hvac_mode")
+            assert not hasattr(view, "underlyings")
+        # discovered from post_init: the entity is not added to Home Assistant yet
+        assert factory.views[0].entity_id is None
+        with pytest.raises(AttributeError):
+            factory.views[0].name = "other"
+
+        # a factory registered after the startup sees the entity_id
+        late = FakeInhibitionFactory(name="late_inhibition")
+        register_factories(hass, late)
+        await hass.async_block_till_done()
+        assert late.views[-1].entity_id == entity.entity_id
+
+    entity.remove_thermostat()
+
+
+async def test_vtherm_unload_awaits_the_provider_shutdown(hass: HomeAssistant, skip_hass_states_is_state, fake_underlying_switch: MockSwitch):
+    """Removing the VTherm awaits async_stop_listening() before detaching the callback; its UNKNOWN sends nothing"""
+    factory = FakeInhibitionFactory()
+    register_factories(hass, factory)
+    entry = switch_entry()
+
+    with spy_switch_commands() as spies:
+        entity = await create_heating_switch_vtherm(hass, entry)
+        provider = factory.provider
+        reset_spies(spies)
+
+        # only the awaited path may stop the provider (the synchronous fallback is disabled)
+        with patch.object(InhibitionManager, "stop"):
+            assert await hass.config_entries.async_unload(entry.entry_id)
+            await hass.async_block_till_done()
+
+        assert provider.stop_listening_calls == 1
+        # the core callback was still attached when UNKNOWN was delivered
+        assert provider.callbacks_at_stop == [1]
+        assert provider._callbacks == []
+        # no precautionary stop nor any command for a VTherm going away
+        assert_no_command(spies)
+        assert entity.inhibition_manager.state.withdrawal_active is False
+
+
+async def test_factory_unregistration_awaits_the_provider_shutdown(hass: HomeAssistant, skip_hass_states_is_state, fake_underlying_switch: MockSwitch):
+    """On unregistration the core awaits async_stop_listening() before detaching, and applies its UNKNOWN"""
+    factory = FakeInhibitionFactory(policy=InhibitionStopPolicy.DO_NOT_TURN_OFF)
+    api = register_factories(hass, factory)
+
+    with spy_switch_commands() as spies:
+        entity = await create_heating_switch_vtherm(hass)
+        provider = factory.provider
+        reset_spies(spies)
+
+        # a plugin that forgets to stop its provider before unregistering
+        api.unregister_inhibition_provider_factory("fake_inhibition")
+        await hass.async_block_till_done()
+
+        assert provider.stop_listening_calls == 1
+        assert provider.callbacks_at_stop == [1]
+        assert provider._callbacks == []
+        assert entity.inhibition_manager.provider is None
+        assert entity.inhibition_manager.state.provider_status == InhibitionProviderStatus.UNKNOWN
+        assert entity.is_inhibition_withdrawn is True
+        assert spies.turn_off.call_count == 0
 
     entity.remove_thermostat()
