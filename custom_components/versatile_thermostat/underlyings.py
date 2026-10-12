@@ -123,6 +123,11 @@ class UnderlyingEntity:
         # starts listening and can provide the initial cached state.
         self._state_manager.add_underlying_entities([self._entity_id])
 
+    @staticmethod
+    def _is_unavailable(state: Optional[State]) -> bool:
+        """True if the state is absent or is unavailable / unknown"""
+        return state is None or state.state in (STATE_UNAVAILABLE, STATE_UNKNOWN)
+
     async def _underlying_changed(self, entity_id: str, new_state: Optional[State], old_state: Optional[State] = None):
         """Handle underlying state change notified by UnderlyingStateManager.
 
@@ -146,7 +151,8 @@ class UnderlyingEntity:
                 _LOGGER.debug("%s - Underlying state still not yet initialized", self)
         # Otherwise, the manager holds the latest state
         # Update the hvac_action of the parent which could have changed
-        if self._thermostat.hvac_action != self._thermostat.calculate_hvac_action():
+        # Also refresh when the availability of the changed entity differs, to expose it in the VTherm state
+        if self._thermostat.hvac_action != self._thermostat.calculate_hvac_action() or self._is_unavailable(old_state) != self._is_unavailable(new_state):
             self._thermostat.update_custom_attributes()
             self._thermostat.async_write_ha_state()
 

@@ -763,7 +763,7 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
                 new_state.state,
             )
             await end_climate_changed(changes)
-            # TODO add a specific attribute to know that the underlying is unavailable and manage it in the error messages
+            # the unavailability is exposed by the underlying_unavailable message (see update_custom_attributes)
             return
 
         # Interpretation of hvac action

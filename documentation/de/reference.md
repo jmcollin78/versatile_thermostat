@@ -443,6 +443,7 @@ Die benutzerdefinierten Attribute sind folgende:
 | ``total_energy``                                | Eine Schätzung des Gesamtenergieverbrauchs dieses VTherm                                                                                                                                                                          |
 | ``last_change_time_from_vtherm``                | Datum und Uhrzeit der letzten von VTherm vorgenommenen Änderung                                                                                                                                                                   |
 | ``messages``                                    | Eine Liste von Meldungen, die die Berechnung des aktuellen Zustands erläutern. Siehe [Zustandsmeldungen](#zustandsmeldungen)                                                                                                      |
+| ``unavailable_underlying_entities``             | Die Liste der zugrunde liegenden Entitäten (Climate, Switch, Ventil, Öffnungs-/Schließgrad-Nummern...), die nach dem Start des VTherm `unavailable` oder `unknown` sind. Leer, wenn alle verfügbar sind                           |
 | ``is_sleeping``                                 | Zeigt an, dass sich der VTherm im Ruhemodus befindet (gilt für `over_climate` mit direkter Ventilsteuerung und `over_valve`)                                                                                                      |
 | ``is_recalculate_scheduled``                    | Zeigt an, dass die Neuberechnung des zugeordneten Zustands mittels Zeitfilterung verzögert wurde, um die Interaktionsanzahl mit den gesteuerten Geräten zu begrenzen                                                              |
 | **ABSCHNITT `configuration`**                   | ------                                                                                                                                                                                                                            |
@@ -654,6 +655,7 @@ Das benutzerdefinierte Attribut `specific_states.messages` enthält eine Liste v
 | `target_temp_activity_detected`     | Die Zieltemperatur wurde durch die Bewegungserkennung erzwungen.                                                     |
 | `target_temp_activity_not_detected` | Die Zieltemperatur wurde durch das Fehlen von Bewegung erzwungen.                                                    |
 | `target_temp_absence_detected`      | Die Solltemperatur wurde durch die Abwesenheitserkennung erzwungen.                                                  |
+| `underlying_unavailable`            | Mindestens eine zugrunde liegende Entität ist nicht verfügbar oder unbekannt (siehe `unavailable_underlying_entities`)|
 
 Hinweis: Diese Meldungen sind in der [VTherm UI Card](documentation/de/additions.md#versatile-thermostat-ui-card) unter dem Informationssymbol verfügbar.
 

@@ -440,6 +440,7 @@ Les attributs personnalisés sont les suivants :
 | ``total_energy``                                | Une estimation de l'énergie totale consommée par ce VTherm                                                                                                                                                          |
 | ``last_change_time_from_vtherm``                | La date/heure du dernier changement fait par VTherm                                                                                                                                                                 |
 | ``messages``                                    | Une liste de messages expliquant le calcul de l'état courant. Cf. [messages d'état](#messages-détat)                                                                                                                |
+| ``unavailable_underlying_entities``             | La liste des entités sous-jacentes (climate, switch, vanne, nombres d'ouverture/fermeture...) `unavailable` ou `unknown` après le démarrage du VTherm. Vide si toutes sont disponibles                              |
 | ``is_sleeping``                                 | Indique le Vtherm est en mode sommeil (valable pour `over_climate` avec contrôle direct de la vanne et `over_valve`)                                                                                                |
 | ``is_recalculate_scheduled``                    | Indique que le recalcule de l'état du sous-jacent a été reporté par le filtrage temporel pour limiter le nombre d'interactions avec l'équipement contrôlé                                                           |
 | **SECTION `configuration`**                     | ------                                                                                                                                                                                                              |
@@ -651,6 +652,7 @@ L'attribut personnalisé `specific_states.messages` contient une liste de code m
 | `target_temp_activity_detected`     | La température cible a été forcée par la détection de mouvement                              |
 | `target_temp_activity_not_detected` | La température cible a été forcée par la non détection de mouvement                          |
 | `target_temp_absence_detected`      | La température cible a été forcée par la détection d'absence                                 |
+| `underlying_unavailable`            | Au moins un équipement sous-jacent est indisponible ou inconnu (cf. `unavailable_underlying_entities`)|
 
 Note : ces messages sont disponibles dans la [VTherm UI Card](documentation/fr/additions.md#versatile-thermostat-ui-card) sous l'icone d'information.
 
