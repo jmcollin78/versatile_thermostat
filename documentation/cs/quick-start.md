@@ -7,6 +7,7 @@ Tato stránka popisuje kroky k rychlému nastavení základního, ale funkčníh
   - [Heatzy, eCosy nebo podobný (`climate` entita)](#heatzy-ecosy-nebo-podobný-climate-entita)
   - [Jednoduchý spínač jako Aqara T1, Nous B2Z, Sonoff ZBMini, Sonoff POW, ...](#jednoduchý-spínač-jako-aqara-t1-nous-b2z-sonoff-zbmini-sonoff-pow-)
   - [Sonoff TRVZB nebo podobný (TRV s ovládáním ventilu)](#sonoff-trvzb-nebo-podobný-trv-s-ovládáním-ventilu)
+  - [Jednoduchý TRV jako Avatto TRV06, Moes, Tuya... (TRV bez ovládání ventilu)](#jednoduchý-trv-jako-avatto-trv06-moes-tuya-trv-bez-ovládání-ventilu)
   - [Reverzibilní tepelná čerpadla, klimatizace nebo zařízení ovládaná prostřednictvím `climate` entity](#reverzibilní-tepelná-čerpadla-klimatizace-nebo-zařízení-ovládaná-prostřednictvím-climate-entity)
 - [Další kroky](#další-kroky)
 - [Výzva k přispívání](#výzva-k-přispívání)
@@ -70,6 +71,31 @@ Pro integraci do _VTherm_ musíte:
 Aby to fungovalo, `closing degree` musí být nastaven na maximum (100%). Nepovolujte okamžitě možnost `Sledovat změnu podkladové teploty`, dokud neověříte, že tato základní konfigurace funguje správně.
 
 Po dokončení těchto pěti kroků budete mít plně funkční _VTherm_, který ovládá váš Sonoff TRVZB nebo podobné zařízení.
+
+## Jednoduchý TRV jako Avatto TRV06, Moes, Tuya... (TRV bez ovládání ventilu)
+
+Tento typ zařízení _TRV_ (typicky zařízení Zigbee integrovaná přes Zigbee2MQTT nebo ZHA) se v _HA_ objevuje pouze jako entita `climate`. Otevření ventilu nelze ovládat: TRV se reguluje samo na základě svého vnitřního teploměru a přijaté cílové teploty.
+
+_VTherm_ bude upravovat cílovou teplotu odesílanou do TRV tak, aby teplota místnosti měřená vaším vlastním senzorem dosáhla požadované teploty.
+
+Pro integraci do _VTherm_ musíte:
+1. Vytvořit _VTherm_ typu `over_climate`. Viz [vytvoření _VTherm_](creation.md),
+2. Přiřadit mu hlavní atributy (název, senzor teploty místnosti a senzor venkovní teploty minimálně). Viz [hlavní atributy](base-attributes.md),
+3. Přiřadit jedno nebo více podkladových zařízení k ovládání. Podkladové zařízení zde je entita `climate` TRV. Viz [podkladová zařízení](over-climate.md),
+4. Povolit samoregulaci: začněte s `Lehká` nebo `Střední` a ponechte výchozí hodnoty prahu regulace a minimální periody regulace. Viz [samoregulace](self-regulation.md). Nechte možnost `Použít vnitřní teplotu podřízeného zařízení` nezaškrtnutou, pokud není vnitřní teploměr vašeho TRV velmi nepřesný (je to poslední možnost, viz [kompenzace vnitřní teploty](over-climate.md#kompenzace-vnitřní-teploty-podkladového-vybavení)),
+5. Pokud vaše TRV poskytuje entitu `number` jako `local_temperature_calibration`, povolte synchronizaci vnitřní teploty zařízení s kalibrací (režim 1). Pokud poskytuje entitu `external_temperature_input`, můžete místo toho použít režim 2. Viz [synchronizace vnitřní teploty](feature-sync_device_temp.md).
+
+Některé vestavěné funkce TRV jsou v konfliktu s _VTherm_. Jsou to nastavení zařízení, která _VTherm_ nespravuje, zkontrolujte je přímo na zařízení (nebo v Zigbee2MQTT / ZHA):
+- Vypněte vnitřní týdenní program a nepoužívejte systémový režim `auto`. Ponechte TRV v režimu `heat`: _VTherm_ řídí plánování pomocí [předvoleb](feature-presets.md),
+- Vypněte detekci otevřeného okna v TRV. Použijte místo ní [detekci oken _VTherm_](feature-window.md),
+- Nepoužívejte vnitřní předvolby TRV (eco, comfort, boost, holiday...). _VTherm_ posílá cílovou teplotu přímo,
+- Volitelně zapněte dětský zámek, abyste zabránili ručním změnám na zařízení.
+
+> ![Tip](images/tips.png) _*Poznámky*_
+> - Funkce [auto-start/stop](feature-auto-start-stop.md) je určena pro zařízení, která spotřebovávají energii i v klidu, jako jsou tepelná čerpadla. U TRV na baterie je obvykle málo užitečná.
+> - Nepovolujte okamžitě možnost `Sledovat změnu podkladové teploty`, dokud neověříte, že tato základní konfigurace funguje správně. Viz [sledování změn podkladové teploty](over-climate.md#sledování-změn-podkladové-teploty).
+
+Po dokončení těchto pěti kroků a kontrole nastavení TRV budete mít plně funkční _VTherm_, který ovládá vaše jednoduché TRV.
 
 ## Reverzibilní tepelná čerpadla, klimatizace nebo zařízení ovládaná prostřednictvím `climate` entity
 

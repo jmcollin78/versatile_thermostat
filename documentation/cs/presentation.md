@@ -65,6 +65,7 @@ Pro ovládání vodního radiátoru. Fungují s _VTherm_ [`over_valve`](over-val
 - [Shelly BLU TRV BLE](https://www.domadoo.fr/en/black-friday-domotique/7567-shelly-robinet-thermostatique-de-radiateur-a-commande-bluetooth-shelly-blu-trv-3800235264980.html?domid=97) s [`over_valve`](over-valve.md),
 - [Moes TRV Zigbee](https://www.domadoo.fr/en/peripheriques/5783-moes-tete-thermostatique-intelligente-zigbee-30-brt-100-trv-blanc.html?domid=97) s [`over_climate (bez přímého ovládání ventilu)`](over-climate.md#thermostat-de-type-over_climate)
 - [Schneider Wiser TRV Zigbee](https://www.domadoo.fr/en/controle-chauffage-clim/5497-schneider-electric-tete-de-vanne-thermostatique-connectee-zigbee-3606489582821.html?domid=97) s [`over_climate (bez přímého ovládání ventilu)`](over-climate.md#thermostat-de-type-over_climate)
+- Avatto TRV06 Zigbee (Zigbee2MQTT) s [`over_climate (bez přímého ovládání ventilu)`](over-climate.md) a [samoregulací](self-regulation.md)
 
 ## Nekompatibility
 Některé termostaty typu TRV jsou známé jako nekompatibilní s Versatile Thermostat. To zahrnuje následující ventily:

@@ -9,6 +9,7 @@ Struktura jest podzielona według typu urządzenia.
   - [Heatzy, eCosy, lub podobne (sterowane encją `climate`)](#heatzy-ecosy-or-similar-climate-entity)
   - [Zwykły przełącznik w rodzaju Aqara T1, Nous B2Z, Sonoff ZBMini, Sonoff POW, ...](#simple-switch-such-as-aqara-t1-nous-b2z-sonoff-zbmini-sonoff-pow-)
   - [Sonoff TRVZB lub podobne (TRV ze sterowaniem zaworem)](#sonoff-trvzb-or-similar-trv-with-valve-control)
+  - [Zwykły TRV w rodzaju Avatto TRV06, Moes, Tuya... (TRV bez sterowania zaworem)](#zwykły-trv-w-rodzaju-avatto-trv06-moes-tuya-trv-bez-sterowania-zaworem)
   - [Odwracalne jednostki HP, klimatyzatory, lub inne urządzenia sterowane encją `climate`](#reversible-hp-units-air-conditioning-or-devices-controlled-via-a-climate-entity)
 - [Następne kroki](#next-steps)
 - [Zaproszenie do współpracy](#call-for-contributions)
@@ -75,6 +76,31 @@ Aby zintegrować urządzenie z VTherm, należy wykonać następujące kroki:
 
 Po wykonaniu tych pięciu kroków będziesz mieć w pełni funkcjonalny termostat _VTherm_, który będzie sterował Twoim **Sonoff TRVZB** lub podobny urządzeniem.
 
+
+## Zwykły TRV w rodzaju Avatto TRV06, Moes, Tuya... (TRV bez sterowania zaworem)
+
+Ten typ _TRV_ (zazwyczaj urządzenia Zigbee zintegrowane przez Zigbee2MQTT lub ZHA) jest widoczny w _HA_ wyłącznie jako encja `climate`. Otwarciem zaworu nie można sterować: TRV reguluje się samodzielnie na podstawie wewnętrznego termometru i otrzymanej temperatury zadanej.
+
+**VTherm** dostosowuje temperaturę zadaną wysyłaną do TRV tak, aby temperatura w pomieszczeniu mierzona przez Twój własny czujnik osiągnęła żądaną wartość.
+
+Aby zintegrować urządzenie z VTherm, należy wykonać następujące kroki:
+1. Utwórz termostat _VTherm_ typu `termostat na klimacie`. Zobacz: [Wybór termostatu](creation.md)
+2. Przypisz mu główne atrybuty (nazwa, czujnik temperatury w pomieszczeniu oraz czujnik temperatury zewnętrznej). Zobacz: [Wybór głównych atrybutów](base-attributes.md).
+3. Przypisz jedno lub więcej urządzeń podrzędnych do sterowania. Urządzeniem podrzędnym w tym przypadku jest encja `climate` TRV. Zobacz: [urządzenia](over-climate.md).
+4. Włącz samoregulację: zacznij od `Słaba` lub `Średnia` i zachowaj domyślne wartości progu regulacji oraz minimalnego okresu regulacji. Zobacz: [samoregulacja](self-regulation.md). Pozostaw niezaznaczoną opcję `Użyj temperatury wewnętrznej urządzenia`, chyba że wewnętrzny termometr TRV jest bardzo niedokładny (to ostateczność, zobacz [kompensacja temperatury wewnętrznej](over-climate.md#kompensacja-temperatury-wewnętrznej-urządzeń-bazowych)).
+5. Jeśli TRV udostępnia encję `number` taką jak `local_temperature_calibration`, włącz synchronizację temperatury wewnętrznej urządzenia z kalibracją (tryb 1). Jeśli udostępnia encję `external_temperature_input`, możesz zamiast tego użyć trybu 2. Zobacz: [synchronizacja temperatury wewnętrznej](feature-sync_device_temp.md).
+
+Niektóre wbudowane funkcje TRV kolidują z _VTherm_. Są to ustawienia urządzenia, którymi _VTherm_ nie zarządza, więc sprawdź je bezpośrednio na urządzeniu (lub w Zigbee2MQTT / ZHA):
+- Wyłącz wewnętrzny harmonogram tygodniowy i nie używaj trybu systemowego `auto`. Pozostaw TRV w trybie `heat`: _VTherm_ obsługuje harmonogramy za pomocą [presetów](feature-presets.md),
+- Wyłącz wbudowaną detekcję otwartego okna w TRV. Użyj zamiast tego [detekcji otwarcia okien w _VTherm_](feature-window.md),
+- Nie używaj wewnętrznych presetów TRV (eco, comfort, boost, holiday...). _VTherm_ wysyła temperaturę zadaną bezpośrednio,
+- Opcjonalnie włącz blokadę rodzicielską, aby uniknąć ręcznych zmian na urządzeniu.
+
+> ![Tip](images/tips.png) _*Uwagi*_
+> - Funkcja [auto-start/stop](feature-auto-start-stop.md) jest przeznaczona dla urządzeń, które pobierają energię także w stanie spoczynku, takich jak pompy ciepła. W przypadku TRV zasilanego bateryjnie jest zwykle mało przydatna.
+> - Nie włączaj od razu opcji `Podążaj za zmianą temperatury`, dopóki nie zweryfikujesz, że podstawowa konfiguracja działa poprawnie. Zobacz: [śledzenie zmian temperatury bazowej](over-climate.md#śledzenie-zmian-temperatury-bazowej).
+
+Po wykonaniu tych pięciu kroków i sprawdzeniu ustawień TRV będziesz mieć w pełni funkcjonalny termostat _VTherm_, który steruje Twoim zwykłym TRV.
 
 ## Odwracalne jednostki HP, klimatyzatory, lub inne urządzenia sterowane encją `climate`
 
