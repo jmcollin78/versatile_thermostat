@@ -253,6 +253,7 @@
                     "safety_min_on_percent": "启用安全模式的最低功率百分比",
                     "safety_default_on_percent": "安全模式下使用的功率百分比",
                     "repair_incorrect_state": "修复不正确的状态",
+                    "manual_override_duration_min": "手动覆盖持续时间（分钟）",
                     "use_advanced_central_config": "使用中央高级配置"
                 },
                 "data_description": {
@@ -260,6 +261,7 @@
                     "safety_min_on_percent": "安全预设激活的最小加热百分比值。低于此功率百分比时，恒温器将不会进入安全预设状态",
                     "safety_default_on_percent": "安全预设中的默认加热功率百分比值。设置为 0 以在安全预设中关闭加热器",
                     "repair_incorrect_state": "检测到时自动修复底层实体的错误状态。如果底层设备状态与预期状态不匹配，该功能将重新发送所需的命令。",
+                    "manual_override_duration_min": "手动更改温度后，VTherm 将在此时长（分钟）后恢复到之前的预设。0 表示禁用此功能。",
                     "use_advanced_central_config": "勾选使用中央高级配置。取消选中为此 VTherm 使用特定的高级配置"
                 }
             },
@@ -654,6 +656,7 @@
                     "safety_min_on_percent": "启用安全模式的最低功率百分比",
                     "safety_default_on_percent": "安全模式下使用的功率百分比",
                     "repair_incorrect_state": "修复不正确的状态",
+                    "manual_override_duration_min": "手动覆盖持续时间（分钟）",
                     "use_advanced_central_config": "使用中央高级配置"
                 },
                 "data_description": {
@@ -663,6 +666,7 @@
                     "safety_min_on_percent": "安全预设激活的最小加热百分比值。低于此功率百分比时，恒温器将不会进入安全预设状态",
                     "safety_default_on_percent": "安全预设中的默认加热功率百分比值。设置为 0 以在安全预设中关闭加热器",
                     "repair_incorrect_state": "检测到时自动修复底层实体的错误状态。如果底层设备状态与预期状态不匹配，该功能将重新发送所需的命令。",
+                    "manual_override_duration_min": "手动更改温度后，VTherm 将在此时长（分钟）后恢复到之前的预设。0 表示禁用此功能。",
                     "use_advanced_central_config": "勾选使用中央高级配置。取消选中为此 VTherm 使用特定的高级配置"
                 }
             },

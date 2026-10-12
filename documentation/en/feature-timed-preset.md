@@ -7,6 +7,7 @@
   - [Cancel a timed preset](#cancel-a-timed-preset)
   - [Custom attributes](#custom-attributes)
   - [Events](#events)
+  - [Manual override with automatic revert](#manual-override-with-automatic-revert)
   - [Automation examples](#automation-examples)
     - [30-minute boost when arriving home](#30-minute-boost-when-arriving-home)
     - [Notification at boost end](#notification-at-boost-end)
@@ -68,20 +69,28 @@ When you cancel a timed preset, the original preset is immediately restored.
 
 When a timed preset is active, the following attributes are available in the `timed_preset_manager` section of the _VTherm_ attributes:
 
-| Attribute               | Meaning                                                              |
-| ----------------------- | -------------------------------------------------------------------- |
-| `timed_preset_active`   | `true` if a timed preset is active, `false` otherwise                |
-| `timed_preset_preset`   | The name of the active timed preset (or `null` if none)              |
-| `timed_preset_end_time` | The end date/time of the timed preset (ISO format)                   |
-| `remaining_time_min`    | The remaining time in minutes before the timed preset ends (integer) |
+| Attribute            | Meaning                                                                                                      |
+| -------------------- | ------------------------------------------------------------------------------------------------------------ |
+| `is_active`          | `true` if a timed preset is active, `false` otherwise                                                        |
+| `preset`             | The name of the active timed preset (or `null` if none)                                                      |
+| `original_preset`    | The preset restored at the end of the timed preset (or `null` if none)                                       |
+| `end_time`           | The end date/time of the timed preset (ISO format, or `null` if none)                                        |
+| `remaining_time_min` | The remaining time in minutes before the timed preset ends (integer)                                         |
+| `is_manual_override` | `true` if the active timed preset is a manual override (see [below](#manual-override-with-automatic-revert)) |
+| `resume_preset`      | The timed preset interrupted by the manual override, resumed at its end (or `null`)                          |
+| `resume_end_time`    | The end date/time of the interrupted timed preset (ISO format, or `null`)                                    |
 
 Example attributes:
 ```yaml
 timed_preset_manager:
-  timed_preset_active: true
-  timed_preset_preset: "boost"
-  timed_preset_end_time: "2024-01-15T14:30:00+00:00"
+  is_active: true
+  preset: "boost"
+  original_preset: "comfort"
+  end_time: "2024-01-15T14:30:00+00:00"
   remaining_time_min: 25
+  is_manual_override: false
+  resume_preset: null
+  resume_end_time: null
 ```
 
 ## Events
@@ -91,10 +100,43 @@ The `versatile_thermostat_timed_preset_event` event is emitted when timed preset
 Event data:
 - `entity_id`: The _VTherm_ identifier
 - `name`: The _VTherm_ name
-- `timed_preset_active`: `true` if a timed preset has just been activated, `false` if it has just been deactivated
-- `timed_preset_preset`: The name of the timed preset
-- `old_preset`: The previous preset (before timed preset activation)
-- `new_preset`: The new active preset
+- `state_attributes`: The state attributes of the _VTherm_ at the time of the event
+- `type`: `start` when a timed preset (or a manual override) starts, `end` when it ends
+- `preset`: The timed preset concerned (the one that starts, or the one that has just ended)
+
+Additional data for a `start` event:
+- `duration_minutes`: The duration of the timed preset in minutes
+- `end_time`: The end date/time of the timed preset (ISO format)
+- `original_preset`: The preset that will be restored at the end
+- `manual_override`: `true` if the event concerns a manual override
+
+Additional data for an `end` event:
+- `cause`: Why the timed preset ended: `expired` (the duration elapsed), `cancelled` (the `cancel_timed_preset` service was called) or `preset_selected` (a preset was selected manually)
+- `restored_preset`: The preset restored after the end (can be `null` when a preset was selected manually)
+- `manual_override`: `true` if the event concerns a manual override
+
+## Manual override with automatic revert
+
+When you change the target temperature manually, _VTherm_ normally switches to the `none` preset and stays there until you select a preset again. If a **manual override duration** is configured, _VTherm_ reverts automatically after this duration instead.
+
+The duration is set in the advanced configuration (`manual_override_duration_min`, in minutes). It can be defined in the central configuration and overridden per _VTherm_. See [advanced configuration](feature-advanced.md#manual-override-duration). The default value `0` disables the feature, and the behaviour is then unchanged.
+
+How it works:
+1. A manual change of the target temperature (from the UI, from an automation calling `climate.set_temperature`, or from the underlying device when `Follow underlying temperature change` is enabled) starts a manual override. The manual temperature applies immediately.
+2. Another manual change during the override restarts the timer with the full duration.
+3. When the timer expires, the preset that was active before the manual change is restored.
+4. If a timed preset was active when the manual change happened, it is resumed at the end of the override, until its own end time. If that end time has already passed, the preset that was active before the timed preset is restored.
+5. If no preset was active (`none`) before the manual change, no override is started.
+
+The manual override reuses the timed preset mechanism: it appears as a timed preset of `none` and survives a Home Assistant restart.
+
+> ![Tip](images/tips.png) _*Notes*_
+> - Selecting a preset during the manual override cancels it: the selected preset applies and nothing is reverted later.
+> - Setting a timed preset during the manual override replaces it.
+> - Cancelling the timed preset during the manual override restores the preset that was active before the manual change.
+> - Window, safety, power and central mode keep their priority while the manual override is running.
+
+The `timed_preset_manager` attributes `is_manual_override`, `resume_preset` and `resume_end_time` are described in the [Custom attributes](#custom-attributes) table. The `manual_override` field of the `versatile_thermostat_timed_preset_event` event is `true` when the event concerns a manual override.
 
 ## Automation examples
 
@@ -131,7 +173,7 @@ automation:
         event_type: versatile_thermostat_timed_preset_event
     condition:
       - condition: template
-        value_template: "{{ trigger.event.data.timed_preset_active == false }}"
+        value_template: "{{ trigger.event.data.type == 'end' }}"
     action:
       - service: notify.mobile_app
         data:

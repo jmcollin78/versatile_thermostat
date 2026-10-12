@@ -4,6 +4,7 @@
   - [Pokročilá nastavení](#pokročilá-nastavení)
     - [Minimální doba aktivace](#minimální-doba-aktivace)
     - [Bezpečnostní režim](#bezpečnostní-režim)
+  - [Doba ručního přepsání](#doba-ručního-přepsání)
 
 Tato nastavení dolaďují provoz termostatu, zejména bezpečnostní mechanismus _VTherm_. Chybějící teplotní senzory (místnosti nebo venkovní) mohou představovat riziko pro váš domov. Pokud se například teplotní senzor zasekne na 10°C, _VTherm_ typu `over_climate` nebo `over_valve` bude nařizovat maximální vytápění podkladových zařízení, což by mohlo vést k přehřátí místnosti nebo dokonce k poškození majetku, v nejhorším případě k požáru.
 
@@ -55,3 +56,14 @@ Ve výchozím nastavení může venkovní teploměr spustit Bezpečnostní reži
 > 3. Je dostupná akce pro úpravu tří bezpečnostních parametrů. To může pomoci přizpůsobit Bezpečnostní režim vašim potřebám.
 > 4. Pro normální použití by `safety_default_on_percent` mělo být nižší než `safety_min_on_percent`.
 > 5. Pokud používáte UI kartu Versatile Thermostat (viz [zde](additions.md#better-with-the-versatile-thermostat-ui-card)), _VTherm_ v Bezpečnostním režimu je označen šedým překrytím zobrazujícím vadný teploměr a čas od jeho poslední aktualizace hodnoty: ![bezpečnostní režim](images/safety-mode-icon.png).
+
+## Doba ručního přepsání
+
+Parametr **Doba ručního přepsání** (`manual_override_duration_min`, v minutách) umožňuje, aby se _VTherm_ nějakou dobu po ruční změně cílové teploty automaticky vrátil k předchozímu presetu. Definuje se v centrální konfiguraci a lze ho přepsat ve vlastní pokročilé konfiguraci každého _VTherm_.
+
+| Parametr | Popis | Výchozí hodnota |
+| --- | --- | --- |
+| **Doba ručního přepsání** | Doba v minutách, po které se ruční změna teploty vrátí na předchozí preset. `0` funkci vypíná. | 0 |
+
+Podrobné chování viz [ruční přepsání s automatickým návratem](feature-timed-preset.md#ruční-přepsání-s-automatickým-návratem).
+

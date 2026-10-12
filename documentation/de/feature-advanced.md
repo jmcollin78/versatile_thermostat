@@ -13,6 +13,7 @@
   - [Verfügbare Aktionen](#verfügbare-aktionen)
   - [Erweiterte globale Konfiguration](#erweiterte-globale-konfiguration)
   - [Praktische Tipps](#praktische-tipps)
+  - [Dauer der manuellen Übersteuerung](#dauer-der-manuellen-übersteuerung)
   - [Behebung von falschem Gerätezustand](#behebung-von-falschem-gerätezustand)
     - [Warum diese Funktion?](#warum-diese-funktion-1)
     - [Anwendungsfälle](#anwendungsfälle)
@@ -150,6 +151,16 @@ versatile_thermostat:
    - Verstrichene Zeit seit der letzten Aktualisierung
 
    ![Sicherheitsmodus](images/safety-mode-icon.png).
+
+## Dauer der manuellen Übersteuerung
+
+Der Parameter **Dauer der manuellen Übersteuerung** (`manual_override_duration_min`, in Minuten) lässt _VTherm_ einige Zeit nach einer manuellen Änderung der Zieltemperatur automatisch zur vorherigen Voreinstellung zurückkehren. Er wird in der zentralen Konfiguration definiert und kann in der eigenen erweiterten Konfiguration jedes _VTherm_ überschrieben werden.
+
+| Parameter | Beschreibung | Standardwert |
+| --- | --- | --- |
+| **Dauer der manuellen Übersteuerung** | Dauer in Minuten, nach der eine manuelle Temperaturänderung zugunsten der vorherigen Voreinstellung zurückgenommen wird. `0` deaktiviert die Funktion. | 0 |
+
+Siehe [manuelle Übersteuerung mit automatischer Rückkehr](feature-timed-preset.md#manuelle-übersteuerung-mit-automatischer-rückkehr) für das genaue Verhalten.
 
 ## Behebung von falschem Gerätezustand
 

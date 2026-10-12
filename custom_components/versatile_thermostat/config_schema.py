@@ -509,6 +509,7 @@ STEP_CENTRAL_ADVANCED_DATA_SCHEMA = vol.Schema(  # pylint: disable=invalid-name
             default=DEFAULT_SAFETY_DEFAULT_ON_PERCENT,
         ): vol.Coerce(float),
         vol.Optional(CONF_REPAIR_INCORRECT_STATE, default=False): cv.boolean,
+        vol.Optional(CONF_MANUAL_OVERRIDE_DURATION_MIN, default=0): cv.positive_int,
     }
 )
 

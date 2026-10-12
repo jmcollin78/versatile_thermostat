@@ -7,6 +7,7 @@
   - [Annuler un preset temporisé](#annuler-un-preset-temporisé)
   - [Attributs personnalisés](#attributs-personnalisés)
   - [Évènements](#évènements)
+  - [Dérogation manuelle avec retour automatique](#dérogation-manuelle-avec-retour-automatique)
   - [Exemples d'automatisation](#exemples-dautomatisation)
     - [Boost de 30 minutes à la rentrée](#boost-de-30-minutes-à-la-rentrée)
     - [Notification à la fin du boost](#notification-à-la-fin-du-boost)
@@ -68,20 +69,28 @@ Lorsque vous annulez un preset temporisé, le preset original est immédiatement
 
 Lorsqu'un preset temporisé est actif, les attributs suivants sont disponibles dans la section `timed_preset_manager` des attributs du _VTherm_ :
 
-| Attribut             | Signification                                                         |
-| -------------------- | --------------------------------------------------------------------- |
-| `is_active`          | `true` si un preset temporisé est actif, `false` sinon                |
-| `preset`             | Le nom du preset temporisé actif (ou `null` si aucun)                 |
-| `end_time`           | La date/heure de fin du preset temporisé (format ISO)                 |
-| `remaining_time_min` | Le temps restant en minutes avant la fin du preset temporisé (entier) |
+| Attribut             | Signification                                                                                                                     |
+| -------------------- | --------------------------------------------------------------------------------------------------------------------------------- |
+| `is_active`          | `true` si un preset temporisé est actif, `false` sinon                                                                            |
+| `preset`             | Le nom du preset temporisé actif (ou `null` si aucun)                                                                             |
+| `original_preset`    | Le preset restauré à la fin du preset temporisé (ou `null` si aucun)                                                              |
+| `end_time`           | La date/heure de fin du preset temporisé (format ISO, ou `null` si aucun)                                                         |
+| `remaining_time_min` | Le temps restant en minutes avant la fin du preset temporisé (entier)                                                             |
+| `is_manual_override` | `true` si le preset temporisé actif est une dérogation manuelle (voir [ci-dessous](#dérogation-manuelle-avec-retour-automatique)) |
+| `resume_preset`      | Le preset temporisé interrompu par la dérogation manuelle, repris à sa fin (ou `null`)                                            |
+| `resume_end_time`    | La date/heure de fin du preset temporisé interrompu (format ISO, ou `null`)                                                       |
 
 Exemple d'attributs :
 ```yaml
 timed_preset_manager:
   is_active: true
   preset: "boost"
+  original_preset: "comfort"
   end_time: "2024-01-15T14:30:00+00:00"
   remaining_time_min: 25
+  is_manual_override: false
+  resume_preset: null
+  resume_end_time: null
 ```
 
 ## Évènements
@@ -91,10 +100,43 @@ L'évènement `versatile_thermostat_timed_preset_event` est émis lors des chang
 Données de l'évènement :
 - `entity_id` : L'identifiant du _VTherm_
 - `name` : Le nom du _VTherm_
-- `timed_preset_active` : `true` si un preset temporisé vient d'être activé, `false` s'il vient d'être désactivé
-- `timed_preset_preset` : Le nom du preset temporisé
-- `old_preset` : Le preset précédent (avant l'activation du preset temporisé)
-- `new_preset` : Le nouveau preset actif
+- `state_attributes` : Les attributs d'état du _VTherm_ au moment de l'évènement
+- `type` : `start` lorsqu'un preset temporisé (ou une dérogation manuelle) démarre, `end` lorsqu'il se termine
+- `preset` : Le preset temporisé concerné (celui qui démarre ou celui qui vient de se terminer)
+
+Données supplémentaires d'un évènement `start` :
+- `duration_minutes` : La durée du preset temporisé en minutes
+- `end_time` : La date/heure de fin du preset temporisé (format ISO)
+- `original_preset` : Le preset qui sera restauré à la fin
+- `manual_override` : `true` si l'évènement concerne une dérogation manuelle
+
+Données supplémentaires d'un évènement `end` :
+- `cause` : La raison de la fin du preset temporisé : `expired` (la durée est écoulée), `cancelled` (le service `cancel_timed_preset` a été appelé) ou `preset_selected` (un preset a été sélectionné manuellement)
+- `restored_preset` : Le preset restauré après la fin (peut être `null` lorsqu'un preset a été sélectionné manuellement)
+- `manual_override` : `true` si l'évènement concerne une dérogation manuelle
+
+## Dérogation manuelle avec retour automatique
+
+Lorsque vous changez manuellement la température cible, _VTherm_ passe normalement sur le preset `none` et y reste jusqu'à ce que vous sélectionniez à nouveau un preset. Si une **durée de dérogation manuelle** est configurée, _VTherm_ revient automatiquement en arrière après cette durée.
+
+La durée se règle dans la configuration avancée (`manual_override_duration_min`, en minutes). Elle peut être définie dans la configuration centrale et surchargée par _VTherm_. Voir [configuration avancée](feature-advanced.md#durée-de-dérogation-manuelle). La valeur par défaut `0` désactive la fonction et le comportement reste alors inchangé.
+
+Fonctionnement :
+1. Un changement manuel de la température cible (depuis l'interface, depuis une automatisation qui appelle `climate.set_temperature`, ou depuis l'équipement sous-jacent quand `Follow underlying temperature change` est activé) démarre une dérogation manuelle. La température manuelle s'applique immédiatement.
+2. Un nouveau changement manuel pendant la dérogation relance le minuteur avec la durée complète.
+3. À l'expiration du minuteur, le preset actif avant le changement manuel est restauré.
+4. Si un preset temporisé était actif au moment du changement manuel, il reprend à la fin de la dérogation, jusqu'à sa propre heure de fin. Si cette heure est déjà passée, le preset actif avant le preset temporisé est restauré.
+5. Si aucun preset n'était actif (`none`) avant le changement manuel, aucune dérogation ne démarre.
+
+La dérogation manuelle réutilise le mécanisme des presets temporisés : elle apparaît comme un preset temporisé `none` et survit à un redémarrage de Home Assistant.
+
+> ![Astuce](images/tips.png) _*Notes*_
+> - Sélectionner un preset pendant la dérogation manuelle l'annule : le preset sélectionné s'applique et rien n'est restauré plus tard.
+> - Activer un preset temporisé pendant la dérogation manuelle la remplace.
+> - Annuler le preset temporisé pendant la dérogation manuelle restaure le preset actif avant le changement manuel.
+> - La fenêtre, la sécurité, le délestage et le mode central gardent leur priorité pendant la dérogation manuelle.
+
+Les attributs `is_manual_override`, `resume_preset` et `resume_end_time` de `timed_preset_manager` sont décrits dans le tableau des [Attributs personnalisés](#attributs-personnalisés). Le champ `manual_override` de l'évènement `versatile_thermostat_timed_preset_event` vaut `true` lorsque l'évènement concerne une dérogation manuelle.
 
 ## Exemples d'automatisation
 
@@ -131,7 +173,7 @@ automation:
         event_type: versatile_thermostat_timed_preset_event
     condition:
       - condition: template
-        value_template: "{{ trigger.event.data.timed_preset_active == false }}"
+        value_template: "{{ trigger.event.data.type == 'end' }}"
     action:
       - service: notify.mobile_app
         data:

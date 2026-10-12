@@ -13,6 +13,7 @@
   - [Dostępne akcje](#dostępne-akcje)
   - [Globalna konfiguracja zaawansowana](#globalna-konfiguracja-zaawansowana)
   - [Praktyczne porady](#praktyczne-porady)
+  - [Czas ręcznego nadpisania](#czas-ręcznego-nadpisania)
   - [Naprawa nieprawidłowego stanu urządzenia](#naprawa-nieprawidłowego-stanu-urządzenia)
     - [Dlaczego ta funkcja?](#dlaczego-ta-funkcja-1)
     - [Przypadki użycia](#przypadki-użycia)
@@ -150,6 +151,16 @@ versatile_thermostat:
    - Czas, który upłynął od ostatniej aktualizacji
 
    ![Tryb bezpieczeństwa](images/safety-mode-icon.png).
+
+## Czas ręcznego nadpisania
+
+Parametr **Czas ręcznego nadpisania** (`manual_override_duration_min`, w minutach) sprawia, że _VTherm_ automatycznie wraca do poprzedniego presetu po pewnym czasie od ręcznej zmiany temperatury docelowej. Definiuje się go w konfiguracji centralnej i można go nadpisać we własnej konfiguracji zaawansowanej każdego _VTherm_.
+
+| Parametr | Opis | Wartość domyślna |
+| --- | --- | --- |
+| **Czas ręcznego nadpisania** | Czas w minutach, po którym ręczna zmiana temperatury jest cofana na rzecz poprzedniego presetu. `0` wyłącza funkcję. | 0 |
+
+Szczegółowe działanie opisano w sekcji [ręczne nadpisanie z automatycznym powrotem](feature-timed-preset.md#ręczne-nadpisanie-z-automatycznym-powrotem).
 
 ## Naprawa nieprawidłowego stanu urządzenia
 

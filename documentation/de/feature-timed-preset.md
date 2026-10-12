@@ -7,6 +7,7 @@
   - [Zeitgesteuerte Voreinstellung abbrechen](#zeitgesteuerte-voreinstellung-abbrechen)
   - [Benutzerdefinierte Attribute](#benutzerdefinierte-attribute)
   - [Ereignisse](#ereignisse)
+  - [Manuelle Übersteuerung mit automatischer Rückkehr](#manuelle-übersteuerung-mit-automatischer-rückkehr)
   - [Automatisierungsbeispiele](#automatisierungsbeispiele)
     - [30-Minuten-Boost bei Ankunft zu Hause](#30-minuten-boost-bei-ankunft-zu-hause)
     - [Benachrichtigung am Ende des Boosts](#benachrichtigung-am-ende-des-boosts)
@@ -68,20 +69,28 @@ Sobald eine zeitgesteuerte Vorgabe abgebrochen wird, wird die ursprüngliche Vor
 
 Wenn eine zeitgesteuerte Preset aktiv ist, sind die folgenden Attribute im Abschnitt `timed_preset_manager` der _VTherm_-Attribute verfügbar:
 
-| Attribut                | Bedeutung                                                                        |
-| ----------------------- | -------------------------------------------------------------------------------- |
-| `timed_preset_active`   | `true` wenn ein zeitgesteuertes Preset aktiv ist, sonst `false`                  |
-| `timed_preset_preset`   | Der Name des aktiven zeitgesteuerten Presets (oder `null` wenn keines)           |
-| `timed_preset_end_time` | Enddatum/-zeit des zeitgesteuerten Presets (ISO-Format)                          |
-| `remaining_time_min`    | Verbleibende Zeit in Minuten bis zum Ende des zeitgesteuerten Presets (Ganzzahl) |
+| Attribut             | Bedeutung                                                                                                                                         |
+| -------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `is_active`          | `true` wenn ein zeitgesteuertes Preset aktiv ist, sonst `false`                                                                                   |
+| `preset`             | Der Name des aktiven zeitgesteuerten Presets (oder `null` wenn keines)                                                                            |
+| `original_preset`    | Das Preset, das am Ende des zeitgesteuerten Presets wiederhergestellt wird (oder `null` wenn keines)                                              |
+| `end_time`           | Enddatum/-zeit des zeitgesteuerten Presets (ISO-Format, oder `null` wenn keines)                                                                  |
+| `remaining_time_min` | Verbleibende Zeit in Minuten bis zum Ende des zeitgesteuerten Presets (Ganzzahl)                                                                  |
+| `is_manual_override` | `true`, wenn das aktive zeitgesteuerte Preset eine manuelle Übersteuerung ist (siehe [unten](#manuelle-übersteuerung-mit-automatischer-rückkehr)) |
+| `resume_preset`      | Das durch die manuelle Übersteuerung unterbrochene zeitgesteuerte Preset, das an ihrem Ende fortgesetzt wird (oder `null`)                        |
+| `resume_end_time`    | Enddatum/-zeit des unterbrochenen zeitgesteuerten Presets (ISO-Format, oder `null`)                                                               |
 
 Beispiel für Attribute:
 ```yaml
 timed_preset_manager:
-  timed_preset_active: true
-  timed_preset_preset: "boost"
-  timed_preset_end_time: "2024-01-15T14:30:00+00:00"
+  is_active: true
+  preset: "boost"
+  original_preset: "comfort"
+  end_time: "2024-01-15T14:30:00+00:00"
   remaining_time_min: 25
+  is_manual_override: false
+  resume_preset: null
+  resume_end_time: null
 ```
 
 ## Ereignisse
@@ -91,10 +100,43 @@ Das Ereignis `versatile_thermostat_timed_preset_event` wird bei Änderungen des 
 Ereignisdaten:
 - `entity_id`: Die _VTherm_-Kennung
 - `name`: Der _VTherm_-Name
-- `timed_preset_active`: `true` wenn ein zeitgesteuertes Preset gerade aktiviert wurde, `false` wenn es gerade deaktiviert wurde
-- `timed_preset_preset`: Der Name des zeitgesteuerten Presets
-- `old_preset`: Das vorherige Preset (vor der Aktivierung des zeitgesteuerten Presets)
-- `new_preset`: Das neue aktive Preset
+- `state_attributes`: Die Zustandsattribute des _VTherm_ zum Zeitpunkt des Ereignisses
+- `type`: `start`, wenn ein zeitgesteuertes Preset (oder eine manuelle Übersteuerung) startet, `end`, wenn es endet
+- `preset`: Das betroffene zeitgesteuerte Preset (das startende oder das soeben beendete)
+
+Zusätzliche Daten eines `start`-Ereignisses:
+- `duration_minutes`: Die Dauer des zeitgesteuerten Presets in Minuten
+- `end_time`: Enddatum/-zeit des zeitgesteuerten Presets (ISO-Format)
+- `original_preset`: Das Preset, das am Ende wiederhergestellt wird
+- `manual_override`: `true`, wenn das Ereignis eine manuelle Übersteuerung betrifft
+
+Zusätzliche Daten eines `end`-Ereignisses:
+- `cause`: Grund für das Ende des zeitgesteuerten Presets: `expired` (die Dauer ist abgelaufen), `cancelled` (der Dienst `cancel_timed_preset` wurde aufgerufen) oder `preset_selected` (ein Preset wurde manuell ausgewählt)
+- `restored_preset`: Das nach dem Ende wiederhergestellte Preset (kann `null` sein, wenn ein Preset manuell ausgewählt wurde)
+- `manual_override`: `true`, wenn das Ereignis eine manuelle Übersteuerung betrifft
+
+## Manuelle Übersteuerung mit automatischer Rückkehr
+
+Wenn Sie die Zieltemperatur manuell ändern, wechselt _VTherm_ normalerweise zur Voreinstellung `none` und bleibt dort, bis Sie wieder eine Voreinstellung auswählen. Ist eine **Dauer der manuellen Übersteuerung** konfiguriert, kehrt _VTherm_ nach dieser Dauer automatisch zurück.
+
+Die Dauer wird in der erweiterten Konfiguration festgelegt (`manual_override_duration_min`, in Minuten). Sie kann in der zentralen Konfiguration definiert und pro _VTherm_ überschrieben werden. Siehe [erweiterte Konfiguration](feature-advanced.md#dauer-der-manuellen-übersteuerung). Der Standardwert `0` deaktiviert die Funktion, das Verhalten bleibt dann unverändert.
+
+Funktionsweise:
+1. Eine manuelle Änderung der Zieltemperatur (über die Oberfläche, über eine Automatisierung mit `climate.set_temperature` oder über das zugrunde liegende Gerät, wenn `Follow underlying temperature change` aktiviert ist) startet eine manuelle Übersteuerung. Die manuelle Temperatur gilt sofort.
+2. Eine weitere manuelle Änderung während der Übersteuerung startet den Timer mit der vollen Dauer neu.
+3. Wenn der Timer abläuft, wird die Voreinstellung wiederhergestellt, die vor der manuellen Änderung aktiv war.
+4. War beim manuellen Ändern eine zeitgesteuerte Voreinstellung aktiv, wird sie am Ende der Übersteuerung bis zu ihrer eigenen Endzeit fortgesetzt. Ist diese Endzeit bereits verstrichen, wird die Voreinstellung wiederhergestellt, die vor der zeitgesteuerten Voreinstellung aktiv war.
+5. War vor der manuellen Änderung keine Voreinstellung aktiv (`none`), wird keine Übersteuerung gestartet.
+
+Die manuelle Übersteuerung nutzt den Mechanismus der zeitgesteuerten Voreinstellungen: Sie erscheint als zeitgesteuerte Voreinstellung `none` und übersteht einen Neustart von Home Assistant.
+
+> ![Tipp](images/tips.png) _*Hinweise*_
+> - Die Auswahl einer Voreinstellung während der manuellen Übersteuerung bricht sie ab: Die gewählte Voreinstellung gilt, und später wird nichts zurückgesetzt.
+> - Das Setzen einer zeitgesteuerten Voreinstellung während der manuellen Übersteuerung ersetzt diese.
+> - Das Abbrechen der zeitgesteuerten Voreinstellung während der manuellen Übersteuerung stellt die Voreinstellung wieder her, die vor der manuellen Änderung aktiv war.
+> - Fenster, Sicherheit, Lastabwurf und zentraler Modus behalten während der manuellen Übersteuerung ihre Priorität.
+
+Die Attribute `is_manual_override`, `resume_preset` und `resume_end_time` von `timed_preset_manager` sind in der Tabelle unter [Benutzerdefinierte Attribute](#benutzerdefinierte-attribute) beschrieben. Das Feld `manual_override` des Ereignisses `versatile_thermostat_timed_preset_event` steht auf `true`, wenn das Ereignis eine manuelle Übersteuerung betrifft.
 
 ## Automatisierungsbeispiele
 
@@ -131,7 +173,7 @@ automation:
         event_type: versatile_thermostat_timed_preset_event
     condition:
       - condition: template
-        value_template: "{{ trigger.event.data.timed_preset_active == false }}"
+        value_template: "{{ trigger.event.data.type == 'end' }}"
     action:
       - service: notify.mobile_app
         data:

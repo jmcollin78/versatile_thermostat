@@ -1614,6 +1614,12 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
 
             return
 
+        # Validate before cancelling: an unsupported preset must leave the manual override untouched
+        self._check_preset_mode(vtherm_preset_mode)
+
+        # A preset selected during a manual override cancels it: the selected preset applies
+        self._timed_preset_manager.cancel_manual_override_without_revert(vtherm_preset_mode)
+
         await self.async_set_preset_mode_internal(vtherm_preset_mode)  # overwrite_saved_preset=overwrite_saved_preset)
         await self.update_states(force=True)
 
@@ -1621,10 +1627,14 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
         """Set new preset mode."""
         _LOGGER.info("%s - Set requested preset_mode: %s", self, preset_mode)
 
-        if preset_mode not in (self._vtherm_preset_modes or []) and preset_mode not in HIDDEN_PRESETS:
-            raise ValueError(f"Got unsupported preset_mode {preset_mode}. Must be one of {self._vtherm_preset_modes}")
+        self._check_preset_mode(preset_mode)
 
         self._state_manager.requested_state.set_preset(preset_mode)
+
+    def _check_preset_mode(self, preset_mode: VThermPreset):
+        """Raise a ValueError if the preset mode is not supported by this VTherm"""
+        if preset_mode not in (self._vtherm_preset_modes or []) and preset_mode not in HIDDEN_PRESETS:
+            raise ValueError(f"Got unsupported preset_mode {preset_mode}. Must be one of {self._vtherm_preset_modes}")
 
     async def async_set_fan_mode(self, fan_mode: str):
         """Set new target fan mode."""
@@ -1644,7 +1654,14 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
         if temperature is None:
             return
 
+        # The previous preset must be read before the requested state is changed
+        previous_preset = self._state_manager.requested_state.preset
         self._state_manager.requested_state.set_target_temperature(temperature)
+
+        # With a manual override duration, revert to the previous preset later (issue #1875)
+        if await self._timed_preset_manager.start_manual_override(previous_preset):
+            return
+
         self._state_manager.requested_state.set_preset(VThermPreset.NONE)
         await self.update_states(force=True)
 
