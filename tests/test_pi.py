@@ -377,3 +377,19 @@ def test_pi_algorithm_external_temp_warning_once(caplog):
     algo.calculate_regulated_temperature(18, 10, 1.0)
     algo.calculate_regulated_temperature(18, None, 1.0)
     assert count_warnings() == 2
+
+
+def test_pi_algorithm_external_temp_warning_after_available_start(caplog):
+    """The outdoor sensor is available at startup and becomes unavailable later: the warning is logged"""
+
+    algo = _build_algo(kp=0.4, ki=0.08, k_ext=0.1, offset_max=3, accumulated_error_threshold=30)
+
+    def count_warnings():
+        return len([r for r in caplog.records if "outdoor temperature is unavailable" in r.getMessage()])
+
+    algo.calculate_regulated_temperature(18, 10, 1.0)
+    algo.calculate_regulated_temperature(18, 10, 1.0)
+    assert count_warnings() == 0
+
+    algo.calculate_regulated_temperature(18, None, 1.0)
+    assert count_warnings() == 1
