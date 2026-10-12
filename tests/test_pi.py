@@ -304,3 +304,92 @@ def test_pi_algorithm_small_time_delta_sign_change():
     # never amplify it. Before the fix, dividing by (2.0 * 0.001) multiplied it by ~500.
     the_algo.calculate_regulated_temperature(22, 18, 0.001)
     assert abs(the_algo.accumulated_error) <= positive_accumulated_error
+
+
+def _build_algo(kp, ki, k_ext, offset_max, accumulated_error_threshold, overheat_protection=True, target_temp=20):
+    """Build a regulator with the given parameters"""
+    return PITemperatureRegulator(
+        target_temp=target_temp,
+        kp=kp,
+        ki=ki,
+        k_ext=k_ext,
+        offset_max=offset_max,
+        accumulated_error_threshold=accumulated_error_threshold,
+        overheat_protection=overheat_protection,
+    )
+
+
+def test_pi_algorithm_without_external_temp():
+    """When the outdoor temperature is None, the regulation still runs with offset_ext = 0"""
+
+    algo_none = _build_algo(kp=0.4, ki=0.08, k_ext=0.1, offset_max=3, accumulated_error_threshold=30)
+    # Reference: same parameters without outdoor contribution (k_ext = 0)
+    algo_ref = _build_algo(kp=0.4, ki=0.08, k_ext=0.0, offset_max=3, accumulated_error_threshold=30)
+
+    for room_temp in (18, 18.5, 19, 19.5, 21, 21):
+        result = algo_none.calculate_regulated_temperature(room_temp, None, 1.0)
+        expected = algo_ref.calculate_regulated_temperature(room_temp, 10, 1.0)
+        assert result == expected
+        assert algo_none.accumulated_error == algo_ref.accumulated_error
+
+    # The first call is regulated (different from the target)
+    algo_none = _build_algo(kp=0.4, ki=0.08, k_ext=0.1, offset_max=3, accumulated_error_threshold=30)
+    assert algo_none.calculate_regulated_temperature(18, None, 1.0) != 20
+    assert algo_none.accumulated_error == 2
+
+    # The offset is still capped
+    algo_cap = _build_algo(kp=2, ki=0, k_ext=0.1, offset_max=1, accumulated_error_threshold=30)
+    assert algo_cap.calculate_regulated_temperature(10, None, 1.0) == 21
+
+
+def test_pi_algorithm_without_external_temp_strong():
+    """With k_ext = 0 (strong), the outdoor temperature is irrelevant, None included"""
+
+    algo_none = _build_algo(kp=0.6, ki=0.1, k_ext=0.0, offset_max=5, accumulated_error_threshold=50)
+    algo_ext = _build_algo(kp=0.6, ki=0.1, k_ext=0.0, offset_max=5, accumulated_error_threshold=50)
+
+    for room_temp, ext_temp in ((18, -5), (18.5, 0), (19, 30), (19.5, 10), (21, -10), (21, 10)):
+        assert algo_none.calculate_regulated_temperature(room_temp, None, 1.0) == algo_ext.calculate_regulated_temperature(room_temp, ext_temp, 1.0)
+        assert algo_none.accumulated_error == algo_ext.accumulated_error
+
+
+def test_pi_algorithm_without_room_temp():
+    """When the room temperature is None, the target is returned"""
+
+    algo = _build_algo(kp=0.4, ki=0.08, k_ext=0.1, offset_max=3, accumulated_error_threshold=30)
+    assert algo.calculate_regulated_temperature(None, 10, 1.0) == 20
+    assert algo.calculate_regulated_temperature(None, None, 1.0) == 20
+    assert algo.accumulated_error == 0
+
+
+def test_pi_algorithm_external_temp_warning_once(caplog):
+    """The unavailable outdoor temperature warning is logged once until a valid value comes back"""
+
+    algo = _build_algo(kp=0.4, ki=0.08, k_ext=0.1, offset_max=3, accumulated_error_threshold=30)
+
+    def count_warnings():
+        return len([r for r in caplog.records if "outdoor temperature is unavailable" in r.getMessage()])
+
+    algo.calculate_regulated_temperature(18, None, 1.0)
+    algo.calculate_regulated_temperature(18, None, 1.0)
+    assert count_warnings() == 1
+
+    algo.calculate_regulated_temperature(18, 10, 1.0)
+    algo.calculate_regulated_temperature(18, None, 1.0)
+    assert count_warnings() == 2
+
+
+def test_pi_algorithm_external_temp_warning_after_available_start(caplog):
+    """The outdoor sensor is available at startup and becomes unavailable later: the warning is logged"""
+
+    algo = _build_algo(kp=0.4, ki=0.08, k_ext=0.1, offset_max=3, accumulated_error_threshold=30)
+
+    def count_warnings():
+        return len([r for r in caplog.records if "outdoor temperature is unavailable" in r.getMessage()])
+
+    algo.calculate_regulated_temperature(18, 10, 1.0)
+    algo.calculate_regulated_temperature(18, 10, 1.0)
+    assert count_warnings() == 0
+
+    algo.calculate_regulated_temperature(18, None, 1.0)
+    assert count_warnings() == 1

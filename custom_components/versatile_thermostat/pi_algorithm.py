@@ -36,6 +36,7 @@ class PITemperatureRegulator:
         self.accumulated_error: float = 0
         self.accumulated_error_threshold: float = accumulated_error_threshold
         self.overheat_protection: bool = overheat_protection
+        self._ext_temp_warning_logged: bool = False  # to warn only once while the outdoor temperature is unavailable
 
     def reset_accumulated_error(self):
         """Reset the accumulated error"""
@@ -61,10 +62,15 @@ class PITemperatureRegulator:
             )
             return self.target_temp
         if external_temp is None:
-            _LOGGER.warning(
-                "Temporarily skipping the self-regulation algorithm while the configured sensor for outdoor temperature is unavailable"
-            )
-            return self.target_temp
+            # Without outdoor temperature the regulation still runs but without the outdoor compensation (offset_ext = 0)
+            if not self._ext_temp_warning_logged:
+                _LOGGER.warning(
+                    "The configured sensor for outdoor temperature is unavailable. The self-regulation algorithm runs without the outdoor temperature compensation"
+                )
+                self._ext_temp_warning_logged = True
+        else:
+            self._ext_temp_warning_logged = False
+
         if time_delta > 2.0:
             # When the HVAC mode is off (by on/off or manual change), the PI algorithm is not run. time_delta can be
             # very high and broke the algo.
@@ -104,7 +110,7 @@ class PITemperatureRegulator:
         offset = self.kp * error + self.ki * self.accumulated_error
 
         # Calculate the exterior offset
-        offset_ext = self.k_ext * (room_temp - external_temp)
+        offset_ext = self.k_ext * (room_temp - external_temp) if external_temp is not None else 0.0
 
         # Capping of offset
         total_offset = offset + offset_ext
