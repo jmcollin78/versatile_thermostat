@@ -195,11 +195,6 @@ class UnderlyingEntity:
         """Prevent the underlying to be on but thermostat is off"""
         return NotImplementedError
 
-    def is_control_withdrawn(self) -> bool:
-        """Issue #2087 - True if an inhibition withdraws the thermostat control.
-        In that case no command is sent to the underlying device."""
-        return getattr(self._thermostat, "is_inhibition_withdrawn", False) is True
-
     # override to be able to mock the call
     def call_later(
         self, hass: HomeAssistant, delay_sec: int, called_method
@@ -422,10 +417,6 @@ class UnderlyingSwitch(UnderlyingEntity):
         """Prevent the underlying to be on but thermostat is off"""
         hvac_mode = self._thermostat.vtherm_hvac_mode
 
-        if self.is_control_withdrawn():
-            _LOGGER.info("%s - Initial state is not checked: control withdrawn by inhibition", self)
-            return
-
         if hvac_mode == VThermHvacMode_OFF and self.is_device_active:
             _LOGGER.info(
                 "%s - The hvac mode is OFF, but the underlying device is ON. Turning off device %s",
@@ -438,10 +429,6 @@ class UnderlyingSwitch(UnderlyingEntity):
 
     async def _keep_alive_callback(self):
         """Keep alive: Turn on if already turned on, turn off if already turned off."""
-        if self.is_control_withdrawn():
-            # Issue #2087 - a direct command sent to the switch must not be overwritten
-            _LOGGER.debug("%s - Keep alive skipped: control withdrawn by inhibition", self)
-            return
         timer = self._keep_alive.backoff_timer
         state: State | None = self._hass.states.get(self._entity_id)
         # Normal, expected state.state values are "on" and "off". An absent
@@ -650,8 +637,6 @@ class UnderlyingClimate(UnderlyingEntity):
         if hvac_mode in (VThermHvacMode_HEAT, VThermHvacMode_COOL):
 
             async def callback_resend_temp(_):
-                if self.is_control_withdrawn():
-                    return
                 temperature = self.last_sent_temperature
                 if temperature is None:
                     temperature = getattr(self._thermostat, "regulated_target_temperature", None)
@@ -711,10 +696,6 @@ class UnderlyingClimate(UnderlyingEntity):
 
         is_device_active = underlying_state.state not in [HVACMode.OFF, STATE_UNAVAILABLE, STATE_UNKNOWN]
         hvac_mode = self._thermostat.vtherm_hvac_mode
-
-        if self.is_control_withdrawn():
-            _LOGGER.info("%s - Initial state is not checked: control withdrawn by inhibition", self)
-            return
 
         if hvac_mode == VThermHvacMode_OFF and is_device_active:
             _LOGGER.info(
@@ -833,8 +814,6 @@ class UnderlyingClimate(UnderlyingEntity):
         )
 
         async def callback_set_fan_mode(_):
-            if self.is_control_withdrawn():
-                return
             await self.set_fan_mode(fan_mode)
 
         self._cancel_set_fan_mode_later = async_call_later(self._hass, delay, callback_set_fan_mode)
@@ -1266,10 +1245,6 @@ class UnderlyingValve(UnderlyingEntity):
             self._raw_percent_open = raw_percent
             self._percent_open = self._get_controlled_percent(raw_percent)
 
-        if self.is_control_withdrawn():
-            _LOGGER.info("%s - Initial state is not checked: control withdrawn by inhibition", self)
-            return
-
         should_device_be_active = self.should_device_be_active
         is_device_active = self.is_device_active
 
@@ -1505,10 +1480,6 @@ class UnderlyingValveRegulation(UnderlyingValve):
 
         # Initialize valve state and min max opening
         self.init_valve_state_min_max_open()
-
-        if self.is_control_withdrawn():
-            _LOGGER.info("%s - Initial state is not checked: control withdrawn by inhibition", self)
-            return
 
         if self._thermostat.is_sleeping:
             self._percent_open = 100

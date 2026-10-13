@@ -241,8 +241,7 @@ class ThermostatProp(BaseThermostat[T], Generic[T]):
     async def update_states(self, force=False):
         """Update states and delegate to handler."""
         changed = await super().update_states(force)
-        # Issue #2087 - no algorithm reaction while the control is withdrawn
-        if self._algo_handler and not self.is_inhibition_withdrawn:
+        if self._algo_handler:
             # External proportional plugins may need to react to temperature
             # crossings even when VT logical state did not change.
             await self._algo_handler.on_state_changed(changed)

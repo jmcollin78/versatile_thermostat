@@ -162,11 +162,6 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
 
         self.stop_recalculate_later()
 
-        if self.is_inhibition_withdrawn:
-            # Issue #2087 - never send a regulated temperature while the control is withdrawn
-            _LOGGER.debug("%s - don't send regulated temperature cause the control is withdrawn by inhibition", self)
-            return
-
         if self.vtherm_hvac_mode == VThermHvacMode_OFF:
             _LOGGER.debug(
                 "%s - don't send regulated temperature cause VTherm is off ", self
@@ -788,17 +783,6 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
                 self.incremente_energy()
                 changes = True
 
-        # Issue #2087 - while the control is withdrawn, the underlyings belong to the
-        # user or another integration: a direct change is neither followed as a new
-        # VTherm intent nor corrected.
-        if self.is_inhibition_withdrawn:
-            _LOGGER.info(
-                "%s - underlying change is not followed because the control is withdrawn by inhibition",
-                self,
-            )
-            await end_climate_changed(changes)
-            return
-
         # Filter new state when received just after a change from VTherm
         # Issue #120 - Some TRV are changing target temperature a very long time (6 sec) after the change.
         # In that case a loop is possible if a user change multiple times during this 6 sec.
@@ -875,11 +859,6 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
         if not self.is_ready:
             _LOGGER.debug("%s - async_control_heating is called but the entity is not initialized yet. Skip the cycle", self)
             return False
-
-        if self.is_inhibition_withdrawn:
-            # Issue #2087 - no auto start/stop, regulation nor auto fan while the
-            # control is withdrawn. The base class ends the cycle without command.
-            return await super().async_control_heating(timestamp=timestamp, force=force)
 
         # Check if we need to auto start/stop the Vtherm
         old_stop = self.auto_start_stop_manager.is_auto_stop_detected
@@ -1046,15 +1025,7 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
         return self.fan_modes
 
     async def async_set_underlying_fan_mode(self, fan_mode: str) -> None:
-        """Send a fan mode to the underlying climate(s).
-
-        Used by regulation plugins (auto fan). Nothing is sent while the control
-        is withdrawn by an inhibition (issue #2087); the user fan command goes
-        through async_set_fan_mode and is not concerned.
-        """
-        if self.is_inhibition_withdrawn:
-            _LOGGER.debug("%s - fan mode %s not sent: control withdrawn by inhibition", self, fan_mode)
-            return
+        """Send a fan mode to the underlying climate(s)."""
         await self.async_set_fan_mode(fan_mode)
 
     @property
@@ -1221,13 +1192,6 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
         await super().init_underlyings_completed(under_entity_id)
 
         self.choose_auto_fan_mode(self._auto_fan_mode)
-
-    @overrides
-    async def async_inhibition_physical_stop(self):
-        """Issue #2087 - an underlying climate has no turn_off: the single entry
-        stop is a set_hvac_mode(OFF) sent once to each underlying climate"""
-        for under in self._underlyings:
-            await under.set_hvac_mode(VThermHvacMode_OFF)
 
     @overrides
     def turn_aux_heat_on(self) -> None:

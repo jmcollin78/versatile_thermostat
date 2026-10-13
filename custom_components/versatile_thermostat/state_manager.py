@@ -13,7 +13,6 @@ from .const import (
     HVAC_OFF_REASON_AUTO_START_STOP,
     HVAC_OFF_REASON_SLEEP_MODE,
     HVAC_OFF_REASON_CENTRAL_MODE,
-    HVAC_OFF_REASON_INHIBITION,
     AUTO_START_STOP_HVAC_MODE_REASONS,
     CONF_WINDOW_ECO_TEMP,
     CONF_WINDOW_FAN_ONLY,
@@ -90,7 +89,6 @@ class StateManager:
         """Calculate and update the current HVAC mode from the given base_thermostat.
 
         - check if safety manager is detected has an impact on hvac_mode
-        - if not check if an inhibition provider withdraws the control (always OFF)
         - if not check if window manager has an impact on hvac_mode
         - if not check if auto start/stop manager has an impact on hvac_mode
         - else set hvac_mode to requested_state.hvac_mode
@@ -121,14 +119,6 @@ class StateManager:
             self._current_state.set_hvac_mode(VThermHvacMode_OFF)
             vtherm.set_hvac_off_reason(HVAC_OFF_REASON_SAFETY)
             vtherm.set_hvac_mode_reason(HVAC_OFF_REASON_SAFETY)
-
-        # Issue #2087 - then check if the control is withdrawn by an inhibition
-        # provider (confirmed active or attached provider unknown). Always OFF,
-        # even when the requested hvac_mode is already OFF.
-        elif getattr(vtherm, "is_inhibition_withdrawn", False) is True:
-            self._current_state.set_hvac_mode(VThermHvacMode_OFF)
-            vtherm.set_hvac_off_reason(HVAC_OFF_REASON_INHIBITION)
-            vtherm.set_hvac_mode_reason(HVAC_OFF_REASON_INHIBITION)
 
         # then check if window is open
         elif vtherm.window_manager.is_window_detected and self._requested_state.hvac_mode != VThermHvacMode_OFF:

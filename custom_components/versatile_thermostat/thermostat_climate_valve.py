@@ -55,7 +55,6 @@ class ThermostatOverClimateValve(ThermostatProp[UnderlyingClimate], ThermostatOv
         self._max_closing_degree: int = 100
         self._opening_threshold_degree: int = 0
         self._recalibrate_lock: asyncio.Lock = asyncio.Lock()
-        self._recalibrate_task: asyncio.Task | None = None
         self._climate_under_initialized: bool = False
         self._valve_under_initialized: bool = False
 
@@ -312,11 +311,6 @@ class ThermostatOverClimateValve(ThermostatProp[UnderlyingClimate], ThermostatOv
         #    _LOGGER.debug("%s - don't send regulated temperature cause VTherm is off ", self)
         #    return
 
-        if self.is_inhibition_withdrawn:
-            # Issue #2087 - nothing is sent to the climates nor the valves while the control is withdrawn
-            _LOGGER.debug("%s - don't send regulated temperature cause the control is withdrawn by inhibition", self)
-            return
-
         if self.target_temperature is None:
             _LOGGER.warning(
                 "%s - don't send regulated temperature cause VTherm target_temp (%s) is None. This should be a temporary warning message.",
@@ -480,17 +474,6 @@ class ThermostatOverClimateValve(ThermostatProp[UnderlyingClimate], ThermostatOv
             await super().async_set_hvac_mode(hvac_mode)
 
     @overrides
-    async def async_inhibition_suspend_control(self):
-        """Issue #2087 - also abort a running valve recalibration: it drives the
-        underlyings directly. It restores the memorized requested state"""
-        await super().async_inhibition_suspend_control()
-        task = self._recalibrate_task
-        if task is not None and not task.done():
-            _LOGGER.warning("%s - Recalibration aborted: the control is withdrawn by inhibition", self)
-            task.cancel()
-        self._recalibrate_task = None
-
-    @overrides
     async def underlying_changed(  # pylint: disable=too-many-arguments
         self,
         under: UnderlyingClimate,
@@ -537,10 +520,6 @@ class ThermostatOverClimateValve(ThermostatProp[UnderlyingClimate], ThermostatOv
             return {"message": "thermostat locked"}
 
         write_event_log(_LOGGER, self, f"Calling SERVICE_RECALIBRATE_VALVES delay_seconds={delay_seconds}")
-
-        # Issue #2087 - the recalibration drives the underlyings directly
-        if self.is_inhibition_withdrawn:
-            raise ServiceValidationError(f"{self} - The valves cannot be recalibrated while the VTherm control is withdrawn by an inhibition")
 
         # Validate underlyings synchronously before launching background task
         if not self._underlyings_valve_regulation:
@@ -597,21 +576,6 @@ class ThermostatOverClimateValve(ThermostatProp[UnderlyingClimate], ThermostatOv
             return {"message": "recalibrage en cours"}
 
         # Define the background coroutine
-        async def _restore_requested_state():
-            """Restore the requested state memorized before the recalibration"""
-            _LOGGER.info("%s - Recalibration - Restoring requested state", self)
-            if expected_state:
-                try:
-                    self.requested_state.set_state(
-                        hvac_mode=expected_state.get("hvac_mode"),
-                        target_temperature=expected_state.get("target_temperature"),
-                        preset=expected_state.get("preset"),
-                    )
-                    self.requested_state.force_changed()
-                    await self.update_states(force=True)
-                except Exception as ex:  # pylint: disable=broad-except
-                    _LOGGER.error("%s - Cannot restore requested state after recalibration: %s", self, ex)
-
         async def _recalibrate_task():
             async with self._recalibrate_lock:
                 try:
@@ -657,21 +621,28 @@ class ThermostatOverClimateValve(ThermostatProp[UnderlyingClimate], ThermostatOv
                             await under.send_value_to_number(closing, close_val2)
                     await asyncio.sleep(delay_seconds)
 
-                except asyncio.CancelledError:
-                    # Aborted (issue #2087 withdrawal): the user intent replaced by the
-                    # temporary OFF is restored. Nothing is sent while withdrawn.
-                    await _restore_requested_state()
-                    raise
                 except Exception as exc:  # pylint: disable=broad-except
                     _LOGGER.error("%s - Error during recalibration: %s", self, exc)
 
-            await _restore_requested_state()
+            # Restore requested state
+            _LOGGER.info("%s - Recalibration - Restoring requested state", self)
+            if expected_state:
+                try:
+                    self.requested_state.set_state(
+                        hvac_mode=expected_state.get("hvac_mode"),
+                        target_temperature=expected_state.get("target_temperature"),
+                        preset=expected_state.get("preset"),
+                    )
+                    self.requested_state.force_changed()
+                    await self.update_states(force=True)
+                except Exception as ex:  # pylint: disable=broad-except
+                    _LOGGER.error("%s - Cannot restore requested state after recalibration: %s", self, ex)
 
         # Launch background task and return immediately
         try:
-            self._recalibrate_task = self.hass.async_create_task(_recalibrate_task())
+            self.hass.async_create_task(_recalibrate_task())
         except Exception:  # pylint: disable=broad-except
             # fallback
-            self._recalibrate_task = self._hass.create_task(_recalibrate_task())
+            self._hass.create_task(_recalibrate_task())
 
         return {"message": "calibrage en cours"}

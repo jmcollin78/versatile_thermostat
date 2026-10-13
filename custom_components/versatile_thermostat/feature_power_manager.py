@@ -291,9 +291,7 @@ class FeaturePowerManager(BaseFeatureManager):
 
             self._overpowering_state = STATE_ON
 
-            # Issue #2087 - no command to the underlyings while the control is withdrawn
-            if getattr(self._vtherm, "is_inhibition_withdrawn", False) is not True:
-                await self._vtherm.async_underlying_entity_turn_off()
+            await self._vtherm.async_underlying_entity_turn_off()
             self._vtherm.send_event(
                 EventType.POWER_EVENT,
                 {
