@@ -521,6 +521,10 @@ class ThermostatOverClimateValve(ThermostatProp[UnderlyingClimate], ThermostatOv
 
         write_event_log(_LOGGER, self, f"Calling SERVICE_RECALIBRATE_VALVES delay_seconds={delay_seconds}")
 
+        if self.is_inhibited:
+            # Issue #2087 - the command gate drops every valve command of the recalibration
+            _LOGGER.warning("%s - The VTherm is inhibited: the recalibration commands will be dropped", self)
+
         # Validate underlyings synchronously before launching background task
         if not self._underlyings_valve_regulation:
             raise ServiceValidationError(f"{self} - No valve regulation underlyings available")

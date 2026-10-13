@@ -44,6 +44,7 @@ from .vtherm_hvac_mode import VThermHvacMode, from_ha_hvac_mode, to_legacy_ha_hv
 from .keep_alive import IntervalCaller
 from .vtherm_central_api import VersatileThermostatAPI
 from .underlying_state_manager import UnderlyingStateManager
+from .inhibition_manager import InhibitionManager
 
 resend_delay_sec = 2
 
@@ -195,6 +196,19 @@ class UnderlyingEntity:
         """Prevent the underlying to be on but thermostat is off"""
         return NotImplementedError
 
+    def is_command_blocked(self, domain: str, service: str) -> bool:
+        """Issue #2087 - the single command gate: True if the command must be dropped"""
+        manager = getattr(self._thermostat, "inhibition_manager", None)
+        return isinstance(manager, InhibitionManager) and manager.blocks_command(self, domain, service)
+
+    async def async_inhibition_stop(self):
+        """Issue #2087 - the entry stop, sent whatever the reported state is"""
+        await self.turn_off()
+
+    async def async_inhibition_resync(self):
+        """Issue #2087 - before the exit reconciliation, resynchronize the caches
+        that dropped commands may have updated"""
+
     # override to be able to mock the call
     def call_later(
         self, hass: HomeAssistant, delay_sec: int, called_method
@@ -213,6 +227,8 @@ class UnderlyingEntity:
         return_response: bool = False,
     ) -> ServiceResponse:
         """Wrapper for HASS service calls"""
+        if self.is_command_blocked(domain, service):
+            return None
         try:
             response: ServiceResponse = await self._hass.services.async_call(domain, service, service_data, blocking, context, target, return_response)
 
@@ -485,6 +501,8 @@ class UnderlyingSwitch(UnderlyingEntity):
     async def turn_off(self):
         """Turn heater toggleable device off."""
         self._keep_alive.cancel()  # Cancel early to avoid a turn_on/turn_off race condition
+        if self.is_command_blocked(self._domain, self._off_command.get("command")):
+            return
         _LOGGER.debug("%s - Stopping underlying entity %s", self, self._entity_id)
 
         command = self._off_command.get("command")
@@ -509,6 +527,8 @@ class UnderlyingSwitch(UnderlyingEntity):
     async def turn_on(self):
         """Turn heater toggleable device on."""
         self._keep_alive.cancel()  # Cancel early to avoid a turn_on/turn_off race condition
+        if self.is_command_blocked(self._domain, self._on_command.get("command")):
+            return False
         _LOGGER.debug("%s - Starting underlying entity %s", self, self._entity_id)
 
         if not await self.check_overpowering():
@@ -541,6 +561,13 @@ class UnderlyingSwitch(UnderlyingEntity):
         self._is_removed = True
         self._keep_alive.cancel()
         super().remove_entity()
+
+    @overrides
+    async def async_inhibition_resync(self):
+        """The dropped commands left the keep-alive cancelled. Follow the real state"""
+        self._is_on_part_running = self.is_device_active is True
+        if not self._is_removed:
+            self._keep_alive.set_async_action(self._keep_alive_callback)
 
     def hvac_action(self) -> HVACAction:
         """Calculate a hvac_action based on the current state and should_be_on"""
@@ -648,6 +675,31 @@ class UnderlyingClimate(UnderlyingEntity):
             self._cancel_set_temperature_later = async_call_later(self._hass, resend_delay_sec, callback_resend_temp)
 
         return True
+
+    @overrides
+    async def async_inhibition_stop(self):
+        """Send hvac_mode OFF, even if the underlying reports it is already off"""
+        self._cancel_delayed_commands()
+        self._hvac_mode = VThermHvacMode_OFF
+        data = {ATTR_ENTITY_ID: self._entity_id, "hvac_mode": to_legacy_ha_hvac_mode(VThermHvacMode_OFF)}
+        await self.hass_services_async_call(CLIMATE_DOMAIN, SERVICE_SET_HVAC_MODE, data)
+
+    @overrides
+    async def async_inhibition_resync(self):
+        """Follow the real hvac_mode and target temperature of the underlying"""
+        self._cancel_delayed_commands()
+        state = self._state_manager.get_state(self._entity_id)
+        self._hvac_mode = None if self._is_unavailable(state) else VThermHvacMode(state.state)
+        self._last_sent_temperature = self.underlying_target_temperature
+
+    def _cancel_delayed_commands(self):
+        """Cancel the delayed set_fan_mode and set_temperature"""
+        if self._cancel_set_fan_mode_later:
+            self._cancel_set_fan_mode_later()
+            self._cancel_set_fan_mode_later = None
+        if self._cancel_set_temperature_later:
+            self._cancel_set_temperature_later()
+            self._cancel_set_temperature_later = None
 
     @overrides
     def remove_entity(self):
@@ -1290,6 +1342,20 @@ class UnderlyingValve(UnderlyingEntity):
         """Nothing to do for Valve because it cannot be turned on"""
         await self.set_valve_open_percent()
 
+    @overrides
+    async def async_inhibition_stop(self):
+        """Close the valve, even if it reports it is already closed"""
+        self._percent_open = self._get_controlled_percent(0)
+        self._raw_percent_open = 0
+        await self.send_percent_open()
+
+    @overrides
+    async def async_inhibition_resync(self):
+        """Follow the real opening (in the controlled scale, the one sent to the valve)"""
+        current = self.current_valve_opening
+        self._last_sent_opening_value = current
+        self._percent_open = round(current) if current is not None else None
+
     async def set_hvac_mode(self, hvac_mode: VThermHvacMode) -> bool:
         """Set the HVACmode. Returns true if something have change"""
 
@@ -1653,6 +1719,27 @@ class UnderlyingValveRegulation(UnderlyingValve):
             else:
                 self._seed_diagnostics[entity_id] = "seed_attempted"
                 _LOGGER.info("%s - Valve-regulation seed_attempted for %s with value %s", self, entity_id, values[entity_id])
+
+    @overrides
+    async def async_inhibition_resync(self):
+        """_percent_open is a raw percentage here: keep it only if the real degrees still
+        match it, else force a resend. Then run the bootstrap seed again (#2049): it was
+        dropped by the gate if the VTherm started inhibited"""
+        current = self.current_valve_opening
+        self._last_sent_opening_value = current
+        if isinstance(self._percent_open, (int, float)):
+            opening_degree, closing_degree = OpeningClosingDegreeCalculation.calculate_opening_closing_degree(
+                brut_valve_open_percent=self._percent_open,
+                min_opening_degree=self._min_opening_degree,
+                max_closing_degree=self._max_closing_degree,
+                max_opening_degree=self._max_opening_degree,
+                opening_threshold=self._opening_threshold,
+            )
+            closing_state = self._state_manager.get_state(self._closing_degree_entity_id) if self.has_closing_degree_entity else None
+            if current != opening_degree or (self.has_closing_degree_entity and get_safe_float_value(closing_state.state if closing_state else None) != closing_degree):
+                self._percent_open = None
+        self._seed_attempted_targets.clear()
+        await self._seed_unknown_degrees_once()
 
     @property
     def bootstrap_diagnostics(self) -> dict[str, Any]:

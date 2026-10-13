@@ -71,6 +71,7 @@ from .feature_timed_preset_manager import FeatureTimedPresetManager
 from .feature_heating_failure_detection_manager import FeatureHeatingFailureDetectionManager
 from .feature_repair_incorrect_state_manager import FeatureRepairIncorrectStateManager
 from .feature_humidity_manager import FeatureHumidityManager
+from .inhibition_manager import InhibitionManager, ATTR_INHIBITION
 from .state_manager import StateManager
 from .vtherm_state import VThermState
 from .vtherm_preset import VThermPreset, HIDDEN_PRESETS, PRESET_AC_SUFFIX
@@ -246,6 +247,9 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
         self.register_manager(self._humidity_manager)
 
         self._cancel_recalculate_later: Callable[[], None] | None = None
+
+        # Issue #2087 - inhibition requested by a plugin through the VTherm API
+        self._inhibition: InhibitionManager = InhibitionManager(self)
 
         self.post_init(entry_infos)
 
@@ -662,6 +666,9 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
         self._persist_energy_unit_if_needed()
         self.recalculate()
 
+        # Issue #2087 - complete an inhibition entry stop or exit deferred until ready
+        await self._inhibition.async_on_vtherm_ready()
+
         # check initial state should be done after the current state has been calculated and so after the manager has been updated
         # issue 1654 - initial state check should be done after the underlyings has come to life
         # await self._check_initial_state()
@@ -697,6 +704,9 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
             "%s - Calling get_my_previous_state old_state is %s", self, old_state
         )
         if old_state is not None:
+            # Issue #2087 - restore the inhibition (and close the gate) before any command
+            self._inhibition.restore_state(old_state)
+
             # Restore current_state
             if current_state_attr := old_state.attributes.get(ATTR_CURRENT_STATE, None):
                 current_state = VThermState.from_dict(current_state_attr)
@@ -1195,6 +1205,26 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
     def repair_incorrect_state_manager(self) -> FeatureRepairIncorrectStateManager:
         """Get the repair incorrect state manager"""
         return self._repair_incorrect_state_manager
+
+    @property
+    def inhibition_manager(self) -> InhibitionManager:
+        """Get the inhibition manager (issue #2087)"""
+        return self._inhibition
+
+    @property
+    def is_inhibited(self) -> bool:
+        """True while an inhibition plugin withdraws the control of the underlyings"""
+        return self._inhibition.is_inhibited
+
+    async def async_set_inhibition(self, stop_underlyings: bool) -> None:
+        """Issue #2087 - called by the VTherm API: resolve OFF and close the command gate.
+        stop_underlyings only allows the single entry stop."""
+        await self._inhibition.async_set(stop_underlyings)
+
+    async def async_unset_inhibition(self) -> None:
+        """Issue #2087 - called by the VTherm API: reconcile the current requested state,
+        then open the command gate. Raises if the reconciliation fails."""
+        await self._inhibition.async_unset()
 
     @property
     def current_state(self) -> VThermState | None:
@@ -2138,6 +2168,11 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
             )
 
         self._state_manager.add_custom_attributes(self._attr_extra_state_attributes)
+
+        # Issue #2087 - published only once used, so that historic attributes are unchanged
+        inhibition: InhibitionManager | None = getattr(self, "_inhibition", None)
+        if inhibition is not None and inhibition.is_used:
+            self._attr_extra_state_attributes["specific_states"][ATTR_INHIBITION] = inhibition.as_dict()
 
         for manager in self._managers:
             # add_custom_attributes is optional for external feature managers
