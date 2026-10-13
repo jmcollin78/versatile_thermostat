@@ -130,6 +130,9 @@ class StateManager:
             ):  # default is to turn_off
                 self._current_state.set_hvac_mode(VThermHvacMode_OFF)
                 vtherm.set_hvac_off_reason(HVAC_OFF_REASON_WINDOW_DETECTION)
+            else:
+                # eco / frost: only the target temperature changes, the requested mode applies
+                self._current_state.set_hvac_mode(self._requested_state.hvac_mode)
 
         elif vtherm.auto_start_stop_manager and vtherm.auto_start_stop_manager.is_auto_stop_detected and self._requested_state.hvac_mode != VThermHvacMode_OFF:
             stop_mode = vtherm.auto_start_stop_manager.stop_mode
