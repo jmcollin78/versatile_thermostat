@@ -174,9 +174,7 @@ class ThermostatOverSwitch(ThermostatProp[UnderlyingSwitch]):
 
         added_energy = 0
         if self.power_manager.mean_cycle_power is not None:
-            # each underlying entity calculate its own energy. So we should divide by the number of underlying entities
-            # see #877
-            added_energy = self.power_manager.mean_cycle_power * float(self._cycle_min) / 60.0 / self.nb_underlying_entities
+            added_energy = self.power_manager.mean_cycle_power * float(self._cycle_min) / 60.0
 
         if self._total_energy is None:
             self._total_energy = added_energy
