@@ -1020,9 +1020,51 @@ async def test_state_manager_window_eco_applies_requested_mode():
         vtherm.is_inhibited = False
         vtherm.window_manager.is_window_detected = True
         vtherm.window_manager.window_action = action
+        vtherm.auto_start_stop_manager = None
         vtherm.hvac_off_reason = HVAC_OFF_REASON_INHIBITION
         manager = StateManager()
         manager.requested_state.set_hvac_mode(VThermHvacMode_HEAT)
         await manager.calculate_current_hvac_mode(vtherm)
         assert manager.current_state.hvac_mode == VThermHvacMode_HEAT
         vtherm.set_hvac_off_reason.assert_called_with(None)
+
+
+def _window_vtherm(action, central=None, auto_stop=False):
+    """A MagicMock VTherm (heat only) with an open window"""
+    vtherm = MagicMock()
+    vtherm.last_central_mode = central
+    vtherm.safety_manager.is_safety_detected = False
+    vtherm.is_inhibited = False
+    vtherm.is_sleeping = False
+    vtherm.window_manager.is_window_detected = True
+    vtherm.window_manager.window_action = action
+    vtherm.vtherm_hvac_modes = [VThermHvacMode_HEAT, VThermHvacMode_OFF]
+    vtherm.vtherm_preset_modes = None
+    if auto_stop:
+        vtherm.auto_start_stop_manager.is_auto_stop_detected = True
+        vtherm.auto_start_stop_manager.stop_mode = VThermHvacMode_OFF
+    else:
+        vtherm.auto_start_stop_manager = None
+    return vtherm
+
+
+@pytest.mark.parametrize("action", [CONF_WINDOW_ECO_TEMP, CONF_WINDOW_FROST_TEMP])
+@pytest.mark.parametrize(
+    "central, auto_stop, expected_mode, expected_reason",
+    [
+        # the window only changes the temperature: the lower constraints still apply (as on main)
+        (None, True, VThermHvacMode_OFF, HVAC_OFF_REASON_AUTO_START_STOP),
+        (CENTRAL_MODE_COOL_ONLY, False, VThermHvacMode_OFF, HVAC_OFF_REASON_CENTRAL_MODE),
+        (CENTRAL_MODE_FROST_PROTECTION, False, VThermHvacMode_OFF, HVAC_OFF_REASON_CENTRAL_MODE),
+        (None, False, VThermHvacMode_HEAT, HVAC_OFF_REASON_WINDOW_DETECTION),
+    ],
+)
+async def test_state_manager_window_eco_frost_keeps_lower_constraints(action, central, auto_stop, expected_mode, expected_reason):
+    """Window eco/frost does not end the constraint chain: auto-start/stop and the central
+    modes still apply, else the requested mode applies with the window reason"""
+    vtherm = _window_vtherm(action, central, auto_stop)
+    manager = StateManager()
+    manager.requested_state.set_hvac_mode(VThermHvacMode_HEAT)
+    await manager.calculate_current_hvac_mode(vtherm)
+    assert manager.current_state.hvac_mode == expected_mode
+    vtherm.set_hvac_mode_reason.assert_called_with(expected_reason)
