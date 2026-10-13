@@ -1,463 +1,329 @@
-# Spécification fonctionnelle — Issue #2087 : mise en retrait contrôlée d’un VTherm
+# Spécification fonctionnelle — Issue #2087 : inhibition contrôlée d’un VTherm
 
 ## Métadonnées
 
-| Champ                        | Valeur                                                                                                                                                                                                                                                                                                                                                                                  |
-| ---------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Nom                          | Mécanisme d’inhibition extensible / Extensible inhibition mechanism                                                                                                                                                                                                                                                                                                                     |
-| Issue                        | [#2087 — Add an “inhibit” sensor to pause a VTherm](https://github.com/jmcollin78/versatile_thermostat/issues/2087)                                                                                                                                                                                                                                                                     |
-| Version                      | 1.3 — alignée sur le contrat d’inhibition livré par `vtherm_api` 0.6.0                                                                                                                                                                                                                                                                                                                  |
-| Statut                       | Convergée avec la conception ; validation mainteneur requise avant développement                                                                                                                                                                                                                                                                                                        |
-| Date                         | 2026-10-12                                                                                                                                                                                                                                                                                                                                                                              |
-| Propriétaire fonctionnel     | Projet Versatile Thermostat — décision mainteneur à confirmer                                                                                                                                                                                                                                                                                                                           |
-| Source principale            | [Revue validée de l’issue](../tech-docs/issue-2087-review.md)                                                                                                                                                                                                                                                                                                                           |
-| Sources techniques analysées | `custom_components/versatile_thermostat/state_manager.py`, `base_thermostat.py`, `prop_handler_tpi.py`, `feature_repair_incorrect_state_manager.py`, `underlyings.py`, `vtherm_state.py`, ainsi que `custom_components/vtherm_api/src/vtherm_api/inhibition.py`, `vtherm_api.py` et `__init__.py` en version 0.6.0 ; PR [vtherm_api#9](https://github.com/jmcollin78/vtherm_api/pull/9) |
+| Champ             | Valeur                                                                                                                                                                            |
+| ----------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Nom               | Inhibition contrôlée d’un VTherm / Controlled VTherm inhibition                                                                                                                   |
+| Issue             | [#2087 — Add an “inhibit” sensor to pause a VTherm](https://github.com/jmcollin78/versatile_thermostat/issues/2087)                                                               |
+| Version           | 2.0 — décision d’architecture core/API/plugin                                                                                                                                     |
+| Statut            | Spécification convergée, validation mainteneur requise                                                                                                                            |
+| Date              | 2026-10-13                                                                                                                                                                        |
+| Propriétaire      | Projet Versatile Thermostat                                                                                                                                                       |
+| Sources analysées | [Revue de l’issue](../tech-docs/issue-2087-review.md), `base_thermostat.py`, `state_manager.py`, `underlyings.py`, `feature_repair_incorrect_state_manager.py`, `vtherm_state.py` |
 
-## 1. Contexte et objectif
+## 1. Contexte et objectifs
 
-L’issue #2087 demande qu’un VTherm cesse temporairement de commander ses sous-jacents lorsqu’une autre source de chauffage ou de refroidissement est active. Les cas d’usage identifiés sont notamment un chauffage alimenté par un surplus photovoltaïque et une climatisation qui refroidit déjà la pièce.
+L’inhibition permet à une autre source de chauffage ou de refroidissement, à un utilisateur ou à une automatisation de disposer temporairement du contrôle effectif des sous-jacents d’un VTherm. Le besoin couvre notamment le chauffage sur surplus photovoltaïque et la coexistence avec une climatisation.
 
-L’objectif V1 est de permettre une **mise en retrait contrôlée** : à l’entrée, le core retire le contrôle VTherm, suspend le contrôle et la réparation, et résout le HVAC effectif à `OFF`. Le plugin fournit, pour chaque VTherm, une politique demandant au core d’émettre ou non l’arrêt physique des sous-jacents ; sa valeur par défaut est **« éteindre »**, afin de préserver le comportement V1 déjà spécifié. Seule cette émission physique unique est conditionnelle : le retrait, les suspensions et la résolution `OFF` s’appliquent toujours. L’inhibition ne doit pas modifier l’intention durable de l’utilisateur, c’est-à-dire le HVAC, la consigne ou le preset demandés.
+L’inhibition ne modifie jamais l’intention durable du VTherm : HVAC demandé, preset et consigne restent conservés. Elle retire temporairement au VTherm le droit de commander ses sous-jacents, résout l’état effectif à `OFF` avec la raison `hvac_off_inhibition`, puis réconcilie l’intention courante lorsque le plugin confirme la fin de l’inhibition.
 
-La fonction métier de détection, de configuration et de diagnostic spécifique est portée par un plugin. Le core et l’API fournissent uniquement le point d’extension et la politique commune de mise en retrait.
+Le périmètre est réparti ainsi :
+
+- **Core** : `BaseThermostat` et un manager core minimal de l’état opérationnel et persisté ;
+- **API** : façade publique minimale pour demander `set_inhibition(stop_underlyings: bool)` et `unset_inhibition()` ;
+- **Plugin** : détection, sources, configuration, délais, bypass, cycle de vie, statut, politique et persistance métier.
+
+Sans plugin d’inhibition, le comportement historique du VTherm est inchangé.
 
 ## 2. Acteurs et responsabilités
 
-| Acteur / composant                    | Responsabilités fonctionnelles                                                                                                                                                                                                                                     |
-| ------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| Utilisateur ou automatisation externe | Peut commander directement les sous-jacents pendant la mise en retrait, sans être écrasé par le VTherm.                                                                                                                                                            |
-| Plugin d’inhibition                   | Détecte la condition externe, applique ses délais, configure et expose par VTherm la politique d’arrêt physique (`éteindre` par défaut), expose le bypass éventuel et signale les transitions confirmées. Il ne commande ni le HVAC du VTherm ni ses sous-jacents. |
-| Factory d’inhibition                  | Évalue l’éligibilité et crée le provider à partir de la seule vue immuable `InhibitionThermostatView` (`entity_id`, `name`, `unique_id`), sans accès aux commandes du runtime VTherm.                                                                              |
-| `InhibitionProvider`                  | Contrat d’extension exposant le statut ternaire `ACTIVE`/`INACTIVE`/`UNKNOWN`, la politique d’arrêt et le cycle de vie asynchrone nécessaires au core. Un seul provider est autorisé par VTherm éligible en V1.                                                    |
-| API                                   | Fournit l’enregistrement d’une factory dédiée, la vue immuable et le contrat public du provider. Elle doit rendre explicite tout conflit d’enregistrement.                                                                                                         |
-| Core / `BaseThermostat`               | Détient l’état de mise en retrait, applique les transitions, résout `OFF`, suspend contrôle et réparation, et émet l’arrêt physique unique seulement selon la politique fournie. Le core ne possède aucune configuration utilisateur d’inhibition.                 |
-| `StateManager`                        | Résout exclusivement l’état HVAC effectif à partir de l’état demandé et des contraintes, avec l’inhibition comme contrainte prioritaire après l’arrêt central et la sécurité.                                                                                      |
-| Sous-jacents                          | Reçoivent l’arrêt initial et la reprise normale ; ils restent pilotables directement pendant l’inhibition.                                                                                                                                                         |
+| Acteur                                | Responsabilités                                                                                                                                                                                                                                                               |
+| ------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Utilisateur ou automatisation externe | Peut commander directement les sous-jacents pendant l’inhibition ; ses commandes ne sont pas écrasées par le VTherm.                                                                                                                                                          |
+| Plugin d’inhibition                   | Agrège les sources, applique configuration, délais et bypass, maintient `ACTIVE`, `INACTIVE` ou `UNKNOWN`, conserve sa politique métier et appelle l’API. Il appelle `set_inhibition` pour `ACTIVE` et `UNKNOWN`, et `unset_inhibition` uniquement après `INACTIVE` confirmé. |
+| API                                   | Expose uniquement la façade qui transmet `set_inhibition(stop_underlyings: bool)` et `unset_inhibition()`. Elle ne fournit ni provider, ni factory, ni callback, ni statut ternaire.                                                                                          |
+| Core — `BaseThermostat`               | Possède l’état d’inhibition, résout `OFF`, arrête le contrôle, transmet les deux opérations au manager et applique l’intercepteur unique des commandes vers les sous-jacents.                                                                                                 |
+| Manager core                          | Gère l’état opérationnel/persisté minimal, l’idempotence, la raison d’arrêt et la phase de réconciliation de sortie. Il ne détecte aucune source et n’instancie aucun composant externe.                                                                                      |
+| `StateManager`                        | Résout l’état HVAC effectif à partir de l’état demandé et des contraintes existantes, dont l’inhibition.                                                                                                                                                                      |
+| Sous-jacents                          | Peuvent être pilotés directement pendant l’inhibition ; ils reçoivent uniquement l’arrêt d’entrée optionnel et la réconciliation de sortie autorisée.                                                                                                                         |
 
 ## 3. Cas d’utilisation
 
-### UC-01 — Entrer en inhibition
+### UC-01 — Activer l’inhibition
 
-1. Le provider confirme que la condition d’inhibition est active.
-2. Le core recalcule l’état effectif.
-3. Si le HVAC demandé n’est pas `OFF`, l’état effectif devient `OFF` avec une raison d’arrêt dédiée.
-4. Si la politique effective est « éteindre », le core envoie l’arrêt physique aux sous-jacents une seule fois ; sinon il ne leur envoie pas `turn_off`, y compris si le statut est `UNKNOWN`. Dans les deux cas, il mémorise que le contrôle leur a été retiré et que la transition d’entrée est accomplie.
-5. Le core suspend la boucle de chauffage et la réparation automatique d’état.
+1. Le plugin détecte une condition active ou inconnue selon sa politique et appelle `set_inhibition(stop_underlyings)`.
+2. Le core marque l’inhibition active, résout le HVAC effectif à `OFF` avec `hvac_off_inhibition` et suspend contrôle et réparation.
+3. L’intercepteur ferme les commandes normales vers les sous-jacents.
+4. Si `stop_underlyings` vaut `true`, le core autorise une seule opération d’arrêt d’entrée. S’il vaut `false`, aucune commande d’arrêt n’est envoyée.
 
-### UC-02 — Rester inhibé
+### UC-02 — Maintenir l’inhibition
 
-Tant que l’inhibition est active, le VTherm ne doit ni réémettre l’arrêt, ni lancer le contrôle de chauffage, ni réparer l’état des sous-jacents. Les commandes directes envoyées par l’utilisateur ou une autre intégration ne doivent pas être annulées par le VTherm.
+Tant que l’inhibition est active, le VTherm ne contrôle pas le chauffage, ne répare pas l’état des sous-jacents et ne réémet pas l’arrêt d’entrée. Les changements de HVAC, de preset ou de consigne sont conservés comme intention, sans reprise des sous-jacents.
 
-### UC-03 — Modifier l’intention pendant l’inhibition
+### UC-03 — Désactiver l’inhibition
 
-Une modification du HVAC, du preset ou de la consigne demandés doit être conservée comme intention courante. Elle ne doit pas provoquer de reprise des sous-jacents tant que l’inhibition reste active.
+1. Le plugin appelle `unset_inhibition()` seulement après avoir confirmé `INACTIVE`.
+2. Le core ferme encore le garde aux commandes normales et ouvre uniquement l’opération de sortie : recalculer l’état demandé courant et l’appliquer aux sous-jacents.
+3. Lorsque cette réconciliation est terminée, le core ouvre le garde et reprend le fonctionnement normal.
 
-### UC-04 — Sortir d’inhibition
+Une demande `OFF` effectuée pendant l’inhibition reste `OFF` après la sortie.
 
-1. Le provider confirme que la condition est inactive.
-2. Le core abandonne l’état de mise en retrait.
-3. Le `StateManager` recalcule l’état effectif à partir de l’état demandé courant et des autres contraintes actives.
-4. Le VTherm reprend son fonctionnement normal et applique cet état aux sous-jacents.
+### UC-04 — Statut inconnu
 
-### UC-05 — Arrêt manuel pendant l’inhibition
+Le plugin traite `UNKNOWN` comme une condition nécessitant le maintien de l’inhibition : il maintient ou rappelle `set_inhibition(stop_underlyings)` selon sa politique. Il n’appelle jamais `unset_inhibition()` tant que `INACTIVE` n’est pas confirmé. Le core ne reçoit pas et ne décide pas de statut ternaire.
 
-Si l’utilisateur demande `OFF` pendant l’inhibition, cette demande doit rester `OFF` après la sortie. Le VTherm ne doit pas réactiver le chauffage uniquement parce que l’inhibition est levée.
+## 4. Exigences fonctionnelles
 
-## 4. Exigences fonctionnelles V1
-
-| ID     | Exigence                                                                                                                                                                                                                                                                                                                                                                                                             |
-| ------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| FR-001 | Le système doit utiliser l’API 0.6.0, qui fournit via `VThermAPI` une factory dédiée enregistrant un `InhibitionProvider` et les types publics `InhibitionThermostatView` / `InterfaceInhibitionThermostatView`. La factory ne reçoit jamais le runtime VTherm complet.                                                                                                                                              |
-| FR-002 | Le système doit instancier au plus un provider par VTherm éligible.                                                                                                                                                                                                                                                                                                                                                  |
-| FR-003 | Le système doit signaler explicitement toute tentative d’enregistrer un second provider en conflit.                                                                                                                                                                                                                                                                                                                  |
-| FR-004 | Le provider doit exposer exactement l’un des statuts `ACTIVE`, `INACTIVE` ou `UNKNOWN` et signaler au core les transitions confirmées après ses éventuels délais par `InhibitionTransition` asynchrone. `UNKNOWN` ne doit être converti silencieusement en aucun autre statut. Son arrêt doit appeler et attendre `async_stop_listening()`, qui livre d’abord `UNKNOWN` à tous les callbacks avant leur détachement. |
-| FR-005 | Le provider ne doit pas modifier l’état HVAC, le preset ou la consigne demandés.                                                                                                                                                                                                                                                                                                                                     |
-| FR-006 | À l’entrée en inhibition, le système doit toujours résoudre le HVAC effectif vers `OFF`, y compris lorsque le HVAC demandé est déjà `OFF`.                                                                                                                                                                                                                                                                           |
-| FR-007 | Le plugin doit fournir par VTherm une politique effective `éteindre` ou `ne pas éteindre`; sa valeur par défaut et son repli sûr sont `éteindre`. Le core ne doit pas fournir de configuration utilisateur d’inhibition.                                                                                                                                                                                             |
-| FR-008 | À l’entrée, le système doit émettre au plus une fois `turn_off` vers les sous-jacents si, et seulement si, la politique effective est `éteindre`; cette émission est interdite si la politique est désactivée, y compris en `UNKNOWN`.                                                                                                                                                                               |
-| FR-009 | Dans tous les cas, l’entrée doit retirer le contrôle VTherm, suspendre le contrôle de chauffage et la réparation automatique des sous-jacents.                                                                                                                                                                                                                                                                       |
-| FR-010 | Pendant l’inhibition, le système ne doit pas réémettre `turn_off` ni écraser les commandes directes externes.                                                                                                                                                                                                                                                                                                        |
-| FR-011 | À la sortie, le système doit recalculer et appliquer l’état demandé courant, y compris les changements intervenus pendant l’inhibition.                                                                                                                                                                                                                                                                              |
-| FR-012 | Le système doit conserver la sémantique d’une demande `OFF` effectuée pendant l’inhibition.                                                                                                                                                                                                                                                                                                                          |
-| FR-013 | Le core doit persister, dans une mémoire runtime distincte de `VThermState`, la politique effective et l’accomplissement de la transition d’entrée. Cet accomplissement est distinct de l’arrêt physique : la garde de retrait peut être accomplie sans `turn_off`.                                                                                                                                                  |
-| FR-014 | Le système doit fournir une raison d’arrêt stable et distincte pour l’inhibition, proposée sous le nom `hvac_off_inhibition`.                                                                                                                                                                                                                                                                                        |
-| FR-015 | Le système doit rendre observable l’état de mise en retrait, la politique effective, l’accomplissement de l’entrée et sa raison sans exposer de données sensibles supplémentaires.                                                                                                                                                                                                                                   |
-| FR-016 | Les délais, la détection des sources, la configuration de la politique, les traductions, les entités de diagnostic et le bypass spécifique doivent rester dans le plugin.                                                                                                                                                                                                                                            |
+| ID     | Exigence                                                                                                                                                                                                                        |
+| ------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| FR-001 | Le core doit être porté par `BaseThermostat` et un manager minimal d’état opérationnel/persisté.                                                                                                                                |
+| FR-002 | L’API doit exposer uniquement `set_inhibition(stop_underlyings: bool)` et `unset_inhibition()`, sous forme de façade vers le core.                                                                                              |
+| FR-003 | L’API ne doit déclarer ni provider, ni factory, ni callback, ni statut ternaire.                                                                                                                                                |
+| FR-004 | Le manager core doit accepter des appels répétés à `set_inhibition` et `unset_inhibition` sans produire d’opération d’entrée ou de sortie supplémentaire.                                                                       |
+| FR-005 | `set_inhibition(true)` doit résoudre l’état effectif à `OFF` avec la raison `hvac_off_inhibition`, suspendre contrôle et réparation, fermer l’intercepteur et autoriser un seul arrêt d’entrée.                                 |
+| FR-006 | `set_inhibition(false)` doit produire les mêmes effets de retrait et de garde que `set_inhibition(true)`, mais ne doit envoyer aucun arrêt aux sous-jacents.                                                                    |
+| FR-007 | Le core doit conserver HVAC demandé, preset et consigne ; l’inhibition ne doit pas les remplacer par `OFF`.                                                                                                                     |
+| FR-008 | L’intercepteur core doit être l’unique point bloquant toute commande VTherm vers un sous-jacent pendant l’inhibition.                                                                                                           |
+| FR-009 | Lorsque le garde est fermé, les seules commandes autorisées sont l’arrêt d’entrée optionnel et l’opération de réconciliation de sortie. Toutes les commandes normales, y compris réparation et contrôle, doivent être bloquées. |
+| FR-010 | `unset_inhibition()` doit maintenir le garde fermé pendant toute la réconciliation ; le garde ne doit s’ouvrir qu’après son achèvement.                                                                                         |
+| FR-011 | La réconciliation de sortie doit recalculer et appliquer l’intention demandée courante, avec les autres contraintes actives.                                                                                                    |
+| FR-012 | Le plugin doit porter les sources, la configuration, les délais, le bypass, le cycle de vie, la politique métier et leur persistance.                                                                                           |
+| FR-013 | Le plugin doit exposer et traiter les statuts `ACTIVE`, `INACTIVE` et `UNKNOWN`. Il doit appeler `set_inhibition` pour `ACTIVE` et `UNKNOWN`, et réserver `unset_inhibition` à `INACTIVE` confirmé.                             |
+| FR-014 | Le core ne doit découvrir, créer ou instancier directement aucun provider ou composant de source. Il ne doit contenir aucun `if` dispersé de détection ou de politique plugin.                                                  |
+| FR-015 | Le manager core doit persister au minimum l’inhibition opérationnelle, la phase de garde et l’accomplissement de l’arrêt d’entrée lorsque celui-ci a été demandé.                                                               |
+| FR-016 | En l’absence de plugin, le système doit conserver le comportement historique, sans garde ni raison d’inhibition active.                                                                                                         |
 
 ## 5. Règles métier
 
-| ID     | Règle                                                                                                                                                                                                                                                                                                                                                                                                                                             |
-| ------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| BR-001 | L’inhibition est une contrainte externe temporaire ; elle ne remplace jamais l’état demandé durable.                                                                                                                                                                                                                                                                                                                                              |
-| BR-002 | L’état effectif doit respecter la relation `current_state = f(requested_state, contraintes_actives)`.                                                                                                                                                                                                                                                                                                                                             |
-| BR-003 | La priorité de résolution V1 est : arrêt central et sécurité, inhibition, fenêtre, puis auto-start/auto-stop ; les autres priorités doivent rester inchangées si elles ne sont pas précisées par la conception.                                                                                                                                                                                                                                   |
-| BR-004 | Une transition `inactive → active` constitue le seul déclencheur de l’arrêt initial.                                                                                                                                                                                                                                                                                                                                                              |
-| BR-005 | Une transition `active → active` est idempotente : aucun nouvel arrêt et aucune réparation des sous-jacents ne sont autorisés.                                                                                                                                                                                                                                                                                                                    |
-| BR-006 | Une transition `active → inactive` déclenche une seule réconciliation avec l’état demandé courant.                                                                                                                                                                                                                                                                                                                                                |
-| BR-007 | Si l’état demandé courant est `OFF` à la sortie, aucun sous-jacent ne doit être réactivé.                                                                                                                                                                                                                                                                                                                                                         |
-| BR-008 | L’inhibition ne doit pas être représentée comme une modification de `requested_state` ou de `current_state` persisté ; elle doit être observable comme contrainte et raison de fonctionnement.                                                                                                                                                                                                                                                    |
-| BR-009 | Un provider unique peut agréger plusieurs sources ; la V1 ne définit pas plusieurs providers indépendants par VTherm.                                                                                                                                                                                                                                                                                                                             |
-| BR-010 | `UNKNOWN` est un statut observable distinct : aucune reprise n’est autorisée avant `INACTIVE` confirmé. La politique effective reste celle persistée ; en repli sans provider exploitable ou sans politique connue, elle vaut « éteindre ». Si elle vaut « éteindre », une seule coupure de précaution est exécutée ; si elle est désactivée, aucun `turn_off` n’est envoyé, même en `UNKNOWN`. La garde de retrait s’applique dans les deux cas. |
+| ID     | Règle                                                                                                                                           |
+| ------ | ----------------------------------------------------------------------------------------------------------------------------------------------- |
+| BR-001 | L’inhibition est une contrainte temporaire ; elle ne modifie jamais l’intention demandée durable.                                               |
+| BR-002 | Une activation est idempotente : un même état inhibé n’entraîne ni nouvel arrêt, ni contrôle, ni réparation.                                    |
+| BR-003 | `stop_underlyings` ne concerne que l’arrêt d’entrée ; il ne désactive ni la résolution `OFF`, ni la suspension, ni le garde.                    |
+| BR-004 | Le garde unique interdit toute commande normale VTherm vers un sous-jacent pendant l’inhibition.                                                |
+| BR-005 | L’opération de sortie est une exception contrôlée au garde : elle peut uniquement réconcilier l’état demandé courant.                           |
+| BR-006 | Le garde reste fermé pendant la réconciliation de sortie et s’ouvre ensuite, jamais avant.                                                      |
+| BR-007 | `UNKNOWN` est traité par le plugin comme une absence de confirmation de sortie ; il maintient l’inhibition et n’appelle pas `unset_inhibition`. |
+| BR-008 | Seul `INACTIVE` confirmé par le plugin autorise l’appel à `unset_inhibition`.                                                                   |
+| BR-009 | Une demande `OFF` conservée pendant l’inhibition interdit toute réactivation à la sortie.                                                       |
+| BR-010 | Sans plugin, aucune règle d’inhibition ne s’applique et le cycle historique est conservé.                                                       |
 
-## 6. Transitions d’état
+## 6. Transitions et persistance
 
-| État avant | Événement                            | État après             | Effet obligatoire                                                                                                                                        |
-| ---------- | ------------------------------------ | ---------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Inactif    | Détection confirmée                  | Actif, contrôle retiré | Résoudre `OFF`, accomplir la garde d’entrée, suspendre contrôle et réparation ; envoyer `turn_off` une fois seulement si la politique vaut « éteindre ». |
-| Actif      | Nouveau cycle sans changement        | Actif, contrôle retiré | Ne rien réémettre et laisser les commandes externes inchangées.                                                                                          |
-| Actif      | HVAC/preset/consigne demandé modifié | Actif, contrôle retiré | Mémoriser l’intention courante sans reprendre les sous-jacents.                                                                                          |
-| Actif      | Arrêt manuel demandé                 | Actif, contrôle retiré | Conserver `OFF` comme intention courante.                                                                                                                |
-| Actif      | Fin d’inhibition confirmée           | Inactif                | Recalculer puis appliquer l’état demandé courant.                                                                                                        |
-| Inactif    | Cycle normal                         | Inactif                | Conserver le fonctionnement VTherm existant.                                                                                                             |
+| État           | Événement                                      | Effet                                                                                                                      |
+| -------------- | ---------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------- |
+| Normal         | `set_inhibition(true)`                         | Résoudre `OFF`, raison dédiée, suspendre contrôle/réparation, fermer le garde, envoyer un arrêt d’entrée au plus une fois. |
+| Normal         | `set_inhibition(false)`                        | Même retrait et même garde, sans arrêt d’entrée.                                                                           |
+| Inhibé         | Appel répété à `set_inhibition(...)`           | Ne rien réémettre ; mettre à jour la politique seulement selon le contrat du plugin, sans rouvrir le garde.                |
+| Inhibé         | HVAC/preset/consigne modifié                   | Conserver l’intention ; bloquer toute commande normale.                                                                    |
+| Inhibé         | `unset_inhibition()` après `INACTIVE` confirmé | Passer en réconciliation, autoriser uniquement l’application de l’état demandé courant, puis ouvrir le garde.              |
+| Réconciliation | Commande normale ou nouvel appel concurrent    | Bloquer la commande normale ; ne pas ouvrir le garde avant la fin de l’opération de sortie.                                |
+| Normal         | Aucun plugin                                   | Exécuter le comportement historique.                                                                                       |
 
-## 7. Redémarrage, rechargement et persistance
+Après redémarrage, le core doit restaurer son état opérationnel sans réémettre un arrêt déjà accompli. Si l’inhibition est active, le garde et la suspension restent actifs. Si une confirmation `INACTIVE` n’est pas disponible, le plugin maintient l’inhibition. La persistance métier des sources, délais, bypass et politique appartient au plugin ; elle ne doit pas être dupliquée par le core.
 
-- Le core doit persister au minimum, dans un état runtime distinct de `VThermState`, l’état de mise en retrait, le statut provider, la politique effective et l’accomplissement de la transition d’entrée. Cet accomplissement de garde est distinct de l’arrêt physique effectivement émis.
-- Après redémarrage de Home Assistant, le core doit réconcilier cet état avec le provider avant de reprendre le contrôle normal.
-- Un redémarrage ne doit pas générer un second arrêt uniquement parce que l’état persistant indique que l’arrêt initial a déjà été exécuté.
-- Si l’inhibition est toujours active après redémarrage, le contrôle des sous-jacents doit rester suspendu.
-- Si l’inhibition est inactive après redémarrage, la reprise doit utiliser l’état demandé courant, et non une valeur reconstruite à partir de l’ancien état effectif.
-- Lors d’un chargement tardif, le provider passe par `UNKNOWN` ; aucune reprise n’est autorisée avant `INACTIVE` confirmé. Sans politique connue ou provider exploitable, le repli sûr est « éteindre » et une coupure de précaution unique est appliquée ; une politique désactivée interdit `turn_off`, y compris dans ce cas.
-- Lors d’un unload ou d’un désenregistrement de factory, le core et le plugin doivent attendre `provider.async_stop_listening()` **avant** de retirer le callback ou d’appeler `unregister_inhibition_provider_factory()`. Cette opération livre `UNKNOWN` au core et empêche toute reprise implicite non sûre.
-- Une garantie exactly-once physique de bout en bout n’est pas exigée : l’arrêt est exactement-once logique par activation en processus sain, avec une limite documentée en cas de panne entre l’appel de service et la persistance.
+## 7. Contraintes fonctionnelles et exclusions
 
-## 8. Périmètre V1 et exclusions
+Le core doit conserver une résolution centralisée de l’état effectif et une raison stable `hvac_off_inhibition`. Aucune donnée sensible supplémentaire n’est requise. Le contrôle direct des sous-jacents par une autre intégration doit rester possible pendant l’inhibition.
 
-### Inclus
+Sont exclus de cette version : configuration utilisateur d’inhibition dans le core, entité ou service core dédié, provider/factory core, callback d’événement public, statut ternaire dans l’API ou le core, modification de `requested_state`/`current_state` pour y ajouter `inhibited`, modes forcés autres que `OFF`, et refactorisation générale des contraintes HVAC.
 
-- Contrat `InhibitionProvider` et factory dédiée dans `vtherm_api`.
-- Unicité du provider, cycle de vie, écoute des transitions et recalcul demandé par le provider.
-- Politique core d’arrêt unique, retrait du contrôle, suspension et réconciliation.
-- Contrainte HVAC `OFF` et raison d’arrêt dédiée.
-- Persistance minimale et observabilité core.
-- Détection, délais, bypass, configuration, diagnostics et documentation spécifiques dans un plugin.
-- Tests unitaires et d’intégration correspondant aux exigences et critères ci-dessous.
+## 8. Critères d’acceptation
 
-### Exclus
+| ID     | Scénario                                                                                   | Résultat attendu                                                                                                       |
+| ------ | ------------------------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------- |
+| AC-001 | Le plugin appelle `set_inhibition(true)` alors que le VTherm chauffe.                      | HVAC effectif `OFF`, raison `hvac_off_inhibition`, contrôle/réparation suspendus, un seul arrêt envoyé et garde fermé. |
+| AC-002 | Le plugin appelle `set_inhibition(false)`.                                                 | HVAC effectif `OFF`, contrôle/réparation suspendus, aucun arrêt envoyé et garde fermé.                                 |
+| AC-003 | Plusieurs cycles sont exécutés pendant l’inhibition.                                       | Aucune commande normale, réparation ou répétition de l’arrêt n’est envoyée.                                            |
+| AC-004 | Une autre intégration commande un sous-jacent pendant l’inhibition.                        | La commande externe n’est pas écrasée par le VTherm.                                                                   |
+| AC-005 | HVAC, preset ou consigne changent pendant l’inhibition.                                    | La dernière intention est conservée et aucun sous-jacent ne reprend avant la sortie.                                   |
+| AC-006 | `INACTIVE` est confirmé puis le plugin appelle `unset_inhibition()`.                       | Le core garde le garde fermé, effectue une seule réconciliation avec l’intention courante, puis ouvre le garde.        |
+| AC-007 | Une commande normale arrive pendant la réconciliation.                                     | Elle est bloquée ; seule l’opération de sortie est autorisée.                                                          |
+| AC-008 | `OFF` est demandé pendant l’inhibition puis celle-ci prend fin.                            | Aucun sous-jacent n’est réactivé.                                                                                      |
+| AC-009 | Le plugin est `UNKNOWN` après démarrage, erreur ou rechargement.                           | Le plugin maintient/appelle `set_inhibition`; aucun `unset_inhibition` n’est appelé et aucune reprise n’a lieu.        |
+| AC-010 | Home Assistant redémarre pendant l’inhibition après l’arrêt d’entrée.                      | Le garde reste fermé, le contrôle reste suspendu et aucun second arrêt inutile n’est envoyé.                           |
+| AC-011 | Le VTherm fonctionne sans plugin.                                                          | Le comportement historique est inchangé.                                                                               |
+| AC-012 | Deux chemins core tentent d’émettre une commande vers un sous-jacent pendant l’inhibition. | L’intercepteur unique bloque les deux, sauf l’arrêt d’entrée autorisé ou la réconciliation de sortie.                  |
 
-- Fonctionnalité complète `inhibit` dans le core avec parcours de configuration, entités et services utilisateur.
-- Ajout d’un état `inhibited` dans `requested_state` ou `current_state`.
-- Forçage vers `eco`, `frost`, `fan_only` ou un autre mode que `OFF`.
-- Plusieurs providers indépendants par VTherm.
-- Migration ou remplacement de la fonctionnalité fenêtre.
-- Refactorisation générale de toutes les contraintes HVAC.
-- Correction du code, de la configuration, des dépendances ou des tests dans le cadre de cette spécification.
+## 9. Matrice de tests attendus
 
-## 9. Priorités et conflits de provider
+| Domaine         | Cas                                                                                 | Vérification minimale                                                                            |
+| --------------- | ----------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------ |
+| API             | Appels `set(true)`, `set(false)`, `unset`, répétition et ordre invalide             | Contrat de façade ; absence de provider, factory, callback et statut ternaire.                   |
+| Manager core    | États normal, inhibé, réconciliation, persistance et restauration                   | Transitions idempotentes, garde et état opérationnel restauré.                                   |
+| Résolution HVAC | Chauffage, refroidissement, demande `OFF`, autres contraintes                       | `OFF` effectif et raison stable sans modification de l’intention.                                |
+| Intercepteur    | Contrôle, réparation, commandes multiples et appels concurrents                     | Toute commande normale bloquée pendant l’inhibition ; seules les deux exceptions sont possibles. |
+| Arrêt d’entrée  | `stop_underlyings=true`, `false`, sous-jacent déjà arrêté, répétition               | Arrêt unique si demandé, jamais sinon.                                                           |
+| Sortie          | `INACTIVE`, intention chauffage/refroidissement/`OFF`, réconciliation lente         | Une seule réconciliation, garde fermé jusqu’à sa fin, ouverture ensuite.                         |
+| Plugin          | Sources multiples, configuration, délais, bypass, cycle de vie, persistance métier  | `ACTIVE` et `UNKNOWN` appellent/maintiennent `set`; seul `INACTIVE` confirmé appelle `unset`.    |
+| Redémarrage     | Inhibition active, arrêt déjà accompli, sortie non confirmée                        | Pas de second arrêt ni de reprise prématurée.                                                    |
+| Régression      | Absence de plugin, fenêtre, auto-start/auto-stop, TPI et réparation hors inhibition | Fonctionnement historique inchangé hors périmètre.                                               |
 
-- L’inhibition doit être appliquée après l’arrêt central et les mécanismes de sécurité, et avant la fenêtre et l’auto-start/auto-stop.
-- La priorité entre inhibition et des contraintes futures non citées ici n’est pas définie par cette spécification.
-- Le premier provider enregistré pour un VTherm éligible est retenu comme unique provider actif en V1 ; chaque candidat suivant est rejeté pour ce VTherm.
-- Toute seconde factory ou tout second provider incompatible doit produire un conflit explicite, traçable et non silencieux, en indiquant le provider retenu et le provider rejeté.
-- Le provider ne doit pas contourner la résolution centralisée du `StateManager` en émettant lui-même des commandes HVAC.
-- En cas de statut `UNKNOWN`, le retrait conservateur observable s’applique : aucune reprise avant `INACTIVE` confirmé ; une seule coupure de précaution est exécutée si aucune coupure connue n’existe. En l’absence de factory éligible (`ABSENT`), le comportement historique est conservé. D-2087-06 couvre cette décision et elle n’est plus bloquante.
+## 10. Hypothèses, questions ouvertes et traçabilité
 
-## 10. Observabilité
+### Hypothèses
 
-Le système doit rendre vérifiables au minimum :
+- La raison stable retenue est `hvac_off_inhibition`.
+- Le plugin agrège plusieurs sources si nécessaire ; le core ne connaît que les appels de la façade.
+- `UNKNOWN` signifie que la sortie n’est pas confirmée et impose le maintien de l’inhibition.
+- La persistance core et la persistance métier du plugin sont distinctes.
 
-- l’état de détection fourni par le provider ;
-- l’état de mise en retrait core ;
-- la raison effective `hvac_off_inhibition` lorsqu’elle s’applique ;
-- l’entrée et la sortie d’inhibition ;
-- l’exécution unique de l’arrêt initial ;
-- la suspension du contrôle et de la réparation ;
-- la réconciliation effectuée à la sortie ;
-- les conflits ou erreurs de provider.
+### Questions ouvertes
 
-Les diagnostics spécifiques à la source, aux délais et au bypass appartiennent au plugin. Aucun nouveau traitement de données sensibles n’est requis par le périmètre défini.
-
-## 11. Critères d’acceptation
-
-| ID      | Scénario observable                                                                                                             | Résultat attendu                                                                                                                                                                                                                                                               |
-| ------- | ------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| AC-001  | Un provider confirme l’activation alors que le VTherm demande du chauffage ou du refroidissement, avec la politique par défaut. | Le HVAC effectif passe à `OFF`, la raison d’arrêt est dédiée, le contrôle et la réparation sont suspendus, et les sous-jacents reçoivent un seul `turn_off`.                                                                                                                   |
-| AC-001b | Le plugin désactive la politique d’arrêt physique avant l’entrée.                                                               | Le HVAC effectif passe à `OFF`, le contrôle et la réparation sont suspendus, la garde de retrait est accomplie, et aucun `turn_off` n’est envoyé.                                                                                                                              |
-| AC-002  | Plusieurs cycles s’exécutent sans changement de détection.                                                                      | Aucun nouvel arrêt, ordre HVAC, contrôle de chauffage ou repair n’est émis par le VTherm.                                                                                                                                                                                      |
-| AC-003  | Un sous-jacent est commandé directement par l’utilisateur pendant l’inhibition.                                                 | Le VTherm ne réémet pas d’ordre pour écraser cette commande.                                                                                                                                                                                                                   |
-| AC-004  | Le preset, la consigne ou le HVAC demandé change pendant l’inhibition.                                                          | La dernière intention demandée est conservée et aucun sous-jacent n’est repris avant la sortie.                                                                                                                                                                                |
-| AC-005  | L’utilisateur demande `OFF` pendant l’inhibition puis le provider devient inactif.                                              | La sortie ne réactive pas le chauffage ; l’état `OFF` demandé est respecté.                                                                                                                                                                                                    |
-| AC-006  | Le provider devient inactif après une inhibition ayant laissé une intention de chauffage.                                       | Le core recalcule et applique cette intention courante selon les autres contraintes actives.                                                                                                                                                                                   |
-| AC-007  | Home Assistant redémarre pendant une inhibition active après l’arrêt initial.                                                   | L’inhibition reste active, aucun second arrêt inutile n’est envoyé et le contrôle reste suspendu.                                                                                                                                                                              |
-| AC-008  | Home Assistant redémarre alors que l’inhibition est inactive.                                                                   | Le VTherm reprend son fonctionnement normal avec l’état demandé courant.                                                                                                                                                                                                       |
-| AC-009  | Deux providers veulent s’enregistrer pour le même VTherm.                                                                       | Un conflit explicite est signalé et un seul provider reste autorisé.                                                                                                                                                                                                           |
-| AC-010  | Le provider est `UNKNOWN` au chargement, après une erreur ou durant un reload.                                                  | Le statut est observable, aucune reprise n’a lieu avant `INACTIVE` confirmé ; le repli sans politique connue est « éteindre » et envoie une seule coupure de précaution, tandis qu’une politique désactivée n’envoie jamais `turn_off`. La garde s’applique dans les deux cas. |
-| AC-011  | L’état HVAC effectif est déjà `OFF` mais un sous-jacent est actif à l’entrée.                                                   | L’arrêt initial est tout de même envoyé une fois.                                                                                                                                                                                                                              |
-| AC-012  | Une contrainte fenêtre ou auto-start/auto-stop est active en plus de l’inhibition.                                              | L’inhibition respecte la priorité V1 et ne dégrade pas les autres contraintes non modifiées.                                                                                                                                                                                   |
-| AC-013  | Deux factories sont éligibles pour le même VTherm.                                                                              | La première enregistrée est retenue, la seconde est rejetée et le conflit mentionne les deux providers.                                                                                                                                                                        |
-| AC-014  | Une panne survient entre l’arrêt physique et la persistance de la garde.                                                        | La limite d’exactly-once physique est documentée ; aucune reprise automatique n’est autorisée sans statut `INACTIVE`.                                                                                                                                                          |
-
-## 12. Matrice de tests attendus
-
-| Domaine         | Cas attendus                                                                                                     | Couverture minimale                                                                                       |
-| --------------- | ---------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------- |
-| API / factory   | Enregistrement valide, unicité, conflit, cycle de vie, provider absent, vue immuable sans méthode de commande    | Tests unitaires du contrat, des erreurs explicites et de `InhibitionThermostatView`.                      |
-| Détection       | Transitions inactive/active, délais confirmés, répétition d’état, état non confirmé                              | Tests unitaires du provider ou de son adaptateur plugin.                                                  |
-| Résolution HVAC | HVAC demandé chauffage, refroidissement et `OFF` ; raison dédiée ; priorité sur fenêtre et auto-start/stop       | Tests unitaires du `StateManager`.                                                                        |
-| Entrée          | Sous-jacent actif, sous-jacent déjà arrêté, plusieurs sous-jacents, arrêt unique                                 | Tests unitaires et d’intégration des ordres produits.                                                     |
-| Maintien        | Cycles normaux, commande externe, repair et contrôle de chauffage                                                | Tests d’intégration garantissant l’absence d’ordres du VTherm.                                            |
-| Intention       | Changement de HVAC, preset, consigne et arrêt manuel pendant inhibition                                          | Tests unitaires de conservation puis de réconciliation de l’intention.                                    |
-| Sortie          | Inhibition levée vers chaque état demandé, contraintes concurrentes                                              | Tests d’intégration de reprise et de priorité.                                                            |
-| Persistance     | Redémarrage actif, redémarrage inactif, arrêt déjà effectué, restauration du provider tardive, unload asynchrone | Tests de persistance et de cycle de vie, dont livraison confirmée de `UNKNOWN` avant détachement.         |
-| Exactly-once    | Politique activée/désactivée, `UNKNOWN`, coupure connue/inconnue, panne entre service et persistance             | Tests de garde logique, absence de `turn_off` désactivé et documentation explicite de la limite physique. |
-| Politique       | Valeur par défaut, configuration plugin par VTherm, politique persistée, repli sans provider/politique           | Tests de configuration plugin et de restauration ; aucun parcours de configuration core.                  |
-| Observabilité   | Attributs, raison, transitions, conflits et erreurs                                                              | Tests de présence et de stabilité des diagnostics.                                                        |
-| Régression      | Fonctionnement sans provider, fenêtre, auto-start/stop, contrôle TPI et réparation existants                     | Suite de non-régression du core et intégration.                                                           |
-
-## 13. Hypothèses, questions ouvertes et traçabilité
-
-### Hypothèses retenues
-
-- Le provider fournit un état fiable après les délais qui lui sont propres.
-- La V1 force uniquement `OFF`.
-- Un provider peut agréger plusieurs sources ; l’agrégation est une responsabilité du plugin.
-- Le core doit gérer l’ordre de chargement du provider sans reprise prématurée ; `UNKNOWN` applique D-2087-06 jusqu’à `INACTIVE` confirmé.
-- La persistance runtime core est distincte de `VThermState`.
-- La garantie exactly-once concerne la transition d’entrée et la garde logique, pas nécessairement l’arrêt physique ; elle est logique par activation dans un processus sain, et non physique de bout en bout après panne.
-
-### Questions ouvertes et décisions à prendre
-
-1. Valider le nom stable de la raison `hvac_off_inhibition`.
-2. Définir le format exact des attributs et de la mémoire persistée, notamment les champs de politique effective et d’accomplissement de la transition d’entrée, distincts de l’arrêt physique.
-3. Définir le nom et les valeurs sérialisées de l’option plugin (« éteindre » / « ne pas éteindre ») ainsi que la migration des configurations existantes vers le défaut sûr.
-4. Le repli `UNKNOWN` est couvert par D-2087-06 ; il n’est plus bloquant pour la convergence documentaire.
-5. Décider si le bypass doit être livré avec le plugin V1 ou reporté ; question non bloquante, sans impact sur le core.
-6. Définir les critères d’éligibilité d’un VTherm à un provider.
-7. Confirmer le découpage et l’ordre de livraison des changements API/core puis plugin.
+1. Confirmer le nom sérialisé de la politique plugin qui détermine `stop_underlyings`.
+2. Définir le format exact des attributs d’observabilité core et plugin.
+3. Définir le comportement précis du plugin lorsqu’une politique change pendant une inhibition déjà active.
+4. Confirmer l’ordre de livraison API, core et plugin.
 
 ### Traçabilité
 
-Cette spécification reprend les faits établis et la recommandation de [documentation/tech-docs/issue-2087-review.md](../tech-docs/issue-2087-review.md). Les comportements explicitement marqués comme proposés, hypothèses ou questions ouvertes ne constituent pas des comportements existants. Aucun code, fichier de configuration, dépendance ou test n’a été modifié pour produire ce document.
+Cette spécification s’appuie sur [la revue de l’issue #2087](../tech-docs/issue-2087-review.md) et sur les fichiers techniques indiqués dans les métadonnées. Elle décrit une décision cible et ne prétend pas que ces opérations existent déjà dans le code. Aucun autre fichier n’est modifié par cette révision.
 
 ---
 
-# Functional Specification — Issue #2087: Controlled VTherm Withdrawal
+# Functional Specification — Issue #2087: Controlled VTherm Inhibition
 
 ## Metadata
 
-| Field                      | Value                                                                                                                                                                                                                                                                                                                                                                              |
-| -------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Name                       | Extensible inhibition mechanism / Mécanisme d’inhibition extensible                                                                                                                                                                                                                                                                                                                |
-| Issue                      | [#2087 — Add an “inhibit” sensor to pause a VTherm](https://github.com/jmcollin78/versatile_thermostat/issues/2087)                                                                                                                                                                                                                                                                |
-| Version                    | 1.3 — aligned with the inhibition contract shipped in `vtherm_api` 0.6.0                                                                                                                                                                                                                                                                                                           |
-| Status                     | Converged with the design; maintainer approval required before development                                                                                                                                                                                                                                                                                                         |
-| Date                       | 2026-10-12                                                                                                                                                                                                                                                                                                                                                                         |
-| Functional owner           | Versatile Thermostat project — maintainer decision to be confirmed                                                                                                                                                                                                                                                                                                                 |
-| Main source                | [Validated issue review](../tech-docs/issue-2087-review.md)                                                                                                                                                                                                                                                                                                                        |
-| Technical sources analyzed | `custom_components/versatile_thermostat/state_manager.py`, `base_thermostat.py`, `prop_handler_tpi.py`, `feature_repair_incorrect_state_manager.py`, `underlyings.py`, `vtherm_state.py`, and `custom_components/vtherm_api/src/vtherm_api/inhibition.py`, `vtherm_api.py`, and `__init__.py` at version 0.6.0; PR [vtherm_api#9](https://github.com/jmcollin78/vtherm_api/pull/9) |
+| Field            | Value                                                                                                                                                                         |
+| ---------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Name             | Controlled VTherm inhibition / Inhibition contrôlée d’un VTherm                                                                                                               |
+| Issue            | [#2087 — Add an “inhibit” sensor to pause a VTherm](https://github.com/jmcollin78/versatile_thermostat/issues/2087)                                                           |
+| Version          | 2.0 — core/API/plugin architecture decision                                                                                                                                   |
+| Status           | Converged specification, maintainer approval required                                                                                                                         |
+| Date             | 2026-10-13                                                                                                                                                                    |
+| Owner            | Versatile Thermostat project                                                                                                                                                  |
+| Analyzed sources | [Issue review](../tech-docs/issue-2087-review.md), `base_thermostat.py`, `state_manager.py`, `underlyings.py`, `feature_repair_incorrect_state_manager.py`, `vtherm_state.py` |
 
-## 1. Context and objective
+## 1. Context and objectives
 
-Issue #2087 requests that a VTherm temporarily stop commanding its underlying devices when another heating or cooling source is active. Identified use cases include heating powered by photovoltaic surplus and air conditioning that is already cooling the room.
+Inhibition lets another heating or cooling source, a user, or an automation temporarily own effective control of a VTherm’s underlying devices. Use cases include photovoltaic-surplus heating and coexistence with air conditioning.
 
-The V1 objective is to provide a **controlled withdrawal**: on entry, the core withdraws VTherm control, suspends control and repair, and resolves effective HVAC to `OFF`. The plugin provides, per VTherm, a policy telling the core whether to emit the physical stop to underlying devices; its default is **“turn off”**, preserving the already-specified V1 behavior. Only this single physical stop emission is conditional: withdrawal, suspension, and `OFF` resolution always apply. Inhibition must not change the user’s durable intent, namely the requested HVAC mode, setpoint, or preset.
+Inhibition never changes durable VTherm intent: requested HVAC mode, preset, and setpoint remain stored. It withdraws VTherm authority to command underlying devices, resolves effective state to `OFF` with reason `hvac_off_inhibition`, and reconciles current intent when the plugin confirms that inhibition has ended.
 
-The plugin owns the source-specific detection, configuration, and diagnostics. The core and API provide only the extension point and the common withdrawal policy.
+The scope is divided between the core (`BaseThermostat` and a minimal operational/persisted-state manager), the API (only `set_inhibition(stop_underlyings: bool)` and `unset_inhibition()`), and the plugin (sources, configuration, delays, bypass, lifecycle, status, policy, and business persistence). Without a plugin, historical behavior remains unchanged.
 
 ## 2. Actors and responsibilities
 
-| Actor / component           | Functional responsibilities                                                                                                                                                                                                                                   |
-| --------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| User or external automation | May directly command underlying devices during withdrawal without being overwritten by the VTherm.                                                                                                                                                            |
-| Inhibition plugin           | Detects the external condition, applies its delays, configures and exposes the per-VTherm physical-stop policy (`turn off` by default), exposes any bypass, and signals confirmed transitions. It does not command the VTherm HVAC or its underlying devices. |
-| Inhibition factory          | Evaluates eligibility and creates the provider from the immutable `InhibitionThermostatView` only (`entity_id`, `name`, `unique_id`), with no access to VTherm runtime commands.                                                                              |
-| `InhibitionProvider`        | Extension contract exposing ternary `ACTIVE`/`INACTIVE`/`UNKNOWN` status, stop policy, and the asynchronous lifecycle required by the core. Only one provider is allowed per eligible VTherm in V1.                                                           |
-| API                         | Provides registration of a dedicated factory, the immutable view, and the public provider contract. It must make any registration conflict explicit.                                                                                                          |
-| Core / `BaseThermostat`     | Owns withdrawal state, applies transitions, resolves `OFF`, suspends control and repair, and emits the single physical stop only according to the supplied policy. The core has no user inhibition configuration.                                             |
-| `StateManager`              | Exclusively resolves effective HVAC from requested state and constraints, with inhibition as a priority constraint after central stop and safety.                                                                                                             |
-| Underlying devices          | Receive the initial stop and normal resumption; they remain directly controllable during inhibition.                                                                                                                                                          |
+| Actor                       | Responsibilities                                                                                                                                                                                                                                                        |
+| --------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| User or external automation | May directly command underlying devices during inhibition; VTherm does not overwrite those commands.                                                                                                                                                                    |
+| Inhibition plugin           | Aggregates sources, applies configuration, delays, and bypass, maintains `ACTIVE`, `INACTIVE`, or `UNKNOWN`, persists business policy, and calls the API. It calls `set_inhibition` for `ACTIVE` and `UNKNOWN`, and `unset_inhibition` only after confirmed `INACTIVE`. |
+| API                         | Exposes only the façade forwarding `set_inhibition(stop_underlyings: bool)` and `unset_inhibition()`. It provides no provider, factory, callback, or ternary status.                                                                                                    |
+| Core — `BaseThermostat`     | Owns inhibition state, resolves `OFF`, stops control, forwards the two operations to the manager, and applies the unique command interceptor for underlying devices.                                                                                                    |
+| Core manager                | Manages minimal operational/persisted state, idempotence, stop reason, and exit reconciliation. It detects no source and instantiates no external component.                                                                                                            |
+| `StateManager`              | Resolves effective HVAC from requested state and existing constraints, including inhibition.                                                                                                                                                                            |
+| Underlying devices          | May be directly controlled during inhibition; they receive only the optional entry stop and authorized exit reconciliation.                                                                                                                                             |
 
 ## 3. Use cases
 
-### UC-01 — Enter inhibition
+### UC-01 — Set inhibition
 
-1. The provider confirms that the inhibition condition is active.
-2. The core recalculates the effective state.
-3. If the requested HVAC mode is not `OFF`, the effective mode becomes `OFF` with a dedicated stop reason.
-4. If the effective policy is “turn off”, the core sends one physical stop to underlying devices; otherwise it sends no `turn_off`, including when status is `UNKNOWN`. In both cases it records that control has been withdrawn and that the entry transition is complete.
-5. The core suspends the heating-control loop and automatic state repair.
+1. The plugin detects an active or policy-defined unknown condition and calls `set_inhibition(stop_underlyings)`.
+2. The core marks inhibition active, resolves effective HVAC to `OFF` with `hvac_off_inhibition`, and suspends control and repair.
+3. The interceptor closes normal commands to underlying devices.
+4. If `stop_underlyings` is `true`, the core authorizes one entry-stop operation; if `false`, no stop is sent.
 
 ### UC-02 — Remain inhibited
 
-While inhibition is active, the VTherm shall neither resend the stop, run heating control, nor repair underlying state. Direct commands sent by the user or another integration shall not be cancelled by the VTherm.
+While inhibition is active, VTherm does not control heating, repair underlying state, or resend the entry stop. Changes to HVAC, preset, or setpoint are retained as intent without resuming underlying devices.
 
-### UC-03 — Change intent during inhibition
+### UC-03 — Unset inhibition
 
-A change to the requested HVAC mode, preset, or setpoint shall be retained as the current intent. It shall not resume underlying devices while inhibition remains active.
+1. The plugin calls `unset_inhibition()` only after confirming `INACTIVE`.
+2. The core keeps the guard closed to normal commands and authorizes only recalculation and application of current requested state.
+3. After reconciliation completes, the core opens the guard and resumes normal operation.
 
-### UC-04 — Exit inhibition
+An `OFF` request made during inhibition remains `OFF` after exit.
 
-1. The provider confirms that the condition is inactive.
-2. The core leaves withdrawal state.
-3. The `StateManager` recalculates effective state from the current requested state and other active constraints.
-4. The VTherm resumes normal operation and applies that state to the underlying devices.
+### UC-04 — Unknown status
 
-### UC-05 — Manual stop during inhibition
+The plugin treats `UNKNOWN` as requiring inhibition: it maintains or calls `set_inhibition(stop_underlyings)` according to policy. It never calls `unset_inhibition()` until `INACTIVE` is confirmed. The core neither receives nor decides a ternary status.
 
-If the user requests `OFF` during inhibition, that request shall remain `OFF` after exit. The VTherm shall not reactivate heating solely because inhibition was cleared.
+## 4. Functional requirements
 
-## 4. V1 functional requirements
-
-| ID     | Requirement                                                                                                                                                                                                                                                                                                                                                                                           |
-| ------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| FR-001 | The system shall use API 0.6.0, which provides through `VThermAPI` a dedicated factory that registers an `InhibitionProvider` and public `InhibitionThermostatView` / `InterfaceInhibitionThermostatView` types. The factory shall never receive the full VTherm runtime.                                                                                                                             |
-| FR-002 | The system shall instantiate at most one provider per eligible VTherm.                                                                                                                                                                                                                                                                                                                                |
-| FR-003 | The system shall explicitly report any attempt to register a conflicting second provider.                                                                                                                                                                                                                                                                                                             |
-| FR-004 | The provider shall expose exactly one of `ACTIVE`, `INACTIVE`, or `UNKNOWN` and notify the core of confirmed transitions after provider-specific delays through asynchronous `InhibitionTransition` callbacks. `UNKNOWN` shall not be silently converted to another status. Shutdown shall call and await `async_stop_listening()`, which delivers `UNKNOWN` to every callback before detaching them. |
-| FR-005 | The provider shall not modify requested HVAC mode, preset, or setpoint.                                                                                                                                                                                                                                                                                                                               |
-| FR-006 | On inhibition entry, the system shall always resolve effective HVAC to `OFF`, including when requested HVAC is already `OFF`.                                                                                                                                                                                                                                                                         |
-| FR-007 | The plugin shall provide an effective per-VTherm policy of `turn off` or `do not turn off`; its default and safe fallback are `turn off`. The core shall not provide user inhibition configuration.                                                                                                                                                                                                   |
-| FR-008 | On entry, the system shall emit `turn_off` to underlying devices at most once if and only if the effective policy is `turn off`; emission is forbidden when disabled, including in `UNKNOWN`.                                                                                                                                                                                                         |
-| FR-009 | In all cases, entry shall withdraw VTherm control and suspend heating control and automatic underlying-state repair.                                                                                                                                                                                                                                                                                  |
-| FR-010 | During inhibition, the system shall not resend `turn_off` or overwrite direct external commands.                                                                                                                                                                                                                                                                                                      |
-| FR-011 | On exit, the system shall recalculate and apply the current requested state, including changes made during inhibition.                                                                                                                                                                                                                                                                                |
-| FR-012 | The system shall preserve the semantics of an `OFF` request made during inhibition.                                                                                                                                                                                                                                                                                                                   |
-| FR-013 | The core shall persist, in runtime memory distinct from `VThermState`, the effective policy and completion of the entry transition. This completion is distinct from physical stopping: the withdrawal guard may be complete without `turn_off`.                                                                                                                                                      |
-| FR-014 | The system shall provide a stable stop reason distinct for inhibition, proposed as `hvac_off_inhibition`.                                                                                                                                                                                                                                                                                             |
-| FR-015 | The system shall expose withdrawal state, effective policy, entry completion, and reason without introducing additional sensitive data.                                                                                                                                                                                                                                                               |
-| FR-016 | Source detection, delays, policy configuration, translations, diagnostic entities, and source-specific bypass shall remain in the plugin.                                                                                                                                                                                                                                                             |
+| ID     | Requirement                                                                                                                                                                       |
+| ------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| FR-001 | The core shall be implemented by `BaseThermostat` and a minimal operational/persisted-state manager.                                                                              |
+| FR-002 | The API shall expose only `set_inhibition(stop_underlyings: bool)` and `unset_inhibition()` as a façade to the core.                                                              |
+| FR-003 | The API shall declare no provider, factory, callback, or ternary status.                                                                                                          |
+| FR-004 | The core manager shall accept repeated set/unset calls without producing another entry or exit operation.                                                                         |
+| FR-005 | `set_inhibition(true)` shall resolve effective state to `OFF` with reason `hvac_off_inhibition`, suspend control and repair, close the interceptor, and authorize one entry stop. |
+| FR-006 | `set_inhibition(false)` shall produce the same withdrawal and guard behavior but shall send no stop to underlying devices.                                                        |
+| FR-007 | The core shall preserve requested HVAC, preset, and setpoint; inhibition shall not replace them with `OFF`.                                                                       |
+| FR-008 | The core interceptor shall be the unique point blocking every VTherm command to an underlying device during inhibition.                                                           |
+| FR-009 | While the guard is closed, only the optional entry stop and exit reconciliation shall be allowed; all normal control and repair commands shall be blocked.                        |
+| FR-010 | `unset_inhibition()` shall keep the guard closed for the whole reconciliation and open it only after completion.                                                                  |
+| FR-011 | Exit reconciliation shall recalculate and apply current requested intent with other active constraints.                                                                           |
+| FR-012 | The plugin shall own sources, configuration, delays, bypass, lifecycle, business policy, and their persistence.                                                                   |
+| FR-013 | The plugin shall process `ACTIVE`, `INACTIVE`, and `UNKNOWN`; it shall call set for `ACTIVE`/`UNKNOWN` and unset only for confirmed `INACTIVE`.                                   |
+| FR-014 | The core shall not discover, create, or instantiate a provider or source component directly, nor contain dispersed plugin-policy conditionals.                                    |
+| FR-015 | The core manager shall persist operational inhibition, guard phase, and completion of the requested entry stop.                                                                   |
+| FR-016 | Without a plugin, the system shall preserve historical behavior, with no active inhibition guard or reason.                                                                       |
 
 ## 5. Business rules
 
-| ID     | Rule                                                                                                                                                                                                                                                                                                                                                                                |
-| ------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| BR-001 | Inhibition is a temporary external constraint; it never replaces durable requested state.                                                                                                                                                                                                                                                                                           |
-| BR-002 | Effective state shall follow `current_state = f(requested_state, active_constraints)`.                                                                                                                                                                                                                                                                                              |
-| BR-003 | V1 resolution priority is: central stop and safety, inhibition, window, then auto-start/auto-stop; other priorities shall remain unchanged unless specified by design.                                                                                                                                                                                                              |
-| BR-004 | An `inactive → active` transition is the only trigger for the initial stop.                                                                                                                                                                                                                                                                                                         |
-| BR-005 | An `active → active` transition is idempotent: no new stop and no underlying repair are allowed.                                                                                                                                                                                                                                                                                    |
-| BR-006 | An `active → inactive` transition shall trigger exactly one reconciliation with the current requested state.                                                                                                                                                                                                                                                                        |
-| BR-007 | If current requested state is `OFF` on exit, no underlying device shall be reactivated.                                                                                                                                                                                                                                                                                             |
-| BR-008 | Inhibition shall not be represented as a modification of persisted `requested_state` or `current_state`; it shall be observable as a constraint and operating reason.                                                                                                                                                                                                               |
-| BR-009 | One provider may aggregate multiple sources; V1 does not define multiple independent providers per VTherm.                                                                                                                                                                                                                                                                          |
-| BR-010 | `UNKNOWN` is a distinct observable status: no resumption is allowed before confirmed `INACTIVE`. The effective policy remains the persisted policy; without an usable provider or known policy, the safe fallback is `turn off`. If enabled, one precautionary stop is executed; if disabled, no `turn_off` is sent, even in `UNKNOWN`. The withdrawal guard applies in both cases. |
+| ID     | Rule                                                                                                               |
+| ------ | ------------------------------------------------------------------------------------------------------------------ |
+| BR-001 | Inhibition is temporary; it never changes durable requested intent.                                                |
+| BR-002 | Activation is idempotent: the same inhibited state causes no new stop, control, or repair.                         |
+| BR-003 | `stop_underlyings` applies only to the entry stop; it does not disable `OFF` resolution, suspension, or the guard. |
+| BR-004 | The unique guard forbids every normal VTherm command to an underlying device during inhibition.                    |
+| BR-005 | Exit is a controlled guard exception and may only reconcile current requested state.                               |
+| BR-006 | The guard remains closed throughout exit reconciliation and opens afterward, never before.                         |
+| BR-007 | `UNKNOWN` is unconfirmed exit; the plugin maintains inhibition and does not call unset.                            |
+| BR-008 | Only confirmed `INACTIVE` authorizes a call to `unset_inhibition`.                                                 |
+| BR-009 | A requested `OFF` retained during inhibition forbids reactivation at exit.                                         |
+| BR-010 | Without a plugin, no inhibition rule applies and the historical cycle is preserved.                                |
 
-## 6. State transitions
+## 6. Transitions and persistence
 
-| State before | Event                                  | State after               | Mandatory effect                                                                                                         |
-| ------------ | -------------------------------------- | ------------------------- | ------------------------------------------------------------------------------------------------------------------------ |
-| Inactive     | Confirmed detection                    | Active, control withdrawn | Resolve `OFF`, complete the entry guard, suspend control and repair; send one `turn_off` only when policy is `turn off`. |
-| Active       | New cycle with no change               | Active, control withdrawn | Emit nothing new and leave external commands unchanged.                                                                  |
-| Active       | Requested HVAC/preset/setpoint changed | Active, control withdrawn | Record current intent without resuming underlying devices.                                                               |
-| Active       | Manual stop requested                  | Active, control withdrawn | Preserve `OFF` as current intent.                                                                                        |
-| Active       | Confirmed inhibition end               | Inactive                  | Recalculate and apply current requested state.                                                                           |
-| Inactive     | Normal cycle                           | Inactive                  | Preserve existing VTherm operation.                                                                                      |
+The normal-to-inhibited transition resolves `OFF`, records the dedicated reason, suspends control and repair, closes the guard, and sends at most one requested entry stop. Repeated set calls emit nothing again. Changes to intent are retained. After confirmed `INACTIVE`, unset enters reconciliation; normal commands remain blocked until current requested state has been applied, then the guard opens.
 
-## 7. Restart, reload, and persistence
+After restart, the core restores operational state without resending a completed stop. Active inhibition keeps guard and suspension active. If `INACTIVE` is unavailable, the plugin maintains inhibition. Source, delay, bypass, and policy persistence belongs to the plugin and is not duplicated in core. Without a plugin, historical behavior applies.
 
-- The core shall persist at least withdrawal state, provider status, effective policy, and completion of the entry transition, in runtime state distinct from `VThermState`. Guard completion is distinct from whether a physical stop was emitted.
-- After Home Assistant restarts, the core shall reconcile this state with the provider before resuming normal control.
-- A restart shall not generate a second stop merely because persistent state says that the initial stop was already executed.
-- If inhibition remains active after restart, control of underlying devices shall remain suspended.
-- If inhibition is inactive after restart, resumption shall use current requested state, not a value reconstructed from former effective state.
-- When loaded late, the provider enters `UNKNOWN`; resumption is forbidden until confirmed `INACTIVE`. Without a known policy or usable provider, the safe fallback is `turn off` and one precautionary stop is sent; a disabled policy forbids `turn_off`, including in this case.
-- On unload or factory unregistration, core and plugin shall await `provider.async_stop_listening()` **before** removing the callback or calling `unregister_inhibition_provider_factory()`. This delivers `UNKNOWN` to core and prevents an unsafe implicit resumption.
-- End-to-end physical exactly-once is not guaranteed: the stop is logically exactly-once per activation in a healthy process, with a documented failure boundary between service call and persistence.
+## 7. Functional constraints and exclusions
 
-## 8. V1 scope and exclusions
+The core retains centralized effective-state resolution and stable reason `hvac_off_inhibition`. Direct external control of underlying devices remains possible. Excluded are core configuration/entities/services, provider/factory/callback contracts, ternary API/core status, an `inhibited` requested/current state, modes other than `OFF`, and general HVAC refactoring.
 
-### Included
+## 8. Acceptance criteria
 
-- `InhibitionProvider` contract and dedicated factory in `vtherm_api`.
-- Provider uniqueness, lifecycle, transition listening, and provider-requested recalculation.
-- Core policy for one-time stop, control withdrawal, suspension, and reconciliation.
-- `OFF` HVAC constraint and dedicated stop reason.
-- Minimum persistence and core observability.
-- Source detection, delays, bypass, configuration, diagnostics, and specific documentation in a plugin.
-- Unit and integration tests corresponding to the requirements and acceptance criteria below.
+| ID     | Scenario                                                             | Expected result                                                                           |
+| ------ | -------------------------------------------------------------------- | ----------------------------------------------------------------------------------------- |
+| AC-001 | Plugin calls `set_inhibition(true)` while VTherm heats.              | Effective HVAC `OFF`, dedicated reason, control/repair suspended, one stop, guard closed. |
+| AC-002 | Plugin calls `set_inhibition(false)`.                                | Effective HVAC `OFF`, control/repair suspended, no stop, guard closed.                    |
+| AC-003 | Several cycles run during inhibition.                                | No normal command, repair, or repeated stop is sent.                                      |
+| AC-004 | Another integration commands an underlying device.                   | VTherm does not overwrite the external command.                                           |
+| AC-005 | HVAC, preset, or setpoint changes during inhibition.                 | Latest intent is retained and no underlying device resumes before exit.                   |
+| AC-006 | Confirmed `INACTIVE` is followed by `unset_inhibition()`.            | Guard remains closed during one reconciliation and opens afterward.                       |
+| AC-007 | A normal command arrives during reconciliation.                      | It is blocked; only exit operation is allowed.                                            |
+| AC-008 | `OFF` is requested during inhibition and inhibition ends.            | No underlying device is reactivated.                                                      |
+| AC-009 | Plugin is `UNKNOWN`.                                                 | Plugin maintains/calls set; unset is not called and no resumption occurs.                 |
+| AC-010 | Home Assistant restarts during active inhibition after entry stop.   | Guard remains closed, control stays suspended, and no second stop is sent.                |
+| AC-011 | VTherm runs without a plugin.                                        | Historical behavior is unchanged.                                                         |
+| AC-012 | Multiple core paths attempt an underlying command during inhibition. | Unique interceptor blocks them, except authorized entry stop or exit reconciliation.      |
 
-### Excluded
+## 9. Expected test matrix
 
-- A complete core `inhibit` feature with user configuration flow, entities, and services.
-- Adding an `inhibited` state to `requested_state` or `current_state`.
-- Forcing `eco`, `frost`, `fan_only`, or any mode other than `OFF`.
-- Multiple independent providers per VTherm.
-- Migration or replacement of the window feature.
-- General refactoring of all HVAC constraints.
-- Correction of code, configuration, dependencies, or tests as part of this specification.
+| Area            | Cases                                                              | Minimum verification                                                |
+| --------------- | ------------------------------------------------------------------ | ------------------------------------------------------------------- |
+| API             | set true/false, unset, repetition, invalid order                   | Façade contract; no provider, factory, callback, or ternary status. |
+| Core manager    | Normal, inhibited, reconciling, persistence, restoration           | Idempotent transitions, guard, and restored state.                  |
+| HVAC resolution | Heating, cooling, requested `OFF`, other constraints               | Effective `OFF` and stable reason without changing intent.          |
+| Interceptor     | Control, repair, multiple paths, concurrency                       | Every normal command blocked; only two exceptions possible.         |
+| Entry stop      | Policy true/false, stopped device, repetition                      | One stop when requested, never otherwise.                           |
+| Exit            | Confirmed inactive, each intent, slow reconciliation               | One reconciliation, guard closed until completion, then open.       |
+| Plugin          | Sources, configuration, delays, bypass, lifecycle, persistence     | Active/unknown maintain set; only confirmed inactive calls unset.   |
+| Restart         | Active inhibition, completed stop, unconfirmed exit                | No second stop or premature resumption.                             |
+| Regression      | No plugin, window, auto-start/stop, TPI, repair outside inhibition | Historical behavior unchanged outside scope.                        |
 
-## 9. Priorities and provider conflicts
+## 10. Assumptions, open questions, and traceability
 
-- Inhibition shall be applied after central stop and safety mechanisms, and before window and auto-start/auto-stop.
-- Priority between inhibition and future constraints not listed here is not defined by this specification.
-- The first provider registered for an eligible VTherm is retained as the only active provider in V1; each later candidate is rejected for that VTherm.
-- Any second incompatible factory or provider shall produce an explicit, traceable, non-silent conflict identifying the retained and rejected providers.
-- The provider shall not bypass centralized `StateManager` resolution by issuing HVAC commands itself.
-- For `UNKNOWN`, observable conservative withdrawal applies: no resumption before confirmed `INACTIVE`, and one precautionary stop if no stop is known. With no eligible factory (`ABSENT`), historical behavior is preserved. D-2087-06 covers this decision; it is no longer blocking for documentary convergence.
+### Assumptions
 
-## 10. Observability
+- Stable reason is `hvac_off_inhibition`.
+- The plugin aggregates sources when needed; core knows only façade calls.
+- `UNKNOWN` means exit is unconfirmed and inhibition must remain active.
+- Core and plugin business persistence are distinct.
 
-The system shall make at least the following verifiable:
+### Open questions
 
-- provider detection state;
-- core withdrawal state;
-- effective `hvac_off_inhibition` reason when applicable;
-- inhibition entry and exit;
-- execution of the one-time initial stop;
-- suspension of control and repair;
-- reconciliation performed on exit;
-- provider conflicts or errors.
-
-Source-, delay-, and bypass-specific diagnostics belong to the plugin. No new processing of sensitive data is required by the defined scope.
-
-## 11. Acceptance criteria
-
-| ID      | Observable scenario                                                                               | Expected result                                                                                                                                                                                                                 |
-| ------- | ------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| AC-001  | A provider confirms activation while VTherm requests heating or cooling, with the default policy. | Effective HVAC becomes `OFF`, the dedicated reason applies, control and repair are suspended, and underlying devices receive one `turn_off`.                                                                                    |
-| AC-001b | The plugin disables the physical-stop policy before entry.                                        | Effective HVAC becomes `OFF`, control and repair are suspended, the withdrawal guard completes, and no `turn_off` is sent.                                                                                                      |
-| AC-002  | Several cycles run with no detection change.                                                      | No new stop, HVAC command, heating control, or repair is emitted by VTherm.                                                                                                                                                     |
-| AC-003  | An underlying device is directly commanded by the user during inhibition.                         | VTherm does not issue an order to overwrite that command.                                                                                                                                                                       |
-| AC-004  | Requested HVAC, preset, or setpoint changes during inhibition.                                    | The latest requested intent is retained and no underlying device resumes before exit.                                                                                                                                           |
-| AC-005  | User requests `OFF` during inhibition and provider becomes inactive.                              | Exit does not reactivate heating; requested `OFF` is respected.                                                                                                                                                                 |
-| AC-006  | Provider becomes inactive after inhibition while heating intent remains.                          | Core recalculates and applies current intent subject to other active constraints.                                                                                                                                               |
-| AC-007  | Home Assistant restarts during active inhibition after initial stop.                              | Inhibition remains active, no unnecessary second stop is sent, and control remains suspended.                                                                                                                                   |
-| AC-008  | Home Assistant restarts while inhibition is inactive.                                             | VTherm resumes normal operation with current requested state.                                                                                                                                                                   |
-| AC-009  | Two providers attempt to register for the same VTherm.                                            | An explicit conflict is reported and only one provider remains allowed.                                                                                                                                                         |
-| AC-010  | Provider is `UNKNOWN` at loading, after an error, or during reload.                               | Status is observable, no resumption occurs before confirmed `INACTIVE`; the no-policy fallback is `turn off` and sends one precautionary stop, while a disabled policy never sends `turn_off`. The guard applies in both cases. |
-| AC-011  | Effective HVAC is already `OFF` but an underlying device is active on entry.                      | Initial stop is still sent once.                                                                                                                                                                                                |
-| AC-012  | Window or auto-start/auto-stop constraint is active together with inhibition.                     | Inhibition follows V1 priority and does not degrade other unchanged constraints.                                                                                                                                                |
-| AC-013  | Two factories are eligible for the same VTherm.                                                   | The first registered is retained, the second is rejected, and the conflict names both providers.                                                                                                                                |
-| AC-014  | A failure occurs between physical stop and guard persistence.                                     | The physical exactly-once limitation is documented; no automatic resumption occurs without `INACTIVE`.                                                                                                                          |
-
-## 12. Expected test matrix
-
-| Area            | Expected cases                                                                                           | Minimum coverage                                                                                                   |
-| --------------- | -------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------ |
-| API / factory   | Valid registration, uniqueness, conflict, lifecycle, absent provider, immutable command-free view        | Unit tests for contract, explicit errors, and `InhibitionThermostatView`.                                          |
-| Detection       | Inactive/active transitions, confirmed delays, repeated state, unconfirmed state                         | Unit tests for provider or plugin adapter.                                                                         |
-| HVAC resolution | Requested heating, cooling, and `OFF`; dedicated reason; priority over window and auto-start/stop        | `StateManager` unit tests.                                                                                         |
-| Entry           | Active underlying device, already-stopped underlying device, multiple underlying devices, one-time stop  | Unit and integration tests for produced commands.                                                                  |
-| Holding         | Normal cycles, external command, repair, and heating control                                             | Integration tests ensuring no VTherm orders.                                                                       |
-| Intent          | HVAC, preset, setpoint, and manual stop changes during inhibition                                        | Unit tests for retaining and reconciling intent.                                                                   |
-| Exit            | Inhibition cleared for each requested state, concurrent constraints                                      | Integration tests for resumption and priority.                                                                     |
-| Persistence     | Active restart, inactive restart, stop already performed, late provider restoration, asynchronous unload | Persistence and lifecycle tests, including confirmed `UNKNOWN` delivery before detachment.                         |
-| Exactly-once    | Enabled/disabled policy, `UNKNOWN`, known/unknown stop, failure between service call and persistence     | Logical guard tests, disabled-policy absence of `turn_off`, and explicit documentation of the physical limitation. |
-| Policy          | Default, per-VTherm plugin configuration, persisted policy, no-provider/no-policy fallback               | Plugin configuration and restoration tests; no core configuration flow.                                            |
-| Observability   | Attributes, reason, transitions, conflicts, and errors                                                   | Tests for diagnostic presence and stability.                                                                       |
-| Regression      | Operation without provider, window, auto-start/stop, TPI control, and existing repair                    | Core and integration regression suite.                                                                             |
-
-## 13. Assumptions, open questions, and traceability
-
-### Assumptions retained
-
-- Provider supplies a reliable state after its own delays.
-- V1 forces only `OFF`.
-- A provider may aggregate multiple sources; aggregation is the plugin’s responsibility.
-- Core must handle provider load order without premature resumption; `UNKNOWN` applies D-2087-06 until confirmed `INACTIVE`.
-- Core runtime persistence is distinct from `VThermState`.
-- Exactly-once applies to the entry transition and logical guard, not necessarily to physical stopping; it is logical per activation in a healthy process, not physical end-to-end after a failure.
-
-### Open questions and decisions required
-
-1. Approve the stable reason name `hvac_off_inhibition`.
-2. Define the exact format of persisted attributes and memory, including effective policy and entry-transition completion, distinct from physical stopping.
-3. Define the plugin option name and serialized values (`turn off` / `do not turn off`) and migration of existing configurations to the safe default.
-4. `UNKNOWN` fallback is covered by D-2087-06; it is no longer blocking for documentary convergence.
-5. Decide whether bypass is delivered with the V1 plugin or deferred; this is non-blocking and has no core impact.
-6. Define VTherm eligibility criteria for a provider.
-7. Confirm split and delivery order for API/core changes and plugin changes.
+1. Confirm the serialized plugin policy name determining `stop_underlyings`.
+2. Define exact core and plugin observability attributes.
+3. Define plugin behavior when policy changes during active inhibition.
+4. Confirm API, core, and plugin delivery order.
 
 ### Traceability
 
-This specification restates the established facts and recommendation from [documentation/tech-docs/issue-2087-review.md](../tech-docs/issue-2087-review.md). Behaviors explicitly marked as proposed, assumptions, or open questions are not existing behaviors. No code, configuration file, dependency, or test was modified to produce this document.
+This specification is based on [the Issue #2087 review](../tech-docs/issue-2087-review.md) and the technical files listed in the metadata. It describes a target decision and does not claim that these operations already exist in code. No other file is modified by this revision.
