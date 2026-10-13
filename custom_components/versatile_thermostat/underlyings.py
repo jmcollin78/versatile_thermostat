@@ -44,7 +44,7 @@ from .vtherm_hvac_mode import VThermHvacMode, from_ha_hvac_mode, to_legacy_ha_hv
 from .keep_alive import IntervalCaller
 from .vtherm_central_api import VersatileThermostatAPI
 from .underlying_state_manager import UnderlyingStateManager
-from .inhibition_manager import InhibitionManager
+from .inhibition_manager import CommandGate, InhibitionManager
 
 resend_delay_sec = 2
 
@@ -505,8 +505,10 @@ class UnderlyingSwitch(UnderlyingEntity):
         """Turn heater toggleable device off."""
         self._keep_alive.cancel()  # Cancel early to avoid a turn_on/turn_off race condition
         if self.is_command_blocked(self._domain, self._off_command.get("command")):
-            # The VTherm is off for the inhibition: release its central power reservation
-            self._thermostat.power_manager.sub_power_consumption_to_central_power_manager(self.power_reservation_key)
+            # Inhibited (gate closed), the VTherm is off: release its central power reservation.
+            # Not while EXIT_RECONCILING: the reconciliation may have reserved it.
+            if self._thermostat.inhibition_manager.command_gate is CommandGate.CLOSED:
+                self._thermostat.power_manager.sub_power_consumption_to_central_power_manager(self.power_reservation_key)
             return
         _LOGGER.debug("%s - Stopping underlying entity %s", self, self._entity_id)
 

@@ -43,6 +43,9 @@ ERROR_ENTRY_STOP_FAILED = "entry_stop_failed"
 ERROR_EXIT_RECONCILE_FAILED = "exit_reconcile_failed"
 ERROR_EXIT_RECONCILE_CANCELLED = "exit_reconcile_cancelled"
 
+# Maximum number of reconciliation walks when other call chains are dropped during the exit
+MAX_EXIT_RECONCILE_WALKS = 3
+
 # User settings which are not part of the requested state: dropped with a warning
 _USER_SETTING_SERVICES = frozenset({SERVICE_SET_FAN_MODE, SERVICE_SET_HUMIDITY, SERVICE_SET_SWING_MODE, SERVICE_SET_SWING_HORIZONTAL_MODE})
 
@@ -96,6 +99,7 @@ class InhibitionManager:
         # A command of another call chain was dropped while EXIT_RECONCILING
         self._blocked_during_exit: bool = False
         self._dump_scheduled: bool = False
+        self._dump_task: asyncio.Task | None = None
 
     def __str__(self) -> str:
         return f"{self._vtherm}-inhibition"
@@ -224,6 +228,7 @@ class InhibitionManager:
             except asyncio.CancelledError as err:
                 cancelled = cancelled or err
             self._persist()
+            await self._async_flush()
             if cancelled is not None:
                 raise cancelled
 
@@ -245,7 +250,10 @@ class InhibitionManager:
         self._exit_future = future
         try:
             async with self._lock:
-                await self._async_exit()
+                try:
+                    await self._async_exit()
+                finally:
+                    await self._async_flush()
         except asyncio.CancelledError:
             future.cancel()
             raise
@@ -348,17 +356,24 @@ class InhibitionManager:
     async def _async_exit_reconcile(self):
         """Apply the current requested state to every underlying, then open the gate"""
         self._exit_pending = False
-        self._blocked_during_exit = False
         vtherm = self._vtherm
         try:
             with self._transaction_scope(InhibitionTransaction.EXIT_RECONCILE):
-                # Commands dropped during the inhibition may have updated the last sent caches
-                for under in vtherm.all_underlying_entities:
-                    await under.async_inhibition_resync()
-                # Walk every underlying even if the effective mode does not change (OFF -> OFF)
-                vtherm.requested_state.force_changed()
-                vtherm.current_state.force_changed()
-                await vtherm.update_states(force=True)
+                for walk in range(MAX_EXIT_RECONCILE_WALKS):
+                    if walk:
+                        # Another call chain was dropped during the walk: it may have changed
+                        # the current state and the caches. Walk again before opening the gate.
+                        _LOGGER.info("%s - Commands were dropped during the reconciliation. Reconciling again", self)
+                    self._blocked_during_exit = False
+                    # Commands dropped during the inhibition may have updated the last sent caches
+                    for under in vtherm.all_underlying_entities:
+                        await under.async_inhibition_resync()
+                    # Walk every underlying even if the effective mode does not change (OFF -> OFF)
+                    vtherm.requested_state.force_changed()
+                    vtherm.current_state.force_changed()
+                    await vtherm.update_states(force=True)
+                    if not self._blocked_during_exit:
+                        break
         except (Exception, asyncio.CancelledError) as err:
             await self._async_rollback_exit(err)
             raise
@@ -372,17 +387,12 @@ class InhibitionManager:
         self._persist()
 
         if self._blocked_during_exit:
-            # Another call chain was dropped during the reconciliation: it may have
-            # updated caches and cancelled a keep-alive. Apply the current state once more.
+            # Still dropping commands after the last walk: open anyway (the next cycle
+            # applies the state) and re-arm what a dropped command cancelled
             self._blocked_during_exit = False
-            _LOGGER.info("%s - Commands were dropped during the reconciliation. Applying the current state again", self)
+            _LOGGER.warning("%s - Commands were still dropped after %d reconciliation walks. Gate opened", self, MAX_EXIT_RECONCILE_WALKS)
             for under in vtherm.all_underlying_entities:
                 under.on_inhibition_gate_opened()
-            try:
-                vtherm.requested_state.force_changed()
-                await vtherm.update_states(force=True)
-            except Exception as err:  # pylint: disable=broad-except
-                _LOGGER.error("%s - Error while applying the current state after the exit: %s", self, err)
 
     async def _async_rollback_exit(self, err: BaseException):
         """Back to a safe inhibited state after a failed or cancelled exit. The entry stop
@@ -419,7 +429,12 @@ class InhibitionManager:
             _LOGGER.warning("%s - Cannot publish the inhibition state: %s", self, err)
         if not self._dump_scheduled:
             self._dump_scheduled = True
-            vtherm.hass.async_create_task(self._async_dump(), eager_start=False)
+            self._dump_task = vtherm.hass.async_create_task(self._async_dump(), eager_start=False)
+
+    async def _async_flush(self):
+        """Wait for the last scheduled dump: set and unset return once saved"""
+        if (task := self._dump_task) is not None and not task.done():
+            await asyncio.shield(task)
 
     async def _async_dump(self):
         """Save the restore states. A transition after this point schedules another dump."""

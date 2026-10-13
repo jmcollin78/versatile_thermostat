@@ -524,7 +524,8 @@ async def test_switch_command_during_exit_reconciliation_is_blocked(hass: HomeAs
         await asyncio.wait_for(asyncio.gather(exit1, exit2), 5)
         await hass.async_block_till_done()
         assert vtherm.inhibition_manager.command_gate == CommandGate.OPEN
-        assert spy.services() == [("switch", "turn_on")]
+        # the commands dropped during the pause make the reconciliation walk again (turn_on only)
+        assert set(spy.services()) == {("switch", "turn_on")}
 
 
 async def test_switch_exit_failure_returns_to_inhibition(hass: HomeAssistant, fake_temp_sensor, fake_ext_temp_sensor, fake_underlying_switch):
@@ -1256,9 +1257,66 @@ async def test_restore_happens_before_the_managers_start(hass: HomeAssistant, fa
     assert vtherm.inhibition_manager.command_gate == CommandGate.OPEN
 
 
-async def test_commands_dropped_during_exit_are_reapplied(hass: HomeAssistant, fake_temp_sensor, fake_ext_temp_sensor, fake_underlying_switch, caplog):
-    """A command of another chain dropped during EXIT_RECONCILING (which cancelled the
-    keep-alive) triggers one more application of the current state once the gate is open"""
+# Two call chains run update_states concurrently here: the cycle scheduler / delayed
+# resend handles of one chain are overwritten by the other (existing behavior, not
+# related to the inhibition), which leaves a timer at the end of the test.
+@pytest.mark.parametrize("expected_lingering_timers", [True])
+async def test_valve_change_during_exit_is_reconciled(hass: HomeAssistant, expected_lingering_timers, fake_temp_sensor, fake_ext_temp_sensor, fake_underlying_valve, caplog):
+    """Another call chain changes the target during EXIT_RECONCILING: its valve command is
+    dropped (but updated the cache). The reconciliation walks again before opening the gate,
+    so the valve gets the opening of the new target"""
+    vtherm = await create_thermostat(hass, valve_entry(), "climate.theovervalvemockname", temps=PRESETS)
+    vtherm._set_now(datetime.now(tz=get_tz(hass)))
+    fake_temp_sensor.set_native_value(17)
+    await hass.async_block_till_done()
+    await vtherm.async_set_hvac_mode(VThermHvacMode_HEAT)
+    await vtherm.async_set_preset_mode(VThermPreset.COMFORT)
+    await advance(hass, vtherm, 1)
+    await inhibit(hass, vtherm, True)
+    under = vtherm.underlying_entity(0)
+    with spy_services([VALVE]) as spy:
+        spy.pause_on = ("number", "set_value")
+        exit_task = hass.async_create_task(vtherm.async_unset_inhibition())
+        await asyncio.wait_for(spy.paused.wait(), 5)
+        other = hass.async_create_task(vtherm.async_set_temperature(temperature=25))
+        await asyncio.sleep(0.05)
+        assert vtherm.inhibition_manager.command_gate == CommandGate.EXIT_RECONCILING
+        with caplog.at_level(logging.INFO):
+            spy.release.set()
+            await asyncio.wait_for(asyncio.gather(exit_task, other), 5)
+            await hass.async_block_till_done()
+    assert any("Reconciling again" in r.getMessage() for r in caplog.records)
+    assert vtherm.target_temperature == 25
+    assert under.percent_open == under.last_sent_opening_value
+    assert float(hass.states.get(VALVE).state) == under.percent_open
+    assert under.percent_open > 59
+
+
+# Two call chains run update_states concurrently here: the cycle scheduler / delayed
+# resend handles of one chain are overwritten by the other (existing behavior, not
+# related to the inhibition), which leaves a timer at the end of the test.
+@pytest.mark.parametrize("expected_lingering_timers", [True])
+async def test_climate_valve_change_during_exit_is_reconciled(hass: HomeAssistant, expected_lingering_timers, fake_temp_sensor, fake_ext_temp_sensor):
+    """over_climate_valve: a setpoint change from another chain during EXIT_RECONCILING
+    (dropped, but it updated the last sent temperature) reaches the TRV before the gate opens"""
+    vtherm, _, _, _ = await heating_climate_valve_vtherm(hass, fake_temp_sensor)
+    await inhibit(hass, vtherm, True)
+    with spy_services([CLIMATE, OPENING, CLOSING]) as spy:
+        spy.pause_on = ("climate", "set_hvac_mode")
+        exit_task = hass.async_create_task(vtherm.async_unset_inhibition())
+        await asyncio.wait_for(spy.paused.wait(), 5)
+        other = hass.async_create_task(vtherm.async_set_temperature(temperature=25))
+        await asyncio.sleep(0.05)
+        spy.release.set()
+        await asyncio.wait_for(asyncio.gather(exit_task, other), 5)
+        await hass.async_block_till_done()
+    assert vtherm.target_temperature == 25
+    assert hass.states.get(CLIMATE).attributes["temperature"] == 25
+    assert hass.states.get(CLIMATE).state == HVACMode.HEAT
+
+
+async def test_switch_keep_alive_rearmed_after_exit_with_dropped_command(hass: HomeAssistant, fake_temp_sensor, fake_ext_temp_sensor, fake_underlying_switch):
+    """A turn_off dropped during EXIT_RECONCILING cancelled the keep-alive: it is re-armed"""
     vtherm = await heating_switch_vtherm(hass, fake_temp_sensor)
     under: UnderlyingSwitch = vtherm.underlying_entity(0)
     with spy_services([SWITCH]) as spy:
@@ -1267,22 +1325,52 @@ async def test_commands_dropped_during_exit_are_reapplied(hass: HomeAssistant, f
         task = hass.async_create_task(vtherm.async_unset_inhibition())
         await asyncio.wait_for(spy.paused.wait(), 5)
         await under.turn_off()  # dropped, and cancels the keep-alive
-        hooks = []
-        original_hook = UnderlyingSwitch.on_inhibition_gate_opened
-
-        def hook(self):
-            hooks.append(vtherm.inhibition_manager.command_gate)
-            original_hook(self)
-
-        with caplog.at_level(logging.INFO), patch.object(UnderlyingSwitch, "on_inhibition_gate_opened", hook):
-            spy.release.set()
-            await asyncio.wait_for(task, 5)
-            await hass.async_block_till_done()
-        assert any("Applying the current state again" in r.getMessage() for r in caplog.records)
-        # the keep-alive is re-armed once the gate is open
-        assert hooks == [CommandGate.OPEN]
+        spy.release.set()
+        await asyncio.wait_for(task, 5)
+        await hass.async_block_till_done()
         assert under._keep_alive._remove_handle is not None
         assert hass.states.get(SWITCH).state == STATE_ON
+        spy.reset()
+        async_fire_time_changed(hass, dt_util.utcnow() + timedelta(seconds=11))
+        await hass.async_block_till_done()
+        assert ("switch", "turn_on") in spy.services()
+
+
+async def test_dropped_turn_off_during_exit_keeps_the_power_reservation(hass: HomeAssistant, fake_temp_sensor, fake_ext_temp_sensor, fake_underlying_switch):
+    """While EXIT_RECONCILING, a dropped turn_off does not release the reservation the
+    reconciliation may have made"""
+    vtherm = await heating_switch_vtherm(hass, fake_temp_sensor)
+    under: UnderlyingSwitch = vtherm.underlying_entity(0)
+    power = vtherm.power_manager
+    with spy_services([SWITCH]) as spy:
+        await inhibit(hass, vtherm, True)
+        spy.pause_on = ("switch", "turn_on")
+        task = hass.async_create_task(vtherm.async_unset_inhibition())
+        await asyncio.wait_for(spy.paused.wait(), 5)
+        with patch.object(type(power), "sub_power_consumption_to_central_power_manager") as sub:
+            await under.turn_off()
+        sub.assert_not_called()
+        spy.release.set()
+        await asyncio.wait_for(task, 5)
+        await hass.async_block_till_done()
+
+
+async def test_set_and_unset_return_after_the_dump(hass: HomeAssistant, fake_temp_sensor, fake_ext_temp_sensor, fake_underlying_switch):
+    """set and unset return once the restore states are saved"""
+    vtherm = await heating_switch_vtherm(hass, fake_temp_sensor)
+    await hass.async_block_till_done()
+    dumps = []
+
+    async def dump(_self):
+        await asyncio.sleep(0.01)
+        dumps.append(vtherm.inhibition_manager.as_dict()["command_gate"])
+
+    with patch("homeassistant.helpers.restore_state.RestoreStateData.async_dump_states", dump):
+        await vtherm.async_set_inhibition(True)
+        assert dumps and dumps[-1] == "CLOSED"
+        await vtherm.async_unset_inhibition()
+        assert dumps[-1] == "OPEN"
+        await hass.async_block_till_done()
 
 
 async def test_blocked_turn_off_releases_the_power_reservation(hass: HomeAssistant, fake_temp_sensor, fake_ext_temp_sensor, fake_underlying_switch):
