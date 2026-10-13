@@ -250,6 +250,8 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
 
         # Issue #2087 - inhibition requested by a plugin through the VTherm API
         self._inhibition: InhibitionManager = InhibitionManager(self)
+        # The last state read at the start of async_startup, reused by get_my_previous_state
+        self._startup_last_state: tuple[State | None] | None = None
 
         self.post_init(entry_infos)
 
@@ -563,7 +565,9 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
 
         # Issue #2087 - restore the inhibition (gate closed) before any manager or underlying
         # starts. Ignored if the plugin already called set or unset.
-        self._inhibition.restore_state(await self.async_get_last_state())
+        old_state = await self.async_get_last_state()
+        self._startup_last_state = (old_state,)
+        self._inhibition.restore_state(old_state)
 
         _LOGGER.debug("%s - Calling async_startup_internal", self)
         # need_write_state = False
@@ -702,8 +706,12 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
         """Try to get my previous state"""
         self._energy_unit_needs_persistence = False
 
-        # Check If we have an old state
-        old_state = await self.async_get_last_state()
+        # Check If we have an old state (already read at the start of async_startup)
+        if self._startup_last_state is not None:
+            (old_state,) = self._startup_last_state
+            self._startup_last_state = None
+        else:
+            old_state = await self.async_get_last_state()
         _LOGGER.debug(
             "%s - Calling get_my_previous_state old_state is %s", self, old_state
         )
