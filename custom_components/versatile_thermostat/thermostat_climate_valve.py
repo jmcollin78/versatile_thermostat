@@ -49,6 +49,8 @@ class ThermostatOverClimateValve(ThermostatProp[UnderlyingClimate], ThermostatOv
         self._underlyings_valve_regulation: list[UnderlyingValveRegulation] = []
         self._valve_open_percent: int | None = None
         self._last_calculation_timestamp: datetime | None = None
+        self._last_calculation_hvac_mode: VThermHvacMode | None = None
+        self._last_sent_hvac_mode: VThermHvacMode | None = None
         self._auto_regulation_dpercent: float | None = None
         self._auto_regulation_period_min: int | None = None
         self._min_opening_degress: list[int] = []
@@ -242,9 +244,12 @@ class ThermostatOverClimateValve(ThermostatProp[UnderlyingClimate], ThermostatOv
         # For testing purpose. Should call _set_now() before
         now = self.now
 
+        # A change of hvac_mode (sleep, off, heat ...) must be applied at once, whatever the regulation period
+        hvac_mode_changed = self.vtherm_hvac_mode != self._last_calculation_hvac_mode
+
         if self._last_calculation_timestamp is not None:
             period = (now - self._last_calculation_timestamp).total_seconds() / 60
-            if not force and period < self._auto_regulation_period_min:
+            if not force and not hvac_mode_changed and period < self._auto_regulation_period_min:
                 _LOGGER.info(
                     "%s - do not calculate TPI because regulation_period (%d) is not exceeded",
                     self,
@@ -270,7 +275,7 @@ class ThermostatOverClimateValve(ThermostatProp[UnderlyingClimate], ThermostatOv
                 new_valve_percent = 0
 
             dpercent = new_valve_percent - self._valve_open_percent if self._valve_open_percent is not None else 0
-            if self._last_calculation_timestamp is not None and new_valve_percent > 0 and -1 * self._auto_regulation_dpercent <= dpercent < self._auto_regulation_dpercent:
+            if not hvac_mode_changed and self._last_calculation_timestamp is not None and new_valve_percent > 0 and -1 * self._auto_regulation_dpercent <= dpercent < self._auto_regulation_dpercent:
                 _LOGGER.debug(
                     "%s - do not calculate TPI because regulation_dpercent (%.1f) is not exceeded",
                     self,
@@ -284,11 +289,13 @@ class ThermostatOverClimateValve(ThermostatProp[UnderlyingClimate], ThermostatOv
             and self._valve_open_percent == new_valve_percent
         ):
             _LOGGER.debug("%s - no change in valve_open_percent.", self)
+            self._last_calculation_hvac_mode = self.vtherm_hvac_mode
             return
 
         self._valve_open_percent = new_valve_percent
 
         self._last_calculation_timestamp = now
+        self._last_calculation_hvac_mode = self.vtherm_hvac_mode
 
     def do_recalculate_later(self):
         """A utility function to set the valve open percent later on all underlyings"""
@@ -319,7 +326,8 @@ class ThermostatOverClimateValve(ThermostatProp[UnderlyingClimate], ThermostatOv
             )
             return
 
-        if not force and not self.check_auto_regulation_period_min(self.now):
+        # A change of hvac_mode must be sent at once, whatever the regulation period
+        if not force and self.vtherm_hvac_mode == self._last_sent_hvac_mode and not self.check_auto_regulation_period_min(self.now):
             return
 
         # Don't send temperature if hvac_mode is off
@@ -341,6 +349,8 @@ class ThermostatOverClimateValve(ThermostatProp[UnderlyingClimate], ThermostatOv
 
         for under in self._underlyings_valve_regulation:
             await under.set_valve_open_percent()
+
+        self._last_sent_hvac_mode = self.vtherm_hvac_mode
 
     @overrides
     def build_hvac_list(self) -> list[VThermHvacMode]:

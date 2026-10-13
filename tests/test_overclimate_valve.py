@@ -1272,3 +1272,214 @@ async def test_over_climate_valve_bug_1798(hass: HomeAssistant, fake_temp_sensor
         assert vtherm.device_actives == []
 
     vtherm.remove_thermostat()
+
+
+async def _create_valve_vtherm_for_mode_change(hass: HomeAssistant, room_temp: float):
+    """Create a started over_climate valve VTherm (period 5 min) in HEAT, COMFORT preset (target 19) and return it with its valve numbers.
+    The last valve calculation and the last valve send have just been done, so the regulation period is not elapsed."""
+    entry = MockConfigEntry(
+        domain=DOMAIN,
+        title="TheOverClimateMockName",
+        unique_id="uniqueId",
+        version=2,
+        minor_version=2,
+        data={
+            CONF_NAME: "TheOverClimateMockName",
+            CONF_TEMP_SENSOR: "sensor.mock_temp_sensor",
+            CONF_CYCLE_MIN: 5,
+            CONF_DEVICE_POWER: 1,
+            CONF_USE_MAIN_CENTRAL_CONFIG: False,
+            CONF_USE_CENTRAL_MODE: False,
+            CONF_THERMOSTAT_TYPE: CONF_THERMOSTAT_CLIMATE,
+            CONF_EXTERNAL_TEMP_SENSOR: "sensor.mock_ext_temp_sensor",
+            CONF_TEMP_MIN: 15,
+            CONF_TEMP_MAX: 30,
+            CONF_STEP_TEMPERATURE: 0.1,
+            CONF_UNDERLYING_LIST: ["climate.mock_climate"],
+            CONF_AC_MODE: False,
+            CONF_AUTO_REGULATION_MODE: CONF_AUTO_REGULATION_VALVE,
+            CONF_AUTO_REGULATION_DTEMP: 0.5,
+            CONF_AUTO_REGULATION_PERIOD_MIN: 5,
+            CONF_AUTO_FAN_MODE: CONF_AUTO_FAN_HIGH,
+            CONF_AUTO_REGULATION_USE_DEVICE_TEMP: False,
+            CONF_PROP_FUNCTION: PROPORTIONAL_FUNCTION_TPI,
+            CONF_TPI_COEF_INT: 0.3,
+            CONF_TPI_COEF_EXT: 0.1,
+            CONF_TPI_THRESHOLD_LOW: 0.0,
+            CONF_TPI_THRESHOLD_HIGH: 0.0,
+            CONF_OPENING_DEGREE_LIST: ["number.mock_opening_degree"],
+            CONF_CLOSING_DEGREE_LIST: ["number.mock_closing_degree"],
+            CONF_SYNC_ENTITY_LIST: ["number.mock_offset_calibration"],
+            CONF_SYNC_WITH_CALIBRATION: True,
+            CONF_SYNC_DEVICE_INTERNAL_TEMP: True,
+            CONF_USE_PRESENCE_FEATURE: False,
+            CONF_USE_WINDOW_FEATURE: False,
+            CONF_USE_MOTION_FEATURE: False,
+            CONF_USE_POWER_FEATURE: False,
+        }
+        | MOCK_DEFAULT_CENTRAL_CONFIG
+        | MOCK_ADVANCED_CONFIG,
+    )
+
+    fake_underlying_climate: MockClimate = await create_and_register_mock_climate(hass, "mock_climate", "MockClimateName")
+    fake_opening_degree = await create_and_register_mock_number(hass, "mock_opening_degree", "MockOpeningDegree", value=11, min=0, max=100)
+    fake_closing_degree = await create_and_register_mock_number(hass, "mock_closing_degree", "MockClosingDegree", value=89, min=0, max=100)
+    await create_and_register_mock_number(hass, "mock_offset_calibration", "MockOffsetCalibration", value=0, min=-12, max=12, step=0.1)
+
+    now: datetime = datetime.now(tz=get_tz(hass))
+
+    vtherm: ThermostatOverClimateValve = await create_thermostat(hass, entry, "climate.theoverclimatemockname")
+    assert vtherm
+    vtherm._set_now(now)
+    await set_all_climate_preset_temp(hass, vtherm, None, "theoverclimatemockname")
+    fake_underlying_climate.set_current_temperature(room_temp)
+
+    # The heating starts in a cold room (valve 40%)
+    await send_temperature_change_event(vtherm, 18, now, True)
+    await hass.async_block_till_done()
+
+    now = now + timedelta(minutes=10)
+    vtherm._set_now(now)
+    await vtherm.async_set_hvac_mode(VThermHvacMode_HEAT)
+    await hass.async_block_till_done()
+    await vtherm.async_set_preset_mode(VThermPreset.COMFORT)
+    await hass.async_block_till_done()
+    assert vtherm.target_temperature == 19
+    assert vtherm.vtherm_hvac_mode is VThermHvacMode_HEAT
+
+    if room_temp != 18:
+        # The room warms up: the valve is closed
+        now = now + timedelta(minutes=6)
+        vtherm._set_now(now)
+        await send_temperature_change_event(vtherm, room_temp, now, True)
+        await hass.async_block_till_done()
+        assert vtherm.valve_open_percent == 0
+
+    # Simulate a valve calculation and a valve send that have just been done
+    vtherm._last_calculation_timestamp = now
+    vtherm._last_regulation_change = now
+
+    # Still inside the regulation period for the following steps
+    now = now + timedelta(minutes=1)
+    vtherm._set_now(now)
+    return vtherm, now, fake_opening_degree, fake_closing_degree
+
+
+async def test_over_climate_valve_mode_change_heat_to_sleep_is_immediate(hass: HomeAssistant, fake_temp_sensor, fake_ext_temp_sensor):
+    """Entering sleep opens the valve at 100% at once, even inside the regulation period (issue #2111)"""
+    fake_temp_sensor.set_native_value(22)
+    fake_ext_temp_sensor.set_native_value(22)
+    vtherm, _, opening, closing = await _create_valve_vtherm_for_mode_change(hass, 22)
+
+    assert vtherm.valve_open_percent == 0
+    assert opening.native_value == 0
+    assert closing.native_value == 100
+
+    await vtherm.async_set_hvac_mode(VThermHvacMode_SLEEP)
+    await hass.async_block_till_done()
+
+    assert vtherm.is_sleeping is True
+    assert vtherm.valve_open_percent == 100
+    assert opening.native_value == 100
+    assert closing.native_value == 0
+
+    vtherm.remove_thermostat()
+
+
+async def test_over_climate_valve_mode_change_sleep_to_heat_is_immediate(hass: HomeAssistant, fake_temp_sensor, fake_ext_temp_sensor):
+    """Leaving sleep closes the valve at once when the room is warm: no stale 100% nor heating action (issue #2111)"""
+    fake_temp_sensor.set_native_value(22)
+    fake_ext_temp_sensor.set_native_value(22)
+    vtherm, _, opening, closing = await _create_valve_vtherm_for_mode_change(hass, 22)
+
+    await vtherm.async_set_hvac_mode(VThermHvacMode_SLEEP)
+    await hass.async_block_till_done()
+    assert opening.native_value == 100
+
+    await vtherm.async_set_hvac_mode(VThermHvacMode_HEAT)
+    await hass.async_block_till_done()
+
+    assert vtherm.vtherm_hvac_mode is VThermHvacMode_HEAT
+    assert vtherm.valve_open_percent == 0
+    assert opening.native_value == 0
+    assert closing.native_value == 100
+    assert vtherm.hvac_action is not HVACAction.HEATING
+    assert vtherm.is_device_active is False
+    assert vtherm.nb_device_actives == 0
+
+    vtherm.remove_thermostat()
+
+
+async def test_over_climate_valve_mode_change_sleep_off_heat_does_not_resend_stale_100(hass: HomeAssistant, fake_temp_sensor, fake_ext_temp_sensor):
+    """sleep -> off -> heat: off closes the valve and heat sends 0, not the stale 100% (issue #2111)"""
+    fake_temp_sensor.set_native_value(22)
+    fake_ext_temp_sensor.set_native_value(22)
+    vtherm, _, opening, closing = await _create_valve_vtherm_for_mode_change(hass, 22)
+
+    await vtherm.async_set_hvac_mode(VThermHvacMode_SLEEP)
+    await hass.async_block_till_done()
+    assert opening.native_value == 100
+
+    await vtherm.async_set_hvac_mode(VThermHvacMode_OFF)
+    await hass.async_block_till_done()
+    assert vtherm.valve_open_percent == 0
+    assert opening.native_value == 0
+    assert closing.native_value == 100
+
+    await vtherm.async_set_hvac_mode(VThermHvacMode_HEAT)
+    await hass.async_block_till_done()
+    assert vtherm.valve_open_percent == 0
+    assert opening.native_value == 0
+    assert closing.native_value == 100
+    assert vtherm.hvac_action is not HVACAction.HEATING
+    assert vtherm.is_device_active is False
+
+    vtherm.remove_thermostat()
+
+
+async def test_over_climate_valve_mode_change_off_to_heat_cold_room_sends_tpi_at_once(hass: HomeAssistant, fake_temp_sensor, fake_ext_temp_sensor):
+    """Cold room: off -> heat sends the computed TPI opening at once, inside the regulation period (issue #2111)"""
+    fake_temp_sensor.set_native_value(18)
+    fake_ext_temp_sensor.set_native_value(18)
+    vtherm, _, opening, closing = await _create_valve_vtherm_for_mode_change(hass, 18)
+
+    assert opening.native_value == 40  # 0.3*1 + 0.1*1
+
+    await vtherm.async_set_hvac_mode(VThermHvacMode_OFF)
+    await hass.async_block_till_done()
+    assert opening.native_value == 0
+
+    await vtherm.async_set_hvac_mode(VThermHvacMode_HEAT)
+    await hass.async_block_till_done()
+    assert vtherm.valve_open_percent == 40
+    assert opening.native_value == 40
+    assert closing.native_value == 60
+    assert vtherm.hvac_action is HVACAction.HEATING
+
+    vtherm.remove_thermostat()
+
+
+async def test_over_climate_valve_no_mode_change_is_still_throttled(hass: HomeAssistant, fake_temp_sensor, fake_ext_temp_sensor):
+    """Regression: without hvac_mode change, a second temperature update inside the period does not send a new valve command"""
+    fake_temp_sensor.set_native_value(18)
+    fake_ext_temp_sensor.set_native_value(18)
+    vtherm, now, opening, closing = await _create_valve_vtherm_for_mode_change(hass, 18)
+    assert opening.native_value == 40
+
+    with patch.object(UnderlyingValveRegulation, "send_percent_open", new_callable=AsyncMock) as mock_send:
+        now = now + timedelta(minutes=1)
+        vtherm._set_now(now)
+        await send_temperature_change_event(vtherm, 17, now, True)
+        await hass.async_block_till_done()
+
+        now = now + timedelta(minutes=1)
+        vtherm._set_now(now)
+        await send_temperature_change_event(vtherm, 16, now, True)
+        await hass.async_block_till_done()
+
+        assert mock_send.call_count == 0
+
+    assert vtherm.valve_open_percent == 40
+    assert opening.native_value == 40
+
+    vtherm.remove_thermostat()
