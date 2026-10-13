@@ -209,6 +209,9 @@ class UnderlyingEntity:
         """Issue #2087 - before the exit reconciliation, resynchronize the caches
         that dropped commands may have updated"""
 
+    def on_inhibition_gate_opened(self):
+        """Issue #2087 - the gate opened after commands were dropped during the exit"""
+
     # override to be able to mock the call
     def call_later(
         self, hass: HomeAssistant, delay_sec: int, called_method
@@ -502,6 +505,8 @@ class UnderlyingSwitch(UnderlyingEntity):
         """Turn heater toggleable device off."""
         self._keep_alive.cancel()  # Cancel early to avoid a turn_on/turn_off race condition
         if self.is_command_blocked(self._domain, self._off_command.get("command")):
+            # The VTherm is off for the inhibition: release its central power reservation
+            self._thermostat.power_manager.sub_power_consumption_to_central_power_manager(self.power_reservation_key)
             return
         _LOGGER.debug("%s - Stopping underlying entity %s", self, self._entity_id)
 
@@ -566,6 +571,11 @@ class UnderlyingSwitch(UnderlyingEntity):
     async def async_inhibition_resync(self):
         """The dropped commands left the keep-alive cancelled. Follow the real state"""
         self._is_on_part_running = self.is_device_active is True
+        self.on_inhibition_gate_opened()
+
+    @overrides
+    def on_inhibition_gate_opened(self):
+        """A dropped turn_on/turn_off cancelled the keep-alive: re-arm it"""
         if not self._is_removed:
             self._keep_alive.set_async_action(self._keep_alive_callback)
 

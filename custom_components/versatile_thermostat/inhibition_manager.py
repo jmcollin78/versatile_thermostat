@@ -41,6 +41,7 @@ INHIBITION_SCHEMA_VERSION = 1
 
 ERROR_ENTRY_STOP_FAILED = "entry_stop_failed"
 ERROR_EXIT_RECONCILE_FAILED = "exit_reconcile_failed"
+ERROR_EXIT_RECONCILE_CANCELLED = "exit_reconcile_cancelled"
 
 # User settings which are not part of the requested state: dropped with a warning
 _USER_SETTING_SERVICES = frozenset({SERVICE_SET_FAN_MODE, SERVICE_SET_HUMIDITY, SERVICE_SET_SWING_MODE, SERVICE_SET_SWING_HORIZONTAL_MODE})
@@ -90,6 +91,11 @@ class InhibitionManager:
         self._exit_pending: bool = False
         self._exit_future: asyncio.Future | None = None
         self._warned: set[tuple[str, str]] = set()
+        # True once set or unset was called: a later snapshot restore must not override it
+        self._api_called: bool = False
+        # A command of another call chain was dropped while EXIT_RECONCILING
+        self._blocked_during_exit: bool = False
+        self._dump_scheduled: bool = False
 
     def __str__(self) -> str:
         return f"{self._vtherm}-inhibition"
@@ -127,6 +133,9 @@ class InhibitionManager:
         has to call unset again."""
         if old_state is None:
             return
+        if self._api_called:
+            _LOGGER.info("%s - Snapshot not restored: set or unset was already called", self)
+            return
         snapshot = (old_state.attributes.get("specific_states") or {}).get(ATTR_INHIBITION)
         if not isinstance(snapshot, dict) or snapshot.get("schema_version") != INHIBITION_SCHEMA_VERSION:
             return
@@ -156,6 +165,8 @@ class InhibitionManager:
         ):
             return False
 
+        if self._gate is CommandGate.EXIT_RECONCILING:
+            self._blocked_during_exit = True
         key = (str(target), service)
         if service in _USER_SETTING_SERVICES and key not in self._warned:
             self._warned.add(key)
@@ -180,7 +191,12 @@ class InhibitionManager:
     ## Transitions
     ##
     async def async_set(self, stop_underlyings: bool):
-        """Enter the inhibition. Idempotent while inhibited."""
+        """Enter the inhibition. Idempotent while inhibited.
+        A cancellation after the gate is closed does not stop the entry: it is
+        completed (OFF resolution, entry stop, persistence), then re-raised."""
+        self._api_called = True
+        # Last call wins: an unset called after this set must not join an exit started before it
+        self._exit_future = None
         async with self._lock:
             if self._inhibited:
                 _LOGGER.debug("%s - Already inhibited. Nothing is sent again", self)
@@ -196,24 +212,34 @@ class InhibitionManager:
             self._warned.clear()
             self._touch()
             _LOGGER.info("%s - Inhibition set (stop_underlyings=%s)", self, self._entry_stop_requested)
-            await self._async_persist()
+            self._persist()
 
+            cancelled: asyncio.CancelledError | None = None
             try:
-                # Resolve the effective OFF. Every command it produces is dropped by the gate
-                self._vtherm.requested_state.force_changed()
-                await self._vtherm.update_states(force=True)
-            except Exception as err:  # pylint: disable=broad-except
-                _LOGGER.error("%s - Error while resolving the inhibited state: %s", self, err)
-
-            await self._async_entry_stop_if_ready()
-            await self._async_persist()
+                await self._async_resolve_inhibited_state()
+            except asyncio.CancelledError as err:
+                cancelled = err
+            try:
+                await self._async_entry_stop_if_ready()
+            except asyncio.CancelledError as err:
+                cancelled = cancelled or err
+            self._persist()
+            if cancelled is not None:
+                raise cancelled
 
     async def async_unset(self):
-        """Leave the inhibition. A concurrent call joins the running exit.
+        """Leave the inhibition. A concurrent call joins the running exit and gets its
+        outcome; if that exit was cancelled, the joiner runs its own exit.
         Raises if the exit reconciliation fails (the VTherm stays inhibited)."""
-        if self._exit_future is not None:
-            await asyncio.shield(self._exit_future)
-            return
+        self._api_called = True
+        while (running := self._exit_future) is not None:
+            try:
+                await asyncio.shield(running)
+                return
+            except asyncio.CancelledError:
+                if running.cancelled() and not _is_current_task_cancelling():
+                    continue
+                raise
 
         future = asyncio.get_running_loop().create_future()
         self._exit_future = future
@@ -230,7 +256,8 @@ class InhibitionManager:
         else:
             future.set_result(None)
         finally:
-            self._exit_future = None
+            if self._exit_future is future:
+                self._exit_future = None
 
     async def async_on_vtherm_ready(self):
         """Complete an entry stop or an exit deferred until the VTherm is ready"""
@@ -242,41 +269,59 @@ class InhibitionManager:
                     try:
                         await self._async_exit_reconcile()
                     except Exception:  # pylint: disable=broad-except
-                        # already logged, the VTherm is inhibited again
+                        # already logged (last_error_code), the VTherm is inhibited again
                         pass
             elif self._is_entry_stop_pending:
                 await self._async_entry_stop_if_ready()
-                await self._async_persist()
+                self._persist()
 
     @property
     def _is_entry_stop_pending(self) -> bool:
         return self._inhibited and self._gate is CommandGate.CLOSED and self._entry_stop_requested and not self._entry_stop_completed
 
+    async def _async_resolve_inhibited_state(self):
+        """Resolve the effective OFF. Every command it produces is dropped by the gate"""
+        try:
+            self._vtherm.requested_state.force_changed()
+            await self._vtherm.update_states(force=True)
+        except Exception as err:  # pylint: disable=broad-except
+            _LOGGER.error("%s - Error while resolving the inhibited state: %s", self, err)
+
     async def _async_entry_stop_if_ready(self):
-        """Send the single entry stop if it is requested and not done yet"""
+        """Send the single entry stop if it is requested and not done yet.
+        A cancellation does not interrupt it: it is re-raised at the end."""
         if not self._is_entry_stop_pending:
             return
         if not self._vtherm.is_ready:
             _LOGGER.info("%s - Entry stop deferred until the VTherm is ready", self)
             return
 
+        cancelled: asyncio.CancelledError | None = None
         # Cancel the running cycle before the transaction: nothing it triggers may pass
         scheduler = self._vtherm.cycle_scheduler
         if scheduler:
-            await scheduler.cancel_cycle()
+            try:
+                await scheduler.cancel_cycle()
+            except asyncio.CancelledError as err:
+                cancelled = err
 
         failed = False
         with self._transaction_scope(InhibitionTransaction.ENTRY_STOP):
             for under in self._vtherm.all_underlying_entities:
                 try:
                     await under.async_inhibition_stop()
+                except asyncio.CancelledError as err:
+                    cancelled = cancelled or err
                 except Exception as err:  # pylint: disable=broad-except
                     failed = True
                     _LOGGER.error("%s - Entry stop failed for %s: %s", self, under, err)
         self._entry_stop_completed = True
-        self._last_error_code = ERROR_ENTRY_STOP_FAILED if failed else None
+        if failed:
+            self._last_error_code = ERROR_ENTRY_STOP_FAILED
         self._touch()
         _LOGGER.info("%s - Entry stop sent to the underlyings", self)
+        if cancelled is not None:
+            raise cancelled
 
     async def _async_exit(self):
         """Leave the inhibition, now or when the VTherm becomes ready"""
@@ -291,7 +336,7 @@ class InhibitionManager:
         self._gate = CommandGate.EXIT_RECONCILING
         self._touch()
         _LOGGER.info("%s - Inhibition unset. Reconciling the underlyings", self)
-        await self._async_persist()
+        self._persist()
 
         if not self._vtherm.is_ready:
             self._exit_pending = True
@@ -303,6 +348,7 @@ class InhibitionManager:
     async def _async_exit_reconcile(self):
         """Apply the current requested state to every underlying, then open the gate"""
         self._exit_pending = False
+        self._blocked_during_exit = False
         vtherm = self._vtherm
         try:
             with self._transaction_scope(InhibitionTransaction.EXIT_RECONCILE):
@@ -313,18 +359,8 @@ class InhibitionManager:
                 vtherm.requested_state.force_changed()
                 vtherm.current_state.force_changed()
                 await vtherm.update_states(force=True)
-        except Exception as err:
-            self._inhibited = True
-            self._gate = CommandGate.CLOSED
-            self._last_error_code = ERROR_EXIT_RECONCILE_FAILED
-            self._touch()
-            _LOGGER.error("%s - Exit reconciliation failed, the VTherm stays inhibited: %s", self, err)
-            try:
-                vtherm.requested_state.force_changed()
-                await vtherm.update_states(force=True)
-            except Exception as err2:  # pylint: disable=broad-except
-                _LOGGER.error("%s - Error while resolving the inhibited state: %s", self, err2)
-            await self._async_persist()
+        except (Exception, asyncio.CancelledError) as err:
+            await self._async_rollback_exit(err)
             raise
 
         self._gate = CommandGate.OPEN
@@ -333,19 +369,68 @@ class InhibitionManager:
         self._last_error_code = None
         self._touch()
         _LOGGER.info("%s - Exit reconciliation done. Normal operation resumed", self)
-        await self._async_persist()
+        self._persist()
+
+        if self._blocked_during_exit:
+            # Another call chain was dropped during the reconciliation: it may have
+            # updated caches and cancelled a keep-alive. Apply the current state once more.
+            self._blocked_during_exit = False
+            _LOGGER.info("%s - Commands were dropped during the reconciliation. Applying the current state again", self)
+            for under in vtherm.all_underlying_entities:
+                under.on_inhibition_gate_opened()
+            try:
+                vtherm.requested_state.force_changed()
+                await vtherm.update_states(force=True)
+            except Exception as err:  # pylint: disable=broad-except
+                _LOGGER.error("%s - Error while applying the current state after the exit: %s", self, err)
+
+    async def _async_rollback_exit(self, err: BaseException):
+        """Back to a safe inhibited state after a failed or cancelled exit. The entry stop
+        is sent again if it was requested: the partial reconciliation may have restarted devices."""
+        cancelled = isinstance(err, asyncio.CancelledError)
+        self._inhibited = True
+        self._gate = CommandGate.CLOSED
+        self._last_error_code = ERROR_EXIT_RECONCILE_CANCELLED if cancelled else ERROR_EXIT_RECONCILE_FAILED
+        if self._entry_stop_requested:
+            self._entry_stop_completed = False
+        self._touch()
+        self._persist()
+        _LOGGER.error("%s - Exit reconciliation %s, the VTherm stays inhibited: %s", self, "cancelled" if cancelled else "failed", err)
+        try:
+            await self._async_resolve_inhibited_state()
+            await self._async_entry_stop_if_ready()
+        except asyncio.CancelledError:
+            _LOGGER.warning("%s - Rollback of the exit interrupted by a cancellation", self)
+        self._persist()
 
     def _touch(self):
         self._last_transition_at = dt_util.now().isoformat()
 
-    async def _async_persist(self):
-        """Publish the snapshot and save it now (attributes alone are dumped every 15 min)"""
+    def _persist(self):
+        """Publish the snapshot now and schedule a dump of the restore states (attributes
+        alone are dumped every 15 min). Transitions of the same loop turn share one dump."""
         vtherm = self._vtherm
         if vtherm.hass is None or vtherm.entity_id is None:
             return
         try:
             vtherm.update_custom_attributes()
             vtherm.async_write_ha_state()
-            await restore_async_get(vtherm.hass).async_dump_states()
+        except Exception as err:  # pylint: disable=broad-except
+            _LOGGER.warning("%s - Cannot publish the inhibition state: %s", self, err)
+        if not self._dump_scheduled:
+            self._dump_scheduled = True
+            vtherm.hass.async_create_task(self._async_dump(), eager_start=False)
+
+    async def _async_dump(self):
+        """Save the restore states. A transition after this point schedules another dump."""
+        self._dump_scheduled = False
+        try:
+            await restore_async_get(self._vtherm.hass).async_dump_states()
         except Exception as err:  # pylint: disable=broad-except
             _LOGGER.warning("%s - Cannot persist the inhibition state: %s", self, err)
+
+
+def _is_current_task_cancelling() -> bool:
+    """True if a cancellation was requested for the running task"""
+    task = asyncio.current_task()
+    return task is not None and task.cancelling() > 0

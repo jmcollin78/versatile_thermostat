@@ -561,6 +561,10 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
          accordingly. This is triggered by VTherm API"""
         write_event_log(_LOGGER, self, "Start up VTherm")
 
+        # Issue #2087 - restore the inhibition (gate closed) before any manager or underlying
+        # starts. Ignored if the plugin already called set or unset.
+        self._inhibition.restore_state(await self.async_get_last_state())
+
         _LOGGER.debug("%s - Calling async_startup_internal", self)
         # need_write_state = False
 
@@ -704,9 +708,6 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
             "%s - Calling get_my_previous_state old_state is %s", self, old_state
         )
         if old_state is not None:
-            # Issue #2087 - restore the inhibition (and close the gate) before any command
-            self._inhibition.restore_state(old_state)
-
             # Restore current_state
             if current_state_attr := old_state.attributes.get(ATTR_CURRENT_STATE, None):
                 current_state = VThermState.from_dict(current_state_attr)

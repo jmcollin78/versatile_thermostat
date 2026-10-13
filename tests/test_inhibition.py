@@ -539,7 +539,9 @@ async def test_switch_exit_failure_returns_to_inhibition(hass: HomeAssistant, fa
         assert_inhibited(vtherm)
         assert snapshot(hass, vtherm)["last_error_code"] == ERROR_EXIT_RECONCILE_FAILED
         assert snapshot(hass, vtherm)["command_gate"] == "CLOSED"
-        assert spy.calls == []
+        # the entry stop is sent again by the rollback (stop_underlyings was true)
+        assert spy.services() == [("switch", "turn_off")]
+        spy.reset()
 
         await uninhibit(hass, vtherm)
         assert vtherm.inhibition_manager.command_gate == CommandGate.OPEN
@@ -1068,3 +1070,325 @@ async def test_state_manager_window_eco_frost_keeps_lower_constraints(action, ce
     await manager.calculate_current_hvac_mode(vtherm)
     assert manager.current_state.hvac_mode == expected_mode
     vtherm.set_hvac_mode_reason.assert_called_with(expected_reason)
+
+
+##
+## Robustness: readiness, cancellation, ordering, restore, power, persistence
+##
+async def test_set_before_ready_defers_the_entry_stop(hass: HomeAssistant, fake_temp_sensor, fake_ext_temp_sensor):
+    """A set before the VTherm is ready resolves OFF at once and sends the entry stop when ready"""
+    fake_temp_sensor.set_native_value(15)
+    await hass.async_block_till_done()
+    with spy_services([SWITCH]) as spy:
+        vtherm = await create_thermostat(hass, switch_entry(), "climate.theoverswitchmockname", temps=PRESETS)
+        vtherm._set_now(datetime.now(tz=get_tz(hass)))
+        assert vtherm.is_ready is False
+        await inhibit(hass, vtherm, True)
+        assert vtherm.is_inhibited is True
+        assert snapshot(hass, vtherm)["entry_stop_completed"] is False
+        assert spy.calls == []
+
+        switch = MockSwitch(hass, "mock_switch", "theMockedSwitch")
+        switch._attr_is_on = True
+        await register_mock_entity(hass, switch, SWITCH_DOMAIN)
+        await hass.async_block_till_done()
+        assert vtherm.is_ready
+        assert spy.services() == [("switch", "turn_off")]
+        assert snapshot(hass, vtherm)["entry_stop_completed"] is True
+        assert_inhibited(vtherm, requested=vtherm.requested_state.hvac_mode)
+
+
+async def test_climate_swing_and_humidity_dropped_with_warning(hass: HomeAssistant, fake_temp_sensor, fake_ext_temp_sensor, caplog):
+    """User settings outside the requested state are dropped with one warning per service"""
+    await create_and_register_mock_climate(hass, "mock_climate", "MockClimateName", {}, swing_mode="on", swing_modes=["on", "off"], swing_horizontal_mode="on", swing_horizontal_modes=["on", "off"])
+    vtherm = await create_thermostat(hass, climate_entry(**{CONF_AUTO_FAN_MODE: CONF_AUTO_FAN_NONE}), "climate.theoverclimatemockname", temps=PRESETS)
+    vtherm._set_now(datetime.now(tz=get_tz(hass)))
+    await vtherm.async_set_hvac_mode(VThermHvacMode_HEAT)
+    with spy_services([CLIMATE]) as spy:
+        await inhibit(hass, vtherm, False)
+        caplog.clear()
+        with caplog.at_level(logging.WARNING):
+            for _ in range(2):
+                await vtherm.async_set_swing_mode("off")
+                await vtherm.async_set_swing_horizontal_mode("off")
+                await vtherm.async_set_humidity(40)
+        assert spy.calls == []
+        dropped = sorted(r.getMessage().split(" for ")[0].split(" - ")[-1] for r in caplog.records if r.levelno == logging.WARNING and "dropped" in r.getMessage())
+        assert dropped == ["climate.set_humidity", "climate.set_swing_horizontal_mode", "climate.set_swing_mode"]
+
+
+async def test_cancelled_exit_rolls_back_to_inhibition(hass: HomeAssistant, fake_temp_sensor, fake_ext_temp_sensor, fake_underlying_switch):
+    """A cancellation during the reconciliation restores inhibited + CLOSED (entry stop sent
+    again), it never leaves the gate EXIT_RECONCILING; a later unset works"""
+    vtherm = await heating_switch_vtherm(hass, fake_temp_sensor)
+    with spy_services([SWITCH]) as spy:
+        await inhibit(hass, vtherm, True)
+        spy.reset()
+        spy.pause_on = ("switch", "turn_on")
+        task = hass.async_create_task(vtherm.async_unset_inhibition())
+        await asyncio.wait_for(spy.paused.wait(), 5)
+        task.cancel()
+        with pytest.raises(asyncio.CancelledError):
+            await task
+        await hass.async_block_till_done()
+        assert_inhibited(vtherm)
+        assert snapshot(hass, vtherm)["last_error_code"] == "exit_reconcile_cancelled"
+        assert spy.services() == [("switch", "turn_on"), ("switch", "turn_off")]
+        assert hass.states.get(SWITCH).state == STATE_OFF
+        spy.reset()
+
+        await advance(hass, vtherm, 1, steps=3)
+        assert spy.calls == []
+
+        await uninhibit(hass, vtherm)
+        assert vtherm.inhibition_manager.command_gate == CommandGate.OPEN
+        assert hass.states.get(SWITCH).state == STATE_ON
+
+
+async def test_joiner_of_a_cancelled_exit_runs_its_own_exit(hass: HomeAssistant, fake_temp_sensor, fake_ext_temp_sensor, fake_underlying_switch):
+    """A joiner does not get the CancelledError of the leader: it gets the real outcome"""
+    vtherm = await heating_switch_vtherm(hass, fake_temp_sensor)
+    with spy_services([SWITCH]) as spy:
+        await inhibit(hass, vtherm, True)
+        spy.pause_on = ("switch", "turn_on")
+        leader = hass.async_create_task(vtherm.async_unset_inhibition())
+        await asyncio.wait_for(spy.paused.wait(), 5)
+        joiner = hass.async_create_task(vtherm.async_unset_inhibition())
+        await asyncio.sleep(0)
+        leader.cancel()
+        with pytest.raises(asyncio.CancelledError):
+            await leader
+        await asyncio.wait_for(joiner, 5)
+        await hass.async_block_till_done()
+        assert vtherm.is_inhibited is False
+        assert vtherm.inhibition_manager.command_gate == CommandGate.OPEN
+
+
+async def test_cancelled_set_is_completed(hass: HomeAssistant, fake_temp_sensor, fake_ext_temp_sensor, fake_underlying_switch):
+    """A set cancelled after the gate is closed completes its entry (OFF, single stop,
+    persistence) before the CancelledError is raised"""
+    vtherm = await heating_switch_vtherm(hass, fake_temp_sensor)
+    original = vtherm.update_states
+    entered = asyncio.Event()
+
+    async def slow_update_states(force=False):
+        entered.set()
+        await asyncio.sleep(10)
+        return await original(force)
+
+    with spy_services([SWITCH]) as spy:
+        with patch.object(vtherm, "update_states", side_effect=slow_update_states):
+            task = hass.async_create_task(vtherm.async_set_inhibition(True))
+            await asyncio.wait_for(entered.wait(), 5)
+            task.cancel()
+            with pytest.raises(asyncio.CancelledError):
+                await task
+        await hass.async_block_till_done()
+        assert vtherm.is_inhibited is True
+        assert vtherm.inhibition_manager.command_gate == CommandGate.CLOSED
+        assert spy.services() == [("switch", "turn_off")]
+        assert snapshot(hass, vtherm)["entry_stop_completed"] is True
+
+
+async def test_last_call_wins_when_set_is_queued_during_exit(hass: HomeAssistant, fake_temp_sensor, fake_ext_temp_sensor, fake_underlying_switch):
+    """unset A (running), set B (queued), unset C: C must not join A, the result is not inhibited"""
+    vtherm = await heating_switch_vtherm(hass, fake_temp_sensor)
+    with spy_services([SWITCH]) as spy:
+        await inhibit(hass, vtherm, True)
+        spy.reset()
+        spy.pause_on = ("switch", "turn_on")
+        task_a = hass.async_create_task(vtherm.async_unset_inhibition())
+        await asyncio.wait_for(spy.paused.wait(), 5)
+        task_b = hass.async_create_task(vtherm.async_set_inhibition(True))
+        await asyncio.sleep(0)
+        task_c = hass.async_create_task(vtherm.async_unset_inhibition())
+        await asyncio.sleep(0)
+        assert not task_c.done()
+        spy.release.set()
+        await asyncio.wait_for(asyncio.gather(task_a, task_b, task_c), 5)
+        await hass.async_block_till_done()
+        assert vtherm.is_inhibited is False
+        assert vtherm.inhibition_manager.command_gate == CommandGate.OPEN
+        # A reconciled, B stopped, C reconciled again
+        assert spy.services()[:2] == [("switch", "turn_on"), ("switch", "turn_off")]
+        assert ("switch", "turn_on") in spy.services()[2:]
+
+
+def _call_before_restore(call):
+    """Patch async_startup so that the plugin calls the API before anything else"""
+    original = BaseThermostat.async_startup
+
+    async def patched(self, central_configuration):
+        await call(self)
+        await original(self, central_configuration)
+
+    return patch.object(BaseThermostat, "async_startup", patched)
+
+
+async def test_unset_before_restore_is_not_overridden(hass: HomeAssistant, fake_temp_sensor, fake_ext_temp_sensor, fake_underlying_switch):
+    """An unset called before the snapshot restore wins over the inhibited snapshot"""
+    with spy_services([SWITCH]) as spy, _call_before_restore(lambda vtherm: vtherm.async_unset_inhibition()):
+        vtherm = await start_switch_vtherm_with_restored_state(hass, fake_temp_sensor, inhibited_old_state(), spy)
+    assert vtherm.is_inhibited is False
+    assert vtherm.inhibition_manager.command_gate == CommandGate.OPEN
+    assert vtherm.vtherm_hvac_mode == VThermHvacMode_HEAT
+
+
+async def test_set_before_restore_is_not_overridden(hass: HomeAssistant, fake_temp_sensor, fake_ext_temp_sensor, fake_underlying_switch):
+    """A set called before the snapshot restore wins over a non inhibited snapshot"""
+    old_state = inhibited_old_state(gate="OPEN", inhibited=False, completed=False, requested=False)
+    with spy_services([SWITCH]) as spy, _call_before_restore(lambda vtherm: vtherm.async_set_inhibition(False)):
+        vtherm = await start_switch_vtherm_with_restored_state(hass, fake_temp_sensor, old_state, spy)
+    assert_inhibited(vtherm)
+
+
+async def test_restore_happens_before_the_managers_start(hass: HomeAssistant, fake_temp_sensor, fake_ext_temp_sensor, fake_underlying_switch):
+    """An unset arriving while the managers start (before get_my_previous_state) is not lost"""
+    original = BaseThermostat.get_my_previous_state
+
+    async def patched(self):
+        await self.async_unset_inhibition()
+        await original(self)
+
+    with patch.object(BaseThermostat, "get_my_previous_state", patched), spy_services([SWITCH]) as spy:
+        vtherm = await start_switch_vtherm_with_restored_state(hass, fake_temp_sensor, inhibited_old_state(), spy)
+    assert vtherm.is_inhibited is False
+    assert vtherm.inhibition_manager.command_gate == CommandGate.OPEN
+
+
+async def test_commands_dropped_during_exit_are_reapplied(hass: HomeAssistant, fake_temp_sensor, fake_ext_temp_sensor, fake_underlying_switch, caplog):
+    """A command of another chain dropped during EXIT_RECONCILING (which cancelled the
+    keep-alive) triggers one more application of the current state once the gate is open"""
+    vtherm = await heating_switch_vtherm(hass, fake_temp_sensor)
+    under: UnderlyingSwitch = vtherm.underlying_entity(0)
+    with spy_services([SWITCH]) as spy:
+        await inhibit(hass, vtherm, True)
+        spy.pause_on = ("switch", "turn_on")
+        task = hass.async_create_task(vtherm.async_unset_inhibition())
+        await asyncio.wait_for(spy.paused.wait(), 5)
+        await under.turn_off()  # dropped, and cancels the keep-alive
+        hooks = []
+        original_hook = UnderlyingSwitch.on_inhibition_gate_opened
+
+        def hook(self):
+            hooks.append(vtherm.inhibition_manager.command_gate)
+            original_hook(self)
+
+        with caplog.at_level(logging.INFO), patch.object(UnderlyingSwitch, "on_inhibition_gate_opened", hook):
+            spy.release.set()
+            await asyncio.wait_for(task, 5)
+            await hass.async_block_till_done()
+        assert any("Applying the current state again" in r.getMessage() for r in caplog.records)
+        # the keep-alive is re-armed once the gate is open
+        assert hooks == [CommandGate.OPEN]
+        assert under._keep_alive._remove_handle is not None
+        assert hass.states.get(SWITCH).state == STATE_ON
+
+
+async def test_blocked_turn_off_releases_the_power_reservation(hass: HomeAssistant, fake_temp_sensor, fake_ext_temp_sensor, fake_underlying_switch):
+    """A dropped turn_off still releases the central power reservation; a dropped turn_on adds none"""
+    vtherm = await heating_switch_vtherm(hass, fake_temp_sensor)
+    under: UnderlyingSwitch = vtherm.underlying_entity(0)
+    await inhibit(hass, vtherm, False)
+    power = vtherm.power_manager
+    with spy_services([SWITCH]) as spy, patch.object(type(power), "sub_power_consumption_to_central_power_manager") as sub, patch.object(
+        type(power), "add_power_consumption_to_central_power_manager"
+    ) as add:
+        await under.turn_off()
+        await under.turn_on()
+    assert spy.calls == []
+    sub.assert_called_once_with(under.power_reservation_key)
+    add.assert_not_called()
+
+
+async def test_dumps_are_coalesced(hass: HomeAssistant, fake_temp_sensor, fake_ext_temp_sensor, fake_underlying_switch):
+    """Several transitions in one loop turn share one dump; a later transition dumps again"""
+    vtherm = await heating_switch_vtherm(hass, fake_temp_sensor)
+    await hass.async_block_till_done()
+    manager = vtherm.inhibition_manager
+    with patch("homeassistant.helpers.restore_state.RestoreStateData.async_dump_states") as dump:
+        manager._persist()
+        manager._persist()
+        manager._persist()
+        await hass.async_block_till_done()
+        assert dump.call_count == 1
+        manager._persist()
+        await hass.async_block_till_done()
+        assert dump.call_count == 2
+
+
+async def test_no_inhibition_same_commands_as_without_the_core(hass: HomeAssistant, fake_temp_sensor, fake_ext_temp_sensor, fake_underlying_switch):
+    """AC-011: an unused inhibition core sends exactly the same commands as a VTherm
+    built without it (reference), over a full scenario"""
+
+    class NoInhibition:
+        """The reference: no inhibition core at all"""
+
+        is_inhibited = False
+        is_used = False
+        command_gate = CommandGate.OPEN
+
+        def __init__(self, vtherm):
+            pass
+
+        def restore_state(self, old_state):
+            """No snapshot"""
+
+        async def async_on_vtherm_ready(self):
+            """Nothing deferred"""
+
+    switch2 = MockSwitch(hass, "mock_switch2", "theMockedSwitch2")
+    await register_mock_entity(hass, switch2, SWITCH_DOMAIN)
+    fake_temp_sensor.set_native_value(15)
+    await hass.async_block_till_done()
+
+    vtherm = await create_thermostat(hass, switch_entry(), "climate.theoverswitchmockname", temps=PRESETS)
+    with patch("custom_components.versatile_thermostat.base_thermostat.InhibitionManager", NoInhibition):
+        entry = switch_entry(unique_id="switchReference", **{CONF_NAME: "Reference", CONF_UNDERLYING_LIST: ["switch.mock_switch2"]})
+        reference = await create_thermostat(hass, entry, "climate.reference", temps=PRESETS)
+    assert not isinstance(reference.inhibition_manager, InhibitionManager)
+
+    now = datetime.now(tz=get_tz(hass))
+    with spy_services([SWITCH, "switch.mock_switch2"]) as spy:
+        for vt in (vtherm, reference):
+            vt._set_now(now)
+            await vt.async_set_hvac_mode(VThermHvacMode_HEAT)
+            await vt.async_set_preset_mode(VThermPreset.COMFORT)
+        await hass.async_block_till_done()
+        # 0 % / 100 % powers only: partial cycles depend on the wall clock of each tick
+        for step, temp in enumerate((15, 25, 15, 25, 15)):
+            for vt in (vtherm, reference):
+                await send_temperature_change_event(vt, temp, vt.now)
+            for vt in (vtherm, reference):
+                vt._set_now(vt.now + timedelta(minutes=2))
+                await vt.async_control_heating(timestamp=vt.now)
+            async_fire_time_changed(hass, dt_util.utcnow() + timedelta(minutes=2 * (step + 1)))
+            await hass.async_block_till_done()
+        for vt in (vtherm, reference):
+            await vt.async_set_hvac_mode(VThermHvacMode_OFF)
+            await vt.async_set_hvac_mode(VThermHvacMode_HEAT)
+        await hass.async_block_till_done()
+
+    assert spy.services(SWITCH)
+    assert spy.services(SWITCH) == spy.services("switch.mock_switch2")
+    assert snapshot(hass, vtherm) is None
+
+
+async def test_gate_closed_before_the_managers_start(hass: HomeAssistant, fake_temp_sensor, fake_ext_temp_sensor, fake_underlying_switch):
+    """The snapshot is restored before the managers start: a command sent while they start
+    listening is already blocked"""
+    from custom_components.versatile_thermostat.feature_repair_incorrect_state_manager import FeatureRepairIncorrectStateManager
+
+    await fake_underlying_switch.async_turn_on()
+    await hass.async_block_till_done()
+    original = FeatureRepairIncorrectStateManager.start_listening
+
+    async def start_listening(self):
+        await self._vtherm.async_underlying_entity_turn_off()
+        await original(self)
+
+    with patch.object(FeatureRepairIncorrectStateManager, "start_listening", start_listening), spy_services([SWITCH]) as spy:
+        vtherm = await start_switch_vtherm_with_restored_state(hass, fake_temp_sensor, inhibited_old_state(), spy)
+        assert_inhibited(vtherm)
+        assert spy.calls == []
+    assert hass.states.get(SWITCH).state == STATE_ON
