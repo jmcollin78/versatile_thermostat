@@ -94,8 +94,8 @@ class InhibitionManager:
         self._exit_pending: bool = False
         self._exit_future: asyncio.Future | None = None
         self._warned: set[tuple[str, str]] = set()
-        # True once set or unset was called: a later snapshot restore must not override it
-        self._api_called: bool = False
+        # The last API call ("set" / "unset") before the snapshot restore, if any
+        self._last_api_call: str | None = None
         # A command of another call chain was dropped while EXIT_RECONCILING
         self._blocked_during_exit: bool = False
         self._dump_scheduled: bool = False
@@ -134,14 +134,25 @@ class InhibitionManager:
     def restore_state(self, old_state: State | None):
         """Restore the snapshot. Must be called before any underlying command.
         A restart during the exit reconciliation is restored closed: the plugin
-        has to call unset again."""
+        has to call unset again.
+        If the plugin already called the API (the entity exists before its startup):
+        - after an unset, the snapshot is ignored (not inhibited);
+        - after a set, an inhibited snapshot is the same inhibition: its entry stop
+          flags are kept (a completed stop is not sent again, a pending one stays
+          pending until ready); a non inhibited snapshot leaves the early set as is."""
         if old_state is None:
             return
-        if self._api_called:
-            _LOGGER.info("%s - Snapshot not restored: set or unset was already called", self)
+        if self._last_api_call == "unset":
+            _LOGGER.info("%s - Snapshot not restored: unset was already called", self)
             return
         snapshot = (old_state.attributes.get("specific_states") or {}).get(ATTR_INHIBITION)
         if not isinstance(snapshot, dict) or snapshot.get("schema_version") != INHIBITION_SCHEMA_VERSION:
+            return
+        if self._last_api_call == "set":
+            if self._inhibited and (snapshot.get("inhibited") is True or snapshot.get("command_gate") in (CommandGate.CLOSED, CommandGate.EXIT_RECONCILING)):
+                self._entry_stop_requested = snapshot.get("entry_stop_requested") is True
+                self._entry_stop_completed = snapshot.get("entry_stop_completed") is True
+                _LOGGER.info("%s - Early set merged with the restored inhibition (entry stop completed=%s)", self, self._entry_stop_completed)
             return
         self._is_used = True
         self._last_transition_at = snapshot.get("last_transition_at")
@@ -198,7 +209,7 @@ class InhibitionManager:
         """Enter the inhibition. Idempotent while inhibited.
         A cancellation after the gate is closed does not stop the entry: it is
         completed (OFF resolution, entry stop, persistence), then re-raised."""
-        self._api_called = True
+        self._last_api_call = "set"
         # Last call wins: an unset called after this set must not join an exit started before it
         self._exit_future = None
         async with self._lock:
@@ -236,7 +247,7 @@ class InhibitionManager:
         """Leave the inhibition. A concurrent call joins the running exit and gets its
         outcome; if that exit was cancelled, the joiner runs its own exit.
         Raises if the exit reconciliation fails (the VTherm stays inhibited)."""
-        self._api_called = True
+        self._last_api_call = "unset"
         while (running := self._exit_future) is not None:
             try:
                 await asyncio.shield(running)

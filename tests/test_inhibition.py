@@ -1230,9 +1230,13 @@ async def test_unset_before_restore_is_not_overridden(hass: HomeAssistant, fake_
     """An unset called before the snapshot restore wins over the inhibited snapshot"""
     with spy_services([SWITCH]) as spy, _call_before_restore(lambda vtherm: vtherm.async_unset_inhibition()):
         vtherm = await start_switch_vtherm_with_restored_state(hass, fake_temp_sensor, inhibited_old_state(), spy)
+        await advance(hass, vtherm, 1)
+        # normal startup: the requested HEAT applies
+        assert ("switch", "turn_on") in spy.services()
     assert vtherm.is_inhibited is False
     assert vtherm.inhibition_manager.command_gate == CommandGate.OPEN
     assert vtherm.vtherm_hvac_mode == VThermHvacMode_HEAT
+    assert vtherm.hvac_off_reason is None
 
 
 async def test_set_before_restore_is_not_overridden(hass: HomeAssistant, fake_temp_sensor, fake_ext_temp_sensor, fake_underlying_switch):
@@ -1241,6 +1245,78 @@ async def test_set_before_restore_is_not_overridden(hass: HomeAssistant, fake_te
     with spy_services([SWITCH]) as spy, _call_before_restore(lambda vtherm: vtherm.async_set_inhibition(False)):
         vtherm = await start_switch_vtherm_with_restored_state(hass, fake_temp_sensor, old_state, spy)
     assert_inhibited(vtherm)
+
+
+async def test_early_set_merged_with_completed_snapshot(hass: HomeAssistant, fake_temp_sensor, fake_ext_temp_sensor, fake_underlying_switch):
+    """Restart while inhibited, the plugin sets again before the restore: the restored
+    entry_stop_completed is kept, no second stop (the switch turned on by someone stays on)"""
+    await fake_underlying_switch.async_turn_on()
+    await hass.async_block_till_done()
+    with spy_services([SWITCH]) as spy, _call_before_restore(lambda vtherm: vtherm.async_set_inhibition(True)):
+        vtherm = await start_switch_vtherm_with_restored_state(hass, fake_temp_sensor, inhibited_old_state(), spy)
+        await advance(hass, vtherm, 1, steps=3)
+        assert vtherm.is_ready
+        assert_inhibited(vtherm)
+        assert spy.calls == []
+    assert snapshot(hass, vtherm)["entry_stop_completed"] is True
+    assert hass.states.get(SWITCH).state == STATE_ON
+
+
+async def test_early_set_merged_with_pending_snapshot(hass: HomeAssistant, fake_temp_sensor, fake_ext_temp_sensor, fake_underlying_switch):
+    """The restored entry stop was requested but not completed: it is sent once when ready"""
+    await fake_underlying_switch.async_turn_on()
+    await hass.async_block_till_done()
+    with spy_services([SWITCH]) as spy, _call_before_restore(lambda vtherm: vtherm.async_set_inhibition(False)):
+        vtherm = await start_switch_vtherm_with_restored_state(hass, fake_temp_sensor, inhibited_old_state(completed=False), spy)
+        await advance(hass, vtherm, 1, steps=3)
+        assert_inhibited(vtherm)
+        assert spy.services() == [("switch", "turn_off")]
+
+
+async def test_early_set_without_snapshot_no_heating_burst(hass: HomeAssistant, fake_temp_sensor, fake_ext_temp_sensor, fake_underlying_switch):
+    """A set before the startup of a VTherm that was heating (no inhibition snapshot): the gate
+    is closed before any underlying command, so nothing heats; one entry stop when ready"""
+    old_state = inhibited_old_state()
+    del old_state.attributes["specific_states"][ATTR_INHIBITION]
+    heating = State(
+        old_state.entity_id,
+        HVACMode.HEAT,
+        old_state.attributes
+        | {
+            HVAC_OFF_REASON_NAME: None,
+            "current_state": {"hvac_mode": "heat", "target_temperature": 19, "preset": "comfort"},
+        },
+    )
+    with spy_services([SWITCH]) as spy, _call_before_restore(lambda vtherm: vtherm.async_set_inhibition(True)):
+        vtherm = await start_switch_vtherm_with_restored_state(hass, fake_temp_sensor, heating, spy)
+        await advance(hass, vtherm, 1, steps=3)
+        assert vtherm.is_ready
+        assert_inhibited(vtherm)
+        assert spy.services() == [("switch", "turn_off")]
+    assert hass.states.get(SWITCH).state == STATE_OFF
+
+    # reference: without the early set, this restored state heats at startup
+    assert vtherm.requested_state.hvac_mode == VThermHvacMode_HEAT
+
+
+async def test_heating_restored_state_heats_without_early_set(hass: HomeAssistant, fake_temp_sensor, fake_ext_temp_sensor, fake_underlying_switch):
+    """Reference for the previous test: the same restored state turns the switch on"""
+    old_state = inhibited_old_state()
+    del old_state.attributes["specific_states"][ATTR_INHIBITION]
+    heating = State(
+        old_state.entity_id,
+        HVACMode.HEAT,
+        old_state.attributes
+        | {
+            HVAC_OFF_REASON_NAME: None,
+            "current_state": {"hvac_mode": "heat", "target_temperature": 19, "preset": "comfort"},
+        },
+    )
+    with spy_services([SWITCH]) as spy:
+        vtherm = await start_switch_vtherm_with_restored_state(hass, fake_temp_sensor, heating, spy)
+        await advance(hass, vtherm, 1)
+        assert ("switch", "turn_on") in spy.services()
+    assert vtherm.is_inhibited is False
 
 
 async def test_restore_happens_before_the_managers_start(hass: HomeAssistant, fake_temp_sensor, fake_ext_temp_sensor, fake_underlying_switch):
