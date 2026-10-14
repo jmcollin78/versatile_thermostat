@@ -649,14 +649,65 @@ async def test_restart_after_entry_stop(hass: HomeAssistant, fake_temp_sensor, f
 
 
 async def test_restart_during_exit_reconciliation_is_restored_closed(hass: HomeAssistant, fake_temp_sensor, fake_ext_temp_sensor, fake_underlying_switch):
-    """A restart during EXIT_RECONCILING is restored inhibited and CLOSED"""
+    """A restart during EXIT_RECONCILING is restored like a failed exit: inhibited, CLOSED,
+    and the requested entry stop sent again once (the partial reconciliation may have
+    restarted the switch)"""
+    await fake_underlying_switch.async_turn_on()
+    await hass.async_block_till_done()
     with spy_services([SWITCH]) as spy:
         vtherm = await start_switch_vtherm_with_restored_state(hass, fake_temp_sensor, inhibited_old_state(gate="EXIT_RECONCILING", inhibited=False), spy)
         assert_inhibited(vtherm)
         await advance(hass, vtherm, 1, steps=3)
-        assert spy.calls == []
+        assert spy.services() == [("switch", "turn_off")]
         assert snapshot(hass, vtherm)["command_gate"] == "CLOSED"
         assert snapshot(hass, vtherm)["inhibited"] is True
+        assert snapshot(hass, vtherm)["entry_stop_completed"] is True
+
+
+async def test_restart_during_exit_without_requested_stop_sends_nothing(hass: HomeAssistant, fake_temp_sensor, fake_ext_temp_sensor, fake_underlying_switch):
+    """Interrupted exit of an inhibition set with stop_underlyings=false: nothing is sent"""
+    await fake_underlying_switch.async_turn_on()
+    await hass.async_block_till_done()
+    with spy_services([SWITCH]) as spy:
+        vtherm = await start_switch_vtherm_with_restored_state(
+            hass, fake_temp_sensor, inhibited_old_state(gate="EXIT_RECONCILING", inhibited=False, completed=False, requested=False), spy
+        )
+        await advance(hass, vtherm, 1, steps=3)
+        assert_inhibited(vtherm)
+        assert spy.calls == []
+
+
+async def test_early_set_merged_with_interrupted_exit_snapshot(hass: HomeAssistant, fake_temp_sensor, fake_ext_temp_sensor, fake_underlying_switch):
+    """Early set + snapshot of an interrupted exit: the requested entry stop is due again"""
+    await fake_underlying_switch.async_turn_on()
+    await hass.async_block_till_done()
+    with spy_services([SWITCH]) as spy, _call_before_restore(lambda vtherm: vtherm.async_set_inhibition(True)):
+        vtherm = await start_switch_vtherm_with_restored_state(hass, fake_temp_sensor, inhibited_old_state(gate="EXIT_RECONCILING", inhibited=False), spy)
+        await advance(hass, vtherm, 1, steps=3)
+        assert_inhibited(vtherm)
+        assert spy.services() == [("switch", "turn_off")]
+
+
+async def test_second_startup_does_not_restore_again(hass: HomeAssistant, fake_temp_sensor, fake_ext_temp_sensor, fake_underlying_switch):
+    """A config entry update runs async_startup twice (reload, then init_vtherm_links): the
+    snapshot is merged once, a completed entry stop never goes back to pending"""
+    await fake_underlying_switch.async_turn_on()
+    await hass.async_block_till_done()
+    with spy_services([SWITCH]) as spy, _call_before_restore(lambda vtherm: vtherm.async_set_inhibition(True)):
+        vtherm = await start_switch_vtherm_with_restored_state(hass, fake_temp_sensor, inhibited_old_state(completed=False), spy)
+        await advance(hass, vtherm, 1)
+        assert spy.services() == [("switch", "turn_off")]
+        assert snapshot(hass, vtherm)["entry_stop_completed"] is True
+
+        await fake_underlying_switch.async_turn_on()
+        await hass.async_block_till_done()
+        spy.reset()
+        await api(hass).init_vtherm_links(vtherm.unique_id)
+        await advance(hass, vtherm, 1, steps=3)
+        assert spy.calls == []
+        assert_inhibited(vtherm)
+        assert snapshot(hass, vtherm)["entry_stop_completed"] is True
+    assert hass.states.get(SWITCH).state == STATE_ON
 
 
 async def test_restart_with_pending_entry_stop(hass: HomeAssistant, fake_temp_sensor, fake_ext_temp_sensor, fake_underlying_switch):
@@ -1556,3 +1607,22 @@ async def test_gate_closed_before_the_managers_start(hass: HomeAssistant, fake_t
         assert_inhibited(vtherm)
         assert spy.calls == []
     assert hass.states.get(SWITCH).state == STATE_ON
+
+
+async def test_second_startup_without_api_call_does_not_restore_again(hass: HomeAssistant, fake_temp_sensor, fake_ext_temp_sensor, fake_underlying_switch):
+    """Plain restore of a pending entry stop: sent once when ready; a second async_startup
+    (config entry update) does not restore the old snapshot again and does not resend it"""
+    await fake_underlying_switch.async_turn_on()
+    await hass.async_block_till_done()
+    with spy_services([SWITCH]) as spy:
+        vtherm = await start_switch_vtherm_with_restored_state(hass, fake_temp_sensor, inhibited_old_state(completed=False), spy)
+        await advance(hass, vtherm, 1)
+        assert spy.services() == [("switch", "turn_off")]
+
+        await fake_underlying_switch.async_turn_on()
+        await hass.async_block_till_done()
+        spy.reset()
+        await api(hass).init_vtherm_links(vtherm.unique_id)
+        await advance(hass, vtherm, 1, steps=3)
+        assert spy.calls == []
+        assert_inhibited(vtherm)

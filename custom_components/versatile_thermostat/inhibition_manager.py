@@ -96,6 +96,8 @@ class InhibitionManager:
         self._warned: set[tuple[str, str]] = set()
         # The last API call ("set" / "unset") before the snapshot restore, if any
         self._last_api_call: str | None = None
+        # The snapshot is restored once per entity lifetime (async_startup may run twice)
+        self._is_restored: bool = False
         # A command of another call chain was dropped while EXIT_RECONCILING
         self._blocked_during_exit: bool = False
         self._dump_scheduled: bool = False
@@ -132,14 +134,20 @@ class InhibitionManager:
         }
 
     def restore_state(self, old_state: State | None):
-        """Restore the snapshot. Must be called before any underlying command.
-        A restart during the exit reconciliation is restored closed: the plugin
-        has to call unset again.
+        """Restore the snapshot, once per entity lifetime (a config entry update can run
+        async_startup twice). Must be called before any underlying command.
+        A restart during the exit reconciliation is restored like a failed exit: inhibited,
+        gate closed, and the entry stop sent again once ready if it was requested (the
+        partial reconciliation may have restarted devices). The plugin has to call unset again.
         If the plugin already called the API (the entity exists before its startup):
         - after an unset, the snapshot is ignored (not inhibited);
         - after a set, an inhibited snapshot is the same inhibition: its entry stop
-          flags are kept (a completed stop is not sent again, a pending one stays
+          flags are merged (a completed stop is not sent again, a pending one stays
           pending until ready); a non inhibited snapshot leaves the early set as is."""
+        if self._is_restored:
+            _LOGGER.debug("%s - Snapshot already restored", self)
+            return
+        self._is_restored = True
         if old_state is None:
             return
         if self._last_api_call == "unset":
@@ -148,21 +156,33 @@ class InhibitionManager:
         snapshot = (old_state.attributes.get("specific_states") or {}).get(ATTR_INHIBITION)
         if not isinstance(snapshot, dict) or snapshot.get("schema_version") != INHIBITION_SCHEMA_VERSION:
             return
+        gate = snapshot.get("command_gate")
+        if not (snapshot.get("inhibited") is True or gate in (CommandGate.CLOSED, CommandGate.EXIT_RECONCILING)):
+            if self._last_api_call is None:
+                self._is_used = True
+                self._last_transition_at = snapshot.get("last_transition_at")
+                self._last_error_code = snapshot.get("last_error_code")
+            return
+
+        stop_requested = snapshot.get("entry_stop_requested") is True
+        # an interrupted exit may have restarted devices: the stop is due again
+        stop_completed = snapshot.get("entry_stop_completed") is True and gate != CommandGate.EXIT_RECONCILING
         if self._last_api_call == "set":
-            if self._inhibited and (snapshot.get("inhibited") is True or snapshot.get("command_gate") in (CommandGate.CLOSED, CommandGate.EXIT_RECONCILING)):
-                self._entry_stop_requested = snapshot.get("entry_stop_requested") is True
-                self._entry_stop_completed = snapshot.get("entry_stop_completed") is True
+            if self._inhibited:
+                self._entry_stop_requested = stop_requested
+                # never back from completed to pending
+                self._entry_stop_completed = self._entry_stop_completed or stop_completed
                 _LOGGER.info("%s - Early set merged with the restored inhibition (entry stop completed=%s)", self, self._entry_stop_completed)
             return
+
         self._is_used = True
         self._last_transition_at = snapshot.get("last_transition_at")
         self._last_error_code = snapshot.get("last_error_code")
-        if snapshot.get("inhibited") is True or snapshot.get("command_gate") in (CommandGate.CLOSED, CommandGate.EXIT_RECONCILING):
-            self._inhibited = True
-            self._gate = CommandGate.CLOSED
-            self._entry_stop_requested = snapshot.get("entry_stop_requested") is True
-            self._entry_stop_completed = snapshot.get("entry_stop_completed") is True
-            _LOGGER.info("%s - Inhibition restored (gate closed, entry stop completed=%s)", self, self._entry_stop_completed)
+        self._inhibited = True
+        self._gate = CommandGate.CLOSED
+        self._entry_stop_requested = stop_requested
+        self._entry_stop_completed = stop_completed
+        _LOGGER.info("%s - Inhibition restored (gate closed, entry stop completed=%s)", self, self._entry_stop_completed)
 
     ##
     ## The command gate
