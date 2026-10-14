@@ -66,6 +66,16 @@ Beispiele (zur Anpassung an Ihre Gegebenheiten):
 - `switch.pumpe_heizungsanlage/switch.turn_off`: zum Ausschalten des Schalters, der die Kesselpumpe steuert.
 - ...
 
+### Ein Template für den Wert verwenden
+Der Wert (der Teil nach `Attribut:`) kann ein Home-Assistant-Template sein. Das Template wird bei jedem Senden des Befehls ausgewertet: beim Einschalten, beim Ausschalten und bei jedem Keep-Alive. Der Wert darf `/` und `:` enthalten.
+
+Beispiel für einen Kessel, der von einem Raumregler gesteuert wird, dessen Sollwert relativ zu seiner eigenen gemessenen Temperatur ist:
+- Aktivierung: `climate.thermostat_hc1/climate.set_temperature/temperature:{{ state_attr('climate.thermostat_hc1', 'current_temperature') | float(20) + 1 }}`
+- Deaktivierung: `climate.thermostat_hc1/climate.set_temperature/temperature:{{ state_attr('climate.thermostat_hc1', 'current_temperature') | float(20) - 2 }}`
+
+> **Tipp**
+> Verwenden Sie `float(Standardwert)`, damit das Template nie fehlschlägt, und aktivieren Sie Keep-Alive, damit der Sollwert der gemessenen Temperatur folgt. Kann ein Template nicht ausgewertet werden, wird der Befehl übersprungen und ein Fehler protokolliert. Ein Template, das sich nicht kompilieren lässt, wird bei der Validierung der Konfiguration abgelehnt.
+
 ### Wie findet man die richtige Maßnahme?
 Um den richtige Auslöser zu finden, gehen Sie am besten zu "Entwicklertools / Dienste" und suchen Sie nach der aufzurufenden Aktion, der zu steuernden Entität und allen erforderlichen Parametern.
 Klicken Sie auf 'Dienst aufrufen'. Wenn sich Ihr Kessel einschaltet, haben Sie die richtige Konfiguration. Wechseln Sie dann in den YAML-Modus und kopieren Sie die Parameter.

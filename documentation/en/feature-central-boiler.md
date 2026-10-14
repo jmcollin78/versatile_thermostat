@@ -66,6 +66,16 @@ Examples (to adjust to your case):
 - `switch.pompe_chaudiere/switch.turn_off`: to turn off the switch powering the boiler pump.
 - ...
 
+### Using a template for the value
+The value (the part after `attribute:`) can be a Home Assistant template. The template is rendered every time the command is sent: on activation, on deactivation and on each keep-alive. The value can contain `/` and `:`.
+
+Example for a boiler driven by a room controller whose setpoint is relative to its own measured temperature:
+- activation: `climate.thermostat_hc1/climate.set_temperature/temperature:{{ state_attr('climate.thermostat_hc1', 'current_temperature') | float(20) + 1 }}`
+- deactivation: `climate.thermostat_hc1/climate.set_temperature/temperature:{{ state_attr('climate.thermostat_hc1', 'current_temperature') | float(20) - 2 }}`
+
+> **Tip**
+> Use `float(default)` so that the template never fails, and enable the keep-alive so that the setpoint follows the measured temperature. If a template cannot be rendered, the command is skipped and an error is logged. A template which does not compile is rejected when you validate the configuration.
+
 ### How to Find the Right Action?
 To find the correct action to use, it's best to go to "Developer Tools / Services", search for the action to call, the entity to control, and any required parameters.
 Click 'Call Service'. If your boiler turns on, you have the correct configuration. Then switch to YAML mode and copy the parameters.

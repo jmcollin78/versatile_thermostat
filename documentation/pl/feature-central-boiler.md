@@ -55,6 +55,16 @@ Przykłady (dostosuj je do Twojego przypadku):
 - `switch.pompe_chaudiere/switch.turn_off`: aby wyłączyć przełącznik zasilający pompę kotła.
 -  ...
 
+### Użycie szablonu jako wartości
+Wartość (część po `attribute:`) może być szablonem Home Assistant. Szablon jest renderowany przy każdym wysłaniu polecenia: przy włączeniu, wyłączeniu oraz przy każdym keep-alive. Wartość może zawierać `/` i `:`.
+
+Przykład dla kotła sterowanego regulatorem pokojowym, którego temperatura zadana jest względna do jego własnej zmierzonej temperatury:
+- włączenie: `climate.thermostat_hc1/climate.set_temperature/temperature:{{ state_attr('climate.thermostat_hc1', 'current_temperature') | float(20) + 1 }}`
+- wyłączenie: `climate.thermostat_hc1/climate.set_temperature/temperature:{{ state_attr('climate.thermostat_hc1', 'current_temperature') | float(20) - 2 }}`
+
+> **Wskazówka**
+> Użyj `float(wartość_domyślna)`, aby szablon nigdy nie zawodził, i włącz keep-alive, aby temperatura zadana podążała za zmierzoną temperaturą. Jeśli szablonu nie można wyrenderować, polecenie jest pomijane, a błąd zapisywany w logach. Szablon, który się nie kompiluje, jest odrzucany podczas walidacji konfiguracji.
+
 ### Jak znaleźć właściwą akcję?
 Aby wybrać właściwą akcję, możesz przejść w Home Assistancie do sekcji `Narzędzia deweloperskie -> Akcje`, wyszukać akcję do wywołania, encję do sterowania oraz wszelkie wymagane parametry. Kliknij przycisk `Wykonaj akcję`. Jeśli Twój kocioł się uruchomi, oznacza to, że konfiguracja jest poprawna. Następnie przełącz się w tryb YAML i skopiuj parametry.
 
