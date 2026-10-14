@@ -135,13 +135,90 @@ async def test_over_climate_repair_waits_for_previous_command(
     entity._set_now(now)
     underlying._last_command_sent_datetime = now
 
-    with patch.object(underlying, "set_hvac_mode") as mock_set_hvac_mode:
+    with patch.object(underlying, "set_hvac_mode", return_value=True) as mock_set_hvac_mode:
         assert await underlying.check_and_repair() is False
         mock_set_hvac_mode.assert_not_called()
 
         entity._set_now(now + timedelta(seconds=2))
         assert await underlying.check_and_repair() is True
         mock_set_hvac_mode.assert_called_once_with(VThermHvacMode_HEAT)
+
+    entity.remove_thermostat()
+
+
+@pytest.mark.parametrize(
+    "under_mode, expect_repair",
+    [
+        (VThermHvacMode_HEAT, False),
+        (VThermHvacMode_OFF, True),
+    ],
+)
+async def test_over_climate_valve_sleep_repair(
+    hass: HomeAssistant,
+    skip_hass_states_is_state,
+    skip_turn_on_off_heater,
+    skip_send_event,
+    under_mode,
+    expect_repair,
+):
+    """Issue 2110: in SLEEP the TRV is expected in heat (mapped mode), nothing must be repaired nor counted."""
+    now = datetime.now(tz=get_tz(hass))
+    entry = MockConfigEntry(
+        domain=DOMAIN,
+        title="TheOverClimateMockName",
+        unique_id="uniqueId",
+        data=PARTIAL_CLIMATE_NOT_REGULATED_CONFIG,
+    )
+
+    await create_and_register_mock_climate(hass, "mock_climate", "MockClimateName", {}, hvac_mode=under_mode)
+    entity = await create_thermostat(hass, entry, "climate.theoverclimatemockname")
+    underlying = entity.underlying_entity(0)
+    entity._set_now(now + timedelta(seconds=10))
+
+    with (
+        patch.object(type(underlying), "hvac_mode", new_callable=PropertyMock, return_value=str(under_mode)),
+        patch.object(type(entity), "vtherm_hvac_mode", new_callable=PropertyMock, return_value=VThermHvacMode_SLEEP),
+        patch.object(type(entity), "get_underlying_hvac_mode", return_value=VThermHvacMode_HEAT),
+        patch.object(underlying, "set_hvac_mode", new_callable=AsyncMock, return_value=expect_repair) as mock_set_hvac_mode,
+    ):
+        for _ in range(3):
+            assert await underlying.check_and_repair() is expect_repair
+        if expect_repair:
+            assert mock_set_hvac_mode.call_count == 3
+            mock_set_hvac_mode.assert_called_with(VThermHvacMode_SLEEP)
+        else:
+            mock_set_hvac_mode.assert_not_called()
+
+    entity.remove_thermostat()
+
+
+async def test_over_climate_repair_returns_false_when_nothing_sent(
+    hass: HomeAssistant,
+    skip_hass_states_is_state,
+    skip_turn_on_off_heater,
+    skip_send_event,
+):
+    """Issue 2110: the repair is not counted when set_hvac_mode sends nothing; a plain HEAT vs off is still repaired."""
+    now = datetime.now(tz=get_tz(hass))
+    entry = MockConfigEntry(
+        domain=DOMAIN,
+        title="TheOverClimateMockName",
+        unique_id="uniqueId",
+        data=PARTIAL_CLIMATE_NOT_REGULATED_CONFIG,
+    )
+
+    await create_and_register_mock_climate(hass, "mock_climate", "MockClimateName", {}, hvac_mode=VThermHvacMode_OFF, hvac_action=HVACAction.OFF)
+    entity = await create_thermostat(hass, entry, "climate.theoverclimatemockname")
+    underlying = entity.underlying_entity(0)
+    entity.current_state.set_hvac_mode(VThermHvacMode_HEAT)
+    entity._set_now(now + timedelta(seconds=10))
+
+    with patch.object(underlying, "set_hvac_mode", new_callable=AsyncMock, return_value=False) as mock_set_hvac_mode:
+        assert await underlying.check_and_repair() is False
+        mock_set_hvac_mode.assert_called_once_with(VThermHvacMode_HEAT)
+
+    with patch.object(underlying, "set_hvac_mode", new_callable=AsyncMock, return_value=True):
+        assert await underlying.check_and_repair() is True
 
     entity.remove_thermostat()
 

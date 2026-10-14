@@ -1202,15 +1202,17 @@ class UnderlyingClimate(UnderlyingEntity):
         """Check if the underlying device state matches the desired state and repair if needed.
         Returns True if a repair was performed."""
         hvac_mode = self._thermostat.vtherm_hvac_mode
+        # The mode really expected on the underlying (e.g. SLEEP -> HEAT/COOL for valve regulation)
+        expected_hvac_mode = self._thermostat.get_underlying_hvac_mode(hvac_mode) if hvac_mode is not None else None
 
         under_hvac_mode = self.hvac_mode
 
-        _LOGGER.debug("%s - Checking if underlying climate state needs repair. hvac_mode=%s, under_hvac_mode=%s", self, hvac_mode, under_hvac_mode)
+        _LOGGER.debug("%s - Checking if underlying climate state needs repair. hvac_mode=%s, expected_hvac_mode=%s, under_hvac_mode=%s", self, hvac_mode, expected_hvac_mode, under_hvac_mode)
 
         if hvac_mode is None or under_hvac_mode is None:
             return False
 
-        if str(hvac_mode) == str(under_hvac_mode):
+        if str(expected_hvac_mode) == str(under_hvac_mode):
             return False
 
         if self._thermostat.now < self._last_command_sent_datetime + timedelta(seconds=resend_delay_sec):
@@ -1220,8 +1222,8 @@ class UnderlyingClimate(UnderlyingEntity):
             )
             return False
 
-        await self.set_hvac_mode(hvac_mode)
-        return True
+        # Only count a repair if something has really been sent
+        return await self.set_hvac_mode(hvac_mode)
 
     @property
     def min_sync_entity(self) -> float:
@@ -1494,6 +1496,13 @@ class UnderlyingValve(UnderlyingEntity):
         _LOGGER.debug("%s - Checking if underlying valve state needs repair. last_sent=%s, current=%s", self, last_sent, current)
 
         if abs(current - last_sent) <= 0.5:
+            return False
+
+        if self._thermostat.now < self._last_command_sent_datetime + timedelta(seconds=resend_delay_sec):
+            _LOGGER.debug(
+                "%s - Skipping valve state repair while waiting for the last command to be applied",
+                self,
+            )
             return False
 
         await self.send_percent_open()

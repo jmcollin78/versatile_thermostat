@@ -811,9 +811,25 @@ async def test_power_management_energy_over_switch(hass: HomeAssistant, skip_has
         return_value=True,
     ):
         entity.incremente_energy()
-        assert entity.total_energy == round(100 * 5 / 60.0 / 2, 2)
+        assert entity.total_energy == round(100 * 5 / 60.0, 2)
         entity.incremente_energy()
-        assert entity.total_energy == round(2 * 100 * 5 / 60.0 / 2, 2)
+        assert entity.total_energy == round(2 * 100 * 5 / 60.0, 2)
+
+    scheduler = entity.cycle_scheduler
+    assert scheduler.is_cycle_running
+    with patch.object(entity, "incremente_energy", wraps=entity.incremente_energy) as mock_incremente_energy, patch.object(
+        scheduler, "start_cycle", new_callable=AsyncMock
+    ) as mock_start_cycle:
+        await scheduler._on_master_cycle_end(None)
+
+    mock_incremente_energy.assert_called_once()
+    mock_start_cycle.assert_awaited_once_with(
+        VThermHvacMode_HEAT,
+        1,
+        force=True,
+        _from_cycle_end=True,
+    )
+    assert entity.total_energy == round(3 * 100 * 5 / 60.0, 2)
 
     # change temperature to a higher value
     with patch("custom_components.versatile_thermostat.base_thermostat.BaseThermostat.send_event") as mock_send_event, patch(
@@ -837,10 +853,10 @@ async def test_power_management_energy_over_switch(hass: HomeAssistant, skip_has
         return_value=True,
     ):
         entity.incremente_energy()
-        assert round(entity.total_energy, 2) == round((2.0 + 0.3) * 100 * 5 / 60.0 / 2, 2)
+        assert round(entity.total_energy, 2) == round((3.0 + 0.3) * 100 * 5 / 60.0, 2)
 
         entity.incremente_energy()
-        assert round(entity.total_energy, 2) == round((2.0 + 0.6) * 100 * 5 / 60.0 / 2, 2)
+        assert round(entity.total_energy, 2) == round((3.0 + 0.6) * 100 * 5 / 60.0, 2)
 
     # change temperature to a much higher value so that heater will be shut down
     with patch("custom_components.versatile_thermostat.base_thermostat.BaseThermostat.send_event") as mock_send_event, patch(
@@ -860,11 +876,11 @@ async def test_power_management_energy_over_switch(hass: HomeAssistant, skip_has
 
         entity.incremente_energy()
         # No change on energy
-        assert round(entity.total_energy, 2) == round((2.0 + 0.6) * 100 * 5 / 60.0 / 2, 2)
+        assert round(entity.total_energy, 2) == round((3.0 + 0.6) * 100 * 5 / 60.0, 2)
 
         # Still no change
         entity.incremente_energy()
-        assert round(entity.total_energy, 2) == round((2.0 + 0.6) * 100 * 5 / 60.0 / 2, 2)
+        assert round(entity.total_energy, 2) == round((3.0 + 0.6) * 100 * 5 / 60.0, 2)
 
 
 async def test_power_management_energy_over_climate(

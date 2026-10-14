@@ -14,7 +14,7 @@ from custom_components.versatile_thermostat.thermostat_climate_valve import (
     ThermostatOverClimateValve,
 )
 from custom_components.versatile_thermostat.opening_degree_algorithm import OpeningClosingDegreeCalculation
-from custom_components.versatile_thermostat.underlyings import UnderlyingValveRegulation
+from custom_components.versatile_thermostat.underlyings import UnderlyingValve, UnderlyingValveRegulation
 
 from .commons import *
 from .const import *
@@ -1272,3 +1272,26 @@ async def test_over_climate_valve_bug_1798(hass: HomeAssistant, fake_temp_sensor
         assert vtherm.device_actives == []
 
     vtherm.remove_thermostat()
+
+
+async def test_valve_repair_waits_for_last_command():
+    """Issue 2110: do not resend the valve opening right after it was sent, repair after the delay."""
+    now = datetime.now()
+    thermostat = MagicMock()
+    thermostat.now = now
+    valve = MagicMock(spec=UnderlyingValve)
+    valve._thermostat = thermostat
+    valve._last_sent_opening_value = 40
+    valve._last_command_sent_datetime = now
+    valve.send_percent_open = AsyncMock()
+    type(valve).current_valve_opening = PropertyMock(return_value=10)
+
+    try:
+        assert await UnderlyingValve.check_and_repair(valve) is False
+        valve.send_percent_open.assert_not_called()
+
+        thermostat.now = now + timedelta(seconds=2)
+        assert await UnderlyingValve.check_and_repair(valve) is True
+        valve.send_percent_open.assert_called_once()
+    finally:
+        del type(valve).current_valve_opening
