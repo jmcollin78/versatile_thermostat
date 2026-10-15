@@ -6,9 +6,9 @@
 | ----------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Nom               | Inhibition contrôlée d’un VTherm / Controlled VTherm inhibition                                                                                                                   |
 | Issue             | [#2087 — Add an “inhibit” sensor to pause a VTherm](https://github.com/jmcollin78/versatile_thermostat/issues/2087)                                                               |
-| Version           | 2.0 — décision d’architecture core/API/plugin                                                                                                                                     |
-| Statut            | Spécification convergée, validation mainteneur requise                                                                                                                            |
-| Date              | 2026-10-13                                                                                                                                                                        |
+| Version           | 2.1 — décisions de la revue de la PR #2101 intégrées (BR-011 à BR-020, AC-013 à AC-017, questions résolues)                                                                         |
+| Statut            | Spécification convergée ; les décisions 2.1 ont été validées par le mainteneur dans la PR #2101                                                                                    |
+| Date              | 2026-10-15                                                                                                                                                                        |
 | Propriétaire      | Projet Versatile Thermostat                                                                                                                                                       |
 | Sources analysées | [Revue de l’issue](../tech-docs/issue-2087-review.md), `base_thermostat.py`, `state_manager.py`, `underlyings.py`, `feature_repair_incorrect_state_manager.py`, `vtherm_state.py` |
 
@@ -82,7 +82,7 @@ Le plugin traite `UNKNOWN` comme une condition nécessitant le maintien de l’i
 | FR-013 | Le plugin doit exposer et traiter les statuts `ACTIVE`, `INACTIVE` et `UNKNOWN`. Il doit appeler `set_inhibition` pour `ACTIVE` et `UNKNOWN`, et réserver `unset_inhibition` à `INACTIVE` confirmé.                             |
 | FR-014 | Le core ne doit découvrir, créer ou instancier directement aucun provider ou composant de source. Il ne doit contenir aucun `if` dispersé de détection ou de politique plugin.                                                  |
 | FR-015 | Le manager core doit persister au minimum l’inhibition opérationnelle, la phase de garde et l’accomplissement de l’arrêt d’entrée lorsque celui-ci a été demandé.                                                               |
-| FR-016 | En l’absence de plugin, le système doit conserver le comportement historique, sans garde ni raison d’inhibition active.                                                                                                         |
+| FR-016 | En l’absence de plugin, le système doit conserver le comportement historique, sans garde ni raison d’inhibition active. Exception acceptée : le comportement fenêtre éco/hors-gel (BR-012).                                     |
 
 ## 5. Règles métier
 
@@ -98,6 +98,16 @@ Le plugin traite `UNKNOWN` comme une condition nécessitant le maintien de l’i
 | BR-008 | Seul `INACTIVE` confirmé par le plugin autorise l’appel à `unset_inhibition`.                                                                   |
 | BR-009 | Une demande `OFF` conservée pendant l’inhibition interdit toute réactivation à la sortie.                                                       |
 | BR-010 | Sans plugin, aucune règle d’inhibition ne s’applique et le cycle historique est conservé.                                                       |
+| BR-011 | `unset_inhibition()` lève une exception si la réconciliation de sortie échoue ; le VTherm reste alors inhibé et le plugin réessaie. Seule une erreur du chemin propre au core (ou une annulation) est un échec ; un sous-jacent indisponible est journalisé, comme aujourd’hui, et ne fait pas échouer la sortie. |
+| BR-012 | Fenêtre avec l’action éco/hors-gel (tous les utilisateurs, avec ou sans plugin) : tant que la fenêtre est ouverte, le mode HVAC est recalculé normalement et la fenêtre ne modifie que la consigne. Une sortie d’inhibition fenêtre ouverte restaure le dernier état demandé, amendé par l’action de la fenêtre. |
+| BR-013 | Avec « suivre les changements de température du sous-jacent » activé, un changement fait directement sur un sous-jacent pendant l’inhibition est toujours recopié dans l’état demandé. L’utilisateur qui ne le souhaite pas désactive cette fonction. |
+| BR-014 | Les commandes de ventilation, swing, humidité et recalibrage de vanne pendant l’inhibition sont ignorées et journalisées par un avertissement : ventilation, swing et humidité une fois par inhibition, sous-jacent et commande (l’auto-fan les renvoie à chaque cycle) ; un recalibrage à l’appel de son service. Elles ne sont pas refusées au niveau du service. |
+| BR-015 | Aucune opération core n’est exemptée du garde fermé. L’amorçage de la régulation de vanne (#2049) est exécuté à la sortie, dans la réconciliation de sortie, et non pendant l’inhibition. |
+| BR-016 | `set_inhibition()` / `unset_inhibition()` sont refusés (`InhibitionNotStartedError`, rien ne change) tant que le VTherm n’a pas restauré son état au démarrage. Le plugin attend cette restauration, pas `is_ready` : le core diffère déjà l’arrêt d’entrée et la réconciliation de sortie jusqu’à `is_ready`. Un VTherm qui n’était pas inhibé avant un redémarrage démarre normalement jusqu’à l’arrivée du `set` du plugin. |
+| BR-017 | Un `unset_inhibition()` annulé remet le VTherm en inhibition et renvoie l’arrêt d’entrée s’il avait été demandé ; un équipement rallumé par la réconciliation partielle peut donc s’allumer brièvement, puis s’éteindre. |
+| BR-018 | Un redémarrage pendant la réconciliation de sortie est traité comme un échec de sortie : inhibé, garde fermé, et l’arrêt d’entrée renvoyé une fois le VTherm prêt s’il avait été demandé. Le plugin rappelle `unset_inhibition()`. |
+| BR-019 | Un changement de la politique du plugin (`stop_underlyings`) pendant une inhibition active s’applique à partir de l’entrée suivante ; aucun arrêt tardif n’est envoyé. |
+| BR-020 | Si le plugin est supprimé pendant qu’un VTherm est inhibé, plus rien ne peut appeler `unset_inhibition()`. Il n’y a pas d’action core pour forcer la sortie ; la procédure de récupération est documentée dans le plugin (le réinstaller, puis supprimer son entrée pour ce VTherm, ce qui appelle `unset_inhibition()`). |
 
 ## 6. Transitions et persistance
 
@@ -111,7 +121,7 @@ Le plugin traite `UNKNOWN` comme une condition nécessitant le maintien de l’i
 | Réconciliation | Commande normale ou nouvel appel concurrent    | Bloquer la commande normale ; ne pas ouvrir le garde avant la fin de l’opération de sortie.                                |
 | Normal         | Aucun plugin                                   | Exécuter le comportement historique.                                                                                       |
 
-Après redémarrage, le core doit restaurer son état opérationnel sans réémettre un arrêt déjà accompli. Si l’inhibition est active, le garde et la suspension restent actifs. Si une confirmation `INACTIVE` n’est pas disponible, le plugin maintient l’inhibition. La persistance métier des sources, délais, bypass et politique appartient au plugin ; elle ne doit pas être dupliquée par le core.
+Le core persiste son état opérationnel dans `specific_states.inhibition` (`schema_version: 1`) et le restaure au tout début du démarrage du VTherm, avant toute commande vers un sous-jacent. Les appels faits avant cette restauration sont refusés (BR-016) ; un redémarrage pendant la réconciliation de sortie suit BR-018. Après redémarrage, le core doit restaurer son état opérationnel sans réémettre un arrêt déjà accompli. Si l’inhibition est active, le garde et la suspension restent actifs. Si une confirmation `INACTIVE` n’est pas disponible, le plugin maintient l’inhibition. La persistance métier des sources, délais, bypass et politique appartient au plugin ; elle ne doit pas être dupliquée par le core.
 
 ## 7. Contraintes fonctionnelles et exclusions
 
@@ -133,8 +143,13 @@ Sont exclus de cette version : configuration utilisateur d’inhibition dans le 
 | AC-008 | `OFF` est demandé pendant l’inhibition puis celle-ci prend fin.                            | Aucun sous-jacent n’est réactivé.                                                                                      |
 | AC-009 | Le plugin est `UNKNOWN` après démarrage, erreur ou rechargement.                           | Le plugin maintient/appelle `set_inhibition`; aucun `unset_inhibition` n’est appelé et aucune reprise n’a lieu.        |
 | AC-010 | Home Assistant redémarre pendant l’inhibition après l’arrêt d’entrée.                      | Le garde reste fermé, le contrôle reste suspendu et aucun second arrêt inutile n’est envoyé.                           |
-| AC-011 | Le VTherm fonctionne sans plugin.                                                          | Le comportement historique est inchangé.                                                                               |
+| AC-011 | Le VTherm fonctionne sans plugin.                                                          | Le comportement historique est inchangé, sauf le comportement fenêtre éco/hors-gel (BR-012).                           |
 | AC-012 | Deux chemins core tentent d’émettre une commande vers un sous-jacent pendant l’inhibition. | L’intercepteur unique bloque les deux, sauf l’arrêt d’entrée autorisé ou la réconciliation de sortie.                  |
+| AC-013 | La réconciliation de sortie échoue dans le chemin core.                                    | `unset_inhibition()` lève une exception, le VTherm est inhibé garde fermé, l’arrêt d’entrée est renvoyé s’il avait été demandé. |
+| AC-014 | L’inhibition prend fin alors qu’une fenêtre avec l’action éco/hors-gel est ouverte.        | Le dernier mode HVAC demandé est restauré, avec la consigne de la fenêtre.                                             |
+| AC-015 | Le plugin appelle set ou unset avant que le VTherm ait restauré son état.                  | `InhibitionNotStartedError`, aucun changement d’état, aucune commande ; le snapshot restauré s’applique.               |
+| AC-016 | Home Assistant redémarre pendant la réconciliation de sortie.                              | Inhibé et garde fermé après le redémarrage ; l’arrêt d’entrée demandé est renvoyé une fois le VTherm prêt.             |
+| AC-017 | Ventilation, swing, humidité ou recalibrage demandés pendant l’inhibition.                 | Rien n’est envoyé au sous-jacent ; un avertissement est journalisé (BR-014).                                           |
 
 ## 9. Matrice de tests attendus
 
@@ -147,8 +162,8 @@ Sont exclus de cette version : configuration utilisateur d’inhibition dans le 
 | Arrêt d’entrée  | `stop_underlyings=true`, `false`, sous-jacent déjà arrêté, répétition               | Arrêt unique si demandé, jamais sinon.                                                           |
 | Sortie          | `INACTIVE`, intention chauffage/refroidissement/`OFF`, réconciliation lente         | Une seule réconciliation, garde fermé jusqu’à sa fin, ouverture ensuite.                         |
 | Plugin          | Sources multiples, configuration, délais, bypass, cycle de vie, persistance métier  | `ACTIVE` et `UNKNOWN` appellent/maintiennent `set`; seul `INACTIVE` confirmé appelle `unset`.    |
-| Redémarrage     | Inhibition active, arrêt déjà accompli, sortie non confirmée                        | Pas de second arrêt ni de reprise prématurée.                                                    |
-| Régression      | Absence de plugin, fenêtre, auto-start/auto-stop, TPI et réparation hors inhibition | Fonctionnement historique inchangé hors périmètre.                                               |
+| Redémarrage     | Inhibition active, arrêt déjà accompli, sortie non confirmée, sortie interrompue, appels avant restauration | Pas de second arrêt ni de reprise prématurée ; appels avant restauration refusés.       |
+| Régression      | Absence de plugin, fenêtre, auto-start/auto-stop, TPI et réparation hors inhibition | Fonctionnement historique inchangé hors périmètre, sauf BR-012.                                  |
 
 ## 10. Hypothèses, questions ouvertes et traçabilité
 
@@ -159,16 +174,16 @@ Sont exclus de cette version : configuration utilisateur d’inhibition dans le 
 - `UNKNOWN` signifie que la sortie n’est pas confirmée et impose le maintien de l’inhibition.
 - La persistance core et la persistance métier du plugin sont distinctes.
 
-### Questions ouvertes
+### Questions résolues (PR #2101, du 2026-10-13 au 2026-10-15)
 
-1. Confirmer le nom sérialisé de la politique plugin qui détermine `stop_underlyings`.
-2. Définir le format exact des attributs d’observabilité core et plugin.
-3. Définir le comportement précis du plugin lorsqu’une politique change pendant une inhibition déjà active.
-4. Confirmer l’ordre de livraison API, core et plugin.
+1. Politique du plugin : une option booléenne par VTherm, `stop_underlyings`, reflet de l’API, `true` par défaut.
+2. Observabilité : le core publie uniquement `specific_states.inhibition` (le snapshot persisté) et journalise l’entrée, l’arrêt, la réconciliation, les commandes ignorées et les erreurs. Le plugin publie son statut (`ACTIVE`/`INACTIVE`/`UNKNOWN`), sa politique, ses sources et le diagnostic des appels API comme attributs de son binary sensor d’inhibition par VTherm ; pas de switch supplémentaire.
+3. Changement de politique pendant une inhibition active : appliqué à partir de l’entrée suivante (BR-019).
+4. Ordre de livraison : vtherm_api 0.6.1 (publiée), puis la PR core, puis une version du plugin exigeant le nouveau core.
 
 ### Traçabilité
 
-Cette spécification s’appuie sur [la revue de l’issue #2087](../tech-docs/issue-2087-review.md) et sur les fichiers techniques indiqués dans les métadonnées. Elle décrit une décision cible et ne prétend pas que ces opérations existent déjà dans le code. Aucun autre fichier n’est modifié par cette révision.
+Cette spécification s’appuie sur [la revue de l’issue #2087](../tech-docs/issue-2087-review.md) et sur les fichiers techniques indiqués dans les métadonnées. La version 2.1 ajoute les décisions prises lors de la revue de la PR #2101 (BR-011 à BR-020, AC-013 à AC-017, questions résolues) ; leurs détails d’implémentation figurent dans les notes d’implémentation du document de conception.
 
 ---
 
@@ -180,9 +195,9 @@ Cette spécification s’appuie sur [la revue de l’issue #2087](../tech-docs/i
 | ---------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Name             | Controlled VTherm inhibition / Inhibition contrôlée d’un VTherm                                                                                                               |
 | Issue            | [#2087 — Add an “inhibit” sensor to pause a VTherm](https://github.com/jmcollin78/versatile_thermostat/issues/2087)                                                           |
-| Version          | 2.0 — core/API/plugin architecture decision                                                                                                                                   |
-| Status           | Converged specification, maintainer approval required                                                                                                                         |
-| Date             | 2026-10-13                                                                                                                                                                    |
+| Version          | 2.1 — decisions from the PR #2101 review integrated (BR-011 to BR-020, AC-013 to AC-017, answered questions)                                                                    |
+| Status           | Converged specification; the 2.1 decisions were validated by the maintainer in PR #2101                                                                                      |
+| Date             | 2026-10-15                                                                                                                                                                    |
 | Owner            | Versatile Thermostat project                                                                                                                                                  |
 | Analyzed sources | [Issue review](../tech-docs/issue-2087-review.md), `base_thermostat.py`, `state_manager.py`, `underlyings.py`, `feature_repair_incorrect_state_manager.py`, `vtherm_state.py` |
 
@@ -250,7 +265,7 @@ The plugin treats `UNKNOWN` as requiring inhibition: it maintains or calls `set_
 | FR-013 | The plugin shall process `ACTIVE`, `INACTIVE`, and `UNKNOWN`; it shall call set for `ACTIVE`/`UNKNOWN` and unset only for confirmed `INACTIVE`.                                   |
 | FR-014 | The core shall not discover, create, or instantiate a provider or source component directly, nor contain dispersed plugin-policy conditionals.                                    |
 | FR-015 | The core manager shall persist operational inhibition, guard phase, and completion of the requested entry stop.                                                                   |
-| FR-016 | Without a plugin, the system shall preserve historical behavior, with no active inhibition guard or reason.                                                                       |
+| FR-016 | Without a plugin, the system shall preserve historical behavior, with no active inhibition guard or reason. Accepted exception: the window eco/frost behavior (BR-012).          |
 
 ## 5. Business rules
 
@@ -266,12 +281,22 @@ The plugin treats `UNKNOWN` as requiring inhibition: it maintains or calls `set_
 | BR-008 | Only confirmed `INACTIVE` authorizes a call to `unset_inhibition`.                                                 |
 | BR-009 | A requested `OFF` retained during inhibition forbids reactivation at exit.                                         |
 | BR-010 | Without a plugin, no inhibition rule applies and the historical cycle is preserved.                                |
+| BR-011 | `unset_inhibition()` raises when the exit reconciliation fails; the VTherm then stays inhibited and the plugin retries. Only an error in the core's own path (or a cancellation) is a failure; a single unavailable underlying is logged, as today, and does not fail the exit. |
+| BR-012 | Window with the eco/frost action (all users, with or without plugin): while the window is open, the HVAC mode is recalculated normally and the window only changes the setpoint. Leaving inhibition with an open window restores the last requested state, amended with the window action. |
+| BR-013 | With "follow underlying temp change" enabled, a change made directly on an underlying during inhibition is still copied into the requested state. A user who does not want this disables the feature. |
+| BR-014 | Fan, swing, humidity and valve-recalibration commands during inhibition are dropped and logged with a warning: fan, swing and humidity once per inhibition, underlying and command (the auto-fan resends them every cycle); a recalibration at its service call. They are not refused at the service level. |
+| BR-015 | No core operation is exempted from the closed guard. The valve-regulation bootstrap seed (#2049) runs at exit, inside the exit reconciliation, not while inhibited. |
+| BR-016 | `set_inhibition()` / `unset_inhibition()` are refused (`InhibitionNotStartedError`, nothing changes) until the VTherm has restored its state at startup. The plugin waits for this restore, not for `is_ready`: the core already defers the entry stop and the exit reconciliation until `is_ready`. A VTherm that was not inhibited before a restart starts normally until the plugin's `set` arrives. |
+| BR-017 | A cancelled `unset_inhibition()` puts the VTherm back into inhibition and sends the entry stop again if it was requested; a device switched on by the partial reconciliation may therefore turn on briefly, then off. |
+| BR-018 | A restart during the exit reconciliation is handled like a failed exit: inhibited, guard closed, and the entry stop sent again once the VTherm is ready if it was requested. The plugin calls `unset_inhibition()` again. |
+| BR-019 | A change of the plugin policy (`stop_underlyings`) during an active inhibition applies from the next entry; no late stop is sent. |
+| BR-020 | If the plugin is removed while a VTherm is inhibited, nothing can call `unset_inhibition()`. There is no core action to force an exit; the recovery is documented in the plugin (reinstall it, then delete its entry for that VTherm, which calls `unset_inhibition()`). |
 
 ## 6. Transitions and persistence
 
 The normal-to-inhibited transition resolves `OFF`, records the dedicated reason, suspends control and repair, closes the guard, and sends at most one requested entry stop. Repeated set calls emit nothing again. Changes to intent are retained. After confirmed `INACTIVE`, unset enters reconciliation; normal commands remain blocked until current requested state has been applied, then the guard opens.
 
-After restart, the core restores operational state without resending a completed stop. Active inhibition keeps guard and suspension active. If `INACTIVE` is unavailable, the plugin maintains inhibition. Source, delay, bypass, and policy persistence belongs to the plugin and is not duplicated in core. Without a plugin, historical behavior applies.
+The core persists its operational state in `specific_states.inhibition` (`schema_version: 1`) and restores it at the very start of the VTherm startup, before any underlying command. After restart, the core restores operational state without resending a completed stop. Active inhibition keeps guard and suspension active. Calls made before this restore are refused (BR-016); a restart during the exit reconciliation follows BR-018. If `INACTIVE` is unavailable, the plugin maintains inhibition. Source, delay, bypass, and policy persistence belongs to the plugin and is not duplicated in core. Without a plugin, historical behavior applies.
 
 ## 7. Functional constraints and exclusions
 
@@ -291,8 +316,13 @@ The core retains centralized effective-state resolution and stable reason `hvac_
 | AC-008 | `OFF` is requested during inhibition and inhibition ends.            | No underlying device is reactivated.                                                      |
 | AC-009 | Plugin is `UNKNOWN`.                                                 | Plugin maintains/calls set; unset is not called and no resumption occurs.                 |
 | AC-010 | Home Assistant restarts during active inhibition after entry stop.   | Guard remains closed, control stays suspended, and no second stop is sent.                |
-| AC-011 | VTherm runs without a plugin.                                        | Historical behavior is unchanged.                                                         |
+| AC-011 | VTherm runs without a plugin.                                        | Historical behavior is unchanged, except the window eco/frost behavior (BR-012).          |
 | AC-012 | Multiple core paths attempt an underlying command during inhibition. | Unique interceptor blocks them, except authorized entry stop or exit reconciliation.      |
+| AC-013 | The exit reconciliation fails in the core path.                      | `unset_inhibition()` raises, the VTherm is inhibited with the guard closed, the entry stop is sent again if it was requested. |
+| AC-014 | Inhibition ends while a window with the eco/frost action is open.    | The last requested HVAC mode is restored, with the window setpoint applied.               |
+| AC-015 | The plugin calls set or unset before the VTherm restored its state.  | `InhibitionNotStartedError`, no state change, no command; the restored snapshot applies.  |
+| AC-016 | Home Assistant restarts during the exit reconciliation.              | Inhibited and guard closed after restart; the requested entry stop is sent again once ready. |
+| AC-017 | Fan, swing, humidity or recalibration is requested during inhibition. | Nothing is sent to the underlying; a warning is logged (BR-014).                         |
 
 ## 9. Expected test matrix
 
@@ -305,8 +335,8 @@ The core retains centralized effective-state resolution and stable reason `hvac_
 | Entry stop      | Policy true/false, stopped device, repetition                      | One stop when requested, never otherwise.                           |
 | Exit            | Confirmed inactive, each intent, slow reconciliation               | One reconciliation, guard closed until completion, then open.       |
 | Plugin          | Sources, configuration, delays, bypass, lifecycle, persistence     | Active/unknown maintain set; only confirmed inactive calls unset.   |
-| Restart         | Active inhibition, completed stop, unconfirmed exit                | No second stop or premature resumption.                             |
-| Regression      | No plugin, window, auto-start/stop, TPI, repair outside inhibition | Historical behavior unchanged outside scope.                        |
+| Restart         | Active inhibition, completed stop, unconfirmed exit, interrupted exit, calls before restore | No second stop or premature resumption; calls before restore refused. |
+| Regression      | No plugin, window, auto-start/stop, TPI, repair outside inhibition | Historical behavior unchanged outside scope, except BR-012.         |
 
 ## 10. Assumptions, open questions, and traceability
 
@@ -317,13 +347,13 @@ The core retains centralized effective-state resolution and stable reason `hvac_
 - `UNKNOWN` means exit is unconfirmed and inhibition must remain active.
 - Core and plugin business persistence are distinct.
 
-### Open questions
+### Answered questions (PR #2101, 2026-10-13 to 2026-10-15)
 
-1. Confirm the serialized plugin policy name determining `stop_underlyings`.
-2. Define exact core and plugin observability attributes.
-3. Define plugin behavior when policy changes during active inhibition.
-4. Confirm API, core, and plugin delivery order.
+1. Plugin policy: a per-VTherm boolean option `stop_underlyings`, mirroring the API, default `true`.
+2. Observability: the core publishes only `specific_states.inhibition` (the persisted snapshot) and logs entry, stop, reconciliation, dropped commands and errors. The plugin publishes its status (`ACTIVE`/`INACTIVE`/`UNKNOWN`), policy, sources and API-call diagnostics as attributes of its per-VTherm inhibition binary sensor; no extra switch.
+3. Policy change during an active inhibition: applies from the next entry (BR-019).
+4. Delivery order: vtherm_api 0.6.1 (published), then the core PR, then a plugin release requiring the new core.
 
 ### Traceability
 
-This specification is based on [the Issue #2087 review](../tech-docs/issue-2087-review.md) and the technical files listed in the metadata. It describes a target decision and does not claim that these operations already exist in code. No other file is modified by this revision.
+This specification is based on [the Issue #2087 review](../tech-docs/issue-2087-review.md) and the technical files listed in the metadata. Version 2.1 adds the decisions taken in the review of PR #2101 (BR-011 to BR-020, AC-013 to AC-017, answered questions); their implementation details are in the design document's implementation notes.
