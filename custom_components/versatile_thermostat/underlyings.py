@@ -209,6 +209,10 @@ class UnderlyingEntity:
         """Issue #2087 - before the exit reconciliation, resynchronize the caches
         that dropped commands may have updated"""
 
+    async def async_inhibition_exit_seed(self):
+        """Issue #2087 - at unset time, before the exit reconciliation and even if the
+        VTherm is not ready yet: rerun the bootstrap commands the closed gate dropped"""
+
     def on_inhibition_gate_opened(self):
         """Issue #2087 - the gate opened after commands were dropped during the exit"""
 
@@ -1742,10 +1746,16 @@ class UnderlyingValveRegulation(UnderlyingValve):
                 _LOGGER.info("%s - Valve-regulation seed_attempted for %s with value %s", self, entity_id, values[entity_id])
 
     @overrides
+    async def async_inhibition_exit_seed(self):
+        """Run the bootstrap seed again (#2049): it was dropped by the gate if the VTherm
+        started inhibited, and an unknown degree may be what keeps the VTherm not ready"""
+        self._seed_attempted_targets.clear()
+        await self._seed_unknown_degrees_once()
+
+    @overrides
     async def async_inhibition_resync(self):
         """_percent_open is a raw percentage here: keep it only if the real degrees still
-        match it, else force a resend. Then run the bootstrap seed again (#2049): it was
-        dropped by the gate if the VTherm started inhibited"""
+        match it, else force a resend"""
         current = self.current_valve_opening
         self._last_sent_opening_value = current
         if isinstance(self._percent_open, (int, float)):
@@ -1759,8 +1769,6 @@ class UnderlyingValveRegulation(UnderlyingValve):
             closing_state = self._state_manager.get_state(self._closing_degree_entity_id) if self.has_closing_degree_entity else None
             if current != opening_degree or (self.has_closing_degree_entity and get_safe_float_value(closing_state.state if closing_state else None) != closing_degree):
                 self._percent_open = None
-        self._seed_attempted_targets.clear()
-        await self._seed_unknown_degrees_once()
 
     @property
     def bootstrap_diagnostics(self) -> dict[str, Any]:

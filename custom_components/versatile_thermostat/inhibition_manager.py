@@ -372,6 +372,17 @@ class InhibitionManager:
         _LOGGER.info("%s - Inhibition unset. Reconciling the underlyings", self)
         self._persist()
 
+        # #2049 bootstrap seed: now, even if the VTherm is not ready. After a restart while
+        # inhibited the gate dropped the startup seed, and an unknown valve degree keeps the
+        # VTherm not ready: the reconciliation waiting for ready would never run.
+        try:
+            with self._transaction_scope(InhibitionTransaction.EXIT_RECONCILE):
+                for under in self._vtherm.all_underlying_entities:
+                    await under.async_inhibition_exit_seed()
+        except (Exception, asyncio.CancelledError) as err:
+            await self._async_rollback_exit(err)
+            raise
+
         if not self._vtherm.is_ready:
             self._exit_pending = True
             _LOGGER.info("%s - Exit reconciliation deferred until the VTherm is ready", self)
