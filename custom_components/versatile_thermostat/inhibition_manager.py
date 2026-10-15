@@ -13,6 +13,8 @@ EXIT_RECONCILING. A transaction is identified by its call chain: a ContextVar
 holding the transaction token, bound to the task running the transaction (a task
 or a timer created during the transaction inherits the ContextVar, it must not
 pass). So a keep-alive, a timer or a background task never passes the gate.
+
+How it works, step by step: documentation/tech-docs/inhibition_manager.md
 """
 
 import asyncio
@@ -29,10 +31,10 @@ from homeassistant.components.climate import (
     SERVICE_SET_SWING_MODE,
 )
 from homeassistant.core import State
-from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers.restore_state import async_get as restore_async_get
 from homeassistant.util import dt as dt_util
 
+from vtherm_api import InhibitionNotStartedError  # raised before the startup restore (vtherm_api >= 0.6.2)
 from vtherm_api.log_collector import get_vtherm_logger
 
 _LOGGER = get_vtherm_logger(__name__)
@@ -49,10 +51,6 @@ MAX_EXIT_RECONCILE_WALKS = 3
 
 # User settings which are not part of the requested state: dropped with a warning
 _USER_SETTING_SERVICES = frozenset({SERVICE_SET_FAN_MODE, SERVICE_SET_HUMIDITY, SERVICE_SET_SWING_MODE, SERVICE_SET_SWING_HORIZONTAL_MODE})
-
-
-class InhibitionNotStartedError(HomeAssistantError):
-    """set / unset called before the VTherm restored its inhibition state at startup"""
 
 
 class CommandGate(StrEnum):

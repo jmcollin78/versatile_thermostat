@@ -1225,6 +1225,12 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
         """True while an inhibition plugin withdraws the control of the underlyings"""
         return self._inhibition.is_inhibited
 
+    @property
+    def is_inhibition_started(self) -> bool:
+        """Issue #2087 - read by the VTherm API (is_inhibition_started): True once the
+        inhibition state is restored at startup, set/unset are accepted from then on"""
+        return self._inhibition.is_restored
+
     async def async_set_inhibition(self, stop_underlyings: bool) -> None:
         """Issue #2087 - called by the VTherm API: resolve OFF and close the command gate.
         stop_underlyings only allows the single entry stop.

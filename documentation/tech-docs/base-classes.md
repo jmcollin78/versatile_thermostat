@@ -920,16 +920,17 @@ Features are composed rather than inherited:
 
 ### Inhibition (plugin, issue #2087)
 
-An inhibition plugin calls the `vtherm_api` facade (`>=0.6.1`):
+An inhibition plugin calls the `vtherm_api` facade (`>=0.6.2`):
 `set_inhibition(entity_id, stop_underlyings)` and `unset_inhibition(entity_id)`,
 which await `BaseThermostat.async_set_inhibition()` / `async_unset_inhibition()`.
 The core (`InhibitionManager`) resolves `OFF` with `hvac_off_inhibition`, keeps the
 requested state, and closes a single command gate at the underlying boundary: only
 the optional entry stop and the exit reconciliation pass. Its state is published and
 restored under `specific_states.inhibition` once used. Until that restore has run
-at startup (`inhibition_manager.is_restored`), both calls raise
-`InhibitionNotStartedError`. Without any call, nothing changes. See the [specification](../specs/issue-2087-inhibition-spec.md) and the
-[design](issue-2087-inhibition-design.md).
+at startup (`is_inhibition_started`, also exposed by the facade), both calls
+raise `InhibitionNotStartedError` (exported by `vtherm_api`). Without any call, nothing changes. See the [specification](../specs/issue-2087-inhibition-spec.md), the
+[design](issue-2087-inhibition-design.md) and, for how the manager works,
+[inhibition_manager.md](inhibition_manager.md).
 
 ---
 

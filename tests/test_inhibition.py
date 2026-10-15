@@ -1042,7 +1042,7 @@ async def test_climate_valve_set_false_sends_nothing(hass: HomeAssistant, fake_t
 ## StateManager priorities
 ##
 async def test_state_manager_inhibition_priority():
-    """Inhibition resolves OFF with its reason, after central STOPPED and safety, before window"""
+    """Inhibition resolves OFF with its reason, first: before central STOPPED, safety and window"""
     vtherm = MagicMock()
     vtherm.last_central_mode = None
     vtherm.safety_manager.is_safety_detected = False
@@ -1062,17 +1062,30 @@ async def test_state_manager_inhibition_priority():
     await manager.calculate_current_hvac_mode(vtherm)
     vtherm.set_hvac_off_reason.assert_called_with(HVAC_OFF_REASON_INHIBITION)
 
-    # central stopped wins
+    # inhibition wins over central stopped
+    manager.requested_state.set_hvac_mode(VThermHvacMode_HEAT)
     vtherm.last_central_mode = CENTRAL_MODE_STOPPED
     await manager.calculate_current_hvac_mode(vtherm)
-    vtherm.set_hvac_off_reason.assert_called_with(HVAC_OFF_REASON_CENTRAL_MODE)
+    assert manager.current_state.hvac_mode == VThermHvacMode_OFF
+    vtherm.set_hvac_off_reason.assert_called_with(HVAC_OFF_REASON_INHIBITION)
+    vtherm.set_hvac_mode_reason.assert_called_with(HVAC_OFF_REASON_INHIBITION)
 
-    # safety wins
+    # and over safety
     vtherm.last_central_mode = None
     vtherm.safety_manager.is_safety_detected = True
     vtherm.is_over_climate = True
     await manager.calculate_current_hvac_mode(vtherm)
+    assert manager.current_state.hvac_mode == VThermHvacMode_OFF
+    vtherm.set_hvac_off_reason.assert_called_with(HVAC_OFF_REASON_INHIBITION)
+
+    # once not inhibited, safety and central stopped apply again
+    vtherm.is_inhibited = False
+    await manager.calculate_current_hvac_mode(vtherm)
     vtherm.set_hvac_off_reason.assert_called_with(HVAC_OFF_REASON_SAFETY)
+    vtherm.last_central_mode = CENTRAL_MODE_STOPPED
+    await manager.calculate_current_hvac_mode(vtherm)
+    vtherm.set_hvac_off_reason.assert_called_with(HVAC_OFF_REASON_CENTRAL_MODE)
+    vtherm.is_inhibited = True
 
     # a MagicMock attribute is not an inhibition
     other = MagicMock()
@@ -1293,6 +1306,7 @@ def _call_before_restore(call, results: list):
     original = BaseThermostat.async_startup
 
     async def patched(self, central_configuration):
+        assert api(self.hass).is_inhibition_started(self.entity_id) is False
         try:
             await call(self)
             results.append(None)
@@ -1318,6 +1332,7 @@ async def test_call_before_restore_is_refused(hass: HomeAssistant, fake_temp_sen
         assert spy.calls == []
     assert len(results) == 1 and isinstance(results[0], InhibitionNotStartedError)
     assert vtherm.inhibition_manager.is_restored
+    assert api(hass).is_inhibition_started(vtherm.entity_id) is True
     assert_inhibited(vtherm)
     assert snapshot(hass, vtherm)["entry_stop_completed"] is True
     assert hass.states.get(SWITCH).state == STATE_ON
