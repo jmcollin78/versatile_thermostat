@@ -29,6 +29,7 @@ from homeassistant.components.climate import (
     SERVICE_SET_SWING_MODE,
 )
 from homeassistant.core import State
+from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers.restore_state import async_get as restore_async_get
 from homeassistant.util import dt as dt_util
 
@@ -48,6 +49,10 @@ MAX_EXIT_RECONCILE_WALKS = 3
 
 # User settings which are not part of the requested state: dropped with a warning
 _USER_SETTING_SERVICES = frozenset({SERVICE_SET_FAN_MODE, SERVICE_SET_HUMIDITY, SERVICE_SET_SWING_MODE, SERVICE_SET_SWING_HORIZONTAL_MODE})
+
+
+class InhibitionNotStartedError(HomeAssistantError):
+    """set / unset called before the VTherm restored its inhibition state at startup"""
 
 
 class CommandGate(StrEnum):
@@ -94,9 +99,8 @@ class InhibitionManager:
         self._exit_pending: bool = False
         self._exit_future: asyncio.Future | None = None
         self._warned: set[tuple[str, str]] = set()
-        # The last API call ("set" / "unset") before the snapshot restore, if any
-        self._last_api_call: str | None = None
-        # The snapshot is restored once per entity lifetime (async_startup may run twice)
+        # The snapshot is restored once per entity lifetime (async_startup may run twice).
+        # set and unset are refused before (InhibitionNotStartedError).
         self._is_restored: bool = False
         # A command of another call chain was dropped while EXIT_RECONCILING
         self._blocked_during_exit: bool = False
@@ -115,6 +119,12 @@ class InhibitionManager:
     def command_gate(self) -> CommandGate:
         """The command gate state"""
         return self._gate
+
+    @property
+    def is_restored(self) -> bool:
+        """True once the VTherm restored its inhibition state at startup: set and unset
+        are accepted from then on"""
+        return self._is_restored
 
     @property
     def is_used(self) -> bool:
@@ -139,49 +149,28 @@ class InhibitionManager:
         A restart during the exit reconciliation is restored like a failed exit: inhibited,
         gate closed, and the entry stop sent again once ready if it was requested (the
         partial reconciliation may have restarted devices). The plugin has to call unset again.
-        If the plugin already called the API (the entity exists before its startup):
-        - after an unset, the snapshot is ignored (not inhibited);
-        - after a set, an inhibited snapshot is the same inhibition: its entry stop
-          flags are merged (a completed stop is not sent again, a pending one stays
-          pending until ready); a non inhibited snapshot leaves the early set as is."""
+        set and unset are refused until this has run, so nothing can override the snapshot."""
         if self._is_restored:
             _LOGGER.debug("%s - Snapshot already restored", self)
             return
         self._is_restored = True
         if old_state is None:
             return
-        if self._last_api_call == "unset":
-            _LOGGER.info("%s - Snapshot not restored: unset was already called", self)
-            return
         snapshot = (old_state.attributes.get("specific_states") or {}).get(ATTR_INHIBITION)
         if not isinstance(snapshot, dict) or snapshot.get("schema_version") != INHIBITION_SCHEMA_VERSION:
             return
         gate = snapshot.get("command_gate")
-        if not (snapshot.get("inhibited") is True or gate in (CommandGate.CLOSED, CommandGate.EXIT_RECONCILING)):
-            if self._last_api_call is None:
-                self._is_used = True
-                self._last_transition_at = snapshot.get("last_transition_at")
-                self._last_error_code = snapshot.get("last_error_code")
-            return
-
-        stop_requested = snapshot.get("entry_stop_requested") is True
-        # an interrupted exit may have restarted devices: the stop is due again
-        stop_completed = snapshot.get("entry_stop_completed") is True and gate != CommandGate.EXIT_RECONCILING
-        if self._last_api_call == "set":
-            if self._inhibited:
-                self._entry_stop_requested = stop_requested
-                # never back from completed to pending
-                self._entry_stop_completed = self._entry_stop_completed or stop_completed
-                _LOGGER.info("%s - Early set merged with the restored inhibition (entry stop completed=%s)", self, self._entry_stop_completed)
-            return
-
         self._is_used = True
         self._last_transition_at = snapshot.get("last_transition_at")
         self._last_error_code = snapshot.get("last_error_code")
+        if not (snapshot.get("inhibited") is True or gate in (CommandGate.CLOSED, CommandGate.EXIT_RECONCILING)):
+            return
+
         self._inhibited = True
         self._gate = CommandGate.CLOSED
-        self._entry_stop_requested = stop_requested
-        self._entry_stop_completed = stop_completed
+        self._entry_stop_requested = snapshot.get("entry_stop_requested") is True
+        # an interrupted exit may have restarted devices: the stop is due again
+        self._entry_stop_completed = snapshot.get("entry_stop_completed") is True and gate != CommandGate.EXIT_RECONCILING
         _LOGGER.info("%s - Inhibition restored (gate closed, entry stop completed=%s)", self, self._entry_stop_completed)
 
     ##
@@ -228,8 +217,9 @@ class InhibitionManager:
     async def async_set(self, stop_underlyings: bool):
         """Enter the inhibition. Idempotent while inhibited.
         A cancellation after the gate is closed does not stop the entry: it is
-        completed (OFF resolution, entry stop, persistence), then re-raised."""
-        self._last_api_call = "set"
+        completed (OFF resolution, entry stop, persistence), then re-raised.
+        Raises InhibitionNotStartedError before the startup restore."""
+        self._check_restored()
         # Last call wins: an unset called after this set must not join an exit started before it
         self._exit_future = None
         async with self._lock:
@@ -266,8 +256,9 @@ class InhibitionManager:
     async def async_unset(self):
         """Leave the inhibition. A concurrent call joins the running exit and gets its
         outcome; if that exit was cancelled, the joiner runs its own exit.
-        Raises if the exit reconciliation fails (the VTherm stays inhibited)."""
-        self._last_api_call = "unset"
+        Raises if the exit reconciliation fails (the VTherm stays inhibited), and
+        InhibitionNotStartedError before the startup restore."""
+        self._check_restored()
         while (running := self._exit_future) is not None:
             try:
                 await asyncio.shield(running)
@@ -297,6 +288,10 @@ class InhibitionManager:
         finally:
             if self._exit_future is future:
                 self._exit_future = None
+
+    def _check_restored(self):
+        if not self._is_restored:
+            raise InhibitionNotStartedError(f"{self._vtherm} has not restored its inhibition state yet (startup not done)")
 
     async def async_on_vtherm_ready(self):
         """Complete an entry stop or an exit deferred until the VTherm is ready"""

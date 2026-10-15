@@ -564,7 +564,7 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
         write_event_log(_LOGGER, self, "Start up VTherm")
 
         # Issue #2087 - restore the inhibition (gate closed) before any manager or underlying
-        # starts. Ignored if the plugin already called set or unset.
+        # starts. set_inhibition / unset_inhibition are refused until this has run.
         old_state = await self.async_get_last_state()
         self._startup_last_state = (old_state,)
         self._inhibition.restore_state(old_state)
@@ -1227,12 +1227,14 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
 
     async def async_set_inhibition(self, stop_underlyings: bool) -> None:
         """Issue #2087 - called by the VTherm API: resolve OFF and close the command gate.
-        stop_underlyings only allows the single entry stop."""
+        stop_underlyings only allows the single entry stop.
+        Raises InhibitionNotStartedError before the startup restore."""
         await self._inhibition.async_set(stop_underlyings)
 
     async def async_unset_inhibition(self) -> None:
         """Issue #2087 - called by the VTherm API: reconcile the current requested state,
-        then open the command gate. Raises if the reconciliation fails."""
+        then open the command gate. Raises if the reconciliation fails, and
+        InhibitionNotStartedError before the startup restore."""
         await self._inhibition.async_unset()
 
     @property
