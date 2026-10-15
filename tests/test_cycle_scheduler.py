@@ -1,10 +1,20 @@
 """Tests for CycleScheduler."""
 
+import time
+from datetime import datetime, timezone
+
 import pytest
 from unittest.mock import MagicMock, AsyncMock, patch, call
 from homeassistant.core import HomeAssistant
+from vtherm_api.command_receipt import (
+    AppliedCommandReceipt,
+    CommandAlteration,
+    CommandReceiptKind,
+    InterfaceCommandReceiptScheduler,
+)
 
 from custom_components.versatile_thermostat.cycle_scheduler import CycleScheduler
+from custom_components.versatile_thermostat.valve_command import ValveCommandMixin
 from custom_components.versatile_thermostat.underlyings import UnderlyingEntityType
 from custom_components.versatile_thermostat.vtherm_hvac_mode import (
     VThermHvacMode_HEAT,
@@ -608,3 +618,392 @@ class TestUnderlyingStateUpdates:
         assert r2._on_time_sec == 180
         assert r2._off_time_sec == 420
         assert r2._hvac_mode == VThermHvacMode_COOL
+
+
+# ─────────────────────────────────────────────
+# Tests for applied-command receipts
+# ─────────────────────────────────────────────
+
+
+class FakeValveThermostat(ValveCommandMixin):
+    """Minimal valve thermostat using the real valve command filter."""
+
+    def __init__(self, dpercent: int = 0, period_min: int = 0):
+        self._valve_open_percent = None
+        self._last_calculation_timestamp = None
+        self._auto_regulation_dpercent = dpercent
+        self._auto_regulation_period_min = period_min
+        self._on_time_sec = 0
+        self._off_time_sec = 0
+        self.is_sleeping = False
+        self.now = datetime(2024, 1, 1, tzinfo=timezone.utc)
+        self.recalculate_later_calls = 0
+
+    @property
+    def valve_open_percent(self) -> int:
+        return self._valve_open_percent or 0
+
+    def do_recalculate_later(self):
+        self.recalculate_later_calls += 1
+
+    def update_custom_attributes(self):
+        pass
+
+    def async_write_ha_state(self):
+        pass
+
+    def incremente_energy(self):
+        pass
+
+    def __str__(self):
+        return "FakeValveThermostat"
+
+
+def record_receipts(scheduler: CycleScheduler, events: list | None = None) -> list[AppliedCommandReceipt]:
+    """Register a receipt callback storing every receipt (and an event marker)."""
+    receipts: list[AppliedCommandReceipt] = []
+
+    async def on_receipt(receipt: AppliedCommandReceipt):
+        receipts.append(receipt)
+        if events is not None:
+            events.append("receipt")
+
+    scheduler.register_command_receipt_callback(on_receipt)
+    return receipts
+
+
+async def end_master_cycle(scheduler: CycleScheduler):
+    """Run the master cycle end as if the full cycle had elapsed."""
+    scheduler._cycle_start_time -= scheduler._cycle_duration_sec
+    await scheduler._on_master_cycle_end(None)
+
+
+VALVE_ENTITY_TYPES = pytest.mark.parametrize(
+    "entity_type",
+    [UnderlyingEntityType.VALVE, UnderlyingEntityType.VALVE_REGULATION],
+    ids=["over_valve", "over_climate_valve"],
+)
+
+
+@patch("custom_components.versatile_thermostat.cycle_scheduler.async_call_later", return_value=MagicMock())
+class TestCommandReceipts:
+    """Tests for the AppliedCommandReceipt emission (vtherm_api command receipt contract)."""
+
+    async def test_scheduler_implements_receipt_protocol(self, _mock_call_later):
+        """The scheduler satisfies the optional receipt protocol of vtherm_api."""
+        scheduler = CycleScheduler(make_hass(), make_thermostat(), [make_underlying("R1")], 600)
+        assert isinstance(scheduler, InterfaceCommandReceiptScheduler)
+        assert scheduler.is_valve_mode is False
+
+    async def test_switch_cycle_start_receipt(self, _mock_call_later):
+        """A switch cycle start emits CYCLE_START after the start callbacks and before the actuation."""
+        events: list = []
+        r1 = make_underlying("R1")
+        r1.turn_on = AsyncMock(side_effect=lambda: events.append("turn_on"))
+        scheduler = CycleScheduler(make_hass(), make_thermostat(), [r1], 600)
+
+        async def on_start(**_kwargs):
+            events.append("start")
+
+        scheduler.register_cycle_start_callback(on_start)
+        receipts = record_receipts(scheduler, events)
+
+        before = time.monotonic()
+        await scheduler.start_cycle(VThermHvacMode_HEAT, 0.234, force=True, request_id=7)
+
+        assert events == ["start", "receipt", "turn_on"]
+        assert len(receipts) == 1
+        receipt = receipts[0]
+        assert receipt.kind == CommandReceiptKind.CYCLE_START
+        assert receipt.request_id == 7
+        assert receipt.hvac_mode == "heat"
+        assert receipt.requested_on_percent == pytest.approx(0.234)
+        assert receipt.on_time_sec == 140
+        assert receipt.off_time_sec == 459
+        assert receipt.applied_on_percent == pytest.approx(140 / 600)
+        assert receipt.cycle_duration_sec == 600
+        assert before <= receipt.cycle_start_monotonic <= receipt.monotonic
+        assert receipt.is_repeat is False
+        assert receipt.alterations == frozenset()
+
+    async def test_switch_repeat_keeps_request_id(self, _mock_call_later):
+        """The automatic restart emits CYCLE_START with is_repeat and the same request."""
+        events: list = []
+        scheduler = CycleScheduler(make_hass(), make_thermostat(), [make_underlying("R1")], 600)
+
+        async def on_end(**_kwargs):
+            events.append("end")
+
+        async def on_start(**_kwargs):
+            events.append("start")
+
+        scheduler.register_cycle_end_callback(on_end)
+        scheduler.register_cycle_start_callback(on_start)
+        receipts = record_receipts(scheduler, events)
+
+        await scheduler.start_cycle(VThermHvacMode_HEAT, 0.234, force=True, request_id=7)
+        events.clear()
+        await end_master_cycle(scheduler)
+
+        assert events == ["end", "start", "receipt"]
+        assert len(receipts) == 2
+        repeat = receipts[1]
+        assert repeat.kind == CommandReceiptKind.CYCLE_START
+        assert repeat.request_id == 7
+        assert repeat.is_repeat is True
+        assert repeat.requested_on_percent == pytest.approx(0.234)
+        assert repeat.applied_on_percent == pytest.approx(140 / 600)
+        assert repeat.cycle_start_monotonic >= receipts[0].cycle_start_monotonic
+
+    async def test_switch_pending_request_receipt_at_next_cycle(self, _mock_call_later):
+        """A request stored as pending emits no receipt until the next cycle applies it."""
+        scheduler = CycleScheduler(make_hass(), make_thermostat(), [make_underlying("R1")], 600)
+        receipts = record_receipts(scheduler)
+
+        await scheduler.start_cycle(VThermHvacMode_HEAT, 0.5, force=True, request_id=1)
+        await scheduler.start_cycle(VThermHvacMode_HEAT, 0.3, False, request_id=2)
+        await scheduler.start_cycle(VThermHvacMode_HEAT, 0.4, False, request_id=3)
+
+        assert [r.request_id for r in receipts] == [1]
+
+        await end_master_cycle(scheduler)
+
+        assert [r.request_id for r in receipts] == [1, 3]
+        assert receipts[1].is_repeat is True
+        assert receipts[1].requested_on_percent == pytest.approx(0.4)
+        assert receipts[1].applied_on_percent == pytest.approx(0.4)
+
+    @pytest.mark.parametrize(
+        ("on_percent", "expected_applied"),
+        [(0.05, 0.0), (0.95, 1.0)],
+        ids=["min_activation", "min_deactivation"],
+    )
+    async def test_switch_min_on_off_alteration_is_sticky(self, _mock_call_later, on_percent, expected_applied):
+        """Min on/off delays flag MIN_ON_OFF, kept by the automatic restart."""
+        scheduler = CycleScheduler(
+            make_hass(),
+            make_thermostat(),
+            [make_underlying("R1")],
+            600,
+            min_activation_delay=60,
+            min_deactivation_delay=60,
+        )
+        receipts = record_receipts(scheduler)
+
+        await scheduler.start_cycle(VThermHvacMode_HEAT, on_percent, force=True, request_id=3)
+        await end_master_cycle(scheduler)
+
+        assert len(receipts) == 2
+        for receipt in receipts:
+            assert receipt.request_id == 3
+            assert receipt.alterations == frozenset({CommandAlteration.MIN_ON_OFF})
+            assert receipt.requested_on_percent == pytest.approx(on_percent)
+            assert receipt.applied_on_percent == pytest.approx(expected_applied)
+        assert receipts[1].is_repeat is True
+
+        # A later request without alteration starts clean
+        await scheduler.start_cycle(VThermHvacMode_HEAT, 0.5, force=True, request_id=4)
+        assert receipts[-1].alterations == frozenset()
+
+    async def test_untagged_request_receipt(self, _mock_call_later):
+        """A positional call without request_id (TPI) emits receipts with request_id None."""
+        scheduler = CycleScheduler(make_hass(), make_thermostat(), [make_underlying("R1")], 600)
+        receipts = record_receipts(scheduler)
+
+        await scheduler.start_cycle(VThermHvacMode_HEAT, 0.2, True)
+
+        assert len(receipts) == 1
+        assert receipts[0].request_id is None
+        assert receipts[0].kind == CommandReceiptKind.CYCLE_START
+
+    async def test_idle_cycle_kept_with_other_request_id(self, mock_call_later):
+        """request_id does not take part in the idle cycle comparison."""
+        r1 = make_underlying("R1")
+        scheduler = CycleScheduler(make_hass(), make_thermostat(), [r1], 600)
+        receipts = record_receipts(scheduler)
+
+        await scheduler.start_cycle(VThermHvacMode_HEAT, 0.0, force=True, request_id=1)
+        call_count = mock_call_later.call_count
+        cycle_start_monotonic = scheduler._cycle_start_monotonic
+
+        await scheduler.start_cycle(VThermHvacMode_HEAT, 0.0, False, request_id=2)
+
+        assert mock_call_later.call_count == call_count
+        assert scheduler._cycle_start_monotonic == cycle_start_monotonic
+        assert [r.request_id for r in receipts] == [1]
+
+        await end_master_cycle(scheduler)
+        assert [r.request_id for r in receipts] == [1, 2]
+
+    async def test_no_receipt_callback_keeps_behaviour(self, mock_call_later):
+        """Without receipt callback, no receipt is built and the cycle behaves the same."""
+
+        async def run(with_receipts: bool):
+            mock_call_later.reset_mock()
+            r1 = make_underlying("R1")
+            r2 = make_underlying("R2")
+            start_cb = AsyncMock()
+            end_cb = AsyncMock()
+            scheduler = CycleScheduler(make_hass(), make_thermostat(), [r1, r2], 600, 30, 30)
+            scheduler.register_cycle_start_callback(start_cb)
+            scheduler.register_cycle_end_callback(end_cb)
+            if with_receipts:
+                record_receipts(scheduler)
+            await scheduler.start_cycle(VThermHvacMode_HEAT, 0.3, True)
+            await scheduler.start_cycle(VThermHvacMode_HEAT, 0.6, False, request_id=1)
+            await end_master_cycle(scheduler)
+            await scheduler.start_cycle(VThermHvacMode_HEAT, 0.02, force=True, request_id=2)
+            return (
+                start_cb.await_args_list,
+                [c.kwargs["elapsed_ratio"] for c in end_cb.await_args_list],
+                [c.args[1] for c in mock_call_later.call_args_list],
+                r1.turn_on.await_count,
+                r1.turn_off.await_count,
+                r2.turn_on.await_count,
+                (scheduler._current_hvac_mode, scheduler._current_on_time_sec, scheduler._current_on_percent),
+                (scheduler._active_hvac_mode, scheduler._active_on_time_sec, scheduler._active_on_percent),
+            )
+
+        with patch("custom_components.versatile_thermostat.cycle_scheduler.AppliedCommandReceipt") as mock_receipt:
+            without_receipts = await run(with_receipts=False)
+            mock_receipt.assert_not_called()
+
+        assert await run(with_receipts=True) == without_receipts
+
+    async def test_receipt_callback_exception_is_isolated(self, _mock_call_later):
+        """An exception in a receipt callback is logged and does not break the cycle."""
+        r1 = make_underlying("R1")
+        scheduler = CycleScheduler(make_hass(), make_thermostat(), [r1], 600)
+        failing_cb = AsyncMock(side_effect=RuntimeError("test error"))
+        scheduler.register_command_receipt_callback(failing_cb)
+        receipts = record_receipts(scheduler)
+
+        await scheduler.start_cycle(VThermHvacMode_HEAT, 0.2, force=True, request_id=1)
+
+        failing_cb.assert_awaited_once()
+        assert len(receipts) == 1
+        r1.turn_on.assert_called_once()
+        assert scheduler.is_cycle_running is True
+
+    async def test_unregister_receipt_callback(self, _mock_call_later):
+        """The function returned by the registration removes the callback."""
+        scheduler = CycleScheduler(make_hass(), make_thermostat(), [make_underlying("R1")], 600)
+        cb = AsyncMock()
+        remove = scheduler.register_command_receipt_callback(cb)
+
+        await scheduler.start_cycle(VThermHvacMode_HEAT, 0.2, force=True, request_id=1)
+        cb.assert_awaited_once()
+
+        remove()
+        remove()  # removing twice is harmless
+        await scheduler.start_cycle(VThermHvacMode_HEAT, 0.4, force=True, request_id=2)
+        cb.assert_awaited_once()
+
+    @VALVE_ENTITY_TYPES
+    async def test_valve_cycle_start_and_running_updates(self, _mock_call_later, entity_type):
+        """Valve: CYCLE_START with the retained value, then one UPDATE per running-cycle start_cycle."""
+        events: list = []
+        thermostat = FakeValveThermostat()
+        valve = make_underlying("V1", entity_type=entity_type)
+        valve.set_valve_open_percent = AsyncMock(side_effect=lambda: events.append("valve"))
+        scheduler = CycleScheduler(make_hass(), thermostat, [valve], 600)
+
+        async def on_start(**_kwargs):
+            events.append("start")
+
+        scheduler.register_cycle_start_callback(on_start)
+        receipts = record_receipts(scheduler, events)
+
+        await scheduler.start_cycle(VThermHvacMode_HEAT, 0.234, force=True, request_id=1)
+
+        assert events == ["start", "receipt", "valve"]
+        start = receipts[0]
+        assert start.kind == CommandReceiptKind.CYCLE_START
+        assert start.requested_on_percent == pytest.approx(0.234)
+        assert start.applied_on_percent == pytest.approx(0.23)
+        assert start.alterations == frozenset()
+
+        await scheduler.start_cycle(VThermHvacMode_HEAT, 0.678, False, request_id=2)
+        await scheduler.start_cycle(VThermHvacMode_HEAT, 0.678, False, request_id=3)
+
+        assert [(r.kind, r.request_id) for r in receipts] == [
+            (CommandReceiptKind.CYCLE_START, 1),
+            (CommandReceiptKind.UPDATE, 2),
+            (CommandReceiptKind.UPDATE, 3),
+        ]
+        for update in receipts[1:]:
+            assert update.applied_on_percent == pytest.approx(0.68)
+            assert update.requested_on_percent == pytest.approx(0.678)
+            assert update.alterations == frozenset()
+            assert update.is_repeat is False
+            assert update.cycle_start_monotonic == start.cycle_start_monotonic
+
+    @VALVE_ENTITY_TYPES
+    async def test_valve_retained_by_dpercent_is_sticky(self, _mock_call_later, entity_type):
+        """A valve held back by dpercent flags VALVE_RETAINED, kept by the automatic restart."""
+        thermostat = FakeValveThermostat(dpercent=5)
+        scheduler = CycleScheduler(make_hass(), thermostat, [make_underlying("V1", entity_type=entity_type)], 600)
+        receipts = record_receipts(scheduler)
+
+        await scheduler.start_cycle(VThermHvacMode_HEAT, 0.40, force=True, request_id=1)
+        await scheduler.start_cycle(VThermHvacMode_HEAT, 0.43, False, request_id=2)
+
+        update = receipts[1]
+        assert update.kind == CommandReceiptKind.UPDATE
+        assert update.request_id == 2
+        assert update.requested_on_percent == pytest.approx(0.43)
+        assert update.applied_on_percent == pytest.approx(0.40)
+        assert update.alterations == frozenset({CommandAlteration.VALVE_RETAINED})
+
+        await end_master_cycle(scheduler)
+
+        repeat = receipts[2]
+        assert repeat.kind == CommandReceiptKind.CYCLE_START
+        assert repeat.is_repeat is True
+        assert repeat.request_id == 2
+        assert repeat.requested_on_percent == pytest.approx(0.43)
+        assert repeat.applied_on_percent == pytest.approx(0.40)
+        assert repeat.alterations == frozenset({CommandAlteration.VALVE_RETAINED})
+
+    @VALVE_ENTITY_TYPES
+    async def test_valve_deferred_update_receipt(self, _mock_call_later, entity_type):
+        """apply_valve_update emits an UPDATE without request_id, inside and outside a cycle."""
+        thermostat = FakeValveThermostat()
+        scheduler = CycleScheduler(make_hass(), thermostat, [make_underlying("V1", entity_type=entity_type)], 600)
+        start_cb = AsyncMock()
+        scheduler.register_cycle_start_callback(start_cb)
+        receipts = record_receipts(scheduler)
+
+        await scheduler.start_cycle(VThermHvacMode_HEAT, 0.2, force=True, request_id=1)
+        await scheduler.apply_valve_update(VThermHvacMode_HEAT, 0.6)
+
+        start_cb.assert_awaited_once()
+        update = receipts[1]
+        assert update.kind == CommandReceiptKind.UPDATE
+        assert update.request_id is None
+        assert update.applied_on_percent == pytest.approx(0.6)
+        assert update.cycle_start_monotonic == receipts[0].cycle_start_monotonic
+
+        await scheduler.cancel_cycle()
+        await scheduler.apply_valve_update(VThermHvacMode_HEAT, 0.3)
+
+        outside = receipts[2]
+        assert outside.kind == CommandReceiptKind.UPDATE
+        assert outside.request_id is None
+        assert outside.applied_on_percent == pytest.approx(0.3)
+        assert outside.cycle_start_monotonic is None
+
+    async def test_no_receipt_while_inhibited(self, _mock_call_later):
+        """The inhibition gate drops the commands: no receipt for a command that is not applied."""
+        thermostat = make_thermostat()
+        thermostat.is_inhibited = True
+        scheduler = CycleScheduler(make_hass(), thermostat, [make_underlying("R1")], 600)
+        receipts = record_receipts(scheduler)
+
+        await scheduler.start_cycle(VThermHvacMode_HEAT, 0.5, force=True, request_id=1)
+        assert receipts == []
+
+        # The exit reconciliation runs once the thermostat is no longer inhibited
+        thermostat.is_inhibited = False
+        await scheduler.start_cycle(VThermHvacMode_HEAT, 0.5, force=True, request_id=2)
+        assert [receipt.request_id for receipt in receipts] == [2]

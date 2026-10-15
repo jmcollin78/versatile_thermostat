@@ -414,7 +414,7 @@ t=0                t=off_t[R1]    t=on_t[R2]    t=off_t[R2]         t=cycle_end
 ## 12. Logique de `start_cycle()`
 
 ```
-start_cycle(hvac_mode, on_percent, force=False)
+start_cycle(hvac_mode, on_percent, force=False, *, request_id=None)
 │
 ├── calculate_cycle_times(on_percent, cycle_min,
 │       min_activation_delay, min_deactivation_delay)
@@ -429,6 +429,7 @@ start_cycle(hvac_mode, on_percent, force=False)
 ├── cancel_cycle()          ← annule toujours avant de (re)démarrer
 ├── stocker params actuels
 ├── déclencher callbacks cycle_start
+├── émettre les reçus de commande (CYCLE_START)
 │
 ├── si mode valve → _start_cycle_valve()
 └── si mode switch → _start_cycle_switch()
@@ -450,6 +451,7 @@ La mise à jour non disruptive (quand `force=False` et qu'un cycle réel est en 
 ```python
 cycle_scheduler.register_cycle_start_callback(callback)
 cycle_scheduler.register_cycle_end_callback(callback)
+remove = cycle_scheduler.register_command_receipt_callback(callback)  # voir 13.7
 ```
 
 ### 13.2 Signature du callback de début de cycle
@@ -556,6 +558,23 @@ if self._auto_tpi_manager:
 
 Cet appel est indépendant du callback `on_cycle_started` (qui se déclenche uniquement aux frontières de cycle via le minuteur du planificateur).
 
+### 13.7 Reçus de commande appliquée
+
+`CycleScheduler` implémente `InterfaceCommandReceiptScheduler` de `vtherm_api` (module `vtherm_api.command_receipt`). Un plugin enregistre `async def callback(receipt: AppliedCommandReceipt)` avec `register_command_receipt_callback()`, qui renvoie la fonction de désabonnement, et tague ses requêtes avec `start_cycle(..., request_id=...)`. Les reçus ont leur propre callback, distinct des callbacks de début et de fin de cycle ; sans callback de reçu enregistré, aucun reçu n'est construit.
+
+`request_id` est opaque : il est stocké avec la requête en attente et renvoyé dans le reçu de la commande réellement appliquée. Il ne participe jamais à `_same_cycle_request()` : un cycle inactif inchangé est conservé quel que soit l'identifiant.
+
+| Type          | Émission                                                                                                                                                                                         |
+| ------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `CYCLE_START` | À chaque début de cycle maître, juste après les callbacks de début et avant l'actionnement. Le redémarrage automatique porte `is_repeat=True` et la requête stockée (identifiant, demande, altérations). |
+| `UPDATE`      | Vanne uniquement : à chaque `start_cycle()` qui passe par le chemin « cycle en cours », même à valeur inchangée, et à chaque `apply_valve_update()` (`request_id=None` ; `cycle_start_monotonic=None` hors cycle). |
+
+- Une requête switch stockée en attente pendant un cycle en cours (y compris un cycle inactif inchangé) n'émet pas de reçu ; son reçu est le `CYCLE_START` du redémarrage suivant.
+- `applied_on_percent` vaut `on_time_sec / cycle_duration_sec` en switch et la valeur retenue par `apply_valve_command_percent()` en vanne.
+- Altérations : `MIN_ON_OFF` quand `calculate_cycle_times()` signale `forced_by_timing` (switch) ; `VALVE_RETAINED` quand l'ouverture retenue diffère de la demande arrondie au pourcent entier. Elles sont conservées par le redémarrage automatique et par une requête ultérieure portant le même `request_id`.
+- Aucun reçu n'est émis tant que le thermostat est inhibé (`is_inhibited`) : la barrière de commandes abandonne les commandes vers les sous-jacents, donc aucune n'est appliquée. Pendant la réconciliation de sortie, le thermostat n'est plus inhibé et les commandes passent : leurs reçus sont émis.
+- Les callbacks sont attendus dans l'ordre d'enregistrement ; une exception est journalisée en warning et ne casse pas le cycle.
+
 ---
 
 ## 14. Cas Particuliers
@@ -652,6 +671,8 @@ CycleScheduler(
 | `_states`             | `list[UnderlyingCycleState]` | État par sous-jacent (on_t, off_t, on_time, offset)          |
 | `_penalty`            | `float`                    | Cumul des ajustements de racollage (secondes)                  |
 | `_cycle_start_time`   | `float`                    | Timestamp du début du cycle (pour calcul de la durée réelle)   |
+| `_cycle_start_monotonic` | `float \| None`          | `time.monotonic()` au début du cycle maître, reporté dans les reçus |
+| `_current_request`    | `_CommandRequest`          | `request_id`, `on_percent` demandé et altérations rejoués par le redémarrage automatique |
 | `_tick_unsub`         | `CALLBACK_TYPE | None`     | Annulation du prochain tick planifié                           |
 | `_cycle_end_unsub`    | `CALLBACK_TYPE | None`     | Annulation de la fin du cycle maître                           |
 
