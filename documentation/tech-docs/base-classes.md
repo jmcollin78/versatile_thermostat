@@ -926,8 +926,9 @@ which await `BaseThermostat.async_set_inhibition()` / `async_unset_inhibition()`
 The core (`InhibitionManager`) resolves `OFF` with `hvac_off_inhibition`, keeps the
 requested state, and closes a single command gate at the underlying boundary: only
 the optional entry stop and the exit reconciliation pass. Its state is published and
-restored under `specific_states.inhibition` once used. Without any call, nothing
-changes. See the [specification](../specs/issue-2087-inhibition-spec.md) and the
+restored under `specific_states.inhibition` once used. Until that restore has run
+at startup (`inhibition_manager.is_restored`), both calls raise
+`InhibitionNotStartedError`. Without any call, nothing changes. See the [specification](../specs/issue-2087-inhibition-spec.md) and the
 [design](issue-2087-inhibition-design.md).
 
 ---
