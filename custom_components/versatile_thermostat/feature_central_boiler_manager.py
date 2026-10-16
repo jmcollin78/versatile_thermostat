@@ -261,7 +261,9 @@ class FeatureCentralBoilerManager(BaseFeatureManager):
                 )
 
     async def call_service(self, service_config: dict):
-        """Make a call to a service if correctly configured"""
+        """Make a call to a service if correctly configured.
+        Raises HomeAssistantError if the service cannot be called (template rendering included)
+        so that the caller does not update the boiler state"""
         if not service_config:
             return
 
@@ -271,15 +273,10 @@ class FeatureCentralBoilerManager(BaseFeatureManager):
             try:
                 service_data = {service_config["attribute_name"]: Template(service_config["attribute_value"], self._hass).async_render(parse_result=True)}
             except (TemplateError, ValueError, TypeError) as err:
-                _LOGGER.error(
-                    "%s - cannot render central boiler template %s: %s. The service %s.%s is not called",
-                    self,
-                    service_config["attribute_value"],
-                    err,
-                    service_config["service_domain"],
-                    service_config["service_name"],
-                )
-                return
+                raise HomeAssistantError(
+                    f"cannot render central boiler template {service_config['attribute_value']}: {err}. "
+                    f"The service {service_config['service_domain']}.{service_config['service_name']} is not called"
+                ) from err
 
         _LOGGER.debug(
             "%s - Calling central boiler service %s with data %s",

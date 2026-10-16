@@ -9,6 +9,7 @@ import warnings
 from homeassistant.core import HomeAssistant
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.helpers import entity_registry as er
+from homeassistant.helpers.template import is_template_string
 
 from .const import ServiceConfigurationError, DOMAIN
 
@@ -58,7 +59,7 @@ def check_and_extract_service_configuration(service_config) -> dict:
         "data": { },
     }
 
-    The value may be a Home Assistant template (it contains '{{'). It is then kept as is, may contain '/' and ':' and is rendered by the caller
+    The value may be a Home Assistant template (it contains '{{', '{%' or '{#'). It is then kept as is, may contain '/' and ':' and is rendered by the caller
     each time the service is called. Example 'climate.hc1/climate.set_temperature/temperature:{{ states("sensor.t") | float(20) + 1 }}'
     gives an additional "is_template": True key (absent for legacy configurations) and the template string in "attribute_value" and "data".
 
@@ -71,7 +72,7 @@ def check_and_extract_service_configuration(service_config) -> dict:
         return ret
 
     # Only a templated configuration may contain '/' or ':' in its value. Others are parsed exactly as before.
-    has_template = "{{" in service_config
+    has_template = is_template_string(service_config)
     parties = service_config.split("/", 2) if has_template else service_config.split("/")
     if len(parties) < 2:
         raise ServiceConfigurationError(
@@ -128,7 +129,7 @@ def check_and_extract_service_configuration(service_config) -> dict:
                     "data": {data_infos[0].strip(): data_infos[1].strip()},
                 }
             )
-            if "{{" in data_infos[1]:
+            if is_template_string(data_infos[1]):
                 # key only added for templates so that legacy configurations give exactly the same dict as before
                 ret["is_template"] = True
         else:

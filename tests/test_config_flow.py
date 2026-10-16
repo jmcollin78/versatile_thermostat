@@ -1936,3 +1936,13 @@ async def test_config_flow_central_boiler_template_validation(hass: HomeAssistan
             "central_boiler",
         )
     assert str(err.value) == CONF_CENTRAL_BOILER_DEACTIVATION_SRV
+
+    with pytest.raises(ServiceConfigurationError) as err:
+        await flow.validate_input(
+            {
+                CONF_CENTRAL_BOILER_ACTIVATION_SRV: "climate.x/climate.set_temperature/temperature:{% if true %}18",
+                CONF_CENTRAL_BOILER_DEACTIVATION_SRV: "switch.boiler/switch.turn_off",
+            },
+            "central_boiler",
+        )
+    assert str(err.value) == CONF_CENTRAL_BOILER_ACTIVATION_SRV

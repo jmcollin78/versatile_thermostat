@@ -76,6 +76,19 @@ def test_service_config_template_with_slash_and_colon():
     assert ret["is_template"] is True
 
 
+def test_service_config_block_template_value():
+    """A block-only template ({% ... %}) is detected as a template"""
+    value = "{% if is_state('input_boolean.eco', 'on') %}18{% else %}21{% endif %}"
+    ret = check_and_extract_service_configuration(f"climate.hc1/climate.set_temperature/temperature:{value}")
+    assert ret["data"] == {"temperature": value}
+    assert ret["is_template"] is True
+
+    value = "{% set t = states('sensor.a') | float(20) %}{{ t / 2 }}"
+    ret = check_and_extract_service_configuration(f"climate.hc1/climate.set_temperature/temperature:{value}")
+    assert ret["data"] == {"temperature": value}
+    assert ret["is_template"] is True
+
+
 @pytest.mark.parametrize(
     "bad",
     [

@@ -12,6 +12,7 @@ from unittest.mock import patch, AsyncMock, MagicMock, PropertyMock
 
 from homeassistant.const import STATE_ON, STATE_OFF, UnitOfPower
 from homeassistant.core import HomeAssistant
+from homeassistant.exceptions import HomeAssistantError
 
 from homeassistant.config_entries import ConfigEntryState
 from homeassistant.components.switch import DOMAIN as SWITCH_DOMAIN
@@ -1980,8 +1981,8 @@ async def test_central_boiler_template_rerendered_on_keep_alive(hass: HomeAssist
         assert mock_call.call_args.kwargs["service_data"] == {"temperature": 23.5}
 
 
-async def test_central_boiler_template_render_error_skips_call(hass: HomeAssistant, caplog):
-    """A template which cannot be rendered logs an error and does not call the service"""
+async def test_central_boiler_template_render_error_raises(hass: HomeAssistant):
+    """A template which cannot be rendered raises and does not call the service"""
     manager = _build_template_boiler_manager(
         hass,
         "climate.hc1/climate.set_temperature/temperature:{{ states('sensor.missing') | float }}",
@@ -1989,7 +1990,82 @@ async def test_central_boiler_template_render_error_skips_call(hass: HomeAssista
     )
 
     with patch("homeassistant.core.ServiceRegistry.async_call", new_callable=AsyncMock) as mock_call:
-        await manager.call_service(manager._service_activate)
+        with pytest.raises(HomeAssistantError, match="cannot render central boiler template"):
+            await manager.call_service(manager._service_activate)
 
     mock_call.assert_not_called()
-    assert "cannot render central boiler template" in caplog.text
+
+
+async def test_central_boiler_template_render_error_on_activation_keeps_state(hass: HomeAssistant):
+    """A rendering failure on activation does not turn the boiler on, and the activation is retried on the next calculation"""
+    manager = _build_template_boiler_manager(
+        hass,
+        "climate.hc1/climate.set_temperature/temperature:{{ states('sensor.test_boiler_temp') | float + 1 }}",
+        "switch.boiler/switch.turn_off",
+    )
+    manager._is_on = False
+
+    with patch("homeassistant.core.ServiceRegistry.async_call", new_callable=AsyncMock) as mock_call, patch(
+        "custom_components.versatile_thermostat.feature_central_boiler_manager.send_vtherm_event"
+    ) as mock_event:
+        with patch.object(type(manager), "is_nb_active_active_for_boiler_exceeded", new_callable=PropertyMock, return_value=True):
+            with patch.object(type(manager), "is_total_power_active_for_boiler_exceeded", new_callable=PropertyMock, return_value=False):
+                # sensor.test_boiler_temp does not exist: the template cannot be rendered
+                await manager.calculate_central_boiler_state(None)
+
+                mock_call.assert_not_called()
+                mock_event.assert_not_called()
+                assert manager._is_on is False
+                assert manager._last_activated_service is None
+
+                # the sensor is now available: the activation is retried
+                hass.states.async_set("sensor.test_boiler_temp", "20")
+                await manager.calculate_central_boiler_state(None)
+
+    mock_call.assert_called_once_with("climate", "set_temperature", service_data={"temperature": 21}, target={"entity_id": "climate.hc1"})
+    assert manager._is_on is True
+    assert manager._last_activated_service == manager._service_activate
+    mock_event.assert_called_once()
+    assert mock_event.call_args.kwargs["data"] == {"central_boiler": True}
+
+
+async def test_central_boiler_template_render_error_on_deactivation_keeps_state(hass: HomeAssistant):
+    """A rendering failure on deactivation does not turn the boiler off"""
+    manager = _build_template_boiler_manager(
+        hass,
+        "switch.boiler/switch.turn_on",
+        "climate.hc1/climate.set_temperature/temperature:{{ states('sensor.test_boiler_temp') | float - 2 }}",
+    )
+    manager._is_on = True
+    manager._last_activated_service = manager._service_activate
+
+    with patch("homeassistant.core.ServiceRegistry.async_call", new_callable=AsyncMock) as mock_call, patch(
+        "custom_components.versatile_thermostat.feature_central_boiler_manager.send_vtherm_event"
+    ) as mock_event:
+        with patch.object(type(manager), "is_nb_active_active_for_boiler_exceeded", new_callable=PropertyMock, return_value=False):
+            with patch.object(type(manager), "is_total_power_active_for_boiler_exceeded", new_callable=PropertyMock, return_value=False):
+                await manager.calculate_central_boiler_state(None)
+
+    mock_call.assert_not_called()
+    mock_event.assert_not_called()
+    assert manager._is_on is True
+    assert manager._last_activated_service == manager._service_activate
+
+
+async def test_central_boiler_block_template_rendered(hass: HomeAssistant):
+    """A block-only template ({% ... %}) is rendered too"""
+    hass.states.async_set("input_boolean.test_boiler_eco", "on")
+    manager = _build_template_boiler_manager(
+        hass,
+        "climate.hc1/climate.set_temperature/temperature:{% if is_state('input_boolean.test_boiler_eco', 'on') %}18{% else %}21{% endif %}",
+        "switch.boiler/switch.turn_off",
+    )
+    manager._is_on = False
+
+    with patch("homeassistant.core.ServiceRegistry.async_call", new_callable=AsyncMock) as mock_call:
+        with patch.object(type(manager), "is_nb_active_active_for_boiler_exceeded", new_callable=PropertyMock, return_value=True):
+            with patch.object(type(manager), "is_total_power_active_for_boiler_exceeded", new_callable=PropertyMock, return_value=False):
+                await manager.calculate_central_boiler_state(None)
+
+    mock_call.assert_called_once_with("climate", "set_temperature", service_data={"temperature": 18}, target={"entity_id": "climate.hc1"})
+    assert manager._is_on is True
