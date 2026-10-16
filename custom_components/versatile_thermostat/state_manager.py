@@ -13,6 +13,7 @@ from .const import (
     HVAC_OFF_REASON_AUTO_START_STOP,
     HVAC_OFF_REASON_SLEEP_MODE,
     HVAC_OFF_REASON_CENTRAL_MODE,
+    HVAC_OFF_REASON_INHIBITION,
     AUTO_START_STOP_HVAC_MODE_REASONS,
     CONF_WINDOW_ECO_TEMP,
     CONF_WINDOW_FAN_ONLY,
@@ -88,7 +89,8 @@ class StateManager:
     async def calculate_current_hvac_mode(self, vtherm: "BaseThermostat") -> bool:
         """Calculate and update the current HVAC mode from the given base_thermostat.
 
-        - check if safety manager is detected has an impact on hvac_mode
+        - check if the VTherm is inhibited (always OFF, issue #2087)
+        - if not check if central mode or safety manager has an impact on hvac_mode
         - if not check if window manager has an impact on hvac_mode
         - if not check if auto start/stop manager has an impact on hvac_mode
         - else set hvac_mode to requested_state.hvac_mode
@@ -109,8 +111,23 @@ class StateManager:
         # overpowering never change the hvac_mode
         # if vtherm.power_manager.is_overpowering_detected:
 
-        # First check safety
-        if vtherm.last_central_mode == CENTRAL_MODE_STOPPED:
+        # A window with the eco / frost action only changes the target temperature:
+        # the following constraints and the requested hvac mode still apply
+        window_temperature_only = (
+            vtherm.window_manager.is_window_detected
+            and self._requested_state.hvac_mode != VThermHvacMode_OFF
+            and vtherm.window_manager.window_action in (CONF_WINDOW_ECO_TEMP, CONF_WINDOW_FROST_TEMP)
+        )
+
+        # Issue #2087 - first check if an inhibition plugin withdraws the control: it overrides
+        # the VTherm behavior, so its reason wins over central mode and safety (all are OFF)
+        if getattr(vtherm, "is_inhibited", False) is True:
+            self._current_state.set_hvac_mode(VThermHvacMode_OFF)
+            vtherm.set_hvac_off_reason(HVAC_OFF_REASON_INHIBITION)
+            vtherm.set_hvac_mode_reason(HVAC_OFF_REASON_INHIBITION)
+
+        # then check central mode and safety
+        elif vtherm.last_central_mode == CENTRAL_MODE_STOPPED:
             self._current_state.set_hvac_mode(VThermHvacMode_OFF)
             vtherm.set_hvac_off_reason(HVAC_OFF_REASON_CENTRAL_MODE)
             vtherm.set_hvac_mode_reason(HVAC_OFF_REASON_CENTRAL_MODE)
@@ -121,7 +138,7 @@ class StateManager:
             vtherm.set_hvac_mode_reason(HVAC_OFF_REASON_SAFETY)
 
         # then check if window is open
-        elif vtherm.window_manager.is_window_detected and self._requested_state.hvac_mode != VThermHvacMode_OFF:
+        elif vtherm.window_manager.is_window_detected and self._requested_state.hvac_mode != VThermHvacMode_OFF and not window_temperature_only:
             vtherm.set_hvac_mode_reason(HVAC_OFF_REASON_WINDOW_DETECTION)
             if vtherm.window_manager.window_action == CONF_WINDOW_FAN_ONLY and VThermHvacMode_FAN_ONLY in vtherm.vtherm_hvac_modes:
                 self._current_state.set_hvac_mode(VThermHvacMode_FAN_ONLY)
@@ -174,7 +191,7 @@ class StateManager:
                 vtherm.set_hvac_off_reason(reason)
                 vtherm.set_hvac_mode_reason(reason)
             else:
-                vtherm.set_hvac_mode_reason(None)
+                vtherm.set_hvac_mode_reason(HVAC_OFF_REASON_WINDOW_DETECTION if window_temperature_only else None)
 
             self._current_state.set_hvac_mode(self._requested_state.hvac_mode)
 

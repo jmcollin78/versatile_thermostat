@@ -910,7 +910,27 @@ Features are composed rather than inherited:
    - `set_hvac_mode()`
    - `set_temperature()`
    - `turn_on()` / `turn_off()`
-3. Use in thermostat's `build_underlyings()`
+3. Send every command through `hass_services_async_call()` (or check
+   `is_command_blocked()` first, as `UnderlyingSwitch.turn_on/turn_off` do): it is
+   the inhibition command gate (issue #2087)
+4. Override `async_inhibition_stop()` (entry stop, whatever the reported state) and
+   `async_inhibition_resync()` (resync the last sent caches before the exit
+   reconciliation) when the defaults do not fit
+5. Use in thermostat's `build_underlyings()`
+
+### Inhibition (plugin, issue #2087)
+
+An inhibition plugin calls the `vtherm_api` facade (`>=0.6.2`):
+`set_inhibition(entity_id, stop_underlyings)` and `unset_inhibition(entity_id)`,
+which await `BaseThermostat.async_set_inhibition()` / `async_unset_inhibition()`.
+The core (`InhibitionManager`) resolves `OFF` with `hvac_off_inhibition`, keeps the
+requested state, and closes a single command gate at the underlying boundary: only
+the optional entry stop and the exit reconciliation pass. Its state is published and
+restored under `specific_states.inhibition` once used. Until that restore has run
+at startup (`is_inhibition_started`, also exposed by the facade), both calls
+raise `InhibitionNotStartedError` (exported by `vtherm_api`). Without any call, nothing changes. See the [specification](../specs/issue-2087-inhibition-spec.md), the
+[design](issue-2087-inhibition-design.md) and, for how the manager works,
+[inhibition_manager.md](inhibition_manager.md).
 
 ---
 
@@ -928,10 +948,11 @@ Features are composed rather than inherited:
 
 ### State Priority
 The `StateManager` applies features in priority order to compute the effective state:
-1. Safety constraints (highest)
-2. Physical constraints (window)
-3. Automation features (auto-start)
-4. User requests (lowest)
+1. Safety constraints (highest, with the central `STOPPED` mode)
+2. Inhibition (issue #2087, always `OFF`)
+3. Physical constraints (window)
+4. Automation features (auto-start)
+5. User requests (lowest)
 
 This ensures safety and energy saving override user commands when necessary.
 
