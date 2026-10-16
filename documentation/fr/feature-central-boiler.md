@@ -66,6 +66,16 @@ Exemples (à ajuster à votre cas) :
 - `switch.pompe_chaudiere/switch.turn_off` : pour allumer le swicth qui alimente la pompe de la chaudière,
 - ...
 
+### Utiliser un template pour la valeur
+La valeur (la partie après `attribut:`) peut être un template Home Assistant. Le template est évalué à chaque envoi de la commande : à l'allumage, à l'extinction et à chaque maintien actif (keep-alive). La valeur peut contenir des `/` et des `:`.
+
+Exemple pour une chaudière pilotée par un régulateur d'ambiance dont la consigne est relative à sa propre température mesurée :
+- allumage : `climate.thermostat_hc1/climate.set_temperature/temperature:{{ state_attr('climate.thermostat_hc1', 'current_temperature') | float(20) + 1 }}`
+- extinction : `climate.thermostat_hc1/climate.set_temperature/temperature:{{ state_attr('climate.thermostat_hc1', 'current_temperature') | float(20) - 2 }}`
+
+> **Astuce**
+> Utilisez `float(défaut)` pour que le template n'échoue jamais, et activez le maintien actif pour que la consigne suive la température mesurée. Si un template ne peut pas être évalué, la commande est ignorée et une erreur est écrite dans les logs. Un template qui ne compile pas est refusé lors de la validation de la configuration.
+
 > **Note**
 > Il n'y a pas de délai pour l'extinction de la chaudière. C'est volontaire pour vous éviter de laisser tourner la chaudière alors que toutes les vannes sont fermées. Il faudrait un délai négatif pour bien faire (ie couper la chaudière avant de fermer les vannes) mais ce n'est pas possible en l'état puisque c'est la manipulation des vannes qui délcenche la chaudière et pas l'inverse.
 

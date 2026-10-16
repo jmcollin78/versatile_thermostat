@@ -48,6 +48,16 @@ Příklady (přizpůsobte svému případu):
 - `switch.pompe_chaudiere/switch.turn_off`: pro vypnutí spínače napájejícího čerpadlo kotle.
 - ...
 
+### Použití šablony pro hodnotu
+Hodnota (část za `atribut:`) může být šablona Home Assistant. Šablona se vyhodnocuje při každém odeslání příkazu: při aktivaci, deaktivaci i při každém keep-alive. Hodnota může obsahovat `/` a `:`.
+
+Příklad pro kotel řízený pokojovým regulátorem, jehož požadovaná hodnota je relativní k jeho vlastní naměřené teplotě:
+- aktivace: `climate.thermostat_hc1/climate.set_temperature/temperature:{{ state_attr('climate.thermostat_hc1', 'current_temperature') | float(20) + 1 }}`
+- deaktivace: `climate.thermostat_hc1/climate.set_temperature/temperature:{{ state_attr('climate.thermostat_hc1', 'current_temperature') | float(20) - 2 }}`
+
+> **Tip**
+> Použijte `float(výchozí_hodnota)`, aby šablona nikdy neselhala, a zapněte keep-alive, aby požadovaná hodnota sledovala naměřenou teplotu. Pokud nelze šablonu vyhodnotit, příkaz se přeskočí a zapíše se chyba. Šablona, kterou nelze zkompilovat, je při ověření konfigurace odmítnuta.
+
 ### Jak najít správnou akci?
 Pro nalezení správné akce je nejlepší jít do "Developer Tools / Services", vyhledat akci k zavolání, entitu k ovládání a jakékoli požadované parametry.
 Klikněte na 'Call Service'. Pokud se váš kotel zapne, máte správnou konfiguraci. Pak přepněte do YAML režimu a zkopírujte parametry.

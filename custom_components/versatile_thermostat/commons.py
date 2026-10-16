@@ -9,6 +9,7 @@ import warnings
 from homeassistant.core import HomeAssistant
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.helpers import entity_registry as er
+from homeassistant.helpers.template import is_template_string
 
 from .const import ServiceConfigurationError, DOMAIN
 
@@ -58,6 +59,10 @@ def check_and_extract_service_configuration(service_config) -> dict:
         "data": { },
     }
 
+    The value may be a Home Assistant template (it contains '{{', '{%' or '{#'). It is then kept as is, may contain '/' and ':' and is rendered by the caller
+    each time the service is called. Example 'climate.hc1/climate.set_temperature/temperature:{{ states("sensor.t") | float(20) + 1 }}'
+    gives an additional "is_template": True key (absent for legacy configurations) and the template string in "attribute_value" and "data".
+
     All values are striped (white space are removed) and are string
     """
 
@@ -66,7 +71,9 @@ def check_and_extract_service_configuration(service_config) -> dict:
     if service_config is None:
         return ret
 
-    parties = service_config.split("/")
+    # Only a templated configuration may contain '/' or ':' in its value. Others are parsed exactly as before.
+    has_template = is_template_string(service_config)
+    parties = service_config.split("/", 2) if has_template else service_config.split("/")
     if len(parties) < 2:
         raise ServiceConfigurationError(
             f"Incorrect service configuration. Service {service_config} should be formatted with: 'entity_name/service_name[/data]'. See README for more information."
@@ -105,7 +112,7 @@ def check_and_extract_service_configuration(service_config) -> dict:
         data = parties[2]
         if len(data) > 0:
             data_infos = None
-            data_infos = data.split(":")
+            data_infos = data.split(":", 1) if has_template else data.split(":")
             if (
                 len(data_infos) != 2
                 or len(data_infos[0]) <= 0
@@ -122,6 +129,9 @@ def check_and_extract_service_configuration(service_config) -> dict:
                     "data": {data_infos[0].strip(): data_infos[1].strip()},
                 }
             )
+            if is_template_string(data_infos[1]):
+                # key only added for templates so that legacy configurations give exactly the same dict as before
+                ret["is_template"] = True
         else:
             raise ServiceConfigurationError(
                 f"Incorrect service configuration. The data {data} should be formatted like: 'attribute:value' (ex: 'value:25'). See README for more information."

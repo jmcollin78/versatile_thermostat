@@ -7,12 +7,14 @@ from homeassistant.core import (
     HomeAssistant,
     HomeAssistantError,
 )
+from homeassistant.exceptions import TemplateError
 from homeassistant.helpers.entity import Entity
 from homeassistant.helpers.event import (
     async_call_later,
     async_track_state_change_event,
     async_track_time_interval,
 )
+from homeassistant.helpers.template import Template
 
 from .base_manager import BaseFeatureManager
 from .commons import check_and_extract_service_configuration, write_event_log
@@ -259,20 +261,33 @@ class FeatureCentralBoilerManager(BaseFeatureManager):
                 )
 
     async def call_service(self, service_config: dict):
-        """Make a call to a service if correctly configured"""
+        """Make a call to a service if correctly configured.
+        Raises HomeAssistantError if the service cannot be called (template rendering included)
+        so that the caller does not update the boiler state"""
         if not service_config:
             return
+
+        service_data = service_config["data"]
+        if service_config.get("is_template"):
+            # The template is rendered each time the command is sent (activation, deactivation and keep-alive)
+            try:
+                service_data = {service_config["attribute_name"]: Template(service_config["attribute_value"], self._hass).async_render(parse_result=True)}
+            except (TemplateError, ValueError, TypeError) as err:
+                raise HomeAssistantError(
+                    f"cannot render central boiler template {service_config['attribute_value']}: {err}. "
+                    f"The service {service_config['service_domain']}.{service_config['service_name']} is not called"
+                ) from err
 
         _LOGGER.debug(
             "%s - Calling central boiler service %s with data %s",
             self,
             f"{service_config['service_domain']}.{service_config['service_name']}",
-            service_config.get("data", {}),
+            service_data,
         )
         await self._hass.services.async_call(
             service_config["service_domain"],
             service_config["service_name"],
-            service_data=service_config["data"],
+            service_data=service_data,
             target={
                 "entity_id": service_config["entity_id"],
             },

@@ -1898,3 +1898,51 @@ async def test_central_config_hidden_when_exists(hass: HomeAssistant, init_vther
     assert CONF_THERMOSTAT_CENTRAL_CONFIG in available_options3
 
     hass.config_entries.flow.async_abort(result3["flow_id"])
+
+
+async def test_config_flow_central_boiler_template_validation(hass: HomeAssistant, init_vtherm_api):
+    """A template in the central boiler command value is validated by the config flow"""
+    from custom_components.versatile_thermostat.config_flow import VersatileThermostatConfigFlow
+
+    flow = VersatileThermostatConfigFlow()
+    flow.hass = hass
+    flow._infos[CONF_USE_CENTRAL_BOILER_FEATURE] = True
+
+    valid = "climate.x/climate.set_temperature/temperature:{{ state_attr('climate.x', 'current_temperature') | float(20) / 2 + 1 }}"
+    await flow.validate_input(
+        {
+            CONF_CENTRAL_BOILER_ACTIVATION_SRV: valid,
+            CONF_CENTRAL_BOILER_DEACTIVATION_SRV: "switch.boiler/switch.turn_off",
+        },
+        "central_boiler",
+    )
+
+    with pytest.raises(ServiceConfigurationError) as err:
+        await flow.validate_input(
+            {
+                CONF_CENTRAL_BOILER_ACTIVATION_SRV: "climate.x/climate.set_temperature/temperature:{{ 1 + }}",
+                CONF_CENTRAL_BOILER_DEACTIVATION_SRV: "switch.boiler/switch.turn_off",
+            },
+            "central_boiler",
+        )
+    assert str(err.value) == CONF_CENTRAL_BOILER_ACTIVATION_SRV
+
+    with pytest.raises(ServiceConfigurationError) as err:
+        await flow.validate_input(
+            {
+                CONF_CENTRAL_BOILER_ACTIVATION_SRV: "switch.boiler/switch.turn_on",
+                CONF_CENTRAL_BOILER_DEACTIVATION_SRV: "climate.x/climate.set_temperature/temperature:{{ (1 }}",
+            },
+            "central_boiler",
+        )
+    assert str(err.value) == CONF_CENTRAL_BOILER_DEACTIVATION_SRV
+
+    with pytest.raises(ServiceConfigurationError) as err:
+        await flow.validate_input(
+            {
+                CONF_CENTRAL_BOILER_ACTIVATION_SRV: "climate.x/climate.set_temperature/temperature:{% if true %}18",
+                CONF_CENTRAL_BOILER_DEACTIVATION_SRV: "switch.boiler/switch.turn_off",
+            },
+            "central_boiler",
+        )
+    assert str(err.value) == CONF_CENTRAL_BOILER_ACTIVATION_SRV

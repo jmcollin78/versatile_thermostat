@@ -19,6 +19,8 @@ from homeassistant.config_entries import (
 from homeassistant.const import UnitOfTemperature
 
 from homeassistant.data_entry_flow import FlowHandler, FlowResult
+from homeassistant.exceptions import TemplateError
+from homeassistant.helpers.template import Template
 
 from .const import *  # pylint: disable=wildcard-import, unused-wildcard-import
 from .config_schema import *  # pylint: disable=wildcard-import, unused-wildcard-import
@@ -274,8 +276,10 @@ class VersatileThermostatBaseConfigFlow(FlowHandler):
                 CONF_CENTRAL_BOILER_DEACTIVATION_SRV,
             ]:
                 try:
-                    check_and_extract_service_configuration(data.get(conf))
-                except ServiceConfigurationError as err:
+                    service_config = check_and_extract_service_configuration(data.get(conf))
+                    if service_config.get("is_template"):
+                        Template(service_config["attribute_value"], self.hass).ensure_valid()
+                except (ServiceConfigurationError, TemplateError) as err:
                     raise ServiceConfigurationError(conf) from err
 
         # Check that the number of offet_calibration and opening_degree and closing_degree are equals
