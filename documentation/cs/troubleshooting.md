@@ -5,6 +5,7 @@
   - [Použití radiátoru s pilotním drátem (Nodon SIN-4-FP-21)](#použití-radiátoru-s-pilotním-drátem-nodon-sin-4-fp-21)
   - [Použití systému Netatmo](#použití-systému-netatmo)
   - [Topí jen první radiátor](#topí-jen-první-radiátor)
+  - [Procento VTherm a stupeň otevření ventilu se liší](#procento-vtherm-a-stupeň-otevření-ventilu-se-liší)
   - [Radiátor topí, i když je překročena cílová teplota, nebo netopí, když je teplota místnosti výrazně pod cílem](#radiátor-topí-i-když-je-překročena-cílová-teplota-nebo-netopí-když-je-teplota-místnosti-výrazně-pod-cílem)
     - [Typ `over_switch` nebo `over_valve`](#typ-over_switch-nebo-over_valve)
     - [Typ `over_climate`](#typ-over_climate)
@@ -113,6 +114,14 @@ TODO
 
 V režimu `over_switch`, pokud je pro stejný VTherm nakonfigurováno více radiátorů, vytápění bude spuštěno postupně, aby se co nejvíce vyhladily špičky spotřeby.
 To je zcela normální a záměrné. Je to popsáno zde: [Pro termostat typu ```thermostat_over_switch```](#pro-termostat-typu-thermostat_over_switch)
+
+## Procento VTherm a stupeň otevření ventilu se liší
+
+U VTherm typu `over_climate` s přímým řízením ventilu představuje atribut `valve_open_percent` nezpracovaný požadavek vypočítaný integrací VTherm. Stupeň otevření odeslaný ventilu se může lišit: nastavení ventilu (`opening_threshold`, `max_closing_degree`, `minimum_opening_degrees` a `max_opening_degrees`) tento požadavek upravují podle zvolené kalibrace.
+
+Existuje také souvislost mezi regulačním prahem a prahem otevření: `regulation_threshold` se použije jako minimální práh otevření, pokud je vyšší než nakonfigurovaný `opening_threshold`. I při výchozích hodnotách ostatních nastavení ventilu (0 až 100) proto může nenulový regulační práh požadavek změnit. Například při prahu 5 % může požadavek VTherm 12 % vést k odeslání stupně otevření 7 %. Při hodnotě 0 % jsou v této konfiguraci obě hodnoty shodné.
+
+Tento rozdíl je očekávaný a sám o sobě neznamená, že je ventil zaseknutý nebo špatně kalibrovaný. Než spustíte upozornění založené pouze na porovnání těchto dvou hodnot, zkontrolujte nakonfigurované prahy a limity. Nastavení `regulation_threshold` na 0 může při neutrálních ostatních nastaveních obnovit shodu, ale omezí filtrování malých změn a může zvýšit počet odeslaných příkazů. Podrobnosti o nastavení najdete v části [samoregulace s přímým řízením ventilu](self-regulation.md#samo-regulace-přímým-ovládáním-ventilu).
 
 ## Radiátor topí, i když je překročena cílová teplota, nebo netopí, když je teplota místnosti výrazně pod cílem
 

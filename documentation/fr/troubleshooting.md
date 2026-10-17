@@ -6,6 +6,7 @@
   - [Utilisation d'un radiateur avec un fil pilote (Nodon SIN-4-FP-21)](#utilisation-dun-radiateur-avec-un-fil-pilote-nodon-sin-4-fp-21)
   - [Utilisation d'un système Netatmo](#utilisation-dun-système-netatmo)
   - [Seul le premier radiateur chauffe](#seul-le-premier-radiateur-chauffe)
+  - [Le pourcentage VTherm et le degré d'ouverture de la vanne diffèrent](#le-pourcentage-vtherm-et-le-degré-douverture-de-la-vanne-diffèrent)
   - [Le radiateur chauffe alors que la température de consigne est dépassée ou ne chauffe pas alors que la température de la pièce est bien en-dessous de la consigne](#le-radiateur-chauffe-alors-que-la-température-de-consigne-est-dépassée-ou-ne-chauffe-pas-alors-que-la-température-de-la-pièce-est-bien-en-dessous-de-la-consigne)
     - [Type `over_switch` ou `over_valve`](#type-over_switch-ou-over_valve)
     - [Type `over_climate`](#type-over_climate)
@@ -106,6 +107,14 @@ Le système à base de TRV Netatmo fonctionne mal avec _VTherm_. Vous avez ici u
 
 En mode `over_switch` si plusieurs radiateurs sont configurés pour un même _VTherm_, l'alllumage va se faire de façon séquentiel pour lisser au plus possible les pics de consommation.
 Cela est tout à fait normal et voulu. C'est décrit ici : [Pour un thermostat de type ```thermostat_over_switch```](over-switch.md#thermostat-de-type-over_switch
+
+## Le pourcentage VTherm et le degré d'ouverture de la vanne diffèrent
+
+Avec un _VTherm_ `over_climate` utilisant le contrôle direct de la vanne, l'attribut `valve_open_percent` indique la demande brute calculée par _VTherm_. Le degré d'ouverture envoyé à la vanne peut être différent : les paramètres de réglage de la vanne (`opening_threshold`, `max_closing_degree`, `minimum_opening_degrees` et `max_opening_degrees`) transforment cette demande pour tenir compte de la calibration choisie.
+
+Il existe aussi un lien entre le seuil de régulation et le seuil d'ouverture : le `regulation_threshold` est utilisé comme seuil d'ouverture minimal lorsqu'il est supérieur au `opening_threshold` configuré. Ainsi, même avec les autres paramètres de vanne à leurs valeurs par défaut (0 à 100), un seuil de régulation non nul peut remapper la demande. Par exemple, avec un seuil de 5 %, une demande VTherm de 12 % peut produire un degré d'ouverture envoyé de 7 %. À 0 %, les deux valeurs restent alignées dans cette configuration.
+
+Cet écart est donc attendu et ne signifie pas, à lui seul, que la vanne est bloquée ou mal calibrée. Vérifiez les seuils et les limites configurés avant de déclencher une alerte fondée uniquement sur la comparaison de ces deux valeurs. Mettre `regulation_threshold` à 0 peut rétablir leur alignement lorsque les autres paramètres sont neutres, mais réduit le filtrage des petites variations et peut augmenter le nombre de commandes envoyées. Pour le détail des réglages, consultez [l'auto-régulation par contrôle direct de la vanne](self-regulation.md#auto-régulation-par-contrôle-direct-de-la-vanne).
 
 ## Le radiateur chauffe alors que la température de consigne est dépassée ou ne chauffe pas alors que la température de la pièce est bien en-dessous de la consigne
 

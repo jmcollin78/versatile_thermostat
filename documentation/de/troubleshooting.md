@@ -6,6 +6,7 @@
   - [Verwendung eines Heizkörpers mit Steuerleitung (Nodon SIN-4-FP-21)](#verwendung-eines-heizkörpers-mit-steuerleitung-nodon-sin-4-fp-21)
   - [Verwendung eines Netatmo-Systems](#verwendung-eines-netatmo-systems)
   - [Nur der erste Heizkörper heizt](#nur-der-erste-heizkörper-heizt)
+  - [VTherm-Prozentwert und Ventilöffnungsgrad weichen voneinander ab](#vtherm-prozentwert-und-ventilöffnungsgrad-weichen-voneinander-ab)
   - [Der Heizkörper heizt, obwohl die Solltemperatur überschritten wird, oder er heizt nicht, wenn die Raumtemperatur deutlich unter dem Sollwert liegt](#der-heizkörper-heizt-obwohl-die-solltemperatur-überschritten-wird-oder-er-heizt-nicht-wenn-die-raumtemperatur-deutlich-unter-dem-sollwert-liegt)
     - [Typ `over_switch` oder `over_valve`](#typ-over_switch-oder-over_valve)
     - [Typ `over_climate`](#typ-over_climate)
@@ -116,6 +117,14 @@ TODO
 
 Wenn im Modus `over_switch` mehrere Heizkörper für denselben VTherm konfiguriert sind, wird die Heizung nacheinander ausgelöst, um die Verbrauchsspitzen so gut wie möglich zu glätten.
 Dies ist völlig normal und gewollt. Es wird hier beschrieben: [For a thermostat of type ```thermostat_over_switch```](#for-a-thermostat-of-type-thermostat_over_switch)
+
+## VTherm-Prozentwert und Ventilöffnungsgrad weichen voneinander ab
+
+Bei einem `over_climate`-VTherm mit direkter Ventilsteuerung gibt das Attribut `valve_open_percent` die von _VTherm_ berechnete Rohanforderung an. Der an das Ventil gesendete Öffnungsgrad kann davon abweichen: Die Ventileinstellungen (`opening_threshold`, `max_closing_degree`, `minimum_opening_degrees` und `max_opening_degrees`) passen diese Anforderung an die gewählte Kalibrierung an.
+
+Außerdem besteht ein Zusammenhang zwischen dem Regelschwellenwert und dem Öffnungsschwellenwert: `regulation_threshold` wird als minimale Öffnungsschwelle verwendet, wenn er höher ist als der konfigurierte Wert für `opening_threshold`. Deshalb kann auch bei den übrigen Ventileinstellungen mit Standardwerten (0 bis 100) ein von null verschiedener Regelschwellenwert die Anforderung verändern. Bei einem Schwellenwert von 5 % kann beispielsweise eine VTherm-Anforderung von 12 % dazu führen, dass ein Öffnungsgrad von 7 % an das Ventil gesendet wird. Bei 0 % stimmen beide Werte in dieser Konfiguration überein.
+
+Diese Abweichung ist erwartungsgemäß und bedeutet für sich genommen nicht, dass das Ventil blockiert oder falsch kalibriert ist. Prüfen Sie die konfigurierten Schwellenwerte und Grenzen, bevor Sie allein aufgrund eines Vergleichs dieser beiden Werte einen Alarm auslösen. `regulation_threshold` auf 0 zu setzen kann bei ansonsten neutralen Einstellungen die Übereinstimmung wiederherstellen, verringert jedoch die Filterung kleiner Änderungen und kann die Zahl der gesendeten Befehle erhöhen. Details zu den Einstellungen finden Sie unter [Selbstregelung mit direkter Ventilsteuerung](self-regulation.md#selbstregulierung-bei-direkter-ventilkontrolle).
 
 ## Der Heizkörper heizt, obwohl die Solltemperatur überschritten wird, oder er heizt nicht, wenn die Raumtemperatur deutlich unter dem Sollwert liegt
 
