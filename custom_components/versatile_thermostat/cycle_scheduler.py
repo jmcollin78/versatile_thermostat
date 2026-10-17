@@ -8,8 +8,14 @@ without temporal scheduling.
 
 import logging
 import time
+from vtherm_api.command_receipt import (
+    AppliedCommandReceipt,
+    CommandAlteration,
+    CommandReceiptCallback,
+    CommandReceiptKind,
+)
 from vtherm_api.log_collector import get_vtherm_logger
-from typing import Any, Callable
+from typing import Any, Callable, NamedTuple
 
 from homeassistant.core import CALLBACK_TYPE, HomeAssistant
 from homeassistant.helpers.event import async_call_later
@@ -26,6 +32,16 @@ from .cycle_tick_logic import (
     compute_e_eff,
 )
 _LOGGER = get_vtherm_logger(__name__)
+
+_NO_ALTERATION: frozenset[CommandAlteration] = frozenset()
+
+
+class _CommandRequest(NamedTuple):
+    """Request echoed in the applied-command receipts."""
+
+    request_id: int | None = None
+    requested_on_percent: float = 0.0
+    alterations: frozenset[CommandAlteration] = _NO_ALTERATION
 
 
 def calculate_cycle_times(
@@ -99,11 +115,13 @@ class CycleScheduler:
         self._cycle_end_unsub: CALLBACK_TYPE | None = None
         self._on_cycle_start_callbacks: list[Callable] = []
         self._on_cycle_end_callbacks: list[Callable] = []
+        self._on_command_receipt_callbacks: list[CommandReceiptCallback] = []
         # Current cycle parameters (for repeat at cycle end)
         self._current_hvac_mode: VThermHvacMode | None = None
         self._current_on_time_sec: float = 0
         self._current_off_time_sec: float = 0
         self._current_on_percent: float = 0
+        self._current_request: _CommandRequest = _CommandRequest()
         # Active cycle parameters describe what is physically being executed
         # right now. They intentionally differ from _current_* when a running
         # cycle receives non-forced updates that should only apply to the next
@@ -115,6 +133,7 @@ class CycleScheduler:
         self._states: list[UnderlyingCycleState] = []
         self._penalty: float = 0.0
         self._cycle_start_time: float = 0.0
+        self._cycle_start_monotonic: float | None = None
         # For valves, keep the applied-power segments within the current
         # master cycle so realized e_eff reflects real mid-cycle updates.
         self._valve_cycle_trace: list[tuple[float, float]] = []
@@ -162,8 +181,12 @@ class CycleScheduler:
         self,
         on_percent: float,
         force: bool = False,
-    ) -> float:
-        """Return the valve command retained by the thermostat."""
+    ) -> tuple[float, bool]:
+        """Return the valve command retained by the thermostat.
+
+        The second item is True when the retained command differs from the
+        rounded request (dpercent, regulation period, sleep...).
+        """
         requested = max(0.0, min(1.0, float(on_percent)))
         resolver = getattr(
             type(self._thermostat),
@@ -171,10 +194,10 @@ class CycleScheduler:
             None,
         )
         if resolver is None:
-            return requested
+            return requested, False
 
-        retained = resolver(self._thermostat, requested, force=force)
-        return max(0.0, min(1.0, float(retained)))
+        retained = max(0.0, min(1.0, float(resolver(self._thermostat, requested, force=force))))
+        return retained, abs(retained - round(requested * 100) / 100) > 1e-9
 
     def register_cycle_start_callback(self, callback: Callable):
         """Register a callback to be called at the start of each master cycle.
@@ -187,18 +210,34 @@ class CycleScheduler:
         """Register a callback to be called at the end of each master cycle."""
         self._on_cycle_end_callbacks.append(callback)
 
+    def register_command_receipt_callback(self, callback: CommandReceiptCallback) -> CALLBACK_TYPE:
+        """Register a callback receiving an AppliedCommandReceipt for each applied command.
+
+        Callback signature: async def callback(receipt)
+        Returns the function that removes the registration.
+        """
+        self._on_command_receipt_callbacks.append(callback)
+
+        def _remove() -> None:
+            if callback in self._on_command_receipt_callbacks:
+                self._on_command_receipt_callbacks.remove(callback)
+
+        return _remove
+
     def _set_pending_cycle(
         self,
         hvac_mode: VThermHvacMode | None,
         on_time_sec: float,
         off_time_sec: float,
         on_percent: float,
+        request: _CommandRequest = _CommandRequest(),
     ) -> None:
         """Store parameters that the next cycle repeat must use."""
         self._current_hvac_mode = hvac_mode
         self._current_on_time_sec = on_time_sec
         self._current_off_time_sec = off_time_sec
         self._current_on_percent = on_percent
+        self._current_request = request
 
     def _set_active_cycle(
         self,
@@ -238,6 +277,8 @@ class CycleScheduler:
         on_percent: float,
         force: bool = False,
         _from_cycle_end: bool = False,
+        *,
+        request_id: int | None = None,
     ):
         """Start a new master cycle for all underlyings.
 
@@ -249,17 +290,36 @@ class CycleScheduler:
             on_percent: Power percentage as a fraction (0.0 to 1.0).
             force: If True, cancel any running cycle and restart immediately.
             _from_cycle_end: Internal flag — True when called from _on_master_cycle_end.
+            request_id: Opaque identifier of the request, echoed in the
+                applied-command receipts. It never changes the cycle behaviour.
         """
+        if _from_cycle_end:
+            # The automatic restart replays the request of the ending cycle
+            # and keeps its alterations (sticky per request).
+            request_id, requested_on_percent, alterations = self._current_request
+        else:
+            requested_on_percent = max(0.0, min(1.0, on_percent))
+            if request_id is not None and request_id == self._current_request.request_id:
+                alterations = self._current_request.alterations
+            else:
+                alterations = _NO_ALTERATION
+
         if self._is_valve_mode:
-            on_percent = self._resolve_valve_on_percent(on_percent, force=force)
+            on_percent, valve_retained = self._resolve_valve_on_percent(on_percent, force=force)
+            if valve_retained:
+                alterations = alterations | {CommandAlteration.VALVE_RETAINED}
 
         cycle_min = self._cycle_duration_sec / 60
-        on_time_sec, off_time_sec, _ = calculate_cycle_times(
+        on_time_sec, off_time_sec, forced_by_timing = calculate_cycle_times(
             on_percent,
             cycle_min,
             self.min_activation_delay,
             self.min_deactivation_delay,
         )
+        # Valve cycle seconds are diagnostic only, min delays do not apply to the valve
+        if forced_by_timing and not self._is_valve_mode:
+            alterations = alterations | {CommandAlteration.MIN_ON_OFF}
+        request = _CommandRequest(request_id, requested_on_percent, alterations)
         # A valve applies the retained position directly. Converting it back
         # from integer cycle seconds would quantize it a second time and feed a
         # different command into the next automatic cycle restart.
@@ -293,6 +353,7 @@ class CycleScheduler:
                     on_time_sec,
                     off_time_sec,
                     realized_on_percent,
+                    request,
                 )
                 return
             if self._active_on_time_sec > 0:
@@ -308,7 +369,7 @@ class CycleScheduler:
                     off_time_sec,
                     realized_on_percent,
                 )
-                self._set_pending_cycle(hvac_mode, on_time_sec, off_time_sec, realized_on_percent)
+                self._set_pending_cycle(hvac_mode, on_time_sec, off_time_sec, realized_on_percent, request)
                 return
             # Current cycle is idle (on_time=0, device off).
             # Keep it running if the requested idle cycle is unchanged; otherwise
@@ -327,7 +388,7 @@ class CycleScheduler:
                     "%s - Current cycle is idle and unchanged, keeping existing cycle",
                     self._thermostat,
                 )
-                self._set_pending_cycle(hvac_mode, on_time_sec, off_time_sec, realized_on_percent)
+                self._set_pending_cycle(hvac_mode, on_time_sec, off_time_sec, realized_on_percent, request)
                 return
             _LOGGER.debug(
                 "%s - Current cycle is idle (on_time=0), replacing with changed cycle",
@@ -337,8 +398,9 @@ class CycleScheduler:
         await self._cancel_cycle_impl()
 
         # Store current cycle parameters for repeat
-        self._set_pending_cycle(hvac_mode, on_time_sec, off_time_sec, realized_on_percent)
+        self._set_pending_cycle(hvac_mode, on_time_sec, off_time_sec, realized_on_percent, request)
         self._set_active_cycle(hvac_mode, on_time_sec, off_time_sec, realized_on_percent)
+        self._cycle_start_monotonic = time.monotonic()
 
         # _is_starting guards the Race window: after _cancel_cycle_impl() cleared all
         # timers and flags, but before the new timers are set by _start_cycle_switch() or
@@ -348,6 +410,15 @@ class CycleScheduler:
         try:
             # Fire cycle start callbacks with realized percent so learners see actual applied power
             await self._fire_cycle_start_callbacks(on_time_sec, off_time_sec, realized_on_percent, hvac_mode)
+            await self._fire_command_receipt(
+                CommandReceiptKind.CYCLE_START,
+                hvac_mode,
+                on_time_sec,
+                off_time_sec,
+                realized_on_percent,
+                request,
+                is_repeat=_from_cycle_end,
+            )
 
             if self._is_valve_mode:
                 await self._start_cycle_valve(hvac_mode)
@@ -365,7 +436,14 @@ class CycleScheduler:
         if not self._is_valve_mode:
             return
 
-        on_percent = self._resolve_valve_on_percent(on_percent)
+        requested_on_percent = max(0.0, min(1.0, float(on_percent)))
+        on_percent, valve_retained = self._resolve_valve_on_percent(on_percent)
+        # A deferred update is computed by VTherm itself: it carries no request_id
+        request = _CommandRequest(
+            None,
+            requested_on_percent,
+            frozenset({CommandAlteration.VALVE_RETAINED}) if valve_retained else _NO_ALTERATION,
+        )
         cycle_min = self._cycle_duration_sec / 60
         on_time_sec, off_time_sec, _ = calculate_cycle_times(
             on_percent,
@@ -379,7 +457,7 @@ class CycleScheduler:
 
         self._thermostat._on_time_sec = on_time_sec
         self._thermostat._off_time_sec = off_time_sec
-        self._set_pending_cycle(hvac_mode, on_time_sec, off_time_sec, realized_on_percent)
+        self._set_pending_cycle(hvac_mode, on_time_sec, off_time_sec, realized_on_percent, request)
 
         if self.is_cycle_running:
             await self._update_running_valve_cycle(
@@ -387,11 +465,20 @@ class CycleScheduler:
                 on_time_sec,
                 off_time_sec,
                 realized_on_percent,
+                request,
             )
             return
 
         self._set_active_cycle(hvac_mode, on_time_sec, off_time_sec, realized_on_percent)
         await self._apply_valve_command(hvac_mode, on_time_sec, off_time_sec)
+        await self._fire_command_receipt(
+            CommandReceiptKind.UPDATE,
+            hvac_mode,
+            on_time_sec,
+            off_time_sec,
+            realized_on_percent,
+            request,
+        )
 
     async def _update_running_valve_cycle(
         self,
@@ -399,12 +486,21 @@ class CycleScheduler:
         on_time_sec: float,
         off_time_sec: float,
         on_percent: float,
+        request: _CommandRequest,
     ) -> None:
         """Apply a valve update while preserving the current master-cycle window."""
-        self._set_pending_cycle(hvac_mode, on_time_sec, off_time_sec, on_percent)
+        self._set_pending_cycle(hvac_mode, on_time_sec, off_time_sec, on_percent, request)
         self._set_active_cycle(hvac_mode, on_time_sec, off_time_sec, on_percent)
         await self._apply_valve_command(hvac_mode, on_time_sec, off_time_sec)
         self._append_valve_cycle_trace(on_percent)
+        await self._fire_command_receipt(
+            CommandReceiptKind.UPDATE,
+            hvac_mode,
+            on_time_sec,
+            off_time_sec,
+            on_percent,
+            request,
+        )
 
     async def _apply_valve_command(
         self,
@@ -683,6 +779,7 @@ class CycleScheduler:
         self._valve_cycle_trace = []
         self._set_pending_cycle(None, 0, 0, 0.0)
         self._set_active_cycle(None, 0, 0, 0.0)
+        self._cycle_start_monotonic = None
         self._is_cancelling = False
         self._is_starting = False
 
@@ -724,6 +821,7 @@ class CycleScheduler:
         self._set_pending_cycle(None, 0, 0, 0.0)
         self._set_active_cycle(None, 0, 0, 0.0)
         self._cycle_start_time = 0.0
+        self._cycle_start_monotonic = None
         # Reset only after all state is cleared so the guard stays active until fully done.
         self._is_cancelling = False
         _LOGGER.debug("%s - Cycle cancelled", self._thermostat)
@@ -791,6 +889,48 @@ class CycleScheduler:
             except Exception as ex:
                 _LOGGER.warning(
                     "%s - Error calling cycle start callback %s: %s",
+                    self._thermostat,
+                    callback,
+                    ex,
+                )
+
+    async def _fire_command_receipt(
+        self,
+        kind: CommandReceiptKind,
+        hvac_mode: VThermHvacMode,
+        on_time_sec: float,
+        off_time_sec: float,
+        applied_on_percent: float,
+        request: _CommandRequest,
+        is_repeat: bool = False,
+    ) -> None:
+        """Fire all registered command receipt callbacks."""
+        if not self._on_command_receipt_callbacks:
+            return
+        if getattr(self._thermostat, "is_inhibited", False) is True:
+            # The inhibition command gate drops every underlying command: nothing is applied
+            return
+        receipt = AppliedCommandReceipt(
+            kind=kind,
+            request_id=request.request_id,
+            hvac_mode=str(hvac_mode),
+            requested_on_percent=request.requested_on_percent,
+            applied_on_percent=applied_on_percent,
+            on_time_sec=int(on_time_sec),
+            off_time_sec=int(off_time_sec),
+            cycle_duration_sec=self._cycle_duration_sec,
+            cycle_start_monotonic=self._cycle_start_monotonic,
+            monotonic=time.monotonic(),
+            is_repeat=is_repeat,
+            alterations=request.alterations,
+        )
+        # Iterate over a copy: a callback may unregister itself
+        for callback in list(self._on_command_receipt_callbacks):
+            try:
+                await callback(receipt)
+            except Exception as ex:
+                _LOGGER.warning(
+                    "%s - Error calling command receipt callback %s: %s",
                     self._thermostat,
                     callback,
                     ex,

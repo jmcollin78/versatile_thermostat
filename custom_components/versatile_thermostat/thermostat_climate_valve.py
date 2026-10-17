@@ -18,6 +18,7 @@ from .base_thermostat import ConfigData
 from .thermostat_climate import ThermostatOverClimate
 from .thermostat_prop import ThermostatProp
 from .cycle_scheduler import CycleScheduler
+from .valve_command import ValveCommandMixin
 
 from .const import *  # pylint: disable=wildcard-import, unused-wildcard-import
 from .commons import write_event_log
@@ -28,7 +29,7 @@ from .vtherm_hvac_mode import VThermHvacMode, VThermHvacMode_COOL, VThermHvacMod
 _LOGGER = get_vtherm_logger(__name__)
 
 
-class ThermostatOverClimateValve(ThermostatProp[UnderlyingClimate], ThermostatOverClimate):
+class ThermostatOverClimateValve(ValveCommandMixin, ThermostatProp[UnderlyingClimate], ThermostatOverClimate):
     """This class represent a VTherm over a climate with a direct valve regulation"""
 
     _entity_component_unrecorded_attributes = ThermostatOverClimate._entity_component_unrecorded_attributes.union(  # pylint: disable=protected-access
@@ -257,38 +258,14 @@ class ThermostatOverClimateValve(ThermostatProp[UnderlyingClimate], ThermostatOv
         super().recalculate(force)
 
         if self.is_sleeping:
-            new_valve_percent = 100
+            on_percent = 1.0
         else:
             on_percent = self.safe_on_percent
             if on_percent is None:
                 # Temperature not yet available; preserve the current valve position.
                 return
-            new_valve_percent = round(max(0, min(on_percent, 1)) * 100)
 
-            # Issue 533 - don't filter with dtemp if valve should be close. Else it will never close
-            if new_valve_percent < self._auto_regulation_dpercent:
-                new_valve_percent = 0
-
-            dpercent = new_valve_percent - self._valve_open_percent if self._valve_open_percent is not None else 0
-            if self._last_calculation_timestamp is not None and new_valve_percent > 0 and -1 * self._auto_regulation_dpercent <= dpercent < self._auto_regulation_dpercent:
-                _LOGGER.debug(
-                    "%s - do not calculate TPI because regulation_dpercent (%.1f) is not exceeded",
-                    self,
-                    dpercent,
-                )
-
-                return
-
-        if (
-            self._last_calculation_timestamp is not None
-            and self._valve_open_percent == new_valve_percent
-        ):
-            _LOGGER.debug("%s - no change in valve_open_percent.", self)
-            return
-
-        self._valve_open_percent = new_valve_percent
-
-        self._last_calculation_timestamp = now
+        self.apply_valve_command_percent(on_percent, force=True)
 
     def do_recalculate_later(self):
         """A utility function to set the valve open percent later on all underlyings"""

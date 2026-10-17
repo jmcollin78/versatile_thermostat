@@ -1,7 +1,7 @@
 # pylint: disable=line-too-long, disable=protected-access
 
 """ Test the normal start of a Switch AC Thermostat """
-from unittest.mock import patch, call
+from unittest.mock import MagicMock, PropertyMock, patch, call
 from datetime import datetime, timedelta
 
 from homeassistant.core import HomeAssistant, State
@@ -9,6 +9,7 @@ from homeassistant.components.climate import HVACAction
 from homeassistant.components.number import SERVICE_SET_VALUE
 
 from pytest_homeassistant_custom_component.common import MockConfigEntry
+from vtherm_api.command_receipt import AppliedCommandReceipt, CommandAlteration, CommandReceiptKind
 
 from custom_components.versatile_thermostat.thermostat_valve import ThermostatOverValve
 
@@ -770,3 +771,103 @@ async def test_bug_533(hass: HomeAssistant, skip_hass_states_is_state, fake_unde
                 ),
             ]
         )
+
+
+@pytest.mark.parametrize("expected_lingering_timers", [True])
+async def test_over_valve_command_receipts(hass: HomeAssistant, skip_hass_states_is_state, fake_underlying_valve: MockNumber):  # pylint: disable=unused-argument
+    """Applied-command receipts of an over_valve: retained update and deferred update without request_id"""
+
+    entry = MockConfigEntry(
+        domain=DOMAIN,
+        title="TheOverValveMockName",
+        unique_id="uniqueId",
+        data={
+            CONF_NAME: "TheOverValveMockName",
+            CONF_THERMOSTAT_TYPE: CONF_THERMOSTAT_VALVE,
+            CONF_TEMP_SENSOR: "sensor.mock_temp_sensor",
+            CONF_EXTERNAL_TEMP_SENSOR: "sensor.mock_ext_temp_sensor",
+            CONF_UNDERLYING_LIST: ["number.mock_valve"],
+            CONF_CYCLE_MIN: 5,
+            CONF_TEMP_MIN: 15,
+            CONF_TEMP_MAX: 30,
+            VThermPreset.FROST + PRESET_TEMP_SUFFIX: 7,
+            VThermPreset.ECO + PRESET_TEMP_SUFFIX: 17,
+            VThermPreset.COMFORT + PRESET_TEMP_SUFFIX: 19,
+            VThermPreset.BOOST + PRESET_TEMP_SUFFIX: 21,
+            CONF_USE_WINDOW_FEATURE: False,
+            CONF_USE_MOTION_FEATURE: False,
+            CONF_USE_POWER_FEATURE: False,
+            CONF_USE_PRESENCE_FEATURE: False,
+            CONF_PROP_FUNCTION: PROPORTIONAL_FUNCTION_TPI,
+            CONF_TPI_COEF_INT: 0.3,
+            CONF_TPI_COEF_EXT: 0.01,
+            CONF_MINIMAL_ACTIVATION_DELAY: 30,
+            CONF_MINIMAL_DEACTIVATION_DELAY: 0,
+            CONF_SAFETY_DELAY_MIN: 60,
+            CONF_SAFETY_MIN_ON_PERCENT: 0.3,
+            CONF_AUTO_REGULATION_DTEMP: 5,
+            CONF_AUTO_REGULATION_PERIOD_MIN: 5,
+        },
+    )
+
+    now: datetime = datetime.now(tz=get_tz(hass))
+
+    with patch("custom_components.versatile_thermostat.base_thermostat.BaseThermostat.send_event"):
+        entity: ThermostatOverValve = await create_thermostat(hass, entry, "climate.theovervalvemockname")
+        assert isinstance(entity, ThermostatOverValve)
+        entity._set_now(now)
+        await entity.async_set_hvac_mode(VThermHvacMode_HEAT)
+
+    scheduler = entity.cycle_scheduler
+    assert scheduler.is_valve_mode is True
+    receipts: list[AppliedCommandReceipt] = []
+
+    async def on_receipt(receipt: AppliedCommandReceipt):
+        receipts.append(receipt)
+
+    scheduler.register_command_receipt_callback(on_receipt)
+
+    with patch("custom_components.versatile_thermostat.base_thermostat.BaseThermostat.send_event"), patch(
+        "custom_components.versatile_thermostat.thermostat_valve.async_call_later", return_value=MagicMock()
+    ) as mock_call_later:
+        # 1. a master cycle start applies the request
+        now = now + timedelta(minutes=1)
+        entity._set_now(now)
+        await scheduler.start_cycle(VThermHvacMode_HEAT, 0.40, force=True, request_id=1)
+
+        assert entity.valve_open_percent == 40
+        assert receipts[-1].kind == CommandReceiptKind.CYCLE_START
+        assert receipts[-1].request_id == 1
+        assert receipts[-1].applied_on_percent == pytest.approx(0.40)
+        assert receipts[-1].alterations == frozenset()
+
+        # 2. a running-cycle update within the regulation period is retained and deferred
+        now = now + timedelta(minutes=1)
+        entity._set_now(now)
+        await scheduler.start_cycle(VThermHvacMode_HEAT, 0.60, force=False, request_id=2)
+
+        assert entity.valve_open_percent == 40
+        assert receipts[-1].kind == CommandReceiptKind.UPDATE
+        assert receipts[-1].request_id == 2
+        assert receipts[-1].requested_on_percent == pytest.approx(0.60)
+        assert receipts[-1].applied_on_percent == pytest.approx(0.40)
+        assert receipts[-1].alterations == frozenset({CommandAlteration.VALVE_RETAINED})
+        deferred_update = mock_call_later.call_args.kwargs["action"]
+
+        # 3. the deferred update is applied by VTherm itself, without request_id
+        now = now + timedelta(minutes=5)
+        entity._set_now(now)
+        with patch.object(ThermostatOverValve, "recalculate"), patch.object(ThermostatOverValve, "safe_on_percent", new_callable=PropertyMock, return_value=0.6):
+            await deferred_update(None)
+
+        assert entity.valve_open_percent == 60
+        receipt = receipts[-1]
+        assert receipt.kind == CommandReceiptKind.UPDATE
+        assert receipt.request_id is None
+        assert receipt.requested_on_percent == pytest.approx(0.60)
+        assert receipt.applied_on_percent == pytest.approx(0.60)
+        assert receipt.alterations == frozenset()
+        assert receipt.cycle_start_monotonic == receipts[0].cycle_start_monotonic
+
+    entity.remove_thermostat()
+    await hass.async_block_till_done()
