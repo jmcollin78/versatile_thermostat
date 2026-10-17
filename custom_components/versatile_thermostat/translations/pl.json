@@ -750,7 +750,7 @@
           "heating_failure_threshold": "Próg awarii ogrzewania",
           "cooling_failure_threshold": "Próg awarii chłodzenia",
           "heating_failure_detection_delay": "Opóźnienie wykrywania (minuty)",
-          "temperature_change_tolerance": "Tolerancja zmiany temperatury ({unit})",
+          "temperature_change_tolerance": "Tolerancja zmiany temperatury (°C)",
           "failure_detection_enable_template": "Szablon włączenia wykrywania"
         },
         "data_description": {
