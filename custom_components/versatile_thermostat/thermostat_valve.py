@@ -19,6 +19,7 @@ from .const import *  # pylint: disable=wildcard-import, unused-wildcard-import
 from .commons import write_event_log
 
 from .underlyings import UnderlyingValve
+from .valve_command import ValveCommandMixin
 from .cycle_scheduler import CycleScheduler
 from .vtherm_central_api import VersatileThermostatAPI
 from .vtherm_hvac_mode import (
@@ -32,7 +33,7 @@ from homeassistant.core import State
 
 _LOGGER = get_vtherm_logger(__name__)
 
-class ThermostatOverValve(ThermostatProp[UnderlyingValve]):  # pylint: disable=abstract-method
+class ThermostatOverValve(ValveCommandMixin, ThermostatProp[UnderlyingValve]):  # pylint: disable=abstract-method
     """Representation of a class for a Versatile Thermostat over a Valve"""
 
     _entity_component_unrecorded_attributes = BaseThermostat._entity_component_unrecorded_attributes.union(  # pylint: disable=protected-access
@@ -386,6 +387,7 @@ class ThermostatOverValve(ThermostatProp[UnderlyingValve]):  # pylint: disable=a
 
         self.apply_valve_command_percent(current_on_percent, force=True)
 
+    @overrides
     def apply_valve_command_percent(
         self,
         on_percent: float,
@@ -393,8 +395,9 @@ class ThermostatOverValve(ThermostatProp[UnderlyingValve]):  # pylint: disable=a
     ) -> float:
         """Accept a requested valve command and return the retained ratio.
 
-        This is the single conversion point between a proportional algorithm's
-        continuous output and the integer command exposed by the thermostat.
+        A pending deferred recalculation is cancelled and, while sleeping, the
+        100% demand is applied immediately; the other filters are shared with
+        over_climate_valve (see ValveCommandMixin).
         """
         self.stop_recalculate_later()
 
@@ -408,63 +411,7 @@ class ThermostatOverValve(ThermostatProp[UnderlyingValve]):  # pylint: disable=a
             self.async_write_ha_state()
             return 1.0
 
-        if self._auto_regulation_period_min is None or self._auto_regulation_dpercent is None:
-            _LOGGER.warning(
-                "%s - auto_regulation_period_min or auto_regulation_dpercent is not set. Keeping current valve command.",
-                self,
-            )
-            return self.valve_open_percent / 100.0
-
-        new_valve_percent = round(
-            max(0, min(on_percent, 1)) * 100
-        )
-
-        # Issue 533 - don't filter with dtemp if valve should be close. Else it will never close
-        if new_valve_percent < self._auto_regulation_dpercent:
-            new_valve_percent = 0
-
-        dpercent = new_valve_percent - self.valve_open_percent
-        if (
-            new_valve_percent > 0
-            and -1 * self._auto_regulation_dpercent
-            <= dpercent
-            < self._auto_regulation_dpercent
-        ):
-            _LOGGER.debug(
-                "%s - do not calculate TPI because regulation_dpercent (%.1f) is not exceeded",
-                self,
-                dpercent,
-            )
-
-            return self.valve_open_percent / 100.0
-
-        if self._valve_open_percent == new_valve_percent:
-            _LOGGER.debug("%s - no change in valve_open_percent.", self)
-            return self.valve_open_percent / 100.0
-
-        now = self.now
-        if self._last_calculation_timestamp is not None:
-            period = (now - self._last_calculation_timestamp).total_seconds() / 60
-            if not force and period < self._auto_regulation_period_min:
-                _LOGGER.info(
-                    "%s - do not apply valve command because regulation_period (%d) is not exceeded",
-                    self,
-                    period,
-                )
-                self.do_recalculate_later()
-                return self.valve_open_percent / 100.0
-
-        self._valve_open_percent = new_valve_percent
-
-        # Valve open percent is sent to underlyings by CycleScheduler
-        # in start_cycle (called from control_heating)
-
-        self._last_calculation_timestamp = now
-
-        # self.calculate_hvac_action()
-        self.update_custom_attributes()
-        self.async_write_ha_state()
-        return self.valve_open_percent / 100.0
+        return super().apply_valve_command_percent(on_percent, force)
 
     def do_recalculate_later(self):
         """A utility function to set the valve open percent later on all underlyings"""

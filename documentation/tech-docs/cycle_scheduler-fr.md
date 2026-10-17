@@ -114,6 +114,7 @@ Pour les entités `UnderlyingSwitch`, le planificateur utilise une approche par 
 
 Pour les entités `UnderlyingValve` et `UnderlyingValveRegulation`, aucune planification de minuteur n'est nécessaire :
 - `_start_cycle_valve()` appelle directement `set_valve_open_percent()` sur chaque sous-jacent.
+- Avant la mise à jour des sous-jacents, `start_cycle()` transmet la commande demandée à `apply_valve_command_percent()` du thermostat (`ValveCommandMixin`, utilisé par `ThermostatOverValve` et `ThermostatOverClimateValve`). Elle renvoie l'ouverture retenue, arrondie au pourcent entier, après les filtres `auto_regulation_dpercent` / `auto_regulation_period_min`. Les callbacks de cycle et `e_eff` utilisent cette valeur retenue.
 - Aucune répétition du cycle maître n'est planifiée — c'est le `async_track_time_interval` du thermostat qui pilote la réévaluation périodique.
 - Cela unifie la gestion des cycles de vannes sous la même API `start_cycle()`.
 
