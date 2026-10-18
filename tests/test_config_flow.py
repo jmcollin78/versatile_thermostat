@@ -509,7 +509,7 @@ async def test_user_config_flow_over_climate(
             CONF_UNDERLYING_LIST: ["climate.mock_climate"],
             CONF_AC_MODE: False,
             CONF_AUTO_REGULATION_MODE: CONF_AUTO_REGULATION_STRONG,
-            CONF_AUTO_REGULATION_DTEMP: 0.5,
+            CONF_AUTO_REGULATION_DTEMP: 10,
             CONF_AUTO_REGULATION_PERIOD_MIN: 2,
             CONF_AUTO_FAN_MODE: CONF_AUTO_FAN_HIGH,
             CONF_AUTO_REGULATION_USE_DEVICE_TEMP: False,
@@ -544,6 +544,16 @@ async def test_user_config_flow_over_climate(
     assert result["type"] == FlowResultType.MENU
     assert result["step_id"] == "menu"
     assert result.get("errors") is None
+
+    result = await hass.config_entries.flow.async_configure(
+        result["flow_id"], user_input={"next_step_id": "valve_regulation"}
+    )
+    opening_threshold_field = next(
+        key
+        for key in result["data_schema"].schema
+        if str(key) == CONF_OPENING_THRESHOLD_DEGREE
+    )
+    assert opening_threshold_field.description["suggested_value"] == 10
 
     # 6. Features
     result = await hass.config_entries.flow.async_configure(
