@@ -1807,6 +1807,8 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
                         await self.power_manager.set_overpowering(False)
 
                 if changed:
+                    transition_force = self._state_manager.current_state.is_hvac_mode_changed and self.is_over_climate and self.have_valve_regulation
+                    force = force or transition_force
                     self.recalculate(force=force)
                     self.reset_last_change_time_from_vtherm()
                     await self.async_control_heating(force=force or sub_need_control_heating)
