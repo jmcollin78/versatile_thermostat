@@ -114,6 +114,7 @@ For `UnderlyingSwitch` entities, the scheduler uses an **event-driven tick** app
 
 For `UnderlyingValve` and `UnderlyingValveRegulation` entities, no timer scheduling is needed:
 - `_start_cycle_valve()` directly calls `set_valve_open_percent()` on each underlying.
+- Before the underlyings are updated, `start_cycle()` passes the requested command to the thermostat's `apply_valve_command_percent()` (`ValveCommandMixin`, used by `ThermostatOverValve` and `ThermostatOverClimateValve`). It returns the retained opening after rounding to an integer percent and applying the `auto_regulation_dpercent` / `auto_regulation_period_min` filters. Cycle callbacks and `e_eff` use this retained value.
 - No master cycle repeat is scheduled — the thermostat's `async_track_time_interval` drives periodic re-evaluation.
 - This unifies valve cycle handling under the same `start_cycle()` API.
 
