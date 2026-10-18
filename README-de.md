@@ -27,6 +27,14 @@ Versatile Thermostat UI Card (Verfügbar auf [Github](https://github.com/jmcolli
 # Was ist neu?
 ![Neu](images/new-icon.png)
 
+## Release 10.6.1
+
+Seit Version 10.5.1 bietet dieses Release folgende Neuerungen:
+
+- **Inhibition durch Plugins**: Kompatible Plugins können einen _VTherm_ vorübergehend aus der Regelung nehmen. Währenddessen werden Befehle an die zugrunde liegenden Geräte ausgesetzt; nach der Wiederaufnahme wendet das Thermostat seinen aktuellen Zustand erneut an.
+- **Automatische Rückkehr nach einer manuellen Änderung**: Es kann eine Dauer konfiguriert werden, nach der das vor einer manuellen Temperaturänderung aktive Preset wiederhergestellt wird. War bereits ein zeitgesteuertes Preset aktiv, wird es bis zu seinem vorgesehenen Ende fortgesetzt.
+- **Templates für Zentralheizungsbefehle**: Ein Befehlswert kann mithilfe eines Home-Assistant-Templates berechnet werden. Das Template wird bei jeder Aktivierung, Deaktivierung und jedem Keep-alive-Aufruf ausgewertet. Templates werden während der Konfiguration validiert.
+
 ## Release 10.5.0
 
 Die Erkennung von Heizungsanomalien kann jetzt als externes Plugin

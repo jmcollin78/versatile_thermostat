@@ -30,6 +30,14 @@ Karta integracji VTherm UI (dostępna na [Github](https://github.com/jmcollin78/
 # Co nowego?
 ![New](images/new-icon.png)
 
+## Wydanie 10.6.1
+
+W porównaniu z wersją 10.5.1 to wydanie wprowadza następujące nowości:
+
+- **Inhibicja przez wtyczki**: zgodne wtyczki mogą tymczasowo wycofać _VTherm_ z regulacji. W tym czasie polecenia do urządzeń podrzędnych są wstrzymane; po wznowieniu termostat ponownie stosuje swój bieżący stan.
+- **Automatyczny powrót po ręcznej zmianie**: można skonfigurować czas, po którym zostanie przywrócony preset aktywny przed ręczną zmianą temperatury. Jeśli działał preset czasowy, po zakończeniu ręcznej zmiany jest wznawiany do zaplanowanego końca.
+- **Szablony poleceń centralnego kotła**: wartość polecenia można obliczyć za pomocą szablonu Home Assistant, który jest renderowany przy każdym włączeniu, wyłączeniu lub podtrzymaniu pracy kotła. Szablony są sprawdzane podczas konfiguracji.
+
 ## Wydanie 10.5.0
 
 Wykrywanie anomalii ogrzewania może być teraz używane jako zewnętrzna wtyczka

@@ -27,6 +27,14 @@ Versatile Thermostat UI Card (Available on [Github](https://github.com/jmcollin7
 # What's New?
 ![New](images/new-icon.png)
 
+## Release 10.6.1
+
+Since version 10.5.1, this release introduces the following features:
+
+- **Plugin inhibition**: compatible plugins can temporarily withdraw a _VTherm_ from control. Commands to underlying devices are suspended during this period; when control resumes, the thermostat reapplies its current state.
+- **Automatic return after a manual override**: configure a duration to restore the preset that was active before a manual temperature change. If a timed preset was already running, it resumes until its scheduled end.
+- **Templates for central boiler commands**: a command value can be calculated using a Home Assistant template, evaluated each time the boiler is activated, deactivated, or kept alive. Templates are validated during configuration.
+
 ## Release 10.5.0
 
 Heating failure detection can now be used as the external

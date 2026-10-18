@@ -27,6 +27,14 @@ Versatile Thermostat UI Card (K dispozici na [Github](https://github.com/jmcolli
 # Co je nového?
 ![Nové](images/new-icon.png)
 
+## Verze 10.6.1
+
+Oproti verzi 10.5.1 přináší toto vydání následující novinky:
+
+- **Inhibice pomocí pluginů**: kompatibilní pluginy mohou dočasně vyřadit _VTherm_ z řízení. Během této doby jsou příkazy podřízeným zařízením pozastaveny; po obnovení řízení termostat znovu použije svůj aktuální stav.
+- **Automatický návrat po ruční změně**: lze nastavit dobu, po které se obnoví preset aktivní před ruční změnou teploty. Pokud byl aktivní časově omezený preset, po ruční změně pokračuje až do svého původně nastaveného konce.
+- **Šablony pro příkazy centrálního kotle**: hodnotu příkazu lze vypočítat pomocí šablony Home Assistantu, která se vyhodnotí při každé aktivaci, deaktivaci nebo opakovaném povelu pro udržení chodu. Šablony se ověřují při konfiguraci.
+
 ## Verze 10.5.0
 
 Detekci poruchy vytápění lze nyní používat jako externí plugin
