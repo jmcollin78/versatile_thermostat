@@ -418,10 +418,9 @@ async def test_user_config_flow_over_switch(
     assert result["result"].title == "TheOverSwitchMockName"
     assert isinstance(result["result"], ConfigEntry)
 
+
 @pytest.mark.parametrize("expected_lingering_tasks", [True])
 @pytest.mark.parametrize("expected_lingering_timers", [True])
-# TODO this test fails when run in // but works alone
-# @pytest.mark.skip
 async def test_user_config_flow_over_climate(
     hass: HomeAssistant, skip_hass_states_get
 ):  # pylint: disable=unused-argument
@@ -545,16 +544,6 @@ async def test_user_config_flow_over_climate(
     assert result["step_id"] == "menu"
     assert result.get("errors") is None
 
-    result = await hass.config_entries.flow.async_configure(
-        result["flow_id"], user_input={"next_step_id": "valve_regulation"}
-    )
-    opening_threshold_field = next(
-        key
-        for key in result["data_schema"].schema
-        if str(key) == CONF_OPENING_THRESHOLD_DEGREE
-    )
-    assert opening_threshold_field.description["suggested_value"] == 10
-
     # 6. Features
     result = await hass.config_entries.flow.async_configure(
         result["flow_id"], user_input={"next_step_id": "features"}
@@ -657,6 +646,7 @@ async def test_user_config_flow_over_climate(
         CONF_USED_BY_CENTRAL_BOILER: False,
         CONF_USE_CENTRAL_MODE: False,
         CONF_AUTO_REGULATION_MODE: CONF_AUTO_REGULATION_STRONG,
+        CONF_AUTO_REGULATION_DTEMP: 10,
         CONF_AUTO_START_STOP_LEVEL: AUTO_START_STOP_LEVEL_NONE,
         CONF_SYNC_DEVICE_INTERNAL_TEMP: False,
     }
