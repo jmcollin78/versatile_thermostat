@@ -1,4 +1,4 @@
-# Review of Issue #2111 and PR #2113
+# Review of PR #2113 - Fix for Issue #2111
 
 **Status:** retain the proposed approach; defer merging. Revalidation after conflict resolution is required.
 **Issue:** [#2111](https://github.com/jmcollin78/versatile_thermostat/issues/2111)

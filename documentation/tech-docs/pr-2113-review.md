@@ -1,4 +1,4 @@
-# Revue de l'issue #2111 et de la PR #2113
+# Revue de la PR #2113 - Correctif de l'issue #2111
 
 **Statut :** retenir le principe ; differer la fusion, revalidation apres resolution du conflit obligatoire.
 **Issue :** [#2111](https://github.com/jmcollin78/versatile_thermostat/issues/2111)
