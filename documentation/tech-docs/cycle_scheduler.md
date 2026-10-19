@@ -414,7 +414,7 @@ t=0                t=off_t[R1]    t=on_t[R2]    t=off_t[R2]         t=cycle_end
 ## 12. `start_cycle()` Logic
 
 ```
-start_cycle(hvac_mode, on_percent, force=False)
+start_cycle(hvac_mode, on_percent, force=False, *, request_id=None)
 │
 ├── calculate_cycle_times(on_percent, cycle_min,
 │       min_activation_delay, min_deactivation_delay)
@@ -429,6 +429,7 @@ start_cycle(hvac_mode, on_percent, force=False)
 ├── cancel_cycle()          ← always cancel before (re)starting
 ├── store current params
 ├── fire cycle_start callbacks
+├── fire command receipts (CYCLE_START)
 │
 ├── if valve mode → _start_cycle_valve()
 └── if switch mode → _start_cycle_switch()
@@ -450,6 +451,7 @@ The non-disruptive update (when `force=False` and a real cycle is running) allow
 ```python
 cycle_scheduler.register_cycle_start_callback(callback)
 cycle_scheduler.register_cycle_end_callback(callback)
+remove = cycle_scheduler.register_command_receipt_callback(callback)  # see 13.7
 ```
 
 ### 13.2 Cycle Start Callback Signature
@@ -556,6 +558,23 @@ if self._auto_tpi_manager:
 
 This call is independent of the `on_cycle_started` callback (which fires only at cycle boundaries via the scheduler timer).
 
+### 13.7 Applied-Command Receipts
+
+`CycleScheduler` implements `InterfaceCommandReceiptScheduler` from `vtherm_api` (module `vtherm_api.command_receipt`). A plugin registers `async def callback(receipt: AppliedCommandReceipt)` with `register_command_receipt_callback()`, which returns the function removing the registration, and tags its requests with `start_cycle(..., request_id=...)`. Receipts use their own callback, separate from the cycle start and end callbacks; without a registered receipt callback, no receipt is built.
+
+`request_id` is opaque: it is stored with the pending request and echoed in the receipt of the command really applied. It never takes part in `_same_cycle_request()`, so an unchanged idle cycle is kept whatever the identifier.
+
+| Kind          | Emitted                                                                                                                                                                                         |
+| ------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `CYCLE_START` | At each master-cycle start, right after the cycle start callbacks and before the actuation. The automatic restart carries `is_repeat=True` and the stored request (identifier, request, alterations). |
+| `UPDATE`      | Valve only: for each `start_cycle()` going through the running-cycle path, even when the value is unchanged, and for each `apply_valve_update()` (`request_id=None`; `cycle_start_monotonic=None` outside a cycle). |
+
+- A switch request stored as pending during a running cycle (including an unchanged idle cycle) emits no receipt; its receipt is the `CYCLE_START` of the next restart.
+- `applied_on_percent` is `on_time_sec / cycle_duration_sec` for a switch and the value retained by `apply_valve_command_percent()` for a valve.
+- Alterations: `MIN_ON_OFF` when `calculate_cycle_times()` reports `forced_by_timing` (switch); `VALVE_RETAINED` when the retained valve opening differs from the request rounded to an integer percent. They are kept by the automatic restart and by a later request with the same `request_id`.
+- No receipt is emitted while the thermostat is inhibited (`is_inhibited`): the command gate drops the underlying commands, so none is applied. During the exit reconciliation the thermostat is no longer inhibited and the commands pass, so their receipts are emitted.
+- Callbacks are awaited in registration order; an exception is logged as a warning and does not break the cycle.
+
 ---
 
 ## 14. Special Cases
@@ -652,6 +671,8 @@ CycleScheduler(
 | `_states`             | `list[UnderlyingCycleState]` | Per-underlying state (on_t, off_t, on_time, offset)            |
 | `_penalty`            | `float`                      | Cumulative reattachment adjustments (seconds)                  |
 | `_cycle_start_time`   | `float`                      | Cycle start timestamp (for real duration computation)          |
+| `_cycle_start_monotonic` | `float \| None`            | `time.monotonic()` at the master-cycle start, reported in receipts |
+| `_current_request`    | `_CommandRequest`            | `request_id`, requested `on_percent` and alterations replayed by the automatic restart |
 | `_tick_unsub`         | `CALLBACK_TYPE | None`       | Cancellation handle for the next scheduled tick                |
 | `_cycle_end_unsub`    | `CALLBACK_TYPE | None`       | Cancellation handle for the master cycle end                   |
 

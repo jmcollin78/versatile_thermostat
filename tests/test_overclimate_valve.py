@@ -9,6 +9,7 @@ import logging
 from homeassistant.core import HomeAssistant, State
 from homeassistant.components.climate import SERVICE_SET_TEMPERATURE
 from homeassistant.components.number import SERVICE_SET_VALUE
+from vtherm_api.command_receipt import AppliedCommandReceipt, CommandAlteration, CommandReceiptKind
 
 from custom_components.versatile_thermostat.thermostat_climate_valve import (
     ThermostatOverClimateValve,
@@ -767,6 +768,8 @@ async def test_over_climate_valve_vtherm_hvac_mode_sleep(hass: HomeAssistant, fa
         assert vtherm.nb_device_actives == 1
 
     # 5. The forced transition must still retain a value filtered by dpercent.
+    # on_percent is patched (safe_on_percent is an alias of it) because the cycle scheduler
+    # reads it to apply the valve command, not only recalculate().
     now = now + timedelta(minutes=1)
     vtherm._set_now(now)
     await vtherm.async_set_hvac_mode(VThermHvacMode_SLEEP)
@@ -777,7 +780,7 @@ async def test_over_climate_valve_vtherm_hvac_mode_sleep(hass: HomeAssistant, fa
     now = now + timedelta(minutes=1)
     vtherm._set_now(now)
     with patch(
-        "custom_components.versatile_thermostat.thermostat_climate_valve.ThermostatOverClimateValve.safe_on_percent",
+        "custom_components.versatile_thermostat.thermostat_climate_valve.ThermostatOverClimateValve.on_percent",
         new_callable=PropertyMock,
         return_value=0.98,
     ):
@@ -792,7 +795,7 @@ async def test_over_climate_valve_vtherm_hvac_mode_sleep(hass: HomeAssistant, fa
     vtherm._valve_open_percent = 50
     vtherm._last_calculation_timestamp = now
     with patch(
-        "custom_components.versatile_thermostat.thermostat_climate_valve.ThermostatOverClimateValve.safe_on_percent",
+        "custom_components.versatile_thermostat.thermostat_climate_valve.ThermostatOverClimateValve.on_percent",
         new_callable=PropertyMock,
         return_value=0.45,
     ):
@@ -800,7 +803,7 @@ async def test_over_climate_valve_vtherm_hvac_mode_sleep(hass: HomeAssistant, fa
     assert vtherm.valve_open_percent == 50
 
     with patch(
-        "custom_components.versatile_thermostat.thermostat_climate_valve.ThermostatOverClimateValve.safe_on_percent",
+        "custom_components.versatile_thermostat.thermostat_climate_valve.ThermostatOverClimateValve.on_percent",
         new_callable=PropertyMock,
         return_value=0.55,
     ):
@@ -1493,6 +1496,82 @@ async def test_over_climate_valve_follows_cycle_command(hass: HomeAssistant, fak
 
         mock_recalculate.assert_not_called()
 
+    vtherm.remove_thermostat()
+    await hass.async_block_till_done()
+
+
+async def test_over_climate_valve_command_receipts(hass: HomeAssistant, fake_temp_sensor, fake_ext_temp_sensor):
+    """Applied-command receipts report the valve opening retained by over_climate_valve."""
+    fake_temp_sensor.set_native_value(18)
+    fake_ext_temp_sensor.set_native_value(18)
+    now: datetime = datetime.now(tz=get_tz(hass))
+
+    vtherm, _, now = await _create_heating_valve_vtherm(hass, 5, now)
+    scheduler = vtherm.cycle_scheduler
+
+    receipts: list[AppliedCommandReceipt] = []
+
+    async def on_receipt(receipt: AppliedCommandReceipt):
+        receipts.append(receipt)
+
+    remove = scheduler.register_command_receipt_callback(on_receipt)
+
+    with patch.object(ThermostatOverClimateValve, "recalculate"), patch("custom_components.versatile_thermostat.base_thermostat.BaseThermostat.send_event"):
+        # 1. a master cycle start reports the rounded opening
+        now = now + timedelta(minutes=3)
+        vtherm._set_now(now)
+        await scheduler.start_cycle(VThermHvacMode_HEAT, 0.7234, force=True, request_id=1)
+
+        receipt = receipts[-1]
+        assert receipt.kind == CommandReceiptKind.CYCLE_START
+        assert receipt.request_id == 1
+        assert receipt.requested_on_percent == pytest.approx(0.7234)
+        assert receipt.applied_on_percent == pytest.approx(0.72)
+        assert receipt.alterations == frozenset()
+
+        # 2. a running-cycle update within the regulation period is retained
+        now = now + timedelta(minutes=1)
+        vtherm._set_now(now)
+        await scheduler.start_cycle(VThermHvacMode_HEAT, 0.30, force=False, request_id=2)
+        vtherm.stop_recalculate_later()
+
+        receipt = receipts[-1]
+        assert receipt.kind == CommandReceiptKind.UPDATE
+        assert receipt.request_id == 2
+        assert receipt.applied_on_percent == pytest.approx(0.72)
+        assert receipt.alterations == frozenset({CommandAlteration.VALVE_RETAINED})
+
+        # 3. after the regulation period the update is applied, then confirmed when unchanged
+        now = now + timedelta(minutes=2)
+        vtherm._set_now(now)
+        await scheduler.start_cycle(VThermHvacMode_HEAT, 0.30, force=False, request_id=3)
+        await scheduler.start_cycle(VThermHvacMode_HEAT, 0.30, force=False, request_id=4)
+
+        assert vtherm.valve_open_percent == 30
+        for receipt, request_id in zip(receipts[-2:], (3, 4)):
+            assert receipt.kind == CommandReceiptKind.UPDATE
+            assert receipt.request_id == request_id
+            assert receipt.applied_on_percent == pytest.approx(0.30)
+            assert receipt.alterations == frozenset()
+
+        # 4. dpercent (5%) retains the valve, the automatic restart keeps the alteration
+        now = now + timedelta(minutes=2)
+        vtherm._set_now(now)
+        await scheduler.start_cycle(VThermHvacMode_HEAT, 0.33, force=False, request_id=5)
+        assert receipts[-1].alterations == frozenset({CommandAlteration.VALVE_RETAINED})
+
+        scheduler._cycle_start_time -= 300
+        await scheduler._on_master_cycle_end(None)
+
+        receipt = receipts[-1]
+        assert receipt.kind == CommandReceiptKind.CYCLE_START
+        assert receipt.is_repeat is True
+        assert receipt.request_id == 5
+        assert receipt.requested_on_percent == pytest.approx(0.33)
+        assert receipt.applied_on_percent == pytest.approx(0.30)
+        assert receipt.alterations == frozenset({CommandAlteration.VALVE_RETAINED})
+
+    remove()
     vtherm.remove_thermostat()
     await hass.async_block_till_done()
 
