@@ -30,7 +30,14 @@ async def test_over_climate_underlying_unavailable(hass: HomeAssistant, skip_has
 
     # The underlying becomes unavailable
     hass.states.async_set("climate.mock_climate", STATE_UNAVAILABLE)
-    await hass.async_block_till_done()
+    await wait_for_local_condition(
+        lambda: (
+            hass.states.get("climate.theoverclimatemockname") is not None
+            and hass.states.get("climate.theoverclimatemockname").attributes.get("specific_states", {}).get("unavailable_underlying_entities")
+            == ["climate.mock_climate"]
+        ),
+        hass=hass,
+    )
 
     specific_states = _specific_states(entity)
     assert specific_states["unavailable_underlying_entities"] == ["climate.mock_climate"]
@@ -42,7 +49,13 @@ async def test_over_climate_underlying_unavailable(hass: HomeAssistant, skip_has
 
     # The underlying is back
     hass.states.async_set("climate.mock_climate", "heat")
-    await hass.async_block_till_done()
+    await wait_for_local_condition(
+        lambda: (
+            hass.states.get("climate.theoverclimatemockname") is not None
+            and hass.states.get("climate.theoverclimatemockname").attributes.get("specific_states", {}).get("unavailable_underlying_entities") == []
+        ),
+        hass=hass,
+    )
 
     specific_states = _specific_states(entity)
     assert specific_states["unavailable_underlying_entities"] == []
@@ -52,7 +65,14 @@ async def test_over_climate_underlying_unavailable(hass: HomeAssistant, skip_has
 
     # unknown is handled like unavailable
     hass.states.async_set("climate.mock_climate", STATE_UNKNOWN)
-    await hass.async_block_till_done()
+    await wait_for_local_condition(
+        lambda: (
+            hass.states.get("climate.theoverclimatemockname") is not None
+            and hass.states.get("climate.theoverclimatemockname").attributes.get("specific_states", {}).get("unavailable_underlying_entities")
+            == ["climate.mock_climate"]
+        ),
+        hass=hass,
+    )
     assert _specific_states(entity)["unavailable_underlying_entities"] == ["climate.mock_climate"]
 
     entity.remove_thermostat()

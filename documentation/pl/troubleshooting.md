@@ -6,6 +6,7 @@
   - [Grzejnik z przewodem sterującym (Nodon SIN-4-FP-21)](#grzejnik-z-przewodem-sterującym-nodon-sin-4-fp-21)
   - [System Netatmo](#system-netatmo)
   - [Gdy grzeje tylko pierwszy grzejnik](#gdy-grzeje-tylko-pierwszy-grzejnik)
+  - [Procent VTherm i stopień otwarcia zaworu różnią się](#procent-vtherm-i-stopień-otwarcia-zaworu-różnią-się)
   - [Grzejnik grzeje nawet po przekroczeniu zadanej temperatury lub nie grzeje, gdy temperatura w pomieszczeniu jest znacznie niższa od zadanej.](#grzejnik-grzeje-nawet-po-przekroczeniu-zadanej-temperatury-lub-nie-grzeje-gdy-temperatura-w-pomieszczeniu-jest-znacznie-niższa-od-zadanej)
     - [`Termostat na przełączniku` lub `termostat na zaworze`](#termostat-na-przełączniku-lub-termostat-na-zaworze)
     - [`Termostat na klimacie`](#termostat-na-klimacie)
@@ -110,6 +111,14 @@ Niektórym użytkownikom udało się jednak pomyślnie zintegrować _VTherm_ z *
 
 W ``termostacie na przełączniku``, jeśli wiele grzejników jest skonfigurowanych dla tego samego termostatu _VTherm_, ogrzewanie będzie uruchamiane sekwencyjnie, aby maksymalnie wygładzić szczyty zużycia mocy grzewczej.
 Jest to całkowicie normalne i celowe. Opis znajduje się tutaj: [dla termostatu typu ```termostat na przełączniku```](over-switch.md#over_switch-type-thermostat)
+
+## Procent VTherm i stopień otwarcia zaworu różnią się
+
+W przypadku VTherm typu `over_climate` z bezpośrednim sterowaniem zaworem atrybut `valve_open_percent` oznacza surową wartość żądaną obliczoną przez _VTherm_. Stopień otwarcia wysyłany do zaworu może być inny: ustawienia zaworu (`opening_threshold`, `max_closing_degree`, `minimum_opening_degrees` i `max_opening_degrees`) przekształcają tę wartość zgodnie z wybraną kalibracją.
+
+Istnieje również zależność między progiem regulacji a progiem otwarcia: `regulation_threshold` jest używany jako minimalny próg otwarcia, jeśli jest wyższy od skonfigurowanego `opening_threshold`. Dlatego nawet przy domyślnych wartościach pozostałych ustawień zaworu (0–100) niezerowy próg regulacji może zmienić wartość żądaną. Na przykład przy progu 5% żądanie VTherm wynoszące 12% może skutkować wysłaniem do zaworu stopnia otwarcia 7%. Przy wartości 0% obie wartości są zgodne w tej konfiguracji.
+
+Ta różnica jest oczekiwana i sama w sobie nie oznacza, że zawór jest zablokowany lub źle skalibrowany. Przed uruchomieniem alarmu opartego wyłącznie na porównaniu tych dwóch wartości sprawdź skonfigurowane progi i limity. Ustawienie `regulation_threshold` na 0 może przy neutralnych pozostałych ustawieniach przywrócić zgodność, ale ogranicza filtrowanie niewielkich zmian i może zwiększyć liczbę wysyłanych poleceń. Szczegóły ustawień opisano w sekcji [samoregulacja z bezpośrednim sterowaniem zaworem](self-regulation.md#samoregulacja-z-bezpośrednim-sterowaniem-zaworem).
 
 ## Grzejnik grzeje nawet po przekroczeniu zadanej temperatury lub nie grzeje, gdy temperatura w pomieszczeniu jest znacznie niższa od zadanej.
 

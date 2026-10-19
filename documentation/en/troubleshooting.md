@@ -6,6 +6,7 @@
   - [Using a radiator with a pilot wire (Nodon SIN-4-FP-21)](#using-a-radiator-with-a-pilot-wire-nodon-sin-4-fp-21)
   - [Using a Netatmo System](#using-a-netatmo-system)
   - [Only the first radiator heats](#only-the-first-radiator-heats)
+  - [VTherm percentage and valve opening degree differ](#vtherm-percentage-and-valve-opening-degree-differ)
   - [The radiator heats even though the setpoint temperature is exceeded, or it does not heat when the room temperature is well below the setpoint](#the-radiator-heats-even-though-the-setpoint-temperature-is-exceeded-or-it-does-not-heat-when-the-room-temperature-is-well-below-the-setpoint)
     - [Type `over_switch` or `over_valve`](#type-over_switch-or-over_valve)
     - [Type `over_climate`](#type-over_climate)
@@ -117,6 +118,14 @@ TODO
 
 In `over_switch` mode, if multiple radiators are configured for the same VTherm, the heating will be triggered sequentially to smooth out the consumption peaks as much as possible.
 This is completely normal and intentional. It is described here: [For a thermostat of type ```thermostat_over_switch```](over-switch.md#over_switch-type-thermostat)
+
+## VTherm percentage and valve opening degree differ
+
+With an `over_climate` VTherm using direct valve control, the `valve_open_percent` attribute is the raw demand calculated by VTherm. The opening degree sent to the valve may differ: the valve settings (`opening_threshold`, `max_closing_degree`, `minimum_opening_degrees` and `max_opening_degrees`) transform this demand to account for the selected calibration.
+
+There is also a link between the regulation threshold and the opening threshold: `regulation_threshold` is used as the minimum opening threshold when it is higher than the configured `opening_threshold`. Therefore, even with the other valve settings at their defaults (0 to 100), a non-zero regulation threshold can remap the demand. For example, with a threshold of 5%, a VTherm demand of 12% can result in an opening degree of 7% being sent to the valve. At 0%, the two values remain aligned in this configuration.
+
+This difference is expected and does not, by itself, mean that the valve is stuck or incorrectly calibrated. Check the configured thresholds and limits before triggering an alert based only on a comparison of these two values. Setting `regulation_threshold` to 0 may restore alignment when the other settings are neutral, but it reduces filtering of small variations and may increase the number of commands sent. For details about the settings, see [self-regulation with direct valve control](self-regulation.md#self-regulation-with-direct-valve-control).
 
 ## The radiator heats even though the setpoint temperature is exceeded, or it does not heat when the room temperature is well below the setpoint
 

@@ -758,6 +758,12 @@ class VersatileThermostatBaseConfigFlow(FlowHandler):
         """Handle the Type flow steps"""
         _LOGGER.debug("Into ConfigFlow.async_step_type user_input=%s", user_input)
 
+        if self._infos[CONF_THERMOSTAT_TYPE] == CONF_THERMOSTAT_VALVE:
+            values = user_input if user_input is not None else self._infos
+            if CONF_OPENING_THRESHOLD_DEGREE in values:
+                regulation_threshold = values.get(CONF_AUTO_REGULATION_DTEMP, 0)
+                values[CONF_OPENING_THRESHOLD_DEGREE] = max(values[CONF_OPENING_THRESHOLD_DEGREE], regulation_threshold)
+
         if (
             self._infos[CONF_THERMOSTAT_TYPE] == CONF_THERMOSTAT_CLIMATE
             and user_input is not None
@@ -827,6 +833,11 @@ class VersatileThermostatBaseConfigFlow(FlowHandler):
         _LOGGER.debug(
             "Into ConfigFlow.async_step_valve_regulation user_input=%s", user_input
         )
+
+        values = user_input if user_input is not None else self._infos
+        if CONF_OPENING_THRESHOLD_DEGREE in values:
+            regulation_threshold = self._infos.get(CONF_AUTO_REGULATION_DTEMP, 0)
+            values[CONF_OPENING_THRESHOLD_DEGREE] = max(values[CONF_OPENING_THRESHOLD_DEGREE], regulation_threshold)
 
         schema = build_step_valve_regulation_schema()
         self._infos[COMES_FROM] = None

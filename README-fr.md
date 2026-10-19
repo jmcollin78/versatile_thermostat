@@ -30,6 +30,14 @@ Le composant Versatile Thermostat UI Card (Disponible sur [Github](https://githu
 
 ![Nouveau](images/new-icon.png)
 
+## Release 10.6.1
+
+Depuis la version 10.5.1, cette release apporte les évolutions suivantes :
+
+- **Plugin d'inhibition** : les plugins compatibles peuvent mettre temporairement un _VTherm_ en retrait. Pendant cette période, les commandes vers les équipements sous-jacents sont suspendues ; à la reprise, le thermostat réapplique son état courant.
+- **Retour automatique après une dérogation manuelle** : une durée peut être configurée pour restaurer le preset actif avant un changement manuel de température. Si un preset temporisé était en cours, il reprend ensuite jusqu'à son échéance.
+- **Templates pour la chaudière centrale** : la valeur d'une commande peut être calculée avec un template Home Assistant, évalué à chaque activation, désactivation ou maintien actif. Les templates sont validés lors de la configuration.
+
 ## Release 10.5.0
 
 La détection d'anomalie de chauffe peut désormais être utilisée sous forme de plugin

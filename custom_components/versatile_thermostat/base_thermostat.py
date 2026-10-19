@@ -756,11 +756,11 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
                     hvac_mode=old_state.state if isinstance(old_state.state, VThermHvacMode) else from_ha_hvac_mode(old_state.state),
                 )
 
-            self._hvac_off_reason = old_state.attributes.get(HVAC_OFF_REASON_NAME, None)
+            specific_states = old_state.attributes.get("specific_states", {})
+            self._hvac_off_reason = specific_states.get(HVAC_OFF_REASON_NAME, old_state.attributes.get(HVAC_OFF_REASON_NAME, None))
+            self._hvac_mode_reason = specific_states.get(HVAC_MODE_REASON_NAME, self._hvac_off_reason)
 
             # Try to get total_energy from specific_states (new format) or root level (old format)
-            specific_states = old_state.attributes.get("specific_states", {})
-            self._hvac_mode_reason = specific_states.get(HVAC_MODE_REASON_NAME, self._hvac_off_reason)
             old_total_energy = specific_states.get(ATTR_TOTAL_ENERGY)
             if old_total_energy is None:
                 # Fallback to root level for backward compatibility
@@ -1807,6 +1807,8 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
                         await self.power_manager.set_overpowering(False)
 
                 if changed:
+                    transition_force = self._state_manager.current_state.is_hvac_mode_changed and self.is_over_climate and self.have_valve_regulation
+                    force = force or transition_force
                     self.recalculate(force=force)
                     self.reset_last_change_time_from_vtherm()
                     await self.async_control_heating(force=force or sub_need_control_heating)

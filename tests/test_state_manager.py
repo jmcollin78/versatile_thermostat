@@ -149,6 +149,40 @@ async def test_vtherm_state_save_and_restor_oldfmt(hass: HomeAssistant) -> None:
     assert vtherm_restored.requested_state.target_temperature == 22
 
 
+@pytest.mark.parametrize(
+    ("specific_states_reason", "root_reason", "expected_reason"),
+    [
+        (HVAC_OFF_REASON_WINDOW_DETECTION, HVAC_OFF_REASON_MANUAL, HVAC_OFF_REASON_WINDOW_DETECTION),
+        (None, HVAC_OFF_REASON_WINDOW_DETECTION, HVAC_OFF_REASON_WINDOW_DETECTION),
+        (None, None, HVAC_OFF_REASON_MANUAL),
+    ],
+)
+async def test_vtherm_restore_hvac_off_reason(
+    hass: HomeAssistant,
+    specific_states_reason,
+    root_reason,
+    expected_reason,
+) -> None:
+    """Restore the HVAC off reason from current or legacy persisted state."""
+    attributes = {
+        "preset_mode": "eco",
+        "temperature": 22,
+        "specific_states": {},
+    }
+    if specific_states_reason is not None:
+        attributes["specific_states"][HVAC_OFF_REASON_NAME] = specific_states_reason
+    if root_reason is not None:
+        attributes[HVAC_OFF_REASON_NAME] = root_reason
+
+    vtherm_restored = BaseThermostat(hass, "unique_id", "name", {})
+    mock_state = MagicMock(state=HVACMode.OFF, attributes=attributes)
+
+    with patch.object(vtherm_restored, "async_get_last_state", return_value=mock_state):
+        await vtherm_restored.get_my_previous_state()
+
+    assert vtherm_restored.hvac_off_reason == expected_reason
+
+
 @pytest.mark.parametrize("hidden_preset", [VThermPreset.SAFETY, VThermPreset.POWER])
 async def test_init_presets_restores_visible_requested_preset_after_hidden_override(hass: HomeAssistant, hidden_preset: VThermPreset) -> None:
     """Keep the restored user preset when a hidden override was current at shutdown."""
