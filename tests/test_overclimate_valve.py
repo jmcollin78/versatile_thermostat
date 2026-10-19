@@ -768,6 +768,8 @@ async def test_over_climate_valve_vtherm_hvac_mode_sleep(hass: HomeAssistant, fa
         assert vtherm.nb_device_actives == 1
 
     # 5. The forced transition must still retain a value filtered by dpercent.
+    # on_percent is patched (safe_on_percent is an alias of it) because the cycle scheduler
+    # reads it to apply the valve command, not only recalculate().
     now = now + timedelta(minutes=1)
     vtherm._set_now(now)
     await vtherm.async_set_hvac_mode(VThermHvacMode_SLEEP)
@@ -778,7 +780,7 @@ async def test_over_climate_valve_vtherm_hvac_mode_sleep(hass: HomeAssistant, fa
     now = now + timedelta(minutes=1)
     vtherm._set_now(now)
     with patch(
-        "custom_components.versatile_thermostat.thermostat_climate_valve.ThermostatOverClimateValve.safe_on_percent",
+        "custom_components.versatile_thermostat.thermostat_climate_valve.ThermostatOverClimateValve.on_percent",
         new_callable=PropertyMock,
         return_value=0.98,
     ):
@@ -793,7 +795,7 @@ async def test_over_climate_valve_vtherm_hvac_mode_sleep(hass: HomeAssistant, fa
     vtherm._valve_open_percent = 50
     vtherm._last_calculation_timestamp = now
     with patch(
-        "custom_components.versatile_thermostat.thermostat_climate_valve.ThermostatOverClimateValve.safe_on_percent",
+        "custom_components.versatile_thermostat.thermostat_climate_valve.ThermostatOverClimateValve.on_percent",
         new_callable=PropertyMock,
         return_value=0.45,
     ):
@@ -801,7 +803,7 @@ async def test_over_climate_valve_vtherm_hvac_mode_sleep(hass: HomeAssistant, fa
     assert vtherm.valve_open_percent == 50
 
     with patch(
-        "custom_components.versatile_thermostat.thermostat_climate_valve.ThermostatOverClimateValve.safe_on_percent",
+        "custom_components.versatile_thermostat.thermostat_climate_valve.ThermostatOverClimateValve.on_percent",
         new_callable=PropertyMock,
         return_value=0.55,
     ):
