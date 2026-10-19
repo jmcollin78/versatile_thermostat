@@ -245,6 +245,9 @@ input_boolean:
     fake_central_boiler_switch:
         name: Fake Central Boiler Switch
         icon: mdi:water-boiler
+    inhibition:
+        name: inhibition
+        icon: mdi:pause-circle-outline
 
 climate:
     - platform: generic_thermostat
