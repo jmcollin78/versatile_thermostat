@@ -34,7 +34,9 @@
         // the vtherm_auto_fan_extended VTherm plugin
         "source=/Users/jmcollin/SugarSync/Projets/home-assistant/vtherm_auto_fan_extended/custom_components/vtherm_auto_fan_extended,target=/workspaces/versatile_thermostat/custom_components/vtherm_auto_fan_extended,type=bind",
         // the vtherm_heating_failure_detection VTherm plugin
-        "source=/Users/jmcollin/SugarSync/Projets/home-assistant/vtherm_heating_failure_detection/custom_components/vtherm_heating_failure_detection,target=/workspaces/versatile_thermostat/custom_components/vtherm_heating_failure_detection,type=bind"
+        "source=/Users/jmcollin/SugarSync/Projets/home-assistant/vtherm_heating_failure_detection/custom_components/vtherm_heating_failure_detection,target=/workspaces/versatile_thermostat/custom_components/vtherm_heating_failure_detection,type=bind",
+        // the vtherm_inhibition VTherm plugin
+        "source=/Users/jmcollin/SugarSync/Projets/home-assistant/vtherm_inhibition/custom_components/vtherm_inhibition,target=/workspaces/versatile_thermostat/custom_components/vtherm_inhibition,type=bind"
     ],
     "customizations": {
         "vscode": {
