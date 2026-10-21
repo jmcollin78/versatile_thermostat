@@ -1,6 +1,6 @@
 # Revue de l'issue #2136
 
-**Statut :** rapport approuve ; specification et conception convergentes au cycle 2/3, en attente de validation humaine finale avant developpement.
+**Statut :** rapport, specification et conception approuves ; correction implementee, tests cibles valides.
 **Issue :** [#2136 - Window sensor removal (template.reload) raises AttributeError](https://github.com/jmcollin78/versatile_thermostat/issues/2136)
 **Auteur :** @frmelle
 **Date de revue :** 2026-10-21
@@ -119,7 +119,7 @@ La proposition de code de l'auteur n'est pas applicable telle quelle : elle reto
 2. Specifications et conception convergentes sur le retrait, la recreation, les timers, le bypass et les etats non exploitables ; aucune question bloquante restante.
 3. Scenarios d'acceptation definis : suppression avec `new_state = None`, creation avec `old_state = None`, suppression/recreation repetee, recreation identique ou differente, delai actif dans les deux sens, bypass et absence de changement d'etat.
 4. Les tests doivent verifier l'absence d'exception, l'absence de commande HVAC injustifiee pendant le retrait, la reprise apres delai et l'absence de timer obsolete ou de listener duplique.
-5. Verification prevue par `pytest tests/test_window_feature_manager.py tests/test_window.py`, avec adaptation ciblee si le contrat de retour du callback change. Execution non realisee a ce stade.
+5. Verification par `pytest tests/test_window_feature_manager.py tests/test_window.py`, avec adaptation ciblee si le contrat de retour du callback change.
 6. Resultats finaux presentes a l'utilisateur et autorisation explicite distincte de demarrer le developpement.
 
 ## Suite du processus
@@ -145,12 +145,19 @@ Les deux agents ont explicitement confirme le meme perimetre, la couverture des 
 4. Preserver bypass, timer valide lors des changements d'attributs seuls, unicite du listener et fermetures async callable, avec une fermeture sans effet pour les branches ignorees.
 5. Conserver le rafraichissement immediat d'initialisation et exclure le retrait de `@callback`, toute nouvelle option et toute politique globale d'indisponibilite durable.
 
-Aucune question technique bloquante ne subsiste dans ce perimetre. Les choix precedents restent des propositions convergentes, pas une approbation humaine des documents finaux.
+Aucune question technique bloquante ne subsiste dans ce perimetre. Les choix precedents ont ete approuves par l'utilisateur avant l'implementation.
 
 ### Validation et risques residuels
 
-Les agents ont effectue des controles documentaires cibles apres leurs editions. Aucun code, test, configuration, dependance ni environnement HA n'a ete modifie pendant la specification et la conception. Les tests applicatifs restent a executer lors du developpement ; ni le rechargement reel des templates ni le comportement des timers n'ont ete valides en integration a ce stade. La version HA exacte du rapporteur et son journal complet restent inconnus.
+Les agents ont effectue des controles documentaires cibles apres leurs editions. Aucun code, test, configuration, dependance ni environnement HA n'a ete modifie pendant la specification et la conception. La version HA exacte du rapporteur et son journal complet restent inconnus.
 
-**Action suivante :** presenter les documents convergents et demander une autorisation explicite distincte de demarrer le developpement selon ces resultats.
+### Developpement et verification
 
-**Blocage de delegation du developpement :** l'agent `developpement-ha-integration`, exige par le mode, n'est pas disponible sous cet identifiant. L'agent « Développement d’intégrations Home Assistant » figure dans la liste, mais ne lui est pas substitue silencieusement. Ce point doit etre resolu avant la delegation ; aucune implementation n'a ete lancee.
+Apres presentation des documents convergents, l'utilisateur a autorise explicitement le developpement puis la substitution de l'agent prescrit `developpement-ha-integration`, indisponible, par « Développement d’intégrations Home Assistant ». Le travail lui a ete delegue dans le perimetre approuve.
+
+- [Gestionnaire de fenetre](../../custom_components/versatile_thermostat/feature_window_manager.py) : protection des etats absents ou inexploitable, conservation de l'etat confirme, reprise temporisee et generation invalidant les fermetures obsoletes.
+- [Tests du gestionnaire](../../tests/test_window_feature_manager.py) : evenements emis via le bus HA, delais directionnels, suppression/recreation, timer obsolete, etats inexploitable, attributs seuls et cycle de vie du listener.
+- `rtk pytest -q tests/test_window_feature_manager.py tests/test_window.py` : 67 tests reussis, aucun echec (relance independante apres delegation).
+- `rtk git diff --check` : aucun defaut d'espacement signale par le delegue.
+
+Le contrat immediat de `refresh_state` et le decorateur `@callback` sont inchanges. Aucun service `template.reload` reel ni environnement utilisateur n'a ete actionne : le scenario est couvert par simulation d'evenements via le bus HA, pas par une verification sur l'installation du rapporteur.

@@ -65,11 +65,12 @@ class FeatureWindowManager(BaseFeatureManager):
         self._is_configured: bool = False
         self._is_window_auto_configured: bool = False
         self._window_call_cancel: callable = None
+        self._window_observation_generation = 0
 
     @overrides
     def post_init(self, entry_infos: ConfigData):
         """Reinit of the manager"""
-        self.dearm_window_timer()
+        self._invalidate_window_observation()
 
         self._window_auto_state = STATE_UNAVAILABLE
         self._window_state = STATE_UNAVAILABLE
@@ -144,7 +145,7 @@ class FeatureWindowManager(BaseFeatureManager):
     @overrides
     def stop_listening(self):
         """Stop listening and remove the eventual timer still running"""
-        self.dearm_window_timer()
+        self._invalidate_window_observation()
         super().stop_listening()
 
     def dearm_window_timer(self):
@@ -152,6 +153,11 @@ class FeatureWindowManager(BaseFeatureManager):
         if self._window_call_cancel:
             self._window_call_cancel()
             self._window_call_cancel = None
+
+    def _invalidate_window_observation(self):
+        """Invalidate captured callbacks and cancel the pending timer."""
+        self._window_observation_generation += 1
+        self.dearm_window_timer()
 
     @overrides
     async def refresh_state(self) -> bool:
@@ -182,13 +188,41 @@ class FeatureWindowManager(BaseFeatureManager):
         old_state = event.data.get("old_state")
         write_event_log(_LOGGER, self._vtherm, f"Window sensor changed to state {new_state.state if new_state else None}")
 
-        # Check delay condition
+        async def no_window_condition(_):
+            """No-op closure for events that do not schedule an observation."""
+
+        if new_state is None or new_state.state in (STATE_UNKNOWN, STATE_UNAVAILABLE):
+            self._invalidate_window_observation()
+            return no_window_condition
+
+        if old_state is not None and new_state.state == old_state.state:
+            return no_window_condition
+
+        if (
+            old_state is not None
+            and old_state.state not in (STATE_UNKNOWN, STATE_UNAVAILABLE)
+            and self._window_state in (STATE_UNKNOWN, STATE_UNAVAILABLE)
+        ):
+            self._window_state = old_state.state
+
+        if new_state.state == self._window_state:
+            self._invalidate_window_observation()
+            return no_window_condition
+
+        self._invalidate_window_observation()
+        delay = self._window_delay_sec if new_state.state == STATE_ON else self._window_off_delay_sec
+        expected_state = new_state.state
+        generation = self._window_observation_generation
+
         async def try_window_condition(_):
+            if generation != self._window_observation_generation:
+                return
+
             try:
                 long_enough = condition.state(
                     self._hass,
                     self._window_sensor_entity_id,
-                    new_state.state,
+                    expected_state,
                     timedelta(seconds=delay),
                 )
             except ConditionError:
@@ -196,12 +230,11 @@ class FeatureWindowManager(BaseFeatureManager):
 
             if not long_enough:
                 _LOGGER.debug("%s - Window delay condition is not satisfied. Ignore window event", self)
-                self._window_state = old_state.state or STATE_OFF
                 return
 
             _LOGGER.debug("%s - Window delay condition is satisfied", self)
 
-            if self._window_state == new_state.state:
+            if self._window_state == expected_state:
                 _LOGGER.debug("%s - no change in window state. Forget the event", self)
                 return
 
@@ -211,17 +244,12 @@ class FeatureWindowManager(BaseFeatureManager):
                     "%s - Window ByPass is activated. Ignore window event", self
                 )
                 # We change the state but we don't apply the change
-                self._window_state = new_state.state
+                self._window_state = expected_state
             else:
-                await self.update_window_state(new_state.state)
+                await self.update_window_state(expected_state)
 
             self._vtherm.update_custom_attributes()
 
-        delay = self._window_delay_sec if new_state.state == STATE_ON else self._window_off_delay_sec
-        if new_state is None or old_state is None or new_state.state == old_state.state:
-            return try_window_condition
-
-        self.dearm_window_timer()
         self._window_call_cancel = async_call_later(self.hass, timedelta(seconds=delay), try_window_condition)
         # For testing purpose we need to access the inner function
         return try_window_condition
