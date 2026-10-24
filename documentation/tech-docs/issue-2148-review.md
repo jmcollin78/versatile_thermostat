@@ -1,7 +1,7 @@
 # Revue de l'issue #2148
 
-**Issue :** [#2148 - When a VTherm is stopped by auto-start/stop the preset change is not visible](https://github.com/jmcollin78/versatile_thermostat/issues/2148)  
-**Statut :** rapport approuve par l'utilisateur pour la specification et la conception le 2026-10-24 ; developpement non autorise.  
+**Issue :** [#2148 - When a VTherm is stopped by auto-start/stop the preset change is not visible](https://github.com/jmcollin78/versatile_thermostat/issues/2148)
+**Statut :** rapport approuve par l'utilisateur pour la specification et la conception le 2026-10-24 ; developpement non autorise.
 **Recommandation :** retenir le probleme, demander une reproduction instrumentee avant de fixer la couche a corriger.
 
 ## Resume et sources verifiees
@@ -28,24 +28,24 @@ Aucun test d'integration ni essai sur une carte VTherm UI n'a ete execute pendan
 
 ## Impacts et risques
 
-| Domaine / risque | Gravite | Probabilite | Mesure proposee |
-| --- | --- | --- | --- |
-| Consigne programmee invisible pendant l'arret, risque de mauvaise interpretation | Moyenne | Rapportee dans l'issue ; non reproduite ici | Verification des attributs HA et de la carte dans la meme sequence |
-| Correction qui relance le chauffage alors que l'auto-stop doit rester actif | Haute | Plausible si on modifie la logique de mode ou de detection | Test avec preset modifie mais conditions d'auto-stop toujours presentes |
-| Divergence entre etat demande, etat courant et attributs publies | Moyenne | Inconnue | Assertions des trois surfaces, y compris apres desactivation ou redemarrage automatique |
-| Impact sur types de VTherm et priorites de fonctionnalites partagees | Moyenne | Conditionnelle au choix de la correction | Tests cibles puis tests voisins des modes et priorites concernees |
-| Defaut uniquement dans la carte externe et non dans l'integration | Moyenne pour l'orientation du travail | Inconnue | Verifier l'etat brut de l'entite HA avant toute modification de l'integration |
+| Domaine / risque                                                                 | Gravite                               | Probabilite                                                | Mesure proposee                                                                         |
+| -------------------------------------------------------------------------------- | ------------------------------------- | ---------------------------------------------------------- | --------------------------------------------------------------------------------------- |
+| Consigne programmee invisible pendant l'arret, risque de mauvaise interpretation | Moyenne                               | Rapportee dans l'issue ; non reproduite ici                | Verification des attributs HA et de la carte dans la meme sequence                      |
+| Correction qui relance le chauffage alors que l'auto-stop doit rester actif      | Haute                                 | Plausible si on modifie la logique de mode ou de detection | Test avec preset modifie mais conditions d'auto-stop toujours presentes                 |
+| Divergence entre etat demande, etat courant et attributs publies                 | Moyenne                               | Inconnue                                                   | Assertions des trois surfaces, y compris apres desactivation ou redemarrage automatique |
+| Impact sur types de VTherm et priorites de fonctionnalites partagees             | Moyenne                               | Conditionnelle au choix de la correction                   | Tests cibles puis tests voisins des modes et priorites concernees                       |
+| Defaut uniquement dans la carte externe et non dans l'integration                | Moyenne pour l'orientation du travail | Inconnue                                                   | Verifier l'etat brut de l'entite HA avant toute modification de l'integration           |
 
 **Securite et confidentialite :** aucune nouvelle collecte de donnees ni permission n'est envisagee. Pour diagnostiquer, des attributs et journaux expurges suffisent ; ne pas demander de secrets. **Compatibilite et migration :** conserver les services et attributs existants ; aucune migration, dependance ou modification de configuration n'est envisagee a ce stade. **Exploitation :** un test HA sur une instance de developpement et la carte, s'il est autorise ulterieurement, devra eviter toute action sur les equipements reels. **Documentation :** clarifier, si le comportement n'est pas deja explicite, que la consigne reste visible et editable pendant l'auto-stop ; ajouter une note de correction dans les notes de version selon les usages du depot.
 
 ## Alternatives et contournements
 
-| Option | Avantage | Limite |
-| --- | --- | --- |
-| Corriger le calcul/publication de l'entite si ses attributs restent anciens | Traite la source d'etat pour tous les consommateurs | Risque de regression fonctionnelle ; doit etre confirme par un test |
-| Corriger la carte si les attributs HA sont deja a jour | Correction localisee de l'affichage | Hors de ce depot ; ne regle pas une entite HA incorrecte |
-| Desactiver temporairement auto-start/stop pour verifier la consigne | Contournement deja rapporte | Peut relancer le chauffage et ne constitue pas une correction |
-| Forcer le redemarrage au changement de preset | Affiche indirectement les nouvelles valeurs | Change la regulation et peut allumer un equipement a tort ; a ecarter |
+| Option                                                                      | Avantage                                            | Limite                                                                |
+| --------------------------------------------------------------------------- | --------------------------------------------------- | --------------------------------------------------------------------- |
+| Corriger le calcul/publication de l'entite si ses attributs restent anciens | Traite la source d'etat pour tous les consommateurs | Risque de regression fonctionnelle ; doit etre confirme par un test   |
+| Corriger la carte si les attributs HA sont deja a jour                      | Correction localisee de l'affichage                 | Hors de ce depot ; ne regle pas une entite HA incorrecte              |
+| Desactiver temporairement auto-start/stop pour verifier la consigne         | Contournement deja rapporte                         | Peut relancer le chauffage et ne constitue pas une correction         |
+| Forcer le redemarrage au changement de preset                               | Affiche indirectement les nouvelles valeurs         | Change la regulation et peut allumer un equipement a tort ; a ecarter |
 
 ## Faits, hypotheses et decisions necessaires
 
