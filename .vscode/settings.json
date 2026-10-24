@@ -17,5 +17,8 @@
         "/workspaces/versatile_thermostat/custom_components/versatile_thermostat",
         "/home/vscode/.local/lib/python3.13/site-packages/homeassistant"
     ],
-    "python-envs.defaultEnvManager": "ms-python.python:system"
+    "python-envs.defaultEnvManager": "ms-python.python:system",
+    "chat.tools.terminal.autoApprove": {
+        "rtk": true
+    }
 }

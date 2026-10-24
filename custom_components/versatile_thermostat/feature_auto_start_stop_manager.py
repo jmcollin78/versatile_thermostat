@@ -180,7 +180,7 @@ class FeatureAutoStartStopManager(BaseFeatureManager):
 
             # Send an event if the vtherm was off due to auto-start/stop and enable has been set to false
             if not is_enabled and self._vtherm.hvac_mode == VThermHvacMode_OFF and self._vtherm.hvac_off_reason == HVAC_OFF_REASON_AUTO_START_STOP:
-                _LOGGER.debug("%s - the vtherm is off cause auto-start/stop and enable have been set to false -> starts the VTherm")
+                _LOGGER.debug("%s - the vtherm is off cause auto-start/stop and enable have been set to false -> starts the VTherm", self)
                 # Send an event
                 self._vtherm.send_event(
                     event_type=EventType.AUTO_START_STOP_EVENT,

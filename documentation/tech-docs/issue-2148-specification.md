@@ -1,0 +1,98 @@
+# Spécification fonctionnelle — Issue #2148 : preset pendant un auto-stop `off`
+
+## Métadonnées
+
+| Champ | Valeur |
+| --- | --- |
+| Nom | Visibilité du preset et de la consigne pendant un arrêt automatique `off` |
+| Version | 1.0 — fondée sur le rapport de revue approuvé pour spécification et conception ; décision de diagnostic encore ouverte |
+| Statut | Spécification pour conception ; développement non autorisé |
+| Date | 2026-10-24 |
+| Propriétaire | Projet Versatile Thermostat ; validation du périmètre à confirmer par le mainteneur |
+| Sources analysées | [Issue #2148](https://github.com/jmcollin78/versatile_thermostat/issues/2148) via le [rapport de revue](issue-2148-review.md) ; [manifest](../../custom_components/versatile_thermostat/manifest.json), [BaseThermostat](../../custom_components/versatile_thermostat/base_thermostat.py), [StateManager](../../custom_components/versatile_thermostat/state_manager.py), [gestionnaire auto-start/stop](../../custom_components/versatile_thermostat/feature_auto_start_stop_manager.py), [tests auto-start/stop](../../tests/test_auto_start_stop.py), [tests des modes d'arrêt](../../tests/test_auto_start_stop_stop_mode.py), [guide auto-start/stop](../fr/feature-auto-start-stop.md) et [spécification voisine #2087](../specs/issue-2087-inhibition-spec.md) |
+
+## 1. Contexte et objectifs
+
+L'issue rapporte qu'en version 10.6.1 le changement de preset d'un VTherm arrêté automatiquement en `off` ne devient visible dans la carte VTherm UI, ni pour le preset ni pour la consigne, qu'après désactivation de l'auto-start/stop. Le caractère régressif est suspecté, non établi. Le rapport de revue a été approuvé par l'utilisateur pour la spécification et la conception, sans autorisation de développement. Ni le type exact de VTherm ni l'état brut de son entité HA pendant l'incident ne sont connus. La carte est externe à ce dépôt.
+
+Objectif : rendre observable l'intention de consigne pendant l'arrêt automatique sans modifier à tort la régulation. Le périmètre fonctionnel est l'auto-stop avec mode d'arrêt `off`, le changement d'un preset valide qui laisse les conditions d'arrêt réunies, la publication de l'état de l'entité `climate` et, **sous réserve de localisation du défaut**, l'affichage de la carte. Le scénario où le nouveau preset justifie réellement un redémarrage reste un comportement de référence, pas un défaut à supprimer.
+
+**Écart à confirmer :** le signalement porte sur la carte ; le code examiné accepte un preset valide, recalcule le preset et la consigne effectifs puis prévoit la publication de l'état HA. Il ne prouve ni que les attributs HA sont à jour en reproduction, ni que l'intégration est défectueuse. Une reproduction instrumentée doit départager calcul, publication et affichage avant de définir la couche à faire évoluer.
+
+## 2. Acteurs et cas d'utilisation
+
+| Acteur | Rôle dans le scénario |
+| --- | --- |
+| Utilisateur ou automatisation | Sélectionne un preset valide sur le VTherm, lit le preset et la consigne, peut désactiver l'auto-start/stop. |
+| Entité `climate` VTherm dans Home Assistant | Expose le mode HVAC effectif, le preset et la consigne publiés, ainsi que les états demandé et courant disponibles pour le diagnostic. |
+| Fonction auto-start/stop | Maintient l'arrêt ou autorise la reprise selon ses conditions existantes et le mode d'arrêt configuré. |
+| Carte VTherm UI externe | Présente les informations à l'utilisateur ; sa version et sa manière de traiter `off` restent à vérifier. |
+
+**UC-01 — Changement pendant un arrêt persistant.** Étant donné un VTherm de type `over_climate`, auto-start/stop actif, arrêté automatiquement en `off`, l'utilisateur sélectionne un autre preset valide dont la consigne ne remplit pas les conditions de redémarrage. La demande est retenue ; après traitement de la commande, l'entité HA montre le preset effectif et la consigne applicable à jour, tandis que le mode effectif reste `off` pour motif auto-start/stop. La carte doit présenter les valeurs cohérentes avec l'entité si elle est dans le périmètre confirmé.
+
+**UC-02 — Reprise légitime.** Si le changement de consigne remplit les conditions de reprise de l'algorithme, l'arrêt peut prendre fin ; les nouvelles valeurs restent visibles. La sélection d'un preset ne doit pas, à elle seule, imposer une remise en chauffe.
+
+**UC-03 — Désactivation ultérieure.** Après UC-01, l'utilisateur désactive l'auto-start/stop : la dernière intention retenue est appliquée sous réserve des autres contraintes actives, sans retour transitoire à l'ancien preset ni à l'ancienne consigne.
+
+## 3. Exigences fonctionnelles
+
+| ID | Exigence observable |
+| --- | --- |
+| FR-001 | Le système doit conserver le dernier preset valide accepté comme preset demandé pendant un auto-stop `off`, sans remplacer le mode HVAC demandé par `off`. |
+| FR-002 | Après acceptation du preset, le système doit exposer sur l'entité `climate` HA le preset effectif et la consigne applicable recalculés, même si le mode HVAC effectif reste `off` pour auto-start/stop. Une exception de priorité existante peut produire un preset ou une consigne effectifs différents de la demande (BR-003). |
+| FR-003 | Lorsque les conditions d'auto-stop restent réunies après la sélection, le système doit conserver le mode effectif `off` et son motif auto-start/stop ; aucune relance ni commande de chauffe ne doit découler du seul changement de preset. |
+| FR-004 | Lorsque les conditions de reprise sont effectivement réunies, le système doit permettre la reprise normale avec le nouveau preset et la consigne applicable, selon les règles d'auto-start/stop existantes. |
+| FR-005 | Après désactivation de l'auto-start/stop ou reprise ultérieure, le système doit appliquer la dernière intention acceptée et les autres contraintes encore actives, sans restaurer un preset ou une consigne périmés. |
+| FR-006 | Si la carte VTherm UI est confirmée comme surface à corriger, son affichage doit refléter le preset effectif et la consigne déjà publiés par l'entité HA même lorsque son mode est `off` ; toute modification de cette carte requiert un périmètre et un dépôt approuvés séparément. |
+| FR-007 | Une sélection non acceptée selon les règles existantes (preset non pris en charge ou mode central bloquant) ne doit pas être présentée comme un changement effectif réussi. |
+
+## 4. Règles métier
+
+| ID | Condition, priorité et exception |
+| --- | --- |
+| BR-001 | `off` dû à l'auto-start/stop est un état effectif temporaire ; il ne signifie ni preset `none` imposé, ni demande utilisateur de mode HVAC `off`. |
+| BR-002 | Le nouveau preset peut modifier la consigne et déclencher une reprise seulement si les conditions normales de reprise sont satisfaites. Un arrêt persistant et une reprise légitime doivent rester distinguables. |
+| BR-003 | Les priorités existantes restent applicables : inhibition, mode central, sécurité et fenêtre peuvent déterminer le mode effectif ; puissance, sécurité, mode central hors-gel et preset temporisé peuvent influer sur le preset effectif ; fenêtre, présence et mouvement peuvent influer sur la consigne. Une contrainte prioritaire peut donc empêcher le motif auto-stop d'être le motif effectif ou produire une consigne différente de la valeur nominale du preset. Aucun de ces cas ne justifie d'afficher arbitrairement l'ancienne valeur. |
+| BR-004 | Un preset valide n'est accepté que selon la liste et le mode central autorisés par le VTherm ; en cas de rejet, le comportement de refus existant s'applique. Le traitement d'une éventuelle dérogation manuelle ou d'un preset temporisé demeure celui des fonctions existantes. |
+| BR-005 | Lors de la désactivation de l'auto-start/stop, l'état demandé est réévalué avec les contraintes encore actives ; une demande explicite `off` ou une autre contrainte d'arrêt ne doit pas être contournée. |
+
+## 5. Contraintes fonctionnelles
+
+- **Compatibilité :** conserver les services, attributs HA, formats de preset, options de configuration et critères existants de redémarrage ; aucune migration ni changement de dépendance envisagé. Ne pas altérer les scénarios actuels où un nouveau preset déclenche légitimement une reprise.
+- **Portée des équipements :** le premier cas vérifiable vise `over_climate`, seul type annoncé pour l'auto-start/stop dans le guide. Étendre les vérifications à d'autres types seulement si la reproduction ou le périmètre réel le justifie. Le mode d'arrêt `fan_only` ou `dry` n'est pas visé par la correction demandée.
+- **Diagnostic et confidentialité :** comparer dans une même séquence l'état HA brut et la carte ; expurger identifiants privés, journaux et valeurs sensibles avant partage. Aucun nouveau droit ou collecte permanente n'est demandé.
+- **Disponibilité et expérience :** la valeur attendue est visible après traitement de la commande de preset, sans devoir désactiver la fonction ni attendre une reprise du chauffage. Aucune garantie de délai chiffré n'est définie faute de mesure de référence. Toute expérimentation éventuelle doit éviter d'actionner des équipements réels.
+
+## 6. Critères d'acceptation
+
+| ID | Scénario et observations à comparer | Résultat attendu |
+| --- | --- | --- |
+| AC-001 | Sur `over_climate`, configurer deux presets valides de consignes distinctes et un environnement où, après sélection du second, l'auto-stop en `off` reste justifié. Relever avant/après la commande `requested_state`, `current_state`, `preset_mode`, `temperature`, le mode `climate`, le motif d'arrêt et la carte. | Le preset demandé est le second ; le preset et la consigne effectifs ainsi que les attributs HA publics concordent avec lui en l'absence d'autre priorité. Le mode reste `off`, motif auto-start/stop ; aucune reprise ni chauffe indue. La carte concorde avec les valeurs HA si sa correction fait partie du périmètre approuvé. |
+| AC-002 | Dans le même état `off`, choisir un preset valide qui mène légitimement aux conditions de reprise. | La reprise suit l'algorithme existant ; le nouveau preset et la consigne applicable sont publiés. Le test existant de reprise au changement de preset demeure valide. |
+| AC-003 | Après AC-001, désactiver l'auto-start/stop par le contrôle existant. | La dernière intention est appliquée selon les autres contraintes ; l'ancien preset et l'ancienne consigne ne réapparaissent pas. Si un autre motif impose `off`, aucun redémarrage n'est exigé. |
+| AC-004 | Répéter AC-001 avec une priorité active représentative : fenêtre à consigne éco/hors-gel ou présence/mouvement, et vérifier séparément un cas de blocage par mode central, sécurité ou inhibition lorsque disponible. | Le demandé et l'effectif restent distincts selon les règles déjà applicables ; la température publiée reflète la priorité active et non nécessairement la température nominale du preset sélectionné. Aucun changement de priorité ni de motif d'arrêt n'est imposé par cette issue. |
+| AC-005 | Tenter un preset non pris en charge ou interdit par le mode central. | Aucun nouveau preset effectif n'est annoncé ; le refus suit les règles existantes sans relance causée par cette tentative. |
+| AC-006 | Comparer simultanément état brut HA et carte pour AC-001. | Si HA est correct mais la carte reste ancienne, le résultat localise l'écart à la carte : aucun défaut de l'intégration n'est présumé ni correctif core exigé. Si HA est ancien, identifier si le décalage est dans l'état calculé ou dans sa publication avant de définir un correctif. Si les deux sont corrects, l'incident n'est pas reproduit. |
+
+La validation fonctionnelle comprend un contrôle de l'entité HA sur le cas d'arrêt persistant, le cas voisin de reprise, la désactivation et les priorités pertinentes à la couche finalement retenue. Une vérification de carte sur la même séquence n'est exigible qu'après accès à la carte et décision de périmètre ; les seuls tests de ce dépôt ne peuvent la certifier.
+
+## 7. Fonctions non prises en compte
+
+- Modification de l'algorithme d'auto-stop, de ses seuils ou du délai de reprise sans causalité démontrée ; relance systématique lors d'un changement de preset exclue pour éviter une chauffe intempestive.
+- Refonte de la carte externe dans ce dépôt ; si elle seule est en cause, son correctif relève d'une décision et d'un dépôt distincts.
+- Autres causes d'arrêt, autres modes d'arrêt (`fan_only`, `dry`), autres types de VTherm sans reproduction pertinente, migrations et refonte des priorités existantes ; non nécessaires au signalement actuel.
+
+## 8. Évolutions futures proposées
+
+- Si la couche fautive est identifiée, clarifier dans le guide que la consigne retenue reste observable pendant un auto-stop et consigner la correction dans les notes de version selon les usages du projet.
+- Élargir la couverture aux autres types ou modes d'arrêt seulement sur preuve d'un comportement partagé et après nouvelle décision de périmètre. Ces pistes ne sont pas des exigences actuelles.
+
+## 9. Hypothèses, questions ouvertes et traçabilité
+
+**Faits établis par les sources lues :** la copie locale porte la version 10.6.1 ; `BaseThermostat.async_set_preset_mode` vérifie le preset et le mode central, puis demande une mise à jour ; `BaseThermostat.update_states` renseigne le preset et la consigne HA lors d'un changement d'état, met à jour les attributs et appelle `async_write_ha_state` ; `StateManager.calculate_current_hvac_mode`, `calculate_current_preset` et `calculate_current_target_temperature` résolvent séparément les valeurs demandées et effectives avec priorités ; `AutoStartStopFeatureManager.refresh_state` lit la consigne courante et `set_auto_start_stop_enable` réévalue l'état ; `test_auto_start_stop_medium_heat_vtherm_preset_change` couvre une reprise mais pas un arrêt durable avec inspection de l'entité HA. Le guide décrit l'auto-start/stop pour `over_climate` et les modes d'arrêt possibles. Ce sont des indices du comportement attendu, pas une preuve de fonctionnement dans l'installation de l'auteur.
+
+**Hypothèses à tester :** il est possible de construire un changement entre deux presets dont les consignes diffèrent et qui laisse l'arrêt justifié ; sans priorité concurrente, la consigne effective doit alors être celle du nouveau preset. La carte pourrait masquer ou conserver une ancienne valeur en mode `off`, ou bien l'entité HA pourrait réellement publier une valeur ancienne. Aucune de ces branches n'est tenue pour acquise.
+
+**Questions ouvertes :** quel type de VTherm, quels presets et températures ambiante/extérieure, quelle pente et quel niveau de détection, quelle version de HA et de la carte, quel mode d'arrêt et quel service ou geste de sélection ? Quels `requested_state`, `current_state`, `preset_mode`, `temperature`, motif d'arrêt et valeurs affichées apparaissent avant et après la commande ? Le problème persiste-t-il sans priorité concurrente et sur une version antérieure identifiée ?
+
+**Bloqueurs du développement, pas de la conception conditionnelle :** obtenir une reproduction instrumentée sur un environnement sans équipements réels ; établir si les valeurs brutes HA divergent des valeurs calculées, ou si seule la carte diverge. Si seule la carte est en cause, faire approuver explicitement un changement de dépôt/périmètre ; sinon définir la couche de l'intégration responsable. Présenter conception et résultats du diagnostic au mainteneur et obtenir une seconde autorisation explicite avant tout développement. Tant que ces points ne sont pas levés, les exigences et critères ci-dessus sont testables comme protocole de diagnostic et de validation, mais aucune cible de correction ne peut être considérée comme décidée.
