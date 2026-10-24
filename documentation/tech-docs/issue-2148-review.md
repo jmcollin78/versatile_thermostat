@@ -1,8 +1,8 @@
 # Revue de l'issue #2148
 
 **Issue :** [#2148 - When a VTherm is stopped by auto-start/stop the preset change is not visible](https://github.com/jmcollin78/versatile_thermostat/issues/2148)
-**Statut :** rapport approuve par l'utilisateur pour la specification et la conception le 2026-10-24 ; developpement non autorise.
-**Recommandation :** retenir le probleme, demander une reproduction instrumentee avant de fixer la couche a corriger.
+**Statut :** rapport approuve pour specification et conception le 2026-10-24 ; seul le test de reproduction a ete autorise et realise. Correctif non autorise.
+**Recommandation actuelle :** differer tout correctif ; reprendre le diagnostic seulement si le probleme reapparait avec des traces comparables.
 
 ## Resume et sources verifiees
 
@@ -13,14 +13,22 @@
 - [base_thermostat.py](../../custom_components/versatile_thermostat/base_thermostat.py) : `async_set_preset_mode` valide et enregistre le preset demande, puis force `update_states`. Cette methode calcule le nouvel etat, affecte les attributs preset/temperature lorsqu'ils changent et appelle `async_write_ha_state`.
 - [state_manager.py](../../custom_components/versatile_thermostat/state_manager.py) : l'auto-stop force le mode HVAC courant sur `off` sans effacer le mode demande ; le calcul du preset reprend normalement le preset demande, puis celui de la consigne utilise le preset courant. Les priorites puissance, securite, mode central, fenetre, presence, mouvement et preset temporise peuvent toutefois modifier ces valeurs.
 - [feature_auto_start_stop_manager.py](../../custom_components/versatile_thermostat/feature_auto_start_stop_manager.py) : la detection d'arret lit la consigne courante ; la desactivation de la fonction force une nouvelle mise a jour de l'etat.
-- [test_auto_start_stop.py](../../tests/test_auto_start_stop.py) : un scenario change `eco` vers `boost` apres auto-stop, mais attend que VTherm redemarre ; il ne couvre pas un changement de preset avec maintien durable sur `off` ni la valeur effectivement publiee dans l'entite HA.
+- [test_auto_start_stop.py](../../tests/test_auto_start_stop.py) : le scenario historique `eco` vers `boost` attend une reprise. Un nouveau test parametre couvre maintenant le changement de preset avec maintien sur `off`, avec et sans inhibition, en comparant les etats internes et l'entite HA.
 - [test_auto_start_stop_stop_mode.py](../../tests/test_auto_start_stop_stop_mode.py) et [feature-auto-start-stop.md](../fr/feature-auto-start-stop.md) : le mode d'arret peut aussi etre `fan_only` ou `dry`, selon l'equipement ; l'issue mentionne explicitement `off`.
 
-Aucun test d'integration ni essai sur une carte VTherm UI n'a ete execute pendant cette revue. Aucune recherche exhaustive de doublons dans les issues ou PR n'a ete effectuee ; aucun travail lie n'est indique sur la page de l'issue.
+Aucune recherche exhaustive de doublons dans les issues ou PR n'a ete effectuee ; aucun travail lie n'etait indique sur la page de l'issue lors de la consultation initiale.
+
+### Bilan du diagnostic du 2026-10-24
+
+- Le test HA `test_auto_start_stop_off_preset_change_updates_climate_state` passe dans ses deux variantes (`auto-stop` et `inhibited-auto-stop`) : `eco` / 17 °C devient `frost` / 7 °C dans les etats demande, effectif et HA, tandis que `off` persiste. L'inhibition prioritaire change le motif effectif d'arret sans effacer la detection auto-stop. Le test ne verifie pas le rendu de la carte ni les commandes aux equipements sous-jacents.
+- Dans l'instance locale, les logs et le recorder ont confirme `eco` / 17 °C -> `comfort` / 19 °C en restant sur `off` a 23 °C ambiants. Un autre changement vers `boost` / 20 °C a provoque une reprise legitime en `heat`. L'utilisateur n'a pas constate le bug sur la carte ; son rendu n'a pas ete capture independamment.
+- L'utilisateur indique ne pas reproduire non plus le probleme sur son installation de production. Aucun journal ni snapshot d'un incident reproduit n'a ete fourni ; ce retour n'est pas une preuve que le defaut initial a disparu.
+
+**Conclusion :** ni le test ni les essais locaux et de production rapportes n'identifient une couche fautive. Ne modifier ni le calcul ni la carte sur la seule base de l'issue initiale.
 
 ## Pertinence et perimetre propose
 
-**Retenir, sous reserve d'identifier la couche defaillante.** La visibilite immediate de la consigne programmee pendant un arret automatique permet de comprendre le comportement futur du thermostat. L'issue est coherente avec l'auto-start/stop documente et priorisee `P1` par le depot. Le chemin du code inspecte suggere qu'une mise a jour devrait avoir lieu, ce qui interdit d'attribuer sans preuve le defaut a `StateManager` plutot qu'a la publication HA, a une combinaison d'options ou a la carte UI.
+**Differer le correctif, conserver le signalement.** La visibilite immediate de la consigne programmee pendant un arret automatique reste importante. L'issue etait etiquetee `P1` lors de la consultation initiale, mais aucune sequence defaillante n'a ete reproduite. Il serait premature d'attribuer le probleme au calcul, a la publication HA ou a la carte UI.
 
 **Inclus :** reproduire `off` automatique, changer de preset sans provoquer un redemarrage, comparer `requested_state`, `current_state`, `preset_mode` et `temperature` de l'entite `climate` HA avec l'affichage de la carte ; corriger la couche responsable apres confirmation, puis tester l'affichage immediat et la reprise ulterieure. Couvrir au minimum `over_climate` si reproductible, et etendre aux autres types partageant le meme chemin uniquement si necessaire.
 
@@ -49,16 +57,15 @@ Aucun test d'integration ni essai sur une carte VTherm UI n'a ete execute pendan
 
 ## Faits, hypotheses et decisions necessaires
 
-**Faits :** l'issue decrit un ecart d'affichage avec `off` automatique en 10.6.1 ; la copie du code examinee contient un chemin de mise a jour de l'etat et des tests proches, mais pas le cas ou le VTherm reste arrete apres le changement de preset.
+**Faits :** l'issue decrit un ecart d'affichage avec `off` automatique en 10.6.1. Le test ajoute et les observations locales montrent des changements correctement publies pendant un arret persistant ; le rapporteur n'a pas retrouve le defaut en production. Le motif d'une eventualite precedente demeure inconnu.
 
-**Hypothese falsifiable :** dans le scenario qui reste `off`, le preset demande change mais une valeur publiee ou lue par la carte reste ancienne. Le controle le moins couteux est un scenario de test HA sur l'entite VTherm, avec un nouveau preset dont la consigne reste sous la temperature ambiante, comparant les deux etats internes aux attributs HA immediatement apres la commande. Si ces attributs sont a jour, la piste prioritaire devient la carte UI et non le calcul du thermostat.
+**Hypothese encore ouverte :** une combinaison non presente dans les essais (priorite, etat transitoire, version ou carte) pourrait differer le calcul ou l'affichage. Le seul arret automatique `off`, meme associe a une inhibition dans le test, ne suffit pas a reproduire l'ecart. Si le defaut revient, comparer sur une meme sequence horodatee `requested_state`, `current_state`, les attributs HA et la carte avant d'attribuer la cause.
 
 **Questions ouvertes, non bloquantes pour valider la revue mais bloquantes pour choisir le correctif :** quel type de VTherm, quels presets et temperatures, quelle version de HA et de carte UI, et par quel service ou interaction le preset est-il modifie ? Les attributs bruts HA sont-ils incorrects ou seule la carte les masque-t-elle en mode `off` ? La reproduction persiste-t-elle avec mode central, fenetre, securite, presence ou preset temporise actifs ? Une version precedente connue fonctionnait-elle ?
 
 ## Suite et criteres de passage au developpement
 
-1. Faire approuver explicitement ce rapport et autoriser la phase de specification et conception.
-2. Obtenir un scenario reproductible et trancher, par inspection des etats et attributs HA, entre defaut de l'integration et defaut de carte. Si ce dernier est seul concerne, faire valider le changement de depot et de perimetre avant tout developpement.
-3. Faire converger specification fonctionnelle et conception sur la visibilite du preset et de la consigne en mode `off`, les exceptions de priorite deja existantes, la non-relance involontaire et les criteres de tests.
-4. Presenter les documents convergents, les risques residuels et demander une seconde autorisation explicite de developper.
-5. Apres autorisation seulement, implementer et verifier au minimum : changement de preset restant en auto-stop `off`, attributs `climate`/carte selon la couche retenue, reprise ou desactivation ulterieure, et absence de regression du scenario existant de redemarrage au changement de preset.
+1. Rapport, specification et conception etablis ; seule l'ecriture du test de reproduction a ete autorisee. Aucun correctif n'est engage.
+2. Lors d'une nouvelle occurrence, relever horodatage, type et versions VTherm/HA/carte, commande ou geste, preset et consigne avant/apres, temperature ambiante, `is_ready`, mode demande/effectif, motif d'arret, inhibition, securite, surpuissance, mode central, preset temporise, ainsi que l'etat brut HA et l'affichage de la carte. Expurger les donnees sensibles.
+3. Identifier la premiere divergence entre demande, etat effectif, publication HA et carte ; si seule la carte diverge, faire approuver son depot et son perimetre separes. Les priorites ne doivent pas etre modifiees sur simple supposition.
+4. Mettre alors a jour les documents selon la preuve recueillie, obtenir une autorisation explicite de correctif et seulement ensuite implementer avec un test echouant sur le defaut confirme et les regressions pertinentes.

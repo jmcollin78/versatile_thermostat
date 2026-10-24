@@ -4,7 +4,12 @@
 from datetime import datetime, timedelta
 import logging
 from unittest.mock import patch, call
+import pytest
 
+from homeassistant.components.climate import (
+    DOMAIN as CLIMATE_DOMAIN,
+    SERVICE_SET_PRESET_MODE,
+)
 from homeassistant.components.switch import DOMAIN as SWITCH_DOMAIN
 
 from custom_components.versatile_thermostat.thermostat_climate import (
@@ -954,6 +959,170 @@ async def test_auto_start_stop_fast_ac_vtherm(
                 )
             ]
         )
+
+    vtherm.remove_thermostat()
+
+
+@pytest.mark.parametrize("inhibited", [False, True], ids=["auto-stop", "inhibited-auto-stop"])
+async def test_auto_start_stop_off_preset_change_updates_climate_state(hass: HomeAssistant, skip_hass_states_is_state, inhibited: bool):
+    """A preset change is visible while auto-start/stop keeps the VTherm off, also when inhibited."""
+    temps = {
+        "frost": 7.0,
+        "eco": 17.0,
+        "comfort": 19.0,
+        "boost": 21.0,
+        "eco_ac": 27.0,
+        "comfort_ac": 25.0,
+        "boost_ac": 23.0,
+        "frost_away": 7.1,
+        "eco_away": 17.1,
+        "comfort_away": 19.1,
+        "boost_away": 21.1,
+        "eco_ac_away": 27.1,
+        "comfort_ac_away": 25.1,
+        "boost_ac_away": 23.1,
+    }
+    config_entry = MockConfigEntry(
+        domain=DOMAIN,
+        title="TheOverClimateMockName",
+        unique_id="overClimateUniqueId",
+        data={
+            CONF_NAME: "overClimate",
+            CONF_TEMP_SENSOR: "sensor.mock_temp_sensor",
+            CONF_THERMOSTAT_TYPE: CONF_THERMOSTAT_CLIMATE,
+            CONF_EXTERNAL_TEMP_SENSOR: "sensor.mock_ext_temp_sensor",
+            CONF_CYCLE_MIN: 5,
+            CONF_TEMP_MIN: 15,
+            CONF_TEMP_MAX: 30,
+            CONF_USE_WINDOW_FEATURE: False,
+            CONF_USE_MOTION_FEATURE: False,
+            CONF_USE_POWER_FEATURE: False,
+            CONF_USE_AUTO_START_STOP_FEATURE: True,
+            CONF_USE_PRESENCE_FEATURE: True,
+            CONF_PRESENCE_SENSOR: "binary_sensor.presence_sensor",
+            CONF_UNDERLYING_LIST: ["climate.mock_climate"],
+            CONF_MINIMAL_ACTIVATION_DELAY: 30,
+            CONF_MINIMAL_DEACTIVATION_DELAY: 0,
+            CONF_SAFETY_DELAY_MIN: 5,
+            CONF_SAFETY_MIN_ON_PERCENT: 0.3,
+            CONF_AUTO_FAN_MODE: CONF_AUTO_FAN_TURBO,
+            CONF_AC_MODE: True,
+            CONF_AUTO_START_STOP_LEVEL: AUTO_START_STOP_LEVEL_FAST,
+        },
+    )
+    await create_and_register_mock_climate(
+        hass,
+        "mock_climate",
+        "mock_climate",
+        {},
+        hvac_modes=[VThermHvacMode_OFF, VThermHvacMode_COOL, VThermHvacMode_HEAT],
+    )
+    vtherm: ThermostatOverClimate = await create_thermostat(hass, config_entry, "climate.overclimate")
+    await set_all_climate_preset_temp(hass, vtherm, temps, "overclimate")
+
+    now = datetime.now(tz=get_tz(hass))
+    await send_presence_change_event(vtherm, True, False, now)
+    await send_temperature_change_event(vtherm, 16, now, True)
+    await vtherm.async_set_hvac_mode(VThermHvacMode_HEAT)
+    await vtherm.async_set_preset_mode(VThermPreset.ECO)
+    await hass.async_block_till_done()
+
+    now += timedelta(minutes=5)
+    vtherm.auto_start_stop_manager._auto_start_stop_algo._accumulated_error = 0
+    vtherm._set_now(now)
+    await send_temperature_change_event(vtherm, 19, now, False)
+    await wait_for_local_condition(lambda: vtherm.hvac_mode == VThermHvacMode_OFF, timeout=3.0, hass=hass)
+    await hass.async_block_till_done()
+
+    assert vtherm.hvac_mode == VThermHvacMode_OFF
+    assert vtherm.hvac_off_reason == HVAC_OFF_REASON_AUTO_START_STOP
+    assert vtherm.auto_start_stop_manager.is_auto_stop_detected is True
+
+    expected_off_reason = HVAC_OFF_REASON_AUTO_START_STOP
+    expected_published_inhibition = None
+    if inhibited:
+        await vtherm.async_set_inhibition(True)
+        await hass.async_block_till_done()
+        expected_off_reason = HVAC_OFF_REASON_INHIBITION
+        expected_published_inhibition = True
+        assert vtherm.is_inhibited is True
+        assert vtherm.hvac_off_reason == expected_off_reason
+        assert vtherm.auto_start_stop_manager.is_auto_stop_detected is True
+
+    climate_state = hass.states.get(vtherm.entity_id)
+    assert climate_state is not None
+    assert (
+        vtherm.requested_state.hvac_mode,
+        vtherm.requested_state.preset,
+        vtherm.current_state.hvac_mode,
+        vtherm.current_state.preset,
+        vtherm.current_state.target_temperature,
+        climate_state.state,
+        climate_state.attributes.get("preset_mode"),
+        climate_state.attributes.get("temperature"),
+        climate_state.attributes["specific_states"]["hvac_off_reason"],
+        climate_state.attributes["auto_start_stop_manager"]["is_auto_stop_detected"],
+        vtherm.is_inhibited,
+        climate_state.attributes["specific_states"].get("inhibition", {}).get("inhibited"),
+    ) == (
+        VThermHvacMode_HEAT,
+        VThermPreset.ECO,
+        VThermHvacMode_OFF,
+        VThermPreset.ECO,
+        17.0,
+        VThermHvacMode_OFF,
+        VThermPreset.ECO,
+        17.0,
+        expected_off_reason,
+        True,
+        inhibited,
+        expected_published_inhibition,
+    )
+
+    await hass.services.async_call(
+        CLIMATE_DOMAIN,
+        SERVICE_SET_PRESET_MODE,
+        {
+            "entity_id": vtherm.entity_id,
+            "preset_mode": VThermPreset.FROST,
+        },
+        blocking=True,
+    )
+    await hass.async_block_till_done()
+
+    climate_state = hass.states.get(vtherm.entity_id)
+    assert climate_state is not None
+    assert (
+        vtherm.requested_state.hvac_mode,
+        vtherm.requested_state.preset,
+        vtherm.current_state.hvac_mode,
+        vtherm.current_state.preset,
+        vtherm.current_state.target_temperature,
+        vtherm.hvac_mode,
+        vtherm.hvac_off_reason,
+        climate_state.state,
+        climate_state.attributes.get("preset_mode"),
+        climate_state.attributes.get("temperature"),
+        climate_state.attributes["specific_states"]["hvac_off_reason"],
+        climate_state.attributes["auto_start_stop_manager"]["is_auto_stop_detected"],
+        vtherm.is_inhibited,
+        climate_state.attributes["specific_states"].get("inhibition", {}).get("inhibited"),
+    ) == (
+        VThermHvacMode_HEAT,
+        VThermPreset.FROST,
+        VThermHvacMode_OFF,
+        VThermPreset.FROST,
+        7.0,
+        VThermHvacMode_OFF,
+        expected_off_reason,
+        VThermHvacMode_OFF,
+        VThermPreset.FROST,
+        7.0,
+        expected_off_reason,
+        True,
+        inhibited,
+        expected_published_inhibition,
+    )
 
     vtherm.remove_thermostat()
 
