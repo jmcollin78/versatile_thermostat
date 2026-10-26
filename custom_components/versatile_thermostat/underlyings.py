@@ -635,7 +635,6 @@ class UnderlyingClimate(UnderlyingEntity):
             entity_id=climate_entity_id,
         )
         self._last_sent_temperature: Optional[float] = None
-        self._first_temperature_send_issued = False
         self._cancel_set_fan_mode_later: Optional[Callable[[], None]] = None
         self._cancel_set_temperature_later: Optional[Callable[[], None]] = None
         self._min_sync_entity: float = None
@@ -981,7 +980,6 @@ class UnderlyingClimate(UnderlyingEntity):
 
         try:
             self._last_sent_temperature = target_temp
-            self._first_temperature_send_issued = True
             await self.hass_services_async_call(
                 CLIMATE_DOMAIN,
                 SERVICE_SET_TEMPERATURE,
@@ -999,11 +997,6 @@ class UnderlyingClimate(UnderlyingEntity):
     def last_sent_temperature(self) -> float | None:
         """Get the last send temperature. None if no temperature have been sent yet"""
         return self._last_sent_temperature
-
-    @property
-    def first_temperature_send_issued(self) -> bool:
-        """Whether a temperature service call was launched during this instance lifetime."""
-        return self._first_temperature_send_issued
 
     @property
     def hvac_action(self) -> HVACAction | None:

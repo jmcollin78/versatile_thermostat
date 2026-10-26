@@ -73,8 +73,8 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
         self._underlying_temperature_observed: dict[str, float | None] = {}
         self._underlying_temperature_status: dict[str, str] = {}
         self._underlying_tracking_attempts = 0
-        self._underlying_tracking_suspended = True
-        self._underlying_tracking_reason = "restart_or_initialization"
+        self._underlying_tracking_suspended = False
+        self._underlying_tracking_reason = "tracking_armed"
         self._last_regulation_change = None  # NowClass.get_now(hass)
         self._sync_entity_list: list[str] = []
         self._sync_with_calibration: bool = False
@@ -869,32 +869,29 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
             return
 
         temperature = float(temperature)
-        if under.last_sent_temperature is None or not under.first_temperature_send_issued:
-            self._underlying_tracking_reason = "waiting_for_first_send"
-            self._underlying_temperature_status[under.entity_id] = "waiting_for_first_send"
-            return
-
         if self._underlying_tracking_suspended:
             self._underlying_temperature_status[under.entity_id] = "suspended"
             return
 
-        difference = abs(temperature - under.last_sent_temperature)
-        if difference == 0:
-            self._cancel_underlying_temperature_candidate(under.entity_id)
-            self._underlying_temperature_status[under.entity_id] = "echo_possible"
-            return
+        last_sent_temperature = under.last_sent_temperature
+        if last_sent_temperature is not None:
+            difference = abs(temperature - last_sent_temperature)
+            if difference == 0:
+                self._cancel_underlying_temperature_candidate(under.entity_id)
+                self._underlying_temperature_status[under.entity_id] = "echo_possible"
+                return
 
-        underlying_step = under.target_temperature_step
-        if underlying_step is not None and difference <= underlying_step:
-            self._cancel_underlying_temperature_candidate(under.entity_id)
-            self._underlying_temperature_status[under.entity_id] = "ambiguous"
-            _LOGGER.debug(
-                "%s - Underlying setpoint %s is ambiguous against last sent value %s",
-                self,
-                temperature,
-                under.last_sent_temperature,
-            )
-            return
+            underlying_step = under.target_temperature_step
+            if underlying_step is not None and difference <= underlying_step:
+                self._cancel_underlying_temperature_candidate(under.entity_id)
+                self._underlying_temperature_status[under.entity_id] = "ambiguous"
+                _LOGGER.debug(
+                    "%s - Underlying setpoint %s is ambiguous against last sent value %s",
+                    self,
+                    temperature,
+                    last_sent_temperature,
+                )
+                return
 
         current = self._underlying_temperature_candidates.get(under.entity_id)
         if current and current["temperature"] == temperature:
@@ -913,7 +910,7 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
 
             latest_sent = under.last_sent_temperature
             latest_step = under.target_temperature_step
-            if latest_sent is None or temperature == latest_sent or (latest_step is not None and abs(temperature - latest_sent) <= latest_step):
+            if latest_sent is not None and (temperature == latest_sent or (latest_step is not None and abs(temperature - latest_sent) <= latest_step)):
                 self._cancel_underlying_temperature_candidate(under.entity_id)
                 self._underlying_temperature_status[under.entity_id] = "echo_possible" if temperature == latest_sent else "ambiguous"
                 return
@@ -923,7 +920,6 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
                 or candidate["state_snapshot"] != self._underlying_temperature_state_snapshot()
                 or not self._follow_underlying_temp_change
                 or self._underlying_tracking_suspended
-                or not under.first_temperature_send_issued
                 or any(other["version"] > version for other in self._underlying_temperature_candidates.values())
             ):
                 self._cancel_underlying_temperature_candidate(under.entity_id)

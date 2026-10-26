@@ -7,6 +7,7 @@
     - [AC Mode](#ac-mode)
     - [Synchronization of the internal temperature of underlying entities](#synchronization-of-the-internal-temperature-of-underlying-entities)
     - [Self-Regulation](#self-regulation)
+    - [Valve regulation startup with write-only degrees](#valve-regulation-startup-with-write-only-degrees)
     - [Auto-Fan (Auto Ventilation)](#auto-fan-auto-ventilation)
     - [Compensating for the Internal Temperature of the Underlying Equipment](#compensating-for-the-internal-temperature-of-the-underlying-equipment)
   - [Specific Functions](#specific-functions)
@@ -120,11 +121,11 @@ If you are in this case, an entity has been added to the _VTherm_ device called 
 
 ![Track temperature changes](images/entity-follow-under-temp-change.png)
 
-When this entity is 'On', HVAC mode changes continue to be followed as before. A new TRV setpoint is retained as a candidate and applied if it remains stable for five seconds; each distinct new value restarts the wait. Duplicates do not extend it. Values equal or too close to that TRV's last sent setpoint are ambiguous and are not adopted automatically. A TRV's step can therefore cause an action indistinguishable from an echo to be ignored.
+When this entity is 'On', HVAC mode changes continue to be followed as before. Setpoint tracking is active from startup, even if _VTherm_ has not yet sent an order to the TRV. A newly observed setpoint is retained as a candidate and applied if it remains stable for five seconds; each distinct new value restarts the wait. Duplicates do not extend it. If _VTherm_ has already sent a setpoint, equal or nearby values are ambiguous and are not adopted automatically. Without a sent-setpoint reference, an old distinct echo can be mistaken for a manual action.
 
 Be careful: your equipment is controlled in two ways, by _VTherm_ and directly by you, so commands may conflict. An admissible TRV action switches _VTherm_ to a manual setpoint (`NONE`), cancels an older timed override without restoring its previous request, and does not start a new timed override. Window and protection priorities remain unchanged. While OFF, the request is saved without turning the thermostat on or clearing a forced OFF.
 
-Tracking suspends further tracking-induced physical setpoint commands after three attempts per _VTherm_; the third is sent and the fourth is blocked. Direct control from _VTherm_ remains available. A new command received through the _VTherm_ interface or an HA service rearms the counter, including commands from automations reacting to the TRV. Such an automation can rearm it on every turn, so the limit of three applies between received commands, not to the whole loop. After restart, tracking remains suspended until a new command is received and a fresh setpoint order is actually sent to the TRV.
+Tracking suspends further tracking-induced physical setpoint commands after three attempts per _VTherm_; the third is sent and the fourth is blocked. Direct control from _VTherm_ remains available. A new command received through the _VTherm_ interface or an HA service rearms the counter, including commands from automations reacting to the TRV. Such an automation can rearm it on every turn, so the limit of three applies between received commands, not to the whole loop. After a Home Assistant restart or integration reload, the counter starts at zero and tracking is rearmed. A restored TRV value without a newly observed change is not adopted; once the TRV reports a new setpoint, it can be tracked without waiting for an order from _VTherm_. Without a sent-setpoint reference, an old distinct echo can be mistaken for an action.
 
 An old return that differs from the last command can still be mistaken for a manual action; an ambiguous return can instead be rejected. The five-second wait does not prove where a change came from and does not guarantee that every action is captured or that an external automation cannot sustain a loop.
 

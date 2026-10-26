@@ -560,7 +560,6 @@ async def test_underlying_removal_cancels_pending_temperature_candidate(
     under = entity.underlying_entity(0)
     entity._on_external_command_received()
     under._last_sent_temperature = entity.target_temperature
-    under._first_temperature_send_issued = True
     cancelled = []
 
     def capture_debounce(hass, delay, callback):
@@ -585,7 +584,7 @@ async def test_underlying_action_change_keeps_pending_temperature_candidate(
     skip_turn_on_off_heater,
     skip_send_event,
 ):
-    """A hvac_action-only update must not cancel or restart the setpoint debounce."""
+    """A TRV change is tracked before any VTherm send; hvac_action does not cancel it."""
     temps = {VThermPreset.FROST: 7, VThermPreset.ECO: 16, VThermPreset.COMFORT: 17, VThermPreset.BOOST: 18}
     entry = MockConfigEntry(
         domain=DOMAIN,
@@ -598,9 +597,8 @@ async def test_underlying_action_change_keeps_pending_temperature_candidate(
     entity = await create_thermostat(hass, entry, "climate.theoverclimatemockname", temps)
     under = entity.underlying_entity(0)
     entity.set_follow_underlying_temp_change(True)
-    entity._on_external_command_received()
-    under._last_sent_temperature = entity.target_temperature
-    under._first_temperature_send_issued = True
+    assert entity._underlying_tracking_suspended is False
+    under._last_sent_temperature = None
     callbacks = []
 
     def capture_debounce(hass, delay, callback):
@@ -609,7 +607,11 @@ async def test_underlying_action_change_keeps_pending_temperature_candidate(
         return lambda: None
 
     with patch("custom_components.versatile_thermostat.thermostat_climate.async_call_later", side_effect=capture_debounce):
-        entity._consider_underlying_temperature_candidate(under, entity.target_temperature + 2)
+        candidate_temperature = entity.target_temperature + 2
+        hass.states.async_set(under.entity_id, VThermHvacMode_HEAT, {"temperature": candidate_temperature})
+        entity._consider_underlying_temperature_candidate(under, candidate_temperature)
+        assert under.entity_id in entity._underlying_temperature_candidates
+        assert entity._underlying_temperature_status[under.entity_id] == "candidate_pending"
         candidate_version = entity._underlying_temperature_candidates[under.entity_id]["version"]
 
         await entity.underlying_changed(
@@ -624,6 +626,10 @@ async def test_underlying_action_change_keeps_pending_temperature_candidate(
 
     assert len(callbacks) == 1
     assert entity._underlying_temperature_candidates[under.entity_id]["version"] == candidate_version
+    await callbacks[0](None)
+    assert under.entity_id not in entity._underlying_temperature_candidates
+    assert entity.requested_state.target_temperature == candidate_temperature
+    assert entity._underlying_temperature_status[under.entity_id] == "accepted"
     entity.remove_thermostat()
 
 
