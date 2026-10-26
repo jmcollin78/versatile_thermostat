@@ -1406,7 +1406,7 @@ async def test_window_action_fan_only(hass: HomeAssistant, skip_hass_states_is_s
         assert mock_underlying_set_hvac_mode.call_count == 1
         mock_underlying_set_hvac_mode.assert_has_calls(
             [
-                call.set_hvac_mode(VThermHvacMode_FAN_ONLY),
+                call.set_hvac_mode(VThermHvacMode_FAN_ONLY, command_cause=None),
             ]
         )
 
@@ -1448,7 +1448,7 @@ async def test_window_action_fan_only(hass: HomeAssistant, skip_hass_states_is_s
         assert mock_underlying_set_hvac_mode.call_count == 1
         mock_underlying_set_hvac_mode.assert_has_calls(
             [
-                call.set_hvac_mode(VThermHvacMode_HEAT),
+                call.set_hvac_mode(VThermHvacMode_HEAT, command_cause=None),
             ]
         )
         assert entity.vtherm_hvac_mode is VThermHvacMode_HEAT
@@ -1557,7 +1557,7 @@ async def test_window_action_fan_only_ko(
         assert mock_underlying_set_hvac_mode.call_count == 1
         mock_underlying_set_hvac_mode.assert_has_calls(
             [
-                call.set_hvac_mode(VThermHvacMode_OFF),
+                call.set_hvac_mode(VThermHvacMode_OFF, command_cause=None),
             ]
         )
 
@@ -1595,7 +1595,7 @@ async def test_window_action_fan_only_ko(
         assert mock_underlying_set_hvac_mode.call_count == 1
         mock_underlying_set_hvac_mode.assert_has_calls(
             [
-                call.set_hvac_mode(VThermHvacMode_HEAT),
+                call.set_hvac_mode(VThermHvacMode_HEAT, command_cause=None),
             ]
         )
         assert entity.vtherm_hvac_mode is VThermHvacMode_HEAT
@@ -3096,7 +3096,7 @@ async def test_window_action_fan_only_ac_mode_uses_ac_preset_temp(hass: HomeAssi
             f"the compressor activate aggressively when the window closes."
         )
 
-        mock_underlying_set_hvac_mode.assert_called_with(VThermHvacMode_FAN_ONLY)
+        mock_underlying_set_hvac_mode.assert_called_with(VThermHvacMode_FAN_ONLY, command_cause=None)
 
     # 3. Close the window — device should return to COOL with the AC eco preset temp
     with patch("custom_components.versatile_thermostat.base_thermostat.BaseThermostat.send_event") as mock_send_event, patch(

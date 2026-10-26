@@ -114,13 +114,13 @@ async def test_one_switch_cycle(hass: HomeAssistant, skip_send_event, fake_temp_
 
         # No special event
         assert mock_send_event.call_count == 0
-        
+
         # Verify that the actual target temperature is updated correctly
         assert entity.proportional_algorithm.calculated_on_percent < 1.0
-        
+
         # CycleScheduler should have updated its next cycle parameters pending the restart
         assert entity.cycle_scheduler._current_on_percent < 1.0
-        
+
         # But should NOT interrupt the current block (no turn_on/turn_off calls immediately)
         assert mock_heater_on.call_count == 0
         assert mock_heater_off.call_count == 0
@@ -136,15 +136,15 @@ async def test_one_switch_cycle(hass: HomeAssistant, skip_send_event, fake_temp_
         "custom_components.versatile_thermostat.cycle_scheduler.async_call_later",
         return_value=None,
     ) as mock_call_later:
-    
+
         await entity.cycle_scheduler._on_master_cycle_end(None)
-        
+
         # Since on_percent is < 1.0, and _is_initial at t=0 targets ON for offset=0
         # Heater is already ON, so no turn_on should be called
         assert mock_heater_on.call_count == 0
         # Since our single heater is targeted ON, it shouldn't turn off either
         assert mock_heater_off.call_count == 0
-        
+
         # Check that multiple ticks are scheduled since it's an active cycle (not 0% or 100%)
         # It schedules the _tick and the _cycle_end_unsub
         assert mock_call_later.call_count >= 1
@@ -246,7 +246,7 @@ async def test_multiple_switchs(
         assert mock_underlying_set_hvac_mode.call_count == 4
         mock_underlying_set_hvac_mode.assert_has_calls(
             [
-                call.set_hvac_mode(VThermHvacMode_HEAT),
+                call.set_hvac_mode(VThermHvacMode_HEAT, command_cause=None),
             ]
         )
 
@@ -291,14 +291,14 @@ async def test_multiple_switchs(
 
         # No special event
         assert mock_send_event.call_count == 0
-        
+
         assert entity.proportional_algorithm.calculated_on_percent < 1.0
         assert entity.cycle_scheduler._current_on_percent < 1.0
-        
+
         # No immediate modification of underlying states
         assert mock_heater_on.call_count == 0
         assert mock_heater_off.call_count == 0
-        
+
     # Simulate the master cycle ending: it should restart using the new parameters
     with patch("custom_components.versatile_thermostat.base_thermostat.BaseThermostat.send_event") as mock_send_event, patch(
         "custom_components.versatile_thermostat.underlyings.UnderlyingSwitch.turn_on"
@@ -310,9 +310,9 @@ async def test_multiple_switchs(
         "custom_components.versatile_thermostat.cycle_scheduler.async_call_later",
         return_value=None,
     ) as mock_call_later:
-    
+
         await entity.cycle_scheduler._on_master_cycle_end(None)
-        
+
         # At start of new cycle, they shouldn't spam if they already follow the state
         # But some might be targeted OFF at t=0 because offsets stagger it.
         # Underlyings that are off-duty at t=0 will be correctly turned OFF
@@ -397,7 +397,7 @@ async def test_multiple_climates(
         assert mock_underlying_set_hvac_mode.call_count == 4
         mock_underlying_set_hvac_mode.assert_has_calls(
             [
-                call.set_hvac_mode(VThermHvacMode_HEAT),
+                call.set_hvac_mode(VThermHvacMode_HEAT, command_cause=None),
             ]
         )
         assert entity.is_device_active is False  # pylint: disable=protected-access
@@ -422,7 +422,7 @@ async def test_multiple_climates(
         assert mock_underlying_set_hvac_mode.call_count == 4
         mock_underlying_set_hvac_mode.assert_has_calls(
             [
-                call.set_hvac_mode(VThermHvacMode_OFF),
+                call.set_hvac_mode(VThermHvacMode_OFF, command_cause=None),
             ]
         )
         assert entity.is_device_active is False  # pylint: disable=protected-access
@@ -503,7 +503,7 @@ async def test_multiple_climates_underlying_changes(
         assert mock_underlying_set_hvac_mode.call_count == 4
         mock_underlying_set_hvac_mode.assert_has_calls(
             [
-                call.set_hvac_mode(VThermHvacMode_HEAT),
+                call.set_hvac_mode(VThermHvacMode_HEAT, command_cause=None),
             ]
         )
         assert entity.is_device_active is False  # pylint: disable=protected-access
@@ -532,7 +532,7 @@ async def test_multiple_climates_underlying_changes(
         assert mock_underlying_set_hvac_mode.call_count >= 4
         mock_underlying_set_hvac_mode.assert_has_calls(
             [
-                call.set_hvac_mode(VThermHvacMode_OFF),
+                call.set_hvac_mode(VThermHvacMode_OFF, command_cause=None),
             ]
         )
         assert entity.hvac_mode == VThermHvacMode_OFF
@@ -566,7 +566,7 @@ async def test_multiple_climates_underlying_changes(
         assert mock_underlying_set_hvac_mode.call_count >= 4
         mock_underlying_set_hvac_mode.assert_has_calls(
             [
-                call.set_hvac_mode(VThermHvacMode_HEAT),
+                call.set_hvac_mode(VThermHvacMode_HEAT, command_cause=None),
             ]
         )
         assert entity.hvac_mode == VThermHvacMode_HEAT
@@ -651,7 +651,7 @@ async def test_multiple_climates_underlying_changes_not_aligned(
         assert mock_underlying_set_hvac_mode.call_count == 4
         mock_underlying_set_hvac_mode.assert_has_calls(
             [
-                call.set_hvac_mode(VThermHvacMode_HEAT),
+                call.set_hvac_mode(VThermHvacMode_HEAT, command_cause=None),
             ]
         )
 

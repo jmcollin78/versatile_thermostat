@@ -77,12 +77,16 @@ async def test_recalibrate_starts_task(hass, skip_hass_states_get, monkeypatch):
 
     monkeypatch.setattr(hass, "async_create_task", fake_create_task)
 
+    thermostat._underlying_tracking_attempts = 3
+    thermostat._underlying_tracking_suspended = True
     result = await thermostat.service_recalibrate_valves(0)
 
     try:
         assert isinstance(result, dict)
         assert result.get("message") == "calibrage en cours"
         assert isinstance(called.get("task"), asyncio.Task)
+        assert thermostat._underlying_tracking_attempts == 0
+        assert thermostat._underlying_tracking_suspended is False
     finally:
         task = called.get("task")
         if task:

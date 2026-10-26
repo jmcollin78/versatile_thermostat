@@ -165,7 +165,7 @@ class UnderlyingEntity:
         ):
             await self._api.central_boiler_manager.nb_device_active_for_boiler_entity.calculate_nb_active_devices(None)
 
-    async def set_hvac_mode(self, hvac_mode: VThermHvacMode):
+    async def set_hvac_mode(self, hvac_mode: VThermHvacMode, command_cause: str | None = None):
         """Set the HVACmode"""
         self._hvac_mode = hvac_mode
         return
@@ -399,7 +399,7 @@ class UnderlyingSwitch(UnderlyingEntity):
         self._keep_alive.set_async_action(self._keep_alive_callback)
 
     # @overrides this breaks some unit tests TypeError: object MagicMock can't be used in 'await' expression
-    async def set_hvac_mode(self, hvac_mode: VThermHvacMode) -> bool:
+    async def set_hvac_mode(self, hvac_mode: VThermHvacMode, command_cause: str | None = None) -> bool:
         """Set the HVACmode. Returns true if something have change"""
 
         if hvac_mode == VThermHvacMode_OFF:
@@ -407,7 +407,7 @@ class UnderlyingSwitch(UnderlyingEntity):
                 await self.turn_off()
 
         if self.hvac_mode != hvac_mode:
-            await super().set_hvac_mode(hvac_mode)
+            await super().set_hvac_mode(hvac_mode, command_cause=command_cause)
             self._calculate_should_be_on()
             return True
         else:
@@ -641,7 +641,7 @@ class UnderlyingClimate(UnderlyingEntity):
         self._max_sync_entity: float = None
         self._step_sync_entity: float = None
 
-    async def set_hvac_mode(self, hvac_mode: VThermHvacMode) -> bool:
+    async def set_hvac_mode(self, hvac_mode: VThermHvacMode, command_cause: str | None = None) -> bool:
         """Set the HVACmode of the underlying climate. Returns true if something have change"""
         hvac_mode = self._thermostat.get_underlying_hvac_mode(hvac_mode)
         state = self._state_manager.get_state(self._entity_id)
@@ -667,9 +667,18 @@ class UnderlyingClimate(UnderlyingEntity):
             self._cancel_set_temperature_later()
             self._cancel_set_temperature_later = None
 
+        if command_cause == COMMAND_CAUSE_UNDERLYING_TRACKING:
+            if self.is_command_blocked(CLIMATE_DOMAIN, SERVICE_SET_HVAC_MODE):
+                return False
+            if not self._thermostat._can_send_underlying_tracking_command():
+                return False
+
         await super().set_hvac_mode(hvac_mode)
 
         data = {ATTR_ENTITY_ID: self._entity_id, "hvac_mode": to_legacy_ha_hvac_mode(hvac_mode)}
+        if command_cause == COMMAND_CAUSE_UNDERLYING_TRACKING:
+            self._thermostat._record_underlying_tracking_command(self.entity_id, hvac_mode)
+
         await self.hass_services_async_call(
             CLIMATE_DOMAIN,
             SERVICE_SET_HVAC_MODE,
@@ -686,7 +695,7 @@ class UnderlyingClimate(UnderlyingEntity):
                 if temperature is None:
                     temperature = self._thermostat.target_temperature
                 if temperature is not None:
-                    await self.set_temperature(temperature, None, None)
+                    await self.set_temperature(temperature, None, None, command_cause=command_cause)
 
             self._cancel_set_temperature_later = async_call_later(self._hass, resend_delay_sec, callback_resend_temp)
 
@@ -788,7 +797,12 @@ class UnderlyingClimate(UnderlyingEntity):
         Runs the initial state checks when all underlying entities are initialized.
         """
         await super()._underlying_changed(entity_id, new_state, old_state)
-        if not self.is_initialized or new_state is None:
+        if new_state is None:
+            cancel_candidate = getattr(self._thermostat, "_cancel_underlying_temperature_candidate", None)
+            if callable(cancel_candidate):
+                cancel_candidate(self._entity_id)
+            return
+        if not self.is_initialized:
             return
 
         # Check if one attributes has changed that could impact the thermostat
@@ -798,6 +812,7 @@ class UnderlyingClimate(UnderlyingEntity):
         old_hvac_action = old_state.attributes.get("hvac_action") if old_state and old_state.attributes else None
         new_fan_mode = new_state.attributes.get("fan_mode") if new_state.attributes else None
         new_target_temp = new_state.attributes.get("temperature") if new_state.attributes else None
+        old_target_temp = old_state.attributes.get("temperature") if old_state and old_state.attributes else None
 
         # Ignore new target temperature when out of range
         if (
@@ -815,16 +830,8 @@ class UnderlyingClimate(UnderlyingEntity):
             )
             new_target_temp = None
 
-        under_temp_diff = 0
-        if new_target_temp is not None:
-            last_sent_temperature = self.last_sent_temperature or 0
-            under_temp_diff = new_target_temp - last_sent_temperature
-
-            # check the dtemp is > step
-            step = self._thermostat.target_temperature_step or 1
-            if -step < under_temp_diff < step:
-                under_temp_diff = 0
-                new_target_temp = None
+        if new_target_temp == old_target_temp:
+            new_target_temp = None
 
         # Forget event when the event holds no real changes
         if new_hvac_mode == self._thermostat.hvac_mode:
@@ -833,9 +840,6 @@ class UnderlyingClimate(UnderlyingEntity):
             new_hvac_action = None
         if new_fan_mode == self._thermostat.fan_mode:
             new_fan_mode = None
-        if under_temp_diff == 0:
-            new_target_temp = None
-
         if new_hvac_mode is None and new_hvac_action is None and new_target_temp is None and new_fan_mode is None:
             _LOGGER.debug(
                 "%s - a underlying state change event is received but no real change have been found. Forget the event",
@@ -934,7 +938,7 @@ class UnderlyingClimate(UnderlyingEntity):
             data,
         )
 
-    async def set_temperature(self, temperature, max_temp, min_temp):
+    async def set_temperature(self, temperature, max_temp, min_temp, command_cause: str | None = None):
         """Set the target temperature"""
         if not self.is_initialized:
             return
@@ -966,7 +970,16 @@ class UnderlyingClimate(UnderlyingEntity):
         if self.supported_features & ClimateEntityFeature.TARGET_TEMPERATURE:
             data["temperature"] = target_temp
 
+        if self.is_command_blocked(CLIMATE_DOMAIN, SERVICE_SET_TEMPERATURE):
+            return False
+
+        if command_cause == COMMAND_CAUSE_UNDERLYING_TRACKING:
+            if not self._thermostat._can_send_underlying_tracking_command():
+                return False
+            self._thermostat._record_underlying_tracking_command(self.entity_id, target_temp)
+
         try:
+            self._last_sent_temperature = target_temp
             await self.hass_services_async_call(
                 CLIMATE_DOMAIN,
                 SERVICE_SET_TEMPERATURE,
@@ -976,8 +989,9 @@ class UnderlyingClimate(UnderlyingEntity):
             _LOGGER.error("%s - Error while sending set_temperature: %s", self, ex)
             raise ex
 
-        self._last_sent_temperature = target_temp
         _LOGGER.debug("%s - Last_sent_temperature is now: %s", self, self._last_sent_temperature)
+
+        return True
 
     @property
     def last_sent_temperature(self) -> float | None:
@@ -1374,7 +1388,7 @@ class UnderlyingValve(UnderlyingEntity):
         self._last_sent_opening_value = current
         self._percent_open = round(current) if current is not None else None
 
-    async def set_hvac_mode(self, hvac_mode: VThermHvacMode) -> bool:
+    async def set_hvac_mode(self, hvac_mode: VThermHvacMode, command_cause: str | None = None) -> bool:
         """Set the HVACmode. Returns true if something have change"""
 
         if hvac_mode == VThermHvacMode_OFF and self.is_device_active:

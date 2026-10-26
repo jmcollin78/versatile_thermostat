@@ -282,7 +282,7 @@ class ThermostatOverClimateValve(ValveCommandMixin, ThermostatProp[UnderlyingCli
 
         self._cancel_recalculate_later = async_call_later(self._hass, delay=20, action=callback_recalculate)
 
-    async def _send_regulated_temperature(self, force=False):
+    async def _send_regulated_temperature(self, force=False, _command_cause: str | None = None):
         """Sends the regulated temperature to all underlying"""
         # if self.vtherm_hvac_mode == VThermHvacMode_OFF and not self._is_sleeping:
         #    _LOGGER.debug("%s - don't send regulated temperature cause VTherm is off ", self)
@@ -302,11 +302,14 @@ class ThermostatOverClimateValve(ValveCommandMixin, ThermostatProp[UnderlyingCli
         # Don't send temperature if hvac_mode is off
         if self.vtherm_hvac_mode != VThermHvacMode_OFF:
             for under in self._underlyings:
+                if _command_cause == COMMAND_CAUSE_UNDERLYING_TRACKING and under.underlying_target_temperature == self.target_temperature:
+                    continue
                 if self.target_temperature != under.last_sent_temperature:
                     await under.set_temperature(
                         self.target_temperature,
                         self._attr_max_temp,
                         self._attr_min_temp,
+                        command_cause=_command_cause,
                     )
 
             self._last_regulation_change = self.now
@@ -445,10 +448,10 @@ class ThermostatOverClimateValve(ValveCommandMixin, ThermostatProp[UnderlyingCli
         return "over_climate_valve"
 
     @overrides
-    async def async_set_hvac_mode(self, hvac_mode: VThermHvacMode, ignore_lock: bool = False):
+    async def async_set_hvac_mode(self, hvac_mode: VThermHvacMode, ignore_lock: bool = False, *, _external_command: bool = True):
         """Disable HVAC mode change during recalibration"""
         if not self._recalibrate_lock.locked() or ignore_lock:
-            await super().async_set_hvac_mode(hvac_mode)
+            await super().async_set_hvac_mode(hvac_mode, _external_command=_external_command)
 
     @overrides
     async def underlying_changed(  # pylint: disable=too-many-arguments
@@ -556,13 +559,15 @@ class ThermostatOverClimateValve(ValveCommandMixin, ThermostatProp[UnderlyingCli
             _LOGGER.warning("Recalibration request refused: already running for %s", self.entity_id)
             return {"message": "recalibrage en cours"}
 
+        self._on_external_command_received()
+
         # Define the background coroutine
         async def _recalibrate_task():
             async with self._recalibrate_lock:
                 try:
                     # Turn off vtherm
                     _LOGGER.info("%s - Recalibration - Stopping VTherm and turn on underlying climates and waiting for %s seconds", self, delay_seconds)
-                    await self.async_set_hvac_mode(VThermHvacMode_OFF, ignore_lock=True)
+                    await self.async_set_hvac_mode(VThermHvacMode_OFF, ignore_lock=True, _external_command=False)
                     await asyncio.sleep(5)
 
                     # Turn on the underlying climate
