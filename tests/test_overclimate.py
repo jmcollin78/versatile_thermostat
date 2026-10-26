@@ -367,7 +367,7 @@ async def test_underlying_change_follow(
         assert mock_underlying_set_hvac_mode.call_count >= 1
         mock_underlying_set_hvac_mode.assert_has_calls(
             [
-                call.set_hvac_mode(VThermHvacMode_OFF),
+                call.set_hvac_mode(VThermHvacMode_OFF, command_cause=None),
             ]
         )
 
@@ -392,56 +392,430 @@ async def test_underlying_change_follow(
         await entity.async_set_preset_mode(VThermPreset.COMFORT)
         assert entity.preset_mode == VThermPreset.COMFORT
 
-        # 2. Change the target temp of underlying thermostat at now -> the event will be disgarded because to fast (to avoid loop cf issue 121)
-        await send_climate_change_event_with_temperature(
-            entity,
-            VThermHvacMode_HEAT,
-            VThermHvacMode_HEAT,
-            HVACAction.OFF,
-            HVACAction.OFF,
-            now,
-            entity.min_temp + 1,
-            True,
-            "climate.mock_climate",  # the underlying climate entity id
-        )
-        # Should NOT have been switched to Manual preset
+        assert entity.is_regulated is False
+
+        pending_callbacks = []
+
+        def capture_debounce(hass, delay, callback):
+            assert delay == 5
+            pending_callbacks.append(callback)
+            return lambda: None
+
+        last_sent_temperature = entity.underlying_entity(0).last_sent_temperature
+        assert last_sent_temperature is not None
+        candidate_temperatures = [last_sent_temperature + 2, last_sent_temperature + 2.5, last_sent_temperature + 3]
+        with patch("custom_components.versatile_thermostat.thermostat_climate.async_call_later", side_effect=capture_debounce):
+            for index, candidate_temperature in enumerate(candidate_temperatures):
+                await send_climate_change_event_with_temperature(
+                    entity,
+                    VThermHvacMode_HEAT,
+                    VThermHvacMode_HEAT,
+                    HVACAction.OFF,
+                    HVACAction.OFF,
+                    now + timedelta(seconds=index),
+                    candidate_temperature,
+                    True,
+                    "climate.mock_climate",
+                )
+                assert entity.target_temperature == 17
+
+            await send_climate_change_event_with_temperature(
+                entity,
+                VThermHvacMode_HEAT,
+                VThermHvacMode_HEAT,
+                HVACAction.OFF,
+                HVACAction.OFF,
+                now + timedelta(seconds=3),
+                candidate_temperatures[-1],
+                True,
+                "climate.mock_climate",
+            )
         assert entity.target_temperature == 17
         assert entity.preset_mode == VThermPreset.COMFORT
+        assert len(pending_callbacks) == 3
 
-        # 3. Change the target temp of underlying thermostat at 11 sec later -> the event will be taken
-        # Wait 11 sec
-        event_timestamp = now + timedelta(seconds=11)
-        assert entity.is_regulated is False
+        candidate_temperature = candidate_temperatures[-1]
+        hass.states.async_set("climate.mock_climate", VThermHvacMode_HEAT, {"temperature": candidate_temperature})
+        await pending_callbacks[0](None)
+        await pending_callbacks[1](None)
+        assert entity.target_temperature == 17
+        await pending_callbacks[2](None)
+
+        assert entity.target_temperature == candidate_temperature
+        assert entity.preset_mode is VThermPreset.NONE
+
         await send_climate_change_event_with_temperature(
             entity,
             VThermHvacMode_HEAT,
             VThermHvacMode_HEAT,
             HVACAction.OFF,
             HVACAction.OFF,
-            event_timestamp,
-            entity.min_temp + 1,
-            True,
-            "climate.mock_climate",  # the underlying climate entity id
+            now + timedelta(seconds=10),
+            entity.underlying_entity(0).last_sent_temperature,
+            False,
+            "climate.mock_climate",
         )
-        assert entity.target_temperature == entity.min_temp + 1
+        assert entity.target_temperature == candidate_temperature
         assert entity.preset_mode is VThermPreset.NONE
+        assert entity._underlying_temperature_status["climate.mock_climate"] == "echo_possible"
 
-        # 4. Change the target temp with < 0.1 (step) value. The value should not be taken
-        # Wait 11 sec
-        event_timestamp = now + timedelta(seconds=11)
+        # A return inside the TRV's reported step is ambiguous and is never adopted.
         await send_climate_change_event_with_temperature(
             entity,
             VThermHvacMode_HEAT,
             VThermHvacMode_HEAT,
             HVACAction.OFF,
             HVACAction.OFF,
-            event_timestamp,
-            entity.min_temp + 1.09,
+            now + timedelta(seconds=11),
+            entity.underlying_entity(0).last_sent_temperature + 0.05,
             True,
             "climate.mock_climate",  # the underlying climate entity id
         )
-        assert entity.target_temperature == entity.min_temp + 1
+        assert entity.target_temperature == candidate_temperature
         assert entity.preset_mode is VThermPreset.NONE
+
+    entity.remove_thermostat()
+
+
+async def test_underlying_tracking_attempt_limit_and_external_rearm(
+    hass: HomeAssistant,
+    skip_hass_states_is_state,
+    skip_turn_on_off_heater,
+    skip_send_event,
+):
+    """The third tracking send is allowed, later sends are blocked, and external commands rearm."""
+    temps = {VThermPreset.FROST: 7, VThermPreset.ECO: 16, VThermPreset.COMFORT: 17, VThermPreset.BOOST: 18}
+    entry = MockConfigEntry(
+        domain=DOMAIN,
+        title="TheOverClimateMockName",
+        unique_id="uniqueId",
+        data=PARTIAL_CLIMATE_NOT_REGULATED_CONFIG,
+    )
+    await create_and_register_mock_climate(
+        hass,
+        "mock_climate",
+        "MockClimateName",
+        {},
+        hvac_mode=VThermHvacMode_OFF,
+        hvac_action=HVACAction.OFF,
+    )
+
+    with patch("custom_components.versatile_thermostat.underlyings.UnderlyingClimate.set_hvac_mode"):
+        entity = await create_thermostat(hass, entry, "climate.theoverclimatemockname", temps)
+        under = entity.underlying_entity(0)
+        entity.set_follow_underlying_temp_change(True)
+
+        with patch.object(under, "hass_services_async_call", new_callable=AsyncMock) as service_call:
+            await entity.async_set_hvac_mode(VThermHvacMode_HEAT)
+            service_call.reset_mock()
+            entity._on_external_command_received()
+
+            for temperature in (20, 21, 22):
+                assert await under.set_temperature(temperature, entity.max_temp, entity.min_temp, command_cause="underlying_tracking") is True
+
+            assert service_call.await_count == 3
+            assert entity._underlying_tracking_attempts == 3
+            assert entity._underlying_tracking_suspended is True
+            assert await under.set_temperature(23, entity.max_temp, entity.min_temp, command_cause="underlying_tracking") is False
+            assert service_call.await_count == 3
+
+            entity._underlying_tracking_attempts = 2
+            entity._underlying_tracking_suspended = True
+            with patch.object(entity, "update_states", new=AsyncMock()):
+                await entity.async_set_hvac_mode(VThermHvacMode_HEAT, _external_command=False)
+            assert entity._underlying_tracking_attempts == 2
+            assert entity._underlying_tracking_suspended is True
+
+            await entity.async_set_temperature(temperature=entity.target_temperature + 1)
+            assert entity._underlying_tracking_attempts == 0
+            assert entity._underlying_tracking_suspended is False
+            assert service_call.await_count == 4
+
+            entity._underlying_tracking_attempts = 3
+            entity._underlying_tracking_suspended = True
+            await entity.async_set_temperature(temperature=entity.requested_state.target_temperature)
+            assert entity._underlying_tracking_attempts == 0
+            assert entity._underlying_tracking_suspended is False
+
+    entity.remove_thermostat()
+
+
+async def test_underlying_removal_cancels_pending_temperature_candidate(
+    hass: HomeAssistant,
+    skip_hass_states_is_state,
+    skip_turn_on_off_heater,
+    skip_send_event,
+):
+    """Removing a TRV cancels its pending debounce callback."""
+    temps = {VThermPreset.FROST: 7, VThermPreset.ECO: 16, VThermPreset.COMFORT: 17, VThermPreset.BOOST: 18}
+    entry = MockConfigEntry(
+        domain=DOMAIN,
+        title="TheOverClimateMockName",
+        unique_id="uniqueId",
+        data=PARTIAL_CLIMATE_NOT_REGULATED_CONFIG,
+    )
+    await create_and_register_mock_climate(hass, "mock_climate", "MockClimateName", {}, hvac_mode=VThermHvacMode_OFF, hvac_action=HVACAction.OFF)
+
+    entity = await create_thermostat(hass, entry, "climate.theoverclimatemockname", temps)
+    under = entity.underlying_entity(0)
+    entity._on_external_command_received()
+    under._last_sent_temperature = entity.target_temperature
+    under._first_temperature_send_issued = True
+    cancelled = []
+
+    def capture_debounce(hass, delay, callback):
+        assert delay == 5
+        return lambda: cancelled.append(callback)
+
+    with patch("custom_components.versatile_thermostat.thermostat_climate.async_call_later", side_effect=capture_debounce):
+        entity._consider_underlying_temperature_candidate(under, entity.target_temperature + 2)
+        assert under.entity_id in entity._underlying_temperature_candidates
+
+        await under._underlying_changed(under.entity_id, None)
+
+    assert under.entity_id not in entity._underlying_temperature_candidates
+    assert len(cancelled) == 1
+    assert entity._underlying_temperature_status[under.entity_id] == "cancelled"
+    entity.remove_thermostat()
+
+
+async def test_underlying_action_change_keeps_pending_temperature_candidate(
+    hass: HomeAssistant,
+    skip_hass_states_is_state,
+    skip_turn_on_off_heater,
+    skip_send_event,
+):
+    """A hvac_action-only update must not cancel or restart the setpoint debounce."""
+    temps = {VThermPreset.FROST: 7, VThermPreset.ECO: 16, VThermPreset.COMFORT: 17, VThermPreset.BOOST: 18}
+    entry = MockConfigEntry(
+        domain=DOMAIN,
+        title="TheOverClimateMockName",
+        unique_id="uniqueId",
+        data=PARTIAL_CLIMATE_NOT_REGULATED_CONFIG,
+    )
+    await create_and_register_mock_climate(hass, "mock_climate", "MockClimateName", {}, hvac_mode=VThermHvacMode_HEAT, hvac_action=HVACAction.OFF)
+
+    entity = await create_thermostat(hass, entry, "climate.theoverclimatemockname", temps)
+    under = entity.underlying_entity(0)
+    entity.set_follow_underlying_temp_change(True)
+    entity._on_external_command_received()
+    under._last_sent_temperature = entity.target_temperature
+    under._first_temperature_send_issued = True
+    callbacks = []
+
+    def capture_debounce(hass, delay, callback):
+        assert delay == 5
+        callbacks.append(callback)
+        return lambda: None
+
+    with patch("custom_components.versatile_thermostat.thermostat_climate.async_call_later", side_effect=capture_debounce):
+        entity._consider_underlying_temperature_candidate(under, entity.target_temperature + 2)
+        candidate_version = entity._underlying_temperature_candidates[under.entity_id]["version"]
+
+        await entity.underlying_changed(
+            under,
+            None,
+            HVACAction.HEATING,
+            None,
+            None,
+            State(under.entity_id, VThermHvacMode_HEAT, {"hvac_action": HVACAction.HEATING}),
+            State(under.entity_id, VThermHvacMode_HEAT, {"hvac_action": HVACAction.OFF}),
+        )
+
+    assert len(callbacks) == 1
+    assert entity._underlying_temperature_candidates[under.entity_id]["version"] == candidate_version
+    entity.remove_thermostat()
+
+
+async def test_underlying_tracking_budget_counts_hvac_mode_attempts(
+    hass: HomeAssistant,
+    skip_hass_states_is_state,
+    skip_turn_on_off_heater,
+    skip_send_event,
+):
+    """A tracking-induced HVAC command uses the shared physical-attempt budget."""
+    temps = {VThermPreset.FROST: 7, VThermPreset.ECO: 16, VThermPreset.COMFORT: 17, VThermPreset.BOOST: 18}
+    entry = MockConfigEntry(
+        domain=DOMAIN,
+        title="TheOverClimateMockName",
+        unique_id="uniqueId",
+        data=PARTIAL_CLIMATE_NOT_REGULATED_CONFIG,
+    )
+    await create_and_register_mock_climate(
+        hass,
+        "mock_climate",
+        "MockClimateName",
+        {},
+        hvac_mode=VThermHvacMode_OFF,
+        hvac_action=HVACAction.OFF,
+    )
+
+    entity = await create_thermostat(hass, entry, "climate.theoverclimatemockname", temps)
+    under = entity.underlying_entity(0)
+    entity._on_external_command_received()
+    entity._underlying_tracking_attempts = 2
+    with patch.object(under, "hass_services_async_call", new_callable=AsyncMock) as service_call:
+        assert await under.set_hvac_mode(VThermHvacMode_HEAT, command_cause="underlying_tracking") is True
+        assert service_call.await_count == 1
+        assert entity._underlying_tracking_attempts == 3
+        assert entity._underlying_tracking_suspended is True
+
+        last_underlying_mode = under._hvac_mode
+        assert await under.set_hvac_mode(VThermHvacMode_COOL, command_cause="underlying_tracking") is False
+        assert service_call.await_count == 1
+        assert under._hvac_mode == last_underlying_mode
+
+    entity.remove_thermostat()
+
+
+async def test_internal_intention_cancels_pending_underlying_candidate(
+    hass: HomeAssistant,
+    skip_hass_states_is_state,
+    skip_turn_on_off_heater,
+    skip_send_event,
+):
+    """An internal preset change cancels the debounce and makes its queued callback inert."""
+    temps = {VThermPreset.FROST: 7, VThermPreset.ECO: 16, VThermPreset.COMFORT: 17, VThermPreset.BOOST: 18}
+    entry = MockConfigEntry(
+        domain=DOMAIN,
+        title="TheOverClimateMockName",
+        unique_id="uniqueId",
+        data=PARTIAL_CLIMATE_NOT_REGULATED_CONFIG,
+    )
+    await create_and_register_mock_climate(
+        hass,
+        "mock_climate",
+        "MockClimateName",
+        {},
+        hvac_mode=VThermHvacMode_OFF,
+        hvac_action=HVACAction.OFF,
+    )
+
+    with patch("custom_components.versatile_thermostat.underlyings.UnderlyingClimate.set_hvac_mode"):
+        entity = await create_thermostat(hass, entry, "climate.theoverclimatemockname", temps)
+        entity.set_follow_underlying_temp_change(True)
+        await entity.async_set_hvac_mode(VThermHvacMode_HEAT)
+        under = entity.underlying_entity(0)
+
+        callbacks = []
+        cancellations = []
+
+        def capture_debounce(hass, delay, callback):
+            assert delay == 5
+            callbacks.append(callback)
+            return lambda: cancellations.append(callback)
+
+        candidate_temperature = entity.target_temperature + 3
+        with patch("custom_components.versatile_thermostat.thermostat_climate.async_call_later", side_effect=capture_debounce):
+            await send_climate_change_event_with_temperature(
+                entity,
+                VThermHvacMode_HEAT,
+                VThermHvacMode_HEAT,
+                HVACAction.OFF,
+                HVACAction.OFF,
+                datetime.now(get_tz(hass)),
+                candidate_temperature,
+                False,
+                under.entity_id,
+            )
+
+        assert under.entity_id in entity._underlying_temperature_candidates
+        await entity.async_set_preset_mode_internal(VThermPreset.ECO)
+        await entity.update_states(force=True)
+
+        assert under.entity_id not in entity._underlying_temperature_candidates
+        assert callbacks[0] in cancellations
+        await callbacks[0](None)
+        assert entity.requested_state.target_temperature != candidate_temperature
+        assert entity.requested_state.preset is VThermPreset.ECO
+
+    entity.remove_thermostat()
+
+
+async def test_auto_start_stop_preserves_underlying_tracking_cause(
+    hass: HomeAssistant,
+    skip_hass_states_is_state,
+    skip_turn_on_off_heater,
+    skip_send_event,
+):
+    """An auto-start/stop transition must not strip the internal tracking cause."""
+    temps = {VThermPreset.FROST: 7, VThermPreset.ECO: 16, VThermPreset.COMFORT: 17, VThermPreset.BOOST: 18}
+    entry = MockConfigEntry(
+        domain=DOMAIN,
+        title="TheOverClimateMockName",
+        unique_id="uniqueId",
+        data=PARTIAL_CLIMATE_NOT_REGULATED_CONFIG,
+    )
+    await create_and_register_mock_climate(
+        hass,
+        "mock_climate",
+        "MockClimateName",
+        {},
+        hvac_mode=VThermHvacMode_OFF,
+        hvac_action=HVACAction.OFF,
+    )
+
+    with patch("custom_components.versatile_thermostat.underlyings.UnderlyingClimate.set_hvac_mode"):
+        entity = await create_thermostat(hass, entry, "climate.theoverclimatemockname", temps)
+        entity.auto_start_stop_manager._is_auto_stop_detected = False
+        with (
+            patch.object(entity.auto_start_stop_manager, "refresh_state", new=AsyncMock(return_value=True)),
+            patch.object(entity, "update_states", new=AsyncMock()) as update_states,
+        ):
+            await entity.async_control_heating(_command_cause="underlying_tracking")
+
+        update_states.assert_awaited_once_with(force=True, _command_cause="underlying_tracking")
+
+    entity.remove_thermostat()
+
+
+async def test_misaligned_underlying_mode_does_not_drop_temperature_change(
+    hass: HomeAssistant,
+    skip_hass_states_is_state,
+    skip_turn_on_off_heater,
+    skip_send_event,
+):
+    """A rejected HVAC-mode update must not discard the same event's setpoint."""
+    temps = {VThermPreset.FROST: 7, VThermPreset.ECO: 16, VThermPreset.COMFORT: 17, VThermPreset.BOOST: 18}
+    entry = MockConfigEntry(
+        domain=DOMAIN,
+        title="TheOverClimateMockName",
+        unique_id="uniqueId",
+        data=PARTIAL_CLIMATE_NOT_REGULATED_CONFIG,
+    )
+    await create_and_register_mock_climate(
+        hass,
+        "mock_climate",
+        "MockClimateName",
+        {},
+        hvac_mode=VThermHvacMode_OFF,
+        hvac_action=HVACAction.OFF,
+    )
+
+    with patch("custom_components.versatile_thermostat.underlyings.UnderlyingClimate.set_hvac_mode"):
+        entity = await create_thermostat(hass, entry, "climate.theoverclimatemockname", temps)
+        entity.set_follow_underlying_temp_change(True)
+        await entity.async_set_hvac_mode(VThermHvacMode_HEAT)
+        other_underlying = entity.underlying_entity(0)
+        assert other_underlying.hvac_mode != entity.vtherm_hvac_mode
+
+        reported_underlying = MagicMock()
+        reported_underlying.entity_id = "climate.second_underlying"
+        new_state = State("climate.second_underlying", VThermHvacMode_HEAT, {"temperature": 23})
+        old_state = State("climate.second_underlying", VThermHvacMode_OFF, {"temperature": 20})
+        with patch.object(entity, "_consider_underlying_temperature_candidate") as consider_candidate:
+            await entity.underlying_changed(
+                reported_underlying,
+                VThermHvacMode_HEAT,
+                None,
+                23,
+                None,
+                new_state,
+                old_state,
+            )
+
+        assert any(candidate_call.args[1] == 23 for candidate_call in consider_candidate.call_args_list)
+        assert entity.requested_state.hvac_mode is VThermHvacMode_HEAT
 
     entity.remove_thermostat()
 
@@ -494,6 +868,18 @@ async def test_underlying_change_not_follow(
         # because check_initial_state turns off the under
         assert entity.hvac_action is HVACAction.HEATING
         assert entity.target_temperature == 15
+        await send_climate_change_event_with_temperature(
+            entity,
+            VThermHvacMode_HEAT,
+            VThermHvacMode_HEAT,
+            HVACAction.OFF,
+            HVACAction.OFF,
+            now + timedelta(seconds=11),
+            21,
+            False,
+            "climate.mock_climate",  # the underlying climate entity id
+        )
+        assert entity.target_temperature == entity.min_temp
         assert entity.preset_mode is VThermPreset.NONE
 
         # default value
@@ -884,7 +1270,7 @@ async def test_ignore_temp_outside_minmax_range(
         assert mock_underlying_set_hvac_mode.call_count >= 1
         mock_underlying_set_hvac_mode.assert_has_calls(
             [
-                call.set_hvac_mode(VThermHvacMode_OFF),
+                call.set_hvac_mode(VThermHvacMode_OFF, command_cause=None),
             ]
         )
 

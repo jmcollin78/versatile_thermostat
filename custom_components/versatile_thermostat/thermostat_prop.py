@@ -238,9 +238,18 @@ class ThermostatProp(BaseThermostat[T], Generic[T]):
         if self._algo_handler:
             await self._algo_handler.control_heating(timestamp, force)
 
-    async def update_states(self, force=False):
+    async def update_states(
+        self,
+        force=False,
+        _command_cause: str | None = None,
+        _preserve_underlying_temperature_candidates: bool = False,
+    ):
         """Update states and delegate to handler."""
-        changed = await super().update_states(force)
+        changed = await super().update_states(
+            force,
+            _command_cause,
+            _preserve_underlying_temperature_candidates,
+        )
         if self._algo_handler:
             # External proportional plugins may need to react to temperature
             # crossings even when VT logical state did not change.

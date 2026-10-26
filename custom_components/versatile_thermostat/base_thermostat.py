@@ -1616,12 +1616,15 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
 
     @overrides
     @check_lock
-    async def async_set_hvac_mode(self, hvac_mode: VThermHvacMode):  # , need_control_heating=True):
+    async def async_set_hvac_mode(self, hvac_mode: VThermHvacMode, *, _external_command: bool = True):  # , need_control_heating=True):
         """Set new target hvac mode. Uses the HA VThermHvacMode enum to respect the original type."""
         write_event_log(_LOGGER, self, f"Set hvac mode: {hvac_mode}")
 
         if hvac_mode is None:
             return
+
+        if _external_command:
+            self._on_external_command_received()
 
         # Change the requested state
         self._state_manager.requested_state.set_hvac_mode(hvac_mode)
@@ -1664,6 +1667,8 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
         # Validate before cancelling: an unsupported preset must leave the manual override untouched
         self._check_preset_mode(vtherm_preset_mode)
 
+        self._on_external_command_received()
+
         # A preset selected during a manual override cancels it: the selected preset applies
         self._timed_preset_manager.cancel_manual_override_without_revert(vtherm_preset_mode)
 
@@ -1685,13 +1690,18 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
 
     async def async_set_fan_mode(self, fan_mode: str):
         """Set new target fan mode."""
+        self._on_external_command_received()
         _LOGGER.info("%s - Set fan mode: %s", self, fan_mode)
         return
 
     async def async_set_humidity(self, humidity: int):
         """Set new target humidity."""
+        self._on_external_command_received()
         write_event_log(_LOGGER, self, f"Set humidity: {humidity}")
         return
+
+    def _on_external_command_received(self):
+        """Hook called for a valid command received through a public climate method."""
 
     @check_lock
     async def async_set_temperature(self, **kwargs):
@@ -1700,6 +1710,8 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
         write_event_log(_LOGGER, self, f"Set target temp: {temperature}")
         if temperature is None:
             return
+
+        self._on_external_command_received()
 
         # The previous preset must be read before the requested state is changed
         previous_preset = self._state_manager.requested_state.preset
@@ -1729,6 +1741,7 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
         write_event_log(_LOGGER, self, f"Calling SERVICE_SET_PRESET_TEMPERATURE, preset: {preset}, temperature: {temperature}, temperature_away: {temperature_away}")
 
         if preset in self._presets:
+            self._on_external_command_received()
             if temperature is not None:
                 self._presets[preset] = temperature
             if self._presence_manager.is_configured and temperature_away is not None:
@@ -1765,11 +1778,21 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
     ##
     ## Calculation and utility functions
     ##
-    async def update_states(self, force=False):
+    async def update_states(
+        self,
+        force=False,
+        _command_cause: str | None = None,
+        _preserve_underlying_temperature_candidates: bool = False,
+    ):
         """Update the states of the thermostat considering the requested state and the current state"""
         if not self.is_ready:
             _LOGGER.debug("%s - update_states is called but the entity is not initialized yet. Skip the update", self)
             return False
+
+        if _command_cause != COMMAND_CAUSE_UNDERLYING_TRACKING and not _preserve_underlying_temperature_candidates and self._state_manager.requested_state.is_changed:
+            cancel_candidates = getattr(self, "_cancel_all_underlying_temperature_candidates", None)
+            if callable(cancel_candidates):
+                cancel_candidates()
 
         changed = False
         if self._state_manager.requested_state.is_changed:
@@ -1799,7 +1822,11 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
                     _LOGGER.info("%s - Applying new hvac mode: %s", self, self.vtherm_hvac_mode)
                     # Delegate to all underlying
                     for under in self._underlyings:
-                        sub_need_control_heating = await under.set_hvac_mode(self.vtherm_hvac_mode) or sub_need_control_heating
+                        set_mode_result = await under.set_hvac_mode(
+                            self.vtherm_hvac_mode,
+                            command_cause=_command_cause,
+                        )
+                        sub_need_control_heating = set_mode_result or sub_need_control_heating
                     self._attr_hvac_mode = to_legacy_ha_hvac_mode(self.vtherm_hvac_mode)
                     self.send_event(EventType.HVAC_MODE_EVENT, {"hvac_mode": str(self.vtherm_hvac_mode)})
                     # Remove eventual overpowering if we want to turn-off
@@ -1811,7 +1838,10 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
                     force = force or transition_force
                     self.recalculate(force=force)
                     self.reset_last_change_time_from_vtherm()
-                    await self.async_control_heating(force=force or sub_need_control_heating)
+                    await self.async_control_heating(
+                        force=force or sub_need_control_heating,
+                        _command_cause=_command_cause,
+                    )
 
             self.calculate_hvac_action()
             self.update_custom_attributes()
@@ -1824,7 +1854,7 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
 
         return changed
 
-    async def async_control_heating(self, timestamp=None, force=False) -> bool:
+    async def async_control_heating(self, timestamp=None, force=False, _command_cause: str | None = None) -> bool:
         """The main function used to run the calculation at each cycle
         Returns True if the cycle was successfully calculated, False otherwise."""
 
@@ -2548,6 +2578,8 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
         if duration_minutes <= 0:
             raise ServiceValidationError(f"{self} - The duration must be a positive number, got {duration_minutes}")
 
+        self._on_external_command_received()
+
         # Set the timed preset
         success = await self._timed_preset_manager.set_timed_preset(preset_enum, duration_minutes)
         if not success:
@@ -2563,6 +2595,8 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
         """
         if self.lock_manager.check_is_locked("service_cancel_timed_preset"):
             return
+
+        self._on_external_command_received()
 
         write_event_log(_LOGGER, self, "Calling SERVICE_CANCEL_TIMED_PRESET")
 

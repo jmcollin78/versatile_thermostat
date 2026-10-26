@@ -46,6 +46,7 @@ class FeatureTimedPresetManager(BaseFeatureManager):
         self._original_preset: VThermPreset | None = None
         self._timed_preset_end_time: datetime | None = None
         self._cancel_timer: Any | None = None
+        self._expiration_paused: bool = False
         self._manual_override_duration_min: int = 0
         # Manual override: a timed preset of NONE started by a manual temperature change
         self._is_manual_override: bool = False
@@ -134,6 +135,9 @@ class FeatureTimedPresetManager(BaseFeatureManager):
 
         if not self._is_timed_preset_active:
             return False
+
+        if self._expiration_paused:
+            return True
 
         # Check if the timer has expired (safety check in case timer callback failed)
         if self._timed_preset_end_time and self._vtherm.now >= self._timed_preset_end_time:
@@ -265,10 +269,35 @@ class FeatureTimedPresetManager(BaseFeatureManager):
         return True
 
     @callback
-    async def _async_timed_preset_expired(self, _: datetime):
+    async def _async_timed_preset_expired(self, expiration: datetime):
         """Called when the timed preset timer expires."""
+        if self._expiration_paused or expiration != self._timed_preset_end_time:
+            return
         _LOGGER.debug("%s - timed preset timer expired", self)
         await self._end_timed_preset()
+
+    def pause_expiration(self):
+        """Pause expiration while a valid underlying setpoint candidate is debounced."""
+        if not self._is_timed_preset_active or self._expiration_paused:
+            return
+        self._cancel_timed_preset_timer()
+        self._expiration_paused = True
+
+    def resume_expiration(self):
+        """Resume a paused timed preset if its underlying candidate was not adopted."""
+        if not self._expiration_paused:
+            return
+        self._expiration_paused = False
+        if not self._is_timed_preset_active or self._timed_preset_end_time is None:
+            return
+        if self._timed_preset_end_time > self._vtherm.now:
+            self._cancel_timer = async_track_point_in_time(
+                self._hass,
+                self._async_timed_preset_expired,
+                self._timed_preset_end_time,
+            )
+        else:
+            self._hass.async_create_task(self._async_timed_preset_expired(self._timed_preset_end_time))
 
     async def _end_timed_preset(self, cancelled: bool = False):
         """End the timed preset and restore the original preset.
@@ -361,6 +390,28 @@ class FeatureTimedPresetManager(BaseFeatureManager):
         self._vtherm.update_custom_attributes()
         self._vtherm.async_write_ha_state()
 
+    def cancel_without_revert(self):
+        """Cancel a timed preset without restoring its previous preset."""
+        if not self._is_timed_preset_active:
+            return
+
+        old_preset = self._timed_preset
+        was_manual_override = self._is_manual_override
+        self._cancel_timed_preset_timer()
+        self._reset_state()
+        write_event_log(_LOGGER, self._vtherm, f"Timed preset ended: {old_preset} (cancelled by underlying setpoint)")
+        self._vtherm.send_event(
+            event_type=EventType.TIMED_PRESET_EVENT,
+            data={
+                "type": "end",
+                "name": self.name,
+                "preset": str(old_preset),
+                "cause": "underlying_setpoint",
+                "restored_preset": str(VThermPreset.NONE),
+                "manual_override": was_manual_override,
+            },
+        )
+
     def _reset_state(self):
         """Reset the timed preset and manual override state"""
         self._is_timed_preset_active = False
@@ -370,6 +421,7 @@ class FeatureTimedPresetManager(BaseFeatureManager):
         self._is_manual_override = False
         self._resume_preset = None
         self._resume_end_time = None
+        self._expiration_paused = False
 
     def _cancel_timed_preset_timer(self):
         """Cancel the timed preset timer if active."""

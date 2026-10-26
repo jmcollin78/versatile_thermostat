@@ -290,6 +290,8 @@ HVAC_OFF_REASONS = Literal[  # pylint: disable=invalid-name
 # The hvac_mode_reason set when the auto-start/stop feature applies a non-off stop mode
 HVAC_MODE_REASON_AUTO_START_STOP_FAN_ONLY = "hvac_fan_only_auto_start_stop"
 HVAC_MODE_REASON_AUTO_START_STOP_DRY = "hvac_dry_auto_start_stop"
+# Internal cause for commands issued while following an underlying setpoint.
+COMMAND_CAUSE_UNDERLYING_TRACKING = "underlying_tracking"
 # Maps the stop mode applied by the auto-start/stop feature to the related hvac_mode_reason
 AUTO_START_STOP_HVAC_MODE_REASONS = {
     AUTO_START_STOP_STOP_MODE_FAN_ONLY: HVAC_MODE_REASON_AUTO_START_STOP_FAN_ONLY,

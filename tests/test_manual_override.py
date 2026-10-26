@@ -540,8 +540,8 @@ async def test_override_expires_during_window_open(hass: HomeAssistant, skip_has
 
 @pytest.mark.parametrize("expected_lingering_tasks", [True])
 @pytest.mark.parametrize("expected_lingering_timers", [True])
-async def test_over_climate_follow_underlying_starts_override_and_echo_ignored(hass: HomeAssistant, skip_hass_states_is_state, skip_turn_on_off_heater, skip_send_event):
-    """Review focus 4: a TRV setpoint change starts the override, the TRV echo after the revert does not start a new one"""
+async def test_over_climate_follow_underlying_cancels_override_and_preserves_off(hass: HomeAssistant, skip_hass_states_is_state, skip_turn_on_off_heater, skip_send_event):
+    """A TRV gesture becomes manual without an override and does not cancel OFF."""
     temps = {VThermPreset.FROST: 7, VThermPreset.ECO: 16, VThermPreset.COMFORT: 17, VThermPreset.BOOST: 18}
     entry = MockConfigEntry(
         domain=DOMAIN,
@@ -549,7 +549,7 @@ async def test_over_climate_follow_underlying_starts_override_and_echo_ignored(h
         unique_id="uniqueId",
         data=PARTIAL_CLIMATE_NOT_REGULATED_CONFIG | OVERRIDE_60,
     )
-    await create_and_register_mock_climate(hass, "mock_climate", "MockClimateName", {}, hvac_mode=VThermHvacMode_HEAT, hvac_action=HVACAction.OFF)
+    await create_and_register_mock_climate(hass, "mock_climate", "MockClimateName", {}, hvac_mode=VThermHvacMode_OFF, hvac_action=HVACAction.OFF)
 
     with patch("custom_components.versatile_thermostat.underlyings.UnderlyingClimate.set_hvac_mode"):
         entity = await create_thermostat(hass, entry, "climate.theoverclimatemockname", temps)
@@ -561,40 +561,46 @@ async def test_over_climate_follow_underlying_starts_override_and_echo_ignored(h
         await entity.async_set_preset_mode(VThermPreset.COMFORT)
         assert entity.target_temperature == 17
 
-        # The TRV acknowledges the heat mode and the comfort setpoint (inside the echo filter, ignored)
-        await send_climate_change_event_with_temperature(
-            entity, VThermHvacMode_HEAT, VThermHvacMode_HEAT, HVACAction.OFF, HVACAction.OFF, NOW_TZ, 17, True, "climate.mock_climate"
-        )
-        assert entity.preset_mode == VThermPreset.COMFORT
-
-        # The TRV knob is turned 11 s later (outside the echo filter)
-        await send_climate_change_event_with_temperature(
-            entity, VThermHvacMode_HEAT, VThermHvacMode_HEAT, HVACAction.OFF, HVACAction.OFF, NOW_TZ + timedelta(seconds=11), 21, True, "climate.mock_climate"
-        )
-        assert entity.target_temperature == 21
-        assert entity.preset_mode == VThermPreset.NONE
+        await entity.async_set_temperature(temperature=22)
         assert entity.timed_preset_manager.is_manual_override is True
+        await entity.async_set_hvac_mode(VThermHvacMode_OFF)
+        assert entity.requested_state.hvac_mode == VThermHvacMode_OFF
+        assert entity.timed_preset_manager.is_timed_preset_active is True
 
-        # The override expires: back to comfort, the setpoint is sent to the TRV
-        await expire_override(entity, 61)
-        assert entity.preset_mode == VThermPreset.COMFORT
-        assert entity.target_temperature == 17
+        pending_callbacks = []
 
-        # The TRV still reports its previous manual setpoint (21, far from the 17 just sent) within the echo
-        # filter window: it differs from the last sent setpoint so only the filter prevents a new override
-        await send_climate_change_event_with_temperature(
-            entity, VThermHvacMode_HEAT, VThermHvacMode_HEAT, HVACAction.OFF, HVACAction.OFF, NOW_TZ + timedelta(minutes=61, seconds=2), 21, True, "climate.mock_climate"
-        )
-        assert entity.preset_mode == VThermPreset.COMFORT
+        def capture_debounce(hass, delay, callback):
+            assert delay == 5
+            pending_callbacks.append(callback)
+            return lambda: None
+
+        with patch("custom_components.versatile_thermostat.thermostat_climate.async_call_later", side_effect=capture_debounce):
+            await send_climate_change_event_with_temperature(
+                entity,
+                VThermHvacMode_OFF,
+                VThermHvacMode_OFF,
+                HVACAction.OFF,
+                HVACAction.OFF,
+                NOW_TZ,
+                21,
+                False,
+                "climate.mock_climate",
+            )
+        assert entity.requested_state.hvac_mode == VThermHvacMode_OFF
+        assert entity.requested_state.target_temperature == 22
+        assert len(pending_callbacks) == 1
+        assert entity.timed_preset_manager._expiration_paused is True
+        await entity.timed_preset_manager._async_timed_preset_expired(entity.timed_preset_manager._timed_preset_end_time)
+        assert entity.timed_preset_manager.is_timed_preset_active is True
+
+        hass.states.async_set("climate.mock_climate", VThermHvacMode_OFF, {"temperature": 21})
+        await pending_callbacks[0](None)
+
+        assert entity.requested_state.hvac_mode == VThermHvacMode_OFF
+        assert entity.requested_state.target_temperature == 21
+        assert entity.preset_mode == VThermPreset.NONE
         assert entity.timed_preset_manager.is_timed_preset_active is False
-
-        # Control case: the same 21 setpoint report arriving after the echo filter window is taken
-        # as a manual change and starts an override, so only the filter prevented it above
-        await send_climate_change_event_with_temperature(
-            entity, VThermHvacMode_HEAT, VThermHvacMode_HEAT, HVACAction.OFF, HVACAction.OFF, NOW_TZ + timedelta(minutes=61, seconds=20), 21, True, "climate.mock_climate"
-        )
-        assert entity.preset_mode == VThermPreset.NONE
-        assert entity.timed_preset_manager.is_manual_override is True
+        assert entity.requested_state.hvac_mode == VThermHvacMode_OFF
 
     entity.remove_thermostat()
 
