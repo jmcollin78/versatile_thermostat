@@ -585,6 +585,7 @@ async def test_underlying_action_change_keeps_pending_temperature_candidate(
     skip_send_event,
 ):
     """A TRV change is tracked before any VTherm send; hvac_action does not cancel it."""
+
     temps = {VThermPreset.FROST: 7, VThermPreset.ECO: 16, VThermPreset.COMFORT: 17, VThermPreset.BOOST: 18}
     entry = MockConfigEntry(
         domain=DOMAIN,
