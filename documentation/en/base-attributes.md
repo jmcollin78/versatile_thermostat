@@ -1,5 +1,5 @@
 - [Choosing Basic Attributes](#choosing-basic-attributes)
-- [Choosing the features to Use](#choosing-the-features-to-use)
+  - [Choosing the features to Use](#choosing-the-features-to-use)
 
 # Choosing Basic Attributes
 
@@ -19,7 +19,7 @@ Select the "Main Attributes" menu.
 | **Central Boiler Trigger** | Checkbox to use this VTherm as a central boiler trigger. | `is_used_by_central_boiler` |
 
 
-# Choosing the features to Use
+## Choosing the features to Use
 
 Select the "Features" menu.
 

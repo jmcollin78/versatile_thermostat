@@ -1,6 +1,6 @@
-# Le contrôle d'une chaudière centrale# Controlling a Central Boiler
+# Controlling a Central Boiler
 
-- [Le contrôle d'une chaudière centrale# Controlling a Central Boiler](#le-contrôle-dune-chaudière-centrale-controlling-a-central-boiler)
+- [Controlling a Central Boiler](#controlling-a-central-boiler)
   - [Principle](#principle)
     - [Active power calculation](#active-power-calculation)
   - [Configuration](#configuration)

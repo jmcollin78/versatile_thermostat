@@ -12,7 +12,7 @@ The `over_climate` type allows you to add all the features offered by VersatileT
 
 Installations with a pilot wire and activation diode benefit from an option that allows inverting the on/off control of the underlying radiator. To do this, use the `over_switch` type and check the "Invert command" option.
 
-# Why a New Thermostat Implementation?
+## Why a New Thermostat Implementation?
 
 This component, called __Versatile Thermostat__, manages the following use cases:
 - Configuration via the standard integration graphical interface (using the Config Entry flow),
@@ -31,7 +31,7 @@ This component, called __Versatile Thermostat__, manages the following use cases
 
 All these functions are configurable either centrally or individually depending on your needs.
 
-# Equipment
+## Equipment
 
 To operate _VTherm_, you will need some hardware. The list below is not exhaustive but includes the most commonly used devices that are fully compatible with Home Assistant and _VTherm_. These are affiliate links to the partner store [Domadoo](https://www.domadoo.fr/en/?domid=97), which allows me to receive a small percentage if you purchase through these links. Ordering from [Domadoo](https://www.domadoo.fr/en/?domid=97) gives you competitive prices, a return guarantee, and a very short delivery time comparable to other major online retailers. Their 4.8/5 rating speaks for itself.
 
@@ -39,7 +39,7 @@ The full list of devices tested with _VTherm_, with their support level and conf
 
 ⭐ : The most used and therefore the best choice.
 
-## Thermometers
+### Thermometers
 
 Some thermometers are listed in the [device catalog](https://www.versatile-thermostat.org/en/devices/?type=sensor). Any temperature sensor available in Home Assistant can be used, even if it is not listed.
 
@@ -49,7 +49,7 @@ Essential in a _VTherm_ setup, an externalized temperature measurement device pl
 - [ Neo Tuya Zigbee](https://www.domadoo.fr/en/produits-compatibles-jeedom/7564-neo-capteur-de-temperature-et-humidite-zigbee-30-tuya.html?domid=97)
 - [ Moes Tuya Zigbee](https://www.domadoo.fr/en/domotique/6667-moes-capteur-de-temperature-et-humidite-avec-ecran-zigbee-tuya.html?domid=97)
 
-## Switches
+### Switches
 
 See all the electric heating devices in the [device catalog](https://www.versatile-thermostat.org/en/devices/?type=electric).
 
@@ -60,7 +60,7 @@ To directly control an electric heater. Usable with _VTherm_ [`over_switch`](ove
 - [Sonoff 4-channel Wifi](https://www.domadoo.fr/en/peripheriques/5279-sonoff-commutateur-intelligent-wifi-433-mhz-4-canaux-6920075775815.html?domid=97)
 - [Smart plug for small heating equipment Zigbee](https://www.domadoo.fr/en/peripheriques/5880-sonoff-prise-intelligente-16a-zigbee-30-version-fr.html?domid=97)
 
-## Pilot wire switches
+### Pilot wire switches
 
 See the [pilot wire modules page](https://www.versatile-thermostat.org/en/devices/pilot-wire-module/) of the device catalog.
 
@@ -69,7 +69,7 @@ To directly control an electric heater equipped with a pilot wire. Usable with _
 - [⭐ Nodon SIN-4-1-21 Zigbee](https://www.domadoo.fr/en/chauffage-connecte/6828-nodon-module-chauffage-fil-pilote-connecte-zigbee-30.html?domid=97)
 - [⭐ 4 x Nodon SIN-4-1-21 Zigbee](https://www.domadoo.fr/en/chauffage-connecte/7050-nodon-pack-4x-modules-chauffage-fil-pilote-connecte-zigbee-30.html?domid=97)
 
-## Thermostatic valves
+### Thermostatic valves
 
 See all the thermostatic valves (TRV) in the [device catalog](https://www.versatile-thermostat.org/en/devices/?type=trv).
 
@@ -81,7 +81,7 @@ To control a water radiator. Works with a _VTherm_ [`over_valve`](over-valve.md)
 - [Schneider Wiser TRV Zigbee](https://www.domadoo.fr/en/controle-chauffage-clim/5497-schneider-electric-tete-de-vanne-thermostatique-connectee-zigbee-3606489582821.html?domid=97) with [`over_climate` (without direct valve control)](over-climate.md#thermostat-de-type-over_climate)
 - Avatto TRV06 Zigbee (Zigbee2MQTT) with [`over_climate` (without direct valve control)](over-climate.md) and [self-regulation](self-regulation.md)
 
-## Incompatibilities
+### Incompatibilities
 
 The [device catalog](https://www.versatile-thermostat.org/en/devices/?state=unsupported) lists the incompatible devices, and also the [partially supported devices](https://www.versatile-thermostat.org/en/devices/?state=partially) with their known limitations.
 

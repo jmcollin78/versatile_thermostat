@@ -9,8 +9,8 @@ Auf dieser Seite werden die Schritte zur schnellen Einrichtung eines einfachen, 
   - [Sonoff TRVZB oder ähnlich (TRV mit Ventilsteuerung)](#sonoff-trvzb-oder-ähnlich-trv-mit-ventilsteuerung)
   - [Einfaches TRV wie Avatto TRV06, Moes, Tuya... (TRV ohne Ventilsteuerung)](#einfaches-trv-wie-avatto-trv06-moes-tuya-trv-ohne-ventilsteuerung)
   - [Reversible Wärmepumpen, Klimaanlagen oder Geräte, die über eine `climate`-Entity gesteuert werden](#reversible-wärmepumpen-klimaanlagen-oder-geräte-die-über-eine-climate-entity-gesteuert-werden)
-- [Nächste Schritte](#nächste-schritte)
-- [Aufruf zu Beiträgen](#aufruf-zu-beiträgen)
+  - [Nächste Schritte](#nächste-schritte)
+  - [Aufruf zu Beiträgen](#aufruf-zu-beiträgen)
 
 ## Nodon SIN-4-FP-21 oder ähnlich (Pilotdraht)
 
@@ -114,7 +114,7 @@ Nach diesen drei Schritten haben Sie ein voll funktionsfähiges _VTherm_ zur Ste
 
 Um noch weiter zu gehen, kann eine Selbstregulierung erforderlich sein, je nachdem, wie gut Ihr Gerät funktioniert. Bei der Selbstregulierung passt _VTherm_ die Solltemperatur geringfügig an, um das Gerät zu veranlassen, mehr oder weniger zu heizen oder zu kühlen, bis der gewünschte Sollwert erreicht ist. Die Selbstregulierung wird hier im Detail erklärt: [Selbstregulierung](self-regulation.md).
 
-# Nächste Schritte
+## Nächste Schritte
 
 Nach der Erstellung müssen Sie die voreingestellten Temperaturen konfigurieren. Siehe [Voreinstellungen](feature-presets.md) für eine minimale Konfiguration.
 Sie können auch (optional, aber empfohlen) die spezielle UI-Karte für Ihre Dashboards installieren. (Siehe [VTHerm UI Card](https://www.versatile-thermostat.org/de/plugins/#jmcollin78/versatile-thermostat-ui-card)) Weitere Karten sind im [Plugin-Katalog](https://www.versatile-thermostat.org/de/plugins/?family=interface) aufgeführt.
@@ -123,6 +123,6 @@ Sobald diese minimale Einrichtung funktioniert - und nur dann, wenn sie korrekt 
 
 Sie können dann zentrale Konfigurationen einrichten, um Einstellungen für alle _VTherm_-Instanzen gemeinsam zu nutzen. Den Zentralmodus für die einheitliche Steuerung aller _VTherms_ aktivieren ([zentrale Konfiguration](feature-central-mode.md)) oder eine zentrale Kesselsteuerung integrieren ([Zentralheizung](feature-central-boiler.md)). Diese Liste ist nicht vollständig - eine vollständige Liste der _VTherm_-Funktionen finden Sie im Inhaltsverzeichnis.
 
-# Aufruf zu Beiträgen
+## Aufruf zu Beiträgen
 
 Diese Seite ist offen für Beiträge. Fühlen Sie sich frei, zusätzliche Ausrüstung und minimale Konfigurationseinstellungen vorzuschlagen.

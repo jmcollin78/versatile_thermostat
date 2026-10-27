@@ -12,7 +12,7 @@ Le type `over_climate` vous permet d'ajouter à votre équipement existant toute
 
 Les installations avec fil pilote et diode d'activation bénéficie d'une option qui permet d'inverser la commande on/off du radiateur sous-jacent. Pour cela, utilisez le type `over switch` et cochez l'option d'inversion de la commande.
 
-# Pourquoi une nouvelle implémentation du thermostat ?
+## Pourquoi une nouvelle implémentation du thermostat ?
 
 Ce composant nommé __Versatile thermostat__ gère les cas d'utilisation suivants :
 - Configuration via l'interface graphique d'intégration standard (à l'aide du flux Config Entry),
@@ -31,7 +31,7 @@ Ce composant nommé __Versatile thermostat__ gère les cas d'utilisation suivant
 
 Toutes ces fonctions sont configurables de façon centralisée ou individuelle en fonction de vos besoins.
 
-# Materiels
+## Materiels
 
 Pour faire fonctionner _VTherm_ vous aurez besoin de matériels. La liste ci-dessous est non exhaustive mais contient les matériels les plus utilisés qui sont totalement compatibles avec Home Assistant et _VTherm_. Il s'agit de liens affiliés vers la boutique partenaire [Domadoo](https://www.domadoo.fr/fr/?domid=97), ce qui me permet de profiter d'un petit pourcentage si vous passez par ces liens pour acheter. Commander avec [Domadoo](https://www.domadoo.fr/fr/?domid=97) vous permettra d'avoir des prix compétitifs, une garantie de retour et un délai de livraison très court comparable à d'autres grandes enseignes en ligne. Leur note de 4,8/5 est là pour en témoigner.
 
@@ -39,7 +39,7 @@ La liste complète des matériels testés avec _VTherm_, avec leur niveau de sup
 
 ⭐ : le plus utilisé et donc le meilleur choix.
 
-## Thermomètres
+### Thermomètres
 
 Quelques thermomètres sont listés dans le [catalogue des matériels](https://www.versatile-thermostat.org/fr/devices/?type=sensor). N'importe quel capteur de température disponible dans Home Assistant peut être utilisé, même s'il n'y figure pas.
 
@@ -48,7 +48,7 @@ Indispensables dans une installation _VTherm_ une mesure de température externa
 - [⭐ Sonoff SNZB Zigbee](https://www.domadoo.fr/fr/suivi-energie/6614-sonoff-capteur-de-temperature-et-d-humidite-zigbee-30-avec-ecran-6920075740004.html?domid=97)
 - [ Neo Tuya Wifi](https://www.domadoo.fr/fr/produits-compatibles-jeedom/7564-neo-capteur-de-temperature-et-humidite-zigbee-30-tuya.html?domid=97)
 
-## Commutateurs (switchs)
+### Commutateurs (switchs)
 
 Retrouvez tous les équipements de chauffage électrique dans le [catalogue des matériels](https://www.versatile-thermostat.org/fr/devices/?type=electric).
 
@@ -59,7 +59,7 @@ Pour commander un radiateur électrique directement. Utilisable avec les _VTherm
 - [Sonoff 4 canaux Wifi](https://www.domadoo.fr/fr/peripheriques/5279-sonoff-commutateur-intelligent-wifi-433-mhz-4-canaux-6920075775815.html?domid=97)
 - [Prise intelligente pour petit équipements de chauffage Zigbee](https://www.domadoo.fr/fr/peripheriques/5880-sonoff-prise-intelligente-16a-zigbee-30-version-fr.html?domid=97)
 
-## Switchs avec fil pilote
+### Switchs avec fil pilote
 
 Voir la [page des modules fil pilote](https://www.versatile-thermostat.org/fr/devices/pilot-wire-module/) du catalogue des matériels.
 
@@ -69,7 +69,7 @@ Pour commander un radiateur électrique équipé d'un fil pilote directement. Ut
 - [⭐ 4 x Nodon SIN-4-1-21 Zigbee](https://www.domadoo.fr/fr/chauffage-connecte/7050-nodon-pack-4x-modules-chauffage-fil-pilote-connecte-zigbee-30.html?domid=97)
 
 
-## Vannes thermostatiques
+### Vannes thermostatiques
 
 Retrouvez toutes les vannes thermostatiques (TRV) dans le [catalogue des matériels](https://www.versatile-thermostat.org/fr/devices/?type=trv).
 
@@ -81,7 +81,7 @@ Pour contrôler un radiateur à eau. Fonctionne avec un _VTherm_ [`over_valve`](
 - [Schneider Wiser TRV Zigbee](https://www.domadoo.fr/fr/controle-chauffage-clim/5497-schneider-electric-tete-de-vanne-thermostatique-connectee-zigbee-3606489582821.html?domid=97) avec [`over_climate` (sans contrôle direct de la vanne)](over-climate.md#thermostat-de-type-over_climate)
 - Avatto TRV06 Zigbee (Zigbee2MQTT) avec [`over_climate` (sans contrôle direct de la vanne)](over-climate.md) et [l'auto-régulation](self-regulation.md)
 
-## Incompatibilités
+### Incompatibilités
 
 Le [catalogue des matériels](https://www.versatile-thermostat.org/fr/devices/?state=unsupported) liste les matériels incompatibles, ainsi que les [matériels partiellement supportés](https://www.versatile-thermostat.org/fr/devices/?state=partially) avec leurs limitations connues.
 

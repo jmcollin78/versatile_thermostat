@@ -9,8 +9,8 @@ This page outlines the steps to quickly set up a basic yet operational _VTherm_.
   - [Sonoff TRVZB or similar (TRV with valve control)](#sonoff-trvzb-or-similar-trv-with-valve-control)
   - [Simple TRV such as Avatto TRV06, Moes, Tuya... (TRV without valve control)](#simple-trv-such-as-avatto-trv06-moes-tuya-trv-without-valve-control)
   - [Reversible HP Units, Air Conditioning, or Devices Controlled via a `climate` Entity](#reversible-hp-units-air-conditioning-or-devices-controlled-via-a-climate-entity)
-- [Next Steps](#next-steps)
-- [Call for Contributions](#call-for-contributions)
+  - [Next Steps](#next-steps)
+  - [Call for Contributions](#call-for-contributions)
 
 ## Nodon SIN-4-FP-21 or similar (pilot wire)
 
@@ -114,7 +114,7 @@ After these three steps, you will have a fully operational _VTherm_ to control y
 
 To go further, self-regulation may be necessary depending on how well your device operates. Self-regulation involves _VTherm_ slightly adjusting the target temperature to encourage the device to heat or cool more or less until the desired setpoint is reached. Self-regulation is explained in detail here: [self-regulation](self-regulation.md).
 
-# Next Steps
+## Next Steps
 
 Once created, you need to configure the preset temperatures. See [presets](feature-presets.md) for a minimal configuration.
 You can also (optional but recommended) install the dedicated UI card for your dashboards. (See [VTHerm UI Card](https://www.versatile-thermostat.org/en/plugins/#jmcollin78/versatile-thermostat-ui-card)) Other cards are listed in the [plugins catalog](https://www.versatile-thermostat.org/en/plugins/?family=interface).
@@ -123,6 +123,6 @@ Once this minimal setup is functional—and only once it works correctly—you c
 
 You can then set up centralized configurations to share settings across all _VTherm_ instances, enable central mode for unified control of all _VTherms_ ([centralized configuration](feature-central-mode.md)), or integrate a central boiler control ([central boiler](feature-central-boiler.md)). This is not an exhaustive list—please refer to the table of contents for a complete list of _VTherm_ features.
 
-# Call for Contributions
+## Call for Contributions
 
 This page is open for contributions. Feel free to suggest additional equipment and minimal configuration setups.

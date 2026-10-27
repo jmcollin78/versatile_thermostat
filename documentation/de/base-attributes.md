@@ -1,5 +1,5 @@
 - [Auswahl der grundlegenden Attribute](#auswahl-der-grundlegenden-attribute)
-- [Auswahl der zu verwendenden Eigenschaften](#auswahl-der-zu-verwendenden-eigenschaften)
+  - [Auswahl der zu verwendenden Eigenschaften](#auswahl-der-zu-verwendenden-eigenschaften)
 
 # Auswahl der grundlegenden Attribute
 
@@ -19,7 +19,7 @@ Wählen Sie das Menü "Hauptmerkmale".
 | **Zentraler Heizkessel-Trigger** | Aktivierungsfeld, um dieses VTherm als Trigger für zentralen Heizkessel zu verwenden. | `is_used_by_central_boiler` |
 
 
-# Auswahl der zu verwendenden Eigenschaften
+## Auswahl der zu verwendenden Eigenschaften
 
 Wählen Sie das Menü "Eigenschaften".
 

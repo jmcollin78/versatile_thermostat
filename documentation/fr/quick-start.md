@@ -9,8 +9,8 @@ Cette page présente les étapes à suivre pour avoir un _VTherm_ basique mais o
   - [Sonoff TRVZB ou assimilé (TRV avec contrôle de la vanne)](#sonoff-trvzb-ou-assimilé-trv-avec-contrôle-de-la-vanne)
   - [Simple TRV comme Avatto TRV06, Moes, Tuya... (TRV sans contrôle de la vanne)](#simple-trv-comme-avatto-trv06-moes-tuya-trv-sans-contrôle-de-la-vanne)
   - [_PAC_ reversibles ou climatisation ou équipements commandables à travers une entité `climate`](#pac-reversibles-ou-climatisation-ou-équipements-commandables-à-travers-une-entité-climate)
-- [La suite](#la-suite)
-- [Appel à contribution](#appel-à-contribution)
+  - [La suite](#la-suite)
+  - [Appel à contribution](#appel-à-contribution)
 
 
 ## Nodon SIN-4-FP-21 ou assimilé (fil pilote)
@@ -113,7 +113,7 @@ Pour l'intégrer dans _VTherm_ vous devez :
 
 A l'issue de ces 3 étapes vous avez un _VTherm_ opérationnel ultra simple qui commande votre _PAC_, climatisation ou assimilé. Pour aller plus loin, une auto-régulation peut êrte nécessaire en fonction du bon fonctionnement de votre équipement. L'auto-régulation consiste à envoyer des consignes légèrement modifiées par _VTherm_ pour forcer l'équipement à chauffer plus ou moins jusqu'à ce que la consigne soit atteinte. L'auto-régulation est détaillée ici : [auto-régulation](self-regulation.md).
 
-# La suite
+## La suite
 
 Une fois créé, vous devez paramétrer les températures des presets. Cf. [presets](feature-presets.md) pour avoir une configuration minimale.
 Vous pouvez aussi (facultatif mais conseillé) installer la carte dédiée pour vos dashboard. (Cf. [VTHerm UI Card](https://www.versatile-thermostat.org/fr/plugins/#jmcollin78/versatile-thermostat-ui-card)) D'autres cartes sont listées dans le [catalogue des plugins](https://www.versatile-thermostat.org/fr/plugins/?family=interface).
@@ -122,7 +122,7 @@ Une fois cette configuration minimale opérationnelle - et seulement lorsque cet
 
 Ensuite vous pourrez ajouter une configuration centrale pour mettre en commum des réglages entre tous les _VTherm_, paraméter le mode central permettant de contrôler tous les _VTherm_ d'un coup ([la configuration centralisée](feature-central-mode.md)), ajouter un éventuel contrôle d'une chaudière centrale ([la chaudière centrale](feature-central-boiler.md)). Cette liste est non exhaustive, merci de consulter le sommaire pour avoir la liste de toutes les fonctions de _VTherm_.
 
-# Appel à contribution
+## Appel à contribution
 
 Cette page ne demande qu'à se compléter. N'hésitez pas à proposer vos équipements et la configuration minimale.
 

@@ -1,5 +1,5 @@
 - [Choix des attributs de base](#choix-des-attributs-de-base)
-- [Choix des fonctions utilisées](#choix-des-fonctions-utilisées)
+  - [Choix des fonctions utilisées](#choix-des-fonctions-utilisées)
 
 # Choix des attributs de base
 
@@ -18,7 +18,7 @@ Choisisez le menu "Principaux attributs".
 | **Contrôle centralisé** | Permet contrôle centralisé du thermostat. Cf [controle centralisé](#le-contrôle-centralisé) | `is_controlled_by_central_mode` |
 | **Déclencheur de chaudière centrale** | Case à cocher pour utiliser ce VTherm comme déclencheur de chaudière centrale. | `is_used_by_central_boiler` |
 
-# Choix des fonctions utilisées
+## Choix des fonctions utilisées
 
 Choisissez le menu "Fonctions".
 

@@ -6,7 +6,7 @@
   - [Konfiguration](#Konfiguration)
   - [Synchronisationsmodus](#synchronisationsmodus)
     - [Modus 1: Verwendung einer Kalibrierungsentity](#modus-1-verwendung-einer-kalibrierungsentity)
-      - [Modus 2: Direkte Übernahme einer externen Temperatur](#modus-2-direkte-übernahme-einer-externen-temperatur)
+    - [Modus 2: Direkte Übernahme einer externen Temperatur](#modus-2-direkte-übernahme-einer-externen-temperatur)
 
 ## Grundsatz
 
@@ -79,7 +79,7 @@ VTherm:
 - Funktioniert mit allen Geräten, die eine Kalibrierungs-`number`-Entity bereitstellen,
 - Die Kalibrierung wird jedes Mal gesendet, wenn eine neue Temperatur vom Raumsensor empfangen wird, unabhängig vom Berechnungszyklus von _VTherm_.
 
-#### Modus 2: Direkte Übernahme einer externen Temperatur
+### Modus 2: Direkte Übernahme einer externen Temperatur
 
 Bei dieser Methode übermittelt VTherm die Raumtemperatur direkt an das Gerät mittels der `external_temperature_input`-Entity oder einer gleichwertigen Funktion.
 

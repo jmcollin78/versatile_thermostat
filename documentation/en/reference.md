@@ -2,25 +2,25 @@
 
 - [Reference Documentation](#reference-documentation)
   - [Parameter Summary](#parameter-summary)
-- [Expert Mode Configuration](#expert-mode-configuration)
-  - [Expert Mode Self-regulation Parameters](#expert-mode-self-regulation-parameters)
-  - [Disable Outdoor Sensor Check in Safety Mode](#disable-outdoor-sensor-check-in-safety-mode)
-  - [Maximum Heating Power Limit](#maximum-heating-power-limit)
-  - [Automatic Window Opening Detection Parameters](#automatic-window-opening-detection-parameters)
-  - [Log File Retention (Log Buffer)](#log-file-retention-log-buffer)
-- [Sensors](#sensors)
-- [Actions (Services)](#actions-services)
-  - [Force Presence/Occupation](#force-presenceoccupation)
-  - [Modify Security Settings](#modify-security-settings)
-  - [ByPass Window Check](#bypass-window-check)
-  - [Lock / Unlock Services](#lock--unlock-services)
-  - [Change TPI Parameters](#change-tpi-parameters)
-  - [Timed Preset](#timed-preset)
-- [Events](#events)
-- [Custom attributes](#custom-attributes)
-  - [For a _VTherm_](#for-a-vtherm)
-  - [For central configuration](#for-central-configuration)
-- [State messages](#state-messages)
+  - [Expert Mode Configuration](#expert-mode-configuration)
+    - [Expert Mode Self-regulation Parameters](#expert-mode-self-regulation-parameters)
+    - [Disable Outdoor Sensor Check in Safety Mode](#disable-outdoor-sensor-check-in-safety-mode)
+    - [Maximum Heating Power Limit](#maximum-heating-power-limit)
+    - [Automatic Window Opening Detection Parameters](#automatic-window-opening-detection-parameters)
+    - [Log File Retention (Log Buffer)](#log-file-retention-log-buffer)
+  - [Sensors](#sensors)
+  - [Actions (Services)](#actions-services)
+    - [Force Presence/Occupation](#force-presenceoccupation)
+    - [Modify Security Settings](#modify-security-settings)
+    - [ByPass Window Check](#bypass-window-check)
+    - [Lock / Unlock Services](#lock--unlock-services)
+    - [Change TPI Parameters](#change-tpi-parameters)
+    - [Timed Preset](#timed-preset)
+  - [Events](#events)
+  - [Custom attributes](#custom-attributes)
+    - [For a _VTherm_](#for-a-vtherm)
+    - [For central configuration](#for-central-configuration)
+  - [State messages](#state-messages)
 
 ## Parameter Summary
 
@@ -90,11 +90,11 @@
 | ``use_auto_start_stop_feature``           | Indicates if the auto start/stop feature is enabled        | -             | X                   | -            | -                       |
 | ``auto_start_stop_level``                 | The detection level for auto start/stop                    | -             | X                   | -            | -                       |
 
-# Expert Mode Configuration
+## Expert Mode Configuration
 
 Versatile Thermostat allows you to configure advanced parameters directly in the `configuration.yaml` file. These parameters are reserved for advanced users and provide fine control over thermostat behavior.
 
-## Expert Mode Self-regulation Parameters
+### Expert Mode Self-regulation Parameters
 
 When a _VTherm_ of type `over_climate` uses **Expert** mode for self-regulation, you can declare the regulation parameters directly in your `configuration.yaml`. This allows you to precisely fine-tune the regulation behavior.
 
@@ -128,7 +128,7 @@ The parameters are as follows:
 > - **Home Assistant must be restarted** for changes to take effect (or you can reload the Versatile Thermostat integration via Developer Tools).
 > - Consult the [self-regulation documentation](self-regulation.md#self-regulation-in-expert-mode) for examples of predefined configurations.
 
-## Disable Outdoor Sensor Check in Safety Mode
+### Disable Outdoor Sensor Check in Safety Mode
 
 By default, safety mode checks that the **outdoor temperature sensor** regularly sends data. However, if your outdoor sensor is absent or not critical to your installation, you can disable this check.
 
@@ -150,7 +150,7 @@ versatile_thermostat:
 > - It affects detection for all thermostats simultaneously
 > - **Home Assistant must be restarted** for changes to take effect
 
-## Maximum Heating Power Limit
+### Maximum Heating Power Limit
 
 The `max_on_percent` parameter allows you to globally limit the maximum heating power for your entire installation. This can be useful for respecting electrical constraints or regulating system load.
 
@@ -176,7 +176,7 @@ versatile_thermostat:
 > - It is applied immediately without restart
 > - It affects the maximum power calculated on each cycle
 
-## Automatic Window Opening Detection Parameters
+### Automatic Window Opening Detection Parameters
 
 When using automatic window opening detection (based on temperature drop), you can fine-tune the temperature smoothing parameters to improve detection.
 
@@ -208,7 +208,7 @@ versatile_thermostat:
 > - Only adjust them if you encounter detection problems (false positives or missed detections)
 > - Consult the [troubleshooting section](troubleshooting.md#adjust-window-opening-detection-parameters-in-automatic-mode) for more details
 
-## Log File Retention (Log Buffer)
+### Log File Retention (Log Buffer)
 
 Versatile Thermostat maintains internal logs for troubleshooting. You can configure the retention duration of these logs.
 
@@ -234,7 +234,7 @@ versatile_thermostat:
 > - This configuration affects **all _VTherms_** on the system
 > - Logs are useful for troubleshooting via the log download endpoint
 
-# Sensors
+## Sensors
 
 With the thermostat, sensors are available to visualize alerts and the internal state of the thermostat. These are available in the entities of the device associated with the thermostat:
 
@@ -278,11 +278,11 @@ and choose the theme ```versatile_thermostat_theme``` in the panel configuration
 
 ![image](images/colored-thermostat-sensors.png)
 
-# Actions (Services)
+## Actions (Services)
 
 This custom implementation offers specific actions (services) to facilitate integration with other Home Assistant components.
 
-## Force Presence/Occupation
+### Force Presence/Occupation
 This service allows you to force the presence state independently of the presence sensor. This can be useful if you want to manage presence via a service rather than a sensor. For example, you can use your alarm to force absence when it is turned on.
 
 The code to call this service is as follows:
@@ -295,7 +295,7 @@ target:
     entity_id: climate.my_thermostat
 ```
 
-## Modify Security Settings
+### Modify Security Settings
 This service allows you to dynamically modify the security settings described here [Advanced Configuration](#advanced-configuration).
 If the thermostat is in ``security`` mode, the new settings are applied immediately.
 
@@ -310,7 +310,7 @@ target:
     entity_id: climate.my_thermostat
 ```
 
-## ByPass Window Check
+### ByPass Window Check
 This service allows you to enable or disable a bypass for the window check.
 It allows the thermostat to continue heating even if the window is detected as open.
 When set to ``true``, changes to the window's status will no longer affect the thermostat. When set to ``false``, the thermostat will be disabled if the window is still open.
@@ -324,13 +324,13 @@ target:
     entity_id: climate.my_thermostat
 ```
 
-## Lock / Unlock Services
+### Lock / Unlock Services
 
 - `versatile_thermostat.lock` - Locks a thermostat to prevent configuration changes
 - `versatile_thermostat.unlock` - Unlocks a thermostat to allow configuration changes
 
 See [Lock Feature](feature-lock.md) for details.
-## Change TPI Parameters
+### Change TPI Parameters
 All TPI parameters configurable here can be modified by a service. These changes are persistent and survive a restart. They are applied immediately and a thermostat update is performed instantly when parameters are changed.
 
 Each parameter is optional. If it is not provided its current value is kept.
@@ -350,7 +350,7 @@ target:
   entity_id: climate.sonoff_trvzb
 ```
 
-## Timed Preset
+### Timed Preset
 These services allow you to temporarily force a preset on a thermostat for a specified duration. See [Timed Preset](feature-timed-preset.md) for details.
 
 To activate a timed preset:
@@ -370,7 +370,7 @@ target:
   entity_id: climate.my_thermostat
 ```
 
-# Events
+## Events
 The key events of the thermostat are notified via the message bus.
 The following events are notified:
 
@@ -392,13 +392,13 @@ Each event carries the event's key values (temperatures, current preset, current
 
 You can easily capture these events in an automation, for example, to notify users.
 
-# Custom attributes
+## Custom attributes
 
 To tune the algorithm, you have access to the entire context seen and calculated by the thermostat through dedicated attributes. You can see (and use) these attributes in the HA "Developer Tools / States" UI. Enter your thermostat and you will see something like this:
 
 ![image](images/dev-tools-climate.png)
 
-## For a _VTherm_
+### For a _VTherm_
 The custom attributes are as follows:
 
 | Attribute                                       | Meaning                                                                                                                                                                                                         |
@@ -578,7 +578,7 @@ The custom attributes are as follows:
 | ``auto_regulation_period_min``                  | The time filtering parameter value in minutes. Corresponds to the minimum interval between 2 valve commands (excluding user changes).                                                                           |
 | ``last_calculation_timestamp``                  | The date/time of the last valve opening command                                                                                                                                                                 |
 
-## For central configuration
+### For central configuration
 
 The custom attributes of the central configuration are accessible in Developer Tools / States on the `binary_sensor.central_configuration_central_boiler` entity:
 
@@ -645,7 +645,7 @@ friendly_name: Central boiler
 
 These attributes will be requested when seeking help.
 
-# State messages
+## State messages
 
 The `specific_states.messages` custom attribute contains a list of message codes that explain the current state. Messages can be:
 | Code                                | Meaning                                                                             |
@@ -663,7 +663,7 @@ The `specific_states.messages` custom attribute contains a list of message codes
 
 Note: these messages are available in the [VTherm UI Card](additions.md#the-versatile-thermostat-ui-card) under the information icon.
 
-## `hvac_action` with direct valve control
+### `hvac_action` with direct valve control
 
 For an `over_climate` VTherm with direct valve control, `hvac_action` is calculated from the actual valve opening and the last opening command. It does not rely on the action reported by the underlying climate entity.
 

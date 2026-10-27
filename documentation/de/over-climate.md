@@ -5,7 +5,7 @@
   - [Konfiguration](#konfiguration)
     - [Die zugeordneten Geräte](#die-zugeordneten-geräte)
     - [Klimaanlagenmodus/AC Modus](#klimaanlagenmodusac-modus)
-    - [Synchronization of the internal temperature of underlying entities](#synchronization-of-the-internal-temperature-of-underlying-entities)
+    - [Synchronisierung der Innentemperatur der zugrunde liegenden Geräte](#synchronisierung-der-innentemperatur-der-zugrunde-liegenden-geräte)
     - [Selbstregulierung](#selbstregulierung)
     - [Auto-Fan (Automatische Belüftung)](#auto-fan-automatische-belüftung)
     - [Kompensation der Innentemperatur des zugehörigen Geräts](#kompensation-der-innentemperatur-des-zugehörigen-geräts)
@@ -40,7 +40,7 @@ In der Liste „Zu steuernde Geräte“ sollten Sie die `climate`-Entities hinzu
 
 Sie können einen `over_climate`-Thermostat zur Steuerung einer Klimaanlage (reversibel oder nicht) wählen, indem Sie das Kästchen "AC Mode" markieren. Wenn das Gerät dies zulässt, sind die beiden Modi 'Heizen' und 'Kühlen' verfügbar.
 
-### Synchronization of the internal temperature of underlying entities
+### Synchronisierung der Innentemperatur der zugrunde liegenden Geräte
 This function allows for much better regulation as it synchronizes the internal thermometer of the underlying `climate` entities with the room temperature measured by _VTherm_. It is described [here](feature-sync_device_temp.md).
 
 ### Selbstregulierung

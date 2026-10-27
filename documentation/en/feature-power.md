@@ -1,7 +1,7 @@
 # Power Management - Load Shedding
 
 - [Power Management - Load Shedding](#power-management---load-shedding)
-    - [Example Use Case:](#example-use-case)
+  - [Example Use Case](#example-use-case)
   - [Configuring Power Management](#configuring-power-management)
 
 This feature allows you to regulate the electrical consumption of your heaters. Known as load shedding, it lets you limit the electrical consumption of your heating equipment if overconsumption conditions are detected.
@@ -15,7 +15,7 @@ The behavior of this feature is as follows:
 
 **WARNING:** This is **not a safety feature** but an optimization function to manage consumption at the expense of some heating degradation. Overconsumption is still possible depending on the frequency of your consumption sensor updates and the actual power used by your equipment. Always maintain a safety margin.
 
-### Example Use Case:
+## Example Use Case
 1. You have an electric meter limited to 11 kW,
 2. You occasionally charge an electric vehicle at 5 kW,
 3. This leaves 6 kW for everything else, including heating,

@@ -1,7 +1,7 @@
 # Energieverwaltung - Lastabwurf
 
 - [Energieverwaltung - Lastabwurf](#energieverwaltung---lastabwurf)
-    - [Anwendungsbeispiel](#anwendungsbeispiel)
+  - [Anwendungsbeispiel](#anwendungsbeispiel)
   - [Energieverwaltung konfigurieren](#energieverwaltung-konfigurieren)
 
 Diese Funktion ermöglicht es Ihnen, den Stromverbrauch Ihrer Heizgeräte zu regulieren. Mit dieser Funktion, die auch als Lastabwurf bezeichnet wird, können Sie den Stromverbrauch Ihrer Heizungsanlage begrenzen, wenn ein zu hoher Verbrauch festgestellt wird.
@@ -15,7 +15,7 @@ Das Verhalten dieser Funktion ist wie folgt:
 
 **WARNUNG:** Dies ist **keine Sicherheitsfunktion**, sondern eine Optimierungsfunktion zur Steuerung des Verbrauchs auf Kosten einer gewissen Heizungsverschlechterung. Ein zu hoher Verbrauch ist immer noch möglich, abhängig von der Häufigkeit der Aktualisierungen Ihres Verbrauchssensors und der tatsächlich von Ihrem Gerät verwendeten Leistung. Behalten Sie immer eine Sicherheitsspielraum bei.
 
-### Anwendungsbeispiel:
+## Anwendungsbeispiel
 1. Sie haben einen Stromzähler, der auf 11 kW begrenzt ist,
 2. Sie laden gelegentlich ein Elektrofahrzeug mit 5 kW,
 3. Damit bleiben 6 kW für alles andere, einschließlich Heizung,

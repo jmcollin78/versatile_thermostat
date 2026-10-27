@@ -6,7 +6,7 @@
   - [Configuration](#configuration)
   - [Synchronization Mode](#synchronization-mode)
     - [Mode 1: Using a Calibration Entity](#mode-1-using-a-calibration-entity)
-      - [Mode 2: Direct Copy of External Temperature](#mode-2-direct-copy-of-external-temperature)
+    - [Mode 2: Direct Copy of External Temperature](#mode-2-direct-copy-of-external-temperature)
 
 ## Principle
 
