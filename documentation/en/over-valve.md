@@ -6,13 +6,15 @@
 
 ## Prerequisites
 
+The thermostatic valves usable with an `over_valve` _VTherm_, such as the [Shelly BLU TRV](https://www.versatile-thermostat.org/en/devices/over-valve/), are listed in the [device catalog](https://www.versatile-thermostat.org/en/devices/?type=trv).
+
 The installation should be similar to the `over_switch` VTherm setup, except that the controlled equipment is directly the valve of a _TRV_:
 
 ![installation `over_valve`](images/over-valve-schema.png)
 
 1. The user or automation, or the Scheduler, sets a setpoint via a preset or directly using a temperature.
 2. Periodically, the internal thermometer (2) or external thermometer (2b) or internal thermometer of the equipment (2c) sends the measured temperature. The internal thermometer should be placed in a relevant spot for the user's comfort: ideally in the middle of the living space. Avoid placing it too close to a window or too near the equipment.
-3. Based on the setpoint values, the different temperatures, and the TPI algorithm parameters (see [TPI](algorithms.md#lalgorithme-tpi)), VTherm will calculate the valve's opening percentage.
+3. Based on the setpoint values, the different temperatures, and the TPI algorithm parameters (see [TPI](algorithms.md#the-tpi-algorithm) or the [other algorithms](algorithms.md#other-algorithms-plugins)), VTherm will calculate the valve's opening percentage.
 4. It will then modify the value of the underlying `number` entities.
 5. These underlying `number` entities will control the valve opening rate on the _TRV_.
 6. This will regulate the radiator's heating.

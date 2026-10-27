@@ -18,8 +18,8 @@ Les deux modes de synchronisation disponibles sont :
 
 Le choix dépendra de ce que sait faire votre équipement sous-jacent.
 Par exemple :
-1. le Sonoff TRVZB sait faire les 2. Vous utiliserez soit l'offset de calibration via l'entité exposée avec un compas, ou la température externe nommée (`external_temperature_input`). Attention de positionner l'option `sensor_select` sur `external` dans ce cas,
-2. le Aqara W600 ne possède que l'entité de calibrage (l'icône est un compas par défaut)
+1. le [Sonoff TRVZB](https://www.versatile-thermostat.org/fr/devices/sonoff-trvzb/) sait faire les 2. Vous utiliserez soit l'offset de calibration via l'entité exposée avec un compas, ou la température externe nommée (`external_temperature_input`). Attention de positionner l'option `sensor_select` sur `external` dans ce cas,
+2. le [Aqara W600](https://www.versatile-thermostat.org/fr/devices/aqara-w600/) ne possède que l'entité de calibrage (l'icône est un compas par défaut)
 
 ## Pré-requis
 

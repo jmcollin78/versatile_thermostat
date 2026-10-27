@@ -1,6 +1,6 @@
 # Démarrage rapide
 
-Cette page présente les étapes à suivre pour avoir un _VTherm_ basique mais opérationnel rapidement. Elle est présentée par type d'équipements.
+Cette page présente les étapes à suivre pour avoir un _VTherm_ basique mais opérationnel rapidement. Elle est présentée par type d'équipements. La liste complète des matériels testés et leur niveau de support est disponible dans le [catalogue des matériels](https://www.versatile-thermostat.org/fr/devices/). Ce catalogue n'est pas exhaustif : un matériel qui n'y figure pas n'est pas forcément incompatible.
 
 - [Démarrage rapide](#démarrage-rapide)
   - [Nodon SIN-4-FP-21 ou assimilé (fil pilote)](#nodon-sin-4-fp-21-ou-assimilé-fil-pilote)
@@ -9,13 +9,13 @@ Cette page présente les étapes à suivre pour avoir un _VTherm_ basique mais o
   - [Sonoff TRVZB ou assimilé (TRV avec contrôle de la vanne)](#sonoff-trvzb-ou-assimilé-trv-avec-contrôle-de-la-vanne)
   - [Simple TRV comme Avatto TRV06, Moes, Tuya... (TRV sans contrôle de la vanne)](#simple-trv-comme-avatto-trv06-moes-tuya-trv-sans-contrôle-de-la-vanne)
   - [_PAC_ reversibles ou climatisation ou équipements commandables à travers une entité `climate`](#pac-reversibles-ou-climatisation-ou-équipements-commandables-à-travers-une-entité-climate)
-- [La suite](#la-suite)
-- [Appel à contribution](#appel-à-contribution)
+  - [La suite](#la-suite)
+  - [Appel à contribution](#appel-à-contribution)
 
 
 ## Nodon SIN-4-FP-21 ou assimilé (fil pilote)
 
-Ce module permet de commander un radiateur avec un fil pilote. Il est visible sous _HA_ sous la forme d'une entité `select` qui permet de choisir le preset de chauffage à appliquer.
+Ce module permet de commander un radiateur avec un fil pilote. Il est visible sous _HA_ sous la forme d'une entité `select` qui permet de choisir le preset de chauffage à appliquer. Voir aussi la page [modules fil pilote](https://www.versatile-thermostat.org/fr/devices/pilot-wire-module/) du catalogue des matériels.
 
 _VTherm_ va réguler la température en changeant de preset via les commandes personnalisées régulièrement jusqu'à ce que la consigne soit atteinte.
 
@@ -33,7 +33,7 @@ A l'issue de ces 4 étapes vous avez un _VTherm_ opérationnel ultra simple qui 
 
 ## Heatzy ou eCosy ou assimilé (entité `climate`)
 
-Ce module permet de commander un radiateur qui est visible sous _HA_ sous la forme d'une entité `climate` qui permet de choisir le preset de chauffage à appliquer ou le mode (Chauffe / Froid / éteint).
+Ce module permet de commander un radiateur qui est visible sous _HA_ sous la forme d'une entité `climate` qui permet de choisir le preset de chauffage à appliquer ou le mode (Chauffe / Froid / éteint). Voir aussi la page [Heatzy](https://www.versatile-thermostat.org/fr/devices/heatzy/) du catalogue des matériels.
 
 _VTherm_ va réguler la température en allumant / éteignant via les commandes personnalisées régulièrement l'équipement jusqu'à ce que la consigne soit atteinte.
 
@@ -47,7 +47,7 @@ A l'issue de ces 4 étapes vous avez un _VTherm_ opérationnel ultra simple qui 
 
 ## Simple switch comme Aqara T1, Nous B2Z, Sonoff ZBMini, Sonoff POW, ...
 
-Ce module permet de commander un radiateur contrôlé par un simple switch. Il est visible sous _HA_ sous la forme d'une entité `switch` qui permet d'allumer ou éteindre directement le radiateur.
+Ce module permet de commander un radiateur contrôlé par un simple switch. Il est visible sous _HA_ sous la forme d'une entité `switch` qui permet d'allumer ou éteindre directement le radiateur. Voir aussi la page [switchs](https://www.versatile-thermostat.org/fr/devices/over-switch/) du catalogue des matériels.
 
 _VTherm_ va réguler la température en allumant / éteignant régulièrement le `switch` jusqu'à ce que la consigne soit atteinte.
 
@@ -60,7 +60,7 @@ A l'issue de ces 3 étapes vous avez un _VTherm_ opérationnel ultra simple qui 
 
 ## Sonoff TRVZB ou assimilé (TRV avec contrôle de la vanne)
 
-Cet équipement de type _TRV_ contrôle l'ouverture d'une vanne qui laisse plus ou moins passer de l'eau chaude produit par une chaudière ou une PAC. Il est visible sous _HA_ sous la forme d'une entité de type `climate` et d'entités de type `number` qui vont permettre le contrôle de la vanne. Ces entités `number` peuvent être cachées et doivent être explicitement ajoutées dans certains cas.
+Cet équipement de type _TRV_ contrôle l'ouverture d'une vanne qui laisse plus ou moins passer de l'eau chaude produit par une chaudière ou une PAC. Il est visible sous _HA_ sous la forme d'une entité de type `climate` et d'entités de type `number` qui vont permettre le contrôle de la vanne. Ces entités `number` peuvent être cachées et doivent être explicitement ajoutées dans certains cas. Voir aussi la page [Sonoff TRVZB](https://www.versatile-thermostat.org/fr/devices/sonoff-trvzb/) du catalogue des matériels. Un [blueprint](https://www.versatile-thermostat.org/fr/plugins/#sonoff-trvzb-linearity) est aussi disponible pour compenser la non-linéarité de la vanne du TRVZB.
 
 Le _VTherm_ va moduler le taux d'ouverture de la vanne jusqu'à obtention de la température de consigne.
 
@@ -77,7 +77,7 @@ A l'issue de ces 5 étapes vous avez un _VTherm_ opérationnel ultra simple qui 
 
 ## Simple TRV comme Avatto TRV06, Moes, Tuya... (TRV sans contrôle de la vanne)
 
-Ce type d'équipement _TRV_ (typiquement des équipements Zigbee intégrés via Zigbee2MQTT ou ZHA) est visible sous _HA_ uniquement sous la forme d'une entité de type `climate`. L'ouverture de la vanne n'est pas contrôlable : le TRV se régule seul à partir de son thermomètre interne et de la consigne qu'il reçoit.
+Ce type d'équipement _TRV_ (typiquement des équipements Zigbee intégrés via Zigbee2MQTT ou ZHA) est visible sous _HA_ uniquement sous la forme d'une entité de type `climate`. L'ouverture de la vanne n'est pas contrôlable : le TRV se régule seul à partir de son thermomètre interne et de la consigne qu'il reçoit. Voir aussi la page [TRV sans contrôle de la vanne](https://www.versatile-thermostat.org/fr/devices/trv-no-valve/) du catalogue des matériels.
 
 Le _VTherm_ va ajuster la consigne envoyée au TRV pour que la température de la pièce mesurée par votre propre capteur atteigne la température souhaitée.
 
@@ -102,7 +102,7 @@ A l'issue de ces 5 étapes et de la vérification des réglages du TRV, vous ave
 
 ## _PAC_ reversibles ou climatisation ou équipements commandables à travers une entité `climate`
 
-Les _PAC_ ou assimilés sont visibles sous _HA_ sous la forme d'une entité `climate` qui permet de choisir le preset de chauffage à appliquer ou le mode (Chauffe / Froid / éteint).
+Les _PAC_ ou assimilés sont visibles sous _HA_ sous la forme d'une entité `climate` qui permet de choisir le preset de chauffage à appliquer ou le mode (Chauffe / Froid / éteint). Les équipements pilotés par une entité `climate` sont listés dans le [catalogue des matériels](https://www.versatile-thermostat.org/fr/devices/?type=climate).
 
 _VTherm_ va réguler la température en commandant la consigne de l'équipement et son mode à l'aide de commandes envoyée à l'entité `climate` sous-jacente.
 
@@ -113,16 +113,16 @@ Pour l'intégrer dans _VTherm_ vous devez :
 
 A l'issue de ces 3 étapes vous avez un _VTherm_ opérationnel ultra simple qui commande votre _PAC_, climatisation ou assimilé. Pour aller plus loin, une auto-régulation peut êrte nécessaire en fonction du bon fonctionnement de votre équipement. L'auto-régulation consiste à envoyer des consignes légèrement modifiées par _VTherm_ pour forcer l'équipement à chauffer plus ou moins jusqu'à ce que la consigne soit atteinte. L'auto-régulation est détaillée ici : [auto-régulation](self-regulation.md).
 
-# La suite
+## La suite
 
 Une fois créé, vous devez paramétrer les températures des presets. Cf. [presets](feature-presets.md) pour avoir une configuration minimale.
-Vous pouvez aussi (facultatif mais conseillé) installer la carte dédiée pour vos dashboard. (Cf. [VTHerm UI Card](https://github.com/jmcollin78/versatile-thermostat-ui-card))
+Vous pouvez aussi (facultatif mais conseillé) installer la carte dédiée pour vos dashboard. (Cf. [VTHerm UI Card](https://www.versatile-thermostat.org/fr/plugins/#jmcollin78/versatile-thermostat-ui-card)) D'autres cartes sont listées dans le [catalogue des plugins](https://www.versatile-thermostat.org/fr/plugins/?family=interface).
 
 Une fois cette configuration minimale opérationnelle - et seulement lorsque cette configuration minimale fonctionne -, vous pourrez ajouter des fonctions supplémentaires comme la détection de présence pour éviter de chauffer lorsqu'il n'y a personne. Ajoutez les une par une, vérifiez à chaque nouvelle fonction que _VTherm_ réagit correctement avant de passer à la suivante.
 
 Ensuite vous pourrez ajouter une configuration centrale pour mettre en commum des réglages entre tous les _VTherm_, paraméter le mode central permettant de contrôler tous les _VTherm_ d'un coup ([la configuration centralisée](feature-central-mode.md)), ajouter un éventuel contrôle d'une chaudière centrale ([la chaudière centrale](feature-central-boiler.md)). Cette liste est non exhaustive, merci de consulter le sommaire pour avoir la liste de toutes les fonctions de _VTherm_.
 
-# Appel à contribution
+## Appel à contribution
 
 Cette page ne demande qu'à se compléter. N'hésitez pas à proposer vos équipements et la configuration minimale.
 

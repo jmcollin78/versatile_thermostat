@@ -6,13 +6,15 @@
 
 ## Voraussetzungen
 
+Die mit einem `over_valve`-_VTherm_ verwendbaren Thermostatventile, wie das [Shelly BLU TRV](https://www.versatile-thermostat.org/de/devices/over-valve/), sind im [Gerätekatalog](https://www.versatile-thermostat.org/de/devices/?type=trv) aufgeführt.
+
 Die Installation sollte ähnlich wie bei der VTherm-Einrichtung `over_switch` sein, mit dem Unterschied, dass das gesteuerte Gerät direkt das Ventil eines _TRV_ ist:
 
 ![Installation `over_valve`](images/over-valve-schema.png)
 
 1. Der Benutzer, die Automatisierung oder der Scheduler stellen einen Sollwert über eine Voreinstellung oder direkt über eine Temperatur ein.
 2. Das Innenthermometer (2) oder das Außenthermometer (2b) oder das Gerätenthermometer (2c) sendet in regelmäßigen Abständen die gemessene Temperatur. Das Innenthermometer sollte an einer für den Komfort des Benutzers geeigneten Stelle angebracht werden: idealerweise in der Mitte des Wohnraums. Vermeiden Sie es, es zu nahe an einem Fenster oder in der Nähe des Geräts zu platzieren.
-3. Ausgehend von den Sollwerten, den verschiedenen Temperaturen und den Parametern des TPI-Algorithmus (siehe [TPI](algorithms.md#lalgorithme-tpi)) berechnet VTherm den Öffnungsprozentsatz des Ventils.
+3. Ausgehend von den Sollwerten, den verschiedenen Temperaturen und den Parametern des TPI-Algorithmus (siehe [TPI](algorithms.md#der-tpi-algorithmus) oder die [weiteren Algorithmen](algorithms.md#weitere-algorithmen-plugins)) berechnet VTherm den Öffnungsprozentsatz des Ventils.
 4. Sie ändert dann den Wert der dazugehörigen `number`-Entities.
 5. Diese dazugehörigen `number`-Entities steuern die Öffnungsrate des Ventils vom _TRV_.
 6. Dadurch wird die Heizleistung des Heizkörpers reguliert.

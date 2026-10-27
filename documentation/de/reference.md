@@ -2,26 +2,26 @@
 
 - [Referenzdokumentation](#referenzdokumentation)
   - [Parameterübersicht](#parameterübersicht)
-- [Expertenmodus-Konfiguration](#expertenmodus-konfiguration)
-  - [Expertenmodus-Selbstregulierungsparameter](#expertenmodus-selbstregulierungsparameter)
-  - [Außensensorprüfung im Sicherheitsmodus deaktivieren](#außensensorprüfung-im-sicherheitsmodus-deaktivieren)
-  - [Maximale Heizleistungsgrenze](#maximale-heizleistungsgrenze)
-  - [Parameter zur automatischen Detektion von Fensteröffnungen](#parameter-zur-automatischen-detektion-von-fensteröffnungen)
-  - [Protokollspeicherung (Log Buffer)](#protokollspeicherung-log-buffer)
-- [Sensoren](#sensoren)
-- [Aktionen (Services)](#aktionen-services)
-  - [Präsenz/Belegung erzwingen](#präsenzbelegung-erzwingen)
-  - [Sicherheitseinstellungen ändern](#sicherheitseinstellungen-ändern)
-  - [ByPass Fensterprüfung](#bypass-fensterprüfung)
-  - [Sperr-/Entsperrdienste](#sperr-entsperrdienste)
-  - [TPI-Einstellungen ändern](#tpi-einstellungen-ändern)
-  - [Zeitgesteuertes Preset](#zeitgesteuertes-preset)
-- [Ereignisse](#ereignisse)
-- [Benutzerdefinierte Attribute](#benutzerdefinierte-attribute)
-  - [Für ein _VTherm_](#für-ein-vtherm)
-  - [Für die zentrale Konfiguration](#für-die-zentrale-konfiguration)
-- [Statusmeldungen](#statusmeldungen)
-  - [`hvac_action` mit direkter Ventilsteuerung](#hvac_action-mit-direkter-ventilsteuerung)
+  - [Expertenmodus-Konfiguration](#expertenmodus-konfiguration)
+    - [Expertenmodus-Selbstregulierungsparameter](#expertenmodus-selbstregulierungsparameter)
+    - [Außensensorprüfung im Sicherheitsmodus deaktivieren](#außensensorprüfung-im-sicherheitsmodus-deaktivieren)
+    - [Maximale Heizleistungsgrenze](#maximale-heizleistungsgrenze)
+    - [Parameter zur automatischen Detektion von Fensteröffnungen](#parameter-zur-automatischen-detektion-von-fensteröffnungen)
+    - [Protokollspeicherung (Log Buffer)](#protokollspeicherung-log-buffer)
+  - [Sensoren](#sensoren)
+  - [Aktionen (Services)](#aktionen-services)
+    - [Präsenz/Belegung erzwingen](#präsenzbelegung-erzwingen)
+    - [Sicherheitseinstellungen ändern](#sicherheitseinstellungen-ändern)
+    - [ByPass Fensterprüfung](#bypass-fensterprüfung)
+    - [Sperr-/Entsperrdienste](#sperr-entsperrdienste)
+    - [TPI-Einstellungen ändern](#tpi-einstellungen-ändern)
+    - [Zeitgesteuertes Preset](#zeitgesteuertes-preset)
+  - [Ereignisse](#ereignisse)
+  - [Benutzerdefinierte Attribute](#benutzerdefinierte-attribute)
+    - [Für ein _VTherm_](#für-ein-vtherm)
+    - [Für die zentrale Konfiguration](#für-die-zentrale-konfiguration)
+  - [Statusmeldungen](#statusmeldungen)
+    - [`hvac_action` mit direkter Ventilsteuerung](#hvac_action-mit-direkter-ventilsteuerung)
 
 ## Parameterübersicht
 
@@ -91,11 +91,11 @@
 | ``use_auto_start_stop_feature``           | Zeigt an, ob die automatische Start-/Stopp-Funktion aktiviert ist.                | -             | X                  | -            | -                        |
 | ``auto_start_stop_level``                 | Die Erkennungsstufe der Start-Stopp-Automatik                                     | -             | X                  | -            | -                        |
 
-# Expertenmodus-Konfiguration
+## Expertenmodus-Konfiguration
 
 Versatile Thermostat ermöglicht die Konfiguration erweiterter Parameter direkt in der `configuration.yaml`-Datei. Diese Parameter sind für fortgeschrittene Benutzer reserviert und ermöglichen eine präzise Kontrolle über das Thermostverhalten.
 
-## Expertenmodus-Selbstregulierungsparameter
+### Expertenmodus-Selbstregulierungsparameter
 
 Wenn ein _VTherm_ vom Typ `over_climate` den **Expertenmodus** für die Selbstregulierung verwendet, können Sie die Regulierungsparameter direkt in Ihrer `configuration.yaml` deklarieren. Dies ermöglicht Ihnen, das Regulierungsverhalten präzise abzustimmen.
 
@@ -129,7 +129,7 @@ Die Parameter sind wie folgt:
 > - **Home Assistant muss neu gestartet werden**, damit die Änderungen wirksam werden (oder Sie können die Versatile Thermostat-Integration über Entwicklertools neu laden).
 > - Konsultieren Sie die [Selbstregulierungsdokumentation](self-regulation.md#selbstregulierung-im-expertenmodus) für Beispiele vordefinierter Konfigurationen.
 
-## Außensensorprüfung im Sicherheitsmodus deaktivieren
+### Außensensorprüfung im Sicherheitsmodus deaktivieren
 
 Standardmäßig prüft der Sicherheitsmodus, dass der **Außentemperatursensor** regelmäßig Daten sendet. Wenn Ihr Außensensor jedoch nicht vorhanden oder nicht kritisch für Ihre Installation ist, können Sie diese Prüfung deaktivieren.
 
@@ -151,7 +151,7 @@ versatile_thermostat:
 > - Sie betrifft die Erkennung für alle Thermostate gleichzeitig
 > - **Home Assistant muss neu gestartet werden**, damit die Änderungen wirksam werden
 
-## Maximale Heizleistungsgrenze
+### Maximale Heizleistungsgrenze
 
 Mit dem Parameter `max_on_percent` können Sie die maximale Heizleistung für Ihre gesamte Installation global begrenzen. Dies kann nützlich sein, um elektrische Einschränkungen zu beachten oder die Systemlast zu regulieren.
 
@@ -177,7 +177,7 @@ versatile_thermostat:
 > - Sie wird sofort ohne Neustart angewendet
 > - Sie beeinflusst die maximale in jedem Zyklus berechnete Leistung
 
-## Parameter zur automatischen Detektion von Fensteröffnungen
+### Parameter zur automatischen Detektion von Fensteröffnungen
 
 Bei Verwendung der automatischen Fensteröffnungserkennung (basierend auf Temperaturabfall) können Sie die Parameter der Temperaturglättung optimieren, um die Erkennung zu verbessern.
 
@@ -209,7 +209,7 @@ versatile_thermostat:
 > - Passen Sie sie nur an, wenn Sie Erkennungsprobleme haben (Fehlalarme oder Nicht-Erkennung)
 > - Konsultieren Sie den [Abschnitt Fehlerbehebung](troubleshooting.md#einstellen-der-parameter-für-die-fensteröffnungserkennung-im-automodus) für weitere Details
 
-## Protokollspeicherung (Log Buffer)
+### Protokollspeicherung (Log Buffer)
 
 Versatile Thermostat verwaltet interne Protokolle zur Fehlerbehebung. Sie können die Beibehaltungsdauer dieser Protokolle konfigurieren.
 
@@ -235,7 +235,7 @@ versatile_thermostat:
 > - Diese Konfiguration betrifft **alle _VTherms_** auf dem System
 > - Protokolle sind nützlich zur Fehlerbehebung über den Endpunkt zum Herunterladen von Protokollen
 
-# Sensoren
+## Sensoren
 
 Mit dem Thermostat sind Sensoren verfügbar, die die Anzeige von Warnmeldungen und des internen Status des Thermostats ermöglichen. Sie sind in den Entitäten des mit dem Thermostat verbundenen Geräts verfügbar:
 
@@ -279,11 +279,11 @@ und wählen Sie das Thema ```versatile_thermostat_theme``` in den Einstellungen 
 
 ![image](images/colored-thermostat-sensors.png)
 
-# Aktionen (Services)
+## Aktionen (Services)
 
 Diese benutzerdefinierte Implementierung bietet spezifische Aktionen (z. B. Dienste/Services), um die Integration mit anderen Home Assistant-Komponenten zu erleichtern.
 
-## Präsenz/Belegung erzwingen
+### Präsenz/Belegung erzwingen
 Dieser Service ermöglicht es Ihnen, den Anwesenheitsstatus unabhängig vom Anwesenheitssensor zu erzwingen. Dies kann nützlich sein, wenn Sie die Anwesenheit über einen Service und nicht über einen Sensor verwalten möchten. Sie können beispielsweise Ihren Wecker verwenden, um die Abwesenheit zu erzwingen, wenn er eingeschaltet ist.
 
 Der Code zum Aufrufen dieses Service lautet wie folgt:
@@ -296,7 +296,7 @@ target:
     entity_id : climate.my_thermostat
 ```
 
-## Sicherheitseinstellungen ändern
+### Sicherheitseinstellungen ändern
 Mit diesem Service können die hier beschriebenen Sicherheitseinstellungen dynamisch geändert werden [Erweiterte Konfiguration](#erweiterte-konfiguration).
 Befindet sich der Thermostat im Modus ``security``, werden die neuen Einstellungen sofort übernommen.
 
@@ -311,7 +311,7 @@ target:
     entity_id : climate.my_thermostat
 ```
 
-## ByPass Fensterprüfung
+### ByPass Fensterprüfung
 Mit diesem Service kann eine Umgehung der Fensterüberprüfung aktiviert oder deaktiviert werden.
 Es ermöglicht die Fortsetzung der Heizung, auch wenn das Fenster als geöffnet erkannt wird.
 Auf ``true`` gesetzt, haben Statusänderungen des Fensters keine Auswirkungen mehr auf den Thermostat. Auf ``false`` gesetzt, wird der Thermostat deaktiviert, wenn das Fenster noch geöffnet ist.
@@ -325,15 +325,15 @@ target:
     entity_id : climate.my_thermostat
 ```
 
-## Sperr-/Entsperrdienste
+### Sperr-/Entsperrdienste
 
 Mit diesen Diensten kann ein Thermostat gesperrt werden, um Änderungen an seiner Konfiguration zu verhindern, oder entsperrt werden, um die zulässigen Änderungen wiederherzustellen:
 
 - `versatile_thermostat.lock` - Sperrt einen Thermostat, um Änderungen an der Konfiguration zu verhindern.
 - `versatile_thermostat.unlock` - Entsperrt einen Thermostat, um Konfigurationsänderungen wieder zuzulassen.
 
-## TPI-Einstellungen ändern
-Alle konfigurierbaren TPI-Parameter [hier](images/config_tpi.png) können über einen Dienst geändert werden. Diese Änderungen sind dauerhaft und bleiben auch nach einem Neustart erhalten. Sie werden sofort angewendet und der Thermostat wird sofort aktualisiert, wenn die Parameter geändert werden.
+### TPI-Einstellungen ändern
+Alle konfigurierbaren TPI-Parameter [hier](images/config-tpi.png) können über einen Dienst geändert werden. Diese Änderungen sind dauerhaft und bleiben auch nach einem Neustart erhalten. Sie werden sofort angewendet und der Thermostat wird sofort aktualisiert, wenn die Parameter geändert werden.
 
 Jeder Parameter ist optional. Wenn er nicht angegeben wird, bleibt sein aktueller Wert erhalten.
 
@@ -351,7 +351,7 @@ target:
   entity_id: climate.sonoff_trvzb
 ```
 
-## Zeitgesteuertes Preset
+### Zeitgesteuertes Preset
 Mit diesen Diensten können Sie ein Preset auf einem Thermostat vorübergehend für eine bestimmte Dauer erzwingen. Siehe [Zeitgesteuertes Preset](feature-timed-preset.md) für Details.
 
 Um ein zeitgesteuertes Preset zu aktivieren:
@@ -371,7 +371,7 @@ target:
   entity_id: climate.mein_thermostat
 ```
 
-# Ereignisse
+## Ereignisse
 Wichtige Ereignisse des Thermostats werden über den Nachrichtenbus gemeldet.
 Es werden folgende Ereignisse gemeldet:
 
@@ -393,13 +393,13 @@ Jedes Ereignis enthält die Schlüsselwerte des Ereignisses (Temperaturen, aktue
 
 Diese Ereignisse kann man ganz einfach in einer Automatisierung erfassen, um beispielsweise die Benutzer zu benachrichtigen.
 
-# Benutzerdefinierte Attribute
+## Benutzerdefinierte Attribute
 
 Um den Algorithmus anzupassen, gibt es über spezielle Attribute Zugriff auf den gesamten vom Thermostat erfassten und berechneten Kontext. Man kann diese Attribute in der HA-Benutzeroberfläche "Entwicklungstools/Status" einsehen (und verwenden). Gib den Namen des Thermostat ein und es erscheint etwa Folgendes:
 
 ![image](images/dev-tools-climate.png)
 
-## Für ein _VTherm_
+### Für ein _VTherm_
 Die benutzerdefinierten Attribute sind folgende:
 
 | Attribut                                        | Bedeutung                                                                                                                                                                                                                         |
@@ -579,7 +579,7 @@ Die benutzerdefinierten Attribute sind folgende:
 | ``auto_regulation_period_min``                  | Der Wert des Zeitfilterparameters in Minuten. Entspricht dem Mindestintervall zwischen zwei Ventilbefehlen (ohne vom Benutzer vorgenommene Änderungen).                                                                           |
 | ``last_calculation_timestamp``                  | Datum und Uhrzeit des letzten Befehls zum Öffnen des Ventils                                                                                                                                                                      |
 
-## Für die zentrale Konfiguration
+### Für die zentrale Konfiguration
 
 Folgende benutzerdefinierten Attribute der zentralen Konfiguration sind unter "Entwicklungstools / Status" für die Entität `binary_sensor.central_configuration_central_boiler` verfügbar:
 
@@ -646,7 +646,7 @@ friendly_name: Central boiler
 
 Diese Angaben werden bei einer Hilfeanfrage benötigt.
 
-# Statusmeldungen
+## Statusmeldungen
 
 Das benutzerdefinierte Attribut `specific_states.messages` enthält eine Liste von Mitteilungscodes, die den aktuellen Status erklären. Die Mitteilungen können sein:
 | Code                                | Bedeutung                                                                                                            |
@@ -662,9 +662,9 @@ Das benutzerdefinierte Attribut `specific_states.messages` enthält eine Liste v
 | `target_temp_absence_detected`      | Die Solltemperatur wurde durch die Abwesenheitserkennung erzwungen.                                                  |
 | `underlying_unavailable`            | Mindestens eine zugrunde liegende Entität ist nicht verfügbar oder unbekannt (siehe `unavailable_underlying_entities`)|
 
-Hinweis: Diese Meldungen sind in der [VTherm UI Card](documentation/de/additions.md#versatile-thermostat-ui-card) unter dem Informationssymbol verfügbar.
+Hinweis: Diese Meldungen sind in der [VTherm UI Card](additions.md#die-versatile-thermostat-ui-card) unter dem Informationssymbol verfügbar.
 
-## `hvac_action` mit direkter Ventilsteuerung
+### `hvac_action` mit direkter Ventilsteuerung
 
 Bei einem `over_climate`-VTherm mit direkter Ventilsteuerung wird `hvac_action` anhand der tatsächlichen Ventilöffnung und des letzten Öffnungsbefehls berechnet. Der Wert hängt nicht von der von der zugrunde liegenden Climate-Entität gemeldeten Aktion ab.
 

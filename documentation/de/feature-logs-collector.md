@@ -104,6 +104,8 @@ Die Datei wird vorübergehend auf Ihrem Home Assistant-Server im über das lokal
 
 > **Wichtig**: Damit die Download-URL korrekt ist, müssen Sie Ihre interne oder externe URL unter **Einstellungen > System > Netzwerk** in Home Assistant konfigurieren. Andernfalls kann die URL die interne IP-Adresse des Docker-Containers enthalten.
 
+> **Tipp**: Die heruntergeladene Datei kann direkt im [Log-Analyser](https://www.versatile-thermostat.org/de/debugger/) der Website geöffnet werden. Er stellt Temperaturen, Modi, Presets und Funktionen des Thermostats über den Zeitraum dar und zeigt die im Dateikopf gespeicherte Konfiguration an. Die Datei wird in Ihrem Browser analysiert: Es wird nichts hochgeladen.
+
 ## Format und Inhalt der Protokolldatei
 
 Die Datei enthält:
@@ -229,7 +231,7 @@ Sie können **jede positive ganze Zahl** (in Stunden) nach Bedarf angeben. Hier 
 1. **Beginnen Sie mit INFO-Level**: Weniger Lärm, leichter zu lesen
 2. **Gezielter spezifischer Thermostat**: Relevanter als alle VTherm
 3. **Zeitraum reduzieren**: Laden Sie anstelle von 24h nur den problematischen Zeitraum herunter
-4. **Verwenden Sie die Website zur Analyse**: Die [Versatile Thermostat-Website](https://www.versatile-thermostat.org/) ermöglicht es Ihnen, Ihre Protokolle zu analysieren und Kurven darzustellen. Sie ist eine wesentliche Ergänzung zu dieser Funktion
+4. **Verwenden Sie die Website zur Analyse**: Der [Log-Analyser der Versatile Thermostat-Website](https://www.versatile-thermostat.org/de/debugger/) ermöglicht es Ihnen, Ihre Protokolle zu analysieren und Kurven darzustellen. Er ist eine wesentliche Ergänzung zu dieser Funktion
 5. **Nutzen Sie Verarbeitungstools**: `grep`, `sed`, `awk` oder Python zur Analyse großer Dateien
 6. **Header beibehalten**: Nützlich, um Kontexte bei Problemmeldung bereitzustellen
 

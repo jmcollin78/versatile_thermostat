@@ -1,6 +1,6 @@
 # Schnellstart
 
-Auf dieser Seite werden die Schritte zur schnellen Einrichtung eines einfachen, aber betriebsbereiten _VTherm_ beschrieben. Gegliedert nach Gerätetypen.
+Auf dieser Seite werden die Schritte zur schnellen Einrichtung eines einfachen, aber betriebsbereiten _VTherm_ beschrieben. Gegliedert nach Gerätetypen. Die vollständige Liste der getesteten Geräte und ihr Unterstützungsgrad ist im [Gerätekatalog](https://www.versatile-thermostat.org/de/devices/) verfügbar. Dieser Katalog ist nicht vollständig: Ein Gerät, das nicht aufgeführt ist, ist nicht unbedingt inkompatibel.
 
 - [Schnellstart](#schnellstart)
   - [Nodon SIN-4-FP-21 oder ähnlich (Pilotdraht)](#nodon-sin-4-fp-21-oder-ähnlich-pilotdraht)
@@ -9,12 +9,12 @@ Auf dieser Seite werden die Schritte zur schnellen Einrichtung eines einfachen, 
   - [Sonoff TRVZB oder ähnlich (TRV mit Ventilsteuerung)](#sonoff-trvzb-oder-ähnlich-trv-mit-ventilsteuerung)
   - [Einfaches TRV wie Avatto TRV06, Moes, Tuya... (TRV ohne Ventilsteuerung)](#einfaches-trv-wie-avatto-trv06-moes-tuya-trv-ohne-ventilsteuerung)
   - [Reversible Wärmepumpen, Klimaanlagen oder Geräte, die über eine `climate`-Entity gesteuert werden](#reversible-wärmepumpen-klimaanlagen-oder-geräte-die-über-eine-climate-entity-gesteuert-werden)
-- [Nächste Schritte](#nächste-schritte)
-- [Aufruf zu Beiträgen](#aufruf-zu-beiträgen)
+  - [Nächste Schritte](#nächste-schritte)
+  - [Aufruf zu Beiträgen](#aufruf-zu-beiträgen)
 
 ## Nodon SIN-4-FP-21 oder ähnlich (Pilotdraht)
 
-Dieses Modul ermöglicht die Steuerung eines Heizkörpers über einen Pilotdraht. Es erscheint in _HA_ als eine `select`-Einheit, mit der Sie die anzuwendende Heizungsvoreinstellung auswählen können.
+Dieses Modul ermöglicht die Steuerung eines Heizkörpers über einen Pilotdraht. Es erscheint in _HA_ als eine `select`-Einheit, mit der Sie die anzuwendende Heizungsvoreinstellung auswählen können. Siehe auch die Seite [Pilotdraht-Module](https://www.versatile-thermostat.org/de/devices/pilot-wire-module/) im Gerätekatalog.
 
 Das _VTherm_ regelt die Temperatur, indem es die Voreinstellung über benutzerdefinierte Befehle periodisch ändert, bis der Sollwert erreicht ist.
 
@@ -32,7 +32,7 @@ Nach diesen vier Schritten haben Sie eine voll funktionsfähige _VTherm_, die Ih
 
 ## Heatzy, eCosy, oder ähnlich (`climate`-Entity)
 
-Dieses Modul ermöglicht die Steuerung eines Heizkörpers, der in _HA_ als `climate`-Entity erscheint, und ermöglicht die Wahl der Heizungsvoreinstellung oder des Modus (Heizen / Kühlen / Aus).
+Dieses Modul ermöglicht die Steuerung eines Heizkörpers, der in _HA_ als `climate`-Entity erscheint, und ermöglicht die Wahl der Heizungsvoreinstellung oder des Modus (Heizen / Kühlen / Aus). Siehe auch die Seite [Heatzy](https://www.versatile-thermostat.org/de/devices/heatzy/) im Gerätekatalog.
 
 Das _VTherm_ regelt die Temperatur, indem es das Gerät über benutzerdefinierte Befehle in regelmäßigen Abständen ein- und ausschaltet, bis der Sollwert erreicht ist.
 
@@ -46,7 +46,7 @@ Nach diesen vier Schritten haben Sie eine voll funktionsfähige _VTherm_, die Ih
 
 ## Einfache Schalter wie Aqara T1, Nous B2Z, Sonoff ZBMini, Sonoff POW, ...
 
-Dieses Modul ermöglicht die Steuerung eines Heizkörpers über einen einfachen Schalter. Es erscheint in _HA_ als `switch`-Entität, die den Heizkörper direkt ein- oder ausschaltet.
+Dieses Modul ermöglicht die Steuerung eines Heizkörpers über einen einfachen Schalter. Es erscheint in _HA_ als `switch`-Entität, die den Heizkörper direkt ein- oder ausschaltet. Siehe auch die Seite [Schalter](https://www.versatile-thermostat.org/de/devices/over-switch/) im Gerätekatalog.
 
 Das _VTherm_ regelt die Temperatur durch periodisches Ein- und Ausschalten des Schalters, bis der Sollwert erreicht ist.
 
@@ -59,7 +59,7 @@ Nach Abschluss dieser drei Schritte haben Sie ein voll funktionsfähiges _VTherm
 
 ## Sonoff TRVZB oder ähnlich (TRV mit Ventilsteuerung)
 
-Diese Art von _TRV_-Gerät steuert die Öffnung eines Ventils, das mehr oder weniger heißes Wasser aus einem Heizkessel oder einer Wärmepumpe fließen lässt. Es erscheint in _HA_ als eine `climate`-Entity zusammen mit einer `number`-Entitäten die das Ventil steuern. Diese `number`-Entitäten können versteckt sein und müssen in einigen Fällen explizit hinzugefügt werden.
+Diese Art von _TRV_-Gerät steuert die Öffnung eines Ventils, das mehr oder weniger heißes Wasser aus einem Heizkessel oder einer Wärmepumpe fließen lässt. Es erscheint in _HA_ als eine `climate`-Entity zusammen mit einer `number`-Entitäten die das Ventil steuern. Diese `number`-Entitäten können versteckt sein und müssen in einigen Fällen explizit hinzugefügt werden. Siehe auch die Seite [Sonoff TRVZB](https://www.versatile-thermostat.org/de/devices/sonoff-trvzb/) im Gerätekatalog. Ein [Blueprint](https://www.versatile-thermostat.org/de/plugins/#sonoff-trvzb-linearity) ist ebenfalls verfügbar, um die Nichtlinearität des TRVZB-Ventils auszugleichen.
 
 _VTherm_ passt den Öffnungsgrad des Ventils an, bis die Solltemperatur erreicht ist.
 
@@ -76,7 +76,7 @@ Nach Abschluss dieser fünf Schritte haben Sie über ein voll funktionsfähiges 
 
 ## Einfaches TRV wie Avatto TRV06, Moes, Tuya... (TRV ohne Ventilsteuerung)
 
-Diese Art von _TRV_-Gerät (typischerweise Zigbee-Geräte, die über Zigbee2MQTT oder ZHA eingebunden werden) erscheint in _HA_ nur als `climate`-Entity. Die Ventilöffnung kann nicht gesteuert werden: Das TRV regelt sich selbst anhand seines internen Thermometers und des empfangenen Sollwerts.
+Diese Art von _TRV_-Gerät (typischerweise Zigbee-Geräte, die über Zigbee2MQTT oder ZHA eingebunden werden) erscheint in _HA_ nur als `climate`-Entity. Die Ventilöffnung kann nicht gesteuert werden: Das TRV regelt sich selbst anhand seines internen Thermometers und des empfangenen Sollwerts. Siehe auch die Seite [TRV ohne Ventilsteuerung](https://www.versatile-thermostat.org/de/devices/trv-no-valve/) im Gerätekatalog.
 
 _VTherm_ passt den an das TRV gesendeten Sollwert so an, dass die von Ihrem eigenen Sensor gemessene Raumtemperatur die gewünschte Temperatur erreicht.
 
@@ -101,7 +101,7 @@ Nach Abschluss dieser fünf Schritte und der Prüfung der TRV-Einstellungen habe
 
 ## Reversible Wärmepumpen, Klimaanlagen oder Geräte, die über eine `climate`-Entity gesteuert werden
 
-Reversible Wärmepumpen (heat pumps/HP) oder ähnliche Geräte werden in _HA_ als `climate`“-Entity dargestellt, so dass Sie die Heizungsvoreinstellung oder den Modus (Heizen / Kühlen / Aus) auswählen können).
+Reversible Wärmepumpen (heat pumps/HP) oder ähnliche Geräte werden in _HA_ als `climate`“-Entity dargestellt, so dass Sie die Heizungsvoreinstellung oder den Modus (Heizen / Kühlen / Aus) auswählen können). Die über eine `climate`-Entity gesteuerten Geräte sind im [Gerätekatalog](https://www.versatile-thermostat.org/de/devices/?type=climate) aufgeführt.
 
 _VTherm_ regelt die Temperatur, indem es die Zieltemperatur und den Modus des Geräts durch Befehle steuert, die an die zugehörige `climate`-Entity gesendet werden.
 
@@ -114,15 +114,15 @@ Nach diesen drei Schritten haben Sie ein voll funktionsfähiges _VTherm_ zur Ste
 
 Um noch weiter zu gehen, kann eine Selbstregulierung erforderlich sein, je nachdem, wie gut Ihr Gerät funktioniert. Bei der Selbstregulierung passt _VTherm_ die Solltemperatur geringfügig an, um das Gerät zu veranlassen, mehr oder weniger zu heizen oder zu kühlen, bis der gewünschte Sollwert erreicht ist. Die Selbstregulierung wird hier im Detail erklärt: [Selbstregulierung](self-regulation.md).
 
-# Nächste Schritte
+## Nächste Schritte
 
 Nach der Erstellung müssen Sie die voreingestellten Temperaturen konfigurieren. Siehe [Voreinstellungen](feature-presets.md) für eine minimale Konfiguration.
-Sie können auch (optional, aber empfohlen) die spezielle UI-Karte für Ihre Dashboards installieren. (Siehe [VTHerm UI Card](https://github.com/jmcollin78/versatile-thermostat-ui-card))
+Sie können auch (optional, aber empfohlen) die spezielle UI-Karte für Ihre Dashboards installieren. (Siehe [VTHerm UI Card](https://www.versatile-thermostat.org/de/plugins/#jmcollin78/versatile-thermostat-ui-card)) Weitere Karten sind im [Plugin-Katalog](https://www.versatile-thermostat.org/de/plugins/?family=interface) aufgeführt.
 
 Sobald diese minimale Einrichtung funktioniert - und nur dann, wenn sie korrekt funktioniert - können Sie zusätzliche Funktionen hinzufügen, wie z. B. die Anwesenheitserkennung, um zu verhindern, dass geheizt wird, wenn keine Person anwesend ist. Fügen Sie diese nach und nach hinzu und überprüfen Sie, ob _VTherm_ bei jedem Schritt korrekt reagiert, bevor Sie mit dem nächsten fortfahren.
 
 Sie können dann zentrale Konfigurationen einrichten, um Einstellungen für alle _VTherm_-Instanzen gemeinsam zu nutzen. Den Zentralmodus für die einheitliche Steuerung aller _VTherms_ aktivieren ([zentrale Konfiguration](feature-central-mode.md)) oder eine zentrale Kesselsteuerung integrieren ([Zentralheizung](feature-central-boiler.md)). Diese Liste ist nicht vollständig - eine vollständige Liste der _VTherm_-Funktionen finden Sie im Inhaltsverzeichnis.
 
-# Aufruf zu Beiträgen
+## Aufruf zu Beiträgen
 
 Diese Seite ist offen für Beiträge. Fühlen Sie sich frei, zusätzliche Ausrüstung und minimale Konfigurationseinstellungen vorzuschlagen.

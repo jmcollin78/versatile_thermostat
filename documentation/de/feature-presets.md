@@ -5,7 +5,7 @@
 
 ## Vorkonfigurierte Temperaturen einrichten
 
-Im Voreinstellungsmodus können Sie die Zieltemperatur vorkonfigurieren. In Verbindung mit dem Zeitplaner (siehe [Zeitplaner](additions.md#the-scheduler-component)) haben Sie eine leistungsfähige und einfache Möglichkeit, die Temperatur in Abhängigkeit vom Stromverbrauch in Ihrem Haus zu optimieren. Die verwalteten Voreinstellungen sind wie folgt:
+Im Voreinstellungsmodus können Sie die Zieltemperatur vorkonfigurieren. In Verbindung mit dem Zeitplaner (siehe [Zeitplaner](additions.md#ein-grafischer-zeitplaner-empfohlen)) haben Sie eine leistungsfähige und einfache Möglichkeit, die Temperatur in Abhängigkeit vom Stromverbrauch in Ihrem Haus zu optimieren. Die verwalteten Voreinstellungen sind wie folgt:
  - **Eco**: das Gerät befindet sich im Energiesparmodus
  - **Komfort**: Das Gerät befindet sich im Komfortmodus
  - **Boost**: das Gerät öffnet alle Ventile vollständig

@@ -14,6 +14,8 @@
 
 ## Pré-requis
 
+Les équipements pilotables par un _VTherm_ `over_climate` (climatisations, PAC, TRV...) sont listés dans le [catalogue des matériels](https://www.versatile-thermostat.org/fr/devices/?type=climate), et les vannes thermostatiques dans le [catalogue des TRV](https://www.versatile-thermostat.org/fr/devices/?type=trv).
+
 L'installation doit ressembler à ça :
 
 ![installation `over_climate`](images/over-climate-schema.png)
@@ -76,7 +78,7 @@ Si votre équipement ne comprend pas le mode Turbo, le mode `Forte` sera utilis�
 Une fois l'écart de température redevenu faible, la ventilation se mettra dans un mode "normal" qui dépend de votre équipement à savoir (dans l'ordre) : `Silence (mute ou quiet)`, `Auto (auto)`, `Faible (low)`. La première valeur qui est possible pour votre équipement sera choisie.
 
 > ![Astuce](images/tips.png) _*Plugin externe*_
-> Une version enrichie de l'auto-fan est disponible sous forme de plugin externe. Ce plugin offre des possibilités de configuration supplémentaires et une gestion plus fine de la ventilation automatique. Consultez la page [plugins](https://www.versatile-thermostat.org/fr/plugins/) pour découvrir ce plugin.
+> Une version enrichie de l'auto-fan est disponible sous forme de plugin externe. Ce plugin offre des possibilités de configuration supplémentaires et une gestion plus fine de la ventilation automatique. Consultez la page [plugins](https://www.versatile-thermostat.org/fr/plugins/#jmcollin78/vtherm_auto_fan_extended) pour découvrir ce plugin.
 
 ### Compenser la température interne du sous-jacent
 
@@ -134,3 +136,6 @@ Un retour ancien, différent de la dernière commande, peut encore être pris à
 
 Certains équipements (Daikin par exemple), changent d'état tout seul. Si la case est cochée, cela peut éteindre le _VTherm_ alors que ce n'est pas ce que vous souhaitiez.
 C'est pour ça qu'il est préférable de ne pas l'utiliser. Cela génère beaucoup d'incompréhensions et de nombreuses demandes de support.
+
+> ![Astuce](images/tips.png) _*Télécommande physique*_
+> Si vous souhaitez utiliser un thermostat physique distinct (un thermostat mural par exemple) comme télécommande d'un _VTherm_, consultez le plugin [VTherm climate replication](https://www.versatile-thermostat.org/fr/plugins/#jmcollin78/vtherm_climate_replication).

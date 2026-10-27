@@ -104,6 +104,8 @@ Le fichier est stocké temporairement sur votre serveur Home Assistant dans le d
 
 > **Important** : Pour que l'URL de téléchargement soit correcte, vous devez configurer votre URL interne ou externe dans **Paramètres > Système > Réseau** dans Home Assistant. Sinon, l'URL peut contenir l'adresse IP interne du conteneur Docker.
 
+> **Astuce** : le fichier téléchargé peut être ouvert directement dans l'[analyseur de logs](https://www.versatile-thermostat.org/fr/debugger/) du site. Il trace les températures, modes, presets et fonctionnalités du thermostat sur la période et affiche la configuration contenue dans l'en-tête du fichier. Le fichier est analysé dans votre navigateur : rien n'est envoyé.
+
 ## Format et contenu du fichier de logs
 
 Le fichier contient :
@@ -229,7 +231,7 @@ Vous pouvez spécifier **n'importe quel entier positif** (en heures) selon vos b
 1. **Commencez par un niveau INFO** : Moins de bruit, plus facile à lire
 2. **Cibler un thermostat spécifique** : Plus de pertinence que tous les VTherm
 3. **Réduire la période** : Plutôt que 24h, téléchargez juste la période problématique
-4. **Utilisez le site pour l'analyse**: le [site web Versatile Thermostat](https://www.versatile-thermostat.org/fr/debugger/) permet d'analyser vos logs et de tracer des courbes. Il est le complément indispensable à cette fonction
+4. **Utilisez le site pour l'analyse**: l'[analyseur de logs du site Versatile Thermostat](https://www.versatile-thermostat.org/fr/debugger/) permet d'analyser vos logs et de tracer des courbes. Il est le complément indispensable à cette fonction
 5. **Utilisez des outils de traitement** : `grep`, `sed`, `awk` ou Python pour analyser les gros fichiers
 6. **Conservez l'en-tête** : Utile pour fournir du contexte en cas de signalement de problème
 

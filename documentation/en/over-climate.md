@@ -15,6 +15,8 @@
 
 ## Prerequisites
 
+Devices that can be controlled by an `over_climate` _VTherm_ (air conditioners, heat pumps, TRVs...) are listed in the [device catalog](https://www.versatile-thermostat.org/en/devices/?type=climate), and the thermostatic valves in the [TRV catalog](https://www.versatile-thermostat.org/en/devices/?type=trv).
+
 The installation should look like this:
 
 ![installation `over_climate`](images/over-climate-schema.png)
@@ -74,7 +76,7 @@ You can choose which ventilation level to activate from the following options: L
 Of course, your underlying equipment must have ventilation, and it must be controllable for this to work. If your equipment doesn't include the Turbo mode, the High mode will be used instead. Once the temperature difference becomes small again, the ventilation will switch to a "normal" mode, which depends on your equipment (in order): `Mute`, `Quiet`, `Auto`, `Low`. The first available mode for your equipment will be chosen.
 
 > ![Tip](images/tips.png) _*External plugin*_
-> An enhanced version of auto-fan is available as an external plugin. This plugin offers additional configuration options and finer control of automatic ventilation. Check the [plugins](https://www.versatile-thermostat.org/fr/plugins/) page to discover this plugin.
+> An enhanced version of auto-fan is available as an external plugin. This plugin offers additional configuration options and finer control of automatic ventilation. Check the [plugins](https://www.versatile-thermostat.org/en/plugins/#jmcollin78/vtherm_auto_fan_extended) page to discover this plugin.
 
 ### Compensating for the Internal Temperature of the Underlying Equipment
 
@@ -131,3 +133,6 @@ An old return that differs from the last command can still be mistaken for a man
 
 Some equipment (like Daikin, for example) changes state by itself. If the checkbox is checked, it may turn off the _VTherm_ when that's not what you intended.
 That's why it's better not to use it. It generates a lot of confusion and many support requests.
+
+> ![Tip](images/tips.png) _*Physical remote control*_
+> If you want to use a separate physical thermostat (a wall thermostat for example) as a remote control for a _VTherm_, see the [VTherm climate replication](https://www.versatile-thermostat.org/en/plugins/#jmcollin78/vtherm_climate_replication) plugin.

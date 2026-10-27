@@ -1,7 +1,7 @@
 # La détection d'anomalie de chauffe
 
 > [!IMPORTANT]
-> Le plugin `vtherm_heating_failure_detection` est disponible pour la migration.
+> Le plugin [`vtherm_heating_failure_detection`](https://www.versatile-thermostat.org/fr/plugins/#jmcollin78/vtherm_heating_failure_detection) est disponible pour la migration.
 > La configuration du core reste prise en charge pendant cette release de
 > transition ; configurez le plugin ou la fonction du core pour un thermostat,
 > mais pas les deux.

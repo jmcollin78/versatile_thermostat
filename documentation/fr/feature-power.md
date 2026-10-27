@@ -1,6 +1,7 @@
 # Gestion de la puissance - délestage
 
 - [Gestion de la puissance - délestage](#gestion-de-la-puissance---délestage)
+  - [Cas d'usage type](#cas-dusage-type)
   - [Configurer la gestion de la puissance](#configurer-la-gestion-de-la-puissance)
 
 Cette fonction vous permet de réguler la consommation électrique de vos radiateurs. Connue sous le nom de délestage, cette fonction vous permet de limiter la consommation électrique de votre appareil de chauffage si des conditions de surpuissance sont détectées.
@@ -14,7 +15,8 @@ Le comportement de cette fonction est le suivant :
 
 ATTENTION: ce fonctionnement **n'est pas une fonction de sécurité** mais plus une fonction permettant une optimisation de la consommation au prix d'une dégradation du chauffage. Des dépassements sont possibles selon la fréquence de remontée de vos capteurs de consommation, la puissance réellement utilisée par votre équipements. Vous devez donc toujours garder une marge de sécurité.
 
-Cas d'usage type:
+## Cas d'usage type
+
 1. vous avez un compteur électrique limité à 11 kW,
 2. vous chargez de temps en temps un véhicule électrique à 5 kW,
 3. il reste donc 6 kW pour tout le reste y compris le chauffage,

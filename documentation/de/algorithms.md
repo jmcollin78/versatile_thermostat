@@ -6,6 +6,9 @@
     - [Prinzip](#prinzip)
     - [Mindestverzögerung bei Aktivierung oder Deaktivierung](#mindestverzögerung-bei-aktivierung-oder-deaktivierung)
     - [Obere und untere Aktivierungsschwellen des Algorithmus](#obere-und-untere-aktivierungsschwellen-des-algorithmus)
+  - [Weitere Algorithmen (Plugins)](#weitere-algorithmen-plugins)
+    - [SmartPI (empfohlen)](#smartpi-empfohlen)
+    - [Weitere Algorithmen](#weitere-algorithmen)
   - [Der Selbstregulierungsalgorithmus (ohne Ventilsteuerung)](#der-selbstregulierungsalgorithmus-ohne-ventilsteuerung)
   - [Der Algorithmus der Auto-Start/Stopp-Funktion](#der-algorithmus-der-auto-startstopp-funktion)
 
@@ -85,6 +88,18 @@ Beispiele:
 > 2. Beide Werte sind erforderlich. Wenn Sie einen Wert auf 0 belassen, wird kein Schwellenwert angewendet. Tatsächlich sind beide für einen korrekten Betrieb erforderlich.
 > 3. Im Kühlmodus werden die Tests umgekehrt, aber das Prinzip bleibt dasselbe.
 > 4. Der obere Schwellenwert sollte immer größer als der untere Schwellenwert sein, auch im Kühlmodus.
+
+## Weitere Algorithmen (Plugins)
+
+Zusätzlich zum integrierten TPI-Algorithmus können weitere Regelalgorithmen als externe Plugins installiert werden. Sie können von den _VTherm_ verwendet werden, die den TPI-Algorithmus nutzen: `over_switch`, `over_valve` und `over_climate` mit direkter Ventilsteuerung. Nach der Installation des Plugins kann sein Algorithmus im Feld zur Auswahl des Algorithmus in der Konfiguration ausgewählt werden.
+
+### SmartPI (empfohlen)
+
+[SmartPI](https://www.versatile-thermostat.org/de/plugins/#kipk/vtherm_smartpi) ist das empfohlene Algorithmus-Plugin. Es ist ein fortschrittlicher PI-Regler, der auf einem thermischen Modell des Raums aufbaut: Er erlernt die Heizleistung des Raums, seine Wärmeverlustrate und seine Totzeit und nutzt dieses Modell, um einen deutlich genaueren Heizbefehl zu berechnen als ein Algorithmus mit festen Koeffizienten wie TPI. Siehe die [SmartPI-Dokumentation](https://github.com/KipK/vtherm_smartpi/blob/master/documentation/en/vtherm_smartpi.md) (auf Englisch).
+
+### Weitere Algorithmen
+
+Es sind weitere Algorithmen verfügbar, etwa ein einfacher Hysterese-Algorithmus oder ein speziell für Pelletöfen entwickelter Algorithmus. Die vollständige Liste finden Sie im [Plugin-Katalog](https://www.versatile-thermostat.org/de/plugins/?family=algorithm).
 
 ## Der Selbstregulierungsalgorithmus (ohne Ventilsteuerung)
 
