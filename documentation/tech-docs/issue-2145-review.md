@@ -62,3 +62,7 @@ La valeur du correctif potentiel est de supprimer des coupures repetitives indue
 1. Faire approuver ce rapport, puis produire specification fonctionnelle et conception technique coherentes, avec strategie explicite pour les etats inconnus et les reservations pendant les mesures differees.
 2. Obtenir un accord distinct sur ces documents avant de commencer tout developpement. Aucun changement de code ou d'environnement HA n'est autorise a ce stade.
 3. Pour accepter un correctif ulterieur : un test reproduit le refus abusif en cycle a 100 % avec relais inverses deja en chauffe ; un autre conserve la reservation et le refus si un relais distinct demarre vraiment ; les cas mono-relais, plusieurs cles, etat inconnu et remise a zero lors de la nouvelle mesure ne regressent pas. Les risques de sous-reservation doivent etre arbitres avant implementation.
+
+## Decision ulterieure du proprietaire
+
+Le 2026-10-26, le proprietaire a accepte l'option A de BR-005 et le risque de sous-reservation associe a un etat HA de chauffe perime ou a une charge pas encore incluse dans la mesure. Le developpement du perimetre defini dans les specifications est autorise. Un relais deja reporte en chauffe peut donc etre exempte du comptage marginal alors que sa consommation n'est pas encore visible, et le seuil configure peut temporairement etre depasse. Cette fonction logicielle ne protege pas le disjoncteur. Cette decision ulterieure ne modifie pas les faits historiques et incertitudes releves lors de la revue.
