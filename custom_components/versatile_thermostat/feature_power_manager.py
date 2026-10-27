@@ -64,6 +64,7 @@ class FeaturePowerManager(BaseFeatureManager):
             self._power_unit = POWER_UNIT_WATT
         else:
             self._power_unit = configured_power_unit
+
         # Normalize device_power to internal Watts based on configured unit
         raw_device_power = entry_infos.get(CONF_DEVICE_POWER)
         self._device_power = (power_to_watts(raw_device_power, self._power_unit) or 0.0) if raw_device_power else 0.0
@@ -140,7 +141,8 @@ class FeaturePowerManager(BaseFeatureManager):
             )
 
     async def check_power_available(
-        self, reservation_key: str | None = None
+        self,
+        reservation_key: str | None = None,
     ) -> tuple[bool, float]:
         """Check if the Vtherm can be started considering overpowering.
         Returns True if no overpowering conditions are found.
@@ -155,6 +157,8 @@ class FeaturePowerManager(BaseFeatureManager):
             return True, 0
 
         effective_reservation_key = reservation_key or self._default_power_reservation_key
+        startup_power = self.calculate_underlying_startup_power(reservation_key)
+
         current_power = vtherm_api.central_power_manager.current_power
         current_max_power = vtherm_api.central_power_manager.current_max_power
         started_vtherm_total_power = vtherm_api.central_power_manager.started_vtherm_total_power
@@ -177,8 +181,6 @@ class FeaturePowerManager(BaseFeatureManager):
             self._device_power,
         )
 
-        startup_power = self.calculate_underlying_startup_power()
-
         ret = (
             current_power
             + started_vtherm_total_power
@@ -200,7 +202,7 @@ class FeaturePowerManager(BaseFeatureManager):
 
         return ret, startup_power
 
-    def calculate_underlying_startup_power(self) -> float:
+    def calculate_underlying_startup_power(self, reservation_key: str | None = None) -> float:
         """Calculate the incremental startup power for a single underlying.
 
         This is the power to *reserve* between two power sensor measurements
@@ -211,6 +213,19 @@ class FeaturePowerManager(BaseFeatureManager):
         """
         if not self._device_power:
             return 0
+
+        underlying_entities = getattr(self._vtherm, "underlying_entities", None)
+        if reservation_key is not None and isinstance(underlying_entities, list):
+            underlying = next(
+                (entity for entity in underlying_entities if entity.entity_id == reservation_key),
+                None,
+            )
+            if underlying is not None:
+                if underlying.is_device_active is True:
+                    return 0
+                if self._vtherm.is_over_climate or self._vtherm.nb_underlying_entities <= 1:
+                    return self._device_power
+                return self._device_power / self._vtherm.nb_underlying_entities
 
         # over_climate and mono-underlying over_switch: if the device is
         # already active, its load is already reflected in current_power, so
@@ -255,12 +270,13 @@ class FeaturePowerManager(BaseFeatureManager):
         if not self._is_configured or not vtherm_api.central_power_manager.is_configured:
             return
 
-        startup_power = self.calculate_underlying_startup_power()
+        startup_power = self.calculate_underlying_startup_power(reservation_key)
 
-        vtherm_api.central_power_manager.set_started_vtherm_power(
-            reservation_key or self._default_power_reservation_key,
-            startup_power,
-        )
+        if startup_power > 0:
+            vtherm_api.central_power_manager.set_started_vtherm_power(
+                reservation_key or self._default_power_reservation_key,
+                startup_power,
+            )
 
     def sub_power_consumption_to_central_power_manager(
         self,

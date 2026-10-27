@@ -15,6 +15,8 @@ Chování této funkce je následující:
 
 **UPOZORNĚNÍ:** Toto **není bezpečnostní funkce**, ale optimalizační funkce pro správu spotřeby na úkor určitého zhoršení vytápění. Nadměrná spotřeba je stále možná v závislosti na frekvenci aktualizací vašeho senzoru spotřeby a skutečné spotřebě vašeho vybavení. Vždy udržujte bezpečnostní rezervu.
 
+U _VTherm_ typu `over_switch`, který ovládá více radiátorů, se každé relé vyhodnocuje samostatně. Relé, jehož stav v Home Assistant již hlásí vytápění, nepřidává žádný mezní příkon při zapnutí. Měření může být opožděné: pokud spotřeba tohoto radiátoru ještě není zahrnuta, může být nastavený limit dočasně překročen. Tato softwarová funkce nenahrazuje elektrickou ochranu a nechrání jistič.
+
 ### Příklad případu použití:
 1. Máte elektrický měřič omezený na 11 kW,
 2. Občas nabíjíte elektrické vozidlo na 5 kW,

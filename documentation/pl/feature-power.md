@@ -14,6 +14,8 @@ Zachowanie tej funkcji jest następujące:
 
 **Ostrzeżenie:** To nie jest **funkcja bezpieczeństwa**, lecz mechanizm optymalizacji zużycia energii kosztem pewnego pogorszenia ogrzewania. Nadmierne zużycie energii nadal jest możliwe, w zależności od częstotliwości aktualizacji czujnika zużycia oraz rzeczywistej mocy pobieranej przez urządzenia. Zawsze należy zachować margines bezpieczeństwa.
 
+W termostacie _VTherm_ typu `over_switch` sterującym wieloma grzejnikami każdy przekaźnik jest oceniany osobno. Przekaźnik, którego stan w Home Assistant wskazuje już grzanie, nie dodaje krańcowej mocy rozruchowej. Pomiar może być opóźniony: jeśli pobór mocy tego grzejnika nie jest jeszcze w nim uwzględniony, skonfigurowany próg może zostać tymczasowo przekroczony. Ta funkcja programowa nie zastępuje zabezpieczenia elektrycznego i nie chroni wyłącznika nadprądowego.
+
 ### Przykład użycia:
 1. Masz licznik energii elektrycznej ograniczony do 11 kW,
 2. Okazjonalnie ładujesz pojazd elektryczny z mocą 5 kW,

@@ -10,6 +10,7 @@ from homeassistant.const import UnitOfPower
 from custom_components.versatile_thermostat.thermostat_switch import ThermostatOverSwitch
 from custom_components.versatile_thermostat.thermostat_climate_valve import ThermostatOverClimateValve
 from custom_components.versatile_thermostat.feature_power_manager import FeaturePowerManager
+from custom_components.versatile_thermostat.underlyings import UnderlyingSwitch
 
 from custom_components.versatile_thermostat.prop_algo_tpi import TpiAlgorithm
 from .const import *  # pylint: disable=wildcard-import, unused-wildcard-import
@@ -326,6 +327,238 @@ async def test_power_feature_manager_reserves_startup_power_per_underlying_for_m
     # Releasing the reservation multiple times must stay idempotent as well.
     power_manager.sub_power_consumption_to_central_power_manager("switch.one")
     assert vtherm_api.central_power_manager.started_vtherm_total_power == 0
+
+
+async def _create_power_managed_underlyings(
+    hass: HomeAssistant,
+    entity_ids: list[str],
+    states: list[str | None],
+    current_power: float,
+    max_power: float,
+    is_inversed: bool = False,
+):
+    """Create underlying switches with the real power reservation managers."""
+    vtherm_api: VersatileThermostatAPI = VersatileThermostatAPI.get_vtherm_api(hass)
+    vtherm_api.find_central_configuration = MagicMock(return_value=object())
+    central_power_manager = vtherm_api.central_power_manager
+    central_power_manager.post_init(
+        {
+            CONF_POWER_SENSOR: "sensor.the_power_sensor",
+            CONF_MAX_POWER_SENSOR: "sensor.the_max_power_sensor",
+            CONF_USE_POWER_FEATURE: True,
+            CONF_PRESET_POWER: 13,
+        }
+    )
+    central_power_manager._current_power = current_power
+    central_power_manager._current_max_power = max_power
+
+    thermostat = MagicMock()
+    thermostat.entity_id = "climate.multi_relay_test"
+    thermostat.name = "multi relay test"
+    thermostat.is_over_climate = False
+    thermostat.is_inversed = is_inversed
+    thermostat.nb_underlying_entities = len(entity_ids)
+    thermostat.is_device_active = False
+    thermostat.safe_on_percent = 1
+    thermostat.async_get_last_state = AsyncMock(return_value=None)
+    thermostat.async_underlying_entity_turn_off = AsyncMock()
+    thermostat.update_states = AsyncMock()
+    thermostat.requested_state.force_changed = MagicMock()
+
+    power_manager = FeaturePowerManager(thermostat, hass)
+    power_manager.post_init(
+        {
+            CONF_USE_POWER_FEATURE: True,
+            CONF_PRESET_POWER: 10,
+            CONF_DEVICE_POWER: 750,
+        }
+    )
+    await power_manager.start_listening()
+    thermostat.power_manager = power_manager
+
+    for entity_id, state in zip(entity_ids, states):
+        if state is not None:
+            hass.states.async_set(entity_id, state)
+
+    hass.services = MagicMock()
+    hass.services.async_call = AsyncMock()
+
+    underlyings = [UnderlyingSwitch(hass, thermostat, entity_id, keep_alive_sec=0) for entity_id in entity_ids]
+    for underlying in underlyings:
+        underlying._is_initialized = True
+    thermostat.underlying_entities = underlyings
+    return thermostat, power_manager, central_power_manager, underlyings
+
+
+@pytest.mark.parametrize(
+    "is_inversed, heating_state",
+    [(False, STATE_ON), (True, STATE_OFF)],
+)
+async def test_multi_underlying_turn_on_maintains_known_heating_relays_with_zero_startup_power(
+    hass: HomeAssistant,
+    is_inversed: bool,
+    heating_state: str,
+):
+    """A 100% restart must not recount already-heating relays, including inverted ones."""
+    _, power_manager, central_power_manager, underlyings = await _create_power_managed_underlyings(
+        hass,
+        ["switch.relay_one", "switch.relay_two", "switch.relay_three"],
+        [heating_state] * 3,
+        current_power=950,
+        max_power=1000,
+        is_inversed=is_inversed,
+    )
+
+    check_power = AsyncMock(wraps=power_manager.check_power_available)
+    power_manager.check_power_available = check_power
+
+    for underlying in underlyings:
+        assert await underlying.turn_on() is True
+
+    assert hass.services.async_call.await_count == 3
+    assert check_power.await_args_list == [
+        call("switch.relay_one"),
+        call("switch.relay_two"),
+        call("switch.relay_three"),
+    ]
+    assert central_power_manager.started_vtherm_total_power == 0
+    assert power_manager.calculate_underlying_startup_power() == 250
+    assert power_manager.calculate_underlying_startup_power("switch.relay_one") == 0
+    assert power_manager.calculate_underlying_startup_power("switch.relay_two") == 0
+
+
+@pytest.mark.parametrize(
+    "state, is_inversed",
+    [
+        (STATE_OFF, False),
+        (STATE_UNKNOWN, False),
+        (STATE_UNAVAILABLE, False),
+        (None, False),
+        (STATE_ON, True),
+    ],
+)
+async def test_multi_underlying_turn_on_checks_states_not_known_as_heating(
+    hass: HomeAssistant,
+    state: str | None,
+    is_inversed: bool,
+):
+    """Stopped, missing and uncertain states retain conservative startup reservations."""
+    _, _, central_power_manager, underlyings = await _create_power_managed_underlyings(
+        hass,
+        ["switch.relay_one", "switch.relay_two", "switch.relay_three"],
+        [state, STATE_OFF, STATE_OFF],
+        current_power=0,
+        max_power=1000,
+        is_inversed=is_inversed,
+    )
+
+    assert await underlyings[0].turn_on() is True
+
+    assert hass.services.async_call.await_count == 1
+    assert central_power_manager.get_started_vtherm_power("switch.relay_one") == 250
+
+
+async def test_multi_underlying_active_and_stopped_relays_are_counted_individually(
+    hass: HomeAssistant,
+):
+    """Each relay uses the common startup calculator with its own activity state."""
+    _, _, central_power_manager, underlyings = await _create_power_managed_underlyings(
+        hass,
+        ["switch.relay_one", "switch.relay_two", "switch.relay_three"],
+        [STATE_ON, STATE_OFF, STATE_OFF],
+        current_power=400,
+        max_power=1000,
+    )
+    central_power_manager.set_started_vtherm_power("switch.relay_one", 250)
+
+    assert await underlyings[0].turn_on() is True
+    assert await underlyings[1].turn_on() is True
+
+    assert hass.services.async_call.await_count == 2
+    assert central_power_manager.get_started_vtherm_power("switch.relay_one") == 250
+    assert central_power_manager.get_started_vtherm_power("switch.relay_two") == 250
+    assert central_power_manager.started_vtherm_total_power == 500
+
+
+async def test_multi_underlying_maintenance_preserves_reservation_for_next_relay_check(
+    hass: HomeAssistant,
+):
+    """A maintained relay's reservation remains in the strict check for another relay."""
+    thermostat, _, central_power_manager, underlyings = await _create_power_managed_underlyings(
+        hass,
+        ["switch.relay_one", "switch.relay_two", "switch.relay_three"],
+        [STATE_ON, STATE_OFF, STATE_OFF],
+        current_power=500,
+        max_power=1000,
+    )
+    central_power_manager.set_started_vtherm_power("switch.relay_one", 250)
+
+    assert await underlyings[0].turn_on() is True
+    assert await underlyings[1].turn_on() is False
+
+    assert hass.services.async_call.await_count == 1
+    assert central_power_manager.get_started_vtherm_power("switch.relay_one") == 250
+    assert central_power_manager.get_started_vtherm_power("switch.relay_two") == 0
+    thermostat.requested_state.force_changed.assert_called_once()
+
+
+async def test_multi_underlying_known_heating_still_obeys_inhibition(
+    hass: HomeAssistant,
+):
+    """A known-heating relay cannot bypass the command gate."""
+    _, _, central_power_manager, underlyings = await _create_power_managed_underlyings(
+        hass,
+        ["switch.relay_one", "switch.relay_two", "switch.relay_three"],
+        [STATE_ON, STATE_OFF, STATE_OFF],
+        current_power=0,
+        max_power=1000,
+    )
+    underlyings[0].is_command_blocked = MagicMock(return_value=True)
+
+    assert await underlyings[0].turn_on() is False
+
+    assert hass.services.async_call.await_count == 0
+    assert central_power_manager.started_vtherm_total_power == 0
+
+
+async def test_multi_underlying_known_heating_propagates_service_failure(
+    hass: HomeAssistant,
+):
+    """A service failure on a maintenance command is still propagated."""
+    _, _, central_power_manager, underlyings = await _create_power_managed_underlyings(
+        hass,
+        ["switch.relay_one", "switch.relay_two", "switch.relay_three"],
+        [STATE_ON, STATE_OFF, STATE_OFF],
+        current_power=950,
+        max_power=1000,
+    )
+    hass.services.async_call.side_effect = RuntimeError("service failed")
+
+    with pytest.raises(RuntimeError, match="service failed"):
+        await underlyings[0].turn_on()
+
+    assert central_power_manager.started_vtherm_total_power == 0
+
+
+async def test_mono_underlying_turn_on_keeps_existing_power_check(hass: HomeAssistant):
+    """The maintenance exemption is limited to multi-underlying switches."""
+    thermostat, power_manager, _, underlyings = await _create_power_managed_underlyings(
+        hass,
+        ["switch.single_relay"],
+        [STATE_ON],
+        current_power=1000,
+        max_power=1000,
+    )
+    thermostat.is_device_active = True
+    check_power = AsyncMock(wraps=power_manager.check_power_available)
+    power_manager.check_power_available = check_power
+
+    assert await underlyings[0].turn_on() is False
+
+    check_power.assert_awaited_once_with("switch.single_relay")
+    assert hass.services.async_call.await_count == 0
+    assert power_manager.calculate_underlying_startup_power() == 0
+    assert power_manager.calculate_underlying_startup_power("switch.single_relay") == 0
 
 
 @pytest.mark.parametrize(
