@@ -43,7 +43,7 @@ Dans cet exemple, j'ai réglé le mode ECO pendant la nuit et le jour lorsqu'il 
 J'espère que cet exemple vous aidera, n'hésitez pas à me faire part de vos retours !
 
 ## Courbes de régulattion avec Plotly
-Vous pouvez obtenir une courbe comme celle présentée dans [some results](../../README-fr.md#quelques-résultats) avec une sorte de configuration de graphique Plotly uniquement en utilisant les attributs personnalisés du thermostat décrits [ici](reference.md#attributs-personnalisés) :
+Vous pouvez obtenir des courbes comme celles de l'exemple présenté à la fin de cette section avec une sorte de configuration de graphique Plotly uniquement en utilisant les attributs personnalisés du thermostat décrits [ici](reference.md#attributs-personnalisés) :
 
 Remplacez les valeurs entre [[ ]] par les votres.
 <details>

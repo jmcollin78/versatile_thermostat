@@ -330,7 +330,7 @@ Ces services permettent de verrouiller un thermostat afin d'empêcher toute modi
 
 Voir [Fonction de verrouillage](feature-lock.md) pour plus de détails.
 ## Changer les paramètres du TPI
-Tous les paramètres du TPI configurables [ici](images/config_tpi.png) sont modifiables par un service. Ces changements sont persistants et resistent à un redémarrage. Ils sont appliqués immédiatement et une mise à jour du thermostat est faite instantanément lorsque les paramètres sont changés.
+Tous les paramètres du TPI configurables [ici](images/config-tpi.png) sont modifiables par un service. Ces changements sont persistants et resistent à un redémarrage. Ils sont appliqués immédiatement et une mise à jour du thermostat est faite instantanément lorsque les paramètres sont changés.
 
 Chaque paramètres est optionnel. Si il n'est pas fourni sa valeur courante est conservée.
 
@@ -659,7 +659,7 @@ L'attribut personnalisé `specific_states.messages` contient une liste de code m
 | `target_temp_absence_detected`      | La température cible a été forcée par la détection d'absence                                 |
 | `underlying_unavailable`            | Au moins un équipement sous-jacent est indisponible ou inconnu (cf. `unavailable_underlying_entities`)|
 
-Note : ces messages sont disponibles dans la [VTherm UI Card](documentation/fr/additions.md#versatile-thermostat-ui-card) sous l'icone d'information.
+Note : ces messages sont disponibles dans la [VTherm UI Card](additions.md#versatile-thermostat-ui-card) sous l'icone d'information.
 
 ## `hvac_action` avec contrôle direct de la vanne
 

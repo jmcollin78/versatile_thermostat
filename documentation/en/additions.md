@@ -38,7 +38,7 @@ In this example, I set ECO mode during the night and when no one is home during 
 I hope this example helps; feel free to share your feedback!
 
 ## Regulation curves with Plotly to Fine-Tune Your Thermostat
-You can obtain a curve similar to the one shown in [some results](../../README.md#some-results) using a Plotly graph configuration by leveraging the thermostat's custom attributes described [here](reference.md#custom-attributes):
+You can obtain curves like the ones shown in the example at the end of this section using a Plotly graph configuration by leveraging the thermostat's custom attributes described [here](reference.md#custom-attributes):
 
 Replace the values between `[[ ]]` with your own.
 <details>

@@ -80,7 +80,7 @@ Zugriff:
 5. Aktivieren Sie die Funktion "Erkennung von Heizungsstörungen",
 6. Wählen Sie, ob die Parameter der zentralen Konfiguration verwendet oder neue angegeben werden sollen.
 
-![Konfiguration](../../images/config-heating-failure-detection.png)
+![Konfiguration](images/config-heating-failure-detection.png)
 
 ## Parameter
 
@@ -96,7 +96,7 @@ Zugriff:
 >
 > - **Heizungsschwellenwert**: Wenn Sie Fehlalarme haben (Störungserkennung, obwohl alles funktioniert), erhöhen Sie diesen Schwellenwert auf 0.95 oder 1.0.
 > - **Kühlungsschwellenwert**: Wenn Sie einen Heizkörper erkennen möchten, der auch bei niedrigem `on_percent` eingeschaltet bleibt, erhöhen Sie diesen Schwellenwert auf 0.05 oder 0.1.
-> - **Erkennungsverzögerung**: Erhöhen Sie diese Verzögerung, wenn Sie Räume mit hoher thermischer Trägheit haben (große Räume, Fußbodenheizung usw.). Sie können sich die Heizkurven ansehen (siehe [Ergänzungen](../../additions.md#courbes-de-régulattion-avec-plotly)) und sehen, wie lange Ihr Thermometer nach dem Einschalten der Heizung steigt. Diese Dauer sollte das Minimum für diesen Parameter sein.
+> - **Erkennungsverzögerung**: Erhöhen Sie diese Verzögerung, wenn Sie Räume mit hoher thermischer Trägheit haben (große Räume, Fußbodenheizung usw.). Sie können sich die Heizkurven ansehen (siehe [Ergänzungen](additions.md#regelungskurven-mit-plotly)) und sehen, wie lange Ihr Thermometer nach dem Einschalten der Heizung steigt. Diese Dauer sollte das Minimum für diesen Parameter sein.
 > - **Toleranz**: Wenn Sie ungenaue oder verrauschte Sensoren haben, erhöhen Sie diesen Wert (z. B. 0.8°C). Viele Sensoren haben eine Genauigkeit von ±0.5°C.
 
 ## Exponierte Attribute

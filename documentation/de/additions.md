@@ -43,7 +43,7 @@ In diesem Beispiel habe ich den ECO-Modus für die Nacht und für den Tag einges
 Ich hoffe, dieses Beispiel hilft weiter. Über Feedback freuen wir uns!
 
 ## Regelungskurven mit Plotly
-Man kann eine Kurve ähnlich der in [einige Ergebnisse](#../../README-de.md#einige-ergebnisse) gezeigten erhalten, indem ausschließlich die [hier](reference.md#benutzerdefinierte-attribute) beschriebenen benutzerdefinierten Attribute des Thermostats verwendet werden:
+Man kann Kurven wie die im Beispiel am Ende dieses Abschnitts gezeigten erhalten, indem ausschließlich die [hier](reference.md#benutzerdefinierte-attribute) beschriebenen benutzerdefinierten Attribute des Thermostats verwendet werden:
 
 Ersetzen Sie die Werte zwischen `[[ ]]` durch Ihre eigenen.
 <details>

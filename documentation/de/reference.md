@@ -333,7 +333,7 @@ Mit diesen Diensten kann ein Thermostat gesperrt werden, um Änderungen an seine
 - `versatile_thermostat.unlock` - Entsperrt einen Thermostat, um Konfigurationsänderungen wieder zuzulassen.
 
 ## TPI-Einstellungen ändern
-Alle konfigurierbaren TPI-Parameter [hier](images/config_tpi.png) können über einen Dienst geändert werden. Diese Änderungen sind dauerhaft und bleiben auch nach einem Neustart erhalten. Sie werden sofort angewendet und der Thermostat wird sofort aktualisiert, wenn die Parameter geändert werden.
+Alle konfigurierbaren TPI-Parameter [hier](images/config-tpi.png) können über einen Dienst geändert werden. Diese Änderungen sind dauerhaft und bleiben auch nach einem Neustart erhalten. Sie werden sofort angewendet und der Thermostat wird sofort aktualisiert, wenn die Parameter geändert werden.
 
 Jeder Parameter ist optional. Wenn er nicht angegeben wird, bleibt sein aktueller Wert erhalten.
 
@@ -662,7 +662,7 @@ Das benutzerdefinierte Attribut `specific_states.messages` enthält eine Liste v
 | `target_temp_absence_detected`      | Die Solltemperatur wurde durch die Abwesenheitserkennung erzwungen.                                                  |
 | `underlying_unavailable`            | Mindestens eine zugrunde liegende Entität ist nicht verfügbar oder unbekannt (siehe `unavailable_underlying_entities`)|
 
-Hinweis: Diese Meldungen sind in der [VTherm UI Card](documentation/de/additions.md#versatile-thermostat-ui-card) unter dem Informationssymbol verfügbar.
+Hinweis: Diese Meldungen sind in der [VTherm UI Card](additions.md#die-versatile-thermostat-ui-card) unter dem Informationssymbol verfügbar.
 
 ## `hvac_action` mit direkter Ventilsteuerung
 

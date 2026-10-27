@@ -661,7 +661,7 @@ The `specific_states.messages` custom attribute contains a list of message codes
 | `target_temp_absence_detected`      | The target temperature was forced by absence detection                              |
 | `underlying_unavailable`            | At least one underlying entity is unavailable or unknown (see `unavailable_underlying_entities`) |
 
-Note: these messages are available in the [VTherm UI Card](documentation/en/additions.md#versatile-thermostat-ui-card) under the information icon.
+Note: these messages are available in the [VTherm UI Card](additions.md#the-versatile-thermostat-ui-card) under the information icon.
 
 ## `hvac_action` with direct valve control
 

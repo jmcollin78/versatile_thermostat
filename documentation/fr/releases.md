@@ -1,39 +1,39 @@
 # Note de versions
 
 ## Release 9.3 - version stable
-> 1. **Diagnostic des vannes bloquées** : Amélioration majeure de la détection d'anomalie de chauffe. Lorsqu'une anomalie est détectée sur les VTherms de type `over_climate_valve`, le thermostat diagnostique maintenant si le problème est causé par une vanne TRV bloquée (bloquée ouverte ou fermée) en comparant l'état commandé avec l'état réel. Cette information - `root_cause` - est envoyée dans l'événement d'anomalie, vous permettant de prendre les actions appropriées (notification, relance de la vanne, etc.). Plus d'informations [ici](documentation/fr/feature-heating-failure-detection.md),
-> 2. **Relockage automatique du verrou** : Ajout du paramètre `auto_relock_sec` à la fonctionnalité de verrouillage. Lorsque configuré, le thermostat se relockera automatiquement après le délai spécifié (en secondes) suivant un déverrouillage. Vous pouvez complètement désactiver cette fonctionnalité en le mettant à 0. Par défaut, le relockage automatique est configuré à 30 secondes pour améliorer la sécurité. Plus d'informations [ici](documentation/fr/feature-lock.md),
-> 3. **Re-émission des commandes** : Nouvelle fonctionnalité permettant de détecter et corriger automatiquement les discrepancies entre l'état désiré du thermostat et l'état réel des équipements sous-jacents. Si une commande n'a pas été correctement appliquée à l'équipement, elle est renvoyée. Cela améliore la fiabilité du système en les environnements instables ou avec des équipements non fiables. Plus d'informations [ici](documentation/fr/feature-advanced.md),
-> 4. **Restoration du preset temporisé après redémarrage** : Le preset temporisé configuré est maintenant correctement restauré après un redémarrage du thermostat ou d'Home Assistant. Ce preset continue de fonctionner normalement après le redémarrage. Plus d'informations [ici](documentation/fr/feature-timed-preset.md),
-> 5. **Précision accrue du contrôle de puissance** : Le seuil d'activation de la chaudière (`power_activation_threshold`) accepte maintenant des valeurs décimales (0.1, 0.5, etc.) pour un contrôle plus fin de la puissance d'activation. Cela offre une meilleure flexibilité pour optimiser votre consommation d'énergie. Plus d'informations [ici](documentation/fr/feature-power.md),
+> 1. **Diagnostic des vannes bloquées** : Amélioration majeure de la détection d'anomalie de chauffe. Lorsqu'une anomalie est détectée sur les VTherms de type `over_climate_valve`, le thermostat diagnostique maintenant si le problème est causé par une vanne TRV bloquée (bloquée ouverte ou fermée) en comparant l'état commandé avec l'état réel. Cette information - `root_cause` - est envoyée dans l'événement d'anomalie, vous permettant de prendre les actions appropriées (notification, relance de la vanne, etc.). Plus d'informations [ici](feature-heating-failure-detection.md),
+> 2. **Relockage automatique du verrou** : Ajout du paramètre `auto_relock_sec` à la fonctionnalité de verrouillage. Lorsque configuré, le thermostat se relockera automatiquement après le délai spécifié (en secondes) suivant un déverrouillage. Vous pouvez complètement désactiver cette fonctionnalité en le mettant à 0. Par défaut, le relockage automatique est configuré à 30 secondes pour améliorer la sécurité. Plus d'informations [ici](feature-lock.md),
+> 3. **Re-émission des commandes** : Nouvelle fonctionnalité permettant de détecter et corriger automatiquement les discrepancies entre l'état désiré du thermostat et l'état réel des équipements sous-jacents. Si une commande n'a pas été correctement appliquée à l'équipement, elle est renvoyée. Cela améliore la fiabilité du système en les environnements instables ou avec des équipements non fiables. Plus d'informations [ici](feature-advanced.md),
+> 4. **Restoration du preset temporisé après redémarrage** : Le preset temporisé configuré est maintenant correctement restauré après un redémarrage du thermostat ou d'Home Assistant. Ce preset continue de fonctionner normalement après le redémarrage. Plus d'informations [ici](feature-timed-preset.md),
+> 5. **Précision accrue du contrôle de puissance** : Le seuil d'activation de la chaudière (`power_activation_threshold`) accepte maintenant des valeurs décimales (0.1, 0.5, etc.) pour un contrôle plus fin de la puissance d'activation. Cela offre une meilleure flexibilité pour optimiser votre consommation d'énergie. Plus d'informations [ici](feature-power.md),
 > 6. **Améliorations de disponibilité des capteurs** : Meilleur support de la détermination de la disponibilité des capteurs de température en utilisant la métadonnée `last_updated` de Home Assistant, améliorant ainsi la détection de la perte de signal des capteurs,
 
 ## Release 9.2
 > 1. Nouvelle façon de gérer les cycles de chauffe/arrêt pour les VTherm `over_switch`. L'algorithme actuel a une dérive dans le temps et les premiers cycles ne sont pas optimum. Ca perturbe le TPI et notamment l'auto-TPI. Le nouveau `Cycle Scheduler` résoud ces difficultés. Cette modification est totalement transparente pour vous,
-> 2. Un collecteur de logs. Vos demandes de support échouent souvent sur votre capacité à fournir des logs, sur la bonne période, ciblé sur le thermostat en erreur et au bon niveau de log. C'est particulièrement le cas des bugs difficilement reproductible. Le collecteur de logs vise à résoudre cette difficulté. Il collecte les logs pour vous en arrière plan dans le niveau le plus fin et une action (anciennement service) permet de les extraire dans un fichier. Vous pouvez alors les télécharger pour les joindre à votre demande de support. L'analyseur de logs associé au site web - lancé en 9.1 cf. ci-dessous - s'adapte pour être capable de digérer ces logs. Plus d'informations sur le collecteur de logs [ici](documentation/fr/feature-logs-collector.md),
+> 2. Un collecteur de logs. Vos demandes de support échouent souvent sur votre capacité à fournir des logs, sur la bonne période, ciblé sur le thermostat en erreur et au bon niveau de log. C'est particulièrement le cas des bugs difficilement reproductible. Le collecteur de logs vise à résoudre cette difficulté. Il collecte les logs pour vous en arrière plan dans le niveau le plus fin et une action (anciennement service) permet de les extraire dans un fichier. Vous pouvez alors les télécharger pour les joindre à votre demande de support. L'analyseur de logs associé au site web - lancé en 9.1 cf. ci-dessous - s'adapte pour être capable de digérer ces logs. Plus d'informations sur le collecteur de logs [ici](feature-logs-collector.md),
 > 3. stabilisation de la 9.x. La version majeure 9 a amené beaucoup de changement qui ont générés quelques anomalies. Cette version apporte les dernières corrections liées à cette version 9.
 
 ## Release 9.1
 > 1. Nouveau logo . Inspiré par les travaux de @Krzysztonek (voir [ici](https://github.com/jmcollin78/versatile_thermostat/pull/1598)), VTherm profite d'une nouvelle fonction de [HA 206.03](https://developers.home-assistant.io/blog/2026/02/24/brands-proxy-api/) pour changer de logo. Toute l'équipe espère qu'il vous plaira. Enjoy !
 > 2. Un site web réalisé par @bontiv va résoudre une des difficulté majeure de VTherm : la documentation. Ce site permet en plus d'analyser vos logs ! Donnez lui vos logs (en mode debug) et vous pourrez les analyser, zoomer sur un thermostat, sur une période, filter ce qui vous intéresse, ... Je vous laisse découvrir ce site en 1ère version : [Versatile Thermostat Web site](https://www.versatile-thermostat.org/). Un énorme merci à @bontiv pour cette belle réalisation.
-> 3. La publication en version officielle de l'auto-TPI. Cette fonction permet de déterminer par le calcul les meilleurs valeurs des coefficients du [TPI](documentation/fr/algorithms.md#lalgorithme-tpi). On peut saluer le travail incroyable de @KipK et de @gael1980 sur ce sujet. Ne faites pas l'économie de lire la documentation si vous souhaitez l'utiliser.
+> 3. La publication en version officielle de l'auto-TPI. Cette fonction permet de déterminer par le calcul les meilleurs valeurs des coefficients du [TPI](algorithms.md#lalgorithme-tpi). On peut saluer le travail incroyable de @KipK et de @gael1980 sur ce sujet. Ne faites pas l'économie de lire la documentation si vous souhaitez l'utiliser.
 > 4. VTherm se repose maintenant sur l'état remonté par équipements sous-jacents dans HA. Tant que tous les sous-jacents n'ont pas d'état connu dans HA, alors le VTherm est désactivé.
 
 ## Release 8.6
 > 1. ajout du paramètre `max_opening_degrees` pour les VTherms de type `over_climate_valve` permettant de limiter le pourcentage d'ouverture maximal de chaque vanne afin de contrôler le débit d'eau chaude et optimiser la consommation d'énergie (ou autre cas d'usage).
-> 2. ajout de la fonction de recalibrage des vannes d'un _VTherm_ `over_climate_valve` permettant de forcer une ouverture maximale puis une fermeture maximale pour tenter de recalibrer un _TRV_. Plus d'informations [ici](documentation/fr/feature-recalibrate-valves.md).
+> 2. ajout de la fonction de recalibrage des vannes d'un _VTherm_ `over_climate_valve` permettant de forcer une ouverture maximale puis une fermeture maximale pour tenter de recalibrer un _TRV_. Plus d'informations [ici](feature-recalibrate-valves.md).
 
 ## Release 8.5
 > 1. ajout de la détection d'anomalie de chauffe pour les VTherms utilisant l'algorithme TPI. Cette fonction détecte deux types d'anomalies :
 >    - **anomalie de chauffage** : le radiateur chauffe fortement (on_percent élevé) mais la température n'augmente pas,
 >    - **anomalie de refroidissement** : le radiateur ne chauffe pas (on_percent à 0) mais la température continue d'augmenter.
 >
-> Ces anomalies peuvent indiquer une fenêtre ouverte, un radiateur défaillant ou une source de chaleur externe. La fonctionnalité envoie des événements qui peuvent être utilisés pour déclencher des automatisations (notifications, alertes, etc.). Plus d'informations [ici](documentation/fr/feature-heating-failure-detection.md).
+> Ces anomalies peuvent indiquer une fenêtre ouverte, un radiateur défaillant ou une source de chaleur externe. La fonctionnalité envoie des événements qui peuvent être utilisés pour déclencher des automatisations (notifications, alertes, etc.). Plus d'informations [ici](feature-heating-failure-detection.md).
 
 ## Release 8.4
-> 1. ajout de l'auto TPI (expérimental). Cette nouvelle fonction permet de calculer automatiquement les meilleurs coefficients pour l'algorithme du TPI. Plus d'informations [ici](documentation/fr/feature-autotpi.md)
-> 2. ajout d'une fonction de synchronisation des températures d'un équipement piloté en mode `over_climate`. Suivant, les fonctionnalités de votre équipement, _VTherm_ peut contrôler une entité de calibrage de l'offset ou directement une entité de température externe. Plus d'informations [ici](documentation/fr/feature-sync_device_temp.md)
-> 3. ajout d'une fonction nommée preset temporisé permettant de sélectionner un preset pendant un temps donné et revenir au précédent une fois le délai expiré. La fonction est décrite [ici](documentation/fr/feature-timed-preset.md).
+> 1. ajout de l'auto TPI (expérimental). Cette nouvelle fonction permet de calculer automatiquement les meilleurs coefficients pour l'algorithme du TPI. Plus d'informations [ici](feature-autotpi.md)
+> 2. ajout d'une fonction de synchronisation des températures d'un équipement piloté en mode `over_climate`. Suivant, les fonctionnalités de votre équipement, _VTherm_ peut contrôler une entité de calibrage de l'offset ou directement une entité de température externe. Plus d'informations [ici](feature-sync_device_temp.md)
+> 3. ajout d'une fonction nommée preset temporisé permettant de sélectionner un preset pendant un temps donné et revenir au précédent une fois le délai expiré. La fonction est décrite [ici](feature-timed-preset.md).
 
 ## Release 8.3
 > 1. ajout d'un délai configurable avant l'activation de la chaudière centrale,
@@ -46,10 +46,10 @@
 >
 > L'ancien compteur du nombres de devices activés et son seuil existent toujours. Pour désactiver l'un des seuils (le seuil de puissance ou le seuil du nombre de devices activés), il faut le mettre à zéro. Dès que l'un des 2 seuils différents de zéro est dépassé, la chaudière est activée. C'est donc un "ou logique" entre les 2 seuils qui est appliqué.
 >
-> Plus d'informations [ici](documentation/fr/feature-central-boiler.md).
+> Plus d'informations [ici](feature-central-boiler.md).
 
 ## Release 8.2
-- Ajout d'une fonction permettant de verrouiller / déverouiller un _VTherm_ avec potentiellement un code. Plus d'informations [ici](documentation/fr/feature-lock.md)
+- Ajout d'une fonction permettant de verrouiller / déverouiller un _VTherm_ avec potentiellement un code. Plus d'informations [ici](feature-lock.md)
 
 ## Release 8.1
 - Pour un VTherm de type `over_climate` avec régulation par contrôle direct de la vanne, deux nouveaux paramètres permettant un contrôle beaucoup plus fin du minimum d'ouverture de la vanne ont été ajoutés au paramètre existant `minimum_opening_degrees`. Les paramètres sont maintenant :
@@ -59,7 +59,7 @@
 
 Si on représente l'ouverture demandée par l'algorithme TPI en abscisse et l'ouverture réellement envoyée sur la vanne en ordonnée, on obtient cette courbe :
 
-![alt text](images/opening-degree-graph.png)
+![alt text](../../images/opening-degree-graph.png)
 
 Cette évolution a été largement débattue [ici](https://github.com/jmcollin78/versatile_thermostat/issues/1220).
 
@@ -68,10 +68,10 @@ Cette version est une version majeure. Elle réécrit une bonne partie des méca
   1. _état souhaité / état courant_ : maintenant VTherm a 2 états. L'état souhaité est l'état demandé par l'utilisateur (ou le Scheduler). L'état courant est l'état couramment appliqué au VTherm. Ce dernier dépend des différentes fonctions de VTherm. Par exemple, l'utilisateur peut demander (état souhaité) d'avoir le chauffage allumé avec le preset Comfort mais comme la fenêtre a été détectée ouverte le VTherm est en fait éteint. Cette double gestion permet de toujours conservé la demande de l'utilisateur et d'appliquer le résultat des différentes fonctions sur cette demande de l'utilisateur pour avoir l'état courant. Cela permet de mieux gérer les cas où plusieurs fonctions veulent agir sur l'état du VTherm (ouverture d'une fenêtre et délestage par exemple). Cela assure aussi un retour à la demande initiale de l'utilisateur lorsque plus aucune détection n'est en cours,
   2. _filtrage temporel_ : le fonctionnement du filtrage temporel a été revu. Le filtrage temporel permet de ne pas envoyer trop de commandes à un équipement contrôlé pour éviter de consommer trop de batterie (TRV à pile par exemple), de changer trop fréquement de consignes (pompe à chaleur, poele à pellets, chauffage au sol, ...). Le nouveau fonctionnement est maintenant le suivant : les demandes explicites de l'utilisateur (ou Scheduler) sont toujours immédiatement prises en compte. Elles ne sont pas filtrées. Seules les changements liés à des conditions extérieures (températures de la pièce par exemple) sont potentiellement filtrées. Le filtrage consiste à renvoyer la commande souhaitée plus tard et non pas à ignorer la commande comme c'était le cas précédemment. Le paramètre `auto_regulation_dtemp` permet de régler le délai,
   3. _amelioration du hvac_action_ : le `hvac_action` reflète l'état courant d'activation de l'équipement commandé. Pour un type `over_switch` il reflète l'état d'activation du switch, pour un `over_valve` ou une régulation par vanne, il est actif lorsque l'ouverture de la vanne est supérieur à l'ouverture minimale de la vanne (ou 0 si non configurée), pour un `over_climate` il reflète le `hvac_action`du `climate` sous-jacent si il est disponible ou une simulation sinon.
-  4. _attributs personnalisés_ : l'organisation des attributs personnalisés accessibles dans Outils de développement / Etat, ont été réorganisés en section dépendant du type de VTherm et de chaque fonction activée. Plus d'informations [ici](documentation/fr/reference.md#attributs-personnalisés).
+  4. _attributs personnalisés_ : l'organisation des attributs personnalisés accessibles dans Outils de développement / Etat, ont été réorganisés en section dépendant du type de VTherm et de chaque fonction activée. Plus d'informations [ici](reference.md#attributs-personnalisés).
   5. _délestage_ : l'algorithme de délestage prend maintenant en compte l'arrêt d'un équipement entre deux mesures de la puissance consommée du logement. Supposons que vous ayez une remontée de la puissance consommée toutes les 5 minutes. Si entre 2 mesures un radiateur est éteint alors l'allumage d'un nouveau pourra être autorisé. Avant, seuls les allumages étaient pris en compte entre 2 mesures. Comme avant, la prochaine remontée de la puissance consommée viendra éventuellement délester plus ou moins.
   6. _auto-start/stop_ : l'auto-start/stop n'est utile que pour les Vtherm de type `over_climate` sans contrôle direct de la vanne. L'option a été supprimée pour les autres types de VTherm.
-  7. _VTherm UI Card_ : toutes ces modifications ont permis une évolution majeure de la [VTherm UI Card](documentation/fr/additions.md#versatile-thermostat-ui-card) pour y intégrer des messages expliquant l'état courant (pourquoi mon VTherm à cette température cible ?) et si un filtrage temporel est en cours - donc la mise à jour de l'état du sous-jacent a été retardée.
+  7. _VTherm UI Card_ : toutes ces modifications ont permis une évolution majeure de la [VTherm UI Card](additions.md#versatile-thermostat-ui-card) pour y intégrer des messages expliquant l'état courant (pourquoi mon VTherm à cette température cible ?) et si un filtrage temporel est en cours - donc la mise à jour de l'état du sous-jacent a été retardée.
   8. _amélioration des logs_ : les logs ont été améliorés pour simplifier le debug. Des logs de la forme `--------------------> NEW EVENT: VersatileThermostat-Inversed ...` informe d'un évènement venant impacter l'état du VTherm.
 
 ⚠️ **Attention**
@@ -79,23 +79,23 @@ Cette version est une version majeure. Elle réécrit une bonne partie des méca
 > Cette version majeure embarque des changements incompatibles avec la précédente:
 > - `versatile_thermostat_security_event` a été renommé en `versatile_thermostat_safety_event`. Si vos automatisations utiles cet évènement, vous devez les mettre à jour,
 > - les attributs personnalisés ont été réorganisés. Vous devez mettre à jour vos automisations ou template Jinja qui les utiliseraient,
-> - la [VTherm UI Card](documentation/fr/additions.md#versatile-thermostat-ui-card) doit être mise à jour au minimum en V2.0 pour être compatible,
+> - la [VTherm UI Card](additions.md#versatile-thermostat-ui-card) doit être mise à jour au minimum en V2.0 pour être compatible,
 >
 > **Malgré les 342 tests automatisés de cette intégration et le soin apporté à cette version majeure, je ne peux garantir que son installation ne viendra pas perturber les états de vos VTherm. Pour chaque VTherm vous devez vérifier le preset, le hvac_mode et éventuellement la température de consigne du VTherm après installation.**
 
 
 ## Release 7.4
 
-- Ajout de seuils permettant d'activer ou de désactiver l'algorithme TPI lorsque la température dépasse la consigne. Cela permet d'éviter les allumages/extinction d'un radiateur sur des faibles durées. Idéal pour les poeles à bois qui mettent beaucoup de temps à monter en température. Cf. [TPI](documentation/fr/algorithms.md#lalgorithme-tpi),
-- Ajout d'un mode sleep pour les VTherm de type `over_climate` avec régulation par contrôle direct de la vanne. Ce mode permet de mettre le thermostat en mode éteint mais avec la vanne 100% ouverte. C'est utile pour les longues périodes sans utiisation du chauffage si la chaudière fait circuler un peu d'eau de temps en temps. Attention, vous devez mettre à jour la VTHerm UI Card pour visualiser ce nouveau mode. Cf. [VTherm UI Card](documentation/fr/additions.md#versatile-thermostat-ui-card).
+- Ajout de seuils permettant d'activer ou de désactiver l'algorithme TPI lorsque la température dépasse la consigne. Cela permet d'éviter les allumages/extinction d'un radiateur sur des faibles durées. Idéal pour les poeles à bois qui mettent beaucoup de temps à monter en température. Cf. [TPI](algorithms.md#lalgorithme-tpi),
+- Ajout d'un mode sleep pour les VTherm de type `over_climate` avec régulation par contrôle direct de la vanne. Ce mode permet de mettre le thermostat en mode éteint mais avec la vanne 100% ouverte. C'est utile pour les longues périodes sans utiisation du chauffage si la chaudière fait circuler un peu d'eau de temps en temps. Attention, vous devez mettre à jour la VTHerm UI Card pour visualiser ce nouveau mode. Cf. [VTherm UI Card](additions.md#versatile-thermostat-ui-card).
 
 ## Release 7.2
 
-  - Prise en compte native des équipements pilotable via une entité de type `select` (ou `input_select`) ou `climate` pour des _VTherm_ de type `over_switch`. Cette évolution rend obsolète, la création de switch virtuels pour l'intégration des Nodon ou Heaty ou eCosy ... etc. Plus d'informations [ici](documentation/fr/over-switch.md#la-personnalisation-des-commandes).
+  - Prise en compte native des équipements pilotable via une entité de type `select` (ou `input_select`) ou `climate` pour des _VTherm_ de type `over_switch`. Cette évolution rend obsolète, la création de switch virtuels pour l'intégration des Nodon ou Heaty ou eCosy ... etc. Plus d'informations [ici](over-switch.md#la-personnalisation-des-commandes).
 
-  - Lien vers la documentation : cette version 7.2 expérimente des liens vers la documentation depuis les pages de configuration. Le lien est accessible via l'icone [![?](https://img.icons8.com/color/18/help.png)](https://github.com/jmcollin78/versatile_thermostat/blob/main/documentation/fr/over-switch.md#configuration). Elle est expérimentée sur certaines pages de la configuration.
+  - Lien vers la documentation : cette version 7.2 expérimente des liens vers la documentation depuis les pages de configuration. Le lien est accessible via l'icone [![?](https://img.icons8.com/color/18/help.png)](over-switch.md#configuration). Elle est expérimentée sur certaines pages de la configuration.
 
-  - Ajout d'un chapitre dans la documentation nommé 'Démarrage rapide' permettant de mettre en oeuvre rapidement un _VTherm_ en fonction de votre équipement. La page est [ici](documentation/quick-start.md)
+  - Ajout d'un chapitre dans la documentation nommé 'Démarrage rapide' permettant de mettre en oeuvre rapidement un _VTherm_ en fonction de votre équipement. La page est [ici](quick-start.md)
 
 ## Release 7.1
 

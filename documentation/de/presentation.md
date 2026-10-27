@@ -64,7 +64,7 @@ Zur Steuerung eines Wasserheizkörpers. Funktioniert mit einem _VTherm_. [`over_
 - [⭐ Sonoff TRVZB Zigbee](https://www.domadoo.fr/de/chauffage-connecte/6776-sonoff-tete-thermostatique-connectee-zigbee-30.html?domid=97) mit [`over_climate` mit direkter Ventilsteuerung](over-climate.md#over_climate-thermostattyp),
 - [Shelly BLU TRV BLE](https://www.domadoo.fr/de/black-friday-domotique/7567-shelly-robinet-thermostatique-de-radiateur-a-commande-bluetooth-shelly-blu-trv-3800235264980.html?domid=97) mit [`over_valve`](over-valve.md),
 - [Moes TRV Zigbee](https://www.domadoo.fr/de/peripheriques/5783-moes-tete-thermostatique-intelligente-zigbee-30-brt-100-trv-blanc.html?domid=97) mit [`over_climate` (ohne direkte Ventilsteuerung)](over-climate.md#over_climate-thermostattyp)
-- [Schneider Wiser TRV Zigbee](https://www.domadoo.fr/de/controle-chauffage-clim/5497-schneider-electric-tete-de-vanne-thermostatique-connectee-zigbee-3606489582821.html?domid=97) mit [`over_climate` (ohne direkte Ventilsteuerung)](over_climate-thermostattyp)
+- [Schneider Wiser TRV Zigbee](https://www.domadoo.fr/de/controle-chauffage-clim/5497-schneider-electric-tete-de-vanne-thermostatique-connectee-zigbee-3606489582821.html?domid=97) mit [`over_climate` (ohne direkte Ventilsteuerung)](over-climate.md#over_climate-thermostattyp)
 - Avatto TRV06 Zigbee (Zigbee2MQTT) mit [`over_climate` (ohne direkte Ventilsteuerung)](over-climate.md) und [Selbstregulierung](self-regulation.md)
 
 ## Inkompatibilitäten
