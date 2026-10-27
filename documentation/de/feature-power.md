@@ -1,7 +1,7 @@
 # Energieverwaltung - Lastabwurf
 
 - [Energieverwaltung - Lastabwurf](#energieverwaltung---lastabwurf)
-    - [Anwendungsbeispiel](#anwendungsbeispiel)
+  - [Anwendungsbeispiel](#anwendungsbeispiel)
   - [Energieverwaltung konfigurieren](#energieverwaltung-konfigurieren)
 
 Diese Funktion ermöglicht es Ihnen, den Stromverbrauch Ihrer Heizgeräte zu regulieren. Mit dieser Funktion, die auch als Lastabwurf bezeichnet wird, können Sie den Stromverbrauch Ihrer Heizungsanlage begrenzen, wenn ein zu hoher Verbrauch festgestellt wird.
@@ -41,7 +41,7 @@ Wenn Sie in der zentralisierten Konfiguration die Funktion „Mit Energieerkennu
 Leistungseinheiten können unabhängig konfiguriert werden. Wählen Sie W oder kW für die Geräteleistung jedes VTherm. Wählen Sie in der zentralen Konfiguration W, kW oder Automatisch; Automatisch verwendet die von jedem zentralen Sensor angegebene Einheit. Die Werte werden intern in W normalisiert, daher können W und kW sicher gemischt werden.
 Mit einem **Sensor für die maximal zulässige Leistung** können Sie die maximale Leistung dynamisch mithilfe eines Zeitplaners oder einer Automatisierung ändern.
 
-Beachten Sie, dass es aufgrund des zentralisierten Lastabwurfs nicht möglich ist, die Sensoren für den Verbrauch und den maximalen Verbrauch an einzelnen _VTherms_ zu überschreiben. Diese Konfiguration muss in den zentralisierten Einstellungen vorgenommen werden. Siehe [Zentrale Konfiguration](./creation.md#centralized-configuration).
+Beachten Sie, dass es aufgrund des zentralisierten Lastabwurfs nicht möglich ist, die Sensoren für den Verbrauch und den maximalen Verbrauch an einzelnen _VTherms_ zu überschreiben. Diese Konfiguration muss in den zentralisierten Einstellungen vorgenommen werden. Siehe [Zentrale Konfiguration](./creation.md#zentrale-konfiguration).
 
 > ![Tip](images/tips.png) _*Hinweise*_
 >

@@ -27,7 +27,7 @@
 
 ## Verwendung eines Heatzy
 
-Der Heatzy wird jetzt nativ von _VTherm_ unterstützt. Siehe [Schnellstart](quick-start.md#heatzy-ecosy-oder-ähnlich-climate-entity).
+Der Heatzy wird jetzt nativ von _VTherm_ unterstützt. Siehe [Schnellstart](quick-start.md#heatzy-ecosy-oder-ähnlich-climate-entity). Siehe auch die [Heatzy-Seite](https://www.versatile-thermostat.org/de/devices/heatzy/) im Gerätekatalog.
 
 Diese Konfiguration wird nur als Referenz aufbewahrt.
 
@@ -63,7 +63,7 @@ Vielen Dank an @gael für dieses Beispiel.
 
 ## Verwendung eines Heizkörpers mit Steuerleitung (Nodon SIN-4-FP-21)
 
-Der Nodon wird jetzt nativ von _VTherm_ unterstützt. Siehe [Schnellstart](quick-start.md#nodon-sin-4-fp-21-oder-ähnlich-pilotdraht).
+Der Nodon wird jetzt nativ von _VTherm_ unterstützt. Siehe [Schnellstart](quick-start.md#nodon-sin-4-fp-21-oder-ähnlich-pilotdraht). Siehe auch die [Seite der Pilotdraht-Module](https://www.versatile-thermostat.org/de/devices/pilot-wire-module/) im Gerätekatalog.
 
 Diese Konfiguration wird nur als Referenz aufbewahrt.
 
@@ -104,7 +104,7 @@ Ein anderes, komplexeres Beispiel ist [hier](https://github.com/jmcollin78/versa
 
 ## Verwendung eines Netatmo-Systems
 
-Das System, das auf Netatmo TRVs basiert, funktioniert nicht gut mit _VTherm_. Sie können eine Diskussion über das spezifische Verhalten von Netatmo-Systemen (in Französisch) hier finden: [https://forum.hacf.fr/t/vannes-netatmo-et-vtherm/56063](https://forum.hacf.fr/t/vannes-netatmo-et-vtherm/56063).
+Das System, das auf Netatmo TRVs basiert, funktioniert nicht gut mit _VTherm_. Sie können eine Diskussion über das spezifische Verhalten von Netatmo-Systemen (in Französisch) hier finden: [https://forum.hacf.fr/t/vannes-netatmo-et-vtherm/56063](https://forum.hacf.fr/t/vannes-netatmo-et-vtherm/56063). Die bekannten Einschränkungen sind auch im [Gerätekatalog](https://www.versatile-thermostat.org/de/devices/known-limitations/) beschrieben.
 
 Einige Benutzer haben jedoch _VTherm_ erfolgreich in Netatmo integriert, indem sie einen virtuellen Schalter zwischen _VTherm_ und der Netatmo-Klimaeinheit wie folgt eingebaut haben:
 
@@ -173,7 +173,7 @@ Beispiel:
 
 [Sicherheitsmodus](images/security-mode-symptome1.png)
 
-Wenn Sie die [Versatile Thermostat UI Card] (https://github.com/jmcollin78/versatile-thermostat-ui-card) installiert haben, wird das betroffene VTherm wie folgt angezeigt:
+Wenn Sie die [Versatile Thermostat UI Card](https://www.versatile-thermostat.org/de/plugins/#jmcollin78/versatile-thermostat-ui-card) installiert haben, wird das betroffene VTherm wie folgt angezeigt:
 
 [Sicherheitsmodus UI Card](images/security-mode-symptome2.png)
 
@@ -246,6 +246,8 @@ Um Versatile Thermostat-Protokolle zu sammeln und zu analysieren, **wird es drin
 
 Siehe die vollständige Dokumentation: [Frühere Protokolle herunterladen - Diagnose und Fehlerbehebung](feature-logs-collector.md)
 
+Die heruntergeladene Datei kann anschließend im [Log-Analyser](https://www.versatile-thermostat.org/de/debugger/) der Website geöffnet werden, um den Ablauf zu visualisieren. Wenn Sie ein Issue eröffnen, können Sie auch einen aus dem Analyser exportierten Ausschnitt anhängen, der auf den Zeitraum des Problems eingegrenzt ist.
+
 ### Aktivierung von Protokollen in Home Assistant (alte Methode)
 
 Wenn Sie einen erweiterten Debugging-Modus benötigen, können Sie Protokolle auf Home Assistant-Ebene aktivieren, indem Sie die `logger.yaml`-Datei bearbeiten:
@@ -260,6 +262,8 @@ logger:
 Sie müssen die YAML-Konfiguration neu laden (Entwicklertools / YAML / Alle YAML-Konfiguration neu laden) oder den Home Assistant neu starten, damit diese Änderung wirksam wird.
 
 ⚠️ **Warnung**: Im Debug-Modus ist Versatile Thermostat sehr ausführlich und kann Home Assistant verlangsamen oder die Festplatte überlasten. Dieser Ansatz wird nur für erweitertes Debugging über einen kurzen Zeitraum empfohlen. **Bevorzugen Sie den log-collector in allen normalen Fällen.**
+
+Die so erhaltene Datei `home-assistant.log` kann ebenfalls im [Log-Analyser](https://www.versatile-thermostat.org/de/debugger/) geöffnet werden.
 
 ## VTherm verfolgt keine Sollwertänderungen, die direkt am zugehörigen Gerät vorgenommen werden (`over_climate`)
 

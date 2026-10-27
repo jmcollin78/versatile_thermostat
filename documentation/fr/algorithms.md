@@ -6,6 +6,9 @@
     - [Principe](#principe)
     - [Délai minimal d'activation ou de désactivation](#délai-minimal-dactivation-ou-de-désactivation)
     - [Seuils haut et bas d'activation de l'algorithme](#seuils-haut-et-bas-dactivation-de-lalgorithme)
+  - [Autres algorithmes (plugins)](#autres-algorithmes-plugins)
+    - [SmartPI (recommandé)](#smartpi-recommandé)
+    - [Autres algorithmes](#autres-algorithmes)
   - [L'algorithme d'auto-régulation (sans contrôle de la vanne)](#lalgorithme-dauto-régulation-sans-contrôle-de-la-vanne)
   - [L'algorithme de la fonction d'auto-start/stop](#lalgorithme-de-la-fonction-dauto-startstop)
 
@@ -80,6 +83,18 @@ Exemples:
 > 2. les 2 valeurs sont nécessaires. Si vous laissez une à 0, aucun seuils ne sera appliqué. En effet, les 2 sont nécessaires pour avoir un fonctionnement correct.
 > 3. en cas de pilotage (mode Refroidissement), les tests sont inversés mais le principe reste le même.
 > 4. le seuil haut devrait toujours est supérieur au seuil bas. Même en cas de refroidissement
+
+## Autres algorithmes (plugins)
+
+En plus de l'algorithme TPI intégré, d'autres algorithmes de régulation peuvent être installés sous forme de plugins externes. Ils sont utilisables par les _VTherm_ qui utilisent l'algorithme TPI : `over_switch`, `over_valve` et `over_climate` avec contrôle direct de la vanne. Une fois le plugin installé, son algorithme peut être choisi dans le champ de choix de l'algorithme de la configuration.
+
+### SmartPI (recommandé)
+
+[SmartPI](https://www.versatile-thermostat.org/fr/plugins/#kipk/vtherm_smartpi) est le plugin d'algorithme recommandé. C'est un régulateur PI avancé construit autour d'un modèle thermique de la pièce : il apprend la capacité de chauffe de la pièce, son taux de déperdition thermique et son temps mort, puis utilise ce modèle pour calculer une commande de chauffage bien plus précise qu'un algorithme à coefficients fixes comme le TPI. Voir la [documentation de SmartPI](https://github.com/KipK/vtherm_smartpi/blob/master/documentation/fr/vtherm_smartpi.md).
+
+### Autres algorithmes
+
+D'autres algorithmes sont disponibles, comme un algorithme simple à hystérésis ou un algorithme dédié aux poêles à granulés. La liste complète se trouve dans le [catalogue des plugins](https://www.versatile-thermostat.org/fr/plugins/?family=algorithm).
 
 ## L'algorithme d'auto-régulation (sans contrôle de la vanne)
 

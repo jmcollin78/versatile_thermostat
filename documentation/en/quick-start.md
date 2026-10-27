@@ -1,6 +1,6 @@
 # Quick Start
 
-This page outlines the steps to quickly set up a basic yet operational _VTherm_. It is structured by equipment type.
+This page outlines the steps to quickly set up a basic yet operational _VTherm_. It is structured by equipment type. The full list of tested devices, with their support level, is available in the [device catalog](https://www.versatile-thermostat.org/en/devices/). This catalog is not exhaustive: a device that is not listed is not necessarily incompatible.
 
 - [Quick Start](#quick-start)
   - [Nodon SIN-4-FP-21 or similar (pilot wire)](#nodon-sin-4-fp-21-or-similar-pilot-wire)
@@ -9,12 +9,12 @@ This page outlines the steps to quickly set up a basic yet operational _VTherm_.
   - [Sonoff TRVZB or similar (TRV with valve control)](#sonoff-trvzb-or-similar-trv-with-valve-control)
   - [Simple TRV such as Avatto TRV06, Moes, Tuya... (TRV without valve control)](#simple-trv-such-as-avatto-trv06-moes-tuya-trv-without-valve-control)
   - [Reversible HP Units, Air Conditioning, or Devices Controlled via a `climate` Entity](#reversible-hp-units-air-conditioning-or-devices-controlled-via-a-climate-entity)
-- [Next Steps](#next-steps)
-- [Call for Contributions](#call-for-contributions)
+  - [Next Steps](#next-steps)
+  - [Call for Contributions](#call-for-contributions)
 
 ## Nodon SIN-4-FP-21 or similar (pilot wire)
 
-This module allows controlling a radiator via a pilot wire. It appears in _HA_ as a `select` entity that lets you choose the heating preset to apply.
+This module allows controlling a radiator via a pilot wire. It appears in _HA_ as a `select` entity that lets you choose the heating preset to apply. See also the [pilot wire modules](https://www.versatile-thermostat.org/en/devices/pilot-wire-module/) page in the device catalog.
 
 _VTherm_ will regulate the temperature by periodically changing the preset via customized commands until the setpoint is reached.
 
@@ -32,7 +32,7 @@ After completing these four steps, you will have a fully functional _VTherm_ tha
 
 ## Heatzy, eCosy, or similar (`climate` entity)
 
-This module allows controlling a radiator that appears in _HA_ as a `climate` entity, enabling you to choose the heating preset or mode (Heat / Cool / Off).
+This module allows controlling a radiator that appears in _HA_ as a `climate` entity, enabling you to choose the heating preset or mode (Heat / Cool / Off). See also the [Heatzy](https://www.versatile-thermostat.org/en/devices/heatzy/) page in the device catalog.
 
 _VTherm_ will regulate the temperature by turning the device on/off via customized commands at regular intervals until the setpoint is reached.
 
@@ -46,7 +46,7 @@ After completing these four steps, you will have a fully functional _VTherm_ tha
 
 ## Simple switch such as Aqara T1, Nous B2Z, Sonoff ZBMini, Sonoff POW, ...
 
-This module allows controlling a radiator via a simple switch. It appears in _HA_ as a `switch` entity that directly turns the radiator on or off.
+This module allows controlling a radiator via a simple switch. It appears in _HA_ as a `switch` entity that directly turns the radiator on or off. See also the [switches](https://www.versatile-thermostat.org/en/devices/over-switch/) page in the device catalog.
 
 _VTherm_ will regulate the temperature by periodically turning the `switch` on and off until the setpoint is reached.
 
@@ -59,7 +59,7 @@ After completing these three steps, you will have a fully functional _VTherm_ th
 
 ## Sonoff TRVZB or similar (TRV with valve control)
 
-This type of _TRV_ device controls the opening of a valve that allows more or less hot water from a boiler or heat pump to flow. It appears in _HA_ as a `climate` entity along with `number` entities that control the valve. These `number` entities may be hidden and need to be explicitly added in some cases.
+This type of _TRV_ device controls the opening of a valve that allows more or less hot water from a boiler or heat pump to flow. It appears in _HA_ as a `climate` entity along with `number` entities that control the valve. These `number` entities may be hidden and need to be explicitly added in some cases. See also the [Sonoff TRVZB](https://www.versatile-thermostat.org/en/devices/sonoff-trvzb/) page in the device catalog. A [blueprint](https://www.versatile-thermostat.org/en/plugins/#sonoff-trvzb-linearity) is also available to compensate for the non-linearity of the TRVZB valve.
 
 _VTherm_ will adjust the valve opening degree until the setpoint temperature is reached.
 
@@ -76,7 +76,7 @@ After completing these five steps, you will have a fully functional _VTherm_ tha
 
 ## Simple TRV such as Avatto TRV06, Moes, Tuya... (TRV without valve control)
 
-This type of _TRV_ (typically Zigbee devices integrated through Zigbee2MQTT or ZHA) appears in _HA_ only as a `climate` entity. The valve opening cannot be controlled: the TRV regulates itself from its internal thermometer and the setpoint it receives.
+This type of _TRV_ (typically Zigbee devices integrated through Zigbee2MQTT or ZHA) appears in _HA_ only as a `climate` entity. The valve opening cannot be controlled: the TRV regulates itself from its internal thermometer and the setpoint it receives. See also the [TRVs without valve control](https://www.versatile-thermostat.org/en/devices/trv-no-valve/) page in the device catalog.
 
 _VTherm_ will adjust the setpoint sent to the TRV so that the room temperature measured by your own sensor reaches the desired temperature.
 
@@ -101,7 +101,7 @@ After completing these five steps and checking the TRV settings, you will have a
 
 ## Reversible HP Units, Air Conditioning, or Devices Controlled via a `climate` Entity
 
-Reversible heat pumps (HP) or similar devices are represented in _HA_ as a `climate` entity, allowing you to select the heating preset or mode (Heat / Cool / Off).)
+Reversible heat pumps (HP) or similar devices are represented in _HA_ as a `climate` entity, allowing you to select the heating preset or mode (Heat / Cool / Off).) The devices controlled through a `climate` entity are listed in the [device catalog](https://www.versatile-thermostat.org/en/devices/?type=climate).
 
 _VTherm_ will regulate the temperature by controlling the target temperature and mode of the device through commands sent to the underlying `climate` entity.
 
@@ -114,15 +114,15 @@ After these three steps, you will have a fully operational _VTherm_ to control y
 
 To go further, self-regulation may be necessary depending on how well your device operates. Self-regulation involves _VTherm_ slightly adjusting the target temperature to encourage the device to heat or cool more or less until the desired setpoint is reached. Self-regulation is explained in detail here: [self-regulation](self-regulation.md).
 
-# Next Steps
+## Next Steps
 
 Once created, you need to configure the preset temperatures. See [presets](feature-presets.md) for a minimal configuration.
-You can also (optional but recommended) install the dedicated UI card for your dashboards. (See [VTHerm UI Card](https://github.com/jmcollin78/versatile-thermostat-ui-card))
+You can also (optional but recommended) install the dedicated UI card for your dashboards. (See [VTHerm UI Card](https://www.versatile-thermostat.org/en/plugins/#jmcollin78/versatile-thermostat-ui-card)) Other cards are listed in the [plugins catalog](https://www.versatile-thermostat.org/en/plugins/?family=interface).
 
 Once this minimal setup is functional—and only once it works correctly—you can add additional features such as presence detection to avoid heating when no one is present. Add them one by one, verifying that _VTherm_ reacts correctly at each step before proceeding to the next.
 
 You can then set up centralized configurations to share settings across all _VTherm_ instances, enable central mode for unified control of all _VTherms_ ([centralized configuration](feature-central-mode.md)), or integrate a central boiler control ([central boiler](feature-central-boiler.md)). This is not an exhaustive list—please refer to the table of contents for a complete list of _VTherm_ features.
 
-# Call for Contributions
+## Call for Contributions
 
 This page is open for contributions. Feel free to suggest additional equipment and minimal configuration setups.

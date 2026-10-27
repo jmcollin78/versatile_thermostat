@@ -14,7 +14,7 @@
 Vous avez la possibilité d'activer la fonction d'auto-régulation pour les _VTherm_ de type `over_climate` uniquement.
 
 Il y a globalement 2 cas :
-1. Si votre sous-jacent est un _TRV_ et que la vanne est commandable directement dans Home Assistant (Sonoff TRVZB par exemple), cette fonction va autoriser _VTherm_ a manipuler directement l'ouverture de la vanne pour effectuer la régulation. L'ouverture est alors calculé par un algorithme de type _TPI_ (cf. [ici](algorithms.md)).
+1. Si votre sous-jacent est un _TRV_ et que la vanne est commandable directement dans Home Assistant ([Sonoff TRVZB](https://www.versatile-thermostat.org/fr/devices/sonoff-trvzb/) par exemple), cette fonction va autoriser _VTherm_ a manipuler directement l'ouverture de la vanne pour effectuer la régulation. L'ouverture est alors calculé par un algorithme de type _TPI_ (cf. [ici](algorithms.md)).
 2. Sinon, Versatile Thermostat va adapter la consigne de température donnée au climate sous-jacent afin que la température de la pièce atteigne réellement la consigne.
 
 ## Configuration

@@ -3,7 +3,7 @@ Ce thermostat peut piloter 3 types d'équipements :
 1. un radiateur qui ne fonctionne qu'en mode marche/arrêt (nommé ```thermostat_over_switch```). La configuration minimale nécessaire pour utiliser ce type thermostat est :
    1. un équipement comme un radiateur (un ```switch``` ou équivalent),
    2. une sonde de température pour la pièce (ou un input_number),
-   3. un capteur de température externe (pensez à l'intégration météo si vous n'en avez pas)
+   3. un capteur de température externe (pensez à l'intégration météo si vous n'en avez pas ; en France, le plugin [Météo-France Observation](https://www.versatile-thermostat.org/fr/plugins/#bontiv/ha-meteofrance-observation) fournit une température extérieure précise)
 2. un autre thermostat qui a ses propres modes de fonctionnement (nommé ```thermostat_over_climate```). Pour ce type de thermostat la configuration minimale nécessite :
    1. un équipement - comme une climatisation, une vanne thermostatique - qui est pilotée par sa propre entity de type ```climate```,
 3. un équipement qui peut prendre une valeur de 0 à 100% (nommée ```thermostat_over_valve```). A 0 le chauffage est coupé, 100% il est ouvert à fond. Ce type permet de piloter une vanne thermostatique (cf. TRV Shelly) qui expose une entité de type `number` permetttant de piloter directement l'ouverture de la vanne. Versatile Thermostat régule la température de la pièce en jouant sur le pourcentage d'ouverture, à l'aide des capteurs de température intérieur et extérieur en utilisant l'algorithme TPI décrit ci-dessous.
@@ -12,7 +12,7 @@ Le type `over_climate` vous permet d'ajouter à votre équipement existant toute
 
 Les installations avec fil pilote et diode d'activation bénéficie d'une option qui permet d'inverser la commande on/off du radiateur sous-jacent. Pour cela, utilisez le type `over switch` et cochez l'option d'inversion de la commande.
 
-# Pourquoi une nouvelle implémentation du thermostat ?
+## Pourquoi une nouvelle implémentation du thermostat ?
 
 Ce composant nommé __Versatile thermostat__ gère les cas d'utilisation suivants :
 - Configuration via l'interface graphique d'intégration standard (à l'aide du flux Config Entry),
@@ -31,19 +31,27 @@ Ce composant nommé __Versatile thermostat__ gère les cas d'utilisation suivant
 
 Toutes ces fonctions sont configurables de façon centralisée ou individuelle en fonction de vos besoins.
 
-# Materiels
+## Materiels
 
 Pour faire fonctionner _VTherm_ vous aurez besoin de matériels. La liste ci-dessous est non exhaustive mais contient les matériels les plus utilisés qui sont totalement compatibles avec Home Assistant et _VTherm_. Il s'agit de liens affiliés vers la boutique partenaire [Domadoo](https://www.domadoo.fr/fr/?domid=97), ce qui me permet de profiter d'un petit pourcentage si vous passez par ces liens pour acheter. Commander avec [Domadoo](https://www.domadoo.fr/fr/?domid=97) vous permettra d'avoir des prix compétitifs, une garantie de retour et un délai de livraison très court comparable à d'autres grandes enseignes en ligne. Leur note de 4,8/5 est là pour en témoigner.
 
+La liste complète des matériels testés avec _VTherm_, avec leur niveau de support et des conseils de configuration, est disponible dans le [catalogue des matériels](https://www.versatile-thermostat.org/fr/devices/) du site. Ce catalogue n'est pas exhaustif : un matériel qui n'y figure pas n'est pas forcément incompatible.
+
 ⭐ : le plus utilisé et donc le meilleur choix.
 
-## Thermomètres
+### Thermomètres
+
+Quelques thermomètres sont listés dans le [catalogue des matériels](https://www.versatile-thermostat.org/fr/devices/?type=sensor). N'importe quel capteur de température disponible dans Home Assistant peut être utilisé, même s'il n'y figure pas.
+
 Indispensables dans une installation _VTherm_ une mesure de température externalisée de l'appareil et placé où là où vous vivez, vous assure une température fiable, confortable et stable.
 
 - [⭐ Sonoff SNZB Zigbee](https://www.domadoo.fr/fr/suivi-energie/6614-sonoff-capteur-de-temperature-et-d-humidite-zigbee-30-avec-ecran-6920075740004.html?domid=97)
 - [ Neo Tuya Wifi](https://www.domadoo.fr/fr/produits-compatibles-jeedom/7564-neo-capteur-de-temperature-et-humidite-zigbee-30-tuya.html?domid=97)
 
-## Commutateurs (switchs)
+### Commutateurs (switchs)
+
+Retrouvez tous les équipements de chauffage électrique dans le [catalogue des matériels](https://www.versatile-thermostat.org/fr/devices/?type=electric).
+
 Pour commander un radiateur électrique directement. Utilisable avec les _VTherm_ [`over_switch`](over-switch.md) :
 
 - [⭐ Switch de puissance 25A Sonoff Wifi](https://www.domadoo.fr/fr/peripheriques/5853-sonoff-commutateur-intelligent-wifi-haute-puissance-25a-6920075776768.html?domid=97)
@@ -51,14 +59,20 @@ Pour commander un radiateur électrique directement. Utilisable avec les _VTherm
 - [Sonoff 4 canaux Wifi](https://www.domadoo.fr/fr/peripheriques/5279-sonoff-commutateur-intelligent-wifi-433-mhz-4-canaux-6920075775815.html?domid=97)
 - [Prise intelligente pour petit équipements de chauffage Zigbee](https://www.domadoo.fr/fr/peripheriques/5880-sonoff-prise-intelligente-16a-zigbee-30-version-fr.html?domid=97)
 
-## Switchs avec fil pilote
+### Switchs avec fil pilote
+
+Voir la [page des modules fil pilote](https://www.versatile-thermostat.org/fr/devices/pilot-wire-module/) du catalogue des matériels.
+
 Pour commander un radiateur électrique équipé d'un fil pilote directement. Utilisable avec les _VTherm_ [`over_switch`](over-switch.md) et la [personnalisation des commandes](over-switch.md#la-personnalisation-des-commandes) :
 
 - [⭐ Nodon SIN-4-1-21 Zigbee](https://www.domadoo.fr/fr/chauffage-connecte/6828-nodon-module-chauffage-fil-pilote-connecte-zigbee-30.html?domid=97)
 - [⭐ 4 x Nodon SIN-4-1-21 Zigbee](https://www.domadoo.fr/fr/chauffage-connecte/7050-nodon-pack-4x-modules-chauffage-fil-pilote-connecte-zigbee-30.html?domid=97)
 
 
-## Vannes thermostatiques
+### Vannes thermostatiques
+
+Retrouvez toutes les vannes thermostatiques (TRV) dans le [catalogue des matériels](https://www.versatile-thermostat.org/fr/devices/?type=trv).
+
 Pour contrôler un radiateur à eau. Fonctionne avec un _VTherm_ [`over_valve`](over-valve.md) ou [`over_climate` avec contrôle direct de la vanne](over-climate.md#thermostat-de-type-over_climate) :
 
 - [⭐ Sonoff TRVZB Zigbee](https://www.domadoo.fr/fr/chauffage-connecte/6776-sonoff-tete-thermostatique-connectee-zigbee-30.html?domid=97) avec [`over_climate` avec contrôle direct de la vanne](over-climate.md#thermostat-de-type-over_climate),
@@ -67,7 +81,10 @@ Pour contrôler un radiateur à eau. Fonctionne avec un _VTherm_ [`over_valve`](
 - [Schneider Wiser TRV Zigbee](https://www.domadoo.fr/fr/controle-chauffage-clim/5497-schneider-electric-tete-de-vanne-thermostatique-connectee-zigbee-3606489582821.html?domid=97) avec [`over_climate` (sans contrôle direct de la vanne)](over-climate.md#thermostat-de-type-over_climate)
 - Avatto TRV06 Zigbee (Zigbee2MQTT) avec [`over_climate` (sans contrôle direct de la vanne)](over-climate.md) et [l'auto-régulation](self-regulation.md)
 
-## Incompatibilités
+### Incompatibilités
+
+Le [catalogue des matériels](https://www.versatile-thermostat.org/fr/devices/?state=unsupported) liste les matériels incompatibles, ainsi que les [matériels partiellement supportés](https://www.versatile-thermostat.org/fr/devices/?state=partially) avec leurs limitations connues.
+
 Certains thermostat de type TRV sont réputés incompatibles avec le Versatile Thermostat. C'est le cas des vannes suivantes :
 1. les vannes POPP de Danfoss avec retour de température. Il est impossible d'éteindre cette vanne et elle s'auto-régule d'elle-même causant des conflits avec le _VTherm_,
 2. Les thermostats « Homematic » (et éventuellement Homematic IP) sont connus pour rencontrer des problèmes avec le Versatile Thermostat en raison des limitations du protocole RF sous-jacent. Ce problème se produit particulièrement lorsque vous essayez de contrôler plusieurs thermostats Homematic à la fois dans une seule instance de VTherm. Afin de réduire la charge du cycle de service, vous pouvez par ex. regroupez les thermostats avec des procédures spécifiques à Homematic (par exemple en utilisant un thermostat mural) et laissez Versatile Thermostat contrôler uniquement le thermostat mural directement. Une autre option consiste à contrôler un seul thermostat et à propager les changements de mode CVC et de température par un automatisme,

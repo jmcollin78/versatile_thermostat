@@ -1,7 +1,7 @@
 # Heating Failure Detection
 
 > [!IMPORTANT]
-> The `vtherm_heating_failure_detection` plugin is available for migration. The
+> The [`vtherm_heating_failure_detection`](https://www.versatile-thermostat.org/en/plugins/#jmcollin78/vtherm_heating_failure_detection) plugin is available for migration. The
 > core configuration remains supported during this transition release; configure
 > the plugin or the core feature for a thermostat, but not both.
 

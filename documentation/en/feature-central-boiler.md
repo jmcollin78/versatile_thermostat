@@ -1,6 +1,6 @@
-# Le contrôle d'une chaudière centrale# Controlling a Central Boiler
+# Controlling a Central Boiler
 
-- [Le contrôle d'une chaudière centrale# Controlling a Central Boiler](#le-contrôle-dune-chaudière-centrale-controlling-a-central-boiler)
+- [Controlling a Central Boiler](#controlling-a-central-boiler)
   - [Principle](#principle)
     - [Active power calculation](#active-power-calculation)
   - [Configuration](#configuration)
@@ -37,7 +37,7 @@ In this example:
 
 ### Active power calculation
 The active power calculation depends on the _VTherm_ type:
-1. for all _VTherm_ based on [TPI](./algorithms.md#lalgorithme-tpi) the active power is [the power configured for the equipment](base-attributes.md#choix-des-attributs-de-base) x `on_percent` from the TPI algorithm. For all these _VTherm_ the power is therefore variable and evolves according to the heating power requested. Powers have no units, you can put whatever you want, the important thing is that all powers expressed in all _VTherm_ have the same unit.
+1. for all _VTherm_ based on [TPI](./algorithms.md#the-tpi-algorithm) the active power is [the power configured for the equipment](base-attributes.md#choix-des-attributs-de-base) x `on_percent` from the TPI algorithm. For all these _VTherm_ the power is therefore variable and evolves according to the heating power requested. Powers have no units, you can put whatever you want, the important thing is that all powers expressed in all _VTherm_ have the same unit.
 2. for `over_climate` _VTherm_ the calculated power is all or nothing. If the equipment is active (`is_device_ative`) then the power is that of the _VTherm_ otherwise it is zero. There is no way in this configuration to modulate the requested power.
 3.
 ## Configuration

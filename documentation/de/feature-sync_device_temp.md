@@ -6,7 +6,7 @@
   - [Konfiguration](#Konfiguration)
   - [Synchronisationsmodus](#synchronisationsmodus)
     - [Modus 1: Verwendung einer Kalibrierungsentity](#modus-1-verwendung-einer-kalibrierungsentity)
-      - [Modus 2: Direkte Übernahme einer externen Temperatur](#modus-2-direkte-übernahme-einer-externen-temperatur)
+    - [Modus 2: Direkte Übernahme einer externen Temperatur](#modus-2-direkte-übernahme-einer-externen-temperatur)
 
 ## Grundsatz
 
@@ -18,8 +18,8 @@ Die beiden verfügbaren Synchronisationsmodi sind:
 
 Die Wahl hängt davon ab, welche Funktionen das verbundene Gerät bietet.
 Beispiele:
-1. Der Sonoff TRVZB kann beides. Sie verwenden entweder den Kalibrierungs-Offset über die freigegebene Entität mit einem Kompass oder die benannte externe Temperatur (`external_temperature_input`). Achten Sie darauf, die Option `sensor_select` in diesem Fall auf `external` zu setzen.
-2. Der Aqara W600 verfügt nur über die Kalibrierungs-Entität (das Icon ist standardmäßig ein Kompass).
+1. Der [Sonoff TRVZB](https://www.versatile-thermostat.org/de/devices/sonoff-trvzb/) kann beides. Sie verwenden entweder den Kalibrierungs-Offset über die freigegebene Entität mit einem Kompass oder die benannte externe Temperatur (`external_temperature_input`). Achten Sie darauf, die Option `sensor_select` in diesem Fall auf `external` zu setzen.
+2. Der [Aqara W600](https://www.versatile-thermostat.org/de/devices/aqara-w600/) verfügt nur über die Kalibrierungs-Entität (das Icon ist standardmäßig ein Kompass).
 
 ## Voraussetzungen
 
@@ -79,7 +79,7 @@ VTherm:
 - Funktioniert mit allen Geräten, die eine Kalibrierungs-`number`-Entity bereitstellen,
 - Die Kalibrierung wird jedes Mal gesendet, wenn eine neue Temperatur vom Raumsensor empfangen wird, unabhängig vom Berechnungszyklus von _VTherm_.
 
-#### Modus 2: Direkte Übernahme einer externen Temperatur
+### Modus 2: Direkte Übernahme einer externen Temperatur
 
 Bei dieser Methode übermittelt VTherm die Raumtemperatur direkt an das Gerät mittels der `external_temperature_input`-Entity oder einer gleichwertigen Funktion.
 

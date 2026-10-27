@@ -1,5 +1,5 @@
 - [Choix des attributs de base](#choix-des-attributs-de-base)
-- [Choix des fonctions utilisées](#choix-des-fonctions-utilisées)
+  - [Choix des fonctions utilisées](#choix-des-fonctions-utilisées)
 
 # Choix des attributs de base
 
@@ -10,7 +10,7 @@ Choisisez le menu "Principaux attributs".
 | Attribut | Description | Nom d'attribut |
 | --------- | ----------- | -------------- |
 | **Nom** | Nom de l'entité (cela sera le nom de l'intégration et de l'entité `climate`). | |
-| **Capteur de température** | Identifiant du capteur donnant la température de la pièce où l'appareil est installé. | |
+| **Capteur de température** | Identifiant du capteur donnant la température de la pièce où l'appareil est installé. N'importe quel capteur de température disponible dans Home Assistant peut être utilisé ; quelques-uns sont listés dans le [catalogue des matériels](https://www.versatile-thermostat.org/fr/devices/?type=sensor). | |
 | **Capteur dernière mise à jour (optionnel)** | Évite les mises en sécurité quand la température est stable et que le capteur ne remonte plus. (cf. [troubleshooting](troubleshooting.md#pourquoi-mon-versatile-thermostat-se-met-en-securite-)) | |
 | **Durée de cycle** | Durée en minutes entre chaque calcul. Pour `over_switch` : modulation du temps allumé. Pour `over_valve` : calcul ouverture vanne. Pour `over_climate` : contrôles et recalcul coefficients auto-régulation. Avec les types `over_switch` et `over_valve`, les calculs sont effectués à chaque cycle. Donc en cas de changement de conditions, il faudra attendre le prochain cycle pour voir un changement. Pour cette raison, le cycle ne doit pas être trop long. 5 min est une bonne valeur mais doit être adapté à votre type de chauffage. Plus l'inertie est grande et plus le cycle doit être long. Cf. [Exemples de réglages](tuning-examples.md). Si le cycle est trop court, l'appareil ne pourra jamais atteindre la température cible. Pour le radiateur à accumulation par exemple il sera sollicité inutilement. | `cycle_min` |
 | **Puissance de l'équipement** | Active capteurs puissance/énergie. Indiquer total si plusieurs équipements (même unité que autres VTherm et capteurs). (cf. fonction de délestage) | `device_power` |
@@ -18,7 +18,7 @@ Choisisez le menu "Principaux attributs".
 | **Contrôle centralisé** | Permet contrôle centralisé du thermostat. Cf [controle centralisé](#le-contrôle-centralisé) | `is_controlled_by_central_mode` |
 | **Déclencheur de chaudière centrale** | Case à cocher pour utiliser ce VTherm comme déclencheur de chaudière centrale. | `is_used_by_central_boiler` |
 
-# Choix des fonctions utilisées
+## Choix des fonctions utilisées
 
 Choisissez le menu "Fonctions".
 

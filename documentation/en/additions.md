@@ -1,7 +1,10 @@
 # Some Essential Add-Ons
 
+Many add-ons for _VTherm_ (dashboard cards, schedulers, algorithms, device helpers...) are listed in the [plugins catalog](https://www.versatile-thermostat.org/en/plugins/) of the website, with their certification level. This page gives some examples of use.
+
 - [Some Essential Add-Ons](#some-essential-add-ons)
   - [the Versatile Thermostat UI Card](#the-versatile-thermostat-ui-card)
+  - [A Graphical Scheduler (recommended)](#a-graphical-scheduler-recommended)
   - [the Scheduler Component!](#the-scheduler-component)
   - [Regulation curves with Plotly to Fine-Tune Your Thermostat](#regulation-curves-with-plotly-to-fine-tune-your-thermostat)
   - [Rgulation curves with Apex-charts (thanks to @gael1980)](#rgulation-curves-with-apex-charts-thanks-to-gael1980)
@@ -14,9 +17,15 @@ A dedicated card for the Versatile Thermostat has been developed (based on Bette
 
 ![image](https://github.com/jmcollin78/versatile-thermostat-ui-card/blob/master/assets/1.png?raw=true)
 
+Other dashboard cards compatible with _VTherm_, such as Equinox or the Holm Climate Card, are listed in the [plugins catalog](https://www.versatile-thermostat.org/en/plugins/?family=interface).
+
+## A Graphical Scheduler (recommended)
+
+To program your _VTherm_ over the week, the recommended add-on is the [graphical scheduler](https://www.versatile-thermostat.org/en/plugins/#armellarcier/ha-chauffage) (an independent project). It lets you create several weekly schedules (Normal, Remote work, Holidays...) with a visual Lovelace card where you drag the time slots. A setpoint changed by hand becomes temporary, then the thermostat goes back to its schedule.
+
 ## the Scheduler Component!
 
-To make the most out of the Versatile Thermostat, I recommend using it with the [Scheduler Component](https://github.com/nielsfaber/scheduler-component). The scheduler component provides climate scheduling based on predefined modes. While this feature is somewhat limited with the generic thermostat, it becomes very powerful when paired with the Versatile Thermostat.
+The [Scheduler Component](https://github.com/nielsfaber/scheduler-component) is also compatible with the Versatile Thermostat. The scheduler component provides climate scheduling based on predefined modes. While this feature is somewhat limited with the generic thermostat, it becomes very powerful when paired with the Versatile Thermostat.
 
 Assuming you have installed both the Versatile Thermostat and the Scheduler Component, here’s an example:
 
@@ -38,7 +47,7 @@ In this example, I set ECO mode during the night and when no one is home during 
 I hope this example helps; feel free to share your feedback!
 
 ## Regulation curves with Plotly to Fine-Tune Your Thermostat
-You can obtain a curve similar to the one shown in [some results](../../README.md#some-results) using a Plotly graph configuration by leveraging the thermostat's custom attributes described [here](reference.md#custom-attributes):
+You can obtain curves like the ones shown in the example at the end of this section using a Plotly graph configuration by leveraging the thermostat's custom attributes described [here](reference.md#custom-attributes):
 
 Replace the values between `[[ ]]` with your own.
 <details>
@@ -121,6 +130,10 @@ Replace the values between `[[ ]]` with your own.
 Example of curves obtained with Plotly:
 
 ![image](images/plotly-curves.png)
+
+To explore the history of any entity and its attributes without configuring a card, you can also use [HA Entity Explorer](https://www.versatile-thermostat.org/en/plugins/#KipK/ha_entity_explorer).
+
+The [log analyzer](https://www.versatile-thermostat.org/en/debugger/) of the website also plots the temperatures, modes and presets of a _VTherm_ from a log file, without any configuration in Home Assistant (see [log collector](feature-logs-collector.md)).
 
 ## Regulation curves with Apex-charts (thanks to @gael1980)
 Apex chart allows to display some great reguation curves. @Gael1980 gives us a very good example [here](https://github.com/jmcollin78/versatile_thermostat/discussions/1239).

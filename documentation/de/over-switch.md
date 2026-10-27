@@ -12,13 +12,15 @@
 
 ## Voraussetzungen
 
+Die elektrischen Heizgeräte, die von einem `over_switch`-_VTherm_ gesteuert werden können, sind im [Gerätekatalog](https://www.versatile-thermostat.org/de/devices/?type=electric) aufgeführt.
+
 Die Installation sollte in etwa so aussehen:
 
 ![installation `over_switch`](images/over-switch-schema.png)
 
 1. Der Sollwert wird direkt über die Temperatur durch einen Benutzer, einer Automation oder einen Zeitplan eingestellt.
 2. In regelmäßigen Abständen sendet das Innenthermometer (2) oder das Außenthermometer (2b) die gemessene Temperatur. Das interne Thermometer sollte an einer für den Komfort des Benutzers relevanten Stelle angebracht werden: idealerweise in der Mitte des Wohnraums. Vermeiden Sie es, es zu nah an einem Fenster oder in der Nähe eines Heizkörpers zu platzieren.
-3. Auf der Grundlage der Sollwerte, der verschiedenen Temperaturen und der Parameter des TPI-Algorithmus (siehe [TPI](algorithms.md#lalgorithmus-tpi)) berechnet VTherm einen Prozentsatz der Einschaltdauer.
+3. Auf der Grundlage der Sollwerte, der verschiedenen Temperaturen und der Parameter des TPI-Algorithmus (siehe [TPI](algorithms.md#der-tpi-algorithmus) oder die [weiteren Algorithmen](algorithms.md#weitere-algorithmen-plugins)) berechnet VTherm einen Prozentsatz der Einschaltdauer.
 4. Es wird dann regelmäßig das Ein- und Ausschalten der zugehörigen `Schalter` (oder `select` oder `climate`) veranlassen.
 5. Diese zugehörigen Entitäten steuern das physische Gerät.
 6. Der physische Schalter schaltet den Heizkörper ein oder aus.

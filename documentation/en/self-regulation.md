@@ -13,7 +13,7 @@
 You have the option to activate the self-regulation feature only for _VTherms_ of type `over_climate`.
 
 There are generally two cases:
-1. If your underlying device is a _TRV_ and the valve is directly controllable in Home Assistant (e.g., Sonoff TRVZB), this function will allow _VTherm_ to directly manipulate the valve opening to regulate the temperature. The opening is then calculated by a _TPI_-type algorithm (see [here](algorithms.md)).
+1. If your underlying device is a _TRV_ and the valve is directly controllable in Home Assistant (e.g., [Sonoff TRVZB](https://www.versatile-thermostat.org/en/devices/sonoff-trvzb/)), this function will allow _VTherm_ to directly manipulate the valve opening to regulate the temperature. The opening is then calculated by a _TPI_-type algorithm (see [here](algorithms.md)).
 2. Otherwise, Versatile Thermostat will adjust the temperature setpoint given to the underlying climate to ensure the room temperature actually reaches the setpoint.
 
 ## Configuration
@@ -49,7 +49,7 @@ If a valve closing rate entity is configured, it will be set to the value `100 -
 > 1. the `hvac_action` attribute of Sonoff TRVZB TRVs is capricious. If the internal temperature of the TRV is too offset from the room temperature, the `climate` entity may indicate that the _TRV_ is not heating even though the valve is forced open by _VTherm_. This defect has no consequences since the `climate` entity of the _VTherm_ is corrected and takes into account the valve opening to set its `hvac_action` attribute. This defect is minimized but not completely eliminated by configuring the offset calibration.
 > 2. the _VTherm_ attribute `valve_open_percent` may not be equal to the 'opening degree' value sent to the valve. If you use one of the four parameters `opening_threshold`, `max_closing_degree`, `minimum_opening_degrees` or `max_opening_degrees`, an adjustment is made. The custom attribute `valve_open_percent` is then the raw value calculated by _VTherm_. The 'opening degree' value sent to the valve may be adapted.
 > 3. some equipment has values that do not necessarily range from 0 to 100. _VTherm_ automatically adapts to the allowed ranges for your equipment.
-> 4. If you use the regulation parameter `regulation_threshold` (see [over_climate regulation](./over-climate.md#lauto-régulation)), then the `opening_threshold` will be adjusted so that it is never below this value. Indeed, the `regulation_threshold` is the regulation unit below which the setpoint is not sent. Setting an `opening_threshold` would have no effect.
+> 4. If you use the regulation parameter `regulation_threshold` (see [over_climate regulation](./over-climate.md#self-regulation)), then the `opening_threshold` will be adjusted so that it is never below this value. Indeed, the `regulation_threshold` is the regulation unit below which the setpoint is not sent. Setting an `opening_threshold` would have no effect.
 > 5. A _VTherm_ is considered active if `opening_threshold` is exceeded. Consequently, if the _VTherm_ controls a central boiler, it will not be turned on below this value.
 
 #### How to properly adjust the parameters that control the opening?

@@ -1,7 +1,10 @@
 # Einige unverzichtbare Ergänzungen
 
+Viele Ergänzungen für _VTherm_ (Dashboard-Karten, Zeitplaner, Algorithmen, Gerätehilfen...) sind im [Plugin-Katalog](https://www.versatile-thermostat.org/de/plugins/) der Website mit ihrer Zertifizierungsstufe aufgeführt. Diese Seite zeigt einige Anwendungsbeispiele.
+
 - [Einige unverzichtbare Ergänzungen](#einige-unverzichtbare-ergänzungen)
   - [Die Versatile Thermostat UI Card](#die-versatile-thermostat-ui-card)
+  - [Ein grafischer Zeitplaner (empfohlen)](#ein-grafischer-zeitplaner-empfohlen)
   - [Die Scheduler Komponente!](#die-scheduler-komponente)
   - [Regelungskurven mit Plotly](#regelungskurven-mit-plotly)
   - [Regulation curves with Apex-charts (thanks to @gael1980)](#regulation-curves-with-apex-charts-thanks-to-gael1980)
@@ -16,9 +19,15 @@ Es wurde eine spezielle Karte für das Versatile Thermostat entwickelt (basieren
 
 ![image](https://github.com/jmcollin78/versatile-thermostat-ui-card/blob/master/assets/1.png?raw=true)
 
+Weitere mit _VTherm_ kompatible Dashboard-Karten wie Equinox oder die Holm Climate Card sind im [Plugin-Katalog](https://www.versatile-thermostat.org/de/plugins/?family=interface) aufgeführt.
+
+## Ein grafischer Zeitplaner (empfohlen)
+
+Um Ihre _VTherm_ über die Woche zu programmieren, ist die empfohlene Ergänzung der [grafische Zeitplaner](https://www.versatile-thermostat.org/de/plugins/#armellarcier/ha-chauffage) (ein unabhängiges Projekt). Damit erstellen Sie mehrere Wochenpläne (Normal, Homeoffice, Urlaub...) mit einer visuellen Lovelace-Karte, auf der Sie die Zeitfenster verschieben. Ein manuell geänderter Sollwert wird temporär, danach kehrt der Thermostat zu seinem Plan zurück.
+
 ## Die Scheduler Komponente!
 
-Um die volle Leistungsfähigkeit von Versatile Thermostat voll auszuschöpfen, empfehle ich es zusammen mit der [Scheduler Komponente](https://github.com/nielsfaber/scheduler-component) zu verwenden. 
+Die [Scheduler Komponente](https://github.com/nielsfaber/scheduler-component) ist ebenfalls mit Versatile Thermostat kompatibel.
 Die Scheduler-Komponente ermöglicht die Klimasteuerung anhand vordefinierter Modi. Diese Funktion ist bei einem herkömmlichen Thermostat nur von begrenztem Nutzen, wird jedoch mit dem Versatile Thermostat zu einem leistungsstarken Werkzeug:
 
 Angenommen, es ist sowohl Versatile Thermostat als auch die Scheduler-Komponente installiert.
@@ -43,7 +52,7 @@ In diesem Beispiel habe ich den ECO-Modus für die Nacht und für den Tag einges
 Ich hoffe, dieses Beispiel hilft weiter. Über Feedback freuen wir uns!
 
 ## Regelungskurven mit Plotly
-Man kann eine Kurve ähnlich der in [einige Ergebnisse](#../../README-de.md#einige-ergebnisse) gezeigten erhalten, indem ausschließlich die [hier](reference.md#benutzerdefinierte-attribute) beschriebenen benutzerdefinierten Attribute des Thermostats verwendet werden:
+Man kann Kurven wie die im Beispiel am Ende dieses Abschnitts gezeigten erhalten, indem ausschließlich die [hier](reference.md#benutzerdefinierte-attribute) beschriebenen benutzerdefinierten Attribute des Thermostats verwendet werden:
 
 Ersetzen Sie die Werte zwischen `[[ ]]` durch Ihre eigenen.
 <details>
@@ -126,6 +135,10 @@ Ersetzen Sie die Werte zwischen `[[ ]]` durch Ihre eigenen.
 Beispiel für mit Plotly erstellte Kurven:
 
 ![image](images/plotly-curves.png)
+
+Um den Verlauf einer beliebigen Entity und ihrer Attribute ohne Kartenkonfiguration zu untersuchen, können Sie auch [HA Entity Explorer](https://www.versatile-thermostat.org/de/plugins/#KipK/ha_entity_explorer) verwenden.
+
+Der [Log-Analyser](https://www.versatile-thermostat.org/de/debugger/) der Website stellt ebenfalls Temperaturen, Modi und Presets eines _VTherm_ aus einer Log-Datei dar, ohne Konfiguration in Home Assistant (siehe [Log-Collector](feature-logs-collector.md)).
 
 ## Regulation curves with Apex-charts (thanks to @gael1980)
 Apex chart allows to display some great reguation curves. @Gael1980 gives us a very good example [here](https://github.com/jmcollin78/versatile_thermostat/discussions/1239).

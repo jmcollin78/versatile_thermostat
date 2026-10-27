@@ -1,7 +1,10 @@
 # Quelques compléments indispensables
 
+De nombreux compléments pour _VTherm_ (cartes pour les tableaux de bord, planificateurs, algorithmes, aides pour les équipements...) sont listés dans le [catalogue des plugins](https://www.versatile-thermostat.org/fr/plugins/) du site, avec leur niveau de certification. Cette page en présente quelques exemples d'utilisation.
+
 - [Quelques compléments indispensables](#quelques-compléments-indispensables)
   - [Versatile Thermostat UI Card](#versatile-thermostat-ui-card)
+  - [Un planificateur graphique (recommandé)](#un-planificateur-graphique-recommandé)
   - [Composant Scheduler !](#composant-scheduler-)
   - [Courbes de régulattion avec Plotly](#courbes-de-régulattion-avec-plotly)
   - [Courbes de régulation avec Apex-charts (merci @gael1980)](#courbes-de-régulation-avec-apex-charts-merci-gael1980)
@@ -16,10 +19,16 @@ Une carte spéciale pour le Versatile Thermostat a été développée (sur la ba
 
 ![image](https://github.com/jmcollin78/versatile-thermostat-ui-card/blob/master/assets/1.png?raw=true)
 
+D'autres cartes compatibles avec _VTherm_, comme Equinox ou la Holm Climate Card, sont listées dans le [catalogue des plugins](https://www.versatile-thermostat.org/fr/plugins/?family=interface).
+
+## Un planificateur graphique (recommandé)
+
+Pour programmer vos _VTherm_ sur la semaine, le complément recommandé est le [planificateur graphique](https://www.versatile-thermostat.org/fr/plugins/#armellarcier/ha-chauffage) (projet indépendant). Il permet de créer plusieurs programmations hebdomadaires (Normal, Télétravail, Vacances...) avec une carte Lovelace visuelle où l'on fait glisser les plages horaires. Une consigne modifiée à la main devient temporaire, puis le thermostat revient à sa programmation.
+
 ## Composant Scheduler !
 
-Afin de profiter de toute la puissance du Versatile Thermostat, je vous invite à l'utiliser avec https://github.com/nielsfaber/scheduler-component
-En effet, le composant Scheduler propose une gestion de la base climatique sur les modes prédéfinis. Cette fonctionnalité a un intérêt limité avec le thermostat générique mais elle devient très puissante avec le Versatile Thermostat :
+Le [composant Scheduler](https://github.com/nielsfaber/scheduler-component) est aussi compatible avec le Versatile Thermostat.
+Le composant Scheduler propose une gestion de la base climatique sur les modes prédéfinis. Cette fonctionnalité a un intérêt limité avec le thermostat générique mais elle devient très puissante avec le Versatile Thermostat :
 
 À partir d'ici, je suppose que vous avez installé Versatile Thermostat et Scheduler Component.
 
@@ -43,7 +52,7 @@ Dans cet exemple, j'ai réglé le mode ECO pendant la nuit et le jour lorsqu'il 
 J'espère que cet exemple vous aidera, n'hésitez pas à me faire part de vos retours !
 
 ## Courbes de régulattion avec Plotly
-Vous pouvez obtenir une courbe comme celle présentée dans [some results](../../README-fr.md#quelques-résultats) avec une sorte de configuration de graphique Plotly uniquement en utilisant les attributs personnalisés du thermostat décrits [ici](reference.md#attributs-personnalisés) :
+Vous pouvez obtenir des courbes comme celles de l'exemple présenté à la fin de cette section avec une sorte de configuration de graphique Plotly uniquement en utilisant les attributs personnalisés du thermostat décrits [ici](reference.md#attributs-personnalisés) :
 
 Remplacez les valeurs entre [[ ]] par les votres.
 <details>
@@ -126,6 +135,10 @@ Remplacez les valeurs entre [[ ]] par les votres.
 Exemple de courbes obtenues avec Plotly :
 
 ![image](images/plotly-curves.png)
+
+Pour explorer l'historique de n'importe quelle entité et de ses attributs sans configurer de carte, vous pouvez aussi utiliser [HA Entity Explorer](https://www.versatile-thermostat.org/fr/plugins/#KipK/ha_entity_explorer).
+
+L'[analyseur de logs](https://www.versatile-thermostat.org/fr/debugger/) du site trace aussi les températures, modes et presets d'un _VTherm_ à partir d'un fichier de log, sans aucune configuration dans Home Assistant (cf. [collecteur de logs](feature-logs-collector.md)).
 
 ## Courbes de régulation avec Apex-charts (merci @gael1980)
 Apex chart permet l'affiche de courbes de régulation. @Gael1980 nous donne un bel exemple [ici](https://github.com/jmcollin78/versatile_thermostat/discussions/1239).
