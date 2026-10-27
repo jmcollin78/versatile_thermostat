@@ -3,7 +3,7 @@ Dieser Thermostat kann 3 Gerätetypen steuern:
 1. Einen Heizkörper, der nur im Ein- und Ausschaltmodus funktioniert (genannt `thermostat_over_switch`). Die erforderliche Mindestkonfiguration zur Verwendung dieser Art von Thermostat ist:
    1. Ein Gerät wie ein Heizkörper (ein `switch` oder ähnliches),
    2. Einen Temperatursensor für den Raum (oder eine `input_number`),
-   3. Einen externen Temperatursensor (wenn Sie keinen haben, sollten Sie die Wetterintegration in Betracht ziehen).
+   3. Einen externen Temperatursensor (wenn Sie keinen haben, sollten Sie die Wetterintegration in Betracht ziehen; in Frankreich liefert das Plugin [Météo-France Observation](https://www.versatile-thermostat.org/de/plugins/#bontiv/ha-meteofrance-observation) eine genaue Außentemperatur).
 2. Ein anderer Thermostat, der seine eigenen Betriebsmodi hat (genannt `thermostat_over_climate`). Für diese Art von Thermostat ist folgende Mindestkonfiguration erforderlich:
    1. Geräte - wie Klimaanlagen oder Thermostatventile - werden von ihrer eigenen `Klimaeinheit` gesteuert.
 3. Geräte, die einen Wert von 0 bis 100% annehmen können (genannt `thermostat_over_valve`). Bei 0 ist die Heizung ausgeschaltet, und bei 100% ist sie vollständig geöffnet. Dieser Typ ermöglicht die Steuerung eines Thermostatventils (z. B. Shelly-Ventil), das eine Entität des Typs `number` besitzt, mit dem die Öffnung des Ventils direkt gesteuert werden kann. Versatile Thermostat regelt die Raumtemperatur durch Anpassung des Öffnungsprozentsatzes, wobei sowohl die internen als auch die externen Temperatursensoren und der unten beschriebene TPI-Algorithmus verwendet werden.
@@ -35,9 +35,14 @@ Alle diese Funktionen sind je nach Bedarf entweder zentral oder individuell konf
 
 Für den Betrieb von _VTherm_ werden einige Geräte benötigt. Die folgende Liste ist nicht vollständig, enthält aber die am häufigsten verwendeten Geräte, die vollständig mit Home Assistant und _VTherm_ kompatibel sind. Dies sind Affiliate-Links zum französischen Partnershop [Domadoo](https://www.domadoo.fr/de/?domid=97), wodurch ich einen kleinen Prozentsatz erhalte, wenn Sie über diese Links einkaufen. Sollten Sie bei [Domadoo](https://www.domadoo.fr/de/?domid=97) bestellen, erhalten Sie günstige Preise, eine Rückgabegarantie und eine sehr kurze Lieferzeit, die mit der anderer großer Online-Händler vergleichbar ist. Ihre 4.8/5 Bewertung spricht für sich selbst.
 
+Die vollständige Liste der mit _VTherm_ getesteten Geräte, mit ihrem Unterstützungsgrad und Konfigurationshinweisen, finden Sie im [Gerätekatalog](https://www.versatile-thermostat.org/de/devices/) der Website. Dieser Katalog ist nicht vollständig: Ein Gerät, das nicht aufgeführt ist, ist nicht unbedingt inkompatibel.
+
 ⭐ : Die meistgenutzte und daher beste Wahl.
 
 ## Thermometer
+
+Einige Thermometer sind im [Gerätekatalog](https://www.versatile-thermostat.org/de/devices/?type=sensor) aufgeführt. Jeder in Home Assistant verfügbare Temperatursensor kann verwendet werden, auch wenn er nicht aufgeführt ist.
+
 Um ein zuverlässige, komfortable und stabile Temperaturregelung zu gewährleisten, ist für eine _VTherm_-Einrichtung ein externes Temperaturmessgerät, welches dort ist, wo sie leben, unerlässlich.
 
 - [⭐ Sonoff SNZB Zigbee](https://www.domadoo.fr/de/suivi-energie/6614-sonoff-capteur-de-temperature-et-d-humidite-zigbee-30-avec-ecran-6920075740004.html?domid=97)
@@ -45,6 +50,9 @@ Um ein zuverlässige, komfortable und stabile Temperaturregelung zu gewährleist
 - [ Moes Tuya Zigbee](https://www.domadoo.fr/de/domotique/6667-moes-capteur-de-temperature-et-humidite-avec-ecran-zigbee-tuya.html?domid=97)
 
 ## Schalter (Switches)
+
+Alle Geräte für elektrische Heizungen finden Sie im [Gerätekatalog](https://www.versatile-thermostat.org/de/devices/?type=electric).
+
 Zur direkten Steuerung einer elektrischen Heizung. Verwendbar mit _VTherm_ [`over_switch`](over-switch.md):
 
 - [⭐ Sonoff Power Switch 25 A Wifi](https://www.domadoo.fr/de/peripheriques/5853-sonoff-commutateur-intelligent-wifi-haute-puissance-25a-6920075776768.html?domid=97)
@@ -53,12 +61,18 @@ Zur direkten Steuerung einer elektrischen Heizung. Verwendbar mit _VTherm_ [`ove
 - [Smart plug for small heating equipment Zigbee](https://www.domadoo.fr/de/peripheriques/5880-sonoff-prise-intelligente-16a-zigbee-30-version-fr.html?domid=97)
 
 ## Pilotdraht (Pilot wire) Schalter
+
+Siehe die [Seite der Pilotdraht-Module](https://www.versatile-thermostat.org/de/devices/pilot-wire-module/) im Gerätekatalog.
+
 Zur direkten Steuerung eines elektrischen Heizgeräts mit Pilotdraht. Verwendbar mit _VTherm_ [`over_switch`](over-switch.md) und [individuellen Befehlen](over-switch.md#befehlsanpassung):
 
 - [⭐ Nodon SIN-4-1-21 Zigbee](https://www.domadoo.fr/de/chauffage-connecte/6828-nodon-module-chauffage-fil-pilote-connecte-zigbee-30.html?domid=97)
 - [⭐ 4 x Nodon SIN-4-1-21 Zigbee](https://www.domadoo.fr/de/chauffage-connecte/7050-nodon-pack-4x-modules-chauffage-fil-pilote-connecte-zigbee-30.html?domid=97)
 
 ## Thermostatventile
+
+Alle Thermostatventile (TRV) finden Sie im [Gerätekatalog](https://www.versatile-thermostat.org/de/devices/?type=trv).
+
 Zur Steuerung eines Wasserheizkörpers. Funktioniert mit einem _VTherm_. [`over_valve`](over-valve.md) oder [`over_climate` mit direkter Ventilsteuerung](over-climate.md#over_climate-thermostattyp):
 
 - [⭐ Sonoff TRVZB Zigbee](https://www.domadoo.fr/de/chauffage-connecte/6776-sonoff-tete-thermostatique-connectee-zigbee-30.html?domid=97) mit [`over_climate` mit direkter Ventilsteuerung](over-climate.md#over_climate-thermostattyp),
@@ -68,6 +82,9 @@ Zur Steuerung eines Wasserheizkörpers. Funktioniert mit einem _VTherm_. [`over_
 - Avatto TRV06 Zigbee (Zigbee2MQTT) mit [`over_climate` (ohne direkte Ventilsteuerung)](over-climate.md) und [Selbstregulierung](self-regulation.md)
 
 ## Inkompatibilitäten
+
+Der [Gerätekatalog](https://www.versatile-thermostat.org/de/devices/?state=unsupported) listet die inkompatiblen Geräte sowie die [teilweise unterstützten Geräte](https://www.versatile-thermostat.org/de/devices/?state=partially) mit ihren bekannten Einschränkungen auf.
+
 Einige Thermostate vom Typ TRV sind bekanntermaßen nicht mit dem Versatile Thermostat kompatibel. Dazu gehören die folgenden Ventile:
 1. Danfoss POPP-Ventile mit Temperaturrückführung. Es ist nicht möglich, dieses Ventil abzuschalten, da es sich selbst reguliert und dadurch Konflikte mit VTherm verursacht.
 2. "Homematic"-Thermostate (und möglicherweise Homematic IP) sind dafür bekannt, dass sie aufgrund der Einschränkungen des zugrunde liegenden RF-Protokolls Probleme mit Versatile Thermostat haben. Dieses Problem tritt insbesondere dann auf, wenn versucht wird, mehrere Homematic-Thermostate gleichzeitig in einer einzigen VTherm-Instanz zu steuern. Um die Belastung des Servicezyklus zu reduzieren, können Sie beispielsweise Thermostate mit Homematic-spezifischen Verfahren gruppieren (z. B. mit einem an der Wand montierten Thermostat) und nur den an der Wand montierten Thermostat direkt von Versatile Thermostat steuern lassen. Eine andere Möglichkeit ist die Steuerung eines einzelnen Thermostats und die Weitergabe von Modus- und Temperaturänderungen über die Automatisierung.

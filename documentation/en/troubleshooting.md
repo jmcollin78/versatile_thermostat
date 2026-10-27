@@ -28,7 +28,7 @@
 
 ## Using a Heatzy
 
-The Heatzy is now natively supported by _VTherm_. See [Quick Start](quick-start.md#heatzy-or-ecosy-or-similar-climate-entity).
+The Heatzy is now natively supported by _VTherm_. See [Quick Start](quick-start.md#heatzy-or-ecosy-or-similar-climate-entity). See also the [Heatzy page](https://www.versatile-thermostat.org/en/devices/heatzy/) in the device catalog.
 
 This configuration is kept for reference only.
 
@@ -64,7 +64,7 @@ Thanks to @gael for this example.
 
 ## Using a radiator with a pilot wire (Nodon SIN-4-FP-21)
 
-The Nodon is now natively supported by _VTherm_. See [Quick Start](quick-start.md#nodon-sin-4-fp-21-or-similar-pilot-wire).
+The Nodon is now natively supported by _VTherm_. See [Quick Start](quick-start.md#nodon-sin-4-fp-21-or-similar-pilot-wire). See also the [pilot wire modules page](https://www.versatile-thermostat.org/en/devices/pilot-wire-module/) in the device catalog.
 
 This configuration is kept for reference only.
 
@@ -105,7 +105,7 @@ Another more complex example is [here](https://github.com/jmcollin78/versatile_t
 
 ## Using a Netatmo System
 
-The system based on Netatmo TRVs does not work well with _VTherm_. You can find a discussion about the specific behavior of Netatmo systems (in French) here: [https://forum.hacf.fr/t/vannes-netatmo-et-vtherm/56063](https://forum.hacf.fr/t/vannes-netatmo-et-vtherm/56063).
+The system based on Netatmo TRVs does not work well with _VTherm_. You can find a discussion about the specific behavior of Netatmo systems (in French) here: [https://forum.hacf.fr/t/vannes-netatmo-et-vtherm/56063](https://forum.hacf.fr/t/vannes-netatmo-et-vtherm/56063). Its known limitations are also described in the [device catalog](https://www.versatile-thermostat.org/en/devices/known-limitations/).
 
 However, some users have successfully integrated _VTherm_ with Netatmo by incorporating a virtual switch between _VTherm_ and the Netatmo `climate` entity, as follows:
 
@@ -174,7 +174,7 @@ Example:
 
 [security mode](images/security-mode-symptome1.png)
 
-If you have installed the [Versatile Thermostat UI Card](https://github.com/jmcollin78/versatile-thermostat-ui-card), the affected VTherm will appear like this:
+If you have installed the [Versatile Thermostat UI Card](https://www.versatile-thermostat.org/en/plugins/#jmcollin78/versatile-thermostat-ui-card), the affected VTherm will appear like this:
 
 [security mode UI Card](images/security-mode-symptome2.png)
 
@@ -247,6 +247,8 @@ To collect and analyze Versatile Thermostat logs, **it is strongly recommended t
 
 See the full documentation: [Download Past Logs - Diagnosis and Troubleshooting](feature-logs-collector.md)
 
+The downloaded file can then be opened in the [log analyzer](https://www.versatile-thermostat.org/en/debugger/) of the website to visualize what happened. When you open an issue, you can also attach an extract exported from the analyzer, zoomed on the period of the problem.
+
 ### Enable logs in Home Assistant (old method)
 
 If you need a more advanced debugging mode, you can enable logs at the Home Assistant level by editing the `logger.yaml` file:
@@ -261,6 +263,8 @@ logger:
 You must reload the YAML configuration (Developer Tools / YAML / Reload all YAML configuration) or restart Home Assistant for this change to take effect.
 
 ⚠️ **Warning**: In debug mode, Versatile Thermostat is very verbose and may slow down Home Assistant or saturate your hard drive. This approach is only recommended for advanced debugging over a short duration. **Prefer the log-collector in all normal cases.**
+
+The `home-assistant.log` file obtained this way can also be opened in the [log analyzer](https://www.versatile-thermostat.org/en/debugger/).
 
 ## VTherm does not track setpoint changes made directly on the underlying device (`over_climate`)
 

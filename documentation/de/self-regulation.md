@@ -13,7 +13,7 @@
 Sie haben die Möglichkeit, die Selbstregulierungsfunktion nur für _VTherms_ des Typs `over_climate` zu aktivieren.
 
 In der Regel gibt es zwei Fälle: Erstens
-1. Wenn Ihr verwendetes Gerät ein _TRV_ ist und das Ventil direkt im Home Assistant gesteuert werden kann (z.B. Sonoff TRVZB), ermöglicht diese Funktion _VTherm_ die direkte Steuerung der Ventilöffnung zur Regelung der Temperatur. Die Öffnung wird dann durch einen Algorithmus vom Typ _TPI_ berechnet (siehe [hier](algorithms.md)).
+1. Wenn Ihr verwendetes Gerät ein _TRV_ ist und das Ventil direkt im Home Assistant gesteuert werden kann (z.B. [Sonoff TRVZB](https://www.versatile-thermostat.org/de/devices/sonoff-trvzb/)), ermöglicht diese Funktion _VTherm_ die direkte Steuerung der Ventilöffnung zur Regelung der Temperatur. Die Öffnung wird dann durch einen Algorithmus vom Typ _TPI_ berechnet (siehe [hier](algorithms.md)).
 2. Andernfalls passt Versatile Thermostat den dem jeweiligen Klima vorgegebenen Temperatursollwert an, um sicherzustellen, dass die Raumtemperatur tatsächlich den Sollwert erreicht.
 
 ## Konfiguration

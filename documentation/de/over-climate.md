@@ -14,6 +14,8 @@
 
 ## Voraussetzungen
 
+Die Geräte, die von einem `over_climate`-_VTherm_ gesteuert werden können (Klimaanlagen, Wärmepumpen, TRV...), sind im [Gerätekatalog](https://www.versatile-thermostat.org/de/devices/?type=climate) aufgeführt, die Thermostatventile im [TRV-Katalog](https://www.versatile-thermostat.org/de/devices/?type=trv).
+
 Die Installation sollte etwa so aussehen::
 
 ![installation `over_climate`](images/over-climate-schema.png)
@@ -63,7 +65,7 @@ Sie können aus den folgenden Optionen wählen, welche Lüftungsstufe aktiviert 
 Natürlich muss Ihr Gerät über eine Belüftung verfügen, und diese muss regelbar sein, damit dies funktioniert. Wenn Ihr Gerät nicht über den Turbo-Modus verfügt, wird stattdessen der Hoch-Modus verwendet. Sobald der Temperaturunterschied wieder klein wird, schaltet die Lüftung auf einen "normalen" Modus um, in Abhängigkeit von Ihrem Gerät (in dieser Reihenfolge): `Stumm`, `Quiet`, `Auto`, `Niedrig`. Es wird der erste verfügbare Modus für Ihr Gerät gewählt.
 
 > ![Tipp](images/tips.png) _*Externes Plugin*_
-> Eine erweiterte Version von Auto-Fan ist als externes Plugin verfügbar. Dieses Plugin bietet zusätzliche Konfigurationsmöglichkeiten und eine feinere Steuerung der automatischen Belüftung. Auf der Seite [Plugins](https://www.versatile-thermostat.org/fr/plugins/) können Sie dieses Plugin entdecken.
+> Eine erweiterte Version von Auto-Fan ist als externes Plugin verfügbar. Dieses Plugin bietet zusätzliche Konfigurationsmöglichkeiten und eine feinere Steuerung der automatischen Belüftung. Auf der Seite [Plugins](https://www.versatile-thermostat.org/de/plugins/#jmcollin78/vtherm_auto_fan_extended) können Sie dieses Plugin entdecken.
 
 ### Kompensation der Innentemperatur des zugehörigen Geräts
 
@@ -113,3 +115,6 @@ Seien Sie vorsichtig, beim verwenden dieser Funktion, wird Ihr Gerät jetzt auf 
 
 Einige Geräte (wie z. B. Daikin) ändern ihren Zustand von selbst. Wenn das Kontrollkästchen aktiviert ist, kann es sein, dass _VTherm_ ausgeschaltet wird, obwohl Sie das nicht beabsichtigt haben.
 Deshalb ist es besser, sie nicht zu verwenden. Es führt zu viel Verwirrung und vielen Supportanfragen.
+
+> ![Tipp](images/tips.png) _*Physische Fernbedienung*_
+> Wenn Sie einen separaten physischen Thermostat (z. B. einen Wandthermostat) als Fernbedienung für ein _VTherm_ verwenden möchten, sehen Sie sich das Plugin [VTherm climate replication](https://www.versatile-thermostat.org/de/plugins/#jmcollin78/vtherm_climate_replication) an.

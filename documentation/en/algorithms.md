@@ -6,6 +6,9 @@
     - [Principle](#principle)
     - [Minimum Activation or Deactivation Delay](#minimum-activation-or-deactivation-delay)
     - [Upper and Lower Activation Thresholds of the Algorithm](#upper-and-lower-activation-thresholds-of-the-algorithm)
+  - [Other Algorithms (Plugins)](#other-algorithms-plugins)
+    - [SmartPI (recommended)](#smartpi-recommended)
+    - [Other Algorithms](#other-algorithms)
   - [The Self-Regulation Algorithm (Without Valve Control)](#the-self-regulation-algorithm-without-valve-control)
   - [The Auto-Start/Stop Function Algorithm](#the-auto-startstop-function-algorithm)
 
@@ -85,6 +88,18 @@ Examples:
 > 2. Both values are required. If you leave one at 0, no threshold will be applied. Indeed, both are necessary for correct operation.
 > 3. In cooling mode, the tests are reversed, but the principle remains the same.
 > 4. The upper threshold should always be greater than the lower threshold, even in cooling mode.
+
+## Other Algorithms (Plugins)
+
+In addition to the built-in TPI algorithm, other control algorithms can be installed as external plugins. They can be used by the _VTherm_ that use the TPI algorithm: `over_switch`, `over_valve` and `over_climate` with direct valve control. Once the plugin is installed, its algorithm can be selected in the algorithm selection field of the configuration.
+
+### SmartPI (recommended)
+
+[SmartPI](https://www.versatile-thermostat.org/en/plugins/#kipk/vtherm_smartpi) is the recommended algorithm plugin. It is an advanced PI controller built around a thermal model of the room: it learns the heating capability of the room, its heat loss rate and its dead time, then uses this model to compute a much more accurate heating command than an algorithm with fixed coefficients such as TPI. See the [SmartPI documentation](https://github.com/KipK/vtherm_smartpi/blob/master/documentation/en/vtherm_smartpi.md).
+
+### Other Algorithms
+
+Other algorithms are available, such as a simple hysteresis algorithm or an algorithm dedicated to pellet stoves. The full list is in the [plugins catalog](https://www.versatile-thermostat.org/en/plugins/?family=algorithm).
 
 ## The Self-Regulation Algorithm (Without Valve Control)
 

@@ -12,13 +12,15 @@
 
 ## Prerequisites
 
+The electric heating devices that can be controlled by an `over_switch` _VTherm_ are listed in the [device catalog](https://www.versatile-thermostat.org/en/devices/?type=electric).
+
 The installation should look like this:
 
 ![installation `over_switch`](images/over-switch-schema.png)
 
 1. The user or automation, or the Scheduler, sets a setpoint via a preset or directly using a temperature.
 2. Periodically, the internal thermometer (2) or external thermometer (2b) sends the measured temperature. The internal thermometer should be placed in a relevant spot for the user's comfort: ideally in the middle of the living space. Avoid placing it too close to a window or too near the radiator.
-3. Based on the setpoint values, the different temperatures, and the TPI algorithm parameters (see [TPI](algorithms.md#lalgorithme-tpi)), VTherm will calculate a percentage of the on-time.
+3. Based on the setpoint values, the different temperatures, and the TPI algorithm parameters (see [TPI](algorithms.md#the-tpi-algorithm) or the [other algorithms](algorithms.md#other-algorithms-plugins)), VTherm will calculate a percentage of the on-time.
 4. It will then regularly command the turning on and off of the underlying `switch` (or `select` or `climate`) entities.
 5. These underlying entities will control the physical device.
 6. The physical switch will turn the radiator on or off.

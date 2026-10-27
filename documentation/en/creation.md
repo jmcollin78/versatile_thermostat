@@ -65,7 +65,7 @@ This type can be used for TRVs without an associated `climate` entity or other D
 # Making the right choice
 > ![Tip](images/tips.png) _*How to Choose the Type*_
 > Choosing the correct type is crucial. It cannot be changed later via the configuration interface. To make the right choice, consider the following questions:
-> 1. **What type of equipment will I control?** Follow this order of preference:
+> 1. **What type of equipment will I control?** Follow this order of preference (the [device catalog](https://www.versatile-thermostat.org/en/devices/) gives the recommended type for each tested device):
 >    1. If you have a controllable thermostatic valve (TRV) in Home Assistant through a `number` entity (e.g., a Shelly TRV), choose the `over_valve` type. This is the most direct type and ensures the best regulation.
 >    2. If you have an electric radiator (with or without a pilot wire) controlled by a `switch` entity to turn it on/off, then the `over_switch` type is preferable. Regulation will be managed by the Versatile Thermostat based on the temperature measured by your thermometer at its placement location.
 >    3. In all other cases, use the `over_climate` mode. You retain your original `climate` entity, and the Versatile Thermostat "only" controls the on/off state and target temperature of your original thermostat. Regulation is handled by your original thermostat in this case. This mode is particularly suited for all-in-one reversible air conditioning systems exposed as a `climate` entity in Home Assistant. Advanced self-regulation can achieve the setpoint faster by forcing the setpoint or directly controlling the valve when possible.

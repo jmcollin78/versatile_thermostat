@@ -65,8 +65,8 @@ Ce type peut être utilisé pour les _TRV_ qui n'ont pas de `climate` associé o
 
 # Le bon choix
 > ![Astuce](images/tips.png) _*Comment choisir le type*_
-> Le choix du type est important. Il n'est plus possible de le modifier via l'IHM de configuration. Pour bien chsoisir, il faut se poser les quelques questions suivantes :
-> 1. **quel type d'équipement je vais piloter ?** Dans l'ordre voici ce qu'il faut faire :
+> Le choix du type est important. Il n'est plus possible de le modifier via l'IHM de configuration. Pour bien choisir, il faut se poser les quelques questions suivantes :
+> 1. **quel type d'équipement je vais piloter ?** Dans l'ordre voici ce qu'il faut faire (le [catalogue des matériels](https://www.versatile-thermostat.org/fr/devices/) indique le type recommandé pour chaque matériel testé) :
 >    1. si vous avez une vanne thermostatique (_TRV_) commandable dans Home Assistant via une entité de type ```number``` (par exemple une _Shelly TRV_), choisissez le type `over_valve`. C'est le type le plus direct et qui assure la meilleure régulation,
 >    2. si vous avez un radiateur électrique (avec ou sans fil pilote) et qu'une entité de type ```switch``` permet de l'allumer ou de l'éteindre, alors le type ```over_switch``` est préférable. La régulation sera faite par le Versatile Thermostat en fonction de la température mesuré par votre thermomètre, à l'endroit ou vous l'avez placé,
 >    3. dans tous les autres cas, utilisez le mode ```over_climate```. Vous gardez votre entité ```climate``` d'origine et le Versatile Thermostat "ne fait que" piloter le on/off et la température cible de votre thermostat d'origine. La régulation est faite par votre thermostat d'origine dans ce cas. Ce mode est particulièrement adapté aux climatisations réversible tout-en-un dont l'exposition dans Home Assistant se limite à une entité de type ```climate```. Une auto-régulation avancée permet d'atteindre la consigne en forçant la consigne ou un pilotant directement la vanne lorsque c'est possible.

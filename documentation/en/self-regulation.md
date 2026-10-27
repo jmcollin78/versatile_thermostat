@@ -13,7 +13,7 @@
 You have the option to activate the self-regulation feature only for _VTherms_ of type `over_climate`.
 
 There are generally two cases:
-1. If your underlying device is a _TRV_ and the valve is directly controllable in Home Assistant (e.g., Sonoff TRVZB), this function will allow _VTherm_ to directly manipulate the valve opening to regulate the temperature. The opening is then calculated by a _TPI_-type algorithm (see [here](algorithms.md)).
+1. If your underlying device is a _TRV_ and the valve is directly controllable in Home Assistant (e.g., [Sonoff TRVZB](https://www.versatile-thermostat.org/en/devices/sonoff-trvzb/)), this function will allow _VTherm_ to directly manipulate the valve opening to regulate the temperature. The opening is then calculated by a _TPI_-type algorithm (see [here](algorithms.md)).
 2. Otherwise, Versatile Thermostat will adjust the temperature setpoint given to the underlying climate to ensure the room temperature actually reaches the setpoint.
 
 ## Configuration
