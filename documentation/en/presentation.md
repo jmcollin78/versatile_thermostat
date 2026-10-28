@@ -109,7 +109,6 @@ This catalog is not exhaustive: a device that is not listed is not necessarily i
 - [Some Essential Add-Ons](additions.md): UI card, scheduler, curves, notifications.
 - [Plugins catalog](https://www.versatile-thermostat.org/en/plugins/): algorithms, cards and device helpers.
 - [Device catalog](https://www.versatile-thermostat.org/en/devices/): tested devices and their support level.
-- [Comparisons](https://www.versatile-thermostat.org/en/versus/): _VTherm_ compared with the generic thermostat, Better Thermostat and other solutions.
 
 ## Next Step
 

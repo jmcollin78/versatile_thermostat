@@ -109,7 +109,6 @@ Ce catalogue n'est pas exhaustif : un matériel qui n'y figure pas n'est pas for
 - [Quelques compléments indispensables](additions.md) : carte UI, planificateur, courbes, notifications.
 - [Catalogue des plugins](https://www.versatile-thermostat.org/fr/plugins/) : algorithmes, cartes et aides pour les équipements.
 - [Catalogue des matériels](https://www.versatile-thermostat.org/fr/devices/) : les matériels testés et leur niveau de support.
-- [Comparatifs](https://www.versatile-thermostat.org/fr/versus/) : _VTherm_ face au thermostat générique, à Better Thermostat et à d'autres solutions.
 
 ## Étape suivante
 

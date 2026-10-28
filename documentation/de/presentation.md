@@ -109,7 +109,6 @@ Dieser Katalog ist nicht vollständig: Ein Gerät, das nicht aufgeführt ist, is
 - [Einige unverzichtbare Ergänzungen](additions.md): UI-Karte, Zeitplaner, Kurven, Benachrichtigungen.
 - [Plugin-Katalog](https://www.versatile-thermostat.org/de/plugins/): Algorithmen, Karten und Gerätehilfen.
 - [Gerätekatalog](https://www.versatile-thermostat.org/de/devices/): getestete Geräte und ihr Unterstützungsgrad.
-- [Vergleiche](https://www.versatile-thermostat.org/de/versus/): _VTherm_ im Vergleich zum generischen Thermostat, zu Better Thermostat und anderen Lösungen.
 
 ## Nächster Schritt
 
