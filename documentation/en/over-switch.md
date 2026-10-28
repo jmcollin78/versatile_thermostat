@@ -8,6 +8,7 @@
     - [AC Mode](#ac-mode)
     - [Command Inversion](#command-inversion)
     - [Command Customization](#command-customization)
+  - [Next Step](#next-step)
 
 
 ## Prerequisites
@@ -97,3 +98,9 @@ This means that one of the entered commands is invalid. The following rules must
 1. Each command must follow the format `command[/attribute[:value]]` (e.g., `select_option/option:comfort` or `turn_on`) without spaces or special characters except `_`.
 2. There must be as many commands as there are declared underlying devices, except when all underlying devices are `switch` entities, in which case command customization is not required.
 3. If multiple underlying devices are configured, the commands must be in the same order. The number of on commands must equal the number of off commands and the number of underlying devices (in the correct order). It is possible to mix different types of underlying devices. As soon as one underlying device is not a `switch`, all commands for all underlying devices, including `switch` entities, must be configured.
+
+## Next Step
+
+[The TPI coefficients](algorithms.md#configuring-the-tpi-algorithm-coefficients): tune the regulation algorithm ("TPI parameters" menu).
+
+If you use an algorithm provided by a plugin, such as SmartPI, follow its documentation, then go directly to the [presets](feature-presets.md).

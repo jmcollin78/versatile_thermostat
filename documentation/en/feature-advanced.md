@@ -22,6 +22,7 @@
     - [Parameters](#parameters)
     - [Exposed Attributes](#exposed-attributes-1)
     - [Limitations and Safety](#limitations-and-safety)
+  - [Next Step](#next-step)
 
 ## Why this feature?
 
@@ -255,3 +256,13 @@ The `consecutive_repair_count` counter allows you to:
 6. **Counter reset**: The counter automatically resets as soon as equipment returns to the correct state, allowing new attempts in case of intermittent issues.
 
 7. **Regular retry**: after 5 failed repair attempts, repair pauses to avoid infinite loops. It resumes after 10 cycles without repair, allowing new attempts in case of intermittent problems.
+
+## Next Step
+
+Click "All done" in the configuration menu: your _VTherm_ is ready.
+
+To go further:
+
+- install the UI card and a scheduler, presented in [Some Essential Add-Ons](additions.md),
+- discover the other features in the [documentation contents](presentation.md#documentation-contents),
+- if something goes wrong, see [Troubleshooting](troubleshooting.md).

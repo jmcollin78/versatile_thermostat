@@ -17,7 +17,8 @@ ATTENTION: ce fonctionnement **n'est pas une fonction de sécurité** mais plus 
 
 Pour un _VTherm_ `over_switch` qui commande plusieurs radiateurs, chaque relais est évalué séparément. Un relais dont l'état remonté par Home Assistant indique déjà la chauffe n'est pas recompté dans la puissance marginale de démarrage. Si l'énergie consommée par ce radiateur n'est pas encore incluse dans la mesure, le seuil configuré peut être temporairement dépassé. Cette gestion logicielle ne remplace pas une protection électrique et ne protège pas le disjoncteur.
 
-Cas d'usage type:
+## Cas d'usage type
+
 1. vous avez un compteur électrique limité à 11 kW,
 2. vous chargez de temps en temps un véhicule électrique à 5 kW,
 3. il reste donc 6 kW pour tout le reste y compris le chauffage,

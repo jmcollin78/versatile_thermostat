@@ -11,6 +11,7 @@
     - [Weitere Algorithmen](#weitere-algorithmen)
   - [Der Selbstregulierungsalgorithmus (ohne Ventilsteuerung)](#der-selbstregulierungsalgorithmus-ohne-ventilsteuerung)
   - [Der Algorithmus der Auto-Start/Stopp-Funktion](#der-algorithmus-der-auto-startstopp-funktion)
+  - [Nächster Schritt](#nächster-schritt)
 
 ## Der TPI-Algorithmus
 
@@ -128,3 +129,7 @@ Der in der Auto-Start/Stopp-Funktion verwendete Algorithmus funktioniert wie fol
 `dt` wird für langsame Erkennung auf `30 min`, für mittlere Erkennung auf `15 min` und für schnelle Erkennung auf `7 min` gesetzt.
 
 Details zur Function gibt es [hier](https://github.com/jmcollin78/versatile_thermostat/issues/585).
+
+## Nächster Schritt
+
+[Voreinstellungen](feature-presets.md): die Solltemperatur jeder Voreinstellung festlegen (Menü „Temperaturvoreinstellungen“).

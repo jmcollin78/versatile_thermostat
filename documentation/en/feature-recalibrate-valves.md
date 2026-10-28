@@ -113,5 +113,3 @@ action:
 >
 > - Test recalibration on a single VTherm first and check logs and `number` values before running it on multiple devices.
 > - Set `delay_seconds` long enough for the physical valve to reach the position (60 s is a reasonable start for most valves).
-
-````

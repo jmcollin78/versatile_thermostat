@@ -10,6 +10,7 @@
     - [autres auto-régulation](#autres-auto-régulation)
       - [L'auto-régulation en mode Expert](#lauto-régulation-en-mode-expert)
   - [Synthèse de l'algorithme d'auto-régulation](#synthèse-de-lalgorithme-dauto-régulation)
+  - [Étape suivante](#étape-suivante)
 
 Vous avez la possibilité d'activer la fonction d'auto-régulation pour les _VTherm_ de type `over_climate` uniquement.
 
@@ -204,3 +205,8 @@ Pour que les modifications soient prises en compte, il faut soit **relancer tota
 ## Synthèse de l'algorithme d'auto-régulation
 
 Une synthèse de l'algorithme d'auto-régulation est décrite [ici](algorithms.md#lalgorithme-dauto-régulation-sans-contrôle-de-la-vanne)
+
+## Étape suivante
+
+- Avec le contrôle direct de la vanne : [les coefficients du TPI](algorithms.md#configurez-les-coefficients-de-lalgorithme-tpi) (menu « Paramètres TPI »).
+- Dans les autres cas : [Les presets](feature-presets.md), pour définir les températures de consigne (menu « Pre-réglages »).

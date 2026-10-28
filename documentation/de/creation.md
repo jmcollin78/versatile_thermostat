@@ -9,6 +9,7 @@
     - [VTherm über Ventil](#vtherm-über-ventil)
   - [Wähle das Richtige aus](#wähle-das-richtige-aus)
   - [Referenzartikel](#referenzartikel)
+  - [Nächster Schritt](#nächster-schritt)
 
 > ![Tip](images/tips.png) _*Hinweise*_
 >
@@ -73,3 +74,7 @@ Dieser Typ kann für TRVs ohne eine zugehörige `climate`-Entity oder andere DIY
 
 ## Referenzartikel
 Weitere Informationen zu diesen Begriffen finden Sie in diesem Artikel (auf Französisch): https://www.hacf.fr/optimisation-versatile-thermostat/#optimiser-vos-vtherm
+
+## Nächster Schritt
+
+[Auswahl der grundlegenden Attribute](base-attributes.md): dem _VTherm_ einen Namen geben, seine Temperatursensoren und die zu aktivierenden Funktionen wählen (Menüs „Wichtigste Eigenschaften“ und „Funktionen“).

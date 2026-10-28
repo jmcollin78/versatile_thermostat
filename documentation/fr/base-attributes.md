@@ -1,5 +1,6 @@
 - [Choix des attributs de base](#choix-des-attributs-de-base)
   - [Choix des fonctions utilisées](#choix-des-fonctions-utilisées)
+  - [Étape suivante](#étape-suivante)
 
 # Choix des attributs de base
 
@@ -37,3 +38,11 @@ Choisissez le menu "Fonctions".
 > 1. La liste des fonctions disponibles s'adapte à votre type de VTherm.
 > 2. Lorsque vous cochez une fonction, une nouvelle entrée menu s'ajoute pour configurer la fonction.
 > 3. Vous ne pourrez pas valider la création d'un VTherm si tous les paramètres de toutes les fonctions n'ont pas été saisis.
+
+## Étape suivante
+
+Configurez les équipements pilotés (menu « Sous-jacents ») sur la page du type choisi :
+
+- [Thermostat de type `over_switch`](over-switch.md) : radiateurs électriques commandés par un interrupteur ou un fil pilote,
+- [Thermostat de type `over_climate`](over-climate.md) : pompes à chaleur, climatisations et vannes thermostatiques exposées par une entité `climate`,
+- [Thermostat de type `over_valve`](over-valve.md) : vannes pilotables par une entité `number`.

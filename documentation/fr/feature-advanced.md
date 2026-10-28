@@ -22,6 +22,7 @@
     - [Paramètres](#paramètres)
     - [Attributs exposés](#attributs-exposés-1)
     - [Limitations et sécurité](#limitations-et-sécurité)
+  - [Étape suivante](#étape-suivante)
 
 ## Pourquoi cette fonctionnalité ?
 
@@ -256,4 +257,13 @@ Le compteur `consecutive_repair_count` vous permet de :
 
 7. **Relance régulière** : après 5 tentatives de réparation échouées, la réparation se met en pause pour éviter les boucles infinies. Elle reprend après 10 cycles sans réparation, permettant de nouvelles tentatives en cas de problème intermittent.
 
-````
+
+## Étape suivante
+
+Cliquez sur « Finaliser la création » dans le menu de configuration : votre _VTherm_ est opérationnel.
+
+Pour aller plus loin :
+
+- installez la carte UI et un planificateur, présentés dans les [compléments indispensables](additions.md),
+- découvrez les autres fonctions dans le [sommaire de la documentation](presentation.md#sommaire-de-la-documentation),
+- en cas de problème, consultez les [dépannages](troubleshooting.md).

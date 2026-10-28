@@ -17,7 +17,7 @@ Das Verhalten dieser Funktion ist wie folgt:
 
 Bei einem `over_switch`-_VTherm_, der mehrere Heizkörper steuert, wird jedes Relais einzeln bewertet. Ein Relais, dessen Zustand in Home Assistant bereits Heizen anzeigt, fügt keine zusätzliche Einschaltleistung hinzu. Der Messwert kann verzögert sein: Wenn der Verbrauch dieses Heizkörpers noch nicht darin enthalten ist, kann der konfigurierte Grenzwert vorübergehend überschritten werden. Diese Softwarefunktion ersetzt keinen elektrischen Schutz und schützt nicht den Leitungsschutzschalter.
 
-### Anwendungsbeispiel:
+## Anwendungsbeispiel
 1. Sie haben einen Stromzähler, der auf 11 kW begrenzt ist,
 2. Sie laden gelegentlich ein Elektrofahrzeug mit 5 kW,
 3. Damit bleiben 6 kW für alles andere, einschließlich Heizung,

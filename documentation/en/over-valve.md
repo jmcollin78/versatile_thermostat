@@ -70,3 +70,9 @@ sending a raw 100% opening request to every underlying valve. This request still
 uses the normal opening-control conversion: `max_opening_degrees` and the
 underlying `number` limits can therefore cap the physical opening. Sleep mode
 does not request central boiler heating; `is_sleeping` identifies this state.
+
+## Next Step
+
+[The TPI coefficients](algorithms.md#configuring-the-tpi-algorithm-coefficients): tune the regulation algorithm ("TPI parameters" menu).
+
+If you use an algorithm provided by a plugin, such as SmartPI, follow its documentation, then go directly to the [presets](feature-presets.md).

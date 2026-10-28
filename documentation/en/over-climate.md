@@ -12,6 +12,7 @@
     - [Compensating for the Internal Temperature of the Underlying Equipment](#compensating-for-the-internal-temperature-of-the-underlying-equipment)
   - [Specific Functions](#specific-functions)
   - [Follow Underlying Temperature Changes](#follow-underlying-temperature-changes)
+  - [Next Step](#next-step)
 
 ## Prerequisites
 
@@ -136,3 +137,8 @@ That's why it's better not to use it. It generates a lot of confusion and many s
 
 > ![Tip](images/tips.png) _*Physical remote control*_
 > If you want to use a separate physical thermostat (a wall thermostat for example) as a remote control for a _VTherm_, see the [VTherm climate replication](https://www.versatile-thermostat.org/en/plugins/#jmcollin78/vtherm_climate_replication) plugin.
+
+## Next Step
+
+- With self-regulation by direct valve control: configure the [valve regulation](self-regulation.md#self-regulation-by-direct-valve-control), then the [TPI coefficients](algorithms.md#configuring-the-tpi-algorithm-coefficients).
+- Without direct valve control: adjust the [self-regulation](self-regulation.md#other-self-regulation) if needed, then go to the [presets](feature-presets.md) to define the target temperatures ("Presets" menu).

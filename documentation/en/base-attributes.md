@@ -1,5 +1,6 @@
 - [Choosing Basic Attributes](#choosing-basic-attributes)
   - [Choosing the features to Use](#choosing-the-features-to-use)
+  - [Next Step](#next-step)
 
 # Choosing Basic Attributes
 
@@ -37,3 +38,11 @@ Select the "Features" menu.
 > 1. The list of available functions adapts to your VTherm type.
 > 2. When you enable a function, a new menu entry is added to configure it.
 > 3. You cannot validate the creation of a VTherm if all parameters for all enabled functions have not been configured.
+
+## Next Step
+
+Configure the controlled equipment ("Underlyings" menu) on the page of the chosen type:
+
+- [`over_climate` Type Thermostat](over-climate.md): heat pumps, air conditioners and thermostatic valves exposed by a `climate` entity
+- [`over_switch` Type Thermostat](over-switch.md): electric radiators controlled by a switch or a pilot wire
+- [`over_valve` Type Thermostat](over-valve.md): valves controlled by a `number` entity.

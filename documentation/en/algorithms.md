@@ -11,6 +11,7 @@
     - [Other Algorithms](#other-algorithms)
   - [The Self-Regulation Algorithm (Without Valve Control)](#the-self-regulation-algorithm-without-valve-control)
   - [The Auto-Start/Stop Function Algorithm](#the-auto-startstop-function-algorithm)
+  - [Next Step](#next-step)
 
 ## The TPI Algorithm
 
@@ -128,3 +129,7 @@ The algorithm used in the auto-start/stop function operates as follows:
 `dt` is set to `30 min` for slow, `15 min` for medium, and `7 min` for fast detection levels.
 
 The function is detailed [here](https://github.com/jmcollin78/versatile_thermostat/issues/585).
+
+## Next Step
+
+[Presets](feature-presets.md): define the target temperature of each preset ("Presets" menu).

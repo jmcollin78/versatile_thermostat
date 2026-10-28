@@ -17,3 +17,7 @@
 5. Place the downloaded files in the new folder you created.
 6. Restart Home Assistant.
 7. Configure the new Versatile Thermostat integration.
+
+## Next Step
+
+[Choosing a VTherm](creation.md): create your first _VTherm_ and choose its type.

@@ -9,6 +9,7 @@
     - [Andere Selbsregulierung](#andere-selbsregulierung)
       - [Selbstregulierung im Expertenmodus](#selbstregulierung-im-expertenmodus)
   - [Zusammenfassung des Selbstregulierungsalgorithmus](#zusammenfassung-des-selbstregulierungsalgorithmus)
+  - [Nächster Schritt](#nächster-schritt)
 
 Sie haben die Möglichkeit, die Selbstregulierungsfunktion nur für _VTherms_ des Typs `over_climate` zu aktivieren.
 
@@ -204,3 +205,8 @@ Um die Änderungen zu übernehmen, müssen Sie entweder **den Home Assistant kom
 ## Zusammenfassung des Selbstregulierungsalgorithmus
 
 Eine Zusammenfassung des Algorithmus zur Autoregulierung wird [hier](algorithms.md#the-auto-regulation-algorithm-without-valve-control) beschrieben.
+
+## Nächster Schritt
+
+- Mit direkter Ventilsteuerung: [die TPI-Koeffizienten](algorithms.md#konfigurieren-der-tpi-algorithmusfaktoren) (Menü „TPI-Parameter“).
+- In allen anderen Fällen: [Voreinstellungen](feature-presets.md), um die Solltemperaturen festzulegen (Menü „Temperaturvoreinstellungen“).

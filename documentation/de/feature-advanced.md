@@ -22,6 +22,7 @@
     - [Parameter](#parameter)
     - [Verfügbare Attribute](#verfügbare-attribute-1)
     - [Einschränkungen und Sicherheit](#einschränkungen-und-sicherheit)
+  - [Nächster Schritt](#nächster-schritt)
 
 ## Warum diese Funktion?
 
@@ -255,3 +256,13 @@ Der Zähler `consecutive_repair_count` ermöglicht es Ihnen:
 6. **Zähler zurücksetzen**: Der Zähler wird automatisch zurückgesetzt, sobald die Geräte den korrekten Zustand wieder erreichen, was neue Versuche bei intermittierenden Problemen ermöglicht.
 
 7. **Regelmäßige Wiederholung**: Nach 5 fehlgeschlagenen Reparaturversuchen wird die Reparatur unterbrochen, um Endlosschleifen zu vermeiden. Sie wird nach 10 Zyklen ohne Reparatur wiederaufgenommen und ermöglicht neue Versuche bei intermittierenden Problemen.
+
+## Nächster Schritt
+
+Klicken Sie im Konfigurationsmenü auf „Alles erledigt“: Ihr _VTherm_ ist einsatzbereit.
+
+Weiterführende Themen:
+
+- die UI-Karte und einen Zeitplaner installieren, vorgestellt in [Einige unverzichtbare Ergänzungen](additions.md),
+- die weiteren Funktionen im [Inhalt der Dokumentation](presentation.md#inhalt-der-dokumentation) entdecken,
+- bei Problemen die [Störungsbeseitigung](troubleshooting.md) lesen.

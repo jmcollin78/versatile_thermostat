@@ -113,22 +113,9 @@ context:
   id: 01HM3VZRJP3WYYWPNSDAFARW1T
   parent_id: null
   user_id: null
-```yaml
-event_type: versatile_thermostat_central_boiler_event
-data:
-  central_boiler: true
-  entity_id: binary_sensor.central_configuration_central_boiler
-  name: Central boiler
-  state_attributes: null
-origin: LOCAL
-time_fired: "2024-01-14T11:33:52.342026+00:00"
-context:
-  id: 01HM3VZRJP3WYYWPNSDAFARW1T
-  parent_id: null
-  user_id: null
 ```
 
-Un évènement d'extinction :
+A deactivation event:
 ```yaml
 event_type: versatile_thermostat_central_boiler_event
 data:

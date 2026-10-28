@@ -2,6 +2,7 @@
 
 - [Voreinstellungen (Vorkonfigurierte Einstellungen))](#voreinstellungen-vorkonfigurierte-einstellungen)
   - [Vorkonfigurierte Temperaturen einrichten](#vorkonfigurierte-temperaturen-einrichten)
+  - [Nächster Schritt](#nächster-schritt)
 
 ## Vorkonfigurierte Temperaturen einrichten
 
@@ -28,3 +29,9 @@ Die Liste der Entities variiert je nach der von Ihnen gewählten Funktion:
 > 2. Die Standardvoreinstellung `Auswärts` ist eine versteckte Voreinstellung, die nicht direkt ausgewählt werden kann. Das Versatile Thermostat nutzt das Anwesenheitsmanagement oder die Bewegungserkennung, um die Zieltemperatur automatisch und dynamisch auf der Grundlage der Anwesenheit im Haus oder der Aktivität im Raum anzupassen. Siehe [Präsenzmanagement](feature-presence.md).
 > 3. Wenn Sie das Lastabwurfmanagement verwenden, sehen Sie eine versteckte Voreinstellung namens `Leistung`. Die Voreinstellung des Heizelements wird auf `Leistung` gesetzt, wenn die Überlastbedingungen erfüllt sind und der Lastabwurf für dieses Heizelement aktiv ist. Siehe [Energieverwaltung](feature-power.md).
 > 4. Wenn Sie die erweiterte Konfiguration verwenden, wird die Voreinstellung auf `Sicherheit` gesetzt, sobald die Temperatur nach einer bestimmten Verzögerung nicht mehr abgerufen werden kann. Siehe [Sicherheitsmodus](feature-advanced.md#safety-mode).
+
+## Nächster Schritt
+
+[Erweiterte Konfiguration](feature-advanced.md#sicherheitsparameter): die Parameter des Sicherheitsmodus prüfen (Menü „Erweiterte Einstellungen“). Sie sind erforderlich, um die Erstellung abzuschließen, außer Sie verwenden die zentrale Konfiguration.
+
+Wenn Sie in den [grundlegenden Attributen](base-attributes.md#auswahl-der-zu-verwendenden-eigenschaften) weitere Funktionen aktiviert haben, konfigurieren Sie diese ebenfalls: [Fenstererkennung](feature-window.md), [Bewegungserkennung](feature-motion.md), [Energieverwaltung](feature-power.md), [Anwesenheitsverwaltung](feature-presence.md) oder [Auto-Start / Auto-Stopp](feature-auto-start-stop.md).

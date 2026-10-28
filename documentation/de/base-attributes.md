@@ -1,5 +1,6 @@
 - [Auswahl der grundlegenden Attribute](#auswahl-der-grundlegenden-attribute)
   - [Auswahl der zu verwendenden Eigenschaften](#auswahl-der-zu-verwendenden-eigenschaften)
+  - [Nächster Schritt](#nächster-schritt)
 
 # Auswahl der grundlegenden Attribute
 
@@ -37,3 +38,11 @@ Wählen Sie das Menü "Eigenschaften".
 > 1. Die Liste der verfügbaren Eigenschaften passt sich an Ihren VTherm-Typ an.
 > 2. Wenn eine Eigenschaften aktiviert wurde, wird ein neuer Menüeintrag hinzugefügt, mit dem diese eigenschaft konfiguriert weird.
 > 3. Sie können die Erstellung eines VTherms nicht abschließen, wenn nicht alle Parameter für alle aktivierten Funktionen konfiguriert wurden.
+
+## Nächster Schritt
+
+Konfigurieren Sie die gesteuerten Geräte (Menü „Basiswerte“) auf der Seite des gewählten Typs:
+
+- [`over_climate` Thermostattyp](over-climate.md): Thermostatventile, Wärmepumpen und Klimaanlagen mit `climate`-Entity
+- [`over_valve` Thermostattyp](over-valve.md): Ventile, die über eine `number`-Entity gesteuert werden
+- [`over_switch` Thermostattyp](over-switch.md): elektrische Heizkörper mit Schalter oder Steuerleitung.

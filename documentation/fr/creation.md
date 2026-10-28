@@ -9,6 +9,7 @@
     - [VTherm sur une vanne](#vtherm-sur-une-vanne)
   - [Le bon choix](#le-bon-choix)
   - [Article en référence](#article-en-référence)
+  - [Étape suivante](#étape-suivante)
 
 
 > ![Astuce](images/tips.png) _*Notes*_
@@ -74,3 +75,7 @@ Ce type peut être utilisé pour les _TRV_ qui n'ont pas de `climate` associé o
 
 ## Article en référence
 Un article permettant d'aller plus loin sur les concepts est visible ici (en Français) : https://www.hacf.fr/optimisation-versatile-thermostat/#optimiser-vos-vtherm
+
+## Étape suivante
+
+[Choix des attributs de base](base-attributes.md) : donner un nom au _VTherm_, choisir ses capteurs de température et les fonctions à activer (menus « Principaux Attributs » et « Fonctions »).

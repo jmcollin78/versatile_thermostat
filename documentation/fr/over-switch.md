@@ -8,6 +8,7 @@
     - [Le mode AC](#le-mode-ac)
     - [L'inversion de la commande](#linversion-de-la-commande)
     - [La personnalisation des commandes](#la-personnalisation-des-commandes)
+  - [Étape suivante](#étape-suivante)
 
 ## Pré-requis
 
@@ -95,3 +96,9 @@ Cela signifie que une des commandes saisies est invalide. Les règles à respect
 1. chaque commande doit avoir le format `commande[/attribut[:valeur]]` (ex: `select_option/option:comfort` ou `turn_on`) sans blanc et sans caractères spéciaux sauf '_',
 2. il doit y avoir autant de commandes qu'il y a de sous-jacents déclarés sauf si tous les sous-jacents sont des `switchs` auquel cas il n'est pas nécessaire de paramétrer les commandes,
 3. si plusieurs sous-jacents sont configurés, les commandes doivent être dans le même ordre. Le nombre de commandes d'allumage doit être égal au nombre de commandes d'extinction et de sous-jacents (dans l'ordre donc). Il est possible de mettre des sous-jacents de type différent. À partir du moment où un sous-jacent n'est pas un `switch`, il faut paramétrer toutes les commandes de tous les sous-jacents y compris des éventuels switchs.
+
+## Étape suivante
+
+[Les coefficients du TPI](algorithms.md#configurez-les-coefficients-de-lalgorithme-tpi) : régler l'algorithme de régulation (menu « Paramètres TPI »).
+
+Si vous utilisez un algorithme en plugin, comme SmartPI, suivez sa documentation, puis passez directement aux [presets](feature-presets.md).

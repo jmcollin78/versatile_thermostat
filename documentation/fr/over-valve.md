@@ -74,3 +74,8 @@ contrôle d'ouverture : `max_opening_degrees` et les bornes de l'entité `number
 peuvent donc plafonner l'ouverture physique. Le sommeil ne sollicite pas la
 chaudière centrale ; l'attribut `is_sleeping` identifie cet état.
 
+## Étape suivante
+
+[Les coefficients du TPI](algorithms.md#configurez-les-coefficients-de-lalgorithme-tpi) : régler l'algorithme de régulation (menu « Paramètres TPI »).
+
+Si vous utilisez un algorithme en plugin, comme SmartPI, suivez sa documentation, puis passez directement aux [presets](feature-presets.md).

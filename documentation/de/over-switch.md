@@ -8,6 +8,7 @@
     - [Klimaanelagenmodus/AC Modus](#klimaanelagenmodusac-modus)
     - [Befehlsumkehr](#befehlsumkehr)
     - [Befehlsanpassung](#befehlsanpassung)
+  - [Nächster Schritt](#nächster-schritt)
 
 
 ## Voraussetzungen
@@ -97,3 +98,9 @@ Dies bedeutet, dass einer der eingegebenen Befehle ungültig ist. Die folgenden 
 1. Jeder Befehl muss dem Format `Befehl[/Attribut[:Wert]]` folgen (z.B. `select_option/option:comfort` oder `turn_on`) ohne Leer- oder Sonderzeichen außer `_`.
 2. Es müssen so viele Befehle vorhanden sein, wie zugeordnete Geräte vorhanden sind, es sei denn, alle zugeordneten Geräte sind „Switch“-Entities; in diesem Fall ist eine Anpassung der Befehle nicht erforderlich.
 3. Wenn mehrere zugeordnete Geräte konfiguriert sind, müssen die Befehle in der gleichen Reihenfolge erfolgen. Die Anzahl der Einschaltbefehle muss der Anzahl der Ausschaltbefehle und der Anzahl der zugeordneten Geräte (in der richtigen Reihenfolge) entsprechen. Es ist möglich, verschiedene Typen von Basisgeräten zu mischen. Sobald ein zugeordnetes Gerät kein `switch` ist, müssen alle Befehle für alle zugeordneten Geräte, einschließlich `switch`-Entities, konfiguriert werden.
+
+## Nächster Schritt
+
+[Die TPI-Koeffizienten](algorithms.md#konfigurieren-der-tpi-algorithmusfaktoren): den Regelalgorithmus einstellen (Menü „TPI-Parameter“).
+
+Wenn Sie einen Algorithmus aus einem Plugin verwenden, etwa SmartPI, folgen Sie dessen Dokumentation und gehen Sie dann direkt zu den [Voreinstellungen](feature-presets.md).

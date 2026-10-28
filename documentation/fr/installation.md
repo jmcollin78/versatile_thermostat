@@ -19,3 +19,6 @@
 6. Redémarrez Home Assistant
 7. Configurez la nouvelle intégration du Versatile Thermostat
 
+## Étape suivante
+
+[Choix du VTherm](creation.md) : créer votre premier _VTherm_ et choisir son type.

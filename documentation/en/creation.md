@@ -9,6 +9,7 @@
     - [VTherm over a valve](#vtherm-over-a-valve)
   - [Making the right choice](#making-the-right-choice)
   - [Reference Article](#reference-article)
+  - [Next Step](#next-step)
 
 > ![Tip](images/tips.png) _*Notes*_
 >
@@ -73,3 +74,7 @@ This type can be used for TRVs without an associated `climate` entity or other D
 
 ## Reference Article
 For more information on these concepts, refer to this article (in French): https://www.hacf.fr/optimisation-versatile-thermostat/#optimiser-vos-vtherm
+
+## Next Step
+
+[Choosing Basic Attributes](base-attributes.md): give the _VTherm_ a name, choose its temperature sensors and the features to enable ("Main attributes" and "Features" menus).

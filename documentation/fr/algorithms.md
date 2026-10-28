@@ -11,6 +11,7 @@
     - [Autres algorithmes](#autres-algorithmes)
   - [L'algorithme d'auto-régulation (sans contrôle de la vanne)](#lalgorithme-dauto-régulation-sans-contrôle-de-la-vanne)
   - [L'algorithme de la fonction d'auto-start/stop](#lalgorithme-de-la-fonction-dauto-startstop)
+  - [Étape suivante](#étape-suivante)
 
 ## L'algorithme TPI
 
@@ -125,3 +126,6 @@ L'algorithme utilisé dans la fonction d'auto-start/stop est le suivant :
 
 La fonction est décrite dans le détail [ici](https://github.com/jmcollin78/versatile_thermostat/issues/585).
 
+## Étape suivante
+
+[Les presets](feature-presets.md) : définir les températures de consigne de chaque preset (menu « Pre-réglages »).

@@ -9,6 +9,7 @@
     - [Other self-regulation](#other-self-regulation)
       - [Self-regulation in Expert Mode](#self-regulation-in-expert-mode)
   - [Summary of the Auto-Regulation Algorithm](#summary-of-the-auto-regulation-algorithm)
+  - [Next Step](#next-step)
 
 You have the option to activate the self-regulation feature only for _VTherms_ of type `over_climate`.
 
@@ -204,3 +205,8 @@ To apply the changes, you must either **restart Home Assistant completely** or j
 ## Summary of the Auto-Regulation Algorithm
 
 A summary of the auto-regulation algorithm is described [here](algorithms.md#the-auto-regulation-algorithm-without-valve-control)
+
+## Next Step
+
+- With direct valve control: [the TPI coefficients](algorithms.md#configuring-the-tpi-algorithm-coefficients) ("TPI parameters" menu).
+- In all other cases: [Presets](feature-presets.md), to define the target temperatures ("Presets" menu).

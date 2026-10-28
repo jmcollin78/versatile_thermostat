@@ -64,3 +64,9 @@ an jedes untergeordnete Ventil. Die normale Umrechnung der Öffnungssteuerung
 bleibt erhalten: `max_opening_degrees` und die Grenzen der `number`-Entity
 können die physische Öffnung begrenzen. Der Ruhemodus fordert keine zentrale
 Kesselheizung an; das Attribut `is_sleeping` kennzeichnet diesen Zustand.
+
+## Nächster Schritt
+
+[Die TPI-Koeffizienten](algorithms.md#konfigurieren-der-tpi-algorithmusfaktoren): den Regelalgorithmus einstellen (Menü „TPI-Parameter“).
+
+Wenn Sie einen Algorithmus aus einem Plugin verwenden, etwa SmartPI, folgen Sie dessen Dokumentation und gehen Sie dann direkt zu den [Voreinstellungen](feature-presets.md).
