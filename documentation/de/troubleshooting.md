@@ -27,43 +27,11 @@
 
 ## Verwendung eines Heatzy
 
-Der Heatzy wird jetzt nativ von _VTherm_ unterstützt. Siehe [Schnellstart](quick-start.md#heatzy-ecosy-oder-ähnlich-climate-entity). Siehe auch die [Heatzy-Seite](https://www.versatile-thermostat.org/de/devices/heatzy/) im Gerätekatalog.
-
-Diese Konfiguration wird nur als Referenz aufbewahrt.
-
-Die Verwendung eines Heatzy oder Nodon ist möglich, sofern Sie einen virtuellen Schalter mit diesem Modell verwenden:
-
-```yaml
-- platform: template
-  switches:
-    chauffage_sdb:
-      unique_id: chauffage_sdb
-      friendly_name: Bathroom heating
-      value_template: "{{ is_state_attr('climate.bathroom', 'preset_mode', 'comfort') }}"
-      icon_template: >-
-        {% if is_state_attr('climate.bathroom', 'preset_mode', 'comfort') %}
-          mdi:radiator
-        {% elif is_state_attr('climate.bathroom', 'preset_mode', 'away') %}
-          mdi:snowflake
-        {% else %}
-          mdi:radiator-disabled
-        {% endif %}
-      turn_on:
-        service: climate.set_preset_mode
-        entity_id: climate.bathroom
-        data:
-          preset_mode: "comfort"
-      turn_off:
-        service: climate.set_preset_mode
-        entity_id: climate.bathroom
-        data:
-          preset_mode: "eco"
-```
-Vielen Dank an @gael für dieses Beispiel.
+Die Heatzy-Integration stellt eine `climate`-Entity bereit, deren Zustand nicht die aktive Voreinstellung ist. Verwenden Sie sie über einen virtuellen Schalter, wie auf der [Heatzy-Seite](https://www.versatile-thermostat.org/de/devices/heatzy/) des Gerätekatalogs beschrieben.
 
 ## Verwendung eines Heizkörpers mit Steuerleitung (Nodon SIN-4-FP-21)
 
-Der Nodon wird jetzt nativ von _VTherm_ unterstützt. Siehe [Schnellstart](quick-start.md#nodon-sin-4-fp-21-oder-ähnlich-pilotdraht). Siehe auch die [Seite der Pilotdraht-Module](https://www.versatile-thermostat.org/de/devices/pilot-wire-module/) im Gerätekatalog.
+Der Nodon wird nativ von einem _VTherm_ `over_switch` mit angepassten Befehlen unterstützt: siehe die [Seite der Pilotdraht-Module](https://www.versatile-thermostat.org/de/devices/pilot-wire-module/) im Gerätekatalog.
 
 Diese Konfiguration wird nur als Referenz aufbewahrt.
 
