@@ -17,7 +17,7 @@ The behavior of this feature is as follows:
 
 For an `over_switch` VTherm controlling multiple heaters, each relay is evaluated separately. A relay whose Home Assistant state already reports heating is not counted again as marginal startup power. If that heater's consumption is not yet included in the measurement, the configured threshold may be temporarily exceeded. This software management does not replace electrical protection or protect the circuit breaker.
 
-### Example Use Case:
+## Example Use Case
 1. You have an electric meter limited to 11 kW,
 2. You occasionally charge an electric vehicle at 5 kW,
 3. This leaves 6 kW for everything else, including heating,

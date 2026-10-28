@@ -9,6 +9,7 @@
     - [Other self-regulation](#other-self-regulation)
       - [Self-regulation in Expert Mode](#self-regulation-in-expert-mode)
   - [Summary of the Auto-Regulation Algorithm](#summary-of-the-auto-regulation-algorithm)
+  - [Next Step](#next-step)
 
 You have the option to activate the self-regulation feature only for _VTherms_ of type `over_climate`.
 
@@ -41,7 +42,7 @@ You must provide:
 5. `minimum_opening_degrees`: the minimum opening percentage when the `opening_threshold` is exceeded and the VTherm needs to heat. This field is customizable per valve in the case of a VTherm with multiple valves. You specify the list of minimum openings separated by ','. The default value is 0. Example: '20, 25, 30'. When heating starts (ie the requested opening is greater than `opening_threshold`), the valve will open with a value greater than or equal to this and will continue to increase regularly if necessary.
 6. `max_opening_degrees`: the maximum opening percentage that the valve can reach. This field is customizable per valve in the case of a VTherm with multiple valves. You specify the list of maximum openings separated by ','. The default value is 100 (full opening). Example: '80, 85, 90'. The valve will never open beyond this value, allowing you to limit the hot water flow and optimize energy consumption. This value must be strictly greater than `minimum_opening_degrees` for each valve.
 
-The opening rate calculation algorithm is based on _TPI_ which is described [here](algorithms.md). It is the same algorithm used for `over_switch` and `over_valve` _VTherm_.
+The opening rate is calculated by the algorithm chosen in the "Algorithm" field of this page: the built-in _TPI_, the same as for `over_switch` and `over_valve` _VTherm_, or an algorithm installed as a plugin. See [algorithms](algorithms.md).
 
 If a valve closing rate entity is configured, it will be set to the value `100 - opening rate` to force the valve into a state, otherwise it is set to 100.
 
@@ -204,3 +205,8 @@ To apply the changes, you must either **restart Home Assistant completely** or j
 ## Summary of the Auto-Regulation Algorithm
 
 A summary of the auto-regulation algorithm is described [here](algorithms.md#the-auto-regulation-algorithm-without-valve-control)
+
+## Next Step
+
+- With direct valve control: [the TPI coefficients](algorithms.md#configuring-the-tpi-algorithm-coefficients) ("TPI parameters" menu).
+- In all other cases: [Presets](feature-presets.md) ("Presets" menu).

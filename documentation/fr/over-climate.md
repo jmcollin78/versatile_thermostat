@@ -11,6 +11,7 @@
     - [Compenser la température interne du sous-jacent](#compenser-la-température-interne-du-sous-jacent)
   - [Fonctions spécifiques](#fonctions-spécifiques)
   - [Suivre les changements de température du sous-jacent](#suivre-les-changements-de-température-du-sous-jacent)
+  - [Étape suivante](#étape-suivante)
 
 ## Pré-requis
 
@@ -139,3 +140,8 @@ C'est pour ça qu'il est préférable de ne pas l'utiliser. Cela génère beauco
 
 > ![Astuce](images/tips.png) _*Télécommande physique*_
 > Si vous souhaitez utiliser un thermostat physique distinct (un thermostat mural par exemple) comme télécommande d'un _VTherm_, consultez le plugin [VTherm climate replication](https://www.versatile-thermostat.org/fr/plugins/#jmcollin78/vtherm_climate_replication).
+
+## Étape suivante
+
+- Avec l'auto-régulation par contrôle direct de la vanne : configurez la [régulation par vanne](self-regulation.md#auto-régulation-par-contrôle-direct-de-la-vanne), puis les [coefficients du TPI](algorithms.md#configurez-les-coefficients-de-lalgorithme-tpi).
+- Sans contrôle direct de la vanne : réglez si besoin l'[auto-régulation](self-regulation.md#autres-auto-régulation), puis passez aux [presets](feature-presets.md) (menu « Pre-réglages »).

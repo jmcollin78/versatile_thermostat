@@ -22,6 +22,7 @@
     - [Parameters](#parameters)
     - [Exposed Attributes](#exposed-attributes-1)
     - [Limitations and Safety](#limitations-and-safety)
+  - [Next Step](#next-step)
 
 ## Why this feature?
 
@@ -66,9 +67,11 @@ A particular challenge comes from battery-powered sensors that only send data wh
 
 To configure advanced safety parameters:
 
-1. Open your _VTherm_ configuration
-2. Access general configuration parameters
-3. Scroll down to the "Advanced Configuration" section
+1. Open the configuration of your _VTherm_,
+2. Choose the "Advanced parameters" menu,
+3. With a central configuration, the "Use central advanced configuration" box is checked and the central values are used: uncheck it to enter values specific to this _VTherm_.
+
+Without a central configuration, the box is unchecked and these parameters are required to finalize the creation of the _VTherm_.
 
 The advanced configuration form is as follows:
 
@@ -199,10 +202,9 @@ On each thermostat control cycle, the feature:
 
 This feature is configured in the _VTherm_ configuration interface:
 
-1. Open your _VTherm_ configuration
-2. Access general configuration parameters
-3. Scroll down to the "Advanced Configuration" section
-4. Enable the **"Fix incorrect equipment state"** option
+1. Open the configuration of your _VTherm_,
+2. Choose the "Advanced parameters" menu and uncheck "Use central advanced configuration" (or enable the option in the central configuration),
+3. Enable the **"Fix incorrect equipment state"** option
 
 ### Parameters
 
@@ -255,3 +257,13 @@ The `consecutive_repair_count` counter allows you to:
 6. **Counter reset**: The counter automatically resets as soon as equipment returns to the correct state, allowing new attempts in case of intermittent issues.
 
 7. **Regular retry**: after 5 failed repair attempts, repair pauses to avoid infinite loops. It resumes after 10 cycles without repair, allowing new attempts in case of intermittent problems.
+
+## Next Step
+
+Click "All done" in the configuration menu: your _VTherm_ is ready.
+
+To go further:
+
+- install the UI card and a scheduler, presented in [Some Essential Add-Ons](additions.md),
+- discover the other features in the [documentation contents](presentation.md#documentation-contents),
+- if something goes wrong, see [Troubleshooting](troubleshooting.md).

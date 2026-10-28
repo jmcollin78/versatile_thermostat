@@ -1,97 +1,117 @@
-# When to Use and Not Use It
-This thermostat can control 3 types of equipment:
-1. A radiator that only works in on/off mode (called `thermostat_over_switch`). The minimum configuration required to use this type of thermostat is:
-   1. An equipment like a radiator (a `switch` or equivalent),
-   2. A temperature sensor for the room (or an input_number),
-   3. An external temperature sensor (consider the weather integration if you don't have one; in France, the [Météo-France Observation](https://www.versatile-thermostat.org/en/plugins/#bontiv/ha-meteofrance-observation) plugin provides an accurate outdoor temperature).
-2. Another thermostat that has its own modes of operation (called `thermostat_over_climate`). For this type of thermostat, the minimum configuration requires:
-   1. Equipment – like air conditioning, a thermostatic valve – controlled by its own `climate` entity.
-3. Equipment that can take a value from 0 to 100% (called `thermostat_over_valve`). At 0, heating is off, and at 100% it is fully open. This type allows controlling a thermostatic valve (e.g., Shelly valve) that exposes a `number` type entity, enabling direct control of the valve's opening. Versatile Thermostat regulates the room temperature by adjusting the opening percentage, using both the internal and external temperature sensors, and utilizing the TPI algorithm described below.
+# Versatile Thermostat Documentation
 
-The `over_climate` type allows you to add all the features offered by VersatileThermostat to your existing equipment. The VersatileThermostat `climate` entity will control your underlying `climate` entity, turn it off if windows are open, switch to Eco mode if no one is present, etc. See [here](#pourquoi-un-nouveau-thermostat-implémentation). For this type of thermostat, all heating cycles are controlled by the underlying `climate` entity and not by the Versatile Thermostat itself. An optional auto-regulation function allows Versatile Thermostat to adjust the setpoint temperature to the underlying entity in order to reach the setpoint.
+Versatile Thermostat (_VTherm_) is a Home Assistant integration that turns your heat pump, air conditioner or any HVAC system controlled by a `climate` entity into a smart thermostat: presets, window detection, presence, automatic start/stop and self-regulation to reach the target temperature.
 
-Installations with a pilot wire and activation diode benefit from an option that allows inverting the on/off control of the underlying radiator. To do this, use the `over_switch` type and check the "Invert command" option.
+_VTherm_ also controls electric radiators and thermostatic radiator valves. All features are configured from the Home Assistant interface, without scripts or complex automations: nobody home, a window open, a room that does not reach its setpoint? The thermostat handles it natively.
 
-## Why a New Thermostat Implementation?
+- [Versatile Thermostat Documentation](#versatile-thermostat-documentation)
+  - [Installation Example](#installation-example)
+  - [Supported Equipment](#supported-equipment)
+  - [Prerequisites](#prerequisites)
+  - [Devices](#devices)
+  - [Documentation Contents](#documentation-contents)
+    - [Getting Started](#getting-started)
+    - [VTherm Types](#vtherm-types)
+    - [Features](#features)
+    - [Regulation](#regulation)
+    - [Help and Reference](#help-and-reference)
+    - [Going Further](#going-further)
+  - [Next Step](#next-step)
 
-This component, called __Versatile Thermostat__, manages the following use cases:
-- Configuration via the standard integration graphical interface (using the Config Entry flow),
-- Full use of **preset mode**,
-- Disable preset mode when the temperature is **set manually** on a thermostat,
-- Turn off/on a thermostat or change preset when a **door or windows are opened/closed** after a certain delay,
-- Change preset when **activity is detected** or not in a room for a defined time,
-- Use a **TPI (Time Proportional Interval)** algorithm thanks to [[Argonaute](https://forum.hacf.fr/u/argonaute/summary)],
-- Add **load shedding** management or regulation to not exceed a defined total power. When the maximum power is exceeded, a hidden preset of "power" is set on the `climate` entity. When the power goes below the maximum, the previous preset is restored.
-- **Presence management**. This feature allows dynamically modifying the preset temperature based on the presence sensor in your home.
-- **Actions to interact with the thermostat** from other integrations: you can force presence/non-presence using a service, and you can dynamically change preset temperatures and modify security settings.
-- Add sensors to view the thermostat's internal states,
-- Centralized control of all Versatile Thermostats to stop them all, set them all to frost protection, force them all to heating mode (in winter), force them all to cooling mode (in summer).
-- Control of a central heating boiler and VTherms that must control this boiler.
-- Automatic start/stop based on usage prediction for `over_climate`.
+## Installation Example
 
-All these functions are configurable either centrally or individually depending on your needs.
+For heat pumps and air conditioners:
 
-## Equipment
+1. Create a _VTherm_ of type [`over_climate`](over-climate.md) on top of the existing `climate` entity of your heat pump or air conditioner. The device keeps its own regulation and _VTherm_ adds its features on top of it.
+2. The [heat pump quick start](https://www.versatile-thermostat.org/en/quick-start/heat-pump/) of the website details the configuration step by step.
+3. If the device does not reach the target temperature, enable [self-regulation](self-regulation.md): _VTherm_ then adjusts the setpoint sent to the device.
+4. Add the useful features: [automatic start/stop](feature-auto-start-stop.md) to stop the device when it is not needed, [window detection](feature-window.md), [presence management](feature-presence.md), and the [auto-fan](over-climate.md#auto-fan-auto-ventilation) to speed up the fan when the temperature gap is large.
 
-To operate _VTherm_, you will need some hardware. The list below is not exhaustive but includes the most commonly used devices that are fully compatible with Home Assistant and _VTherm_. These are affiliate links to the partner store [Domadoo](https://www.domadoo.fr/en/?domid=97), which allows me to receive a small percentage if you purchase through these links. Ordering from [Domadoo](https://www.domadoo.fr/en/?domid=97) gives you competitive prices, a return guarantee, and a very short delivery time comparable to other major online retailers. Their 4.8/5 rating speaks for itself.
+## Supported Equipment
 
-The full list of devices tested with _VTherm_, with their support level and configuration advice, is available in the [device catalog](https://www.versatile-thermostat.org/en/devices/) of the website. This catalog is not exhaustive: a device that is not listed is not necessarily incompatible.
+_VTherm_ controls the heating and cooling equipment available in Home Assistant:
 
-⭐ : The most used and therefore the best choice.
+- **Heat pumps, air conditioners and HVAC systems** exposed by a `climate` entity: [heat pump guide](https://www.versatile-thermostat.org/en/quick-start/heat-pump/),
+- **Water radiators** fitted with thermostatic radiator valves (TRV), with or without direct valve control: [TRV guide](https://www.versatile-thermostat.org/en/quick-start/trv/),
+- **Electric radiators**, controlled by a switch or by a pilot wire module: [pilot wire guide](https://www.versatile-thermostat.org/en/quick-start/pilot-wire/),
+- **Valves** controlled by a `number` entity, without an associated thermostat,
+- **Pellet stoves**, with the [VTherm Pellet stove](https://www.versatile-thermostat.org/en/plugins/#jmcollin78/vtherm_pellet_stove) plugin: [pellet stove guide](https://www.versatile-thermostat.org/en/quick-start/pellet-stove/),
+- **Central boiler**: _VTherm_ turns it on as soon as a room needs heating (see [Controlling a Central Boiler](feature-central-boiler.md)).
 
-### Thermometers
+The _VTherm_ type to create for each piece of equipment is explained in [Choosing a VTherm](creation.md#making-the-right-choice).
 
-Some thermometers are listed in the [device catalog](https://www.versatile-thermostat.org/en/devices/?type=sensor). Any temperature sensor available in Home Assistant can be used, even if it is not listed.
+## Prerequisites
 
-Essential in a _VTherm_ setup, an externalized temperature measurement device placed where you live ensures reliable, comfortable, and stable temperature control.
+- Home Assistant and the Versatile Thermostat integration installed from HACS (see [Installation](installation.md)),
+- the equipment to control, available in Home Assistant,
+- a room temperature sensor: any sensor available in Home Assistant can be used, or an `input_number`,
+- an outdoor temperature sensor: the Home Assistant weather integration is enough.
 
-- [⭐ Sonoff SNZB Zigbee](https://www.domadoo.fr/en/suivi-energie/6614-sonoff-capteur-de-temperature-et-d-humidite-zigbee-30-avec-ecran-6920075740004.html?domid=97)
-- [ Neo Tuya Zigbee](https://www.domadoo.fr/en/produits-compatibles-jeedom/7564-neo-capteur-de-temperature-et-humidite-zigbee-30-tuya.html?domid=97)
-- [ Moes Tuya Zigbee](https://www.domadoo.fr/en/domotique/6667-moes-capteur-de-temperature-et-humidite-avec-ecran-zigbee-tuya.html?domid=97)
+## Devices
 
-### Switches
+The heat pumps, air conditioners and other devices exposed by a `climate` entity that have been tested with _VTherm_ are listed in the [device catalog](https://www.versatile-thermostat.org/en/devices/?type=climate) of the website, with their support level and configuration advice. The catalog also lists [thermometers](https://www.versatile-thermostat.org/en/devices/?type=sensor), [thermostatic valves](https://www.versatile-thermostat.org/en/devices/?type=trv) and [electric heating devices](https://www.versatile-thermostat.org/en/devices/?type=electric).
 
-See all the electric heating devices in the [device catalog](https://www.versatile-thermostat.org/en/devices/?type=electric).
+This catalog is not exhaustive: a device that is not listed is not necessarily incompatible. The [incompatible devices](https://www.versatile-thermostat.org/en/devices/?state=unsupported) and the [partially supported devices](https://www.versatile-thermostat.org/en/devices/?state=partially) are described there with their known limitations.
 
-To directly control an electric heater. Usable with _VTherm_ [`over_switch`](over-switch.md):
+## Documentation Contents
 
-- [⭐ Sonoff Power Switch 25 A Wifi](https://www.domadoo.fr/en/peripheriques/5853-sonoff-commutateur-intelligent-wifi-haute-puissance-25a-6920075776768.html?domid=97)
-- [⭐ Nodon SIN-4-1-20 Zigbee](https://www.domadoo.fr/en/peripheriques/5688-nodon-micromodule-commutateur-multifonctions-zigbee-16a-3700313925188.html?domid=97)
-- [Sonoff 4-channel Wifi](https://www.domadoo.fr/en/peripheriques/5279-sonoff-commutateur-intelligent-wifi-433-mhz-4-canaux-6920075775815.html?domid=97)
-- [Smart plug for small heating equipment Zigbee](https://www.domadoo.fr/en/peripheriques/5880-sonoff-prise-intelligente-16a-zigbee-30-version-fr.html?domid=97)
+### Getting Started
 
-### Pilot wire switches
+- [Installation](installation.md): install the integration with HACS.
+- [Quick Start](quick-start.md): a working _VTherm_ in a few steps, depending on your equipment.
+- [Choosing a VTherm](creation.md): centralized configuration or not, choice of the _VTherm_ type.
+- [Choosing Basic Attributes](base-attributes.md): name, temperature sensors and features to enable.
 
-See the [pilot wire modules page](https://www.versatile-thermostat.org/en/devices/pilot-wire-module/) of the device catalog.
+### VTherm Types
 
-To directly control an electric heater equipped with a pilot wire. Usable with _VTherm_ [`over_switch`](over-switch.md) and [customized commands](over-switch.md#la-personnalisation-des-commandes):
+- [`over_climate` Type Thermostat](over-climate.md): heat pumps, air conditioners and thermostatic valves exposed by a `climate` entity.
+- [`over_switch` Type Thermostat](over-switch.md): electric radiators controlled by a switch or a pilot wire.
+- [`over_valve` Type Thermostat](over-valve.md): valves controlled by a `number` entity.
 
-- [⭐ Nodon SIN-4-1-21 Zigbee](https://www.domadoo.fr/en/chauffage-connecte/6828-nodon-module-chauffage-fil-pilote-connecte-zigbee-30.html?domid=97)
-- [⭐ 4 x Nodon SIN-4-1-21 Zigbee](https://www.domadoo.fr/en/chauffage-connecte/7050-nodon-pack-4x-modules-chauffage-fil-pilote-connecte-zigbee-30.html?domid=97)
+### Features
 
-### Thermostatic valves
+- **Comfort and savings**
+  - [Presets](feature-presets.md): preset temperatures (Comfort, Eco, Frost protection...).
+  - [Timed Preset](feature-timed-preset.md): apply a preset for a given duration.
+  - [Presence Management](feature-presence.md): lower the setpoint when nobody is home.
+  - [Motion Detection](feature-motion.md): change the preset depending on the activity in the room.
+  - [Door/Window Open Detection](feature-window.md): react when a door or a window is opened.
+  - [External Humidity Sensor](feature-humidity.md): display the humidity measured by an external sensor.
+- **Controlling the installation**
+  - [Auto-start / Auto-stop](feature-auto-start-stop.md): stop an `over_climate` when it is not needed.
+  - [Power Management (Load Shedding)](feature-power.md): do not exceed the available power.
+  - [Centralized Control](feature-central-mode.md): control all the _VTherm_ at once.
+  - [Central Boiler](feature-central-boiler.md): turn the boiler on when a _VTherm_ needs heating.
+  - [Lock Feature](feature-lock.md): prevent changes from the interface or from automations.
+- **Safety**
+  - [Advanced Configuration and Safety Mode](feature-advanced.md): sensor that stops responding, incorrect equipment state.
+  - [Heating Failure Detection](feature-heating-failure-detection.md): the temperature does not follow the command.
 
-See all the thermostatic valves (TRV) in the [device catalog](https://www.versatile-thermostat.org/en/devices/?type=trv).
+### Regulation
 
-To control a water radiator. Works with a _VTherm_ [`over_valve`](over-valve.md) or [`over_climate` with direct valve control](over-climate.md#thermostat-de-type-over_climate):
+- [Self-regulation](self-regulation.md): adjust the setpoint sent to an `over_climate`, or control the valve directly.
+- [Internal Device Temperature Synchronization](feature-sync_device_temp.md): align the internal thermometer of the device with the room temperature.
+- [The Different Algorithms Used](algorithms.md): TPI, SmartPI and other algorithms available as plugins.
+- [Auto TPI](feature-autotpi.md): automatic learning of the TPI coefficients.
+  - [Auto TPI: In-Depth Technical Guide](feature-autotpi-technical.md)
+- [Valve Recalibration](feature-recalibrate-valves.md): the `recalibrate_valves` service.
+- [Tuning Examples](tuning-examples.md): commented settings for different types of installation.
 
-- [⭐ Sonoff TRVZB Zigbee](https://www.domadoo.fr/en/chauffage-connecte/6776-sonoff-tete-thermostatique-connectee-zigbee-30.html?domid=97) with [`over_climate` with direct valve control](over-climate.md#thermostat-de-type-over_climate),
-- [Shelly BLU TRV BLE](https://www.domadoo.fr/en/black-friday-domotique/7567-shelly-robinet-thermostatique-de-radiateur-a-commande-bluetooth-shelly-blu-trv-3800235264980.html?domid=97) with [`over_valve`](over-valve.md),
-- [Moes TRV Zigbee](https://www.domadoo.fr/en/peripheriques/5783-moes-tete-thermostatique-intelligente-zigbee-30-brt-100-trv-blanc.html?domid=97) with [`over_climate` (without direct valve control)](over-climate.md#thermostat-de-type-over_climate)
-- [Schneider Wiser TRV Zigbee](https://www.domadoo.fr/en/controle-chauffage-clim/5497-schneider-electric-tete-de-vanne-thermostatique-connectee-zigbee-3606489582821.html?domid=97) with [`over_climate` (without direct valve control)](over-climate.md#thermostat-de-type-over_climate)
-- Avatto TRV06 Zigbee (Zigbee2MQTT) with [`over_climate` (without direct valve control)](over-climate.md) and [self-regulation](self-regulation.md)
+### Help and Reference
 
-### Incompatibilities
+- [Troubleshooting](troubleshooting.md): common problems and their solutions.
+- [Download Past Logs](feature-logs-collector.md): collect targeted logs, then open them in the [log analyzer](https://www.versatile-thermostat.org/en/debugger/) of the website.
+- [Reference Documentation](reference.md): parameters, sensors, actions, events and attributes.
+- [Release Notes](releases.md)
 
-The [device catalog](https://www.versatile-thermostat.org/en/devices/?state=unsupported) lists the incompatible devices, and also the [partially supported devices](https://www.versatile-thermostat.org/en/devices/?state=partially) with their known limitations.
+### Going Further
 
-Some TRV type thermostats are known to be incompatible with Versatile Thermostat. This includes the following valves:
-1. Danfoss POPP valves with temperature feedback. It is impossible to turn off this valve as it auto-regulates itself, causing conflicts with VTherm.
-2. "Homematic" thermostats (and possibly Homematic IP) are known to have issues with Versatile Thermostat due to the limitations of the underlying RF protocol. This problem particularly arises when trying to control multiple Homematic thermostats at once in a single VTherm instance. To reduce service cycle load, you can, for example, group thermostats using Homematic-specific procedures (e.g., using a wall-mounted thermostat) and let Versatile Thermostat control only the wall-mounted thermostat directly. Another option is to control a single thermostat and propagate mode and temperature changes via automation.
-3. Heatzy type thermostats that do not support `set_temperature` commands.
-4. Rointe type thermostats tend to wake up on their own. The rest works normally.
-5. TRVs like Aqara SRTS-A01 and MOES TV01-ZB, which lack the `hvac_action` state feedback to determine whether they are heating or not. Therefore, state feedback is inaccurate, but the rest seems functional.
-6. Airwell air conditioners with the "Midea AC LAN" integration. If two VTherm commands are too close together, the air conditioner stops itself.
-7. Climates based on the Overkiz integration do not work. It seems impossible to turn off or even change the temperature on these systems.
-8. Heating systems based on Netatmo perform poorly. Netatmo schedules conflict with _VTherm_ programming. Netatmo devices constantly revert to `Auto` mode, which is poorly managed with _VTherm_. In this mode, _VTherm_ cannot determine whether the system is heating or cooling, making it impossible to select the correct algorithm. Some users have managed to make it work using a virtual switch between _VTherm_ and the underlying system, but stability is not guaranteed. An example is provided in the [troubleshooting](troubleshooting.md) section.
+- [Some Essential Add-Ons](additions.md): UI card, scheduler, curves, notifications.
+- [Plugins catalog](https://www.versatile-thermostat.org/en/plugins/): algorithms, cards and device helpers.
+- [Device catalog](https://www.versatile-thermostat.org/en/devices/): tested devices and their support level.
 
+## Next Step
+
+[Installation](installation.md): install Versatile Thermostat in Home Assistant.
+
+For common equipment, the [quick start](quick-start.md) sums up the whole configuration on a single page.

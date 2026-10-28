@@ -10,6 +10,7 @@
     - [autres auto-régulation](#autres-auto-régulation)
       - [L'auto-régulation en mode Expert](#lauto-régulation-en-mode-expert)
   - [Synthèse de l'algorithme d'auto-régulation](#synthèse-de-lalgorithme-dauto-régulation)
+  - [Étape suivante](#étape-suivante)
 
 Vous avez la possibilité d'activer la fonction d'auto-régulation pour les _VTherm_ de type `over_climate` uniquement.
 
@@ -42,7 +43,7 @@ Vous devez donner :
 5. `minimum_opening_degrees` : le pourcentage d'ouverture minimal lorsque le `opening_threshold` est dépassé et que le VTherm doit chauffer. Ce champ est personnalisable par vanne dans le cas d'un VTherm avec plusieurs vannes. Vous spécifiez la liste des ouvertures minimales séparées par des ','. La valeur par défaut est 0. Exemple : '20, 25, 30'. Lorsque la chauffe démarre (ie l'ouverture demandée est supérieure à `opening_threshold`), la vanne s'ouvrira avec une valeur supérieure ou égale à celle-ci et continuera d'augmenter régulièrement si nécessaire.
 6. `max_opening_degrees` : le pourcentage d'ouverture maximal que la vanne peut atteindre. Ce champ est personnalisable par vanne dans le cas d'un VTherm avec plusieurs vannes. Vous spécifiez la liste des ouvertures maximales séparées par des ','. La valeur par défaut est 100 (ouverture complète). Exemple : '80, 85, 90'. La vanne ne s'ouvrira jamais au-delà de cette valeur, permettant ainsi de limiter le débit d'eau chaude et d'optimiser la consommation énergétique. Cette valeur doit être strictement supérieure à `minimum_opening_degrees` pour chaque vanne.
 
-L'algorithme de calcul du taux d'ouverture est basé sur le _TPI_ qui est décrit [ici](algorithms.md). C'est le même algorithme qui est utilisé pour les _VTherm_ `over_switch` et `over_valve`.
+Le taux d'ouverture est calculé par l'algorithme choisi dans le champ « Algorithme » de cette page : le _TPI_ intégré, le même que pour les _VTherm_ `over_switch` et `over_valve`, ou un algorithme installé sous forme de plugin. Voir [les algorithmes](algorithms.md).
 
 Si une entité de type taux de fermeture de la vanne est configurée, il sera positionné à la valeur `100 - taux d'ouverture` pour forcer la vanne dans un état sinon elle est positionnée à 100.
 
@@ -204,3 +205,8 @@ Pour que les modifications soient prises en compte, il faut soit **relancer tota
 ## Synthèse de l'algorithme d'auto-régulation
 
 Une synthèse de l'algorithme d'auto-régulation est décrite [ici](algorithms.md#lalgorithme-dauto-régulation-sans-contrôle-de-la-vanne)
+
+## Étape suivante
+
+- Avec le contrôle direct de la vanne : [les coefficients du TPI](algorithms.md#configurez-les-coefficients-de-lalgorithme-tpi) (menu « Paramètres TPI »).
+- Dans les autres cas : [Les presets](feature-presets.md) (menu « Pre-réglages »).

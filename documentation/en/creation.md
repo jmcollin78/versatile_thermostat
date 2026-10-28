@@ -9,6 +9,7 @@
     - [VTherm over a valve](#vtherm-over-a-valve)
   - [Making the right choice](#making-the-right-choice)
   - [Reference Article](#reference-article)
+  - [Next Step](#next-step)
 
 > ![Tip](images/tips.png) _*Notes*_
 >
@@ -34,6 +35,9 @@ and choose your thermostat type:
 The configuration can be modified via the same interface. Simply select the thermostat to modify, press "Configure," and you will be able to change some parameters or settings.
 
 Follow the configuration steps by selecting the menu option to configure.
+
+> ![Tip](images/tips.png) _*Central configuration*_
+> Most configuration pages (main attributes, TPI parameters, presets, advanced parameters...) have a "Use central configuration" box: when it is checked, these settings come from the _VTherm_ of type "Central Configuration". If a central configuration exists, these boxes are checked by default. Otherwise they are unchecked, the settings must be entered on each _VTherm_, and checking one of them causes an error when saving the page. To share settings between several _VTherm_, create the central configuration first: it is unique, and offered in the list of types as long as it does not exist.
 
 ## Choosing a VTherm Type
 
@@ -63,13 +67,26 @@ If the only entity available to regulate your radiator's temperature is a `numbe
 This type can be used for TRVs without an associated `climate` entity or other DIY solutions exposing a `number` entity.
 
 ## Making the right choice
-> ![Tip](images/tips.png) _*How to Choose the Type*_
-> Choosing the correct type is crucial. It cannot be changed later via the configuration interface. To make the right choice, consider the following questions:
-> 1. **What type of equipment will I control?** Follow this order of preference (the [device catalog](https://www.versatile-thermostat.org/en/devices/) gives the recommended type for each tested device):
->    1. If you have a controllable thermostatic valve (TRV) in Home Assistant through a `number` entity (e.g., a Shelly TRV), choose the `over_valve` type. This is the most direct type and ensures the best regulation.
->    2. If you have an electric radiator (with or without a pilot wire) controlled by a `switch` entity to turn it on/off, then the `over_switch` type is preferable. Regulation will be managed by the Versatile Thermostat based on the temperature measured by your thermometer at its placement location.
->    3. In all other cases, use the `over_climate` mode. You retain your original `climate` entity, and the Versatile Thermostat "only" controls the on/off state and target temperature of your original thermostat. Regulation is handled by your original thermostat in this case. This mode is particularly suited for all-in-one reversible air conditioning systems exposed as a `climate` entity in Home Assistant. Advanced self-regulation can achieve the setpoint faster by forcing the setpoint or directly controlling the valve when possible.
-> 2. **What type of regulation do I want?** If the controlled equipment has its own built-in regulation mechanism (e.g., HVAC systems, certain TRVs) and it works well, choose `over_climate`. For TRVs with a controllable valve in Home Assistant, the `over_climate` type with `Direct Valve Control` self-regulation is the best choice.
+
+The type cannot be changed after the _VTherm_ is created: choose it according to the controlled equipment and the way it appears in Home Assistant.
+
+| Equipment | Entity in Home Assistant | _VTherm_ type | Regulation |
+|---|---|---|---|
+| Heat pump, air conditioner, HVAC system | `climate` | [`over_climate`](over-climate.md) | by the device, corrected if needed by [self-regulation](self-regulation.md) |
+| Thermostatic radiator valve (TRV) whose opening can be controlled | `climate` and opening `number` | [`over_climate`](over-climate.md) with [direct valve control](self-regulation.md#self-regulation-by-direct-valve-control) | by _VTherm_: TPI or plugin algorithm (SmartPI...) |
+| Simple TRV | `climate` | [`over_climate`](over-climate.md) | by the valve, corrected if needed by [self-regulation](self-regulation.md) |
+| Electric radiator controlled by a switch | `switch`, `input_boolean` | [`over_switch`](over-switch.md) | by _VTherm_: TPI or plugin algorithm |
+| Electric radiator with a pilot wire | `select`, `input_select` or `climate`, with [custom commands](over-switch.md#command-customization) | [`over_switch`](over-switch.md) | by _VTherm_: TPI or plugin algorithm |
+| Valve alone, without a `climate` entity | `number`, `input_number` | [`over_valve`](over-valve.md) | by _VTherm_: TPI or plugin algorithm |
+| Pellet stove | `switch` | [`over_switch`](over-switch.md) with the [VTherm Pellet stove](https://www.versatile-thermostat.org/en/plugins/#jmcollin78/vtherm_pellet_stove) plugin | by the plugin |
+
+The [device catalog](https://www.versatile-thermostat.org/en/devices/) gives the recommended type for each tested device.
+
+When several types fit, choose according to the regulation you want. If the device regulates well by itself (air conditioner, some valves), `over_climate` keeps its regulation. If _VTherm_ must regulate from your own thermometer, placed where you live, prefer `over_switch`, `over_valve` or `over_climate` with direct valve control.
 
 ## Reference Article
 For more information on these concepts, refer to this article (in French): https://www.hacf.fr/optimisation-versatile-thermostat/#optimiser-vos-vtherm
+
+## Next Step
+
+[Choosing Basic Attributes](base-attributes.md): give the _VTherm_ a name, choose its temperature sensors and the features to enable ("Main attributes" and "Features" menus).

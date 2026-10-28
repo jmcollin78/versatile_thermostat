@@ -11,6 +11,7 @@
     - [Autres algorithmes](#autres-algorithmes)
   - [L'algorithme d'auto-régulation (sans contrôle de la vanne)](#lalgorithme-dauto-régulation-sans-contrôle-de-la-vanne)
   - [L'algorithme de la fonction d'auto-start/stop](#lalgorithme-de-la-fonction-dauto-startstop)
+  - [Étape suivante](#étape-suivante)
 
 ## L'algorithme TPI
 
@@ -23,7 +24,7 @@ Les `over_climate` avec auto-régulation qui ne contrôlent pas directement la v
 
 ### Configurez les coefficients de l'algorithme TPI
 
-Si votre _Vtherm_ a un TPI et que vous sélectionnez l'option "TPI" vous menu, vous arriverez sur cette page :
+Si votre _VTherm_ utilise l'algorithme TPI, choisissez l'option « Paramètres TPI » du menu. Une première page demande s'il faut utiliser la configuration TPI centrale (« Utiliser la configuration TPI centrale », cochée par défaut si une configuration centrale existe). Sans configuration centrale, la case est décochée et ces valeurs sont nécessaires pour finaliser la création. Décochez la case pour saisir des valeurs propres à ce _VTherm_ ; vous arrivez alors sur cette page :
 
 ![image](images/config-tpi.png)
 
@@ -31,12 +32,13 @@ Si votre _Vtherm_ a un TPI et que vous sélectionnez l'option "TPI" vous menu, v
 
 | Paramètre | Description | Nom d'attribut |
 |-----------|-------------|---------------|
-| **Coefficient interne** | Le coefficient `coef_int` de l'algorithme TPI. | `tpi_coef_int` |
-| **Coefficient externe** | Le coefficient `coef_ext` de l'algorithme TPI. | `tpi_coef_ext` |
-| **Délai d'activation** | Durée minimale d'activation en secondes. | `minimal_activation_delay` |
-| **Délai d'extinction** | Durée minimale d'extinction en secondes. | `minimal_deactivation_delay` |
-| **Seuil haut** | Écart de température (°C ou K) au-dessus duquel l'algorithme sera éteint. | `tpi_threshold_high` |
-| **Seuil bas** | Écart de température (°C ou K) en dessous duquel l'algorithme sera activé. | `tpi_threshold_low` |
+| **Coefficient interne** | Le coefficient `coef_int` de l'algorithme TPI. Défaut : `0.6`. | `tpi_coef_int` |
+| **Coefficient externe** | Le coefficient `coef_ext` de l'algorithme TPI. Défaut : `0.01`. | `tpi_coef_ext` |
+| **Délai d'activation** | Durée minimale d'activation en secondes. Défaut : `10`. | `minimal_activation_delay` |
+| **Délai d'extinction** | Durée minimale d'extinction en secondes. Défaut : `0`. | `minimal_deactivation_delay` |
+| **Seuil haut** | Écart de température (°C ou K) au-dessus duquel l'algorithme sera éteint. Défaut : `0` (désactivé). | `tpi_threshold_high` |
+| **Seuil bas** | Écart de température (°C ou K) en dessous duquel l'algorithme sera activé. Défaut : `0` (désactivé). | `tpi_threshold_low` |
+| **Activer l'apprentissage Auto TPI** | Apprend automatiquement les coefficients du TPI. Cf. [Auto TPI](feature-autotpi.md). | `auto_tpi_mode` |
 
 
 ### Principe
@@ -125,3 +127,6 @@ L'algorithme utilisé dans la fonction d'auto-start/stop est le suivant :
 
 La fonction est décrite dans le détail [ici](https://github.com/jmcollin78/versatile_thermostat/issues/585).
 
+## Étape suivante
+
+[Les presets](feature-presets.md) : choisir dans le menu « Pre-réglages » d'utiliser ou non les presets de la configuration centrale ; les températures se règlent ensuite avec les entités du _VTherm_.

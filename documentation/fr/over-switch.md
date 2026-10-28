@@ -8,6 +8,7 @@
     - [Le mode AC](#le-mode-ac)
     - [L'inversion de la commande](#linversion-de-la-commande)
     - [La personnalisation des commandes](#la-personnalisation-des-commandes)
+  - [Étape suivante](#étape-suivante)
 
 ## Pré-requis
 
@@ -38,7 +39,7 @@ Dans la "liste des équipements à contrôler" vous mettez les switchs qui vont 
 
 Si un des sous-jacents n'est pas un `switch` alors la personnalisation des commandes est obligatoire. Par défaut pour les `switch` les commandes sont les commandes classique d'allumage / extinction du switch (`turn_on`, `turn_off`)
 
-L'algorithme à utiliser est aujourd'hui limité à TPI est disponible. Voir [algorithme](algorithms.md#lalgorithme-tpi).
+Le champ « Algorithme » permet de choisir l'algorithme de régulation : le TPI intégré, ou un algorithme installé sous forme de plugin. Voir [les algorithmes](algorithms.md).
 Si plusieurs entités de type sont configurées, la thermostat décale les activations afin de minimiser le nombre de switch actif à un instant t. Ca permet une meilleure répartition de la puissance puisque chaque radiateur va s'allumer à son tour.
 
 VTherm va donc lisser la puissance consommée le plus possible en alternant les activations. Exemple d'activations décalées :
@@ -76,9 +77,9 @@ Les commandes possibles dépendent du type de sous-jacents :
 | `switch` ou `input_boolean` | `turn_on`                             | `turn_off`                                     | tous les switchs                   |
 | `select` ou `input_select`  | `select_option/option:comfort`        | `select_option/option:frost_protection`        | Nodon SIN-4-FP-21 et assimilés (*) |
 | `climate` (hvac_mode)       | `set_hvac_mode/hvac_mode:heat`        | `set_hvac_mode/hvac_mode:off`                  | eCosy (via Tuya Local)             |
-| `climate` (preset)          | `set_preset_mode/preset_mode:comfort` | `set_preset_mode/preset_mode:frost_protection` | Heatzy (*)                         |
+| `climate` (preset)          | `set_preset_mode/preset_mode:comfort` | `set_preset_mode/preset_mode:frost_protection` | Radiateurs à presets (*)           |
 
-(*) Pour pouvoir utiliser ce cas, il est important de vérifier que l'état de sous-jacent est égal au preset Sinon _VTherm_ n'a aucun moyen de savoir si votre équipement est en allumé ou éteint. Pour être sur de cela, il faut aller dans Outils de dev / Etats, rechercher votre sous-jacent et regarder si son état est bien le nom d'un preset. Si vous voyez 'heat' ou 'off' ou 'cool' ce ne sont pas des presets et donc cette configuration ne fonctionnera pas. Vous devez alors utiliser un switch virtuel. Il y a des exemples de switch virtuels dans la page [dépannage](./troubleshooting.md#utilisation-dun-heatzy). Si vous perséverez avec cette configuration, vérifiez bien les valeurs acceptées par votre équipement dans Outils de developpement / Etat et recherchez votre équipement. Vous verrez les options qu'il accepte. Il faut qu'elles soient identiques y compris la casse.
+(*) Pour pouvoir utiliser ce cas, il est important de vérifier que l'état de sous-jacent est égal au preset Sinon _VTherm_ n'a aucun moyen de savoir si votre équipement est en allumé ou éteint. Pour être sur de cela, il faut aller dans Outils de dev / Etats, rechercher votre sous-jacent et regarder si son état est bien le nom d'un preset. Si vous voyez 'heat' ou 'off' ou 'cool' ce ne sont pas des presets et donc cette configuration ne fonctionnera pas. Vous devez alors utiliser un switch virtuel. Il y a des exemples de switch virtuels dans la page [dépannage](./troubleshooting.md#utilisation-dun-heatzy). Si vous perséverez avec cette configuration, vérifiez bien les valeurs acceptées par votre équipement dans Outils de developpement / Etat et recherchez votre équipement. Vous verrez les options qu'il accepte. Il faut qu'elles soient identiques y compris la casse. Le Heatzy ne remplit pas cette condition : utilisez un interrupteur virtuel, comme décrit sur sa [page du catalogue des matériels](https://www.versatile-thermostat.org/fr/devices/heatzy/).
 
 Evidemment, tous ces exemples peuvent être adaptés à votre cas.
 
@@ -95,3 +96,9 @@ Cela signifie que une des commandes saisies est invalide. Les règles à respect
 1. chaque commande doit avoir le format `commande[/attribut[:valeur]]` (ex: `select_option/option:comfort` ou `turn_on`) sans blanc et sans caractères spéciaux sauf '_',
 2. il doit y avoir autant de commandes qu'il y a de sous-jacents déclarés sauf si tous les sous-jacents sont des `switchs` auquel cas il n'est pas nécessaire de paramétrer les commandes,
 3. si plusieurs sous-jacents sont configurés, les commandes doivent être dans le même ordre. Le nombre de commandes d'allumage doit être égal au nombre de commandes d'extinction et de sous-jacents (dans l'ordre donc). Il est possible de mettre des sous-jacents de type différent. À partir du moment où un sous-jacent n'est pas un `switch`, il faut paramétrer toutes les commandes de tous les sous-jacents y compris des éventuels switchs.
+
+## Étape suivante
+
+[Les coefficients du TPI](algorithms.md#configurez-les-coefficients-de-lalgorithme-tpi) : régler l'algorithme de régulation (menu « Paramètres TPI »). Sans configuration centrale, cette étape est nécessaire pour finaliser la création.
+
+Si vous utilisez un algorithme en plugin, comme SmartPI, suivez sa documentation, puis passez directement aux [presets](feature-presets.md).

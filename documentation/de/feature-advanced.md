@@ -22,6 +22,7 @@
     - [Parameter](#parameter)
     - [Verfügbare Attribute](#verfügbare-attribute-1)
     - [Einschränkungen und Sicherheit](#einschränkungen-und-sicherheit)
+  - [Nächster Schritt](#nächster-schritt)
 
 ## Warum diese Funktion?
 
@@ -66,9 +67,11 @@ Eine besondere Herausforderung stellen batteriebetriebene Sensoren dar, die nur 
 
 Um erweiterte Sicherheitsparameter zu konfigurieren:
 
-1. Öffnen Sie die Konfiguration Ihres _VTherm_
-2. Greifen Sie auf die Parameter der allgemeinen Konfiguration zu
-3. Scrollen Sie nach unten zum Abschnitt "Erweiterte Konfiguration"
+1. Öffnen Sie die Konfiguration Ihres _VTherm_,
+2. Wählen Sie das Menü „Erweiterte Einstellungen“,
+3. Mit einer zentralen Konfiguration ist „Erweiterte zentrale Konfiguration verwenden“ aktiviert und die zentralen Werte werden verwendet: Deaktivieren Sie es, um eigene Werte für dieses _VTherm_ einzugeben.
+
+Ohne zentrale Konfiguration ist das Kästchen deaktiviert, und diese Parameter sind erforderlich, um die Erstellung des _VTherm_ abzuschließen.
 
 Das Formular für erweiterte Konfiguration sieht wie folgt aus:
 
@@ -199,10 +202,9 @@ Bei jedem Thermostat-Regelzyklus führt die Funktion folgende Schritte durch:
 
 Diese Funktion wird in der _VTherm_-Konfigurationsoberfläche konfiguriert:
 
-1. Öffnen Sie Ihre _VTherm_-Konfiguration
-2. Greifen Sie auf die Parameter der allgemeinen Konfiguration zu
-3. Scrollen Sie nach unten zum Abschnitt "Erweiterte Konfiguration"
-4. Aktivieren Sie die Option **"Falschen Gerätezustand reparieren"**
+1. Öffnen Sie die Konfiguration Ihres _VTherm_,
+2. Wählen Sie das Menü „Erweiterte Einstellungen“ und deaktivieren Sie „Erweiterte zentrale Konfiguration verwenden“ (oder aktivieren Sie die Option in der zentralen Konfiguration),
+3. Aktivieren Sie die Option **"Falschen Gerätezustand reparieren"**
 
 ### Parameter
 
@@ -255,3 +257,13 @@ Der Zähler `consecutive_repair_count` ermöglicht es Ihnen:
 6. **Zähler zurücksetzen**: Der Zähler wird automatisch zurückgesetzt, sobald die Geräte den korrekten Zustand wieder erreichen, was neue Versuche bei intermittierenden Problemen ermöglicht.
 
 7. **Regelmäßige Wiederholung**: Nach 5 fehlgeschlagenen Reparaturversuchen wird die Reparatur unterbrochen, um Endlosschleifen zu vermeiden. Sie wird nach 10 Zyklen ohne Reparatur wiederaufgenommen und ermöglicht neue Versuche bei intermittierenden Problemen.
+
+## Nächster Schritt
+
+Klicken Sie im Konfigurationsmenü auf „Alles erledigt“: Ihr _VTherm_ ist einsatzbereit.
+
+Weiterführende Themen:
+
+- die UI-Karte und einen Zeitplaner installieren, vorgestellt in [Einige unverzichtbare Ergänzungen](additions.md),
+- die weiteren Funktionen im [Inhalt der Dokumentation](presentation.md#inhalt-der-dokumentation) entdecken,
+- bei Problemen die [Störungsbeseitigung](troubleshooting.md) lesen.

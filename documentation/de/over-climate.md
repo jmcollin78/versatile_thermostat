@@ -11,6 +11,7 @@
     - [Kompensation der Innentemperatur des zugehörigen Geräts](#kompensation-der-innentemperatur-des-zugehörigen-geräts)
   - [Besondere Funktionen](#besondere-funktionen)
   - [Verfolgung grundlegender Temperaturänderungen](#verfolgung-grundlegender-temperaturänderungen)
+  - [Nächster Schritt](#nächster-schritt)
 
 ## Voraussetzungen
 
@@ -29,7 +30,7 @@ Die Installation sollte etwa so aussehen::
 ## Konfiguration
 
 Konfigurieren Sie zunächst die Haupteinstellungen, die für alle _VTherms_ gelten (siehe [Haupteinstellungen](base-attributes.md)).
-Klicken Sie dann im Menü auf die Option "Zugeordnete Entities", um diese Konfigurationsseite anzuzeigen:
+Klicken Sie dann im Menü auf die Option „Basiswerte“, um diese Konfigurationsseite anzuzeigen:
 
 ![image](images/config-linked-entity2.png)
 
@@ -118,3 +119,8 @@ Deshalb ist es besser, sie nicht zu verwenden. Es führt zu viel Verwirrung und 
 
 > ![Tipp](images/tips.png) _*Physische Fernbedienung*_
 > Wenn Sie einen separaten physischen Thermostat (z. B. einen Wandthermostat) als Fernbedienung für ein _VTherm_ verwenden möchten, sehen Sie sich das Plugin [VTherm climate replication](https://www.versatile-thermostat.org/de/plugins/#jmcollin78/vtherm_climate_replication) an.
+
+## Nächster Schritt
+
+- Mit Selbstregulierung durch direkte Ventilsteuerung: die [Ventilregelung](self-regulation.md#selbstregulierung-bei-direkter-ventilkontrolle) konfigurieren, dann die [TPI-Koeffizienten](algorithms.md#konfigurieren-der-tpi-algorithmusfaktoren).
+- Ohne direkte Ventilsteuerung: bei Bedarf die [Selbstregulierung](self-regulation.md#andere-selbsregulierung) einstellen, dann zu den [Voreinstellungen](feature-presets.md) wechseln (Menü „Temperaturvoreinstellungen“).

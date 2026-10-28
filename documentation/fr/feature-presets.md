@@ -2,6 +2,7 @@
 
 - [Les pre-réglages (preset)](#les-pre-réglages-preset)
   - [Configurer les températures préréglées](#configurer-les-températures-préréglées)
+  - [Étape suivante](#étape-suivante)
 
 
 ## Configurer les températures préréglées
@@ -14,6 +15,8 @@ Le mode préréglé (preset) vous permet de préconfigurer la température cibl�
  Si le mode AC est utilisé, vous pourrez aussi configurer les températures lorsque l'équipement en mode climatisation.
 
 **Aucun** est toujours ajouté dans la liste des modes, car c'est un moyen de ne pas utiliser les preset mais une **température manuelle** à la place.
+
+Dans la configuration du _VTherm_, le menu « Pre-réglages » ne contient que la case « Utiliser la configuration des pré-réglages centrale », cochée par défaut si une configuration centrale existe. Cochez-la pour utiliser les températures de la configuration centrale, décochez-la pour donner à ce _VTherm_ ses propres températures.
 
 Les pré-réglages se font directement depuis les entités du _VTherm_ ou de la configuration centrale si vous utilisez la configuration centrale. A la création du _VTherm_, vous aurez différentes entités qui vont vous permettre de fixer les températures de chaque preset :
 
@@ -29,3 +32,9 @@ La liste des entités varient en fonction de vos choix de fonction :
 >  2. Le préréglage standard ``Away`` est un préréglage caché qui n'est pas directement sélectionnable. Versatile Thermostat utilise la gestion de présence ou la gestion de mouvement pour régler automatiquement et dynamiquement la température cible en fonction d'une présence dans le logement ou d'une activité dans la pièce. Voir [gestion de la présence](feature-presence.md).
 >  3. Si vous utilisez la gestion du délestage, vous verrez un préréglage caché nommé ``power``. Le préréglage de l'élément chauffant est réglé sur « puissance » lorsque des conditions de surpuissance sont rencontrées et que le délestage est actif pour cet élément chauffant. Voir [gestion de l'alimentation](feature-power.md).
 >  4. si vous utilisez la configuration avancée, vous verrez le préréglage défini sur ``sécurité`` si la température n'a pas pu être récupérée après un certain délai. Voir [Mise en sécurité](feature-advanced.md#la-mise-en-sécurité)
+
+## Étape suivante
+
+[La configuration avancée](feature-advanced.md#paramètres-de-sécurité) : vérifier les paramètres du mode sécurité (menu « Paramètres avancés »). Sans configuration centrale, ils sont nécessaires pour finaliser la création.
+
+Si vous avez activé d'autres fonctions dans les [attributs de base](base-attributes.md#choix-des-fonctions-utilisées), configurez-les aussi : [détection d'ouverture](feature-window.md), [détection de mouvement](feature-motion.md), [gestion de la puissance](feature-power.md), [gestion de la présence](feature-presence.md) ou [démarrage / arrêt automatique](feature-auto-start-stop.md).

@@ -25,11 +25,17 @@ L'installation doit ressembler à celle pour le VTherm `over_switch` sauf que l'
 ## Configuration
 
 Configurez d'abord les paramètres principaux et communs à tous les _VTherm_ (cf. [paramètres principaux](base-attributes.md)).
-Ensuite cliquez sur l'option de menu "Sous-jacents" et vous allez avoir cette page de configuration. Vous mettez les entités `numnber` ou `input_number`qui vont être controllés par le VTherm :
+Ensuite cliquez sur l'option de menu "Sous-jacents" et vous allez avoir cette page de configuration. Vous mettez les entités `number` ou `input_number`qui vont être controllés par le VTherm :
 
 ![image](images/config-linked-entity3.png)
 
-L'algorithme à utiliser est aujourd'hui limité à TPI est disponible. Voir [algorithme](#algorithme).
+Le champ « Algorithme » permet de choisir l'algorithme de régulation : le TPI intégré, ou un algorithme installé sous forme de plugin. Voir [les algorithmes](algorithms.md).
+
+### Seuil et période de régulation
+
+Deux champs limitent le nombre de commandes envoyées à la vanne :
+1. **Seuil de régulation** (défaut `10`) : variation minimale de l'ouverture, en %, en dessous de laquelle une nouvelle ouverture n'est pas envoyée,
+2. **Période minimale de régulation** (défaut `5` minutes) : délai minimal entre deux calculs de l'ouverture.
 
 ### Contrôle de l'ouverture de la vanne
 
@@ -74,3 +80,8 @@ contrôle d'ouverture : `max_opening_degrees` et les bornes de l'entité `number
 peuvent donc plafonner l'ouverture physique. Le sommeil ne sollicite pas la
 chaudière centrale ; l'attribut `is_sleeping` identifie cet état.
 
+## Étape suivante
+
+[Les coefficients du TPI](algorithms.md#configurez-les-coefficients-de-lalgorithme-tpi) : régler l'algorithme de régulation (menu « Paramètres TPI »). Sans configuration centrale, cette étape est nécessaire pour finaliser la création.
+
+Si vous utilisez un algorithme en plugin, comme SmartPI, suivez sa documentation, puis passez directement aux [presets](feature-presets.md).

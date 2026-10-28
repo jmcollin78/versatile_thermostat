@@ -1,97 +1,117 @@
-# Wann man es verwenden sollte und wann nicht
-Dieser Thermostat kann 3 Gerätetypen steuern:
-1. Einen Heizkörper, der nur im Ein- und Ausschaltmodus funktioniert (genannt `thermostat_over_switch`). Die erforderliche Mindestkonfiguration zur Verwendung dieser Art von Thermostat ist:
-   1. Ein Gerät wie ein Heizkörper (ein `switch` oder ähnliches),
-   2. Einen Temperatursensor für den Raum (oder eine `input_number`),
-   3. Einen externen Temperatursensor (wenn Sie keinen haben, sollten Sie die Wetterintegration in Betracht ziehen; in Frankreich liefert das Plugin [Météo-France Observation](https://www.versatile-thermostat.org/de/plugins/#bontiv/ha-meteofrance-observation) eine genaue Außentemperatur).
-2. Ein anderer Thermostat, der seine eigenen Betriebsmodi hat (genannt `thermostat_over_climate`). Für diese Art von Thermostat ist folgende Mindestkonfiguration erforderlich:
-   1. Geräte - wie Klimaanlagen oder Thermostatventile - werden von ihrer eigenen `Klimaeinheit` gesteuert.
-3. Geräte, die einen Wert von 0 bis 100% annehmen können (genannt `thermostat_over_valve`). Bei 0 ist die Heizung ausgeschaltet, und bei 100% ist sie vollständig geöffnet. Dieser Typ ermöglicht die Steuerung eines Thermostatventils (z. B. Shelly-Ventil), das eine Entität des Typs `number` besitzt, mit dem die Öffnung des Ventils direkt gesteuert werden kann. Versatile Thermostat regelt die Raumtemperatur durch Anpassung des Öffnungsprozentsatzes, wobei sowohl die internen als auch die externen Temperatursensoren und der unten beschriebene TPI-Algorithmus verwendet werden.
+# Dokumentation von Versatile Thermostat
 
-Mit dem Typ `over_climate` können Sie alle von VersatileThermostat angebotenen Funktionen zu Ihren vorhandenen Geräten hinzufügen. Die VersatileThermostat `climate`-Entität steuert Ihre zugrunde liegende `climate`-Entität, schaltet sie aus, wenn Fenster geöffnet sind, schaltet in den Eco-Modus, wenn niemand anwesend ist, usw. siehe [hier](#warum-eine-neue-thermostat-implementierung). Bei dieser Art von Thermostat werden alle Heizzyklen von der zugrunde liegenden `Klima`-Einheit und nicht vom Versatile Thermostat selbst gesteuert. Eine optionale Autoregulierungsfunktion ermöglicht es dem Versatile Thermostat, die Solltemperatur an die zugrunde liegende Einheit anzupassen, um den Sollwert zu erreichen.
+Versatile Thermostat (_VTherm_) ist eine Home-Assistant-Integration, die Wasserheizkörper mit Thermostatventilen (TRV) in intelligente Thermostate verwandelt: Voreinstellungen, Fenstererkennung, Anwesenheit, direkte Ventilsteuerung und die Ansteuerung eines zentralen Heizkessels.
 
-Bei Installationen mit einem Pilotdraht und einer Aktivierungsdiode gibt es eine Option, die die Umkehrung der Ein/Aus-Steuerung des darunter liegenden Heizkörpers ermöglicht. Verwenden Sie dazu den Typ `over_switch` und aktivieren Sie die Option „Invert command“.
+_VTherm_ steuert auch Wärmepumpen, Klimaanlagen und elektrische Heizkörper. Alle Funktionen werden über die Oberfläche von Home Assistant konfiguriert, ohne Skripte oder komplizierte Automatisierungen: Niemand ist zu Hause, ein Fenster ist offen, der Heizkessel soll anspringen? Der Thermostat erledigt das selbst.
 
-## Warum eine neue Thermostat-Implementierung?
+- [Dokumentation von Versatile Thermostat](#dokumentation-von-versatile-thermostat)
+  - [Installationsbeispiel](#installationsbeispiel)
+  - [Unterstützte Geräte](#unterstützte-geräte)
+  - [Voraussetzungen](#voraussetzungen)
+  - [Geräte](#geräte)
+  - [Inhalt der Dokumentation](#inhalt-der-dokumentation)
+    - [Erste Schritte](#erste-schritte)
+    - [VTherm-Typen](#vtherm-typen)
+    - [Funktionen](#funktionen)
+    - [Regelung](#regelung)
+    - [Hilfe und Referenz](#hilfe-und-referenz)
+    - [Weiterführende Themen](#weiterführende-themen)
+  - [Nächster Schritt](#nächster-schritt)
 
-Diese Komponente mit der Bezeichnung __Versatile Thermostat__ verwaltet die folgenden Anwendungsfälle:
-- Konfiguration über die grafische Standard-Integrationsschnittstelle (unter Verwendung des Config-Entry-Ablaufs),
-- Volle Nutzung des **Voreinstellungsmodus**,
-- Deaktiviert den Voreinstellungsmodus, wenn die Temperatur **manuell** an einem Thermostat eingestellt wird,
-- Schaltet ein Thermostat aus/ein oder ändert nach einer bestimmten Verzögerung die Voreinstellung, wenn eine **Tür oder ein Fenster  geöffnet/geschlossen** wird,
-- Ändert die Voreinstellung, wenn **Aktivität erkannt** wird oder niemand für eine bestimmte Zeit im Raum ist,
-- Verwendung eines **TPI (Time Proportional Interval/Zeitproportionales Intervall)**-Algorithmus, dank an [[Argonaute](https://forum.hacf.fr/u/argonaute/summary)] (französisch),
-- Fügt ein **Lastabwurf**-Management oder eine Regelung hinzu, um eine bestimmte Gesamtleistung nicht zu überschreiten. Wenn die maximale Leistung überschritten wird, wird eine verborgene Voreinstellung von „Leistung“ auf die Entität `climate` gesetzt. Wenn die Leistung unter das Maximum sinkt, wird die vorherige Voreinstellung wiederhergestellt.
-- **Präsenzverwaltung**. Diese Funktion ermöglicht die dynamische Änderung der voreingestellten Temperatur auf Grundlage des Präsenzsensors in Ihrer Wohnung.
-- **Aktionen zur Interaktion mit dem Thermostat** aus anderen Integrationen: Sie können die Anwesenheit/Nicht-Anwesenheit über einen Dienst erzwingen und Sie können die voreingestellten Temperaturen dynamisch ändern und die Sicherheitseinstellungen modifizieren.
-- Fügt Sensoren hinzu, die die internen Zustände des Thermostats anzeigen,
-- Zentrale Steuerung aller Versatile Thermostate, um sie alle zu stoppen, auf Frostschutz zu stellen, in den Heizmodus zu zwingen (im Winter), in den Kühlmodus zu zwingen (im Sommer).
-- Steuerung eines Zentralheizungskessels und VTherms, die diesen Kessel steuern müssen.
-- Automatischer Start/Stopp auf der Grundlage der Nutzungsvorhersage für `over_climate`.
+## Installationsbeispiel
 
-Alle diese Funktionen sind je nach Bedarf entweder zentral oder individuell konfigurierbar.
+Für Thermostatventile:
 
-## Equipment
+1. Ist die Ventilöffnung Ihres TRV in Home Assistant steuerbar (z. B. Sonoff TRVZB), erstellen Sie ein _VTherm_ vom Typ [`over_climate`](over-climate.md) mit [direkter Ventilsteuerung](self-regulation.md#selbstregulierung-bei-direkter-ventilkontrolle): _VTherm_ regelt dann die Raumtemperatur über die Ventilöffnung. Ein Ventil, das nur als `number`-Entity verfügbar ist, steuern Sie mit einem _VTherm_ vom Typ [`over_valve`](over-valve.md).
+2. Die [Schnellstart-Anleitung für TRV](https://www.versatile-thermostat.org/de/quick-start/trv/) der Website beschreibt die Konfiguration Schritt für Schritt.
+3. Gleichen Sie bei Bedarf das interne Thermometer des TRV mit der [Synchronisierung der internen Gerätetemperatur](feature-sync_device_temp.md) ab und nutzen Sie die [Ventilkalibrierung](feature-recalibrate-valves.md), wenn die Ventile nicht mehr richtig öffnen oder schließen.
+4. Fügen Sie die nützlichen Funktionen hinzu: [Steuerung der Zentralheizung](feature-central-boiler.md), um den Heizkessel einzuschalten, sobald ein Raum Wärme benötigt, [Erkennung offener Fenster](feature-window.md) und [Anwesenheitsverwaltung](feature-presence.md).
 
-Für den Betrieb von _VTherm_ werden einige Geräte benötigt. Die folgende Liste ist nicht vollständig, enthält aber die am häufigsten verwendeten Geräte, die vollständig mit Home Assistant und _VTherm_ kompatibel sind. Dies sind Affiliate-Links zum französischen Partnershop [Domadoo](https://www.domadoo.fr/de/?domid=97), wodurch ich einen kleinen Prozentsatz erhalte, wenn Sie über diese Links einkaufen. Sollten Sie bei [Domadoo](https://www.domadoo.fr/de/?domid=97) bestellen, erhalten Sie günstige Preise, eine Rückgabegarantie und eine sehr kurze Lieferzeit, die mit der anderer großer Online-Händler vergleichbar ist. Ihre 4.8/5 Bewertung spricht für sich selbst.
+## Unterstützte Geräte
 
-Die vollständige Liste der mit _VTherm_ getesteten Geräte, mit ihrem Unterstützungsgrad und Konfigurationshinweisen, finden Sie im [Gerätekatalog](https://www.versatile-thermostat.org/de/devices/) der Website. Dieser Katalog ist nicht vollständig: Ein Gerät, das nicht aufgeführt ist, ist nicht unbedingt inkompatibel.
+_VTherm_ steuert die in Home Assistant verfügbaren Heiz- und Kühlgeräte:
 
-⭐ : Die meistgenutzte und daher beste Wahl.
+- **Wasserheizkörper** mit Thermostatventilen (TRV), mit oder ohne direkte Ventilsteuerung: [TRV-Anleitung](https://www.versatile-thermostat.org/de/quick-start/trv/),
+- **Ventile**, die über eine `number`-Entity gesteuert werden, ohne zugehörigen Thermostat,
+- **Zentralheizung**: _VTherm_ schaltet den Heizkessel ein, sobald ein Raum Wärme benötigt (siehe [Steuerung der Zentralheizung](feature-central-boiler.md)),
+- **Wärmepumpen, Klimaanlagen und HLK-Systeme** mit `climate`-Entity: [Wärmepumpen-Anleitung](https://www.versatile-thermostat.org/de/quick-start/heat-pump/),
+- **Elektrische Heizkörper**, gesteuert über einen Schalter oder ein Steuerleitungsmodul: [Steuerleitungs-Anleitung](https://www.versatile-thermostat.org/de/quick-start/pilot-wire/),
+- **Pelletöfen**, mit dem Plugin [VTherm Pellet stove](https://www.versatile-thermostat.org/de/plugins/#jmcollin78/vtherm_pellet_stove): [Pelletofen-Anleitung](https://www.versatile-thermostat.org/de/quick-start/pellet-stove/).
 
-### Thermometer
+Welcher _VTherm_-Typ für welches Gerät erstellt wird, erklärt [Wahl eines VTherm](creation.md#wähle-das-richtige-aus).
 
-Einige Thermometer sind im [Gerätekatalog](https://www.versatile-thermostat.org/de/devices/?type=sensor) aufgeführt. Jeder in Home Assistant verfügbare Temperatursensor kann verwendet werden, auch wenn er nicht aufgeführt ist.
+## Voraussetzungen
 
-Um ein zuverlässige, komfortable und stabile Temperaturregelung zu gewährleisten, ist für eine _VTherm_-Einrichtung ein externes Temperaturmessgerät, welches dort ist, wo sie leben, unerlässlich.
+- Home Assistant und die über HACS installierte Integration Versatile Thermostat (siehe [Installation](installation.md)),
+- das zu steuernde Gerät, in Home Assistant verfügbar,
+- ein Temperatursensor für den Raum: Jeder in Home Assistant verfügbare Sensor kann verwendet werden, ebenso eine `input_number`,
+- ein Außentemperatursensor: Die Wetterintegration von Home Assistant reicht aus.
 
-- [⭐ Sonoff SNZB Zigbee](https://www.domadoo.fr/de/suivi-energie/6614-sonoff-capteur-de-temperature-et-d-humidite-zigbee-30-avec-ecran-6920075740004.html?domid=97)
-- [ Neo Tuya Zigbee](https://www.domadoo.fr/de/produits-compatibles-jeedom/7564-neo-capteur-de-temperature-et-humidite-zigbee-30-tuya.html?domid=97)
-- [ Moes Tuya Zigbee](https://www.domadoo.fr/de/domotique/6667-moes-capteur-de-temperature-et-humidite-avec-ecran-zigbee-tuya.html?domid=97)
+## Geräte
 
-### Schalter (Switches)
+Die mit _VTherm_ getesteten Thermostatventile sind im [Gerätekatalog](https://www.versatile-thermostat.org/de/devices/?type=trv) der Website aufgeführt, mit ihrem Unterstützungsgrad und Konfigurationshinweisen. Der Katalog enthält außerdem [Thermometer](https://www.versatile-thermostat.org/de/devices/?type=sensor), [Geräte mit `climate`-Entity](https://www.versatile-thermostat.org/de/devices/?type=climate) und [Geräte für elektrische Heizungen](https://www.versatile-thermostat.org/de/devices/?type=electric).
 
-Alle Geräte für elektrische Heizungen finden Sie im [Gerätekatalog](https://www.versatile-thermostat.org/de/devices/?type=electric).
+Dieser Katalog ist nicht vollständig: Ein Gerät, das nicht aufgeführt ist, ist nicht unbedingt inkompatibel. Die [inkompatiblen Geräte](https://www.versatile-thermostat.org/de/devices/?state=unsupported) und die [teilweise unterstützten Geräte](https://www.versatile-thermostat.org/de/devices/?state=partially) werden dort mit ihren bekannten Einschränkungen beschrieben.
 
-Zur direkten Steuerung einer elektrischen Heizung. Verwendbar mit _VTherm_ [`over_switch`](over-switch.md):
+## Inhalt der Dokumentation
 
-- [⭐ Sonoff Power Switch 25 A Wifi](https://www.domadoo.fr/de/peripheriques/5853-sonoff-commutateur-intelligent-wifi-haute-puissance-25a-6920075776768.html?domid=97)
-- [⭐ Nodon SIN-4-1-20 Zigbee](https://www.domadoo.fr/de/peripheriques/5688-nodon-micromodule-commutateur-multifonctions-zigbee-16a-3700313925188.html?domid=97)
-- [Sonoff 4-channel Wifi](https://www.domadoo.fr/de/peripheriques/5279-sonoff-commutateur-intelligent-wifi-433-mhz-4-canaux-6920075775815.html?domid=97)
-- [Smart plug for small heating equipment Zigbee](https://www.domadoo.fr/de/peripheriques/5880-sonoff-prise-intelligente-16a-zigbee-30-version-fr.html?domid=97)
+### Erste Schritte
 
-### Pilotdraht (Pilot wire) Schalter
+- [Installation](installation.md): die Integration mit HACS installieren.
+- [Schnellstart](quick-start.md): ein funktionierendes _VTherm_ in wenigen Schritten, je nach Gerät.
+- [Wahl eines VTherm](creation.md): zentrale Konfiguration oder nicht, Wahl des _VTherm_-Typs.
+- [Auswahl der grundlegenden Attribute](base-attributes.md): Name, Temperatursensoren und zu aktivierende Funktionen.
 
-Siehe die [Seite der Pilotdraht-Module](https://www.versatile-thermostat.org/de/devices/pilot-wire-module/) im Gerätekatalog.
+### VTherm-Typen
 
-Zur direkten Steuerung eines elektrischen Heizgeräts mit Pilotdraht. Verwendbar mit _VTherm_ [`over_switch`](over-switch.md) und [individuellen Befehlen](over-switch.md#befehlsanpassung):
+- [`over_climate` Thermostattyp](over-climate.md): Thermostatventile, Wärmepumpen und Klimaanlagen mit `climate`-Entity.
+- [`over_valve` Thermostattyp](over-valve.md): Ventile, die über eine `number`-Entity gesteuert werden.
+- [`over_switch` Thermostattyp](over-switch.md): elektrische Heizkörper mit Schalter oder Steuerleitung.
 
-- [⭐ Nodon SIN-4-1-21 Zigbee](https://www.domadoo.fr/de/chauffage-connecte/6828-nodon-module-chauffage-fil-pilote-connecte-zigbee-30.html?domid=97)
-- [⭐ 4 x Nodon SIN-4-1-21 Zigbee](https://www.domadoo.fr/de/chauffage-connecte/7050-nodon-pack-4x-modules-chauffage-fil-pilote-connecte-zigbee-30.html?domid=97)
+### Funktionen
 
-### Thermostatventile
+- **Komfort und Einsparungen**
+  - [Voreinstellungen](feature-presets.md): voreingestellte Temperaturen (Komfort, Eco, Frostschutz...).
+  - [Zeitgesteuerte Voreinstellung](feature-timed-preset.md): eine Voreinstellung für eine bestimmte Dauer anwenden.
+  - [Anwesenheits-/Abwesenheitsverwaltung](feature-presence.md): den Sollwert absenken, wenn niemand zu Hause ist.
+  - [Erkennung von Bewegung oder Aktivität](feature-motion.md): die Voreinstellung je nach Aktivität im Raum ändern.
+  - [Erkennung offener Türen/Fenster](feature-window.md): reagieren, wenn eine Tür oder ein Fenster geöffnet wird.
+  - [Externer Luftfeuchtigkeitssensor](feature-humidity.md): die von einem externen Sensor gemessene Luftfeuchtigkeit anzeigen.
+- **Steuerung der Anlage**
+  - [Steuerung der Zentralheizung](feature-central-boiler.md): den Heizkessel einschalten, wenn ein _VTherm_ heizen muss.
+  - [Zentralisierte Steuerung](feature-central-mode.md): alle _VTherm_ auf einmal steuern.
+  - [Energieverwaltung (Lastabwurf)](feature-power.md): die verfügbare Leistung nicht überschreiten.
+  - [Auto-Start / Auto-Stopp](feature-auto-start-stop.md): ein `over_climate` anhalten, wenn es nicht gebraucht wird.
+  - [Sperrfunktion](feature-lock.md): Änderungen über die Oberfläche oder Automatisierungen verhindern.
+- **Sicherheit**
+  - [Erweiterte Konfiguration und Sicherheitsmodus](feature-advanced.md): Sensor, der nicht mehr antwortet, falscher Gerätezustand.
+  - [Erkennung von Heizungsstörungen](feature-heating-failure-detection.md): die Temperatur folgt dem Befehl nicht.
 
-Alle Thermostatventile (TRV) finden Sie im [Gerätekatalog](https://www.versatile-thermostat.org/de/devices/?type=trv).
+### Regelung
 
-Zur Steuerung eines Wasserheizkörpers. Funktioniert mit einem _VTherm_. [`over_valve`](over-valve.md) oder [`over_climate` mit direkter Ventilsteuerung](over-climate.md#over_climate-thermostattyp):
+- [Selbstregulierung](self-regulation.md): den an ein `over_climate` gesendeten Sollwert anpassen oder das Ventil direkt steuern.
+- [Ventilkalibrierung](feature-recalibrate-valves.md): der Dienst `recalibrate_valves`.
+- [Synchronisierung der internen Gerätetemperatur](feature-sync_device_temp.md): das interne Thermometer des Geräts an die Raumtemperatur angleichen.
+- [Die verschiedenen benutzten Algorithmen](algorithms.md): TPI, SmartPI und weitere Algorithmen als Plugins.
+- [Auto TPI](feature-autotpi.md): automatisches Lernen der TPI-Koeffizienten.
+  - [Auto TPI: Detaillierter technischer Leitfaden](feature-autotpi-technical.md)
+- [Tuning-Beispiele](tuning-examples.md): kommentierte Einstellungen für verschiedene Installationsarten.
 
-- [⭐ Sonoff TRVZB Zigbee](https://www.domadoo.fr/de/chauffage-connecte/6776-sonoff-tete-thermostatique-connectee-zigbee-30.html?domid=97) mit [`over_climate` mit direkter Ventilsteuerung](over-climate.md#over_climate-thermostattyp),
-- [Shelly BLU TRV BLE](https://www.domadoo.fr/de/black-friday-domotique/7567-shelly-robinet-thermostatique-de-radiateur-a-commande-bluetooth-shelly-blu-trv-3800235264980.html?domid=97) mit [`over_valve`](over-valve.md),
-- [Moes TRV Zigbee](https://www.domadoo.fr/de/peripheriques/5783-moes-tete-thermostatique-intelligente-zigbee-30-brt-100-trv-blanc.html?domid=97) mit [`over_climate` (ohne direkte Ventilsteuerung)](over-climate.md#over_climate-thermostattyp)
-- [Schneider Wiser TRV Zigbee](https://www.domadoo.fr/de/controle-chauffage-clim/5497-schneider-electric-tete-de-vanne-thermostatique-connectee-zigbee-3606489582821.html?domid=97) mit [`over_climate` (ohne direkte Ventilsteuerung)](over-climate.md#over_climate-thermostattyp)
-- Avatto TRV06 Zigbee (Zigbee2MQTT) mit [`over_climate` (ohne direkte Ventilsteuerung)](over-climate.md) und [Selbstregulierung](self-regulation.md)
+### Hilfe und Referenz
 
-### Inkompatibilitäten
+- [Störungsbeseitigung](troubleshooting.md): häufige Probleme und ihre Lösungen.
+- [Frühere Protokolle herunterladen](feature-logs-collector.md): gezielte Protokolle sammeln und im [Log-Analyser](https://www.versatile-thermostat.org/de/debugger/) der Website öffnen.
+- [Referenzdokumentation](reference.md): Parameter, Sensoren, Aktionen, Ereignisse und Attribute.
+- [Anmerkungen zum Release](releases.md)
 
-Der [Gerätekatalog](https://www.versatile-thermostat.org/de/devices/?state=unsupported) listet die inkompatiblen Geräte sowie die [teilweise unterstützten Geräte](https://www.versatile-thermostat.org/de/devices/?state=partially) mit ihren bekannten Einschränkungen auf.
+### Weiterführende Themen
 
-Einige Thermostate vom Typ TRV sind bekanntermaßen nicht mit dem Versatile Thermostat kompatibel. Dazu gehören die folgenden Ventile:
-1. Danfoss POPP-Ventile mit Temperaturrückführung. Es ist nicht möglich, dieses Ventil abzuschalten, da es sich selbst reguliert und dadurch Konflikte mit VTherm verursacht.
-2. "Homematic"-Thermostate (und möglicherweise Homematic IP) sind dafür bekannt, dass sie aufgrund der Einschränkungen des zugrunde liegenden RF-Protokolls Probleme mit Versatile Thermostat haben. Dieses Problem tritt insbesondere dann auf, wenn versucht wird, mehrere Homematic-Thermostate gleichzeitig in einer einzigen VTherm-Instanz zu steuern. Um die Belastung des Servicezyklus zu reduzieren, können Sie beispielsweise Thermostate mit Homematic-spezifischen Verfahren gruppieren (z. B. mit einem an der Wand montierten Thermostat) und nur den an der Wand montierten Thermostat direkt von Versatile Thermostat steuern lassen. Eine andere Möglichkeit ist die Steuerung eines einzelnen Thermostats und die Weitergabe von Modus- und Temperaturänderungen über die Automatisierung.
-3. Thermostate vom Typ Heatzy, die den Befehl `set_temperature` nicht unterstützen.
-4. Thermostate vom Typ Rointe neigen dazu, von selbst aufzuwachen. Der Rest funktioniert normal.
-5. TRVs wie Aqara SRTS-A01 und MOES TV01-ZB, denen die `hvac_action`-Zustandsrückmeldung fehlt, um festzustellen, ob sie heizen oder nicht. Daher ist die Zustandsrückmeldung ungenau, aber der Rest scheint zu funktionieren.
-6. Airwell-Klimageräte mit der „Midea AC LAN“-Integration. Wenn zwei VTherm-Befehle zu schnell hintereinander kommen, schaltet sich das Klimagerät selbstständig ab.
-7. Klimaanlagen, die auf der Overkiz-Integration basieren, funktionieren nicht. Es scheint unmöglich zu sein, die Temperatur dieser Systeme auszuschalten oder gar zu ändern.
-8. Heizsysteme, die auf Netatmo basieren, funktionieren schlecht. Netatmo-Zeitpläne geraten in Konflikt mit der _VTherm_-Programmierung. Netatmo-Geräte schalten ständig in den `Auto´-Modus, der mit _VTherm_ schlecht verwaltet wird. In diesem Modus kann _VTherm_ nicht feststellen, ob das System heizt oder kühlt, so dass es unmöglich ist, den richtigen Algorithmus zu wählen. Einige Benutzer haben es geschafft, einen virtuellen Schalter zwischen _VTherm_ und dem zugrundeliegenden System zu verwenden, aber die Stabilität ist nicht garantiert. Ein Beispiel finden Sie im Abschnitt [Störungsbeseitigung](troubleshooting.md).
+- [Einige unverzichtbare Ergänzungen](additions.md): UI-Karte, Zeitplaner, Kurven, Benachrichtigungen.
+- [Plugin-Katalog](https://www.versatile-thermostat.org/de/plugins/): Algorithmen, Karten und Gerätehilfen.
+- [Gerätekatalog](https://www.versatile-thermostat.org/de/devices/): getestete Geräte und ihr Unterstützungsgrad.
 
+## Nächster Schritt
+
+[Installation](installation.md): Versatile Thermostat in Home Assistant installieren.
+
+Für gängige Geräte fasst der [Schnellstart](quick-start.md) die gesamte Konfiguration auf einer Seite zusammen.

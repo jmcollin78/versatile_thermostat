@@ -28,43 +28,11 @@
 
 ## Using a Heatzy
 
-The Heatzy is now natively supported by _VTherm_. See [Quick Start](quick-start.md#heatzy-or-ecosy-or-similar-climate-entity). See also the [Heatzy page](https://www.versatile-thermostat.org/en/devices/heatzy/) in the device catalog.
-
-This configuration is kept for reference only.
-
-Using a Heatzy or Nodon is possible provided you use a virtual switch with this model:
-
-```yaml
-- platform: template
-  switches:
-    chauffage_sdb:
-      unique_id: chauffage_sdb
-      friendly_name: Bathroom heating
-      value_template: "{{ is_state_attr('climate.bathroom', 'preset_mode', 'comfort') }}"
-      icon_template: >-
-        {% if is_state_attr('climate.bathroom', 'preset_mode', 'comfort') %}
-          mdi:radiator
-        {% elif is_state_attr('climate.bathroom', 'preset_mode', 'away') %}
-          mdi:snowflake
-        {% else %}
-          mdi:radiator-disabled
-        {% endif %}
-      turn_on:
-        service: climate.set_preset_mode
-        entity_id: climate.bathroom
-        data:
-          preset_mode: "comfort"
-      turn_off:
-        service: climate.set_preset_mode
-        entity_id: climate.bathroom
-        data:
-          preset_mode: "eco"
-```
-Thanks to @gael for this example.
+The Heatzy integration exposes a `climate` entity whose state is not the active preset. Use it through a virtual switch, as described on the [Heatzy page](https://www.versatile-thermostat.org/en/devices/heatzy/) of the device catalog.
 
 ## Using a radiator with a pilot wire (Nodon SIN-4-FP-21)
 
-The Nodon is now natively supported by _VTherm_. See [Quick Start](quick-start.md#nodon-sin-4-fp-21-or-similar-pilot-wire). See also the [pilot wire modules page](https://www.versatile-thermostat.org/en/devices/pilot-wire-module/) in the device catalog.
+The Nodon is natively supported by an `over_switch` _VTherm_ with custom commands: see the [pilot wire modules page](https://www.versatile-thermostat.org/en/devices/pilot-wire-module/) of the device catalog.
 
 This configuration is kept for reference only.
 

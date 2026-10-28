@@ -27,43 +27,11 @@
 
 ## Utilisation d'un Heatzy
 
-Le Heatzy est maintenant pris en charge nativement par _VTherm_. Cf. [Démarrage rapide](quick-start.md#heatzy-ou-ecosy-ou-assimilé-entité-climate). Voir aussi la [page Heatzy](https://www.versatile-thermostat.org/fr/devices/heatzy/) du catalogue des matériels.
-
-Cette configuration est gardée pour mémoire uniquement.
-
-L'utilisation d'un Heatzy ou Nodon est possible à la condition d'utiliser un switch virtuel sur ce modèle :
-
-```yaml
-- platform: template
-  switches:
-    chauffage_sdb:
-      unique_id: chauffage_sdb
-      friendly_name: Chauffage salle de bain
-      value_template: "{{ is_state_attr('climate.salle_de_bain', 'preset_mode', 'comfort') }}"
-      icon_template: >-
-        {% if is_state_attr('climate.salle_de_bain', 'preset_mode', 'comfort') %}
-          mdi:radiator
-        {% elif is_state_attr('climate.salle_de_bain', 'preset_mode', 'away') %}
-          mdi:snowflake
-        {% else %}
-          mdi:radiator-disabled
-        {% endif %}
-      turn_on:
-        service: climate.set_preset_mode
-        entity_id: climate.salle_de_bain
-        data:
-          preset_mode: "comfort"
-      turn_off:
-        service: climate.set_preset_mode
-        entity_id: climate.salle_de_bain
-        data:
-          preset_mode: "eco"
-```
-Merci à @gael pour cet exemple.
+L'intégration Heatzy expose une entité `climate` dont l'état n'est pas le preset actif. Utilisez-la à travers un interrupteur virtuel, comme décrit sur la [page Heatzy](https://www.versatile-thermostat.org/fr/devices/heatzy/) du catalogue des matériels.
 
 ## Utilisation d'un radiateur avec un fil pilote (Nodon SIN-4-FP-21)
 
-Le Nodon est maintenant pris en charge nativement par _VTherm_. Cf. [Démarrage rapide](quick-start.md#nodon-sin-4-fp-21-ou-assimilé-fil-pilote). Voir aussi la [page des modules fil pilote](https://www.versatile-thermostat.org/fr/devices/pilot-wire-module/) du catalogue des matériels.
+Le Nodon est pris en charge nativement par un _VTherm_ `over_switch` avec des commandes personnalisées : voir la [page des modules fil pilote](https://www.versatile-thermostat.org/fr/devices/pilot-wire-module/) du catalogue des matériels.
 
 Cette configuration est gardée pour mémoire uniquement.
 

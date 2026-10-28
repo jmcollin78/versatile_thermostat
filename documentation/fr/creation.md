@@ -9,6 +9,7 @@
     - [VTherm sur une vanne](#vtherm-sur-une-vanne)
   - [Le bon choix](#le-bon-choix)
   - [Article en référence](#article-en-référence)
+  - [Étape suivante](#étape-suivante)
 
 
 > ![Astuce](images/tips.png) _*Notes*_
@@ -37,6 +38,9 @@ La configuration peut être modifiée via la même interface. Sélectionnez simp
 
 Suivez ensuite les étapes de configuration en sélectionnant dans le menu l'option à configurer.
 
+> ![Astuce](images/tips.png) _*Configuration centrale*_
+> La plupart des pages de configuration (principaux attributs, paramètres TPI, pré-réglages, paramètres avancés...) ont une case « Utiliser la configuration centrale » : cochée, elle reprend ces réglages du _VTherm_ de type « Configuration centrale ». Si une configuration centrale existe, ces cases sont cochées par défaut. Sinon, elles sont décochées, les réglages se saisissent sur chaque _VTherm_, et cocher l'une d'elles provoque une erreur à l'enregistrement de la page. Pour partager des réglages entre plusieurs _VTherm_, créez d'abord la configuration centrale : elle est unique, et proposée dans la liste des types tant qu'elle n'existe pas.
+
 ## Choix d'un type de VTherm
 
 ### Configuration centralisée
@@ -64,13 +68,26 @@ Lorsque tout ce que vous avez à disposition pour réguler la température de vo
 Ce type peut être utilisé pour les _TRV_ qui n'ont pas de `climate` associé ou tout autre solution type DIY qui expose une entité `number`.
 
 ## Le bon choix
-> ![Astuce](images/tips.png) _*Comment choisir le type*_
-> Le choix du type est important. Il n'est plus possible de le modifier via l'IHM de configuration. Pour bien choisir, il faut se poser les quelques questions suivantes :
-> 1. **quel type d'équipement je vais piloter ?** Dans l'ordre voici ce qu'il faut faire (le [catalogue des matériels](https://www.versatile-thermostat.org/fr/devices/) indique le type recommandé pour chaque matériel testé) :
->    1. si vous avez une vanne thermostatique (_TRV_) commandable dans Home Assistant via une entité de type ```number``` (par exemple une _Shelly TRV_), choisissez le type `over_valve`. C'est le type le plus direct et qui assure la meilleure régulation,
->    2. si vous avez un radiateur électrique (avec ou sans fil pilote) et qu'une entité de type ```switch``` permet de l'allumer ou de l'éteindre, alors le type ```over_switch``` est préférable. La régulation sera faite par le Versatile Thermostat en fonction de la température mesuré par votre thermomètre, à l'endroit ou vous l'avez placé,
->    3. dans tous les autres cas, utilisez le mode ```over_climate```. Vous gardez votre entité ```climate``` d'origine et le Versatile Thermostat "ne fait que" piloter le on/off et la température cible de votre thermostat d'origine. La régulation est faite par votre thermostat d'origine dans ce cas. Ce mode est particulièrement adapté aux climatisations réversible tout-en-un dont l'exposition dans Home Assistant se limite à une entité de type ```climate```. Une auto-régulation avancée permet d'atteindre la consigne en forçant la consigne ou un pilotant directement la vanne lorsque c'est possible.
-> 2. **quelle type de régulation je veux ?** Si l'équipement piloté possède son propre mécanisme de régulation (clim, certaine vanne TRV) et que cette régulation fonctionne bien, optez pour un ```over_climate```. Si l'équipement est de type _TRV_ avec une vanne pilotable sous HA, alors le type `over_climate` avec une auto-régulation `Contrôle direct de la vanne` est le meilleur choix.
+
+Le type ne peut plus être modifié après la création du _VTherm_ : choisissez-le d'après l'équipement piloté et la façon dont il apparaît dans Home Assistant.
+
+| Équipement | Entité dans Home Assistant | Type de _VTherm_ | Régulation |
+|---|---|---|---|
+| Radiateur électrique commandé par un interrupteur | `switch`, `input_boolean` | [`over_switch`](over-switch.md) | par _VTherm_ : TPI ou algorithme en plugin (SmartPI...) |
+| Radiateur électrique avec fil pilote | `select`, `input_select` ou `climate`, avec des [commandes personnalisées](over-switch.md#la-personnalisation-des-commandes) | [`over_switch`](over-switch.md) | par _VTherm_ : TPI ou algorithme en plugin |
+| Poêle à granulés | `switch` | [`over_switch`](over-switch.md) avec le plugin [VTherm Pellet stove](https://www.versatile-thermostat.org/fr/plugins/#jmcollin78/vtherm_pellet_stove) | par le plugin |
+| Pompe à chaleur, climatisation, système HVAC | `climate` | [`over_climate`](over-climate.md) | par l'équipement, corrigée si besoin par l'[auto-régulation](self-regulation.md) |
+| Vanne thermostatique (TRV) dont l'ouverture est pilotable | `climate` et `number` d'ouverture | [`over_climate`](over-climate.md) avec [contrôle direct de la vanne](self-regulation.md#auto-régulation-par-contrôle-direct-de-la-vanne) | par _VTherm_ : TPI ou algorithme en plugin |
+| Vanne thermostatique simple | `climate` | [`over_climate`](over-climate.md) | par la vanne, corrigée si besoin par l'[auto-régulation](self-regulation.md) |
+| Vanne seule, sans entité `climate` | `number`, `input_number` | [`over_valve`](over-valve.md) | par _VTherm_ : TPI ou algorithme en plugin |
+
+Le [catalogue des matériels](https://www.versatile-thermostat.org/fr/devices/) indique le type recommandé pour chaque matériel testé.
+
+Quand plusieurs types conviennent, choisissez selon la régulation souhaitée. Si l'équipement régule bien lui-même (climatisation, certaines vannes), `over_climate` conserve sa régulation. Si _VTherm_ doit réguler à partir de votre thermomètre, placé là où vous vivez, préférez `over_switch`, `over_valve` ou `over_climate` avec contrôle direct de la vanne.
 
 ## Article en référence
 Un article permettant d'aller plus loin sur les concepts est visible ici (en Français) : https://www.hacf.fr/optimisation-versatile-thermostat/#optimiser-vos-vtherm
+
+## Étape suivante
+
+[Choix des attributs de base](base-attributes.md) : donner un nom au _VTherm_, choisir ses capteurs de température et les fonctions à activer (menus « Principaux Attributs » et « Fonctions »).

@@ -1,128 +1,47 @@
 # Quick Start
 
-This page outlines the steps to quickly set up a basic yet operational _VTherm_. It is structured by equipment type. The full list of tested devices, with their support level, is available in the [device catalog](https://www.versatile-thermostat.org/en/devices/). This catalog is not exhaustive: a device that is not listed is not necessarily incompatible.
+This page sums up the steps to get a working _VTherm_, whatever the controlled equipment. Each step links to the page that details it. For a tutorial by heating type (pilot wire, thermostatic valve, heat pump, pellet stove), see the [quick start guides of the website](https://www.versatile-thermostat.org/en/quick-start/). For the settings specific to a device, see its page in the [device catalog](https://www.versatile-thermostat.org/en/devices/).
 
 - [Quick Start](#quick-start)
-  - [Nodon SIN-4-FP-21 or similar (pilot wire)](#nodon-sin-4-fp-21-or-similar-pilot-wire)
-  - [Heatzy, eCosy, or similar (`climate` entity)](#heatzy-ecosy-or-similar-climate-entity)
-  - [Simple switch such as Aqara T1, Nous B2Z, Sonoff ZBMini, Sonoff POW, ...](#simple-switch-such-as-aqara-t1-nous-b2z-sonoff-zbmini-sonoff-pow-)
-  - [Sonoff TRVZB or similar (TRV with valve control)](#sonoff-trvzb-or-similar-trv-with-valve-control)
-  - [Simple TRV such as Avatto TRV06, Moes, Tuya... (TRV without valve control)](#simple-trv-such-as-avatto-trv06-moes-tuya-trv-without-valve-control)
-  - [Reversible HP Units, Air Conditioning, or Devices Controlled via a `climate` Entity](#reversible-hp-units-air-conditioning-or-devices-controlled-via-a-climate-entity)
-  - [Next Steps](#next-steps)
-  - [Call for Contributions](#call-for-contributions)
+  - [Before You Start](#before-you-start)
+  - [Create the VTherm](#create-the-vtherm)
+  - [Set Up and Check](#set-up-and-check)
+  - [Next Step](#next-step)
 
-## Nodon SIN-4-FP-21 or similar (pilot wire)
+## Before You Start
 
-This module allows controlling a radiator via a pilot wire. It appears in _HA_ as a `select` entity that lets you choose the heating preset to apply. See also the [pilot wire modules](https://www.versatile-thermostat.org/en/devices/pilot-wire-module/) page in the device catalog.
+- Versatile Thermostat is installed (see [Installation](installation.md)).
+- The equipment to control is available in Home Assistant, as well as a room temperature sensor and an outdoor temperature sensor.
+- You know which entity the equipment exposes (`climate`, `switch`, `select` or `number`): it determines the _VTherm_ type (see [Making the right choice](creation.md#making-the-right-choice)).
 
-_VTherm_ will regulate the temperature by periodically changing the preset via customized commands until the setpoint is reached.
+## Create the VTherm
 
-Be careful, there may be some confusion, as the different modes of _VTherm_ (frost protection, eco, comfort, etc.) do not directly match the modes of the same name on the radiator controlled by a pilot wire. _VTherm_ with a standard configuration will only use two of the modes available via pilot wire, one for “heating more” (usually comfort mode) and one for “heating less” (usually frost protection mode), with the commands indicated in step 4 below. Alternating between these commands will allow _VTherm_ to stabilize the actual temperature at the temperature defined in its settings, depending on the selected mode.
+1. **Add the integration** Versatile Thermostat from the integrations page and choose the _VTherm_ type that fits the equipment (see [Choosing a VTherm](creation.md)). The central configuration is optional: without it, leave the "Use central configuration" boxes unchecked.
+2. **Main attributes**: give the _VTherm_ a name and choose the room temperature sensor, then the outdoor temperature sensor. Keep the default cycle duration (see [Choosing Basic Attributes](base-attributes.md)).
+3. **Features**: do not enable any for now. You will add them once the _VTherm_ works.
+4. **Underlyings**: select the entity of the equipment. The settings depend on the type:
+   - [`over_climate`](over-climate.md): keep self-regulation disabled to start with. If the valve opening of a TRV can be controlled, choose [direct valve control](self-regulation.md#self-regulation-by-direct-valve-control) instead.
+   - [`over_switch`](over-switch.md): a `switch` is enough. For a pilot wire module (`select`) or a `climate` entity, fill in the [custom commands](over-switch.md#command-customization).
+   - [`over_valve`](over-valve.md): select the `number` entity of the valve.
 
-For this to work, the preset used for heating control must be higher than the maximum temperature you will need (24°C is a good value).
+   The settings specific to a device (entities to use, commands, known pitfalls) are on its page in the [device catalog](https://www.versatile-thermostat.org/en/devices/).
+5. **TPI parameters**, if this menu is offered: keep the default values (see [the TPI coefficients](algorithms.md#configuring-the-tpi-algorithm-coefficients)).
+6. **Presets**: validate the menu (see [Presets](feature-presets.md)).
+7. **Advanced parameters**: keep the default values of the safety mode (see [Safety Parameters](feature-advanced.md#safety-parameters)).
+8. **All done**: the _VTherm_ is created.
 
-To integrate it into _VTherm_, you must:
-1. Create a _VTherm_ of type `over_switch`. See [creating a _VTherm_](creation.md),
-2. Assign it the main attributes (name, room temperature sensor, and outdoor temperature sensor at a minimum). See [main attributes](base-attributes.md),
-3. Assign one or more underlying devices to control. The underlying device here is the `select` entity that controls the Nodon. See [underlying devices](over-switch.md),
-4. Provide custom on/off commands (mandatory for the Nodon). See [command customization](over-switch.md#command-customization). The custom commands follow the format `select_option/option:<preset>` as indicated in the link.
+## Set Up and Check
 
-After completing these four steps, you will have a fully functional _VTherm_ that controls your Nodon or similar device.
+1. Set the temperature of each preset with the entities of the _VTherm_ (see [Presets](feature-presets.md)).
+2. Put the _VTherm_ in Heat mode and choose the Comfort preset, with a setpoint above the room temperature.
+3. Check that the equipment reacts: the device receives the setpoint, the radiator turns on or the valve opens.
 
-## Heatzy, eCosy, or similar (`climate` entity)
+If nothing happens, see [Troubleshooting](troubleshooting.md), then [download the logs](feature-logs-collector.md) and open them in the [log analyzer](https://www.versatile-thermostat.org/en/debugger/) of the website.
 
-This module allows controlling a radiator that appears in _HA_ as a `climate` entity, enabling you to choose the heating preset or mode (Heat / Cool / Off). See also the [Heatzy](https://www.versatile-thermostat.org/en/devices/heatzy/) page in the device catalog.
+## Next Step
 
-_VTherm_ will regulate the temperature by turning the device on/off via customized commands at regular intervals until the setpoint is reached.
+Once this basic _VTherm_ works:
 
-To integrate it into _VTherm_, you must:
-1. Create a _VTherm_ of type `over_switch`. See [creating a _VTherm_](creation.md),
-2. Assign it the main attributes (name, room temperature sensor, and outdoor temperature sensor at a minimum). See [main attributes](base-attributes.md),
-3. Assign one or more underlying devices to control. The underlying device here is the `climate` entity that controls the Heatzy or eCosy. See [underlying devices](over-switch.md),
-4. Provide custom on/off commands (mandatory). See [command customization](over-switch.md#command-customization). The custom commands follow the format `set_hvac_mode/hvac_mode:<mode>` or `set_preset_mode/preset_mode:<preset>` as indicated in the link.
-
-After completing these four steps, you will have a fully functional _VTherm_ that controls your Heatzy, eCosy, or similar device.
-
-## Simple switch such as Aqara T1, Nous B2Z, Sonoff ZBMini, Sonoff POW, ...
-
-This module allows controlling a radiator via a simple switch. It appears in _HA_ as a `switch` entity that directly turns the radiator on or off. See also the [switches](https://www.versatile-thermostat.org/en/devices/over-switch/) page in the device catalog.
-
-_VTherm_ will regulate the temperature by periodically turning the `switch` on and off until the setpoint is reached.
-
-To integrate it into _VTherm_, you must:
-1. Create a _VTherm_ of type `over_switch`. See [creating a _VTherm_](creation.md),
-2. Assign it the main attributes (name, room temperature sensor, and outdoor temperature sensor at a minimum). See [main attributes](base-attributes.md),
-3. Assign one or more underlying devices to control. The underlying device here is the `switch` entity that controls the switch. See [underlying devices](over-switch.md).
-
-After completing these three steps, you will have a fully functional _VTherm_ that controls your `switch` or similar device.
-
-## Sonoff TRVZB or similar (TRV with valve control)
-
-This type of _TRV_ device controls the opening of a valve that allows more or less hot water from a boiler or heat pump to flow. It appears in _HA_ as a `climate` entity along with `number` entities that control the valve. These `number` entities may be hidden and need to be explicitly added in some cases. See also the [Sonoff TRVZB](https://www.versatile-thermostat.org/en/devices/sonoff-trvzb/) page in the device catalog. A [blueprint](https://www.versatile-thermostat.org/en/plugins/#sonoff-trvzb-linearity) is also available to compensate for the non-linearity of the TRVZB valve.
-
-_VTherm_ will adjust the valve opening degree until the setpoint temperature is reached.
-
-To integrate it into _VTherm_, you must:
-1. Create a _VTherm_ of type `over_climate`. See [creating a _VTherm_](creation.md),
-2. Assign it the main attributes (name, room temperature sensor, and outdoor temperature sensor at a minimum). See [main attributes](base-attributes.md),
-3. Assign one or more underlying devices to control. The underlying device here is the `climate` entity that controls the TRV. See [underlying devices](over-climate.md),
-4. Specify the regulation type as `Direct valve control` only. Leave the option `Compensate for underlying temperature` unchecked. See [auto-regulation](over-climate.md#auto-regulation),
-5. Provide the `number` entities named `opening_degree`, `closing_degree` and `calibration_offset`. See [underlying devices](over-switch.md).
-
-For this to work, the `closing degree` must be set to the maximum (100%). Do not immediately enable the `Follow underlying temperature change` option until you have verified that this basic configuration is working properly.
-
-After completing these five steps, you will have a fully functional _VTherm_ that controls your Sonoff TRVZB or similar device.
-
-## Simple TRV such as Avatto TRV06, Moes, Tuya... (TRV without valve control)
-
-This type of _TRV_ (typically Zigbee devices integrated through Zigbee2MQTT or ZHA) appears in _HA_ only as a `climate` entity. The valve opening cannot be controlled: the TRV regulates itself from its internal thermometer and the setpoint it receives. See also the [TRVs without valve control](https://www.versatile-thermostat.org/en/devices/trv-no-valve/) page in the device catalog.
-
-_VTherm_ will adjust the setpoint sent to the TRV so that the room temperature measured by your own sensor reaches the desired temperature.
-
-To integrate it into _VTherm_, you must:
-1. Create a _VTherm_ of type `over_climate`. See [creating a _VTherm_](creation.md),
-2. Assign it the main attributes (name, room temperature sensor, and outdoor temperature sensor at a minimum). See [main attributes](base-attributes.md),
-3. Assign one or more underlying devices to control. The underlying device here is the `climate` entity of the TRV. See [underlying devices](over-climate.md),
-4. Enable self-regulation: start with `Light` or `Medium` and keep the default values for the regulation threshold and the minimum regulation period. See [self-regulation](self-regulation.md). Leave the option `Use internal temperature of the underlying` unchecked, unless the internal thermometer of your TRV is very inaccurate (it is a last resort, see [compensating for the internal temperature](over-climate.md#compensating-for-the-internal-temperature-of-the-underlying-equipment)),
-5. If your TRV exposes a `number` entity such as `local_temperature_calibration`, enable the internal device temperature synchronization with calibration (mode 1). If it exposes an `external_temperature_input` entity, you can use mode 2 instead. See [internal temperature synchronization](feature-sync_device_temp.md).
-
-Some built-in features of the TRV conflict with _VTherm_. They are device settings that _VTherm_ does not manage, so check them directly on the device (or in Zigbee2MQTT / ZHA):
-- Disable the internal weekly schedule and do not use the `auto` system mode. Keep the TRV in `heat` mode: _VTherm_ handles schedules through [presets](feature-presets.md),
-- Disable the open window detection of the TRV. Use the [_VTherm_ window detection](feature-window.md) instead,
-- Do not use the internal presets of the TRV (eco, comfort, boost, holiday...). _VTherm_ sends the setpoint directly,
-- Optionally, enable the child lock to avoid manual changes on the device.
-
-> ![Tip](images/tips.png) _*Notes*_
-> - The [auto-start/stop](feature-auto-start-stop.md) function is designed for appliances that consume power when idle, such as heat pumps. It is generally of little use with a battery-powered TRV.
-> - Do not immediately enable the `Follow underlying temperature change` option until you have verified that this basic configuration is working properly. See [follow underlying temperature changes](over-climate.md#follow-underlying-temperature-changes).
-
-After completing these five steps and checking the TRV settings, you will have a fully functional _VTherm_ that controls your simple TRV.
-
-## Reversible HP Units, Air Conditioning, or Devices Controlled via a `climate` Entity
-
-Reversible heat pumps (HP) or similar devices are represented in _HA_ as a `climate` entity, allowing you to select the heating preset or mode (Heat / Cool / Off).) The devices controlled through a `climate` entity are listed in the [device catalog](https://www.versatile-thermostat.org/en/devices/?type=climate).
-
-_VTherm_ will regulate the temperature by controlling the target temperature and mode of the device through commands sent to the underlying `climate` entity.
-
-To integrate it into _VTherm_, you need to:
-1. Create a _VTherm_ of type `over_climate`. See [creating a _VTherm_](creation.md),
-2. Assign it the main attributes (name, room temperature sensor, and outdoor temperature sensor at minimum). See [main attributes](base-attributes.md),
-3. Define one or more underlying devices to control. The underlying entity here is the `climate` entity that manages the heat pump or air conditioner. See [underlying devices](over-climate.md),
-
-After these three steps, you will have a fully operational _VTherm_ to control your heat pump, air conditioner, or similar device.
-
-To go further, self-regulation may be necessary depending on how well your device operates. Self-regulation involves _VTherm_ slightly adjusting the target temperature to encourage the device to heat or cool more or less until the desired setpoint is reached. Self-regulation is explained in detail here: [self-regulation](self-regulation.md).
-
-## Next Steps
-
-Once created, you need to configure the preset temperatures. See [presets](feature-presets.md) for a minimal configuration.
-You can also (optional but recommended) install the dedicated UI card for your dashboards. (See [VTHerm UI Card](https://www.versatile-thermostat.org/en/plugins/#jmcollin78/versatile-thermostat-ui-card)) Other cards are listed in the [plugins catalog](https://www.versatile-thermostat.org/en/plugins/?family=interface).
-
-Once this minimal setup is functional—and only once it works correctly—you can add additional features such as presence detection to avoid heating when no one is present. Add them one by one, verifying that _VTherm_ reacts correctly at each step before proceeding to the next.
-
-You can then set up centralized configurations to share settings across all _VTherm_ instances, enable central mode for unified control of all _VTherms_ ([centralized configuration](feature-central-mode.md)), or integrate a central boiler control ([central boiler](feature-central-boiler.md)). This is not an exhaustive list—please refer to the table of contents for a complete list of _VTherm_ features.
-
-## Call for Contributions
-
-This page is open for contributions. Feel free to suggest additional equipment and minimal configuration setups.
+- install the UI card and a scheduler, presented in [Some Essential Add-Ons](additions.md),
+- enable the useful [features](base-attributes.md#choosing-the-features-to-use) one at a time, checking each time that the _VTherm_ reacts correctly: [automatic start/stop](feature-auto-start-stop.md), [window detection](feature-window.md), [presence management](feature-presence.md)...
+- then, if needed: [central configuration](creation.md#centralized-configuration), [centralized control](feature-central-mode.md), [central boiler](feature-central-boiler.md), [self-regulation tuning](self-regulation.md) and [tuning examples](tuning-examples.md).
