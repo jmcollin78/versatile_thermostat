@@ -30,7 +30,7 @@ Die Installation sollte etwa so aussehen::
 ## Konfiguration
 
 Konfigurieren Sie zunächst die Haupteinstellungen, die für alle _VTherms_ gelten (siehe [Haupteinstellungen](base-attributes.md)).
-Klicken Sie dann im Menü auf die Option "Zugeordnete Entities", um diese Konfigurationsseite anzuzeigen:
+Klicken Sie dann im Menü auf die Option „Basiswerte“, um diese Konfigurationsseite anzuzeigen:
 
 ![image](images/config-linked-entity2.png)
 
@@ -123,4 +123,4 @@ Deshalb ist es besser, sie nicht zu verwenden. Es führt zu viel Verwirrung und 
 ## Nächster Schritt
 
 - Mit Selbstregulierung durch direkte Ventilsteuerung: die [Ventilregelung](self-regulation.md#selbstregulierung-bei-direkter-ventilkontrolle) konfigurieren, dann die [TPI-Koeffizienten](algorithms.md#konfigurieren-der-tpi-algorithmusfaktoren).
-- Ohne direkte Ventilsteuerung: bei Bedarf die [Selbstregulierung](self-regulation.md#andere-selbsregulierung) einstellen, dann zu den [Voreinstellungen](feature-presets.md) wechseln, um die Solltemperaturen festzulegen (Menü „Temperaturvoreinstellungen“).
+- Ohne direkte Ventilsteuerung: bei Bedarf die [Selbstregulierung](self-regulation.md#andere-selbsregulierung) einstellen, dann zu den [Voreinstellungen](feature-presets.md) wechseln (Menü „Temperaturvoreinstellungen“).

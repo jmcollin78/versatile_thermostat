@@ -36,6 +36,9 @@ Die Konfiguration kann über die gleiche Schnittstelle geändert werden. Wählen
 
 Folgen Sie den Konfigurationsschritten, indem Sie die zu konfigurierende Menüoption auswählen.
 
+> ![Tip](images/tips.png) _*Zentrale Konfiguration*_
+> Die meisten Konfigurationsseiten (wichtigste Eigenschaften, TPI-Parameter, Temperaturvoreinstellungen, erweiterte Einstellungen...) haben ein Kästchen „Zentrale Konfiguration verwenden“: Ist es aktiviert, stammen diese Einstellungen aus dem _VTherm_ vom Typ „Zentrale Konfiguration“. Existiert eine zentrale Konfiguration, sind diese Kästchen standardmäßig aktiviert. Andernfalls sind sie deaktiviert, die Einstellungen werden in jedem _VTherm_ eingegeben, und das Aktivieren eines dieser Kästchen führt beim Speichern der Seite zu einem Fehler. Um Einstellungen zwischen mehreren _VTherm_ zu teilen, erstellen Sie zuerst die zentrale Konfiguration: Sie ist eindeutig und wird in der Typenliste angeboten, solange sie nicht existiert.
+
 ## Auswahl eines VTherm-Typs
 
 ### Zentrale Konfiguration

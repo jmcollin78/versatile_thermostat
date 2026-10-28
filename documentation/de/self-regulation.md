@@ -42,7 +42,7 @@ Sie müssen folgendes angeben:
 5. `minimum_opening_degrees`: der minimale Öffnungsgrad, wenn der `opening_threshold` überschritten wird und der VTherm heizen muss. Dieses Feld ist pro Ventil anpassbar bei einem VTherm mit mehreren Ventilen. Sie geben die Liste der minimalen Öffnungen durch ',' getrennt an. Der Standardwert ist 0. Beispiel: '20, 25, 30'. Wenn das Heizen beginnt (d.h. die angeforderte Öffnung größer als `opening_threshold` ist), öffnet sich das Ventil mit einem Wert größer oder gleich diesem und wird bei Bedarf regelmäßig weiter erhöht.
 6. `max_opening_degrees`: der maximale Öffnungsgrad, den das Ventil erreichen kann. Dieses Feld ist pro Ventil anpassbar bei einem VTherm mit mehreren Ventilen. Sie geben die Liste der maximalen Öffnungen durch ',' getrennt an. Der Standardwert ist 100 (volle Öffnung). Beispiel: '80, 85, 90'. Das Ventil wird niemals über diesen Wert hinaus öffnen, wodurch Sie den Heißwasserdurchfluss begrenzen und den Energieverbrauch optimieren können. Dieser Wert muss für jedes Ventil streng größer als `minimum_opening_degrees` sein.
 
-Der Algorithmus zur Berechnung der Öffnungsrate basiert auf _TPI_, der beschrieben ist [hier](algorithms.md). Es ist derselbe Algorithmus, der für _VTherm_ `over_switch` und `over_valve` verwendet wird.
+Die Öffnungsrate wird von dem Algorithmus berechnet, der im Feld „Algorithmus“ dieser Seite gewählt ist: dem integrierten _TPI_, demselben wie für _VTherm_ `over_switch` und `over_valve`, oder einem als Plugin installierten Algorithmus. Siehe [Algorithmen](algorithms.md).
 
 Wenn eine Ventilschließrate konfiguriert ist, wird sie auf `100 - Öffnungsrate` gesetzt, um das Ventil in einen bestimmten Zustand zu zwingen, andernfalls wird sie auf 100 gesetzt.
 
@@ -209,4 +209,4 @@ Eine Zusammenfassung des Algorithmus zur Autoregulierung wird [hier](algorithms.
 ## Nächster Schritt
 
 - Mit direkter Ventilsteuerung: [die TPI-Koeffizienten](algorithms.md#konfigurieren-der-tpi-algorithmusfaktoren) (Menü „TPI-Parameter“).
-- In allen anderen Fällen: [Voreinstellungen](feature-presets.md), um die Solltemperaturen festzulegen (Menü „Temperaturvoreinstellungen“).
+- In allen anderen Fällen: [Voreinstellungen](feature-presets.md) (Menü „Temperaturvoreinstellungen“).

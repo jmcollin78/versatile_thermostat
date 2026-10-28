@@ -67,9 +67,11 @@ Un défi particulier vient des capteurs à pile qui n'envoient leurs données qu
 
 Pour configurer les paramètres avancés de sécurité :
 
-1. Ouvrez la configuration de votre _VTherm_
-2. Accédez aux paramètres de configuration générale
-3. Déroulez jusqu'à la section "Configuration avancée"
+1. Ouvrez la configuration de votre _VTherm_,
+2. Choisissez le menu « Paramètres avancés »,
+3. Avec une configuration centrale, la case « Utiliser la configuration centrale avancée » est cochée et les valeurs centrales s'appliquent : décochez-la pour saisir des valeurs propres à ce _VTherm_.
+
+Sans configuration centrale, la case est décochée et ces paramètres sont nécessaires pour finaliser la création du _VTherm_.
 
 Le formulaire de configuration avancée est le suivant :
 
@@ -200,10 +202,9 @@ Cette fonctionnalité est particulièrement utile pour :
 
 Cette fonctionnalité se configure dans l'interface de configuration du _VTherm_ :
 
-1. Ouvrez la configuration de votre _VTherm_
-2. Accédez aux paramètres de configuration générale
-3. Déroulez jusqu'à la section "Configuration avancée"
-4. Activez l'option **"Reparer l'état incorrect des équipements"**
+1. Ouvrez la configuration de votre _VTherm_,
+2. Choisissez le menu « Paramètres avancés » et décochez « Utiliser la configuration centrale avancée » (ou activez l'option dans la configuration centrale),
+3. Activez l'option **"Reparer l'état incorrect des équipements"**
 
 ### Paramètres
 

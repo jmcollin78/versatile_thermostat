@@ -15,6 +15,8 @@ Wenn der AC-Modus verwendet wird, können Sie auch die Temperaturen einstellen, 
 
 **Keine** ist immer der Modusliste hinzugefügt, da dies eine Möglichkeit ist, keine Voreinstellungen zu verwenden und stattdessen eine **manuelle Temperatur** einzustellen.
 
+In der Konfiguration des _VTherm_ enthält das Menü „Temperaturvoreinstellungen“ nur das Kästchen „Zentralen Temperaturvoreinstellungen verwenden“, das standardmäßig aktiviert ist, wenn eine zentrale Konfiguration existiert. Aktivieren Sie es, um die Temperaturen der zentralen Konfiguration zu verwenden, oder deaktivieren Sie es, um diesem _VTherm_ eigene Temperaturen zu geben.
+
 Die Voreinstellungen werden direkt von den _VTherm_-Entities oder der zentralen Konfiguration übernommen, wenn Sie eine zentralisierte Steuerung verwenden. Nach der Erstellung des _VTherm_ haben Sie verschiedene Entities, mit denen Sie die Temperaturen für jede Voreinstellung einstellen können:
 
 ![Voreinstellungen](images/config-preset-temp.png).
@@ -32,6 +34,6 @@ Die Liste der Entities variiert je nach der von Ihnen gewählten Funktion:
 
 ## Nächster Schritt
 
-[Erweiterte Konfiguration](feature-advanced.md#sicherheitsparameter): die Parameter des Sicherheitsmodus prüfen (Menü „Erweiterte Einstellungen“). Sie sind erforderlich, um die Erstellung abzuschließen, außer Sie verwenden die zentrale Konfiguration.
+[Erweiterte Konfiguration](feature-advanced.md#sicherheitsparameter): die Parameter des Sicherheitsmodus prüfen (Menü „Erweiterte Einstellungen“). Ohne zentrale Konfiguration sind sie erforderlich, um die Erstellung abzuschließen.
 
 Wenn Sie in den [grundlegenden Attributen](base-attributes.md#auswahl-der-zu-verwendenden-eigenschaften) weitere Funktionen aktiviert haben, konfigurieren Sie diese ebenfalls: [Fenstererkennung](feature-window.md), [Bewegungserkennung](feature-motion.md), [Energieverwaltung](feature-power.md), [Anwesenheitsverwaltung](feature-presence.md) oder [Auto-Start / Auto-Stopp](feature-auto-start-stop.md).

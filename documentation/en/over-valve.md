@@ -24,11 +24,17 @@ The installation should be similar to the `over_switch` VTherm setup, except tha
 ## Configuration
 
 First, configure the main settings common to all _VTherms_ (see [main settings](base-attributes.md)).
-Then, click on the "Underlying Entities" option from the menu, and you will see this configuration page, you should add the `number` entities that will be controlled by VTherm. Only `number` or `input_number` entities are accepted.
+Then, click on the "Underlyings" option from the menu, and you will see this configuration page, you should add the `number` entities that will be controlled by VTherm. Only `number` or `input_number` entities are accepted.
 
 ![image](images/config-linked-entity3.png)
 
-The algorithm currently available is TPI. See [algorithm](#algorithm).
+The "Algorithm" field selects the regulation algorithm: the built-in TPI, or an algorithm installed as a plugin. See [algorithms](algorithms.md).
+
+### Regulation Threshold and Period
+
+Two fields limit the number of commands sent to the valve:
+1. **Regulation threshold** (default `10`): minimum change of the opening, in %, below which a new opening is not sent,
+2. **Regulation minimum period** (default `5` minutes): minimum time between two calculations of the opening.
 
 ### Valve opening control
 
@@ -73,6 +79,6 @@ does not request central boiler heating; `is_sleeping` identifies this state.
 
 ## Next Step
 
-[The TPI coefficients](algorithms.md#configuring-the-tpi-algorithm-coefficients): tune the regulation algorithm ("TPI parameters" menu).
+[The TPI coefficients](algorithms.md#configuring-the-tpi-algorithm-coefficients): tune the regulation algorithm ("TPI parameters" menu). Without a central configuration, this step is required to finalize the creation.
 
 If you use an algorithm provided by a plugin, such as SmartPI, follow its documentation, then go directly to the [presets](feature-presets.md).

@@ -31,7 +31,7 @@ The installation should look like this:
 ## Configuration
 
 First, configure the main settings common to all _VTherms_ (see [main settings](base-attributes.md)).
-Then, click on the "Underlying Entities" option from the menu, and you will see this configuration page:
+Then, click on the "Underlyings" option from the menu, and you will see this configuration page:
 
 ![image](images/config-linked-entity.png)
 
@@ -41,7 +41,7 @@ In the "list of devices to control," you add the switches that will be controlle
 
 If one of the underlying devices is not a `switch`, then command customization is mandatory. By default, for `switch` entities, the commands are the standard switch on/off commands (`turn_on`, `turn_off`).
 
-The algorithm currently available is TPI. See [algorithm](#algorithm).
+The "Algorithm" field selects the regulation algorithm: the built-in TPI, or an algorithm installed as a plugin. See [algorithms](algorithms.md).
 If multiple entities are configured, the thermostat staggers the activations to minimize the number of switches on at any given time. This allows for better power distribution, as each radiator will turn on in turn.
 
 VTherm will smooth the consumed power as much as possible by alternating activations. Example of staggered activations:
@@ -101,6 +101,6 @@ This means that one of the entered commands is invalid. The following rules must
 
 ## Next Step
 
-[The TPI coefficients](algorithms.md#configuring-the-tpi-algorithm-coefficients): tune the regulation algorithm ("TPI parameters" menu).
+[The TPI coefficients](algorithms.md#configuring-the-tpi-algorithm-coefficients): tune the regulation algorithm ("TPI parameters" menu). Without a central configuration, this step is required to finalize the creation.
 
 If you use an algorithm provided by a plugin, such as SmartPI, follow its documentation, then go directly to the [presets](feature-presets.md).

@@ -24,7 +24,7 @@ TPI ist nur für _VTherm_ anwendbar, welche die Regelung selbst durchführen. Di
 
 ### Konfigurieren der TPI-Algorithmusfaktoren
 
-Wenn das _Vtherm_ über ein TPI verfügt und im Menü die Option "TPI" ausgewählt wird, gelangt man auf diese Seite:
+Wenn Ihr _VTherm_ den TPI-Algorithmus verwendet, wählen Sie im Menü die Option „TPI-Parameter“. Eine erste Seite fragt, ob die zentrale TPI-Konfiguration verwendet werden soll („Zentrale TPI-Konfiguration verwenden“, standardmäßig aktiviert, wenn eine zentrale Konfiguration existiert). Ohne zentrale Konfiguration ist das Kästchen deaktiviert, und diese Werte sind erforderlich, um die Erstellung abzuschließen. Deaktivieren Sie das Kästchen, um eigene Werte für dieses _VTherm_ einzugeben; Sie gelangen dann auf diese Seite:
 
 ![image](images/config-tpi.png)
 
@@ -32,12 +32,13 @@ Wenn das _Vtherm_ über ein TPI verfügt und im Menü die Option "TPI" ausgewäh
 
 | Parameter | Beschreibung | Attributname |
 |-----------|--------------|--------------|
-| **Interner Koeffizient** | Der `coef_int`-Faktor des TPI-Algorithmus. | `tpi_coef_int` |
-| **Externer Koeffizient** | Der `coef_ext`-Faktor des TPI-Algorithmus. | `tpi_coef_ext` |
-| **Aktivierungsverzögerung** | Minimale Aktivierungszeit in Sekunden. | `minimal_activation_delay` |
-| **Deaktivierungsverzögerung** | Minimale Deaktivierungszeit in Sekunden. | `minimal_deactivation_delay` |
-| **Hoher Schwellenwert** | Temperaturabweichung (°C oder K), bei deren Überschreitung der Algorithmus deaktiviert wird. | `tpi_threshold_high` |
-| **Niedriger Schwellenwert** | Temperaturabweichung (°C oder K), bei deren Unterschreitung der Algorithmus wieder aktiviert wird. | `tpi_threshold_low` |
+| **Interner Koeffizient** | Der `coef_int`-Faktor des TPI-Algorithmus. Standard: `0.6`. | `tpi_coef_int` |
+| **Externer Koeffizient** | Der `coef_ext`-Faktor des TPI-Algorithmus. Standard: `0.01`. | `tpi_coef_ext` |
+| **Aktivierungsverzögerung** | Minimale Aktivierungszeit in Sekunden. Standard: `10`. | `minimal_activation_delay` |
+| **Deaktivierungsverzögerung** | Minimale Deaktivierungszeit in Sekunden. Standard: `0`. | `minimal_deactivation_delay` |
+| **Hoher Schwellenwert** | Temperaturabweichung (°C oder K), bei deren Überschreitung der Algorithmus deaktiviert wird. Standard: `0` (deaktiviert). | `tpi_threshold_high` |
+| **Niedriger Schwellenwert** | Temperaturabweichung (°C oder K), bei deren Unterschreitung der Algorithmus wieder aktiviert wird. Standard: `0` (deaktiviert). | `tpi_threshold_low` |
+| **Auto-TPI-Lernen aktivieren** | Lernt die TPI-Koeffizienten automatisch. Siehe [Auto TPI](feature-autotpi.md). | `auto_tpi_mode` |
 
 ### Prinzip
 
@@ -132,4 +133,4 @@ Details zur Function gibt es [hier](https://github.com/jmcollin78/versatile_ther
 
 ## Nächster Schritt
 
-[Voreinstellungen](feature-presets.md): die Solltemperatur jeder Voreinstellung festlegen (Menü „Temperaturvoreinstellungen“).
+[Voreinstellungen](feature-presets.md): im Menü „Temperaturvoreinstellungen“ wählen, ob die Voreinstellungen der zentralen Konfiguration verwendet werden; die Temperaturen werden anschließend über die Entities des _VTherm_ eingestellt.

@@ -38,6 +38,9 @@ La configuration peut être modifiée via la même interface. Sélectionnez simp
 
 Suivez ensuite les étapes de configuration en sélectionnant dans le menu l'option à configurer.
 
+> ![Astuce](images/tips.png) _*Configuration centrale*_
+> La plupart des pages de configuration (principaux attributs, paramètres TPI, pré-réglages, paramètres avancés...) ont une case « Utiliser la configuration centrale » : cochée, elle reprend ces réglages du _VTherm_ de type « Configuration centrale ». Si une configuration centrale existe, ces cases sont cochées par défaut. Sinon, elles sont décochées, les réglages se saisissent sur chaque _VTherm_, et cocher l'une d'elles provoque une erreur à l'enregistrement de la page. Pour partager des réglages entre plusieurs _VTherm_, créez d'abord la configuration centrale : elle est unique, et proposée dans la liste des types tant qu'elle n'existe pas.
+
 ## Choix d'un type de VTherm
 
 ### Configuration centralisée

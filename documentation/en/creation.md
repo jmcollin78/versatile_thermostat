@@ -36,6 +36,9 @@ The configuration can be modified via the same interface. Simply select the ther
 
 Follow the configuration steps by selecting the menu option to configure.
 
+> ![Tip](images/tips.png) _*Central configuration*_
+> Most configuration pages (main attributes, TPI parameters, presets, advanced parameters...) have a "Use central configuration" box: when it is checked, these settings come from the _VTherm_ of type "Central Configuration". If a central configuration exists, these boxes are checked by default. Otherwise they are unchecked, the settings must be entered on each _VTherm_, and checking one of them causes an error when saving the page. To share settings between several _VTherm_, create the central configuration first: it is unique, and offered in the list of types as long as it does not exist.
+
 ## Choosing a VTherm Type
 
 ### Centralized configuration

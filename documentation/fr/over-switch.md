@@ -39,7 +39,7 @@ Dans la "liste des équipements à contrôler" vous mettez les switchs qui vont 
 
 Si un des sous-jacents n'est pas un `switch` alors la personnalisation des commandes est obligatoire. Par défaut pour les `switch` les commandes sont les commandes classique d'allumage / extinction du switch (`turn_on`, `turn_off`)
 
-L'algorithme à utiliser est aujourd'hui limité à TPI est disponible. Voir [algorithme](algorithms.md#lalgorithme-tpi).
+Le champ « Algorithme » permet de choisir l'algorithme de régulation : le TPI intégré, ou un algorithme installé sous forme de plugin. Voir [les algorithmes](algorithms.md).
 Si plusieurs entités de type sont configurées, la thermostat décale les activations afin de minimiser le nombre de switch actif à un instant t. Ca permet une meilleure répartition de la puissance puisque chaque radiateur va s'allumer à son tour.
 
 VTherm va donc lisser la puissance consommée le plus possible en alternant les activations. Exemple d'activations décalées :
@@ -99,6 +99,6 @@ Cela signifie que une des commandes saisies est invalide. Les règles à respect
 
 ## Étape suivante
 
-[Les coefficients du TPI](algorithms.md#configurez-les-coefficients-de-lalgorithme-tpi) : régler l'algorithme de régulation (menu « Paramètres TPI »).
+[Les coefficients du TPI](algorithms.md#configurez-les-coefficients-de-lalgorithme-tpi) : régler l'algorithme de régulation (menu « Paramètres TPI »). Sans configuration centrale, cette étape est nécessaire pour finaliser la création.
 
 Si vous utilisez un algorithme en plugin, comme SmartPI, suivez sa documentation, puis passez directement aux [presets](feature-presets.md).

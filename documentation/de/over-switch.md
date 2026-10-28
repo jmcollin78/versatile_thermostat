@@ -31,7 +31,7 @@ Die Installation sollte in etwa so aussehen:
 ## Konfiguration
 
 Konfigurieren Sie zunächst die Haupteinstellungen, die für alle _VTherms_ gelten (siehe [Haupteinstellung](base-attributes.md)).
-Klicken Sie dann im Menü auf die Option "Zugehörige Entities", um diese Konfigurationsseite anzuzeigen:
+Klicken Sie dann im Menü auf die Option „Basiswerte“, um diese Konfigurationsseite anzuzeigen:
 
 ![image](images/config-linked-entity.png)
 
@@ -41,7 +41,7 @@ In der "Liste der zu steuernden Geräte" fügen Sie die Schalter hinzu, die von 
 
 Handelt es sich bei einem der zugehörigen Geräte nicht um einen `switch`, so ist die Anpassung der Befehle obligatorisch. Standardmäßig sind die Befehle für `switch`-Entities die Standard-Ein-/Ausschaltbefehle (`turn_on`, `turn_off`).
 
-Der derzeit verfügbare Algorithmus ist TPI. Siehe [Algorithmus](#algorithm).
+Im Feld „Algorithmus“ wählen Sie den Regelalgorithmus: den integrierten TPI oder einen als Plugin installierten Algorithmus. Siehe [Algorithmen](algorithms.md).
 Wenn mehrere Einheiten konfiguriert sind, staffelt der Thermostat die Aktivierungen, um die Anzahl der eingeschalteten Schalter zu einem bestimmten Zeitpunkt zu minimieren. Dies ermöglicht eine bessere Energieverteilung, da sich jeder Heizkörper nacheinander einschaltet.
 
 VTherm glättet die verbrauchte Leistung so weit wie möglich durch abwechselnde Aktivierungen. Beispiel für gestaffelte Aktivierungen:
@@ -101,6 +101,6 @@ Dies bedeutet, dass einer der eingegebenen Befehle ungültig ist. Die folgenden 
 
 ## Nächster Schritt
 
-[Die TPI-Koeffizienten](algorithms.md#konfigurieren-der-tpi-algorithmusfaktoren): den Regelalgorithmus einstellen (Menü „TPI-Parameter“).
+[Die TPI-Koeffizienten](algorithms.md#konfigurieren-der-tpi-algorithmusfaktoren): den Regelalgorithmus einstellen (Menü „TPI-Parameter“). Ohne zentrale Konfiguration ist dieser Schritt erforderlich, um die Erstellung abzuschließen.
 
 Wenn Sie einen Algorithmus aus einem Plugin verwenden, etwa SmartPI, folgen Sie dessen Dokumentation und gehen Sie dann direkt zu den [Voreinstellungen](feature-presets.md).

@@ -31,7 +31,7 @@ The installation should look like this:
 ## Configuration
 
 First, configure the main settings common to all _VTherms_ (see [main settings](base-attributes.md)).
-Then, click on the "Underlying Entities" option from the menu, and you will see this configuration page:
+Then, click on the "Underlyings" option from the menu, and you will see this configuration page:
 
 ![image](images/config-linked-entity2.png)
 
@@ -141,4 +141,4 @@ That's why it's better not to use it. It generates a lot of confusion and many s
 ## Next Step
 
 - With self-regulation by direct valve control: configure the [valve regulation](self-regulation.md#self-regulation-by-direct-valve-control), then the [TPI coefficients](algorithms.md#configuring-the-tpi-algorithm-coefficients).
-- Without direct valve control: adjust the [self-regulation](self-regulation.md#other-self-regulation) if needed, then go to the [presets](feature-presets.md) to define the target temperatures ("Presets" menu).
+- Without direct valve control: adjust the [self-regulation](self-regulation.md#other-self-regulation) if needed, then go to the [presets](feature-presets.md) ("Presets" menu).

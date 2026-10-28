@@ -16,6 +16,8 @@ Le mode préréglé (preset) vous permet de préconfigurer la température cibl�
 
 **Aucun** est toujours ajouté dans la liste des modes, car c'est un moyen de ne pas utiliser les preset mais une **température manuelle** à la place.
 
+Dans la configuration du _VTherm_, le menu « Pre-réglages » ne contient que la case « Utiliser la configuration des pré-réglages centrale », cochée par défaut si une configuration centrale existe. Cochez-la pour utiliser les températures de la configuration centrale, décochez-la pour donner à ce _VTherm_ ses propres températures.
+
 Les pré-réglages se font directement depuis les entités du _VTherm_ ou de la configuration centrale si vous utilisez la configuration centrale. A la création du _VTherm_, vous aurez différentes entités qui vont vous permettre de fixer les températures de chaque preset :
 
 ![presets](images/config-preset-temp.png).
@@ -33,6 +35,6 @@ La liste des entités varient en fonction de vos choix de fonction :
 
 ## Étape suivante
 
-[La configuration avancée](feature-advanced.md#paramètres-de-sécurité) : vérifier les paramètres du mode sécurité (menu « Paramètres avancés »). Ils sont nécessaires pour finaliser la création, sauf si vous utilisez la configuration centrale.
+[La configuration avancée](feature-advanced.md#paramètres-de-sécurité) : vérifier les paramètres du mode sécurité (menu « Paramètres avancés »). Sans configuration centrale, ils sont nécessaires pour finaliser la création.
 
 Si vous avez activé d'autres fonctions dans les [attributs de base](base-attributes.md#choix-des-fonctions-utilisées), configurez-les aussi : [détection d'ouverture](feature-window.md), [détection de mouvement](feature-motion.md), [gestion de la puissance](feature-power.md), [gestion de la présence](feature-presence.md) ou [démarrage / arrêt automatique](feature-auto-start-stop.md).

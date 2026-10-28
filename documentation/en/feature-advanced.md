@@ -67,9 +67,11 @@ A particular challenge comes from battery-powered sensors that only send data wh
 
 To configure advanced safety parameters:
 
-1. Open your _VTherm_ configuration
-2. Access general configuration parameters
-3. Scroll down to the "Advanced Configuration" section
+1. Open the configuration of your _VTherm_,
+2. Choose the "Advanced parameters" menu,
+3. With a central configuration, the "Use central advanced configuration" box is checked and the central values are used: uncheck it to enter values specific to this _VTherm_.
+
+Without a central configuration, the box is unchecked and these parameters are required to finalize the creation of the _VTherm_.
 
 The advanced configuration form is as follows:
 
@@ -200,10 +202,9 @@ On each thermostat control cycle, the feature:
 
 This feature is configured in the _VTherm_ configuration interface:
 
-1. Open your _VTherm_ configuration
-2. Access general configuration parameters
-3. Scroll down to the "Advanced Configuration" section
-4. Enable the **"Fix incorrect equipment state"** option
+1. Open the configuration of your _VTherm_,
+2. Choose the "Advanced parameters" menu and uncheck "Use central advanced configuration" (or enable the option in the central configuration),
+3. Enable the **"Fix incorrect equipment state"** option
 
 ### Parameters
 
