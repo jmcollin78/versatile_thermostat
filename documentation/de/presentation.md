@@ -6,7 +6,7 @@ _VTherm_ steuert auch Wärmepumpen, Klimaanlagen und elektrische Heizkörper. Al
 
 - [Dokumentation von Versatile Thermostat](#dokumentation-von-versatile-thermostat)
   - [Installationsbeispiel](#installationsbeispiel)
-  - [Welcher VTherm-Typ für welches Gerät?](#welcher-vtherm-typ-für-welches-gerät)
+  - [Unterstützte Geräte](#unterstützte-geräte)
   - [Voraussetzungen](#voraussetzungen)
   - [Geräte](#geräte)
   - [Inhalt der Dokumentation](#inhalt-der-dokumentation)
@@ -27,19 +27,18 @@ Für Thermostatventile:
 3. Gleichen Sie bei Bedarf das interne Thermometer des TRV mit der [Synchronisierung der internen Gerätetemperatur](feature-sync_device_temp.md) ab und nutzen Sie die [Ventilkalibrierung](feature-recalibrate-valves.md), wenn die Ventile nicht mehr richtig öffnen oder schließen.
 4. Fügen Sie die nützlichen Funktionen hinzu: [Steuerung der Zentralheizung](feature-central-boiler.md), um den Heizkessel einzuschalten, sobald ein Raum Wärme benötigt, [Erkennung offener Fenster](feature-window.md) und [Anwesenheitsverwaltung](feature-presence.md).
 
-## Welcher VTherm-Typ für welches Gerät?
+## Unterstützte Geräte
 
-| Gerät | _VTherm_-Typ | Zum Einstieg |
-|---|---|---|
-| Thermostatventil (TRV) mit steuerbarer Ventilöffnung | [`over_climate`](over-climate.md) mit [direkter Ventilsteuerung](self-regulation.md#selbstregulierung-bei-direkter-ventilkontrolle) | [TRV-Anleitung](https://www.versatile-thermostat.org/de/quick-start/trv/) |
-| Ventil, das nur als `number`-Entity verfügbar ist | [`over_valve`](over-valve.md) | [Schnellstart](quick-start.md) |
-| Einfaches TRV ohne Ventilsteuerung | [`over_climate`](over-climate.md) mit [Selbstregulierung](self-regulation.md) | [Schnellstart](quick-start.md#einfaches-trv-wie-avatto-trv06-moes-tuya-trv-ohne-ventilsteuerung) |
-| Wärmepumpe, Klimaanlage, Gerät mit `climate`-Entity | [`over_climate`](over-climate.md) | [Wärmepumpen-Anleitung](https://www.versatile-thermostat.org/de/quick-start/heat-pump/) |
-| Elektrischer Heizkörper mit Schalter (`switch`) | [`over_switch`](over-switch.md) | [Schnellstart](quick-start.md#einfache-schalter-wie-aqara-t1-nous-b2z-sonoff-zbmini-sonoff-pow-) |
-| Elektrischer Heizkörper mit Steuerleitung (Fil Pilote) | [`over_switch`](over-switch.md) mit [Befehlsanpassung](over-switch.md#befehlsanpassung) | [Steuerleitungs-Anleitung](https://www.versatile-thermostat.org/de/quick-start/pilot-wire/) |
-| Pelletofen | [`over_switch`](over-switch.md) mit dem Plugin [VTherm Pellet stove](https://www.versatile-thermostat.org/de/plugins/#jmcollin78/vtherm_pellet_stove) | [Pelletofen-Anleitung](https://www.versatile-thermostat.org/de/quick-start/pellet-stove/) |
+_VTherm_ steuert die in Home Assistant verfügbaren Heiz- und Kühlgeräte:
 
-Einen ausführlicheren Vergleich der Typen finden Sie unter [Wahl eines VTherm](creation.md).
+- **Wasserheizkörper** mit Thermostatventilen (TRV), mit oder ohne direkte Ventilsteuerung: [TRV-Anleitung](https://www.versatile-thermostat.org/de/quick-start/trv/),
+- **Ventile**, die über eine `number`-Entity gesteuert werden, ohne zugehörigen Thermostat,
+- **Zentralheizung**: _VTherm_ schaltet den Heizkessel ein, sobald ein Raum Wärme benötigt (siehe [Steuerung der Zentralheizung](feature-central-boiler.md)),
+- **Wärmepumpen, Klimaanlagen und HLK-Systeme** mit `climate`-Entity: [Wärmepumpen-Anleitung](https://www.versatile-thermostat.org/de/quick-start/heat-pump/),
+- **Elektrische Heizkörper**, gesteuert über einen Schalter oder ein Steuerleitungsmodul: [Steuerleitungs-Anleitung](https://www.versatile-thermostat.org/de/quick-start/pilot-wire/),
+- **Pelletöfen**, mit dem Plugin [VTherm Pellet stove](https://www.versatile-thermostat.org/de/plugins/#jmcollin78/vtherm_pellet_stove): [Pelletofen-Anleitung](https://www.versatile-thermostat.org/de/quick-start/pellet-stove/).
+
+Welcher _VTherm_-Typ für welches Gerät erstellt wird, erklärt [Wahl eines VTherm](creation.md#wähle-das-richtige-aus).
 
 ## Voraussetzungen
 

@@ -6,7 +6,7 @@ _VTherm_ pilote aussi les pompes à chaleur, les climatisations et les vannes th
 
 - [Documentation de Versatile Thermostat](#documentation-de-versatile-thermostat)
   - [Exemple d'installation](#exemple-dinstallation)
-  - [Quel type de VTherm pour quel équipement ?](#quel-type-de-vtherm-pour-quel-équipement-)
+  - [Équipements pris en charge](#équipements-pris-en-charge)
   - [Prérequis](#prérequis)
   - [Matériels](#matériels)
   - [Sommaire de la documentation](#sommaire-de-la-documentation)
@@ -27,19 +27,18 @@ Pour des radiateurs électriques :
 3. Choisissez l'algorithme de régulation : [SmartPI](algorithms.md#smartpi-recommandé) (recommandé), qui apprend le comportement thermique de la pièce, ou le [TPI](algorithms.md#lalgorithme-tpi) intégré.
 4. Ajoutez les fonctions utiles : [délestage](feature-power.md), [gestion de la présence](feature-presence.md), [détection d'ouverture](feature-window.md) et [presets](feature-presets.md) pilotés par un [planificateur](additions.md#un-planificateur-graphique-recommandé).
 
-## Quel type de VTherm pour quel équipement ?
+## Équipements pris en charge
 
-| Équipement | Type de _VTherm_ | Pour démarrer |
-|---|---|---|
-| Radiateur électrique commandé par un interrupteur (`switch`) | [`over_switch`](over-switch.md) | [Démarrage rapide](quick-start.md#simple-switch-comme-aqara-t1-nous-b2z-sonoff-zbmini-sonoff-pow-) |
-| Radiateur électrique avec fil pilote | [`over_switch`](over-switch.md) avec [commandes personnalisées](over-switch.md#la-personnalisation-des-commandes) | [Guide fil pilote](https://www.versatile-thermostat.org/fr/quick-start/pilot-wire/) |
-| Pompe à chaleur, climatisation, équipement exposé par une entité `climate` | [`over_climate`](over-climate.md) | [Guide pompe à chaleur](https://www.versatile-thermostat.org/fr/quick-start/heat-pump/) |
-| Vanne thermostatique (TRV) dont l'ouverture est pilotable | [`over_climate`](over-climate.md) avec [contrôle direct de la vanne](self-regulation.md#auto-régulation-par-contrôle-direct-de-la-vanne) | [Guide TRV](https://www.versatile-thermostat.org/fr/quick-start/trv/) |
-| Vanne thermostatique simple, sans contrôle de la vanne | [`over_climate`](over-climate.md) avec [auto-régulation](self-regulation.md) | [Démarrage rapide](quick-start.md#simple-trv-comme-avatto-trv06-moes-tuya-trv-sans-contrôle-de-la-vanne) |
-| Vanne exposée uniquement par une entité `number` | [`over_valve`](over-valve.md) | [Démarrage rapide](quick-start.md) |
-| Poêle à granulés | [`over_switch`](over-switch.md) avec le plugin [VTherm Pellet stove](https://www.versatile-thermostat.org/fr/plugins/#jmcollin78/vtherm_pellet_stove) | [Guide poêle à granulés](https://www.versatile-thermostat.org/fr/quick-start/pellet-stove/) |
+_VTherm_ pilote les équipements de chauffage et de climatisation visibles dans Home Assistant :
 
-Pour comparer les types plus en détail, voir [Choix du VTherm](creation.md).
+- **Radiateurs électriques**, commandés par un interrupteur ou par un module fil pilote : [guide fil pilote](https://www.versatile-thermostat.org/fr/quick-start/pilot-wire/),
+- **Pompes à chaleur, climatisations et systèmes HVAC** exposés par une entité `climate` : [guide pompe à chaleur](https://www.versatile-thermostat.org/fr/quick-start/heat-pump/),
+- **Radiateurs à eau** équipés de vannes thermostatiques (TRV), avec ou sans pilotage direct de la vanne : [guide TRV](https://www.versatile-thermostat.org/fr/quick-start/trv/),
+- **Vannes** pilotables par une entité `number`, sans thermostat associé,
+- **Poêles à granulés**, avec le plugin [VTherm Pellet stove](https://www.versatile-thermostat.org/fr/plugins/#jmcollin78/vtherm_pellet_stove) : [guide poêle à granulés](https://www.versatile-thermostat.org/fr/quick-start/pellet-stove/),
+- **Chaudière centrale** : _VTherm_ l'allume dès qu'une pièce demande de la chaleur (voir [Chaudière centrale](feature-central-boiler.md)).
+
+Le type de _VTherm_ à créer pour chaque équipement est expliqué dans [Choix du VTherm](creation.md#le-bon-choix).
 
 ## Prérequis
 

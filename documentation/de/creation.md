@@ -67,13 +67,22 @@ Wenn die einzige Entität, die zur Regelung der Temperatur Ihres Heizkörpers zu
 Dieser Typ kann für TRVs ohne eine zugehörige `climate`-Entity oder andere DIY-Lösungen verwendet werden, die eine `number`-Entity aufweisen.
 
 ## Wähle das Richtige aus
-> ![Tip](images/tips.png) _*Wie man den Typ wählt*_
-> Die Wahl des richtigen Typs ist entscheidend. Sie kann später nicht über die Konfigurationsschnittstelle geändert werden. Um die richtige Wahl zu treffen, sollten Sie die folgenden Fragen berücksichtigen:
-> 1. **Welche Art von Geräten werde ich kontrollieren?** Befolgen Sie diese Reihenfolge (der [Gerätekatalog](https://www.versatile-thermostat.org/de/devices/) gibt für jedes getestete Gerät den empfohlenen Typ an):
->    1. Wenn Sie ein steuerbares Thermostatventil (TRV) in Home Assistant über eine `number`-Entity haben (z. B. ein Shelly TRV), wählen Sie den Typ „over_valve“. Dies ist der direkteste Typ und gewährleistet die beste Regulierung.
->    2. Wenn Sie einen elektrischen Heizkörper (mit oder ohne Pilotdraht) haben, der über einen Schalter ein- und ausgeschaltet wird, ist der Typ `over_switch` vorzuziehen. Die Regelung erfolgt durch das Versatile Thermostat auf der Grundlage der von Ihrem Thermometer an seinem Aufstellungsort gemessenen Temperatur.
->    3. In allen anderen Fällen sollten Sie den `over_climate`-Modus verwenden. Sie behalten Ihre ursprüngliche `climate`-Entity bei, und das Versatile Thermostat steuert "nur" den Ein-/Aus-Zustand und die Zieltemperatur Ihres ursprünglichen Thermostats. Die Regelung wird in diesem Fall von Ihrem ursprünglichen Thermostat übernommen. Dieser Modus eignet sich besonders für reversible All-in-One-Klimaanlagen, die in Home Assistant als `climate`-Entity angezeigt werden. Die erweiterte Selbstregulierung kann den Sollwert schneller erreichen, indem sie den Sollwert erzwingt oder das Ventil direkt steuert, wenn dies möglich ist.
-> 2. **Welche Art der Regulierung möchte ich?** Wenn die gesteuerten Geräte über einen eigenen eingebauten Regulierungsmechanismus verfügen (z. B. HLK-Systeme, bestimmte TRVs) und dieser gut funktioniert, wählen Sie `over_climate`. Für TRVs mit einem steuerbaren Ventil in Home Assistant ist der Typ `over_climate` mit der Selbstregulierung `Direct Valve Control` die beste Wahl.
+
+Der Typ kann nach der Erstellung des _VTherm_ nicht mehr geändert werden: Wählen Sie ihn nach dem gesteuerten Gerät und danach, wie es in Home Assistant erscheint.
+
+| Gerät | Entity in Home Assistant | _VTherm_-Typ | Regelung |
+|---|---|---|---|
+| Thermostatventil (TRV) mit steuerbarer Ventilöffnung | `climate` und `number` für die Öffnung | [`over_climate`](over-climate.md) mit [direkter Ventilsteuerung](self-regulation.md#selbstregulierung-bei-direkter-ventilkontrolle) | durch _VTherm_: TPI oder Plugin-Algorithmus (SmartPI...) |
+| Ventil allein, ohne `climate`-Entity | `number`, `input_number` | [`over_valve`](over-valve.md) | durch _VTherm_: TPI oder Plugin-Algorithmus |
+| Einfaches TRV | `climate` | [`over_climate`](over-climate.md) | durch das Ventil, bei Bedarf korrigiert durch die [Selbstregulierung](self-regulation.md) |
+| Wärmepumpe, Klimaanlage, HLK-System | `climate` | [`over_climate`](over-climate.md) | durch das Gerät, bei Bedarf korrigiert durch die [Selbstregulierung](self-regulation.md) |
+| Elektrischer Heizkörper mit Schalter | `switch`, `input_boolean` | [`over_switch`](over-switch.md) | durch _VTherm_: TPI oder Plugin-Algorithmus |
+| Elektrischer Heizkörper mit Steuerleitung (Fil Pilote) | `select`, `input_select` oder `climate`, mit [angepassten Befehlen](over-switch.md#befehlsanpassung) | [`over_switch`](over-switch.md) | durch _VTherm_: TPI oder Plugin-Algorithmus |
+| Pelletofen | `switch` | [`over_switch`](over-switch.md) mit dem Plugin [VTherm Pellet stove](https://www.versatile-thermostat.org/de/plugins/#jmcollin78/vtherm_pellet_stove) | durch das Plugin |
+
+Der [Gerätekatalog](https://www.versatile-thermostat.org/de/devices/) gibt für jedes getestete Gerät den empfohlenen Typ an.
+
+Wenn mehrere Typen passen, entscheiden Sie nach der gewünschten Regelung. Regelt das Gerät selbst gut (Klimaanlage, manche Ventile), behält `over_climate` dessen Regelung bei. Soll _VTherm_ anhand Ihres eigenen Thermometers regeln, das dort platziert ist, wo Sie wohnen, wählen Sie `over_switch`, `over_valve` oder `over_climate` mit direkter Ventilsteuerung.
 
 ## Referenzartikel
 Weitere Informationen zu diesen Begriffen finden Sie in diesem Artikel (auf Französisch): https://www.hacf.fr/optimisation-versatile-thermostat/#optimiser-vos-vtherm

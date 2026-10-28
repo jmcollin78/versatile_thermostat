@@ -6,7 +6,7 @@ _VTherm_ also controls electric radiators and thermostatic radiator valves. All 
 
 - [Versatile Thermostat Documentation](#versatile-thermostat-documentation)
   - [Installation Example](#installation-example)
-  - [Which VTherm Type for Which Equipment?](#which-vtherm-type-for-which-equipment)
+  - [Supported Equipment](#supported-equipment)
   - [Prerequisites](#prerequisites)
   - [Devices](#devices)
   - [Documentation Contents](#documentation-contents)
@@ -27,19 +27,18 @@ For heat pumps and air conditioners:
 3. If the device does not reach the target temperature, enable [self-regulation](self-regulation.md): _VTherm_ then adjusts the setpoint sent to the device.
 4. Add the useful features: [automatic start/stop](feature-auto-start-stop.md) to stop the device when it is not needed, [window detection](feature-window.md), [presence management](feature-presence.md), and the [auto-fan](over-climate.md#auto-fan-auto-ventilation) to speed up the fan when the temperature gap is large.
 
-## Which VTherm Type for Which Equipment?
+## Supported Equipment
 
-| Equipment | _VTherm_ type | To get started |
-|---|---|---|
-| Heat pump, air conditioner, device exposed by a `climate` entity | [`over_climate`](over-climate.md) | [Heat pump guide](https://www.versatile-thermostat.org/en/quick-start/heat-pump/) |
-| Thermostatic radiator valve (TRV) whose opening can be controlled | [`over_climate`](over-climate.md) with [direct valve control](self-regulation.md#self-regulation-by-direct-valve-control) | [TRV guide](https://www.versatile-thermostat.org/en/quick-start/trv/) |
-| Simple TRV, without valve control | [`over_climate`](over-climate.md) with [self-regulation](self-regulation.md) | [Quick start](quick-start.md#simple-trv-such-as-avatto-trv06-moes-tuya-trv-without-valve-control) |
-| Electric radiator controlled by a switch (`switch`) | [`over_switch`](over-switch.md) | [Quick start](quick-start.md#simple-switch-such-as-aqara-t1-nous-b2z-sonoff-zbmini-sonoff-pow-) |
-| Electric radiator with a pilot wire | [`over_switch`](over-switch.md) with [command customization](over-switch.md#command-customization) | [Pilot wire guide](https://www.versatile-thermostat.org/en/quick-start/pilot-wire/) |
-| Valve exposed only by a `number` entity | [`over_valve`](over-valve.md) | [Quick start](quick-start.md) |
-| Pellet stove | [`over_switch`](over-switch.md) with the [VTherm Pellet stove](https://www.versatile-thermostat.org/en/plugins/#jmcollin78/vtherm_pellet_stove) plugin | [Pellet stove guide](https://www.versatile-thermostat.org/en/quick-start/pellet-stove/) |
+_VTherm_ controls the heating and cooling equipment available in Home Assistant:
 
-To compare the types in more detail, see [Choosing a VTherm](creation.md).
+- **Heat pumps, air conditioners and HVAC systems** exposed by a `climate` entity: [heat pump guide](https://www.versatile-thermostat.org/en/quick-start/heat-pump/),
+- **Water radiators** fitted with thermostatic radiator valves (TRV), with or without direct valve control: [TRV guide](https://www.versatile-thermostat.org/en/quick-start/trv/),
+- **Electric radiators**, controlled by a switch or by a pilot wire module: [pilot wire guide](https://www.versatile-thermostat.org/en/quick-start/pilot-wire/),
+- **Valves** controlled by a `number` entity, without an associated thermostat,
+- **Pellet stoves**, with the [VTherm Pellet stove](https://www.versatile-thermostat.org/en/plugins/#jmcollin78/vtherm_pellet_stove) plugin: [pellet stove guide](https://www.versatile-thermostat.org/en/quick-start/pellet-stove/),
+- **Central boiler**: _VTherm_ turns it on as soon as a room needs heating (see [Controlling a Central Boiler](feature-central-boiler.md)).
+
+The _VTherm_ type to create for each piece of equipment is explained in [Choosing a VTherm](creation.md#making-the-right-choice).
 
 ## Prerequisites
 
