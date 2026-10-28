@@ -201,6 +201,25 @@ Um die Änderungen zu übernehmen, müssen Sie entweder **den Home Assistant kom
 >
 > 1. Im Expertenmodus ist es selten notwendig, die Option [Kompensiere die Innentemperatur des Zugehörigen](over-climate.md#Kompensiere-die-Innentemperatur-des-Zugehörigen) zu verwenden. Dies könnte zu sehr hohen Sollwerten führen.
 
+## Sollwertrampe
+
+Manche Geräte, etwa Luft-Luft-Wärmepumpen, starten mit voller Leistung, wenn der empfangene Sollwert weit über der Raumtemperatur liegt. Die Sollwertrampe vermeidet das: Beim Start des Heizens oder Kühlens sendet sie einen Sollwert nahe der Raumtemperatur und nähert ihn Schritt für Schritt dem Zielwert an.
+
+Die Rampe ist für _VTherms_ vom Typ `over_climate` ohne direkte Ventilsteuerung verfügbar. Sie wird konfiguriert mit:
+1. Einem Kontrollkästchen, das die Rampe aktiviert. Standardmäßig ist sie nicht aktiviert.
+2. Einem Startversatz. Wird der _VTherm_ im Modus `Heizen` eingeschaltet, ist der erste gesendete Sollwert die Raumtemperatur plus dieser Versatz. Im Modus `Kühlen` ist es die Raumtemperatur minus dieser Versatz. Der Startsollwert überschreitet den Zielwert nie. Ein negativer Versatz ergibt einen sanfteren Start, weil das Gerät nur eine kleine oder keine Differenz zwischen seinem Sollwert und der Raumtemperatur sieht. Ein positiver Versatz ergibt einen stärkeren Start. Der Standardwert ist -0,5 Grad.
+3. Einer maximalen Schrittweite pro Zyklus. In jedem Zyklus nähert sich der Sollwert dem Zielwert um höchstens diesen Wert in Grad. Der Wert 0 hebt die Begrenzung auf: Der Sollwert springt im ersten Zyklus nach dem Start direkt auf den Zielwert. Der Standardwert ist 1 Grad.
+
+Der Sollwert wird nur in der Richtung begrenzt, die den Bedarf erhöht: beim Heizen nach oben, beim Kühlen nach unten. Eine Änderung, die den Bedarf verringert, etwa ein niedrigerer Zielwert, wird sofort gesendet.
+
+Beispiel: Heizen mit einem Startversatz von -0,5, einer maximalen Schrittweite von 1, einer Raumtemperatur von 18 und einem Zielwert von 21. Die gesendeten Sollwerte sind 17,5 beim Einschalten des _VTherm_, dann 18,5, 19,5, 20,5 und 21 in den folgenden Zyklen. Mit einem Startversatz von 1 und einer maximalen Schrittweite von 0,5 sind es 19, 19,5, 20, 20,5 und 21.
+
+Die Rampe wird nach der Selbstregulierung angewendet und begrenzt daher auch den von der Selbstregulierung addierten Versatz. Der Startsollwert wird an das Gerät gesendet, bevor es eingeschaltet wird. Die Rampe beginnt bei jedem Einschalten des _VTherm_ und bei jedem Wechsel zwischen `Heizen` und `Kühlen` neu. Nach einem Neustart von Home Assistant setzt eine laufende Rampe beim letzten Sollwert fort.
+
+Der Zyklus ist die für den _VTherm_ konfigurierte Zyklusdauer. Die maximale Schrittweite ist nie kleiner als der Regulierungsschwellenwert (oder als die Schrittweite der Zieltemperatur, wenn der Schwellenwert 0 ist), da die Rundung des Sollwerts sonst jeden Schritt aufheben würde.
+
+Jeder Schritt ist ein Befehl, der an das Gerät gesendet wird. Beim Einschalten werden etwa vier Befehle gesendet (der Startsollwert und der Modus, wobei der Sollwert wiederholt wird), danach in jedem Zyklus ein weiterer, bis der Zielwert erreicht ist. Mit den Standardwerten sind das etwa acht Befehle pro Einschalten und Gerät, gegenüber drei ohne Rampe. Wenn das Gerät über einen Cloud-Dienst erreicht wird, der die Anzahl der Anfragen pro Minute oder pro Tag begrenzt, erhöhen Sie die maximale Schrittweite oder aktivieren Sie die Rampe nur für die _VTherms_, die sie benötigen.
+
 ## Zusammenfassung des Selbstregulierungsalgorithmus
 
 Eine Zusammenfassung des Algorithmus zur Autoregulierung wird [hier](algorithms.md#the-auto-regulation-algorithm-without-valve-control) beschrieben.

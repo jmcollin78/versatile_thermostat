@@ -159,6 +159,25 @@ Pro aplikaci změn musíte buď **kompletně restartovat Home Assistant** nebo j
 >
 > 1. V expertním režimu je zřídka nutné používat možnost [Kompenzovat vnitřní teplotu podkladového](over-climate.md#compensate-the-internal-temperature-of-the-underlying). To by mohlo mít za následek velmi vysoké setpointy.
 
+## Rampa požadované teploty
+
+Některá zařízení, například tepelná čerpadla vzduch-vzduch, startují na plný výkon, pokud je přijatá požadovaná teplota výrazně vyšší než teplota v místnosti. Rampa požadované teploty tomu brání: při zahájení vytápění nebo chlazení odešle hodnotu blízkou teplotě v místnosti a poté ji krok za krokem přibližuje k cílové hodnotě.
+
+Rampa je dostupná pro _VTherm_ typu `over_climate` bez přímého řízení ventilu. Konfiguruje se pomocí:
+1. Zaškrtávacího políčka, které rampu povoluje. Ve výchozím stavu není povolena.
+2. Počátečního posunu. Když se _VTherm_ zapne v režimu `Vytápění`, první odeslaná hodnota je teplota v místnosti plus tento posun. V režimu `Chlazení` je to teplota v místnosti minus tento posun. Počáteční hodnota nikdy nepřekročí cílovou. Záporný posun znamená pozvolnější start, protože zařízení vidí malý rozdíl, nebo žádný, mezi svou požadovanou teplotou a teplotou v místnosti. Kladný posun znamená silnější start. Výchozí hodnota je -0,5 stupně.
+3. Maximálního kroku na cyklus. V každém cyklu se požadovaná teplota přiblíží k cílové nejvýše o tuto hodnotu ve stupních. Hodnota 0 omezení ruší: požadovaná teplota přejde přímo na cílovou v prvním cyklu po startu. Výchozí hodnota je 1 stupeň.
+
+Požadovaná teplota je omezena pouze ve směru, který zvyšuje poptávku: nahoru při vytápění a dolů při chlazení. Změna, která poptávku snižuje, například nižší cílová teplota, se odešle okamžitě.
+
+Příklad: vytápění s počátečním posunem -0,5, maximálním krokem 1, teplotou v místnosti 18 a cílovou teplotou 21. Odeslané hodnoty jsou 17,5 při zapnutí _VTherm_, poté 18,5, 19,5, 20,5 a 21 v dalších cyklech. S počátečním posunem 1 a maximálním krokem 0,5 jsou to 19, 19,5, 20, 20,5 a 21.
+
+Rampa se používá po auto-regulaci, takže omezuje i posun přidaný auto-regulací. Počáteční hodnota se odešle zařízení dříve, než se zařízení zapne. Rampa začíná znovu při každém zapnutí _VTherm_ a při každé změně režimu mezi `Vytápění` a `Chlazení`. Po restartu Home Assistant pokračuje probíhající rampa od své poslední hodnoty.
+
+Cyklus je doba cyklu nastavená pro _VTherm_. Maximální krok není nikdy nižší než práh regulace (nebo než krok cílové teploty, je-li práh 0), jinak by zaokrouhlení požadované teploty každý krok zrušilo.
+
+Každý krok je příkaz odeslaný zařízení. Při zapnutí se odešle přibližně čtyři příkazy (počáteční požadovaná teplota a režim, přičemž se teplota opakuje) a poté každý další cyklus jeden další, dokud není dosaženo cílové hodnoty. S výchozími hodnotami je to přibližně osm příkazů na jedno zapnutí a zařízení, oproti třem bez rampy. Pokud je zařízení dostupné přes cloudovou službu, která omezuje počet požadavků za minutu nebo za den, zvyšte maximální krok nebo rampu povolte pouze u _VTherm_, které ji potřebují.
+
 ## Shrnutí algoritmu auto-regulace
 
 Shrnutí algoritmu auto-regulace je popsáno [zde](algorithms.md#the-auto-regulation-algorithm-without-valve-control)

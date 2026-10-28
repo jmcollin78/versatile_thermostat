@@ -201,6 +201,25 @@ Pour que les modifications soient prises en compte, il faut soit **relancer tota
 > ![Astuce](images/tips.png) _*Notes*_
 > 1. En mode expert, il est rarement nécessaire d'utiliser l'option [Compenser la température interne du sous-jacent](over-climate.md#compenser-la-température-interne-du-sous-jacent). Cela risque de générer des consignes vraiment très forte.
 
+## Rampe de consigne
+
+Certains équipements, comme les pompes à chaleur air-air, démarrent à pleine puissance lorsque la consigne reçue est très supérieure à la température de la pièce. La rampe de consigne évite cela : elle envoie une consigne proche de la température de la pièce au démarrage du chauffage ou du refroidissement, puis la rapproche de la cible pas à pas.
+
+La rampe est disponible pour les _VTherm_ de type `over_climate` sans contrôle direct de vanne. Elle se configure avec :
+1. Une case à cocher qui active la rampe. Elle n'est pas activée par défaut.
+2. Un décalage de départ. Lorsque le _VTherm_ est mis en marche en mode `Chauffage`, la première consigne envoyée est la température de la pièce plus ce décalage. En mode `Refroidissement`, c'est la température de la pièce moins ce décalage. La consigne de départ ne dépasse jamais la cible. Un décalage négatif donne un démarrage plus doux, car l'équipement voit un écart faible, voire nul, entre sa consigne et la température de la pièce. Un décalage positif donne un démarrage plus fort. La valeur par défaut est -0,5 degré.
+3. Un pas maximum par cycle. À chaque cycle, la consigne se rapproche de la cible d'au plus cette valeur, en degrés. La valeur 0 supprime la limite : la consigne passe directement à la cible au premier cycle après le démarrage. La valeur par défaut est 1 degré.
+
+La consigne n'est limitée que dans le sens qui augmente la demande : vers le haut en chauffage et vers le bas en refroidissement. Un changement qui réduit la demande, comme une cible plus basse, est envoyé immédiatement.
+
+Exemple : en chauffage avec un décalage de départ de -0,5, un pas maximum de 1, une température de pièce de 18 et une cible de 21, les consignes envoyées sont 17,5 à la mise en marche du _VTherm_, puis 18,5, 19,5, 20,5 et 21 aux cycles suivants. Avec un décalage de départ de 1 et un pas maximum de 0,5, elles sont 19, 19,5, 20, 20,5 et 21.
+
+La rampe est appliquée après l'auto-régulation, elle limite donc aussi le décalage ajouté par l'auto-régulation. La consigne de départ est envoyée à l'équipement avant sa mise en marche. La rampe recommence à chaque mise en marche du _VTherm_ et à chaque changement de mode entre `Chauffage` et `Refroidissement`. Après un redémarrage de Home Assistant, une rampe en cours reprend à sa dernière consigne.
+
+Le cycle est la durée de cycle configurée pour le _VTherm_. Le pas maximum n'est jamais inférieur au seuil de régulation (ou au pas de température de la cible si le seuil vaut 0), sinon l'arrondi de la consigne annulerait chaque pas.
+
+Chaque pas est une commande envoyée à l'équipement. La mise en marche envoie environ quatre commandes (la consigne de départ et le mode, la consigne étant répétée), puis chaque cycle suivant en envoie une de plus jusqu'à ce que la cible soit atteinte. Avec les valeurs par défaut, cela représente environ huit commandes par mise en marche et par équipement, contre trois sans la rampe. Si l'équipement est joint par un service cloud qui limite le nombre de requêtes par minute ou par jour, augmentez le pas maximum, ou activez la rampe uniquement sur les _VTherm_ qui en ont besoin.
+
 ## Synthèse de l'algorithme d'auto-régulation
 
 Une synthèse de l'algorithme d'auto-régulation est décrite [ici](algorithms.md#lalgorithme-dauto-régulation-sans-contrôle-de-la-vanne)

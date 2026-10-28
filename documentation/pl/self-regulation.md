@@ -161,6 +161,25 @@ Aby zastosować zmiany, należy **całkowicie zrestartować Home Assistant** lub
 >
 > 1. W _*trybie esperckim*_ rzadko pojawia się potrzeba użycia opcji [kompensacji temperatury wewnętrznej urządzenia](over-climate.md#compensate-the-internal-temperature-of-the-underlying). Nieprzemyślane jej użycie mogłoby prowadzić do ustawienia ekstremalnie wysokich wartości temperatury docelowej.
 
+## Rampa wartości zadanej
+
+Niektóre urządzenia, na przykład pompy ciepła powietrze-powietrze, startują z pełną mocą, gdy otrzymana wartość zadana jest znacznie wyższa niż temperatura w pomieszczeniu. Rampa wartości zadanej temu zapobiega: przy włączeniu ogrzewania lub chłodzenia wysyła wartość zbliżoną do temperatury w pomieszczeniu, a następnie krok po kroku przybliża ją do wartości docelowej.
+
+Rampa jest dostępna dla _VTherm_ typu `over_climate` bez bezpośredniego sterowania zaworem. Konfiguruje się ją za pomocą:
+1. Pola wyboru, które włącza rampę. Domyślnie jest wyłączona.
+2. Przesunięcia początkowego. Gdy _VTherm_ zostaje włączony w trybie `Ogrzewanie`, pierwszą wysłaną wartością zadaną jest temperatura w pomieszczeniu plus to przesunięcie. W trybie `Chłodzenie` jest to temperatura w pomieszczeniu minus to przesunięcie. Początkowa wartość zadana nigdy nie przekracza wartości docelowej. Ujemne przesunięcie daje łagodniejszy start, ponieważ urządzenie widzi małą różnicę, lub żadną, między swoją wartością zadaną a temperaturą w pomieszczeniu. Dodatnie przesunięcie daje mocniejszy start. Wartość domyślna to -0,5 stopnia.
+3. Maksymalnego kroku na cykl. W każdym cyklu wartość zadana zbliża się do docelowej co najwyżej o tę wartość w stopniach. Wartość 0 usuwa ograniczenie: wartość zadana przechodzi bezpośrednio na docelową w pierwszym cyklu po starcie. Wartość domyślna to 1 stopień.
+
+Wartość zadana jest ograniczana tylko w kierunku, który zwiększa zapotrzebowanie: w górę przy ogrzewaniu i w dół przy chłodzeniu. Zmiana zmniejszająca zapotrzebowanie, na przykład niższa wartość docelowa, jest wysyłana natychmiast.
+
+Przykład: ogrzewanie z przesunięciem początkowym -0,5, maksymalnym krokiem 1, temperaturą w pomieszczeniu 18 i wartością docelową 21. Wysyłane wartości to 17,5 po włączeniu _VTherm_, a następnie 18,5, 19,5, 20,5 i 21 w kolejnych cyklach. Z przesunięciem początkowym 1 i maksymalnym krokiem 0,5 są to 19, 19,5, 20, 20,5 i 21.
+
+Rampa jest stosowana po samoregulacji, więc ogranicza także przesunięcie dodawane przez samoregulację. Początkowa wartość zadana jest wysyłana do urządzenia przed jego włączeniem. Rampa zaczyna się od nowa przy każdym włączeniu _VTherm_ i przy każdej zmianie trybu między `Ogrzewanie` a `Chłodzenie`. Po ponownym uruchomieniu Home Assistant trwająca rampa wznawia się od ostatniej wartości zadanej.
+
+Cykl to czas cyklu skonfigurowany dla _VTherm_. Maksymalny krok nigdy nie jest mniejszy niż próg regulacji (lub niż krok temperatury docelowej, jeśli próg wynosi 0), w przeciwnym razie zaokrąglenie wartości zadanej anulowałoby każdy krok.
+
+Każdy krok to polecenie wysyłane do urządzenia. Włączenie wysyła około czterech poleceń (początkową wartość zadaną i tryb, przy czym wartość zadana jest powtarzana), a następnie w każdym kolejnym cyklu jedno kolejne, aż do osiągnięcia wartości docelowej. Przy wartościach domyślnych daje to około ośmiu poleceń na jedno włączenie i urządzenie, wobec trzech bez rampy. Jeśli urządzenie jest dostępne przez usługę chmurową ograniczającą liczbę żądań na minutę lub na dobę, zwiększ maksymalny krok lub włącz rampę tylko w tych _VTherm_, które jej potrzebują.
+
 ## Podsumowanie algorytmu samoregulacji
 
 Algorytm samoregulacji szczegółowo opisano [tutaj](algorithms.md#the-auto-regulation-algorithm-without-valve-control).

@@ -201,6 +201,25 @@ To apply the changes, you must either **restart Home Assistant completely** or j
 >
 > 1. In expert mode, it is rarely necessary to use the option [Compensate the internal temperature of the underlying](over-climate.md#compensate-the-internal-temperature-of-the-underlying). This could result in very high setpoints.
 
+## Setpoint ramp
+
+Some devices, such as air to air heat pumps, start at full power when the setpoint they receive is far above the room temperature. The setpoint ramp avoids this: it sends a setpoint close to the room temperature when heating or cooling starts, then moves it towards the target step by step.
+
+The ramp is available for _VTherms_ of type `over_climate` without direct valve control. It is configured with:
+1. A checkbox which enables the ramp. It is not enabled by default.
+2. A start offset. When the _VTherm_ is switched on in `Heat` mode, the first setpoint sent is the room temperature plus this offset. In `Cool` mode it is the room temperature minus this offset. The start setpoint never goes beyond the target. A negative offset gives a gentler start, because the device sees a small difference, or none, between its setpoint and the room temperature. A positive offset gives a stronger start. The default is -0.5 degrees.
+3. A maximum step per cycle. At each cycle, the setpoint moves towards the target by at most this value, in degrees. A value of 0 removes the limit: the setpoint goes directly to the target at the first cycle after the start. The default is 1 degree.
+
+The setpoint is only limited in the direction that increases the demand: upwards when heating and downwards when cooling. A change that reduces the demand, such as a lower target, is sent immediately.
+
+Example: heating with a start offset of -0.5, a maximum step of 1, a room temperature of 18 and a target of 21. The setpoints sent are 17.5 when the _VTherm_ is switched on, then 18.5, 19.5, 20.5 and 21 at the following cycles. With a start offset of 1 and a maximum step of 0.5, they are 19, 19.5, 20, 20.5 and 21.
+
+The ramp is applied after the self-regulation, so it also limits the offset added by the self-regulation. The start setpoint is sent to the device before the device is switched on. The ramp starts again each time the _VTherm_ is switched on and each time its mode changes between `Heat` and `Cool`. After a restart of Home Assistant, a ramp in progress resumes from its last setpoint.
+
+The cycle is the cycle duration configured for the _VTherm_. The maximum step is never lower than the regulation threshold (or than the target temperature step if the threshold is 0), otherwise the rounding of the setpoint would cancel each step.
+
+Each step is a command sent to the device. Switching on sends about four commands (the start setpoint and the mode, with the setpoint repeated), and each following cycle sends one more until the target is reached. With the default values this is about eight commands per switch-on and per device, against three without the ramp. If the device is reached through a cloud service which limits the number of requests per minute or per day, increase the maximum step, or enable the ramp only on the _VTherms_ which need it.
+
 ## Summary of the Auto-Regulation Algorithm
 
 A summary of the auto-regulation algorithm is described [here](algorithms.md#the-auto-regulation-algorithm-without-valve-control)

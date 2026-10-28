@@ -264,6 +264,10 @@ STEP_THERMOSTAT_CLIMATE = vol.Schema(  # pylint: disable=invalid-name
             )
         ),
         vol.Optional(CONF_AUTO_REGULATION_USE_DEVICE_TEMP, default=False): cv.boolean,
+        vol.Optional(CONF_AUTO_REGULATION_RAMP, default=False): cv.boolean,
+        # Signed on purpose: a negative value starts below the room temperature when heating
+        vol.Optional(CONF_AUTO_REGULATION_RAMP_START_OFFSET, default=RAMP_DEFAULT_START_OFFSET): vol.Coerce(float),
+        vol.Optional(CONF_AUTO_REGULATION_RAMP_MAX_STEP, default=RAMP_DEFAULT_MAX_STEP): vol.All(vol.Coerce(float), vol.Range(min=0)),
     }
 )
 

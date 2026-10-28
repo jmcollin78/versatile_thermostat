@@ -185,6 +185,13 @@ MOCK_ADVANCED_CONFIG = {
     CONF_SAFETY_DEFAULT_ON_PERCENT: 0.3,
 }
 
+# The setpoint ramp options which the over_climate config flow adds with their default values
+MOCK_RAMP_DEFAULT_CONFIG = {
+    CONF_AUTO_REGULATION_RAMP: False,
+    CONF_AUTO_REGULATION_RAMP_START_OFFSET: -0.5,
+    CONF_AUTO_REGULATION_RAMP_MAX_STEP: 1.0,
+}
+
 MOCK_DEFAULT_FEATURE_CONFIG = {
     CONF_USE_WINDOW_FEATURE: False,
     CONF_USE_MOTION_FEATURE: False,

@@ -76,6 +76,14 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
         self._underlying_tracking_suspended = False
         self._underlying_tracking_reason = "tracking_armed"
         self._last_regulation_change = None  # NowClass.get_now(hass)
+        # Setpoint ramp: the options and the ramp position (None when no ramp is in progress)
+        self._ramp_enabled: bool = False
+        self._ramp_start_offset: float = RAMP_DEFAULT_START_OFFSET
+        self._ramp_max_step: float = RAMP_DEFAULT_MAX_STEP
+        self._ramp_value: float | None = None
+        self._ramp_restored_value: float | None = None
+        self._ramp_last_advance: datetime | None = None
+        self._ramp_step_warning_logged: bool = False
         self._sync_entity_list: list[str] = []
         self._sync_with_calibration: bool = False
 
@@ -135,6 +143,19 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
             CONF_AUTO_REGULATION_USE_DEVICE_TEMP, False
         )
 
+        # Entries created before the ramp existed have none of these keys: the ramp is then disabled
+        self._ramp_enabled = bool(config_entry.get(CONF_AUTO_REGULATION_RAMP, False))
+        self._ramp_start_offset = (
+            config_entry.get(CONF_AUTO_REGULATION_RAMP_START_OFFSET)
+            if config_entry.get(CONF_AUTO_REGULATION_RAMP_START_OFFSET) is not None
+            else RAMP_DEFAULT_START_OFFSET
+        )
+        self._ramp_max_step = (
+            config_entry.get(CONF_AUTO_REGULATION_RAMP_MAX_STEP)
+            if config_entry.get(CONF_AUTO_REGULATION_RAMP_MAX_STEP) is not None
+            else RAMP_DEFAULT_MAX_STEP
+        )
+
     @property
     def is_over_climate(self) -> bool:
         """True if the Thermostat is over_climate"""
@@ -175,6 +196,7 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
             )
             # In this case, reset the timer of last regulation change to avoid time delta too high
             self._last_regulation_change = self.now
+            self._ramp_value = None
             return
 
         if self.target_temperature is None:
@@ -209,6 +231,7 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
                 )
             # Reset the timer of last regulation change to avoid time delta too high
             self._last_regulation_change = self.now
+            self._ramp_value = None
             return
 
         _LOGGER.info(
@@ -247,6 +270,8 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
             )
         else:
             new_regulated_temp = self.target_temperature
+
+        new_regulated_temp = self._apply_setpoint_ramp(new_regulated_temp, regulation_step)
 
         _LOGGER.info(
             "%s - Regulated temp have changed to %.1f. Resend it to underlyings",
@@ -306,6 +331,95 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
 
         # Update regulated_target_temp after the loop to avoid affecting dtemp calculation for other underlyings
         self._regulated_target_temp = new_regulated_temp
+
+    @property
+    def is_ramp_active(self) -> bool:
+        """True if the setpoint ramp is enabled and applies to this VTherm.
+        A valve regulation drives the valve opening, not a setpoint, so it never ramps."""
+        return self._ramp_enabled and not self.have_valve_regulation
+
+    def _get_ramp_step(self, regulation_step: float) -> float:
+        """Return the maximum setpoint change per cycle, 0 meaning no limit.
+        The step is never lower than the rounding step, else the rounding would cancel each change and the ramp would never move."""
+        if self._ramp_max_step <= 0:
+            return 0
+        if self._ramp_max_step < regulation_step:
+            if not self._ramp_step_warning_logged:
+                _LOGGER.warning(
+                    "%s - the ramp maximum step (%.2f) is lower than the regulation step (%.2f). The regulation step is used instead",
+                    self,
+                    self._ramp_max_step,
+                    regulation_step,
+                )
+                self._ramp_step_warning_logged = True
+            return regulation_step
+        return self._ramp_max_step
+
+    def _compute_ramp_start(self, desired: float, regulation_step: float) -> float:
+        """Compute the setpoint the ramp starts from: the room temperature plus the start offset when heating,
+        minus the start offset when cooling. It never goes beyond the desired setpoint."""
+        if self.vtherm_hvac_mode == VThermHvacMode_COOL:
+            return max(desired, round_to_nearest(self.current_temperature - self._ramp_start_offset, regulation_step))
+        return min(desired, round_to_nearest(self.current_temperature + self._ramp_start_offset, regulation_step))
+
+    def _is_ramp_step_due(self, now: datetime) -> bool:
+        """True if a whole cycle has elapsed since the ramp last moved"""
+        if self._ramp_last_advance is None:
+            return True
+        return (now - self._ramp_last_advance).total_seconds() >= self._cycle_min * 60 - RAMP_CYCLE_TOLERANCE_SEC
+
+    def _apply_setpoint_ramp(self, desired: float, regulation_step: float) -> float:
+        """Limit the speed at which the setpoint sent to the underlyings moves towards the desired setpoint.
+        The setpoint may increase (decrease when cooling) by at most one step per cycle. A change which
+        reduces the demand is applied at once. Returns the desired setpoint unchanged if the ramp is not active."""
+        if not self.is_ramp_active:
+            self._ramp_value = None
+            return desired
+
+        now = self.now
+        if self._ramp_value is None:
+            if self.current_temperature is None:
+                # Without the room temperature there is nothing to start from
+                return desired
+            self._ramp_value = self._compute_ramp_start(desired, regulation_step)
+            self._ramp_last_advance = now
+            return self._ramp_value
+
+        direction = -1 if self.vtherm_hvac_mode == VThermHvacMode_COOL else 1
+        gap = direction * (desired - self._ramp_value)
+        if gap <= 0:
+            self._ramp_value = desired
+        elif self._is_ramp_step_due(now):
+            step = self._get_ramp_step(regulation_step)
+            self._ramp_value = round(self._ramp_value + direction * (gap if step <= 0 else min(gap, step)), 2)
+            self._ramp_last_advance = now
+        return self._ramp_value
+
+    @overrides
+    async def _before_underlying_hvac_mode_change(self, _command_cause: str | None = None):
+        """Start the setpoint ramp. The start setpoint is sent to the underlyings before they are
+        switched on, so that the device never starts from its own stored setpoint."""
+        if not self.is_ramp_active or self.vtherm_hvac_mode not in (VThermHvacMode_HEAT, VThermHvacMode_COOL):
+            self._ramp_value = None
+            return
+
+        if self._ramp_restored_value is not None:
+            # Restart of Home Assistant while ramping: resume from the restored position
+            self._ramp_value = self._ramp_restored_value
+            self._ramp_restored_value = None
+            # The next step is due in a whole cycle, not at once
+            self._ramp_last_advance = self.now
+            return
+
+        if _command_cause == COMMAND_CAUSE_UNDERLYING_TRACKING:
+            # The device has been switched on by the user: do not override its setpoint
+            self._ramp_value = self.target_temperature
+            self._ramp_last_advance = self.now
+            return
+
+        # The regulation starts the ramp and sends its first setpoint now
+        self._ramp_value = None
+        await self._send_regulated_temperature(force=True, _command_cause=_command_cause)
 
     def do_send_regulated_temp_later(self, _command_cause: str | None = None):
         """A utility function to set the temperature later on an underlying"""
@@ -626,6 +740,15 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
                 old_error,
             )
 
+        old_ramp_value = old_state.attributes.get("regulation_ramp_value")
+        if old_ramp_value is not None and self.is_ramp_active:
+            try:
+                self._ramp_restored_value = float(old_ramp_value)
+            except (TypeError, ValueError):
+                _LOGGER.warning("%s - Cannot restore the ramp setpoint from %s", self, old_ramp_value)
+            else:
+                _LOGGER.debug("%s - Old ramp setpoint has been restored to %.1f", self, self._ramp_restored_value)
+
     @overrides
     def update_custom_attributes(self):
         """Custom attributes"""
@@ -637,6 +760,8 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
         # the attr is 2 times in custom_attributes, because it need to be restored, so it must be at root
         self._attr_extra_state_attributes["regulation_accumulated_error"] = self._regulation_algo.accumulated_error
         self._attr_extra_state_attributes["regulated_target_temperature"] = self.regulated_target_temp
+        # Same as the accumulated error: at the root because it needs to be restored
+        self._attr_extra_state_attributes["regulation_ramp_value"] = self._ramp_value
         vtherm_over_climate_data = {
             "start_hvac_action_date": self._underlying_climate_start_hvac_action_date,
             "last_mean_power_cycle": self._underlying_climate_mean_power_cycle,
@@ -665,6 +790,12 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
                 },
             },
             "auto_regulation_use_device_temp": self.auto_regulation_use_device_temp,
+            "setpoint_ramp": {
+                "is_active": self.is_ramp_active,
+                "start_offset": self._ramp_start_offset,
+                "max_step": self._ramp_max_step,
+                "ramp_value": self._ramp_value,
+            },
         }
 
         if self.is_regulated:

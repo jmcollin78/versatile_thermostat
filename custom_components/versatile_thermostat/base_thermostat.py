@@ -1778,6 +1778,10 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
     ##
     ## Calculation and utility functions
     ##
+    async def _before_underlying_hvac_mode_change(self, _command_cause: str | None = None):
+        """Called when a new hvac mode has been calculated, just before it is sent to the underlyings.
+        Does nothing by default. A specific thermostat can override it to send a command first."""
+
     async def update_states(
         self,
         force=False,
@@ -1820,6 +1824,7 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
                 # Apply hvac_mode
                 if self._state_manager.current_state.is_hvac_mode_changed:
                     _LOGGER.info("%s - Applying new hvac mode: %s", self, self.vtherm_hvac_mode)
+                    await self._before_underlying_hvac_mode_change(_command_cause)
                     # Delegate to all underlying
                     for under in self._underlyings:
                         set_mode_result = await under.set_hvac_mode(

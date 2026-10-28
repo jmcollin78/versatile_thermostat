@@ -134,6 +134,14 @@ CONF_AUTO_REGULATION_EXPERT = "auto_regulation_expert"
 CONF_AUTO_REGULATION_DTEMP = "auto_regulation_dtemp"
 CONF_AUTO_REGULATION_PERIOD_MIN = "auto_regulation_periode_min"
 CONF_AUTO_REGULATION_USE_DEVICE_TEMP = "auto_regulation_use_device_temp"
+CONF_AUTO_REGULATION_RAMP = "auto_regulation_ramp"
+CONF_AUTO_REGULATION_RAMP_START_OFFSET = "auto_regulation_ramp_start_offset"
+CONF_AUTO_REGULATION_RAMP_MAX_STEP = "auto_regulation_ramp_max_step"
+# Defaults of the setpoint ramp options, in degrees
+RAMP_DEFAULT_START_OFFSET = -0.5
+RAMP_DEFAULT_MAX_STEP = 1.0
+# A ramp step is due when a whole cycle has elapsed, give or take the jitter of the cycle timer
+RAMP_CYCLE_TOLERANCE_SEC = 5
 CONF_INVERSE_SWITCH = "inverse_switch_command"
 CONF_AUTO_FAN_MODE = "auto_fan_mode"
 CONF_AUTO_FAN_NONE = "auto_fan_none"
@@ -412,6 +420,9 @@ ALL_CONF = (
         CONF_AUTO_REGULATION_DTEMP,
         CONF_AUTO_REGULATION_PERIOD_MIN,
         CONF_AUTO_REGULATION_USE_DEVICE_TEMP,
+        CONF_AUTO_REGULATION_RAMP,
+        CONF_AUTO_REGULATION_RAMP_START_OFFSET,
+        CONF_AUTO_REGULATION_RAMP_MAX_STEP,
         CONF_INVERSE_SWITCH,
         CONF_AUTO_FAN_MODE,
         CONF_USE_MAIN_CENTRAL_CONFIG,
