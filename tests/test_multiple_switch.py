@@ -532,7 +532,7 @@ async def test_multiple_climates_underlying_changes(
         assert mock_underlying_set_hvac_mode.call_count >= 4
         mock_underlying_set_hvac_mode.assert_has_calls(
             [
-                call.set_hvac_mode(VThermHvacMode_OFF, command_cause=None),
+                call.set_hvac_mode(VThermHvacMode_OFF, command_cause=COMMAND_CAUSE_UNDERLYING_TRACKING),
             ]
         )
         assert entity.hvac_mode == VThermHvacMode_OFF
@@ -566,7 +566,7 @@ async def test_multiple_climates_underlying_changes(
         assert mock_underlying_set_hvac_mode.call_count >= 4
         mock_underlying_set_hvac_mode.assert_has_calls(
             [
-                call.set_hvac_mode(VThermHvacMode_HEAT, command_cause=None),
+                call.set_hvac_mode(VThermHvacMode_HEAT, command_cause=COMMAND_CAUSE_UNDERLYING_TRACKING),
             ]
         )
         assert entity.hvac_mode == VThermHvacMode_HEAT
