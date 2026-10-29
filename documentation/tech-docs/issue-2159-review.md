@@ -10,6 +10,31 @@
 | Issue liée                | [#2141](https://github.com/jmcollin78/versatile_thermostat/issues/2141) — suivi sûr des consignes TRV                                |
 | Recommandation            | **Retenir et traiter en priorité comme régression de disponibilité.**                                                                |
 
+## Mise à jour du 2026-10-29 — demande de correction ciblée
+
+L'utilisateur a interrompu le développement précédent et demande une solution simple concentrée sur `ThermostatOverClimate` dans [thermostat_climate.py](../../custom_components/versatile_thermostat/thermostat_climate.py), sans modification de `BaseThermostat`, de `CycleScheduler`, ni des autres modules de production communs. Les sections historiques ci-dessous restent utiles pour le diagnostic, mais leur périmètre transversal et leurs garanties physiques ne constituent plus la proposition courante. La spécification et la conception v2.0 doivent être révisées et validées pour ce nouveau périmètre avant tout développement.
+
+### Faits et limites vérifiés
+
+- `underlying_changed()` adopte actuellement un mode sous-jacent sans vérifier la suspension ni transmettre la cause de suivi à `update_states()` ; ce contournement reste le défaut ciblé.
+- Le compteur existant borne les tentatives `climate` effectivement marquées par la cause de suivi. Les appels de vanne `number` ne portent pas cette cause jusqu'au service ; une correction limitée à `ThermostatOverClimate` ne démontre donc pas une borne globale de trois appels physiques `climate` et `number`.
+- Le callback initial peut parvenir à `ThermostatOverClimate` : le retour de la méthode parente dans `UnderlyingEntity._underlying_changed()` ne termine pas la méthode enfant `UnderlyingClimate._underlying_changed()`. L'affirmation contraire dans la conception v2.0 est à corriger.
+- Les états `old_state` et `new_state` permettent de reconnaître certaines premières livraisons ou reprises (`old_state` absent, `unknown` ou `unavailable`) et des transitions réelles entre deux états valides. Ils ne prouvent ni l'origine matérielle d'une observation ni toutes les restaurations possibles.
+- La réconciliation directe de `check_initial_state()` reste inchangée et peut envoyer des commandes au démarrage, indépendamment du suivi. L'origine du premier `off` de l'issue et l'événement refermant la boucle matérielle demeurent inconnus.
+
+### Proposition candidate à faire valider
+
+1. Dans `underlying_changed()`, ne suivre un mode que pour une transition réelle du même sous-jacent entre deux états valides ; ne pas adopter le premier état identifiable ni une reprise identifiable. Ne pas ignorer aveuglément le premier callback si celui-ci décrit déjà une transition valide. Préserver l'alignement multi-sous-jacents et le traitement indépendant des autres champs, y compris une consigne présente dans le même événement.
+2. Refuser toute adoption de mode lorsque la protection existante est suspendue ; pour une adoption effective, transmettre `COMMAND_CAUSE_UNDERLYING_TRACKING` à `update_states()`, sans passer par une entrée externe qui réarmerait le suivi. Conserver le debounce de cinq secondes réservé à la température, sans réintroduire le filtre global de dix secondes.
+3. En complément, **proposer**, sans l'imposer avant validation, un coupe-circuit local distinct du compteur physique : au plus trois adoptions effectives de mode suivies par VTherm entre deux réarmements externes ; la troisième est admise, les suivantes refusées, et le pilotage direct reste possible. Ce compteur porte sur les adoptions de mode, non sur chaque service physique, et ne modifie pas le traitement existant des consignes. Sa réservation doit précéder la mutation et tout `await` ; la suspension et son motif doivent être distincts du compteur physique existant.
+4. Ajouter des tests du callback réel : état initial/reprise identifiable, changements `heat/off` réels et événements d'attribut sans changement de mode, compteur saturé, cause transmise, événements mixtes mode/consigne, réarmement externe et régression sur la variante vanne. Mesurer séparément les services `climate` et `number`, sans affirmer qu'ils sont tous bornés par le compteur local.
+
+### Compromis à approuver
+
+Le coupe-circuit proposé peut suspendre le suivi après trois changements légitimes de mode, même espacés dans le temps, tant qu'aucune commande externe ne le réarme. Il borne les **nouvelles adoptions suivies de mode**, pas les commandes physiques déjà lancées, les cycles, les callbacks d'autres couches, les réconciliations directes ni une boucle réarmée par une automatisation externe. Les commandes de vanne et les suites différées peuvent être amplifiées indépendamment du nombre d'adoptions ; la suppression complète de la boucle matérielle reste à vérifier. Un seuil différent ou une politique de reprise différente nécessiterait une décision fonctionnelle explicite.
+
+La proposition précédente de `TrackingChain` propagée jusqu'aux vannes et du plafond global de trois appels physiques `climate`/`number` exigeait des changements transversaux exclus par la nouvelle demande. Elle ne doit pas être présentée comme satisfaite par ce correctif local.
+
 ## 1. Résumé fidèle de l’issue
 
 Après l’installation de la version `10.6.3.beta3` qui contient l’implémentation de #2141, un VTherm `over_climate` configuré pour la régulation par contrôle direct de vanne sur un Sonoff TRVZB alterne entre une ouverture de vanne de 0 % et 100 % au démarrage.

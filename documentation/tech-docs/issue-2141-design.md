@@ -1,15 +1,15 @@
 # Issue #2141 — Conception détaillée v2.0 du suivi sûr des TRV
 
-| Métadonnée | Valeur |
-| --- | --- |
-| Statut | Conception à valider ; développement non autorisé |
-| Version / date | 2.0 / 2026-10-29 |
-| Propriétaire | Mainteneurs de Versatile Thermostat |
-| Périmètre | VTherm `over_climate`, y compris la régulation directe de vanne |
-| Sources fonctionnelles | [Spécification FR v2.0](issue-2141-specification_fr.md), [Specification EN v2.0](issue-2141-specification_en.md) |
-| Régression source | [Revue #2159](issue-2159-review.md) ; [#2141](https://github.com/jmcollin78/versatile_thermostat/issues/2141) |
-| Code et tests relus | `thermostat_climate.py`, `underlyings.py`, `thermostat_climate_valve.py`, `base_thermostat.py`, `cycle_scheduler.py`, `valve_command.py`, `underlying_state_manager.py`, `test_overclimate.py`, `test_overclimate_valve.py`, `test_cycle_scheduler.py` |
-| Vérification | Relecture statique uniquement. Aucun code, test, configuration ou état Home Assistant n'a été exécuté ou modifié. |
+| Métadonnée             | Valeur                                                                                                                                                                                                                                                 |
+| ---------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Statut                 | Conception à valider ; développement non autorisé                                                                                                                                                                                                      |
+| Version / date         | 2.0 / 2026-10-29                                                                                                                                                                                                                                       |
+| Propriétaire           | Mainteneurs de Versatile Thermostat                                                                                                                                                                                                                    |
+| Périmètre              | VTherm `over_climate`, y compris la régulation directe de vanne                                                                                                                                                                                        |
+| Sources fonctionnelles | [Spécification FR v2.0](issue-2141-specification_fr.md), [Specification EN v2.0](issue-2141-specification_en.md)                                                                                                                                       |
+| Régression source      | [Revue #2159](issue-2159-review.md) ; [#2141](https://github.com/jmcollin78/versatile_thermostat/issues/2141)                                                                                                                                          |
+| Code et tests relus    | `thermostat_climate.py`, `underlyings.py`, `thermostat_climate_valve.py`, `base_thermostat.py`, `cycle_scheduler.py`, `valve_command.py`, `underlying_state_manager.py`, `test_overclimate.py`, `test_overclimate_valve.py`, `test_cycle_scheduler.py` |
+| Vérification           | Relecture statique uniquement. Aucun code, test, configuration ou état Home Assistant n'a été exécuté ou modifié.                                                                                                                                      |
 
 > **Normativité.** Les sections 1 à 10 ci-dessous constituent l'intégralité de la conception v2.0 applicable. L'historique des versions antérieures relève exclusivement de Git et ne doit pas servir de référence de développement.
 
@@ -52,19 +52,19 @@ TrackingChain(
 
 La même instance est passée à `update_states`, aux transitions HVAC, à la régulation, au scheduler et à chaque underlying. Une fermeture de callback capture la chaîne et son époque ; elle ne relit pas un état global mutable pour savoir quelle cause appliquer.
 
-| État VTherm en mémoire | Règle |
-| --- | --- |
-| `tracking_epoch` | Invalide les callbacks issus d'une commande externe, d'une désactivation, d'un retrait ou d'un reload. |
-| `tracking_attempts` / `tracking_suspended` | Budget commun 0..3, partagé entre tous les TRV et les domaines `climate` et `number`. Non persistant. |
-| `intent_generation` | Invalide les candidates après une intention/priorité plus récente ; distinct de l'époque causale. |
-| `tracking_chain_seq` | Corrélation et diagnostics uniquement. |
+| État VTherm en mémoire                     | Règle                                                                                                  |
+| ------------------------------------------ | ------------------------------------------------------------------------------------------------------ |
+| `tracking_epoch`                           | Invalide les callbacks issus d'une commande externe, d'une désactivation, d'un retrait ou d'un reload. |
+| `tracking_attempts` / `tracking_suspended` | Budget commun 0..3, partagé entre tous les TRV et les domaines `climate` et `number`. Non persistant.  |
+| `intent_generation`                        | Invalide les candidates après une intention/priorité plus récente ; distinct de l'époque causale.      |
+| `tracking_chain_seq`                       | Corrélation et diagnostics uniquement.                                                                 |
 
-| État par underlying | Règle |
-| --- | --- |
-| `baseline_pending`, `baseline` | Référence initiale `{mode, consigne, rang, type_de_livraison}` ; elle ne dépend jamais de `last_sent_temperature`. |
-| `last_observed` et `event_rank` | Dernier état livré et ordre local strict, pas horodatage matériel. |
+| État par underlying              | Règle                                                                                                              |
+| -------------------------------- | ------------------------------------------------------------------------------------------------------------------ |
+| `baseline_pending`, `baseline`   | Référence initiale `{mode, consigne, rang, type_de_livraison}` ; elle ne dépend jamais de `last_sent_temperature`. |
+| `last_observed` et `event_rank`  | Dernier état livré et ordre local strict, pas horodatage matériel.                                                 |
 | `last_physical_temperature_send` | Dernière tentative réellement lancée `{valeur limitée, issue}` ; ni acquittement ni historique d'ordres remplacés. |
-| `candidate` | Une seule candidate avec rang, version, génération, époque, échéance monotone et handle d'annulation. |
+| `candidate`                      | Une seule candidate avec rang, version, génération, époque, échéance monotone et handle d'annulation.              |
 
 Après redémarrage, le budget repart à zéro et le suivi est armé, mais chaque underlying doit refaire sa baseline. Ce redémarrage n'est pas une commande externe.
 
@@ -94,13 +94,13 @@ Les suites internes ne doivent pas appeler une méthode publique sans contexte. 
 
 ### Propagation obligatoire
 
-| Route | Contrat |
-| --- | --- |
-| observation -> adoption | La baseline est traitée avant toute qualification ; une suspension refuse le suivi de consigne et de mode. |
-| adoption -> `update_states` -> transition HVAC | La même `TrackingChain` est transmise, y compris au `set_hvac_mode` de chaque climate sous-jacent. |
-| `async_control_heating` -> régulation/TPI | Une régulation dérivée reçoit la chaîne ; une régulation périodique autonome utilise `None` et ne réarme pas. |
-| `set_hvac_mode` -> renvoi TRVZB | Le callback de deux secondes capture chaîne + époque et les revalide avant `set_temperature`. |
-| `CycleScheduler` -> valve | `start_cycle`, `apply_valve_update`, répétition et callback conservent la chaîne jusqu'à `set_valve_open_percent`, `send_percent_open`, `send_value_to_number`. |
+| Route                                          | Contrat                                                                                                                                                         |
+| ---------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| observation -> adoption                        | La baseline est traitée avant toute qualification ; une suspension refuse le suivi de consigne et de mode.                                                      |
+| adoption -> `update_states` -> transition HVAC | La même `TrackingChain` est transmise, y compris au `set_hvac_mode` de chaque climate sous-jacent.                                                              |
+| `async_control_heating` -> régulation/TPI      | Une régulation dérivée reçoit la chaîne ; une régulation périodique autonome utilise `None` et ne réarme pas.                                                   |
+| `set_hvac_mode` -> renvoi TRVZB                | Le callback de deux secondes capture chaîne + époque et les revalide avant `set_temperature`.                                                                   |
+| `CycleScheduler` -> valve                      | `start_cycle`, `apply_valve_update`, répétition et callback conservent la chaîne jusqu'à `set_valve_open_percent`, `send_percent_open`, `send_value_to_number`. |
 
 ### Passerelle physique
 
@@ -143,29 +143,29 @@ La documentation et les journaux doivent signaler que le plafond est par VTherm 
 
 Les tests futurs emploient horloge contrôlée, callbacks capturés et compteurs de services par entité/domaine.
 
-| Critère | Preuve de test ciblée |
-| --- | --- |
-| AC-017 / AC-018 | Premier `heat`, puis premier `off` : baseline mémorisée, aucune adoption, aucune chaîne, aucun service suivi `climate` ou `number`; réconciliation directe éventuelle explicitement distinguée. |
-| AC-019 | Après baseline, `off -> heat` et `heat -> off` avant tout envoi VTherm : suivi immédiat de mode. Évolutions `hvac_action` et fan seules : aucune adoption de mode. |
-| AC-020 | Vérifier le même `chain_id` de la réception au mode climate, au TPI et à la vanne 0 % / 100 %, dans les deux sens. |
-| AC-021 | Renvoyer la température TRVZB après deux secondes : même chaîne, débit si et seulement si service réel ; callback de baseline absent, callback annulé/périmé inerte. |
-| AC-022 | Budget à trois/suspendu, séquence `heat -> off -> heat` : aucune modification suivie de `requested_state`, aucun service `climate` ou `number`. Une commande externe valide réarme ; un callback interne non. |
-| AC-023 | UI, service et automatisation réarment chacun après validation. Simuler une automatisation réactive et attester l'absence de promesse de borne globale. |
-| AC-024 | `ThermostatOverClimateValve`: `update_states -> recalculate -> CycleScheduler -> UnderlyingValveRegulation -> number.set_value`, positions 0/100, ouverture et fermeture comptées séparément, troisième admise et quatrième refusée. |
+| Critère         | Preuve de test ciblée                                                                                                                                                                                                                |
+| --------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| AC-017 / AC-018 | Premier `heat`, puis premier `off` : baseline mémorisée, aucune adoption, aucune chaîne, aucun service suivi `climate` ou `number`; réconciliation directe éventuelle explicitement distinguée.                                      |
+| AC-019          | Après baseline, `off -> heat` et `heat -> off` avant tout envoi VTherm : suivi immédiat de mode. Évolutions `hvac_action` et fan seules : aucune adoption de mode.                                                                   |
+| AC-020          | Vérifier le même `chain_id` de la réception au mode climate, au TPI et à la vanne 0 % / 100 %, dans les deux sens.                                                                                                                   |
+| AC-021          | Renvoyer la température TRVZB après deux secondes : même chaîne, débit si et seulement si service réel ; callback de baseline absent, callback annulé/périmé inerte.                                                                 |
+| AC-022          | Budget à trois/suspendu, séquence `heat -> off -> heat` : aucune modification suivie de `requested_state`, aucun service `climate` ou `number`. Une commande externe valide réarme ; un callback interne non.                        |
+| AC-023          | UI, service et automatisation réarment chacun après validation. Simuler une automatisation réactive et attester l'absence de promesse de borne globale.                                                                              |
+| AC-024          | `ThermostatOverClimateValve`: `update_states -> recalculate -> CycleScheduler -> UnderlyingValveRegulation -> number.set_value`, positions 0/100, ouverture et fermeture comptées séparément, troisième admise et quatrième refusée. |
 
 Compléter avec redémarrage, premier changement post-baseline sans premier send, quantification `25.6 -> 25.5`, rafale `26 -> 26.5 -> 27`, retour tardif `7 -> 21`, Q-01 sous OFF, alignement multi-TRV et persistance de la cause pendant répétition de scheduler.
 
 ## 9. Risques, limites et bloqueurs
 
-| Sujet | État |
-| --- | --- |
-| Premier `off` TRVZB | Sa provenance exacte reste inconnue ; #2159 démontre le contournement de sécurité, pas l'origine matérielle de l'amorçage. |
-| Baseline parfaite | Impossible sans provenance intégration. La classification de cycle de vie est testable, mais peut perdre un geste livré comme première valeur. |
-| Gestionnaire d'états | Le type de livraison explicite est requis ; inférer depuis `old_state` seul n'est pas une garantie suffisante. |
-| Services `number` | Propagation de chaîne et passerelle jusqu'à `send_value_to_number` sont un bloqueur de sécurité. |
-| Méthodes publiques partagées | Une voie interne explicite est un bloqueur de traçabilité, sinon un appel suivi peut réarmer indûment. |
-| Callbacks | Chaîne + époque doivent être capturées et revalidées partout ; sinon TRVZB/régulation peut contourner la suspension. |
-| Réconciliation de démarrage | Autorisée explicitement par AC-017/AC-018 si elle demeure distincte du suivi, hors plafond et diagnostiquée comme réconciliation directe. |
+| Sujet                        | État                                                                                                                                           |
+| ---------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
+| Premier `off` TRVZB          | Sa provenance exacte reste inconnue ; #2159 démontre le contournement de sécurité, pas l'origine matérielle de l'amorçage.                     |
+| Baseline parfaite            | Impossible sans provenance intégration. La classification de cycle de vie est testable, mais peut perdre un geste livré comme première valeur. |
+| Gestionnaire d'états         | Le type de livraison explicite est requis ; inférer depuis `old_state` seul n'est pas une garantie suffisante.                                 |
+| Services `number`            | Propagation de chaîne et passerelle jusqu'à `send_value_to_number` sont un bloqueur de sécurité.                                               |
+| Méthodes publiques partagées | Une voie interne explicite est un bloqueur de traçabilité, sinon un appel suivi peut réarmer indûment.                                         |
+| Callbacks                    | Chaîne + époque doivent être capturées et revalidées partout ; sinon TRVZB/régulation peut contourner la suspension.                           |
+| Réconciliation de démarrage  | Autorisée explicitement par AC-017/AC-018 si elle demeure distincte du suivi, hors plafond et diagnostiquée comme réconciliation directe.      |
 
 ## 10. Conclusion et faisabilité
 
