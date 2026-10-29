@@ -2,7 +2,7 @@
 
 | Métadonnée                | Valeur                                                                                                                               |
 | ------------------------- | ------------------------------------------------------------------------------------------------------------------------------------ |
-| Statut                    | Analyse terminée — développement non autorisé                                                                                        |
+| Statut                    | Documents v3.5 convergents sur le plan statique — validation finale avant développement                                              |
 | Issue                     | [#2159 — Infinite loop on TRVZB on startup (regression after #2141)](https://github.com/jmcollin78/versatile_thermostat/issues/2159) |
 | Version affectée signalée | `10.6.3.beta3` ; manifeste du dépôt : `10.6.3`                                                                                       |
 | Date de revue             | 2026-10-29                                                                                                                           |
@@ -12,7 +12,7 @@
 
 ## Mise à jour du 2026-10-29 — demande de correction ciblée
 
-L'utilisateur a interrompu le développement précédent et demande une solution simple concentrée sur `ThermostatOverClimate` dans [thermostat_climate.py](../../custom_components/versatile_thermostat/thermostat_climate.py), sans modification de `BaseThermostat`, de `CycleScheduler`, ni des autres modules de production communs. Les sections historiques ci-dessous restent utiles pour le diagnostic, mais leur périmètre transversal et leurs garanties physiques ne constituent plus la proposition courante. La spécification et la conception v2.0 doivent être révisées et validées pour ce nouveau périmètre avant tout développement.
+L'utilisateur a interrompu le développement précédent et demande une solution simple concentrée sur `ThermostatOverClimate` dans [thermostat_climate.py](../../custom_components/versatile_thermostat/thermostat_climate.py), sans nouvelle modification de `BaseThermostat`, de `CycleScheduler`, ni des autres classes de production. Les mécanismes interclasses déjà développés pour #2141 restent en place et peuvent être réutilisés ; ils ne sont ni rapatriés ni réécrits. Les anciennes propositions transversales et garanties physiques ne constituent plus le périmètre courant. Les documents v3.5 restent candidats ; les relectures confirment leur convergence statique, sans preuve applicative ni reproduction matérielle. Une validation finale est demandée avant développement.
 
 ### Faits et limites vérifiés
 
@@ -26,14 +26,27 @@ L'utilisateur a interrompu le développement précédent et demande une solution
 
 1. Dans `underlying_changed()`, ne suivre un mode que pour une transition réelle du même sous-jacent entre deux états valides ; ne pas adopter le premier état identifiable ni une reprise identifiable. Ne pas ignorer aveuglément le premier callback si celui-ci décrit déjà une transition valide. Préserver l'alignement multi-sous-jacents et le traitement indépendant des autres champs, y compris une consigne présente dans le même événement.
 2. Refuser toute adoption de mode lorsque la protection existante est suspendue ; pour une adoption effective, transmettre `COMMAND_CAUSE_UNDERLYING_TRACKING` à `update_states()`, sans passer par une entrée externe qui réarmerait le suivi. Conserver le debounce de cinq secondes réservé à la température, sans réintroduire le filtre global de dix secondes.
-3. En complément, **proposer**, sans l'imposer avant validation, un coupe-circuit local distinct du compteur physique : au plus trois adoptions effectives de mode suivies par VTherm entre deux réarmements externes ; la troisième est admise, les suivantes refusées, et le pilotage direct reste possible. Ce compteur porte sur les adoptions de mode, non sur chaque service physique, et ne modifie pas le traitement existant des consignes. Sa réservation doit précéder la mutation et tout `await` ; la suspension et son motif doivent être distincts du compteur physique existant.
-4. Ajouter des tests du callback réel : état initial/reprise identifiable, changements `heat/off` réels et événements d'attribut sans changement de mode, compteur saturé, cause transmise, événements mixtes mode/consigne, réarmement externe et régression sur la variante vanne. Mesurer séparément les services `climate` et `number`, sans affirmer qu'ils sont tous bornés par le compteur local.
+3. Selon la décision utilisateur, **un seul compteur existant** doit compter à la fois les changements de mode ou de consigne effectivement adoptés et les tentatives `climate` marquées déjà comptées. Un retour non adopté ne débite pas d'adoption ; une interaction peut débiter plusieurs unités. Aucun second compteur n'est proposé.
+4. Prévoir des tests du callback réel : état initial/reprise identifiable, changements `heat/off` réels et événements d'attribut sans changement de mode, budget saturé, cause transmise, événements mixtes, réarmement externe et régression sur la variante vanne. Mesurer séparément adoptions, tentatives `climate` et services `number` ; tester le seuil et la réentrance.
 
-### Compromis à approuver
+### Conséquences et limites
 
-Le coupe-circuit proposé peut suspendre le suivi après trois changements légitimes de mode, même espacés dans le temps, tant qu'aucune commande externe ne le réarme. Il borne les **nouvelles adoptions suivies de mode**, pas les commandes physiques déjà lancées, les cycles, les callbacks d'autres couches, les réconciliations directes ni une boucle réarmée par une automatisation externe. Les commandes de vanne et les suites différées peuvent être amplifiées indépendamment du nombre d'adoptions ; la suppression complète de la boucle matérielle reste à vérifier. Un seuil différent ou une politique de reprise différente nécessiterait une décision fonctionnelle explicite.
+Le compteur partagé peut saturer après des gestes légitimes espacés, voire avant trois adoptions si des tentatives sont aussi débitées. Un `OFF` adopté qui porte le total à trois peut rester demandé ou publié sans être transmis à un autre TRV ; aucun rattrapage n'est garanti. L'utilisateur a confirmé qu'aucune exigence supplémentaire de transmission forcée de `OFF` n'était demandée ; ce constat ne lui attribue pas une acceptation générale du danger. Le compteur ne borne ni les commandes déjà lancées, ni les services `number`, cycles, réconciliations ou automatisations externes réarmantes. La suppression complète de la boucle matérielle reste à vérifier.
 
 La proposition précédente de `TrackingChain` propagée jusqu'aux vannes et du plafond global de trois appels physiques `climate`/`number` exigeait des changements transversaux exclus par la nouvelle demande. Elle ne doit pas être présentée comme satisfaite par ce correctif local.
+
+### Convergence documentaire v3.5 et risques résiduels
+
+Les [spécifications FR](issue-2141-specification_fr.md) et [EN](issue-2141-specification_en.md) et la [conception](issue-2141-design.md) sont candidates en v3.5. Deux relectures indépendantes confirment le même périmètre, la couverture documentaire des critères, l'absence de nouvelle contradiction bloquante et la faisabilité/testabilité statiques. Elles ne certifient ni conformité complète ni exécution réussie.
+
+Les décisions et limites sont les suivantes :
+
+- **Compteur partagé :** choisi par l'utilisateur pour les adoptions réelles de mode/consigne et les tentatives marquées existantes. L'ancienne option de compteur séparé est retirée.
+- **Extensions de température Q-07 à Q-09 :** retirées du périmètre #2159, sans arbitrage nécessaire pour le socle HVAC. Les divergences historiques de référence, de pas et de déduplication restent documentées, sans prétendre qu'elles sont résolues.
+- **Seuil et séquencement Q-11/Q-12 :** pas d'exigence de transmission forcée de `OFF` ; mode et application avant l'examen de la consigne. Les limites du compteur demeurent documentées.
+- **Réentrance :** une reprise d'expiration de preset peut démarrer une tâche immédiatement dans la version HA inspectée et déclencher une application imbriquée non marquée. La conception propose de conserver la reprise immédiate et de finaliser sur l'état courant ; la non-régression reste à tester. Aucun double débit ni envoi systématique n'est prouvé.
+
+Le refus HVAC des paires mal identifiées, les limites des événements filtrés en amont et le comportement en cas d'erreur sont précisés dans les documents candidats, sans nouveau filtre général de température. L'origine du premier `off` et l'élimination de l'oscillation matérielle demeurent non établies. Les résultats restent à valider avant développement.
 
 ## 1. Résumé fidèle de l’issue
 
@@ -139,13 +152,11 @@ La régression n’invalide pas le besoin fonctionnel de #2141 ; elle révèle u
 
 ### Inclus
 
-1. Définir explicitement la politique de suivi des modes HVAC pour `follow_underlying_temp_change` : conservation, suppression, filtrage ou suivi avec cause explicite.
-2. Si le suivi des modes est maintenu, transporter une cause interne immuable de l’observation sous-jacente jusqu’à chaque commande physique induite, y compris les callbacks différés.
-3. Faire respecter le plafond commun de trois tentatives, la suspension et l’absence de réarmement interne sur ce chemin.
-4. Étendre cette traçabilité aux commandes de régulation de vanne lorsque celles-ci sont causées par une observation suivie.
-5. Ajouter des tests de régression sur `ThermostatOverClimateValve`, incluant une alternance `heat/off`, un budget saturé, la régulation à 0 % / 100 % et les callbacks différés TRVZB.
-6. Ajouter des diagnostics permettant d’identifier la cause d’une transition de mode et la consommation effective du budget.
-7. Mettre à jour la documentation utilisateur si la sémantique du commutateur ou son périmètre change.
+1. Conserver le suivi des modes HVAC avec qualification locale des transitions, source, alignement, garde existante et cause de suivi.
+2. Réutiliser sans modification les mécanismes interclasses #2141, limités aux points déjà couverts ; ne pas promettre la propagation jusqu'à chaque commande physique.
+3. Tester le callback et la variante vanne, notamment les alternances `heat/off`, le budget existant saturé et les callbacks différés, en mesurant séparément les services `climate` et `number`.
+4. Prévoir des diagnostics locaux adaptés et préserver les traitements existants de température et des autres champs ; les tests peuvent être modifiés hors de la classe.
+5. Ajouter le comptage des adoptions réelles au compteur partagé existant, en conservant le comptage des tentatives et l'ordre mode puis consigne.
 
 ### Exclus
 
@@ -153,27 +164,28 @@ La régression n’invalide pas le besoin fonctionnel de #2141 ; elle révèle u
 - Modifier la politique fonctionnelle des consignes, presets, fenêtres, sécurité, ventilation ou régulation hors du chemin causal concerné.
 - Garantir une attribution parfaite de l’origine d’un événement matériel lorsque Home Assistant ne l’expose pas.
 - Modifier la configuration de l’installation affectée pendant l’analyse.
+- Modifier ou rapatrier les mécanismes #2141 dans les autres classes, ajouter une borne globale des services physiques ou refaire les politiques de température sous #2159.
 
 ## 6. Impacts et risques
 
-| Risque ou impact                                                     | Gravité  | Probabilité                                                        | Éléments établis / précaution                                                         |
-| -------------------------------------------------------------------- | -------- | ------------------------------------------------------------------ | ------------------------------------------------------------------------------------- |
-| Oscillation répétée 0 % / 100 % au démarrage                         | Critique | Établie sur l’installation signalée ; mécanisme logiciel plausible | Traiter le suivi HVAC hors budget ; tester le chemin vanne complet.                   |
-| Charge répétée Zigbee / Home Assistant / TRV                         | Haute    | Plausible                                                          | Borner toutes les commandes physiques dérivées et journaliser la cause.               |
-| Régression fonctionnelle si le suivi HVAC est supprimé sans décision | Moyenne  | Certaine si des utilisateurs comptent sur ce comportement          | Décider explicitement la sémantique du commutateur avant développement.               |
-| Contournement persistant par callbacks ou commandes de vanne         | Haute    | Plausible                                                          | Audit exhaustif de propagation de cause jusqu’aux services `climate` et `number`.     |
-| Faux diagnostic de l’origine matérielle                              | Moyenne  | Élevée avec le seul extrait disponible                             | Demander un journal étendu si l’analyse requiert la source initiale du premier `off`. |
-| Régression de #2141 sur les gestes rapides de température            | Haute    | Possible                                                           | Préserver le debounce et les protections de température existants par tests dédiés.   |
+| Risque ou impact                                                     | Gravité  | Probabilité                                                        | Éléments établis / précaution                                                            |
+| -------------------------------------------------------------------- | -------- | ------------------------------------------------------------------ | ---------------------------------------------------------------------------------------- |
+| Oscillation répétée 0 % / 100 % au démarrage                         | Critique | Établie sur l’installation signalée ; mécanisme logiciel plausible | Traiter le suivi HVAC hors budget ; tester le chemin vanne complet.                      |
+| Charge répétée Zigbee / Home Assistant / TRV                         | Haute    | Plausible                                                          | Mesurer séparément les commandes et reconnaître l'absence de borne globale.              |
+| Régression fonctionnelle si le suivi HVAC est supprimé sans décision | Moyenne  | Certaine si des utilisateurs comptent sur ce comportement          | Le socle candidat conserve ce suivi ; soumettre cette proposition à validation.          |
+| Contournement persistant par callbacks ou commandes de vanne         | Haute    | Plausible                                                          | Caractériser les services non couverts ; une protection transversale est hors périmètre. |
+| Faux diagnostic de l’origine matérielle                              | Moyenne  | Élevée avec le seul extrait disponible                             | Demander un journal étendu si l’analyse requiert la source initiale du premier `off`.    |
+| Régression de #2141 sur les gestes rapides de température            | Haute    | Possible                                                           | Préserver le debounce et les protections de température existants par tests dédiés.      |
 
 ## 7. Alternatives examinées
 
-| Alternative                                                                      | Avantages                                                                                  | Limites / recommandation                                                                                                                                    |
-| -------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Désactiver le suivi sous-jacent                                                  | Contournement confirmé : l’oscillation signalée cesse                                      | Perd le suivi des gestes sur le TRV ; acceptable seulement comme mesure temporaire.                                                                         |
-| Réintroduire le filtre global de 10 s                                            | Bloque vraisemblablement le `off` observé moins d’une seconde après une commande VTherm    | Réintroduit le défaut de #2141 : les gestes rapides de consigne sont perdus. À écarter.                                                                     |
-| Ne plus suivre les modes HVAC avec ce commutateur                                | Sépare strictement le suivi des consignes de celui des modes et supprime le chemin observé | Changement de comportement à documenter ; vérifier les usages légitimes du suivi de mode. Alternative préférable si le suivi de mode n’est pas contractuel. |
-| Conserver le suivi HVAC, avec la même cause et le même budget que la température | Préserve la fonctionnalité existante tout en bornant la boucle                             | Nécessite un audit complet des callbacks et des commandes de vanne ; ne résout pas la provenance matérielle du premier état.                                |
-| Spécialiser le comportement TRVZB                                                | Peut réduire un problème matériel particulier                                              | Risque de masquer une faille générique et de multiplier les exceptions matériel. À considérer seulement après correction générique.                         |
+| Alternative                                                                  | Avantages                                                                                  | Limites / recommandation                                                                                                              |
+| ---------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------- |
+| Désactiver le suivi sous-jacent                                              | Contournement confirmé : l’oscillation signalée cesse                                      | Perd le suivi des gestes sur le TRV ; acceptable seulement comme mesure temporaire.                                                   |
+| Réintroduire le filtre global de 10 s                                        | Bloque vraisemblablement le `off` observé moins d’une seconde après une commande VTherm    | Réintroduit le défaut de #2141 : les gestes rapides de consigne sont perdus. À écarter.                                               |
+| Ne plus suivre les modes HVAC avec ce commutateur                            | Sépare strictement le suivi des consignes de celui des modes et supprime le chemin observé | Alternative examinée mais non retenue dans le socle candidat ; changerait le comportement actuel et exigerait une décision distincte. |
+| Conserver le suivi HVAC et étendre le compteur partagé aux adoptions réelles | Préserve le suivi et compte aussi les adoptions sans tentative `climate`                   | Peut saturer avant diffusion, notamment d'un `OFF` ; ne borne pas les commandes de vanne ni la provenance du premier état.            |
+| Spécialiser le comportement TRVZB                                            | Peut réduire un problème matériel particulier                                              | Risque de masquer une faille générique et de multiplier les exceptions matériel. À considérer seulement après correction générique.   |
 
 ## 8. Hypothèses, inconnues et questions ouvertes
 
@@ -195,8 +207,8 @@ La régression n’invalide pas le besoin fonctionnel de #2141 ; elle révèle u
 
 1. Quelle commande, quel état initial ou quel comportement de l’intégration produit le premier `off` après le démarrage ?
 2. Quel événement précis produit le retour ultérieur à `heat` qui complète l’alternance observée ?
-3. Le suivi des modes HVAC est-il une fonctionnalité documentée et attendue de ce commutateur, ou un effet historique non intentionnel ?
-4. Quelles commandes `number.set_value` doivent être considérées comme physiquement induites par un suivi et débitées dans le budget commun ?
+3. Le suivi des modes HVAC est-il une fonctionnalité documentée et attendue de ce commutateur, ou un effet historique non intentionnel ? Le socle candidat le conserve, sans trancher cette question historique.
+4. Quelles commandes `number.set_value` seraient physiquement induites par un suivi ? Leur éventuelle inclusion dans un budget transversal est hors du correctif local proposé.
 
 Ces inconnues ne bloquent pas la correction du contournement déjà démontré, mais elles bloquent une affirmation selon laquelle toute boucle TRVZB est reproduite et éliminée sans journal/test complémentaire.
 
@@ -205,14 +217,14 @@ Ces inconnues ne bloquent pas la correction du contournement déjà démontré, 
 ### Recommandation de processus
 
 1. Valider ce rapport et retenir l’issue comme régression prioritaire.
-2. Décider explicitement si le commutateur continue à suivre les modes HVAC ou devient strictement un suivi de consigne.
-3. Produire une spécification ciblée de la politique retenue et une conception décrivant la propagation de cause jusqu’aux commandes `climate` et `number`.
-4. Ne démarrer le développement qu’après convergence et autorisation explicite.
+2. Soumettre les spécifications et la conception v3.5 convergentes à validation finale.
+3. Tester le seuil, les événements mixtes et la non-régression face à la réentrance pendant le développement autorisé.
+4. Ne démarrer le développement qu'après validation et autorisation explicite.
 
 ### Critères minimaux à spécifier avant développement
 
 - Un événement `heat → off` du climate sous-jacent, sans nouvelle commande externe, ne peut pas contourner le plafond/suspension retenu.
-- Une alternance de retours `off/heat` avec budget déjà saturé n’émet plus de commandes physiques non bornées et ne force plus de transition VTherm non autorisée.
+- Une alternance de retours `off/heat` avec budget existant déjà saturé ne provoque plus d'adoption HVAC par suivi ; les autres commandes, notamment `number`, sont observées séparément sans garantie d'arrêt global.
 - Les retours normaux de `hvac_action`, de température et de consigne continuent à être traités selon #2141 sans être confondus avec un changement de mode.
 - Le chemin `over_climate` avec régulation de vanne est testé : 100 % puis 0 %, état de climate, services `climate` et `number`, callbacks différés et ordre de réception.
 - Les deux tests existants de #2141 restent valides, complétés par un test end-to-end du chemin qui échappait au marquage de cause.
@@ -220,8 +232,8 @@ Ces inconnues ne bloquent pas la correction du contournement déjà démontré, 
 
 ## 10. Décision de revue
 
-**Recommandation : retenir l’issue #2159 et ouvrir la phase de spécification/conception.**
+**Recommandation : retenir l’issue #2159 et soumettre les documents candidats v3.5 à validation finale.**
 
 La cause exacte du premier état `off` du TRV reste inconnue. Le contournement logiciel des protections de #2141 par le suivi de mode est démontré ; son rôle exact dans l’amorçage de cette boucle matérielle reste une hypothèse fortement étayée à reproduire. La correction doit être conçue comme une régression de sécurité/disponibilité et non comme un contournement spécifique au matériel.
 
-Aucun développement n’est autorisé par ce rapport.
+La convergence statique ne remplace ni la validation finale ni les tests applicatifs ; ce rapport ne vaut pas autorisation de développer.
