@@ -607,9 +607,12 @@ async def test_underlying_action_change_keeps_pending_temperature_candidate(
         callbacks.append(callback)
         return lambda: None
 
+    candidate_temperature = entity.target_temperature + 2
+    hass.states.async_set(under.entity_id, VThermHvacMode_HEAT, {"temperature": candidate_temperature})
+    await hass.async_block_till_done()
+    entity._on_external_command_received()
+    under._last_sent_temperature = None
     with patch("custom_components.versatile_thermostat.thermostat_climate.async_call_later", side_effect=capture_debounce):
-        candidate_temperature = entity.target_temperature + 2
-        hass.states.async_set(under.entity_id, VThermHvacMode_HEAT, {"temperature": candidate_temperature})
         entity._consider_underlying_temperature_candidate(under, candidate_temperature)
         assert under.entity_id in entity._underlying_temperature_candidates
         assert entity._underlying_temperature_status[under.entity_id] == "candidate_pending"
@@ -627,6 +630,7 @@ async def test_underlying_action_change_keeps_pending_temperature_candidate(
 
     assert len(callbacks) == 1
     assert entity._underlying_temperature_candidates[under.entity_id]["version"] == candidate_version
+    hass.states.async_set(under.entity_id, VThermHvacMode_HEAT, {"temperature": candidate_temperature})
     await callbacks[0](None)
     assert under.entity_id not in entity._underlying_temperature_candidates
     assert entity.requested_state.target_temperature == candidate_temperature

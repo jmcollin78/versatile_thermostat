@@ -41,6 +41,9 @@ HVAC_ACTION_ON = [  # pylint: disable=invalid-name
 class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
     """Representation of a base class for a Versatile Thermostat over a climate"""
 
+    # Cleanup must also run when a synchronous hook raises cancellation.
+    # pylint: disable=broad-exception-caught
+
     _entity_component_unrecorded_attributes = BaseThermostat._entity_component_unrecorded_attributes.union(  # pylint: disable=protected-access
         frozenset(
             {
@@ -769,6 +772,7 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
                 await self.update_states(_preserve_underlying_temperature_candidates=preserve_temperature_candidates)
 
         changes = False
+        mode_adopted = False
 
         # A real changes have to be managed
         _LOGGER.debug(
@@ -798,6 +802,10 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
             # the unavailability is exposed by the underlying_unavailable message (see update_custom_attributes)
             return
 
+        candidate_temperature = new_target_temp if self._follow_underlying_temp_change else None
+        if new_target_temp is not None:
+            self._underlying_temperature_observed[under.entity_id] = new_target_temp
+
         # Interpretation of hvac action
         if new_hvac_action:
             old_hvac_action = old_state.attributes.get("hvac_action") if old_state and old_state.attributes else None
@@ -815,51 +823,98 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
                 self.incremente_energy()
                 changes = True
 
-        # Update all underlyings hvac_mode state if it has change
-        if new_hvac_mode:
+        # The delivered states, not the filtered HVAC parameter, identify a transition.
+        valid_modes = {"off", "heat", "cool", "auto", "dry", "fan_only", "heat_cool", "sleep"}
+        valid_transition = (
+            old_state is not None
+            and old_state.entity_id == under.entity_id == new_state.entity_id
+            and old_state.state in valid_modes
+            and new_state.state in valid_modes
+            and old_state.state != new_state.state
+        )
+        if valid_transition and self._follow_underlying_temp_change:
+            reported_mode = VThermHvacMode(new_state.state)
             # Issue #334 - if all underlyings are not aligned with the same hvac_mode don't change the underlying and wait they are aligned
             can_follow_hvac_mode = True
             if self.is_over_climate:
-                for under in self._underlyings:
-                    if under.entity_id != new_state.entity_id and under.hvac_mode != self.vtherm_hvac_mode:
+                for other_under in self._underlyings:
+                    if other_under.entity_id != under.entity_id and other_under.hvac_mode != self.vtherm_hvac_mode:
                         _LOGGER.info(
                             "%s - the underlying's hvac_mode %s is not aligned with VTherm hvac_mode %s. So we don't diffuse the change to all other underlyings to avoid loops",
-                            under,
-                            under.hvac_mode,
+                            other_under,
+                            other_under.hvac_mode,
                             self.vtherm_hvac_mode,
                         )
                         can_follow_hvac_mode = False
                         break
 
-            if can_follow_hvac_mode:
-                if self.is_over_climate:
-                    _LOGGER.debug(
-                        "%s - All underlyings have the same hvac_mode '%s'",
-                        self,
-                        new_hvac_mode,
-                    )
-                changes = True
-                # We follow the underlying hvac_mode change
-                if self._follow_underlying_temp_change:
-                    _LOGGER.debug(
-                        "%s - Follow is 'on'. Changing hvac_mode for all underlying to '%s'",
-                        self,
-                        new_hvac_mode,
-                    )
-                    self.requested_state.set_hvac_mode(new_hvac_mode)
+            # A report already matching the effective mode can be an echo of
+            # VTherm's own command, not a new requested mode (e.g. forced OFF).
+            if (
+                can_follow_hvac_mode
+                and reported_mode != self.vtherm_hvac_mode
+                and reported_mode != self.requested_state.hvac_mode
+                and self._can_send_underlying_tracking_command()
+            ):
+                mode_adopted = self._adopt_underlying_value(under.entity_id, "mode", reported_mode)
+            else:
+                _LOGGER.debug(
+                    "%s - HVAC tracking refused for %s: alignment=%s budget=%s suspended=%s",
+                    self,
+                    under.entity_id,
+                    can_follow_hvac_mode,
+                    self._underlying_tracking_attempts,
+                    self._underlying_tracking_suspended,
+                )
 
         # A quick win to known if it has change by using the self._attr_fan_mode and not only underlying[0].fan_mode
         if new_fan_mode:
             self._attr_fan_mode = new_fan_mode
             changes = True
 
-        candidate_temperature = new_target_temp if self._follow_underlying_temp_change else None
-        if new_target_temp is not None:
-            self._underlying_temperature_observed[under.entity_id] = new_target_temp
-
-        await end_climate_changed(changes, preserve_temperature_candidates=new_hvac_mode is None)
+        if mode_adopted:
+            # Cancellation may eagerly expire a preset and reset the change flags.
+            self.requested_state.force_changed()
+            await self.update_states(_command_cause=COMMAND_CAUSE_UNDERLYING_TRACKING)
+        else:
+            await end_climate_changed(changes, preserve_temperature_candidates=True)
         if candidate_temperature is not None:
             self._consider_underlying_temperature_candidate(under, candidate_temperature)
+
+    def _adopt_underlying_value(self, entity_id: str, kind: str, value: Any):
+        """Count a retained mutation once, even if its setter assigns then raises."""
+        state = self.requested_state
+        attribute = "hvac_mode" if kind == "mode" else "target_temperature"
+        setter = state.set_hvac_mode if kind == "mode" else state.set_target_temperature
+        before = getattr(state, attribute)
+        marker = {"adoption": kind, "value": value, "invalidation_started": False}
+        primary_error = None
+        try:
+            setter(value)
+        except BaseException as err:
+            primary_error = err
+
+        adopted = before != value and getattr(state, attribute) == value
+        if adopted:
+            try:
+                self._record_underlying_tracking_command(entity_id, marker)
+            except BaseException as err:
+                if primary_error is None:
+                    primary_error = err
+                else:
+                    _LOGGER.exception("%s - Error recording %s adoption after setter failure", self, kind)
+            if kind == "mode" and not marker["invalidation_started"]:
+                marker["invalidation_started"] = True
+                try:
+                    self._cancel_all_underlying_temperature_candidates()
+                except BaseException as err:
+                    if primary_error is None:
+                        primary_error = err
+                    else:
+                        _LOGGER.exception("%s - Error cancelling candidates after HVAC adoption", self)
+        if primary_error is not None:
+            raise primary_error
+        return adopted
 
     def _consider_underlying_temperature_candidate(self, under, temperature: float):
         """Debounce a distinct underlying setpoint before applying it to this thermostat."""
@@ -869,7 +924,7 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
             return
 
         temperature = float(temperature)
-        if self._underlying_tracking_suspended:
+        if not self._can_send_underlying_tracking_command():
             self._underlying_temperature_status[under.entity_id] = "suspended"
             return
 
@@ -919,20 +974,68 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
                 current_temperature != temperature
                 or candidate["state_snapshot"] != self._underlying_temperature_state_snapshot()
                 or not self._follow_underlying_temp_change
-                or self._underlying_tracking_suspended
+                or not self._can_send_underlying_tracking_command()
                 or any(other["version"] > version for other in self._underlying_temperature_candidates.values())
             ):
                 self._cancel_underlying_temperature_candidate(under.entity_id)
                 return
 
             self._underlying_temperature_candidates.pop(under.entity_id, None)
-            self._cancel_all_underlying_temperature_candidates(resume_timed_preset=False)
-            self._timed_preset_manager.cancel_without_revert()
-            self.requested_state.set_target_temperature(temperature)
+
+            def closure_still_valid():
+                """Recheck live state after calls that may execute reentrantly."""
+                latest_state = self._hass.states.get(under.entity_id)
+                latest_sent = under.last_sent_temperature
+                latest_step = under.target_temperature_step
+                return (
+                    self._underlying_temperature_candidate_version == version
+                    and not self._underlying_temperature_candidates
+                    and self._follow_underlying_temp_change
+                    and self._can_send_underlying_tracking_command()
+                    and candidate["state_snapshot"] == self._underlying_temperature_state_snapshot()
+                    and latest_state is not None
+                    and latest_state.attributes.get("temperature") == temperature
+                    and not (latest_sent is not None and (temperature == latest_sent or (latest_step is not None and abs(temperature - latest_sent) <= latest_step)))
+                )
+
+            resume_attempted = False
+            try:
+                self._cancel_all_underlying_temperature_candidates(resume_timed_preset=False)
+                # A cancel handle may have registered a newer candidate or
+                # changed the requested state. Do not cancel its preset.
+                if not closure_still_valid():
+                    if not self._underlying_temperature_candidates:
+                        resume_attempted = True
+                        self._timed_preset_manager.resume_expiration()
+                    return
+                self._timed_preset_manager.cancel_without_revert()
+            except BaseException:
+                if not resume_attempted and not self._underlying_temperature_candidates:
+                    try:
+                        self._timed_preset_manager.resume_expiration()
+                    except BaseException:
+                        _LOGGER.exception("%s - Error resuming preset after candidate cleanup failure", self)
+                raise
+
+            # Indirect cleanup may have installed a newer intention or candidate.
+            if not closure_still_valid():
+                return
+
+            self._adopt_underlying_value(under.entity_id, "temperature", temperature)
+            # A saturating debit may resume a preset eagerly; never overwrite a newer intention.
+            snapshot = candidate["state_snapshot"]
+            current_snapshot = self._underlying_temperature_state_snapshot()
+            if (
+                self._underlying_temperature_candidate_version != version
+                or self._underlying_temperature_candidates
+                or current_snapshot != (snapshot[0], temperature, *snapshot[2:])
+            ):
+                return
             self.requested_state.set_preset(VThermPreset.NONE)
             self.requested_state.force_changed()
             self._underlying_temperature_status[under.entity_id] = "accepted"
-            self._underlying_tracking_reason = "candidate_adopted"
+            if not self._underlying_tracking_suspended:
+                self._underlying_tracking_reason = "candidate_adopted"
             await self.update_states(force=True, _command_cause=COMMAND_CAUSE_UNDERLYING_TRACKING)
             self.update_custom_attributes()
             self.async_write_ha_state()
@@ -960,17 +1063,51 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
         """Cancel a pending candidate for one underlying climate entity."""
         candidate = self._underlying_temperature_candidates.pop(entity_id, None)
         if candidate:
-            candidate["cancel"]()
-            self._underlying_temperature_status[entity_id] = "cancelled"
-            if resume_timed_preset and not self._underlying_temperature_candidates:
-                self._timed_preset_manager.resume_expiration()
+            primary_error = None
+            try:
+                candidate["cancel"]()
+            except BaseException as err:
+                primary_error = err
+            finally:
+                if entity_id not in self._underlying_temperature_candidates:
+                    self._underlying_temperature_status[entity_id] = "cancelled"
+                if resume_timed_preset and not self._underlying_temperature_candidates:
+                    try:
+                        self._timed_preset_manager.resume_expiration()
+                    except BaseException as err:
+                        if primary_error is None:
+                            primary_error = err
+                        else:
+                            _LOGGER.exception("%s - Error resuming timed preset after cancellation failure", self)
+            if primary_error is not None:
+                raise primary_error
 
     def _cancel_all_underlying_temperature_candidates(self, resume_timed_preset: bool = True):
         """Cancel every pending underlying setpoint candidate."""
-        for entity_id in tuple(self._underlying_temperature_candidates):
-            self._cancel_underlying_temperature_candidate(entity_id, resume_timed_preset=False)
-        if resume_timed_preset:
-            self._timed_preset_manager.resume_expiration()
+        candidates = self._underlying_temperature_candidates.copy()
+        self._underlying_temperature_candidates.clear()
+        primary_error = None
+        for entity_id, candidate in candidates.items():
+            try:
+                candidate["cancel"]()
+            except BaseException as err:
+                if primary_error is None:
+                    primary_error = err
+                else:
+                    _LOGGER.exception("%s - Error cancelling candidate %s", self, entity_id)
+            finally:
+                if entity_id not in self._underlying_temperature_candidates:
+                    self._underlying_temperature_status[entity_id] = "cancelled"
+        if resume_timed_preset and not self._underlying_temperature_candidates:
+            try:
+                self._timed_preset_manager.resume_expiration()
+            except BaseException as err:
+                if primary_error is None:
+                    primary_error = err
+                else:
+                    _LOGGER.exception("%s - Error resuming timed preset", self)
+        if primary_error is not None:
+            raise primary_error
 
     def _on_external_command_received(self):
         """Rearm the tracking budget for a new command received from Home Assistant."""
@@ -993,18 +1130,26 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
         )
 
     def _can_send_underlying_tracking_command(self) -> bool:
-        """Check the shared cap before a tracking-induced physical setpoint attempt."""
+        """Check the shared cap before an adoption or tagged climate attempt."""
         return not self._underlying_tracking_suspended and self._underlying_tracking_attempts < 3
 
     def _record_underlying_tracking_command(self, entity_id: str, command: Any):
-        """Debit one tracking-induced physical attempt and suspend after the third."""
+        """Debit one adoption or tagged climate attempt and suspend after the third."""
+
         self._underlying_tracking_attempts += 1
-        self._underlying_tracking_reason = "attempt_limit_reached" if self._underlying_tracking_attempts == 3 else "command_sent"
+        if self._underlying_tracking_attempts >= 3:
+            self._underlying_tracking_reason = "attempt_limit_reached"
+        elif isinstance(command, dict) and command.get("adoption"):
+            self._underlying_tracking_reason = f"{command['adoption']}_adopted"
+        else:
+            self._underlying_tracking_reason = "command_sent"
         if self._underlying_tracking_attempts >= 3:
             self._underlying_tracking_suspended = True
+            if isinstance(command, dict) and command.get("adoption") == "mode":
+                command["invalidation_started"] = True
             self._cancel_all_underlying_temperature_candidates()
         _LOGGER.warning(
-            "%s - tracking-induced physical attempt %s/3 for %s: %s",
+            "%s - tracking debit %s/3 for %s: %s",
             self,
             self._underlying_tracking_attempts,
             entity_id,
