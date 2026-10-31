@@ -848,7 +848,14 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
                         can_follow_hvac_mode = False
                         break
 
-            if can_follow_hvac_mode and reported_mode != self.requested_state.hvac_mode and self._can_send_underlying_tracking_command():
+            # A report already matching the effective mode can be an echo of
+            # VTherm's own command, not a new requested mode (e.g. forced OFF).
+            if (
+                can_follow_hvac_mode
+                and reported_mode != self.vtherm_hvac_mode
+                and reported_mode != self.requested_state.hvac_mode
+                and self._can_send_underlying_tracking_command()
+            ):
                 mode_adopted = self._adopt_underlying_value(under.entity_id, "mode", reported_mode)
             else:
                 _LOGGER.debug(

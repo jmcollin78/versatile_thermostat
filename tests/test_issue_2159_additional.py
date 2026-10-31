@@ -276,6 +276,8 @@ async def test_mixed_adoptions_share_one_budget_without_service(hass, tracking_t
             if kind == "M":
                 current = str(entity.requested_state.hvac_mode)
                 target = "off" if current == "heat" else "heat"
+                # The mocked application does not advance the effective mode.
+                entity._state_manager.current_state.set_hvac_mode(entity.requested_state.hvac_mode)
                 await entity.underlying_changed(under, None, None, None, None, State(under.entity_id, target), State(under.entity_id, current))
             else:
                 entity._consider_underlying_temperature_candidate(under, 27)
@@ -283,6 +285,7 @@ async def test_mixed_adoptions_share_one_budget_without_service(hass, tracking_t
             assert entity._underlying_tracking_attempts == index
         assert entity._underlying_tracking_suspended
         current = str(entity.requested_state.hvac_mode)
+        entity._state_manager.current_state.set_hvac_mode(entity.requested_state.hvac_mode)
         await entity.underlying_changed(under, None, None, None, None, State(under.entity_id, "off" if current == "heat" else "heat"), State(under.entity_id, current))
         assert entity._underlying_tracking_attempts == 3
 
@@ -525,7 +528,9 @@ async def test_new_preset_intention_during_other_handle_cleanup_is_preserved(has
     with patch("custom_components.versatile_thermostat.thermostat_climate.async_call_later", side_effect=lambda h, d, cb: (callbacks.append(cb), lambda: None)[1]):
         entity._consider_underlying_temperature_candidate(under, 27)
         entity._underlying_temperature_candidates["climate.other"] = {
-            "temperature": 26, "version": 0, "cancel": newer_intention,
+            "temperature": 26,
+            "version": 0,
+            "cancel": newer_intention,
         }
         await callbacks[0](None)
     assert manager.is_timed_preset_active
@@ -554,7 +559,8 @@ async def test_failed_handle_does_not_cancel_reentrant_replacement(hass, trackin
         entity._consider_underlying_temperature_candidate(under, 27)
         entity._underlying_temperature_candidates["climate.first"] = {"cancel": failed, "version": 0}
         entity._underlying_temperature_candidates["climate.second"] = {
-            "cancel": lambda: entity._consider_underlying_temperature_candidate(under, 28), "version": 0,
+            "cancel": lambda: entity._consider_underlying_temperature_candidate(under, 28),
+            "version": 0,
         }
         with pytest.raises(ValueError, match="first handle"):
             await callbacks[0](None)
@@ -579,7 +585,8 @@ async def test_failed_early_resume_is_not_retried(hass, tracking_thermostat):
     with patch("custom_components.versatile_thermostat.thermostat_climate.async_call_later", side_effect=lambda h, d, cb: (callbacks.append(cb), lambda: None)[1]):
         entity._consider_underlying_temperature_candidate(under, 27)
         entity._underlying_temperature_candidates["climate.other"] = {
-            "cancel": lambda: entity.requested_state.set_target_temperature(21), "version": 0,
+            "cancel": lambda: entity.requested_state.set_target_temperature(21),
+            "version": 0,
         }
         with patch.object(entity.timed_preset_manager, "resume_expiration", side_effect=ValueError("resume")) as resume:
             with pytest.raises(ValueError, match="resume"):
@@ -668,6 +675,7 @@ async def test_real_tagged_attempt_and_trvzb_resend(tracking_thermostat):
     entity = tracking_thermostat
     under = entity.underlying_entity(0)
     entity.requested_state.set_hvac_mode(VThermHvacMode_OFF)
+    entity._state_manager.current_state.set_hvac_mode(VThermHvacMode_OFF)
     callbacks = []
 
     async def apply(**kwargs):
@@ -712,6 +720,7 @@ async def test_valve_inherited_callback_obeys_suspension(hass, skip_hass_states_
         entity._on_external_command_received()
         source = entity.underlying_entity(0)
         entity.requested_state.set_hvac_mode(VThermHvacMode_HEAT)
+        entity._state_manager.current_state.set_hvac_mode(VThermHvacMode_HEAT)
         entity._underlying_tracking_attempts = 3
         entity._underlying_tracking_suspended = True
         with patch.object(entity, "update_states", new=AsyncMock()) as update:
