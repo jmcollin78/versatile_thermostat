@@ -1,0 +1,263 @@
+# Functional specification — Issue #2135: consistency of an over_climate during automatic stop
+
+## 1. Title and metadata
+
+| Field | Value |
+| --- | --- |
+| Name | Consistency between request, effective mode and underlying device during auto-stop |
+| Version | 1.1 — first convergence cycle |
+| Status | Analysis specification established; proposed target requirements, conditional and unselected fix; no development authorized |
+| Date | 2026-10-31 |
+| Owner | Versatile Thermostat project; decisions subject to maintainer/owner approval |
+| Authorization | User explicitly approved the report and authorized specification/design; this neither approves the proposals below nor authorizes development |
+| References | [Issue #2135](https://github.com/jmcollin78/versatile_thermostat/issues/2135), [validated report preserved without changes](../tech-docs/issue-2135-review.md), [French version](issue-2135_fr.md) |
+| Conventions | Ten sections and FR/BR/AC identifiers following [specification #2145](issue-2145_fr.md); identical identifiers, structure and scope in both languages |
+| Local sources | Sources S-01 to S-09 from initial drafting; targeted rereading and convergence sources S-10/S-11 detailed in section 10 |
+| Working baseline | HEAD `574d38774ff6286d548c22cb869de7350d41c1d1`, manifest 10.6.3; non-clean working tree, with a pre-existing change to source S-03; no runtime outcome inferred from this review |
+
+**Commitment level:** facts F-01 to F-07 describe available evidence. All FR requirements and BR rules are **proposals awaiting approval**; “shall” defines their intended contract, not an already approved decision. AC criteria are proposed validation scenarios, not test results. Options O and decisions Q are not adopted requirements. This analysis can be delivered without prior reproduction; a sufficiently established cause and scenario remain prerequisites for selecting and developing a fix.
+
+## 2. Context and objectives
+
+### Facts and limitations
+
+- **F-01 — Reported incident:** VTherm 10.6.1, HA 2026.10.2, `over_climate`, `ac_mode`, Airzone Cloud/Daikin, `slow` level, five-minute cycle, repair disabled. The scheduler calls `climate.set_temperature` with `hvac_mode: heat` and 20 °C from auto-stop. The author reports VTherm `off`, request `heat`, underlying device `heat` for over two hours, with no visible `off` command. This is neither a reproduction nor verified physical measurement.
+- **F-02 — Supplied local trial:** attempted application of `heat`, then `off` approximately 15 ms apart; HA reports those modes successively. Traces show `start` then `stop`, not a continuous “remain stopped” decision. They establish neither independent details of both service calls nor physical acknowledgement; `hvac_action: cooling` remains unexplained. No lasting desynchronization is reproduced.
+- **F-03 — Non-equivalent variants:** repair enabled in the trial, disabled in the incident. Trial threshold 2 corresponds to `fast`, versus `slow`/10 in the incident; exact trial version and configuration need confirmation. Issue attributes were captured after resynchronization.
+- **F-04 — Static baseline:** request and effective mode are separate; normal mode application depends on a mode change, and auto-stop detection can trigger recalculation. This does not prove the incident’s origin (S-02 to S-04).
+- **F-05 — Pre-existing reset and thresholds:** the report already verifies in 10.6.1 the reset after temperature/preset marked changed and thresholds `fast=2`, `slow=10`. The same elements are read locally in 10.6.3 (S-03/S-04). Multiple applications/resets at 19 °C do not prove multiple numerical setpoint changes. Neither a newly introduced reset nor a threshold regression is established.
+- **F-06 — Repair and commands:** repair is optional and disabled by default; it operates during control with timing guards and attempt limits. The service wrapper is non-blocking by default. A service return or HA state is not evidence of physical execution (S-05/S-06).
+- **F-07 — Unknown cause:** absent/unsent `off`, loss/rejection, delay, asynchronous ordering or external interference are competing hypotheses. The third-party job success described in the report demonstrates neither reproduction nor correction; final assertions and a simulated climate do not establish Airzone chronology. Related issues do not prove a common cause.
+
+### Objective and scope
+
+Make `over_climate` consistency verifiable when an HA command or asynchronous feedback occurs during auto-stop, without suppressing a legitimate restart or bypassing protections. Cover mode and temperature services, delayed tasks, repair enabled/disabled, supported stop modes and multiple underlying devices. Do not equate this objective with guaranteed physical heating shutdown without independent feedback.
+
+### Observable vocabulary
+
+| Term | Meaning |
+| --- | --- |
+| Request R | `requested_state`, intent accepted by VTherm; may remain `heat`/`cool` during auto-stop |
+| Effective mode E | `current_state.hvac_mode`, outcome of applicable rules and protections; not an appliance measurement |
+| Expected mode U | Mode applicable to the individual underlying device, accounting for E and the existing mapping; do not assume every stop means `off` |
+| Command C | Attempt, service entry, reception/acceptance, return/error and effect: separate timestamped stages, evidenced or explicitly unknown |
+| HA state H | Mode published by the integration; may be delayed or optimistic |
+| Appliance state P | Independent simulator state; on hardware, independent evidence to be agreed; unknown if unmeasured |
+| Divergence | H or P differs from U at the relevant time; evaluate the two divergences separately |
+
+## 3. Actors and use cases
+
+| Actor | Role and limitations |
+| --- | --- |
+| User / scheduler | Issues an HA mode/setpoint request; expects consistent behavior and an authorized restart |
+| VTherm and protections | Preserve R, determine E and U, apply existing priorities |
+| HA / integration / appliance | Receive services and provide separate feedback, possibly delayed or missing |
+| Maintainer / validator | Qualifies evidence in an isolated environment and decides on proposals; does not drive real hardware for reproduction |
+| Possible other controller | May command a shared underlying device; presence and responsibility must be established, not assumed |
+
+- **UC-01 — Request during auto-stop:** R=`heat`, E=U=H=`off`, then full HA service `heat`, 20 °C. Collect transitions; if stop remains applicable, obtain the expected mode without losing R; if a restart becomes legitimate, apply UC-03. Do not presume a constant decision.
+- **UC-02 — Late feedback or unapplied command:** feedback contradicts U; qualify its freshness and appliance effect separately. The proposed target is bounded convergence where possible, otherwise an unmasked divergence, without command bursts. Details require a decision.
+- **UC-03 — Legitimate restart:** temperature/preset, thermal conditions or disabling auto-start/stop authorize restart under existing rules; resume the requested mode subject to protections, without a new obsolete local stop correction. An old remote order may still act; effect and recovery remain conditional (FR-006, H-02, Q-04).
+- **UC-04 — Protection / unavailability / multiple appliances:** preserve protection authority, distinguish each underlying device’s outcome and do not declare global convergence based only on the responding appliance.
+
+## 4. Functional requirements
+
+All are proposed. **A**: evidence contract applicable to analysis; **P**: proposed functional target; **C**: target whose final acceptance depends on a Q decision.
+
+| ID | Type | Proposed requirement |
+| --- | --- | --- |
+| FR-001 | A | The observed system shall allow R, E, U, C, H and P to be distinguished in the trial record, explicitly stating unavailable values or evidence. The record shall distinguish attempt, service entry, recipient reception/acceptance, return/error and P effect, including observable swallowed or late errors; neither H, a boolean nor a repair log proves an actual effect. No new product interface is required. |
+| FR-002 | A | The system shall be assessed through full HA temperature-with-mode, temperature-only and mode-only services; the record shall establish their actual processing without inferring it from a direct internal method call. |
+| FR-003 | P | The system shall preserve the accepted mode and setpoint request during auto-stop, without replacing it with the stop mode to hide a discrepancy. A new accepted request remains possible. |
+| FR-004 | P/C | Under H-02 preconditions approved through Q-02/Q-04/Q-06, the system shall allow H and P to converge to stable U within separately approved bounds; reachability/capability alone is insufficient. Outside these preconditions, the record shall conclude divergence or insufficient evidence separately for H and P, without a physical guarantee. Lack of a new E transition shall neither prove compliance nor prevent handling selected through Q-01. |
+| FR-005 | P/C | The system shall handle the actual `start` then `stop` sequence separately from maintaining a stop and shall not issue an obsolete local corrective activation. Neutralizing effects of a remotely accepted order and convergence to current U remain conditional on H-02 and Q-02/Q-03/Q-04 decisions; neither remote cancellation nor absolute absence of transients is guaranteed. |
+| FR-006 | P/C | The system shall allow legitimate restart under existing rules from the current request, without issuing an obsolete local stop correction. An order already accepted remotely may still cut off this restart: its effect and recovery shall be assessed under H-02 and Q-02/Q-04 policy, not considered cancelled by a local timer. A manual stop shall not become an automatic restart. |
+| FR-007 | P | The system shall preserve existing inhibition, safety, window and central-mode priorities, including window actions affecting only the setpoint; reconciliation shall not bypass their outcome. |
+| FR-008 | P | The system shall respect the selected and supported stop mode (`off`, `fan_only`, `dry`), changes to that mode during auto-stop and existing fallback behavior; it shall not systematically force `off`. An exposed choice, locally derived from the first underlying, does not prove support by every target; no capability intersection or new per-appliance fallback is decided (Q-04). |
+| FR-009 | P/C | With persistent losses, rejections or contradictory feedback, the system shall preserve the new request and avoid a self-sustaining loop lacking approved rate/burst bounds and retry policy. Q-02/Q-05 shall define aggregate counting per origin/target/window, pauses and rearming, and decide whether periodic repetition is allowed or total stop required. No finite total command count is imposed here; BR-007 remains the characterization oracle, not a newly approved policy. |
+| FR-010 | P/C | The system shall leave optional repair disabled when configured that way and preserve its current default; when enabled, processing shall remain compatible with its delays/limits, without conflicting concurrent corrections. Coordination of any new handling is subject to Q-05. |
+| FR-011 | P/C | The system shall not declare an absent, `unknown` or `unavailable` underlying device compliant without evidence; on availability recovery, it shall use current U rather than an old intent. Recovery policy is subject to Q-04. |
+| FR-012 | P/C | With multiple underlying devices, the system shall assess commands and divergences per appliance, without hiding partial failure or causing loops on the others; heterogeneous capabilities and shared control are subject to Q-04/Q-06. |
+| FR-013 | P | The system shall preserve existing services, parameters, attributes and tracking choices within this scope, without algorithm redesign, general repair-default changes, dependencies or migration. Any scope expansion requires separate approval. |
+| FR-014 | A | Before delivery of a selected fix, the system shall undergo a discriminating regression scenario demonstrating the defect before and its absence after, checking service flow, protections, restart and absence of loops; final HA state equality alone is insufficient. |
+
+## 5. Business rules
+
+| ID | Proposed rule, conditions and exceptions |
+| --- | --- |
+| BR-001 | Compare compliance against current U, not directly against R or a constant `off`. R=`heat` with E=`off` may be normal auto-stop; H=`off` does not establish P=`off`. |
+| BR-002 | Locally verified priorities are: inhibition, central `STOPPED`, safety requiring an `over_climate` to stop, window action changing mode, auto-stop, then other applicable central constraints and the request. Eco/frost window actions are not a general shutdown. Do not invent a new uniform priority for every central mode (S-02). |
+| BR-003 | A repeated request, a preset marked changed and a numerical setpoint change are distinct situations. Existing reset and thresholds remain the characterization baseline, without inferring a prohibited restart or a new reset rule. |
+| BR-004 | While U remains a stop mode, qualify any divergence using C/H/P. Following an authorized restart, reassess U: old stop feedback does not authorize a new local cutoff correction. Include still-cancellable delayed work, already started callbacks and remotely accepted orders; cancelling a local timer does not withdraw the latter. Distinguish thermal restart from HA restart; no new persistence or migration is decided. |
+| BR-005 | Bounded convergence depends on all H-02 preconditions, not reachability alone. Two executions with identical R/E/U/C/H may have different P when H is optimistic; without additional information, the controller cannot distinguish them. Independent measurement verifies P, not guaranteed control of it. Permanent refusal, losses exceeding budget, unbounded old orders or conflicting authority rule out unconditional H=P=U promises; conclude divergence or insufficient evidence at the relevant level. |
+| BR-006 | Convergence time, transient tolerance and command budget cannot be inferred from the observed ~15 ms, the workaround’s one minute or the reported two hours. The 2 s climate timing guard and 30 s repair preparation are existing mechanisms, not approved SLAs. |
+| BR-007 | Existing optional repair waits at least 30 s after the first ready invocation, defers climate repair within 2 s of a command and counts up to 5 consecutive controls where at least one underlying returns `True`. The counter is thermostat-wide: then 4 eligible calls are skipped, with an attempt resuming on the fifth. An inspection control without a `True` result resets the counter even without proven compliance. These calls need not correspond to periodic 5 min cycles; this is neither permanent shutdown, a global cap nor evidence of five actual effects (S-05/S-06). |
+| BR-008 | No repair shall claim physical success solely from issuing an order. “Option enabled” is distinct from the detection boolean returned in a control; `False` does not prove disablement, and `True` or a “repaired” log proves neither service reception nor P effect, including with a blocking gate or swallowed error. The record shall retain only actually evidenced stages. |
+| BR-009 | An already compliant appliance shall not receive repeats solely because of identical feedback; this principle does not remove justified existing maintenance commands. Check loop prevention across all relevant processing, including repair. |
+| BR-010 | Collection and simulation shall be isolated from real hardware, timestamped and stripped of sensitive data. Later hardware validation requires a supervised protocol and separate authorization; it is neither performed nor authorized by this document. |
+
+## 6. Functional constraints
+
+- **Safety and comfort:** preserve protections and manual stop; avoid unwanted heating/cooling, interrupted restart and excessive switching. This software does not guarantee hardware thermal safety.
+- **Availability:** cloud latency and optimistic HA data limit what can be demonstrated. Missing feedback proves neither physical success nor failure. Do not infer atomicity or hardware execution order from HA services.
+- **HA versions:** installed sources declare 2026.8.2 (S-11), versus 2026.10.2 for the incident. This establishes neither active process version nor supplied trial version; it permits no historical extrapolation or environment change during this phase.
+- **Compatibility:** characterize 10.6.1 and the identified local 10.6.3 revision separately; do not assume equivalence. Preserve other thermostat types, valve regulation and underlying tracking through suitable regression checks, without automatically extending the fix to them.
+- **User experience:** preserve request/effective attribute semantics; no new interface or notification is decided. Failure reporting format remains Q-05.
+- **Privacy:** anonymize identifiers, occupancy times and home information; remove secrets/tokens from traces. No new permission, data retention or transmission is decided.
+- **Regulation and numerical commitments:** sources establish no specific regulatory constraint or allowable divergence duration; do not invent them.
+- **Authorization:** this phase changes specifications only; no code, tests, configuration, dependencies or HA environment, nor the validated report.
+
+### Risks to track
+
+| Risk | Potential severity / evidence limitations | Expected validation |
+| --- | --- | --- |
+| Unwanted heating/cooling, misleading display | High depending on installation; frequency unknown | AC-001 to AC-006, separate P evidence |
+| Cutting off legitimate restart or alternate mode | High; fix risk, not established fact | AC-007 to AC-010 |
+| Cloud bursts, late ordering and conflict with repair/tracking | Medium to high; hypotheses | AC-005, AC-011 to AC-015 |
+| Partial failure, unavailability, shared appliance | Medium to high; responsibility unknown | AC-013/AC-014, Q-04/Q-06 |
+| False confidence in a fix from final HA state alone | High for evidence quality | FR-001/FR-014, AC-016 |
+
+## 7. Acceptance criteria
+
+### Proposed discriminating protocol, not executed in this phase
+
+1. Prepare an isolated HA test environment with no command link to real hardware. Record HA version, VTherm version/commit, working diff, options, supported modes, external actors and clock/time zone. Use a simulated appliance whose P and H can evolve independently.
+2. First reconstruct the incident case: `over_climate`, `ac_mode`, `slow`, 5 min cycle, `off` stop, repair disabled, initial room temperature above 20 °C. Actually establish R=`heat`, E=U=H=P=`off`, auto-stop detection true; record necessary accumulation, slope and history. Do not force a constant decision and present it as natural reproduction.
+3. Send `hvac_mode: heat`, `temperature: 20` through HA service `climate.set_temperature`. Capture actual processing order, transitions and services with target, origin/context where available, data, time and return/error. Observe R/E/U/detection, H and P before, during, after delayed tasks and at least one full cycle, including beyond 2 s. Extend observation beyond applicable delays/pauses; do not make one cycle a guarantee currently unknown.
+4. Classify the path: maintained stop, `start`/`stop`, authorized restart or divergence. Distinguish “no `off` attempt”, “attempt without call”, “call error”, “observed call not applied”, “late/out-of-order application” and “insufficient data”. A correct final state alone cannot discriminate these paths.
+5. Explore the matrix below, first isolating factors and then critical latency × repair × new-request combinations. Replay interleavings before/during/after recalculation, HA feedback and delayed tasks, without imposing their order as an incident fact.
+6. Archive traces and the verdict at each C/H/P level. An injected fault characterizes robustness; it does not prove the field cause. If the defect remains absent, deliver the negative result and unknowns, not an allegedly validated fix.
+
+### Analysis matrix
+
+| Axis | Variants to characterize |
+| --- | --- |
+| HA input | Temperature+mode; temperature only; mode only; identical repeat; changed setpoint/preset; direct internal command only as a separate control |
+| Auto-stop | `slow` then `fast`; maintained stop and natural `start`/`stop` sequence; `heat` and symmetric `cool` case; auto-start/stop disabled |
+| Response | Immediate; separate application and publication latency; duplicate/stale feedback; out-of-order processing |
+| Loss and error | Lost/rejected `off`; lost/rejected `heat` as control; explicit service error; transient and persistent failure |
+| HA / appliance | H=P; optimistic H=`off` but P=`heat`; late H=`heat` but P=`off`; contradictory `hvac_action` without physical inference |
+| Timing boundaries | Before/at/after existing 2 s and 30 s; repair cycles, cap/pause/retry; future Q-02 limit; none of these values proves a hardware SLA |
+| Repair | Disabled first; enabled before and after preparation; interaction with any proposed action |
+| Priorities | Inhibition; safety; window stop/fan-only/eco/frost setpoint; central stopped and other applicable modes; manual stop |
+| Restart and delayed work | Thermal restart; new setpoint/preset; auto-start/stop disabled; old feedback/order and temperature resend after this restart |
+| Stop modes | Supported `off`, `fan_only`, `dry`; change during stop; unsupported mode and existing fallback |
+| Topology | One underlying device; multiple with partial failure; heterogeneous capabilities; absent/unknown/unavailable then recovery; shared controller if established |
+| Versions | 10.6.1 then identified 10.6.3 revision; local trial configuration to confirm before comparison |
+
+### Scenarios and verdicts
+
+**A** = analysis-quality criterion immediately usable; **P** = proposed target oracle; **C** = quantitative/policy acceptance conditional on Q decisions. No scenario was executed here.
+
+**Common conditional contract for fix criteria:** any promised H/P outcome or recovery after a remotely accepted order depends on H-02 and applicable decisions, including in P scenarios below; baseline characterization does not require the baseline to already meet these targets. The record shall define stable-U period start, separate H/P bounds and durable-compliance window; a U change supersedes the previous measurement without constituting success. Without approved parameters: measurements available, acceptance indeterminate. Outside assumptions: divergence or insufficient evidence, not guaranteed convergence. An injected error proves the simulated scenario, not the field cause.
+
+| ID | Scenario and proposed verifiable outcome | Traceability / status |
+| --- | --- | --- |
+| AC-001 | Replay the full HA service in `slow`, repair disabled: record HA/VTherm versions, preconditions and R/E/U/C/H/P sequence; conclude defect reproduced, not reproduced or indeterminate, with evidence. Preserve “mode not handled by this path/version” if observed, without artificially adding a mode call or turning a `start`/`stop` into a constant stop. | FR-001/FR-002; A |
+| AC-002 | Repeat with temperature only, mode only, same request, new setpoint and preset: distinguish reset, change flags and numerical changes; preserve the accepted request, compare sequences without presuming service decomposition. | FR-002/FR-003; A/P |
+| AC-003 | U actually remains stopped throughout the window and H-02 holds: verify H=U and P=U separately without losing R, regardless of a new E transition; count commands. Origin, bounds, durable window and activation tolerance require approval; reachability alone is insufficient. | FR-003/FR-004; C, Q-01/Q-02/Q-03/Q-04/Q-06 |
+| AC-004 | Natural `heat` then effective stop sequence: trace both commands and delayed effects; no obsolete order keeps P active against stable U beyond the approved bound. The trial’s ~15 ms is not that bound. | FR-005; C, Q-02/Q-03 |
+| AC-005 | Delay/reverse application and feedback, then duplicate an old `heat` after `off`: distinguish C order, H and P; verify convergence under H-02 and approved bounds/policies, without self-sustaining loops exceeding budget. Also test exceeded assumptions with divergence or insufficient-evidence verdicts, not an impossible convergence requirement. | FR-004/FR-005/FR-009; C, Q-02/Q-04/Q-05/Q-06 |
+| AC-006 | Lose/reject `off`, then simulate service error and lost `heat`: distinguish injected causes from lack of emission; if response recovers, apply approved policy; with permanent rejection, explicit divergence verdict without promising P stopped. | FR-001/FR-004/FR-011; A/C, Q-04/Q-05 |
+| AC-007 | Legitimately release auto-stop through thermal conditions then setpoint/preset: preserve R and allow restart without a new obsolete local stop correction. Also deliver an old stop already accepted remotely: measure its effect then recovery under H-02 and approved policy, without claiming local cancellation. Also exercise `cool`. | FR-006; P/C, Q-02/Q-04 |
+| AC-008 | Disable auto-start/stop, then request manual stop: respect restart if authorized in the former case and do not restart automatically in the latter; protections still apply. | FR-006/FR-007; P |
+| AC-009 | Activate inhibition, central stopped, safety and window actions separately then together: U and reasons remain those of existing priority; eco/frost window action does not become an unconditional stop; no processing bypasses protections. | FR-007, BR-002; P |
+| AC-010 | Select `fan_only`, `dry`, then change selection during auto-stop: preserve detection and request, apply supported mode without forcing `off`; check existing fallback once capabilities are known and subsequent restart. | FR-008; P |
+| AC-011 | Characterize repair disabled then enabled separately: preserve default, zero action by the disabled manager without suppressing normal processing. Check status/detection, 30 s wait and 2 s climate guard; record attempt, service reception, errors and P effect separately. Enabling O-04 does not presumptively meet the disabled case; any distinct handling requires Q-01/Q-05. | FR-001/FR-010, BR-007/BR-008; A/P/C, Q-01/Q-05 |
+| AC-012 | Repair enabled with permanent discrepancy and `True` results: five counted controls, four skipped eligible calls, retry on the fifth following call under the local baseline; test the collective counter and reset on inspection without a `True` result. Infer neither P effects, fixed duration nor global cap. Rate, bursts, periodic repetition or total stop, and rearming of new handling remain undecided. | FR-009/FR-010; A/P/C, Q-02/Q-05 |
+| AC-013 | Underlying absent, `unknown`, `unavailable`, then available after a new request: do not assert compliance during absence; on recovery, assess current U. Timing and recovery action require a decision. | FR-011; C, Q-04 |
+| AC-014 | Two underlying devices, one responding and one not; then established external control: individual outcomes visible in the record, no fictitious global convergence or bursts on the compliant device; authority and heterogeneous modes require decisions. | FR-012; A/C, Q-04/Q-06 |
+| AC-015 | Already compliant state, repeated identical feedback, then old temperature resend: no corrective repeat solely from that feedback. Distinguish a still-cancellable timer, already started callback and remotely accepted command; verify no obsolete local emission and, under H-02, effects/recovery under approved policy. Preserve justified maintenance and tracking; distinguish thermal restart from HA restart with an in-flight remote order, without new storage/migration. | FR-005/FR-006/FR-009/FR-011/FR-013; P/C, Q-02/Q-03/Q-04/Q-05 |
+| AC-016 | H=`off`, P=`heat`, then H=`heat`, P=`off` and contradictory HA action: provide separate verdicts and never claim physical evidence from H or `hvac_action`. Before delivery, a genuinely discriminating scenario fails before and passes after the selected fix. | FR-001/FR-014; A/P |
+| AC-017 | Compare explicitly identified HA/VTherm pairs, including incident 2026.10.2/10.6.1 and local baseline 2026.8.2/10.6.3, without equating them with the active process or supplied trial; characterize the actual service on each version. Preserve services/options/attributes, other types, valve and tracking; state coverage and results without historical extrapolation. No installation or execution is authorized during this phase. | FR-002/FR-013/FR-014; P, Q-07 |
+
+Analysis ACs are defined and usable without choosing a fix. ACs marked C are observable but **are not yet a complete acceptance contract**: Q values and policies must be approved before declaring a fix compliant.
+
+## 8. Out-of-scope functions
+
+- Development, adding/modifying/executing application tests, HA configuration or control during this documentary phase; the protocol is specified, not executed.
+- General redesign of `hvac_mode`/`hvac_action`, algorithm, reset, thresholds or auto-stop representation: no demonstrated cause currently justifies it here.
+- General repair enablement, systematic `off` re-emission, new fixed delay or prevention/reconciliation selection: no solution is approved.
+- New dependency, permission, storage or migration; modification of the author’s automations or Airzone/Daikin logic.
+- Hardware shutdown guarantee without independent measurement, physical-failure diagnosis from HA alone, treating #1654/#2020/#2012 as a common cause.
+- Automatic extension of the fix to other thermostat types; these are covered by shared-code non-regression, not an approved redesign.
+- Modification of the validated report: its historical “approval required” status is preserved; subsequent user approval is recorded here.
+
+## 9. Proposed future developments
+
+### Unselected options
+
+| ID | Option | Dependency and risk; no implementation decision |
+| --- | --- | --- |
+| O-01 | Prevent activation incompatible with U | Identify its emission path; do not suppress legitimate restart or arbitrarily rewrite reset |
+| O-02 | Reconcile a discrepancy afterwards | Qualify latency/freshness, availability and shared control; set deadline/budget; loop and restart-cutoff risk |
+| O-03 | Combine prevention and reconciliation | Establish both are needed; control concurrent corrections and repair/tracking compatibility |
+| O-04 | Assess existing optional repair without code changes | Isolated trial then, only if authorized, supervised hardware assessment; effectiveness unknown for #2135, does not presumptively resolve repair-disabled case |
+| O-05 | Document the reported external workaround | Not a product requirement; risk of interference with restart/shared appliance; do not deploy in this phase |
+
+A future diagnostic, physical-evidence or interface improvement may be studied separately after clarifying capabilities and available data. No new mechanism, parameter or notification channel is selected.
+
+## 10. Assumptions, open questions and traceability
+
+### Explicit assumptions, not established facts
+
+- **H-01:** an isolated simulator can separate H and P and inject ordering, latency, losses and errors; its Airzone fidelity needs qualification.
+- **H-02:** to accept H/P convergence, U remains stable over the approved horizon; the target is available, capable and under nonconflicting authority. Separate delivery/application and faithful HA-publication bounds, tolerated losses compatible with budget, and bounded delivery/expiry of old orders are specified and approved through Q-02/Q-04/Q-06. These test assumptions are not established Airzone properties. If H may remain optimistic or stale, compliant H does not prove P; independent P evidence qualifies only the observed effect. Without these conditions, neither certain convergence nor hardware timing is promised.
+- **H-03:** no other controller only for the baseline scenario; shared-appliance presence and incident command origins remain unknown.
+- **H-04:** the local trial can be used according to the validated transcription, but its version/configuration and raw traces are not reconstructed here.
+
+### Human decisions and blocking questions
+
+| ID | To establish or decide | Effect on next steps |
+| --- | --- | --- |
+| Q-01 | Obtain collector logs, full history, command origins, versions/configuration; distinguish non-emission, loss/rejection, delay/out-of-order execution and concurrency; establish a sufficiently discriminating cause and scenario. Which O option addresses the evidence? | **Blocks fix selection and development**, not establishment of this analysis specification. No selection made. |
+| Q-02 | Set stable-U measurement origin, HA/appliance deadlines and durable window; delivery/application/faithful-publication/old-order bounds, tolerated losses compatible with budget; rate/burst per origin/target/window, pause and rearming. Allow periodic repetition or require total stop? | Blocks quantitative acceptance of FR-004/FR-009 and conditional ACs; no value or policy selected. |
+| Q-03 | Is transient `start`/`stop` activation acceptable, under what conditions/duration, or must it be prevented? | Blocks transient oracle and strategy decisions; the observed ~15 ms does not decide the answer. |
+| Q-04 | What behavior applies during unavailability, permanent error and recovery after thermal or HA restart with a remotely accepted order? What P evidence is accessible? For heterogeneous capabilities, require homogeneity, intersection or per-target fallback? | Blocks recovery and per-target guarantees; no new fallback, storage or migration selected; indefinitely rejected commands cannot be guaranteed. |
+| Q-05 | How should any handling coordinate with repair/tracking, aggregate budget and failure reporting? Prevention only, explicitly authorized distinct handling with the option disabled, or explicit contract revision? Separately confirm desired pause given the documentation discrepancy; do not change BR-007 baseline oracle. | Blocks operational compatibility of a new mechanism; no implicit enablement or new interface decided. |
+| Q-06 | Is the underlying shared, with which automations and what command authority? | Blocks shared integration trials and any reconciliation that could fight another controller. |
+| Q-07 | Confirm local trial version/configuration, compare 10.6.1 with the recent revision, approve proposed requirements and integration/delivery scope. | Blocks generalizing conclusions and authorizing realization. New explicit authorization required before development. |
+
+### Read sources and mapping
+
+| Source | Files and symbols actually read | Related facts / requirements / criteria |
+| --- | --- | --- |
+| S-01 | [Validated report](../tech-docs/issue-2135-review.md) and reread [issue](https://github.com/jmcollin78/versatile_thermostat/issues/2135) | F-01 to F-03, F-05/F-07; FR-001/FR-002/FR-014; AC-001/AC-002/AC-016 |
+| S-02 | [state_manager.py](../../custom_components/versatile_thermostat/state_manager.py), `StateManager.calculate_current_hvac_mode` and setpoint calculation; [test_state_manager.py](../../tests/test_state_manager.py), `test_state_manager_calculate_hvac_mode` table | F-04; FR-003/FR-007/FR-008; BR-001/BR-002; AC-009 |
+| S-03 | [base_thermostat.py](../../custom_components/versatile_thermostat/base_thermostat.py), `async_set_hvac_mode`, `async_set_temperature`, `update_states`; file already modified before this writing and left intact | F-04/F-05; FR-002/FR-003/FR-006; AC-002/AC-007 |
+| S-04 | [auto_start_stop_algorithm.py](../../custom_components/versatile_thermostat/auto_start_stop_algorithm.py), `ERROR_THRESHOLD`, `should_be_turned_off`, `reset_switch_delay`; [feature_auto_start_stop_manager.py](../../custom_components/versatile_thermostat/feature_auto_start_stop_manager.py), `refresh_state`, `refresh_and_update_if_changed`, enablement and stop-mode changes; [thermostat_climate.py](../../custom_components/versatile_thermostat/thermostat_climate.py), `async_control_heating` | F-04/F-05; FR-004 to FR-008; BR-003/BR-004; AC-003/AC-004/AC-007/AC-008/AC-010 |
+| S-05 | [underlyings.py](../../custom_components/versatile_thermostat/underlyings.py), `hass_services_async_call`, `UnderlyingClimate.set_hvac_mode`, `UnderlyingClimate.check_and_repair` | F-06; FR-001/FR-005/FR-009 to FR-012; BR-005 to BR-009; AC-005/AC-006/AC-011/AC-013 to AC-016 |
+| S-06 | [feature_repair_incorrect_state_manager.py](../../custom_components/versatile_thermostat/feature_repair_incorrect_state_manager.py), `check_and_repair`, `is_detected`; [const.py](../../custom_components/versatile_thermostat/const.py), repair constants; [test_repair_incorrect_state_manager.py](../../tests/test_repair_incorrect_state_manager.py), `test_repair_manager_pause_and_retry_logs` | F-06; FR-009/FR-010; BR-007/BR-008; AC-011/AC-012 |
+| S-07 | [Auto-start/stop documentation FR](../fr/feature-auto-start-stop.md) and [EN](../en/feature-auto-start-stop.md); [test_auto_start_stop_stop_mode.py](../../tests/test_auto_start_stop_stop_mode.py), options, immediate change, restart and restoration | FR-006/FR-008/FR-013; AC-007/AC-008/AC-010/AC-017 |
+| S-08 | [Advanced settings FR](../fr/feature-advanced.md#L168-L259), repair, limits and periodic retry | FR-010; Q-05; documentation discrepancy below |
+| S-09 | [manifest.json](../../custom_components/versatile_thermostat/manifest.json), version; [specification convention #2145](issue-2145_fr.md) | Working baseline and structure; FR-013; AC-017 |
+| S-10 | [French design](../tech-docs/issue-2135-design_fr.md) and [English design](../tech-docs/issue-2135-design_en.md), reread in v1.0 then aligned in v1.1, particularly sections 6, 9 and EC-01 to EC-09 table; report and both specifications reread | First convergence cycle; DT/T/EC coverage, not approval of a fix |
+| S-11 | Reread [installed HA version](../../.venv/lib/python3.14/site-packages/homeassistant/const.py#L24-L29) and [temperature service](../../.venv/lib/python3.14/site-packages/homeassistant/components/climate/__init__.py#L787-L856); reread S-05 wrapper/mode, S-06 manager/test, S-08 and EN documentation; reread [first underlying modes](../../custom_components/versatile_thermostat/thermostat_climate.py#L1347-L1365) | EC-01/EC-05/EC-06/EC-07/EC-08; no execution result or active-process verification |
+
+### First convergence cycle — documentary decisions, no fix selection
+
+The gaps below were identified against design v1.0, then the designs were aligned in v1.1 with these clarifications. All 14 FR, 10 BR and 17 AC retain their identifiers; the following clarifications add no scope or product mechanism.
+
+| Gap | Explicit position and targeted change | Remaining open point |
+| --- | --- | --- |
+| EC-01 | Agree: BR-007/AC-012 specify four skipped eligible controls, retry on the fifth, collective counter and reset without proven compliance. The documented ten cycles are not the code/test oracle. | Desired cadence Q-05; user documentation correction outside this intervention. |
+| EC-02 | Agree: FR-009 distinguishes rate/burst/retry bounds from finite total count; BR-007 can be characterized without contradicting the conditional target. | Q-02/Q-05: aggregate budget, window, pause, rearming, periodic repetition or total stop. |
+| EC-03 | Agree: FR-004, BR-005, H-02 and common AC contract rule out reachability-only guarantees; separate H/P verdicts and explicit delivery/application/publication/old-order assumptions. | Q-02/Q-04/Q-06: assumptions, bounds, P evidence and authority need approval; independent measurement ≠ command guarantee. |
+| EC-04 | Agree: AC-011 separates disabled/enabled characterization; O-04 does not meet the disabled case merely through enablement. | Q-01/Q-05: prevention, authorized distinct handling or contract revision; no choice made. |
+| EC-05 | Agree: HA constraint, AC-001/AC-017 and S-11 distinguish installed 2026.8.2 from incident 2026.10.2; no artificial mode call. | Q-07: effective versions and historical service processing to establish; no environment changed. |
+| EC-06 | Agree: FR-008 clarifies an exposed mode is not guaranteed for every target; FR-012/AC-014 remain conditional. | Q-04/Q-06: capabilities, homogeneity/intersection/fallback and shared authority undetermined. |
+| EC-07 | Agree: FR-005/FR-006, BR-004, AC-007/AC-015 distinguish cancellable local work, started callbacks and remotely accepted commands; thermal restart ≠ HA restart. | Q-02/Q-04: remote effect and recovery; no absolute absence of cutoff or new persistence promised. |
+| EC-08 | Agree: FR-001, BR-008 and AC-011 separate evidenced stages, errors and P; boolean/log insufficient. | Evidence to collect in an authorized harness then suitable integration validation; no public field mandated. |
+| EC-09 | Agree: cause, option selection, requirement approval and authorizations remain open; FR-014/AC-016 remain conditional on a discriminating defect. | Q-01 to Q-07 according to scope; separate authorizations for harness, fix and hardware validation. |
+
+**Explicit convergence summary:** same functional scope as design S-10; all requirements and criteria are covered at plan level by DT-01 to DT-06 and T-01 to T-17 (matching AC numbers), and all ten BR by its section 9. Clarifications above match already planned ECs: documentary coverage confirmed, not executed coverage. No remaining blocking contradiction for the harness or analysis; EC-02 ambiguity and EC-03 overbroad promise are removed from the specifications through explicit conditions, not policy arbitration. The harness is feasible and testable in principle under the design, not realized or validated here; Airzone fidelity remains unknown. With no single fix designed/selected, complete fix feasibility and acceptance cannot be confirmed: measurements possible, verdicts conditional and Q blockers retained. No remaining substantive disagreement; human decisions are still needed.
+
+### Changes, discrepancies and validation limitations
+
+- **Version 1.1 update:** targeted EC-01 to EC-09 clarifications in the two specifications only; still-valid requirements preserved, no policy chosen or scope extended. Report, designs and application files unchanged by this intervention; their historical observations are not rewritten.
+- **Version 1.0 creation:** bilingual formalization following user approval. No report fact is replaced and no cause is selected. Approval only clears the report’s historical request for specification/design authorization.
+- **Gap between need and evidence:** the author wants the appliance to remain/be returned stopped, but available local evidence establishes only a rapid sequence with corresponding HA states. Physical convergence, admissible delay and absence of transients are not demonstrated; they remain proposed/to be decided.
+- **Additional reading, not a contradiction of the report:** S-08 announces retry after ten cycles without repair; S-06 and its test describe four skipped eligible controls then an attempt after five counted controls with a `True` result, without proving P effects. The report only mentions attempt limiting. This code/documentation discrepancy is flagged without modifying either or treating it as the cause of #2135. The documentation term “actual state” is not adopted as physical evidence.
+- **Source limitations:** static 10.6.1 verification and the third-party CI attempt are carried over from the report, not rerun or fully reverified; no detailed incident logs, capture during divergence, physical acknowledgement or trial-configuration confirmation. The working tree is not equated with the shipped version.
+- **Tests and checks in this phase:** referenced tests read without execution or modification; no simulation, integration test or HA command call. Only documentary checks of structure, identifier parity, links and protected-file integrity are performed. No functional compliance is claimed.
+- **Completeness:** analysis specification complete within this scope and discriminating protocol defined; fix specification **conditional**, not fully acceptable/testable until Q-01 to Q-07 are addressed according to their scope. Lack of reproduction does not prevent delivery of these documents; it prevents selecting an allegedly demonstrated fix. Before application delivery: discriminating reproduction, before/after test, restart/protections/compatibility and suitable integration validation, with separate authorizations.

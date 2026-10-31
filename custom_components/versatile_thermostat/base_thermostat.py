@@ -1792,7 +1792,7 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
         if _command_cause != COMMAND_CAUSE_UNDERLYING_TRACKING and not _preserve_underlying_temperature_candidates and self._state_manager.requested_state.is_changed:
             cancel_candidates = getattr(self, "_cancel_all_underlying_temperature_candidates", None)
             if callable(cancel_candidates):
-                cancel_candidates()
+                cancel_candidates()  # pylint: disable=not-callable
 
         changed = False
         if self._state_manager.requested_state.is_changed:
