@@ -4,8 +4,9 @@ Diese Dokumentation beschreibt das Hinzufügen von LLM/MCP-Werkzeugen zu **Versa
 
 Die bereitgestellte Datei `llm.py` stellt Folgendes bereit:
 
-- 3 Werkzeuge zum Lesen und Diagnostizieren;
+- 4 Werkzeuge zum Lesen, Diagnostizieren und für den Verlauf;
 - 3 einfache Aktionswerkzeuge: Temperatur, Preset und HVAC-Modus;
+- 2 TPI-Lesewerkzeuge und 1 TPI-Werkzeug für explizite Änderungen;
 - Beschreibungen und Anweisungen, die auf **Französisch und Englisch** verwendet werden können;
 - Links zur VTherm-Dokumentation, zum Log-Sammler und zum Log-Analysator für die Fehlersuche.
 
@@ -15,10 +16,13 @@ Die bereitgestellte Datei `llm.py` stellt Folgendes bereit:
 
 ## 1. Zu installierende Datei
 
-`llm.py` nach folgendem Pfad kopieren:
+Die folgenden vier Dateien in das Integrationsverzeichnis kopieren:
 
 ```text
 /config/custom_components/versatile_thermostat/llm.py
+/config/custom_components/versatile_thermostat/recorder_export.py
+/config/custom_components/versatile_thermostat/tpi_history.py
+/config/custom_components/versatile_thermostat/tpi_identification.py
 ```
 
 Verzeichnisstruktur:
@@ -30,7 +34,10 @@ Verzeichnisstruktur:
 ├── const.py
 ├── manifest.json
 ├── ...
-└── llm.py
+├── llm.py
+├── recorder_export.py
+├── tpi_history.py
+└── tpi_identification.py
 ```
 
 Es ist nicht erforderlich, `manifest.json` zu ändern, um die Plattform `llm` zu deklarieren.
@@ -53,6 +60,7 @@ Bei Verwendung der LLM-API `assist` fügt der Home-Assistant-MCP-Server den Werk
 assist__versatile_thermostat__list_vtherms
 assist__versatile_thermostat__get_status
 assist__versatile_thermostat__diagnose
+assist__versatile_thermostat__get_history
 ```
 
 ### Aktionen — Stufe 2A
@@ -402,7 +410,7 @@ Die Datei stellt bewusst kein `toggle`-Werkzeug bereit: Der gewünschte Zustand 
 
 ## 11. Sicherheit der Aktionen
 
-Die Werkzeuge der Stufe 2 verwenden mehrere Schutzmechanismen:
+Die drei obigen Climate-Aktionen verwenden diese Schutzmechanismen (die TPI-Aktion wird separat beschrieben):
 
 1. ausschließlich für Assist freigegebene VTherm-Entitäten;
 2. ein Home-Assistant-Benutzerkontext ist für Schreibvorgänge zwingend erforderlich;
@@ -468,6 +476,7 @@ Die Aktionswerkzeuge:
 set_temperature
 set_preset
 set_hvac_mode
+set_tpi_coefficients
 ```
 
 werden aus dem MCP-Katalog gefiltert, da sie als `read_only=False` deklariert sind.
@@ -517,6 +526,8 @@ Beispiel:
 homeassistant  http://homeassistant.local:8123/api/mcp  enabled
 ```
 
+Zur Installation und Konfiguration des offiziellen Home-Assistant-MCP-Servers siehe die [Home-Assistant-Referenzdokumentation](https://www.home-assistant.io/integrations/mcp_server/).
+
 ---
 
 ## 16. VTherm-Werkzeuge überprüfen
@@ -535,12 +546,16 @@ Mit Stufe 2A sollten folgende Werkzeuge verfügbar sein:
 assist__versatile_thermostat__list_vtherms
 assist__versatile_thermostat__get_status
 assist__versatile_thermostat__diagnose
+assist__versatile_thermostat__get_history
 assist__versatile_thermostat__set_temperature
 assist__versatile_thermostat__set_preset
 assist__versatile_thermostat__set_hvac_mode
+assist__versatile_thermostat__check_tpi_optimization
+assist__versatile_thermostat__analyze_tpi_coefficients
+assist__versatile_thermostat__set_tpi_coefficients
 ```
 
-Wenn nur die ersten drei erscheinen, prüfen, ob die MCP-Option **Read only** aktiviert ist.
+Der vollständige Katalog enthält sechs Lese- und vier Schreibwerkzeuge. Mit **Read only** bleiben nur die sechs Lesewerkzeuge sichtbar.
 
 ---
 
@@ -641,6 +656,9 @@ Prüfen:
 
    ```text
    /config/custom_components/versatile_thermostat/llm.py
+/config/custom_components/versatile_thermostat/recorder_export.py
+/config/custom_components/versatile_thermostat/tpi_history.py
+/config/custom_components/versatile_thermostat/tpi_identification.py
    ```
 
 2. Home Assistant wurde neu gestartet;
@@ -684,24 +702,49 @@ Mit `list_vtherms` oder `get_status` können die tatsächlich von der Entität u
 
 ---
 
-# Bewusste Einschränkungen von Stufe 2
+# TPI-Koeffizienten anhand des Verlaufs optimieren
 
-Die Datei erlaubt keine Änderung von:
+Eine einfache Frage genügt, etwa: „Sind die Koeffizienten des Thermostats im Elternschlafzimmer optimal?“ oder „Sind meine Koeffizienten gut eingestellt?“. Die Werkzeugbeschreibungen führen den Assistenten zur schreibgeschützten TPI-Prüfung und Berechnung; bei Bedarf wird der Raumname aufgelöst. Werkzeugnamen oder eine `entity_id` sind in der Frage nicht erforderlich, ebenso wenig der Zugriff auf das Dashboard. Der gewählte Konnektor muss jedoch `check_tpi_optimization` und `analyze_tpi_coefficients` bereitstellen: Eine andere Formulierung macht fehlende Werkzeuge nicht verfügbar. Ergebnisse bleiben explorative Schätzungen, kein Nachweis eines Optimums.
 
-```text
-TPI
-SmartPI / interne Regelung
-Regelungskoeffizienten
-Leistungsgrenzen
-Prioritäten für Lastabwurf
-Fenster-Bypass
-Sicherheit
-zentrale Konfiguration
-Konfiguration der zugrunde liegenden Entitäten
-persistente VTherm-Konfiguration
+Drei Werkzeuge ergänzen die bisherigen Funktionen:
+
+| Werkzeug (Suffix `versatile_thermostat__…`) | Zugriff | Schritt |
+| --- | --- | --- |
+| `check_tpi_optimization` | Nur Lesen | 1/3 — Prüfung |
+| `analyze_tpi_coefficients` | Nur Lesen | 2/3 — Analyse |
+| `set_tpi_coefficients` | Explizites Schreiben | 3/3 — optionale Anwendung |
+
+Lesewerkzeuge benötigen nur `entity_id`. Der Client kündigt jeden Schritt vor dem Aufruf an; Hintergrundarbeit wird nicht simuliert. Jede Antwort enthält `stage`, `stage_number`, `stage_total` und `state_changed`.
+
+Die Analyse erfordert klassisches TPI (`proportional_function=tpi`), ohne konfiguriertes Auto-TPI, aktives Lernen oder kontinuierliche Außenkompensation. Diese Version unterstützt `over_switch` mit einem oder mehreren physischen Schaltern. Aufgezeichnete EIN-Zeiten werden integriert und gemäß VTherms gleichen Leistungsanteilen `device_power / N` gemittelt, einschließlich versetzter Phasen und Übergänge innerhalb einer Minute. Die absolute Heizleistung ist nicht erforderlich. Unterschiedliche individuelle Heizleistungen werden dadurch nicht gemessen.
+
+Für `over_climate`, `over_valve` und Climate-Ventilregelung liefert die Antwort ausdrücklich `eligible: false`, `supported: false`, `reason: unsupported_thermostat_type`: Für diesen Typ ist die Analyse noch nicht verfügbar. Mehrdeutige virtuelle Befehle werden ebenfalls abgelehnt; kein blinder Rückgriff auf `hvac_action`.
+
+Recorder liefert höchstens die **letzten 14 Tage**. Nach Ausschlüssen sind mindestens **7 Tage tatsächlich nutzbarer Minuten** erforderlich. Innen- und Außensensor stammen aus der effektiven VTherm-Konfiguration einschließlich zentraler Konfiguration. Ergebnisse enthalten `sources`, `history_requested_days`, `history_available_days`, `history_usable_days`, Ausschlüsse und aktuelle Einstellungen. Eine Recorder-Aufbewahrungsdauer wird nicht vorausgesetzt.
+
+Die Antwort enthält `applicability_note` (FR/EN): Die Koeffizienten sind explorative Schätzungen aus dem analysierten Zeitraum; ihre Eignung unter anderen Bedingungen ist nicht nachgewiesen. Bei wesentlichen Änderungen der Heizbedingungen oder Wohnungsnutzung oder bei einer Verschlechterung der Regelung die Analyse für einen repräsentativen Zeitraum wiederholen, bevor eine Anpassung erwogen wird. Eine Änderung der Außentemperatur allein erfordert keine Neuberechnung.
+
+Der Kalman-Vergleich ist in der MCP-Antwort deaktiviert: Simulationen zeigen, dass Koeffizienten innerhalb der Grenzen dennoch ungenau sein können. `experimental_estimator` meldet `unavailable` mit dem Grund `experimental_model_not_validated_for_application`, ohne Kalman-Berechnung oder Koeffizienten. Für Offline-Untersuchungen bleibt der Schätzer verfügbar; Werte außerhalb `[0, 10]` (innen) und `[0, 1]` (außen), unzureichende Anregung und instabile Schätzungen werden abgelehnt. Beschneiden macht aus einer fehlgeschlagenen Schätzung kein brauchbares Ergebnis. Diese Filter beweisen keine Zuverlässigkeit; OLS bleibt explorativ und die Anwendung erfolgt niemals automatisch. Bootstrap-Intervalle bleiben unkalibriert und werden nicht auf die Dienstgrenzen gekürzt.
+
+Temperaturen werden auf einem Minutenraster kausal höchstens 60 Minuten gehalten. Anders als bei der Außeninterpolation des Referenzskripts werden keine zukünftigen Messungen verwendet. Binäre HA-Zustände gelten bis zum nächsten Ereignis; `unknown`/`unavailable` machen das Intervall ungültig. Physische sowie Diagnose-Sensoren für Sicherheit, Lastabwurf und Fenster werden über Recorder gelesen, da Climate-Diagnoseabschnitte oft nicht aufgezeichnet werden. Fehlende notwendige Filterquellen führen zur Ablehnung. HVAC-Zeiträume außerhalb von `heat`, aktive Schutzfunktionen, offene Fenster und Datenlücken werden ausgeschlossen. Jede Auflösung meldet ausgeschlossene Fensterzyklen. Diese Version erfordert eine VTherm-Konfiguration in °C; Quellsensoren in °F werden in °C umgerechnet.
+
+Das Modell behält `ΔT = g × (T_ext - T_int) + B × u + q`, `coef_ext = g/B`, `A = 1-g` und `coef_int = (A-exp(-dt/tau_cl))/B` bei. Bevorzugte Konvergenz bleibt **6 h**, mit einer Tabelle für 3/4/5/6/8/10/12 h. Tatsächliches `cycle_min` hat Vorrang neben 10/20/30/60 Minuten; gegebenenfalls erfolgt ein ausdrücklich gemeldeter Rückgriff auf die nächste gültige Auflösung. Jeder Fit erfordert 40 Zyklen, 80 % gültige Minuten und die physikalischen Grenzen des Referenzskripts. Fehlende Intervalle werden nie unbemerkt zu längeren Zyklen.
+
+Chronologische Aufteilung 70 % Training / 30 % Validierung, OLS `numpy.linalg.lstsq`, MAE, RMSE, ΔT-R² und Konditionierung bleiben erhalten. Zeitlicher Bootstrap verwendet 1000 Wiederholungen, 24-Stunden-Blöcke und Seed `20261030`; Lücken verkürzen die Blöcke nicht. Ungefähre 95%-Konfidenzintervalle werden ausgegeben. Weniger als 30 akzeptierte physikalische Wiederholungen führen zu `bootstrap_failed`. Nichtphysikalische Modelle oder Konditionszahlen ≥1000 werden abgelehnt; 100–1000 erfordert Vorsicht. Ein niedriges R² allein ist kein Ablehnungsgrund. Relative `coef_ext`-Spannweite über 25 %, weniger als drei Auflösungen oder ein breites Intervall erzeugen Warnungen. Bei `recommendation_reliable: false` darf der Kandidat nicht als zuverlässig beschrieben werden. CSV, Grafiken, Berichte oder andere Dateien sind weder erforderlich noch werden sie erzeugt; keine zusätzlichen pandas/matplotlib-Abhängigkeiten.
+
+Die Analyse **wendet niemals** Koeffizienten an. Ergebnisse, Grenzen und Vergleich darstellen, dann die Benutzerentscheidung abwarten. Eine explizite direkte Änderung benötigt weder Verlauf noch Analyse:
+
+```json
+{"entity_id": "climate.thermostat_salon", "coef_int": 0.35, "coef_ext": 0.025}
 ```
 
-Diese Funktionen würden zu einer späteren Stufe gehören und zusätzliche Schutzmechanismen erfordern.
+Mindestens ein Koeffizient ist erforderlich; Teiländerungen sind möglich. VTherm-Dienstgrenzen: `0 <= coef_int <= 10`, `0 <= coef_ext <= 1`, nur endliche Werte. Das Werkzeug prüft Assist-Freigabe, klassisches TPI, authentifizierten Benutzer und `CONTROL` erneut und ruft ausschließlich `versatile_thermostat.set_tpi_parameters` mit diesem Kontext auf. Zentrale Konfiguration und Sperren werden weiterhin vom vorhandenen Dienst geprüft. Der Dienst kann Einstellungen speichern; das Werkzeug schreibt niemals direkt in eine ConfigEntry.
+
+`large_change` bedeutet eine absolute Änderung von **0.15 für coef_int**, **0.01 für coef_ext** oder eine relative Änderung von **50 %** (jede Änderung ausgehend von null gilt als groß). Dies sind Bestätigungsschwellen, keine thermischen Sicherheitsgarantien. Ohne Schreibzugriff liefert das Werkzeug `large_change_confirmation_required`, `confirmation_required: true`, Vergleich und `confirmation_token`. Nach zusätzlicher ausdrücklicher Benutzerbestätigung dieselben Werte mit `confirm_large_change: true` und dem Token erneut aufrufen. Er läuft nach 10 Minuten ab und gilt nur für Benutzer, Thermostat und exakten Vergleich; geänderte aktuelle Einstellungen machen ihn ungültig.
+
+Nach dem Aufruf werden Werte vom geladenen VTherm-Objekt erneut gelesen, auch nach einem Neuladen: `previous`, `requested`, `applied`. Fehler nach einem Dienstaufruf liefern `state_changed: null` und erfordern eine Prüfung; sie behaupten nicht, dass nichts geändert wurde. Ablehnungen vor dem Aufruf melden, dass kein Koeffizient geändert wurde. Ablehnungen niemals über generische Dienste umgehen.
+
+MCP **Read only** behält beide Analysewerkzeuge und blendet `set_tpi_coefficients` wie die anderen Aktionen aus.
 
 ---
 
@@ -733,3 +776,18 @@ Diese Funktionen würden zu einer späteren Stufe gehören und zusätzliche Schu
 
 - Versatile Thermostat — Log-Analysator  
   https://www.versatile-thermostat.org/fr/debugger/
+
+
+---
+
+## Recorder-Verlauf: CSV-Exporte und Diagramme
+
+Bei „Erstelle ein professionelles, kommentiertes Diagramm des Küchenthermostats über 48 Stunden“ wird der Assistent zu `get_history` und anschließend zur Diagrammerstellung im Client nach Abruf aller Seiten geführt. ApexCharts-/Lovelace-YAML wird nur bei ausdrücklichem Wunsch nach Dashboard-Konfiguration angeboten. Der Climate-Verlauf von SmartPI kann dargestellt werden, obwohl die TPI-Koeffizientenanalyse SmartPI ablehnt. Anmerkungen müssen auf aufgezeichneten Ereignissen beruhen; das Werkzeug liefert weder historische SmartPI-Leistung noch physische Relaisverläufe. Aktuelle Werte können diese Reihen nicht rekonstruieren. Fehlt `get_history` im Konnektorkatalog, muss der Assistent diese Grenze erklären.
+
+Das Lesewerkzeug `versatile_thermostat__get_history` übermittelt dem MCP-Client den aufgezeichneten Verlauf der VTherm-climate-Entität: Zustand, gemessene Temperatur, Sollwert, HVAC-Aktion und Preset, soweit aufgezeichnet. Es unterstützt alle VTherm-Typen unabhängig von der TPI-Analyse. Es gibt weder den gesamten Recorder noch die Verläufe zugehöriger Sensoren und Relais frei.
+
+Der Client (ChatGPT, Claude, Gemini, Codex usw.) ruft die Daten ab und erstellt je nach seinen Fähigkeiten CSV-Dateien oder Diagramme. Beispiele: „Exportiere eine Woche Wohnzimmerverlauf als CSV“ oder „Zeichne Bürotemperatur und Sollwert über zwei Tage“.
+
+Parameter: `entity_id`, `start_time`, `end_time` (ISO 8601 mit Zeitzone), `offset` (Standard 0) und `limit` (Standard 500, maximal 500). Ein Zeitraum umfasst höchstens 14 Tage; längere Zeiträume aufteilen. Alle Seiten mit `next_offset` und unveränderten Zeitgrenzen bis `null` abrufen. Ergebnisse enthalten `rows`, `total_rows`, `next_offset`, `pagination_complete`, UTC-Zeitstempel und verfügbare aufgezeichnete Attribute. Die Seitennavigation ist kein eingefrorener Recorder-Schnappschuss.
+
+Nur weiterhin für Assist freigegebene VTherms sind mit einem authentifizierten Benutzer mit Leseberechtigung zugänglich. Punkte sind aufgezeichnete Änderungen und keine regelmäßigen Messungen; Recorder kann einen Zustand zum Periodenbeginn fortschreiben. Fehlende Felder bleiben `null`, und `unknown`/`unavailable` bleiben ausdrücklich erhalten. Aufbewahrung, Ausschlüsse und Ausfälle können die Daten begrenzen; vollständig abgerufene Seiten garantieren keinen vollständigen Verlauf. Der Client muss diese Grenzen nennen und darf fehlende Werte nicht erfinden. Es wird keine Konfiguration geändert.

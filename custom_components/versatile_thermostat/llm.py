@@ -14,12 +14,16 @@ The tools are exposed through Home Assistant's LLM API and can therefore be
 published by Home Assistant's official MCP Server.
 
 Read tools are marked read-only. Write tools are intentionally limited to the
-standard Home Assistant climate services and only target VTherm entities exposed
-to Assist.
+standard Home Assistant climate services or the VTherm TPI service, targeting
+only VTherm entities exposed to Assist.
 
 Targeted at the Home Assistant LLM API available in October 2026.
 """
 
+import asyncio
+import math
+import secrets
+import time
 from collections.abc import Mapping
 from datetime import date, datetime
 from enum import Enum
@@ -27,7 +31,7 @@ from typing import Any
 
 import probatio
 
-from homeassistant.auth.permissions.const import POLICY_CONTROL
+from homeassistant.auth.permissions.const import POLICY_CONTROL, POLICY_READ
 from homeassistant.components.climate import (
     ATTR_HVAC_MODE,
     ATTR_PRESET_MODE,
@@ -49,8 +53,16 @@ from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers import entity_registry as er
 from homeassistant.helpers import llm
 
-from .const import DOMAIN
-
+from .const import DOMAIN, SERVICE_SET_TPI_PARAMETERS
+from .recorder_export import async_export_history
+from .tpi_history import (
+    get_thermostat,
+    check_classic_tpi,
+    history_sources,
+    async_load_history,
+    require_history,
+)
+from .tpi_identification import IdentificationError, analyze_grid, nominal_response
 
 READ_ONLY_ANNOTATIONS = llm.ToolAnnotations(
     read_only=True,
@@ -580,6 +592,82 @@ class DiagnoseVThermTool(llm.Tool):
         )
 
 
+class GetVThermHistoryTool(llm.Tool):
+    """Deliver recorded climate data for client-side CSV and charts."""
+
+    name = f"{DOMAIN}__get_history"
+    title = "VTherm history / Historique VTherm"
+    description = (
+        "FR: Utiliser pour 'fais-moi un graphe pro du thermostat cuisine annoté sur 48h', "
+        "'trace température et consigne', 'montre la courbe' ou 'exporte en CSV'. "
+        "EN: Use for requests to create a thermostat graph, annotated chart, temperature "
+        "plot or CSV. Resolve the room with list_vtherms if needed, fetch the actual "
+        "history and create the artifact on the client; do not substitute dashboard "
+        "YAML/ApexCharts configuration unless explicitly requested. "
+        "Read-only: retrieve recorded VTherm states, temperatures, targets, HVAC action "
+        "and presets for CSV exports or graphs made by the client. All thermostat types. "
+        "Provide start_time/end_time as ISO 8601 with timezone, at most 14 days per period. "
+        "Fetch every page using next_offset and identical bounds before producing the "
+        "requested CSV/chart. Null values mean missing recorded attributes, not zero. "
+        "SmartPI/climate/valve history is allowed independently of TPI coefficient analysis. "
+        "Only recorded climate fields are returned, not physical relay histories or "
+        "SmartPI power percentages. Annotate recorded target/preset changes; never "
+        "invent historical values from current state or present HVAC action as relay power. "
+        "FR: historique Recorder pour exporter en CSV ou tracer un graphe côté client."
+    )
+    integration = DOMAIN
+    annotations = READ_ONLY_ANNOTATIONS
+
+    def __init__(self, entity_ids: list[str]) -> None:
+        self.parameters = probatio.Schema(
+            {
+                probatio.Required("entity_id"): probatio.In(entity_ids),
+                probatio.Required("start_time"): str,
+                probatio.Required("end_time"): str,
+                probatio.Optional("offset", default=0): probatio.All(
+                    int, probatio.Range(min=0)
+                ),
+                probatio.Optional("limit", default=500): probatio.All(
+                    int, probatio.Range(min=1, max=500)
+                ),
+            }
+        )
+
+    async def async_call(self, hass, tool_input, llm_context) -> llm.ToolResult:
+        try:
+            data = self.parameters(tool_input.tool_args)
+        except (ValueError, TypeError, probatio.Invalid):
+            return llm.ToolResult(data={"error": "invalid_parameters"}, error=True)
+        entity_id = data["entity_id"]
+        if entity_id not in _get_vtherm_entity_ids(hass, llm_context):
+            return llm.ToolResult(data={"error": "entity_not_exposed"}, error=True)
+        context = llm_context.context
+        user = (
+            await hass.auth.async_get_user(context.user_id)
+            if context and context.user_id
+            else None
+        )
+        if user is None or (
+            not user.is_admin
+            and not user.permissions.check_entity(entity_id, POLICY_READ)
+        ):
+            return llm.ToolResult(data={"error": "read_permission_denied"}, error=True)
+        try:
+            result = await async_export_history(
+                hass,
+                entity_id,
+                data["start_time"],
+                data["end_time"],
+                data["offset"],
+                data["limit"],
+            )
+        except ValueError as err:
+            return llm.ToolResult(data={"error": str(err)}, error=True)
+        except Exception:
+            return llm.ToolResult(data={"error": "recorder_query_failed"}, error=True)
+        return llm.ToolResult(data=result)
+
+
 class SetVThermTemperatureTool(llm.Tool):
     """Set the target temperature of one exposed VTherm."""
 
@@ -902,6 +990,327 @@ class SetVThermHvacModeTool(llm.Tool):
         )
 
 
+# Absolute floors reflect the different usual coefficient scales (0.6 / 0.01
+# in the configuration schema); a >=50% change also requires confirmation.
+# These are confirmation thresholds, not assertions of thermal safety.
+LARGE_CHANGE_INT_ABSOLUTE = 0.15
+LARGE_CHANGE_EXT_ABSOLUTE = 0.01
+LARGE_CHANGE_RELATIVE = 0.50
+TPI_TOOL_DATA = f"{DOMAIN}_tpi_tools"
+
+
+def _tpi_result(entity_id: str, stage: int, **data: Any) -> llm.ToolResult:
+    """Consistent stage information and truthful mutation status."""
+    failed = data.get("reason") is not None
+    payload = {
+        "entity_id": entity_id,
+        "stage": ("check", "analysis", "application")[stage - 1],
+        "stage_number": stage,
+        "stage_total": 3,
+        "state_changed": False,
+        "status": "error" if failed else "success",
+        **data,
+    }
+    if failed and payload["state_changed"] is False:
+        payload["message"] = (
+            "No coefficient was changed. Aucun coefficient n'a été modifié."
+        )
+        if payload["reason"] == "not_classic_tpi":
+            payload["message"] = (
+                "Le TPI classique est requis. SmartPI et Auto-TPI ne sont pas applicables. "
+                "Classic TPI required; SmartPI and Auto-TPI are not applicable. "
+                "Aucun coefficient n'a été modifié."
+            )
+        if payload["reason"] == "unsupported_thermostat_type":
+            payload["supported"] = False
+            payload["message"] = (
+                "L'analyse des coefficients TPI n'est pas encore disponible pour ce type "
+                "de thermostat (climate ou valve). TPI history analysis is not yet supported "
+                "for this thermostat type. Aucun coefficient n'a été modifié."
+            )
+    return llm.ToolResult(data=_json_safe(payload), error=failed)
+
+
+def _tpi_coefficients(thermostat: Any) -> dict[str, float]:
+    try:
+        values = {
+            "coef_int": float(thermostat.tpi_coef_int),
+            "coef_ext": float(thermostat.tpi_coef_ext),
+        }
+    except (TypeError, ValueError) as err:
+        raise IdentificationError("invalid_current_coefficients") from err
+    if not all(math.isfinite(value) for value in values.values()):
+        raise IdentificationError("invalid_current_coefficients")
+    return values
+
+
+def _tpi_comparison(previous: dict, requested: dict) -> dict:
+    """Compare both coefficients using separate absolute floors."""
+    result = {}
+    for name, value in requested.items():
+        before = previous[name]
+        absolute = abs(value - before)
+        relative = absolute / abs(before) if before else (None if absolute else 0.0)
+        floor = (
+            LARGE_CHANGE_INT_ABSOLUTE
+            if name == "coef_int"
+            else LARGE_CHANGE_EXT_ABSOLUTE
+        )
+        result[name] = {
+            "previous": before,
+            "requested": value,
+            "absolute_delta": absolute,
+            "relative_delta": relative,
+            "large_change": absolute >= floor
+            or (
+                absolute > 0 and (relative is None or relative >= LARGE_CHANGE_RELATIVE)
+            ),
+        }
+    return result
+
+
+class CheckTPIOptimizationTool(llm.Tool):
+    """Check eligibility and usable Recorder coverage without fitting/bootstrap."""
+
+    name = f"{DOMAIN}__check_tpi_optimization"
+    title = "Check TPI optimization / Vérifier l'optimisation TPI"
+    description = (
+        "FR: Premier outil à utiliser pour 'les coefficients de mon thermostat sont-ils "
+        "optimaux ?', 'mes coef sont-ils bien réglés ?' ou 'peux-tu vérifier le réglage TPI ?'. "
+        "EN: Start here when asked whether thermostat/TPI coefficients are optimal, "
+        "well tuned or need adjustment. Resolve the room with list_vtherms if needed. "
+        "Read-only stage 1/3: announce verification, then check classic TPI, physical "
+        "heating sources and 7 to 14 usable days of Recorder history. If eligible, call "
+        "analyze_tpi_coefficients to calculate estimates; current values alone do not "
+        "answer this question. Browser/dashboard access is not required. Report a refusal "
+        "without bypassing it. Never change settings."
+    )
+    integration = DOMAIN
+    annotations = READ_ONLY_ANNOTATIONS
+    stage_number = 1
+
+    def __init__(self, entity_ids: list[str]) -> None:
+        self.parameters = probatio.Schema(
+            {probatio.Required("entity_id"): probatio.In(entity_ids)}
+        )
+
+    async def async_call(self, hass, tool_input, llm_context) -> llm.ToolResult:
+        data = self.parameters(tool_input.tool_args)
+        entity_id = data["entity_id"]
+        if entity_id not in _get_vtherm_entity_ids(hass, llm_context):
+            return _tpi_result(
+                entity_id,
+                self.stage_number,
+                reason="entity_not_exposed",
+                eligible=False,
+            )
+        details = {}
+        try:
+            thermostat = get_thermostat(hass, entity_id)
+            details = {
+                "thermostat_type": getattr(thermostat, "vtherm_type", None),
+                "proportional_function": getattr(
+                    thermostat, "proportional_function", None
+                ),
+            }
+            sources = history_sources(hass, thermostat)
+            details.update(
+                {"sources": sources, "current": _tpi_coefficients(thermostat)}
+            )
+            grid, coverage = await async_load_history(hass, sources)
+            details["history"] = coverage
+            require_history(coverage)
+            if self.stage_number == 1:
+                return _tpi_result(entity_id, 1, eligible=True, **details)
+            result = await hass.async_add_executor_job(
+                analyze_grid, grid, sources["primary_resolution"]
+            )
+            if result.get("proposed"):
+                if result.get("model"):
+                    result["current_nominal_response"] = nominal_response(
+                        result["model"], **details["current"]
+                    )
+                result["comparison"] = _tpi_comparison(
+                    details["current"],
+                    {key: result["proposed"][key] for key in ("coef_int", "coef_ext")},
+                )
+            return _tpi_result(entity_id, 2, **details, **result)
+        except IdentificationError as err:
+            return _tpi_result(
+                entity_id,
+                self.stage_number,
+                reason=err.reason,
+                eligible=False,
+                **details,
+            )
+
+
+class AnalyzeTPICoefficientsTool(CheckTPIOptimizationTool):
+    """Read-only identification and bootstrap; never invoke any service."""
+
+    name = f"{DOMAIN}__analyze_tpi_coefficients"
+    title = "Analyze TPI coefficients / Analyser les coefficients TPI"
+    description = (
+        "FR: Calculer les coefficients quand l'utilisateur demande s'ils sont 'optimaux', "
+        "'adaptés' ou 'bien réglés', après check_tpi_optimization réussi. "
+        "EN: Calculate estimates for natural questions about optimal or well-tuned "
+        "thermostat coefficients after a successful check_tpi_optimization. "
+        "Read-only stage 2/3: announce analysis. Identify classic TPI coefficients from "
+        "7 to 14 usable Recorder days, chronological validation, multiple resolutions "
+        "and 24-hour block bootstrap. Report exploratory estimates and uncalibrated intervals. "
+        "Kalman is disabled pending validation. Use this MCP calculation rather than "
+        "reading a dashboard or guessing from current coefficient values. "
+        "Six hours is a nominal design preference, not an identified optimum. "
+        "Present proposals to the user; NEVER apply them automatically."
+    )
+    stage_number = 2
+
+
+class SetTPICoefficientsTool(llm.Tool):
+    """Explicit, permission-checked writes through VTherm's existing service."""
+
+    name = f"{DOMAIN}__set_tpi_coefficients"
+    title = "Set TPI coefficients / Régler les coefficients TPI"
+    description = (
+        "Write stage 3/3. ONLY on an explicit user request, set coef_int and/or coef_ext "
+        "for classic TPI using versatile_thermostat.set_tpi_parameters. Direct values "
+        "need no analysis/history. Compare with current values. A large change returns "
+        "a confirmation_token without applying anything. Show the comparison and ask "
+        "the user for ADDITIONAL explicit confirmation before calling again with "
+        "confirm_large_change=true and that token. Never self-confirm from an analysis."
+    )
+    integration = DOMAIN
+    annotations = WRITE_ANNOTATIONS
+
+    def __init__(self, entity_ids: list[str]) -> None:
+        self.parameters = probatio.Schema(
+            {
+                probatio.Required("entity_id"): probatio.In(entity_ids),
+                probatio.Optional("coef_int"): probatio.Coerce(float),
+                probatio.Optional("coef_ext"): probatio.Coerce(float),
+                probatio.Optional("confirm_large_change", default=False): bool,
+                probatio.Optional("confirmation_token"): str,
+            }
+        )
+
+    async def async_call(self, hass, tool_input, llm_context) -> llm.ToolResult:
+        entity_id = tool_input.tool_args.get("entity_id", "")
+        try:
+            data = self.parameters(tool_input.tool_args)
+        except (ValueError, TypeError, probatio.Invalid):
+            return _tpi_result(entity_id, 3, reason="invalid_value")
+        if entity_id not in _get_vtherm_entity_ids(hass, llm_context):
+            return _tpi_result(entity_id, 3, reason="entity_not_exposed")
+        if await _control_permission_error(hass, llm_context, entity_id):
+            return _tpi_result(entity_id, 3, reason="permission_denied")
+        requested = {key: data[key] for key in ("coef_int", "coef_ext") if key in data}
+        if not requested or any(
+            isinstance(tool_input.tool_args[key], bool)
+            or not math.isfinite(value)
+            or not 0 <= value <= (10 if key == "coef_int" else 1)
+            for key, value in requested.items()
+        ):
+            return _tpi_result(entity_id, 3, reason="invalid_value")
+        storage = hass.data.setdefault(
+            TPI_TOOL_DATA, {"locks": {}, "confirmations": {}}
+        )
+        lock = storage["locks"].setdefault(entity_id, asyncio.Lock())
+        async with lock:
+            try:
+                thermostat = get_thermostat(hass, entity_id)
+                check_classic_tpi(thermostat)
+                previous = _tpi_coefficients(thermostat)
+            except IdentificationError as err:
+                return _tpi_result(entity_id, 3, reason=err.reason)
+            comparison = _tpi_comparison(previous, requested)
+            large = any(value["large_change"] for value in comparison.values())
+            details = {
+                "previous": previous,
+                "requested": requested,
+                "comparison": comparison,
+                "large_change": large,
+            }
+            key = (llm_context.context.user_id, entity_id)
+            pending = storage["confirmations"].get(key)
+            confirmed = (
+                data["confirm_large_change"]
+                and pending is not None
+                and data.get("confirmation_token") == pending["token"]
+                and pending["previous"] == previous
+                and pending["requested"] == requested
+                and time.monotonic() < pending["expires"]
+            )
+            if large and not confirmed:
+                token = secrets.token_urlsafe(24)
+                storage["confirmations"][key] = {
+                    "token": token,
+                    "previous": previous,
+                    "requested": requested,
+                    "expires": time.monotonic() + 600,
+                }
+                return _tpi_result(
+                    entity_id,
+                    3,
+                    reason="large_change_confirmation_required",
+                    confirmation_required=True,
+                    confirmation_token=token,
+                    **details,
+                )
+            storage["confirmations"].pop(key, None)
+            try:
+                await hass.services.async_call(
+                    DOMAIN,
+                    SERVICE_SET_TPI_PARAMETERS,
+                    {
+                        ATTR_ENTITY_ID: entity_id,
+                        **{f"tpi_{key}": value for key, value in requested.items()},
+                    },
+                    blocking=True,
+                    context=llm_context.context,
+                )
+            except HomeAssistantError as err:
+                # A service can fail after partially applying a change.
+                return _tpi_result(
+                    entity_id,
+                    3,
+                    reason="service_call_failed",
+                    state_changed=None,
+                    message="Service failed; application is unknown. Re-read the thermostat before retrying.",
+                    detail=str(err),
+                    **details,
+                )
+            applied = None
+            # The service persists config and can reload the entity. Re-resolve
+            # the loaded object, never read a stale ConfigEntry or requested data.
+            for _ in range(50):
+                try:
+                    applied = _tpi_coefficients(get_thermostat(hass, entity_id))
+                except IdentificationError:
+                    applied = None
+                if applied is not None and all(
+                    math.isclose(applied[key], value, rel_tol=1e-9, abs_tol=1e-9)
+                    for key, value in requested.items()
+                ):
+                    return _tpi_result(
+                        entity_id,
+                        3,
+                        applied=applied,
+                        state_changed=applied != previous,
+                        confirmation_required=False,
+                        **details,
+                    )
+                await asyncio.sleep(0.1)
+            return _tpi_result(
+                entity_id,
+                3,
+                reason="readback_failed",
+                applied=applied,
+                state_changed=None,
+                message="Requested values could not be verified. Re-read the thermostat before retrying.",
+                **details,
+            )
+
+
 def _assistant_prompt(language: str | None) -> str:
     """Return instructions in the request language, with FR/EN tool semantics."""
     if _is_french(language):
@@ -954,9 +1363,45 @@ def async_get_tools(
             ListVThermsTool(),
             GetVThermStatusTool(entity_ids),
             DiagnoseVThermTool(entity_ids),
+            GetVThermHistoryTool(entity_ids),
             SetVThermTemperatureTool(entity_ids),
             SetVThermPresetTool(entity_ids),
             SetVThermHvacModeTool(entity_ids),
+            CheckTPIOptimizationTool(entity_ids),
+            AnalyzeTPICoefficientsTool(entity_ids),
+            SetTPICoefficientsTool(entity_ids),
         ],
-        prompt=_assistant_prompt(llm_context.language),
+        prompt=_assistant_prompt(llm_context.language)
+        + (
+            " For natural requests such as 'fais-moi un graphe pro du thermostat cuisine "
+            "annoté sur 48h', 'trace température et consigne' or 'plot my thermostat', "
+            "resolve the room if needed and call get_history for the requested period. "
+            "Fetch all pages with fixed bounds, then create the actual requested chart/CSV "
+            "on the client if supported. Annotate only recorded events; explain rendering "
+            "limits if the client cannot produce a chart. Do not substitute ApexCharts or "
+            "Lovelace YAML unless the user explicitly requests a dashboard card. "
+            "History export supports SmartPI as well as classic TPI. Do not run coefficient "
+            "analysis to make a chart. Report unavailable historical series; current "
+            "SmartPI power or relay state cannot reconstruct their history. If get_history "
+            "is absent from this connection, explain the missing-tool problem instead of "
+            "claiming to have retrieved Recorder data. "
+            " A natural question such as 'les coef du thermostat chambre parents sont-ils "
+            "optimaux ?', 'sont-ils bien réglés ?' or 'are my thermostat coefficients "
+            "optimal?' requests a read-only TPI calculation, not a settings change. "
+            "Resolve the room/entity with list_vtherms if needed, call check_tpi_optimization "
+            "then analyze_tpi_coefficients only if eligible, and report a refusal directly. "
+            "Use these MCP tools for coefficient assessment even if a dashboard link is "
+            "attached; browser access is not a prerequisite. If the tools are unavailable, "
+            "explain that limitation without claiming to assess optimality from a dashboard. "
+            "TPI workflow: announce Étape/Stage 1/3 verification before check_tpi_optimization, "
+            "2/3 analysis before analyze_tpi_coefficients, 3/3 optional application only on an "
+            "explicit user decision. No automatic application after analysis. Explain warnings; "
+            "always describe estimates as exploratory and intervals as uncalibrated. Explain that "
+            "six hours is a nominal time constant (about 18 hours to 95%), not an optimum. "
+            "Distinguish current/proposed nominal response and the experimental estimator. "
+            "Direct explicit coefficient values "
+            "need no history. For a large change show previous/requested values and obtain an "
+            "additional explicit user confirmation before passing confirm_large_change and the "
+            "returned confirmation_token. Never bypass a refusal with generic services."
+        ),
     )

@@ -4,8 +4,9 @@ This documentation describes how to add LLM/MCP tools to **Versatile Thermostat 
 
 The provided `llm.py` file exposes:
 
-- 3 read/diagnostic tools;
+- 4 read/diagnostic and history tools;
 - 3 simple action tools: temperature, preset and HVAC mode;
+- 2 read-only TPI tools and 1 explicit TPI write tool;
 - descriptions and instructions usable in **French and English**;
 - links to the VTherm documentation, log collector and log analyzer for troubleshooting.
 
@@ -15,10 +16,13 @@ The provided `llm.py` file exposes:
 
 ## 1. File to install
 
-Copy `llm.py` to:
+Copy the following four files to the integration directory:
 
 ```text
 /config/custom_components/versatile_thermostat/llm.py
+/config/custom_components/versatile_thermostat/recorder_export.py
+/config/custom_components/versatile_thermostat/tpi_history.py
+/config/custom_components/versatile_thermostat/tpi_identification.py
 ```
 
 Directory structure:
@@ -30,7 +34,10 @@ Directory structure:
 ├── const.py
 ├── manifest.json
 ├── ...
-└── llm.py
+├── llm.py
+├── recorder_export.py
+├── tpi_history.py
+└── tpi_identification.py
 ```
 
 There is no need to modify `manifest.json` to declare the `llm` platform.
@@ -53,6 +60,7 @@ With the `assist` LLM API, the Home Assistant MCP server adds the `assist__` pre
 assist__versatile_thermostat__list_vtherms
 assist__versatile_thermostat__get_status
 assist__versatile_thermostat__diagnose
+assist__versatile_thermostat__get_history
 ```
 
 ### Actions — level 2A
@@ -402,7 +410,7 @@ The file deliberately exposes no `toggle` tool: the desired state must be explic
 
 ## 11. Action safety
 
-Level 2 tools apply several safeguards:
+The three climate actions above apply these safeguards (the TPI action is described separately):
 
 1. only VTherm entities exposed to Assist;
 2. a Home Assistant user context is mandatory for write operations;
@@ -468,6 +476,7 @@ The action tools:
 set_temperature
 set_preset
 set_hvac_mode
+set_tpi_coefficients
 ```
 
 are filtered out of the MCP catalog because they are declared `read_only=False`.
@@ -517,6 +526,8 @@ Example:
 homeassistant  http://homeassistant.local:8123/api/mcp  enabled
 ```
 
+For installation and configuration of the official Home Assistant MCP server, see the [Home Assistant reference documentation](https://www.home-assistant.io/integrations/mcp_server/).
+
 ---
 
 ## 16. Check VTherm tools
@@ -535,12 +546,16 @@ With level 2A, the following should be available:
 assist__versatile_thermostat__list_vtherms
 assist__versatile_thermostat__get_status
 assist__versatile_thermostat__diagnose
+assist__versatile_thermostat__get_history
 assist__versatile_thermostat__set_temperature
 assist__versatile_thermostat__set_preset
 assist__versatile_thermostat__set_hvac_mode
+assist__versatile_thermostat__check_tpi_optimization
+assist__versatile_thermostat__analyze_tpi_coefficients
+assist__versatile_thermostat__set_tpi_coefficients
 ```
 
-If only the first three appear, check that the MCP **Read only** option is not enabled.
+The complete catalog has six read tools and four write tools. With **Read only**, only the six read tools remain visible.
 
 ---
 
@@ -641,6 +656,9 @@ Check:
 
    ```text
    /config/custom_components/versatile_thermostat/llm.py
+/config/custom_components/versatile_thermostat/recorder_export.py
+/config/custom_components/versatile_thermostat/tpi_history.py
+/config/custom_components/versatile_thermostat/tpi_identification.py
    ```
 
 2. Home Assistant has been restarted;
@@ -684,24 +702,49 @@ Use `list_vtherms` or `get_status` to retrieve the values actually supported by 
 
 ---
 
-# Intentional limitations of level 2
+# TPI coefficient optimization from history
 
-The file does not allow modification of:
+A simple request is enough, for example: “Are the parents' bedroom thermostat coefficients optimal?” or “Are my coefficients well tuned?”. Tool descriptions guide the assistant to the read-only TPI check and calculation, resolving the room name when needed. Users need not name tools or supply an `entity_id`, and dashboard access is not a prerequisite. The selected connector must expose `check_tpi_optimization` and `analyze_tpi_coefficients`: rephrasing cannot make missing tools available. Results remain exploratory estimates, not proof of an optimum.
 
-```text
-TPI
-SmartPI / internal regulation
-regulation coefficients
-power limits
-power-shedding priorities
-window bypass
-safety
-central configuration
-underlying entity configuration
-persistent VTherm configuration
+Three tools complement the existing tools:
+
+| Tool (suffix `versatile_thermostat__…`) | Access | Stage |
+| --- | --- | --- |
+| `check_tpi_optimization` | Read-only | 1/3 — check |
+| `analyze_tpi_coefficients` | Read-only | 2/3 — analysis |
+| `set_tpi_coefficients` | Explicit write | 3/3 — optional application |
+
+Read tools take only `entity_id`. The client announces each stage before calling; no background work is simulated. Every response contains `stage`, `stage_number`, `stage_total` and `state_changed`.
+
+Analysis requires classic TPI (`proportional_function=tpi`), with no configured Auto-TPI, active learning or continuous external compensation. This version supports `over_switch` with one or more physical switches. Recorded ON durations are integrated and averaged using VTherm's equal power share convention `device_power / N`, including staggered phases and subminute transitions. Absolute heater power is unnecessary. This convention does not measure unequal individual heater powers.
+
+For `over_climate`, `over_valve` and climate valve regulation, the response explicitly returns `eligible: false`, `supported: false`, `reason: unsupported_thermostat_type`: analysis is not yet available for this type. Ambiguous virtual commands are also rejected; there is no blind `hvac_action` fallback.
+
+Recorder supplies at most the **last 14 days**. At least **7 days of actually usable minutes** are required after exclusions. Inside/outside sensors come from effective VTherm configuration, including central configuration. Results detail `sources`, `history_requested_days`, `history_available_days`, `history_usable_days`, exclusions and current settings. No Recorder retention period is assumed.
+
+The response includes `applicability_note` (FR/EN): coefficients are exploratory estimates derived from the analyzed period, with suitability under other conditions not established. Rerun the analysis on a representative period if heating conditions or household use change substantially, or regulation deteriorates, before considering an adjustment. Outdoor temperature changes alone do not require recalculation.
+
+The Kalman comparison is disabled in the MCP response: simulations show that coefficients within bounds can still be inaccurate. `experimental_estimator` reports `unavailable` with reason `experimental_model_not_validated_for_application`, without running or returning Kalman coefficients. The estimator remains available for offline research, rejecting values outside `[0, 10]` (internal) and `[0, 1]` (external), insufficient excitation and unstable estimates. Clipping never turns a failed fit into a usable result. These screens do not prove reliability; OLS remains exploratory and application is never automatic. Bootstrap intervals remain uncalibrated and are not truncated to service bounds.
+
+Temperatures use a one-minute grid and causal hold limited to 60 minutes. Unlike the reference script's outdoor interpolation, no future measurement is used. HA binary states persist until their next event; `unknown`/`unavailable` invalidate the interval. Physical and diagnostic safety, power-shedding and window sensors are read through Recorder because climate diagnostic sections are often unrecorded. A required missing exclusion source causes refusal. Non-`heat` HVAC periods, active protections, open windows and missing data are excluded. Each resolution reports excluded window cycles. This version requires VTherm configured in °C; source sensors in °F are converted to °C.
+
+The model preserves `ΔT = g × (T_ext - T_int) + B × u + q`, `coef_ext = g/B`, `A = 1-g` and `coef_int = (A-exp(-dt/tau_cl))/B`. Preferred convergence remains **6 h**, with the 3/4/5/6/8/10/12 h table returned. Real `cycle_min` is primary, alongside 10/20/30/60-minute fits, with an explicit fallback to the nearest valid resolution. Each fit requires 40 cycles, 80% valid minutes and the reference physical bounds. Missing bins never silently become longer cycles.
+
+Chronological 70% training / 30% validation, OLS `numpy.linalg.lstsq`, MAE, RMSE, ΔT R² and conditioning are retained. Temporal bootstrap uses 1000 repetitions, 24-hour blocks and seed `20261030`; gaps do not compress the blocks. Approximate 95% confidence intervals are returned. Fewer than 30 accepted physical repetitions causes `bootstrap_failed`. Nonphysical fits or condition numbers ≥1000 are rejected; 100–1000 requires caution. Low R² alone is not a rejection criterion. Relative `coef_ext` span above 25%, fewer than three resolutions or a wide CI trigger warnings. `recommendation_reliable: false` means the candidate must not be described as reliable. No CSV, plot, report or other file is required or generated; pandas/matplotlib dependencies are not added.
+
+Analysis **never applies** coefficients. Present results, limitations and comparison, then await the user's decision. An explicit direct change needs no history or analysis:
+
+```json
+{"entity_id": "climate.thermostat_salon", "coef_int": 0.35, "coef_ext": 0.025}
 ```
 
-These functions would belong to a later level and would require additional safeguards.
+At least one coefficient is required; partial updates are supported. VTherm service ranges: `0 <= coef_int <= 10`, `0 <= coef_ext <= 1`, finite values only. The tool rechecks Assist exposure, classic TPI, authenticated user and `CONTROL`, then calls only `versatile_thermostat.set_tpi_parameters` with that context. Existing central-configuration and lock restrictions remain enforced by the service. The service may persist settings; the tool never writes a ConfigEntry directly.
+
+`large_change` means an absolute delta of **0.15 for coef_int**, **0.01 for coef_ext**, or a relative delta of **50%** (any change from zero is large). These are confirmation thresholds, not thermal safety guarantees. The tool returns `large_change_confirmation_required`, `confirmation_required: true`, comparison and a `confirmation_token`, without writing. After additional explicit user confirmation, repeat the same values with `confirm_large_change: true` and the token. It expires after 10 minutes and is bound to the user, thermostat and exact comparison; changing current settings invalidates it.
+
+After calling, values are reread from the loaded VTherm object, including after reload: `previous`, `requested`, `applied`. Failures after a service call return `state_changed: null` and require verification; they do not claim nothing changed. Pre-call refusals state that no coefficient was changed. Never bypass a refusal with generic services.
+
+MCP **Read only** retains both analysis tools and hides `set_tpi_coefficients`, like the other actions.
 
 ---
 
@@ -733,3 +776,18 @@ These functions would belong to a later level and would require additional safeg
 
 - Versatile Thermostat — log analyzer  
   https://www.versatile-thermostat.org/fr/debugger/
+
+
+---
+
+## Recorder history: CSV exports and charts
+
+For “Make a professional annotated graph of the kitchen thermostat over 48 h”, the assistant is guided to `get_history`, then client-side chart creation after fetching every page. ApexCharts/Lovelace YAML is offered only when dashboard configuration is explicitly requested. SmartPI climate history can be plotted even though TPI coefficient analysis rejects SmartPI. Annotations must come from recorded events; the tool does not expose historical SmartPI power or physical relay histories. Current values cannot reconstruct these series. If `get_history` is absent from the connector catalog, the assistant must explain that limitation.
+
+The read-only `versatile_thermostat__get_history` tool sends the MCP client recorded history of the VTherm climate entity: state, measured temperature, target, HVAC action and preset, when recorded. It supports all VTherm types independently of TPI analysis. It does not expose the entire Recorder or associated sensor and relay histories.
+
+The client (ChatGPT, Claude, Gemini, Codex, etc.) retrieves the data and creates CSV files or charts according to its capabilities. Examples: “Export one week of living-room history as CSV” or “Plot office temperature and target over two days”.
+
+Parameters: `entity_id`, `start_time`, `end_time` (ISO 8601 with timezone), `offset` (default 0) and `limit` (default 500, maximum 500). A period spans at most 14 days; split longer periods. Fetch every page using `next_offset` and identical bounds until `null`. Results include `rows`, `total_rows`, `next_offset`, `pagination_complete`, UTC timestamps and available recorded attributes. Pagination is not a frozen Recorder snapshot.
+
+Only VTherms still exposed to Assist are accessible, with an authenticated user holding read permission. Points represent recorded changes, not regular samples; Recorder may carry a state forward to the period start. Missing fields remain `null`, and `unknown`/`unavailable` stay explicit. Retention, exclusions and outages may limit data; completed pagination does not guarantee complete history. The client must disclose these limits and never invent missing values. No configuration is changed.

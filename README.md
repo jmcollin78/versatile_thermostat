@@ -18,6 +18,18 @@ languages : [English](README.md) | [Français](README-fr.md) | [Deutsch](README-
 
 This custom component for Home Assistant is an upgrade and a complete rewrite of the "Awesome thermostat" component (see [Github](https://github.com/dadge/awesome_thermostat)) with added features.
 
+# Native LLM/MCP integration
+
+VTherm integrates with Home Assistant's native LLM platform and exposes its tools through the official Home Assistant MCP Server. Assistants can list VTherms exposed to Assist, read their state and obtain structured diagnostics based on VTherm's own messages and reasons.
+
+For explicit control requests, three tools can change the target temperature, preset or HVAC mode through standard `climate.*` services, with user permission and value checks. Diagnostic requests remain read-only; the MCP Server's **Read only** option hides action tools.
+
+Classic TPI coefficients can also be analyzed from 7–14 usable days of Recorder history, with explicit application and additional confirmation for large changes.
+
+See the [LLM/MCP documentation](documentation/en/feature-llm-mcp.md) for setup, safeguards and examples.
+
+Read-only Recorder history for CSV exports and charts created by the LLM client.
+
 # Screenshots
 
 Versatile Thermostat UI Card (Available on [Github](https://github.com/jmcollin78/versatile-thermostat-ui-card)) :
