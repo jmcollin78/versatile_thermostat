@@ -25,6 +25,8 @@ Copy the following four files to the integration directory:
 /config/custom_components/versatile_thermostat/tpi_identification.py
 ```
 
+Install these modules from the same revision. For a manual update, replace `llm.py`, `tpi_history.py` and `tpi_identification.py` together: `TPIHistory` owns one thermostat's Home Assistant context and sources, while `TPIIdentification` owns its grid and analysis parameters. This internal class organization preserves the existing MCP tools and calculations.
+
 Directory structure:
 
 ```text

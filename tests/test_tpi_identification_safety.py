@@ -85,7 +85,7 @@ def simulate(module, seed=0, scenario="noise", days=14, minutes=10):
         grid.temp_in[3000:3120] = np.nan
         grid.excluded[5000:5060] = True
         grid.window[8000:8020] = 1
-    rows, _ = module.aggregate_cycles(grid, minutes)
+    rows, _ = module.TPIIdentification(grid, minutes).aggregate_cycles(minutes)
     reference = {"g": g, "B": b, "q": q, "A": a, "resolution_min": minutes}
     return (
         grid,
@@ -124,7 +124,7 @@ def refused(fit):
 def test_invalid_derived_coefficients_are_not_returned(g, b):
     grid, rows, ref, _ = simulate(m, 0, "clean")
     with patch.object(m, "minimize", return_value=optimizer_result(g, b)):
-        fit = m.fit_latent_model(grid, rows, 10, ref)
+        fit = m.TPIIdentification(grid, 10).fit_latent_model(rows, 10, ref)
     refused(fit)
 
 
@@ -132,7 +132,7 @@ def test_invalid_derived_coefficients_are_not_returned(g, b):
 def test_no_identification_without_excitation(scenario):
     grid, rows, ref, _ = simulate(m, 0, scenario)
     with patch.object(m, "minimize", return_value=optimizer_result()) as opt:
-        fit = m.fit_latent_model(grid, rows, 10, ref)
+        fit = m.TPIIdentification(grid, 10).fit_latent_model(rows, 10, ref)
     refused(fit)
     opt.assert_not_called()
 
@@ -140,7 +140,7 @@ def test_no_identification_without_excitation(scenario):
 def test_optimizer_exception_is_not_an_analysis_crash():
     grid, rows, ref, _ = simulate(m, 0, "clean")
     with patch.object(m, "minimize", side_effect=FloatingPointError("numeric failure")):
-        fit = m.fit_latent_model(grid, rows, 10, ref)
+        fit = m.TPIIdentification(grid, 10).fit_latent_model(rows, 10, ref)
     refused(fit)
 
 
@@ -150,7 +150,7 @@ def test_nonfinite_optimizer_result_is_refused(value):
     r = optimizer_result()
     r.x[0] = value
     with patch.object(m, "minimize", return_value=r):
-        fit = m.fit_latent_model(grid, rows, 10, ref)
+        fit = m.TPIIdentification(grid, 10).fit_latent_model(rows, 10, ref)
     refused(fit)
 
 
@@ -159,14 +159,14 @@ def test_multiple_starts_must_not_disagree_strongly():
     with patch.object(
         m, "minimize", side_effect=[optimizer_result(), optimizer_result(b=0.005)]
     ):
-        fit = m.fit_latent_model(grid, rows, 10, ref)
+        fit = m.TPIIdentification(grid, 10).fit_latent_model(rows, 10, ref)
     refused(fit)
 
 
 def test_thermal_parameter_near_bound_is_refused_even_if_coefficients_in_range():
     grid, rows, ref, _ = simulate(m, 0, "clean")
     with patch.object(m, "minimize", return_value=optimizer_result(g=1.01e-6, b=0.005)):
-        fit = m.fit_latent_model(grid, rows, 10, ref)
+        fit = m.TPIIdentification(grid, 10).fit_latent_model(rows, 10, ref)
     refused(fit)
 
 
@@ -187,8 +187,8 @@ def test_thermal_parameter_near_bound_is_refused_even_if_coefficients_in_range()
 def test_physical_simulation_recovers_parameters_or_refuses(seed, scenario):
     grid, rows, ref, truth = simulate(m, seed, scenario)
     # Real initialization comes from measured training data, never ground truth.
-    ref, _ = m.fit_resolution(grid, 10)
-    fit = m.fit_latent_model(grid, rows, 10, ref)
+    ref, _ = m.TPIIdentification(grid, 10).fit_resolution(10)
+    fit = m.TPIIdentification(grid, 10).fit_latent_model(rows, 10, ref)
     json.dumps(fit, allow_nan=False)
     if fit["status"] == "unavailable":
         refused(fit)
@@ -220,7 +220,7 @@ def test_physical_simulation_recovers_parameters_or_refuses(seed, scenario):
 )
 def test_degenerate_simulations_refuse_without_coefficients(scenario):
     grid, rows, ref, _ = simulate(m, 3, scenario)
-    refused(m.fit_latent_model(grid, rows, 10, ref))
+    refused(m.TPIIdentification(grid, 10).fit_latent_model(rows, 10, ref))
 
 
 def test_bureau_failure_does_not_replace_or_abort_ols_analysis():
@@ -233,8 +233,8 @@ def test_bureau_failure_does_not_replace_or_abort_ols_analysis():
         0.000043391099916755444**2,
     )
     with patch.object(m, "minimize", return_value=broken):
-        offline = m.fit_latent_model(grid, rows, 10, ref)
-        result = m.analyze_grid(grid, 10)
+        offline = m.TPIIdentification(grid, 10).fit_latent_model(rows, 10, ref)
+        result = m.TPIIdentification(grid, 10).analyze()
     refused(offline)
     assert offline["reason"] == "latent_coefficients_out_of_range"
     assert result["status"] == "success"
@@ -256,7 +256,7 @@ def test_missing_fresh_holdout_is_refused_before_optimization():
     cutoff = int(rows[split, 0])
     grid.temperature_timestamps[cutoff:] = grid.temperature_timestamps[cutoff]
     with patch.object(m, "minimize") as opt:
-        fit = m.fit_latent_model(grid, rows, 10, ref)
+        fit = m.TPIIdentification(grid, 10).fit_latent_model(rows, 10, ref)
     refused(fit)
     assert fit["reason"] == "insufficient_fresh_validation_observations"
     opt.assert_not_called()
@@ -268,16 +268,16 @@ def test_missing_fresh_holdout_is_refused_before_optimization():
 def test_one_converged_start_is_not_enough(bad):
     grid, rows, ref, _ = simulate(m, 0, "clean")
     with patch.object(m, "minimize", side_effect=[optimizer_result(), bad]):
-        fit = m.fit_latent_model(grid, rows, 10, ref)
+        fit = m.TPIIdentification(grid, 10).fit_latent_model(rows, 10, ref)
     refused(fit)
 
 
 def test_validation_data_cannot_change_thermal_parameters():
     grid, rows, ref, _ = simulate(m, 0, "noise")
-    before = m.fit_latent_model(grid, rows, 10, ref)
+    before = m.TPIIdentification(grid, 10).fit_latent_model(rows, 10, ref)
     cutoff = int(rows[int(len(rows) * 0.7), 0]) + 10
     grid.temp_in[cutoff:] += 0.1
-    after = m.fit_latent_model(grid, rows, 10, ref)
+    after = m.TPIIdentification(grid, 10).fit_latent_model(rows, 10, ref)
     for key in ["g", "B", "q", "coef_int_6h", "coef_ext"]:
         assert before[key] == after[key]
     assert (
@@ -299,7 +299,7 @@ def test_validation_data_cannot_change_thermal_parameters():
     ],
 )
 def test_exact_service_limits(ki, ke, valid):
-    assert m.coefficients_in_range(ki, ke) == valid
+    assert m.TPIIdentification.coefficients_in_range(ki, ke) == valid
 
 
 def test_an_invalid_start_cannot_be_hidden_by_a_valid_one():
@@ -309,15 +309,15 @@ def test_an_invalid_start_cannot_be_hidden_by_a_valid_one():
         "minimize",
         side_effect=[optimizer_result(), optimizer_result(b=1e-6, fun=-100)],
     ):
-        fit = m.fit_latent_model(grid, rows, 10, ref)
+        fit = m.TPIIdentification(grid, 10).fit_latent_model(rows, 10, ref)
     refused(fit)
     assert fit["reason"] == "latent_coefficients_out_of_range"
 
 
 def test_public_analysis_does_not_run_or_expose_unvalidated_kalman():
     grid, _, _, _ = simulate(m, 0, "clean")
-    with patch.object(m, "fit_latent_model") as experimental:
-        result = m.analyze_grid(grid, 10)
+    with patch.object(m.TPIIdentification, "fit_latent_model") as experimental:
+        result = m.TPIIdentification(grid, 10).analyze()
     experimental.assert_not_called()
     refused(result["experimental_estimator"])
     assert (

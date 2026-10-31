@@ -226,10 +226,7 @@ async def test_export_and_tpi_share_native_boundary_events(
     from pytest_homeassistant_custom_component.components.recorder.common import (
         async_wait_recording_done,
     )
-    from custom_components.versatile_thermostat.tpi_history import (
-        async_load_history,
-        build_grid,
-    )
+    from custom_components.versatile_thermostat.tpi_history import TPIHistory
 
     sources = {
         "temperature_source": "sensor.inside",
@@ -290,10 +287,10 @@ async def test_export_and_tpi_share_native_boundary_events(
         and row["timestamp"] == START.isoformat()
         for row in exported["rows"]
     )
-    grid, _ = build_grid(raw, sources, START, end)
+    grid, _ = TPIHistory(None, sources).build_grid(raw, START, end)
     np.testing.assert_equal(grid.temp_in, [20, 20])
     np.testing.assert_equal(grid.heater, [0.5, np.nan])
-    full_grid, _ = await async_load_history(hass, sources)
+    full_grid, _ = await TPIHistory(hass, sources).async_load()
     selected = (full_grid.time >= START.timestamp() / 60) & (
         full_grid.time < end.timestamp() / 60
     )

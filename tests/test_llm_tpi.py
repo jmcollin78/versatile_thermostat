@@ -9,10 +9,7 @@ from homeassistant.core import Context
 from homeassistant.exceptions import HomeAssistantError
 
 from custom_components.versatile_thermostat import llm as module
-from custom_components.versatile_thermostat.tpi_history import (
-    async_load_history,
-    history_sources,
-)
+from custom_components.versatile_thermostat.tpi_history import TPIHistory
 from custom_components.versatile_thermostat.tpi_identification import (
     IdentificationError,
 )
@@ -48,7 +45,7 @@ def setup_tools():
     )
     with patch.object(
         module, "_get_vtherm_entity_ids", return_value=[ENTITY]
-    ), patch.object(module, "get_thermostat", return_value=thermostat):
+    ), patch.object(module.TPIHistory, "get_thermostat", return_value=thermostat):
         yield hass, thermostat, context
 
 
@@ -194,8 +191,8 @@ async def test_read_tools_unsupported_type_explicit_and_no_service(
 ):
     hass, _, context = setup_tools
     with patch.object(
-        module,
-        "history_sources",
+        module.TPIHistory,
+        "resolve_sources",
         side_effect=IdentificationError("unsupported_thermostat_type"),
     ):
         result = await tool_class([ENTITY]).async_call(
@@ -230,7 +227,7 @@ async def test_recorder_query_bounded_to_fourteen_days():
         "custom_components.versatile_thermostat.tpi_history.get_instance",
         return_value=recorder,
     ):
-        await async_load_history(hass, sources)
+        await TPIHistory(hass, sources).async_load()
     query = recorder.async_add_executor_job.call_args.args[0]
     from custom_components.versatile_thermostat.recorder_export import (
         read_recorder_history,
@@ -251,7 +248,7 @@ async def test_recorder_query_bounded_to_fourteen_days():
 @pytest.mark.parametrize("over_switch", [False])
 def test_unsupported_before_non_tpi(over_switch):
     with pytest.raises(IdentificationError, match="unsupported_thermostat_type"):
-        history_sources(None, SimpleNamespace(is_over_switch=over_switch))
+        TPIHistory.resolve_sources(None, SimpleNamespace(is_over_switch=over_switch))
 
 
 async def test_confirmation_expired(setup_tools):
@@ -272,16 +269,20 @@ async def test_confirmation_expired(setup_tools):
 
 async def test_check_does_not_fit_or_bootstrap(setup_tools):
     hass, _, context = setup_tools
-    with patch.object(module, "history_sources", return_value={}), patch.object(
-        module,
-        "async_load_history",
+    with patch.object(
+        module.TPIHistory, "resolve_sources", return_value={}
+    ), patch.object(
+        module.TPIHistory,
+        "async_load",
         new=AsyncMock(
             return_value=(
                 None,
                 {"history_available_days": 10, "history_usable_days": 9},
             )
         ),
-    ), patch.object(module, "analyze_grid") as analysis:
+    ), patch.object(
+        module.TPIIdentification, "analyze"
+    ) as analysis:
         result = await module.CheckTPIOptimizationTool([ENTITY]).async_call(
             hass, SimpleNamespace(tool_args={"entity_id": ENTITY}), context
         )
@@ -308,10 +309,10 @@ async def test_successful_analysis_only_returns_proposal(setup_tools):
         }
     )
     with patch.object(
-        module, "history_sources", return_value={"primary_resolution": 10}
+        module.TPIHistory, "resolve_sources", return_value={"primary_resolution": 10}
     ), patch.object(
-        module,
-        "async_load_history",
+        module.TPIHistory,
+        "async_load",
         new=AsyncMock(
             return_value=(
                 object(),
@@ -331,4 +332,4 @@ async def test_successful_analysis_only_returns_proposal(setup_tools):
 async def test_recorder_missing_explicit_refusal():
     hass = SimpleNamespace(config=SimpleNamespace(components=set()))
     with pytest.raises(IdentificationError, match="recorder_unavailable"):
-        await async_load_history(hass, {})
+        await TPIHistory(hass, {}).async_load()

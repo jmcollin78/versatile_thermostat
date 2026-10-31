@@ -55,14 +55,8 @@ from homeassistant.helpers import llm
 
 from .const import DOMAIN, SERVICE_SET_TPI_PARAMETERS
 from .recorder_export import async_export_history
-from .tpi_history import (
-    get_thermostat,
-    check_classic_tpi,
-    history_sources,
-    async_load_history,
-    require_history,
-)
-from .tpi_identification import IdentificationError, analyze_grid, nominal_response
+from .tpi_history import TPIHistory
+from .tpi_identification import IdentificationError, TPIIdentification
 
 READ_ONLY_ANNOTATIONS = llm.ToolAnnotations(
     read_only=True,
@@ -1106,29 +1100,31 @@ class CheckTPIOptimizationTool(llm.Tool):
             )
         details = {}
         try:
-            thermostat = get_thermostat(hass, entity_id)
+            thermostat = TPIHistory.get_thermostat(hass, entity_id)
             details = {
                 "thermostat_type": getattr(thermostat, "vtherm_type", None),
                 "proportional_function": getattr(
                     thermostat, "proportional_function", None
                 ),
             }
-            sources = history_sources(hass, thermostat)
+            history = TPIHistory.from_thermostat(hass, thermostat)
+            sources = history.sources
             details.update(
                 {"sources": sources, "current": _tpi_coefficients(thermostat)}
             )
-            grid, coverage = await async_load_history(hass, sources)
+            grid, coverage = await history.async_load()
             details["history"] = coverage
-            require_history(coverage)
+            history.require_history(coverage)
             if self.stage_number == 1:
                 return _tpi_result(entity_id, 1, eligible=True, **details)
-            result = await hass.async_add_executor_job(
-                analyze_grid, grid, sources["primary_resolution"]
-            )
+            identification = TPIIdentification(grid, sources["primary_resolution"])
+            result = await hass.async_add_executor_job(identification.analyze)
             if result.get("proposed"):
                 if result.get("model"):
-                    result["current_nominal_response"] = nominal_response(
-                        result["model"], **details["current"]
+                    result["current_nominal_response"] = (
+                        TPIIdentification.nominal_response(
+                            result["model"], **details["current"]
+                        )
                     )
                 result["comparison"] = _tpi_comparison(
                     details["current"],
@@ -1217,8 +1213,8 @@ class SetTPICoefficientsTool(llm.Tool):
         lock = storage["locks"].setdefault(entity_id, asyncio.Lock())
         async with lock:
             try:
-                thermostat = get_thermostat(hass, entity_id)
-                check_classic_tpi(thermostat)
+                thermostat = TPIHistory.get_thermostat(hass, entity_id)
+                TPIHistory.check_classic_tpi(thermostat)
                 previous = _tpi_coefficients(thermostat)
             except IdentificationError as err:
                 return _tpi_result(entity_id, 3, reason=err.reason)
@@ -1284,7 +1280,9 @@ class SetTPICoefficientsTool(llm.Tool):
             # the loaded object, never read a stale ConfigEntry or requested data.
             for _ in range(50):
                 try:
-                    applied = _tpi_coefficients(get_thermostat(hass, entity_id))
+                    applied = _tpi_coefficients(
+                        TPIHistory.get_thermostat(hass, entity_id)
+                    )
                 except IdentificationError:
                     applied = None
                 if applied is not None and all(

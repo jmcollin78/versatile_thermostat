@@ -9,12 +9,7 @@ import pytest
 from custom_components.versatile_thermostat.tpi_identification import (
     Grid,
     IdentificationError,
-    aggregate_cycles,
-    analyze_grid,
-    block_bootstrap,
-    fit_resolution,
-    kint_for_tau,
-    sample_previous,
+    TPIIdentification,
 )
 
 
@@ -52,10 +47,10 @@ def synthetic(days=10, noise=0.0):
 @pytest.mark.parametrize("noise,tolerance", [(0, 1e-8), (0.001, 0.08)])
 def test_known_model_and_chronological_validation(noise, tolerance):
     grid, g, gain = synthetic(noise=noise)
-    fit, train = fit_resolution(grid, 10)
+    fit, train = TPIIdentification(grid, 10).fit_resolution(10)
     assert fit["coef_ext"] == pytest.approx(g / gain, rel=tolerance)
     expected = (1 - g - math.exp(-(10 / 60) / 6)) / gain
-    assert kint_for_tau(fit["A"], fit["B"], 10) == pytest.approx(
+    assert TPIIdentification.kint_for_tau(fit["A"], fit["B"], 10) == pytest.approx(
         expected, rel=tolerance
     )
     assert fit["train_cycles"] == int(fit["cycles"] * 0.7)
@@ -66,7 +61,7 @@ def test_known_model_and_chronological_validation(noise, tolerance):
 
 def test_multi_resolution_and_structured_bootstrap():
     grid, _, _ = synthetic()
-    result = analyze_grid(grid, 10)
+    result = TPIIdentification(grid, 10).analyze()
     assert result["status"] == "success"
     assert [x["resolution_min"] for x in result["multi_resolution"]] == [10, 20, 30, 60]
     assert result["proposed"]["closed_loop_hours"] == 6
@@ -79,8 +74,10 @@ def test_multi_resolution_and_structured_bootstrap():
 
 def test_bootstrap_deterministic():
     grid, _, _ = synthetic()
-    _, train = fit_resolution(grid, 10)
-    assert block_bootstrap(train, 10, 50) == block_bootstrap(train, 10, 50)
+    _, train = TPIIdentification(grid, 10).fit_resolution(10)
+    assert TPIIdentification.block_bootstrap(
+        train, 10, 50
+    ) == TPIIdentification.block_bootstrap(train, 10, 50)
 
 
 def test_gaps_windows_and_unknown_exclude_without_bridging():
@@ -90,19 +87,19 @@ def test_gaps_windows_and_unknown_exclude_without_bridging():
     grid.window[1000:1005] = 1
     grid.heater[2000:2050] = np.nan
     grid.excluded[3000:3050] = True
-    rows, counts = aggregate_cycles(grid, 10)
+    rows, counts = TPIIdentification(grid, 10).aggregate_cycles(10)
     assert counts["window_cycles_excluded"] == 1
     assert not np.any(np.isin(rows[:, 0], [290, 300, 440, 990, 1000, 2990, 3000]))
-    fit, _ = fit_resolution(grid, 10)
+    fit, _ = TPIIdentification(grid, 10).fit_resolution(10)
     assert fit["coef_ext"] == pytest.approx(g / gain)
 
 
 def test_insufficient_cycles_and_history():
     grid, _, _ = synthetic(days=1)
     with pytest.raises(IdentificationError, match="insufficient_cycles"):
-        fit_resolution(grid, 60)
+        TPIIdentification(grid, 60).fit_resolution(60)
     with pytest.raises(IdentificationError, match="insufficient_usable_history"):
-        analyze_grid(grid, 10)
+        TPIIdentification(grid, 10).analyze()
 
 
 def test_nonphysical_model_rejected():
@@ -110,17 +107,17 @@ def test_nonphysical_model_rejected():
     # Replace the temperature increments with the opposite heating sign.
     grid.temp_in = -grid.temp_in + 40
     with pytest.raises(IdentificationError, match="invalid_physical_model"):
-        fit_resolution(grid, 10)
+        TPIIdentification(grid, 10).fit_resolution(10)
 
 
 def test_ill_conditioned_model_rejected():
     grid, _, _ = synthetic()
     grid.heater[:] = 0.5
     with pytest.raises(IdentificationError, match="ill_conditioned_model"):
-        fit_resolution(grid, 10)
+        TPIIdentification(grid, 10).fit_resolution(10)
 
 
 def test_fill_is_causal_elapsed_time_limited_and_unknown_invalidates():
     times = np.array([0, 30, 60, 61, 90, 91, 120], dtype=float)
-    values = sample_previous([(0, 20), (90, math.nan), (120, 22)], times)
+    values = Grid.sample_previous([(0, 20), (90, math.nan), (120, 22)], times)
     np.testing.assert_equal(values, [20, 20, 20, math.nan, math.nan, math.nan, 22])

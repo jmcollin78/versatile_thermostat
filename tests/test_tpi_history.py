@@ -8,13 +8,7 @@ import numpy as np
 import pytest
 from homeassistant.core import State
 
-from custom_components.versatile_thermostat.tpi_history import (
-    build_grid,
-    check_classic_tpi,
-    history_sources,
-    interval_values,
-    require_history,
-)
+from custom_components.versatile_thermostat.tpi_history import TPIHistory
 from custom_components.versatile_thermostat.tpi_identification import (
     IdentificationError,
 )
@@ -64,33 +58,33 @@ def histories(days):
     "days,accepted", [(6, False), (7, True), (10, True), (14, True), (20, True)]
 )
 def test_coverage(days, accepted):
-    _, summary = build_grid(
-        histories(days), SOURCES, START, START + timedelta(days=days)
+    _, summary = TPIHistory(None, SOURCES).build_grid(
+        histories(days), START, START + timedelta(days=days)
     )
     assert summary["history_usable_days"] == min(days, 14)
     assert summary["history_available_days"] == min(days, 14)
     if accepted:
-        require_history(summary)
+        TPIHistory.require_history(summary)
     else:
         with pytest.raises(IdentificationError, match="insufficient_history"):
-            require_history(summary)
+            TPIHistory.require_history(summary)
 
 
 def test_short_events_are_not_missed():
     stamps = [(0, 0), (0.2, 1), (0.3, 0)]
-    assert interval_values(stamps, np.array([0.0]))[0] == pytest.approx(0.1)
-    assert interval_values(stamps, np.array([0.0]), maximum=True)[0] == 1
+    assert TPIHistory.interval_values(stamps, np.array([0.0]))[0] == pytest.approx(0.1)
+    assert TPIHistory.interval_values(stamps, np.array([0.0]), maximum=True)[0] == 1
 
 
 def test_missing_and_nonoverlapping_histories():
     states = histories(10)
     states["sensor.outside"] = []
     with pytest.raises(IdentificationError, match="missing_external_temperature"):
-        build_grid(states, SOURCES, START, START + timedelta(days=10))
+        TPIHistory(None, SOURCES).build_grid(states, START, START + timedelta(days=10))
     states = histories(10)
     states["switch.heater"] = []
     with pytest.raises(IdentificationError, match="missing_heating_history"):
-        build_grid(states, SOURCES, START, START + timedelta(days=10))
+        TPIHistory(None, SOURCES).build_grid(states, START, START + timedelta(days=10))
     states = histories(10)
     states["sensor.outside"] = [
         State(
@@ -101,7 +95,7 @@ def test_missing_and_nonoverlapping_histories():
         )
     ]
     with pytest.raises(IdentificationError, match="histories_do_not_overlap"):
-        build_grid(states, SOURCES, START, START + timedelta(days=10))
+        TPIHistory(None, SOURCES).build_grid(states, START, START + timedelta(days=10))
 
 
 @pytest.mark.parametrize(
@@ -121,10 +115,10 @@ def test_classic_tpi_only(function, config, learning, accepted):
         auto_tpi_manager=SimpleNamespace(learning_active=learning),
     )
     if accepted:
-        check_classic_tpi(thermostat)
+        TPIHistory.check_classic_tpi(thermostat)
     else:
         with pytest.raises(IdentificationError, match="not_classic_tpi"):
-            check_classic_tpi(thermostat)
+            TPIHistory.check_classic_tpi(thermostat)
 
 
 def test_invalid_minutes_window_and_safety():
@@ -145,7 +139,9 @@ def test_invalid_minutes_window_and_safety():
         event("switch.heater", "unavailable", 40),
         event("switch.heater", "on", 50),
     ]
-    grid, summary = build_grid(states, SOURCES, START, START + timedelta(days=10))
+    grid, summary = TPIHistory(None, SOURCES).build_grid(
+        states, START, START + timedelta(days=10)
+    )
     assert grid.window[1] == 1
     assert not np.any(grid.valid[20:30])
     assert not np.any(grid.valid[40:50])
@@ -156,11 +152,13 @@ def test_multiple_switches_use_vtherm_equal_power_convention():
     states = histories(10)
     states["switch.second"] = [State("switch.second", "off", last_updated=START)]
     sources = {**SOURCES, "heating_sources": ["switch.heater", "switch.second"]}
-    grid, _ = build_grid(states, sources, START, START + timedelta(days=10))
+    grid, _ = TPIHistory(None, sources).build_grid(
+        states, START, START + timedelta(days=10)
+    )
     np.testing.assert_equal(grid.heater, np.full(len(grid.time), 0.5))
     del states["switch.second"]
     with pytest.raises(IdentificationError, match="missing_heating_history"):
-        build_grid(states, sources, START, START + timedelta(days=10))
+        TPIHistory(None, sources).build_grid(states, START, START + timedelta(days=10))
 
 
 def test_source_resolution_multiple_switches_and_unsupported_virtual():
@@ -196,12 +194,12 @@ def test_source_resolution_multiple_switches_and_unsupported_virtual():
         "custom_components.versatile_thermostat.tpi_history.er.async_entries_for_config_entry",
         return_value=entries,
     ):
-        sources = history_sources(None, thermostat)
+        sources = TPIHistory.resolve_sources(None, thermostat)
         assert sources["heating_weights"] == [0.5, 0.5]
         assert sources["primary_resolution"] == 5
         thermostat.entry_infos["vswitch_on_command"] = ["turn_on"]
         with pytest.raises(IdentificationError, match="ambiguous_heating_history"):
-            history_sources(None, thermostat)
+            TPIHistory.resolve_sources(None, thermostat)
 
 
 @pytest.fixture
@@ -215,7 +213,7 @@ async def test_native_recorder_roundtrip(recorder_mock, hass, freezer):
     from pytest_homeassistant_custom_component.components.recorder.common import (
         async_wait_recording_done,
     )
-    from custom_components.versatile_thermostat.tpi_history import async_load_history
+    from custom_components.versatile_thermostat.tpi_history import TPIHistory
 
     hass.states.async_set("sensor.inside", "20", {"unit_of_measurement": "°C"})
     hass.states.async_set("sensor.outside", "8", {"unit_of_measurement": "°C"})
@@ -228,7 +226,7 @@ async def test_native_recorder_roundtrip(recorder_mock, hass, freezer):
     hass.states.async_set("switch.heater", "off")
     await async_wait_recording_done(hass)
     freezer.move_to(START + timedelta(minutes=4))
-    grid, summary = await async_load_history(hass, SOURCES)
+    grid, summary = await TPIHistory(hass, SOURCES).async_load()
     valid = grid.valid
     assert summary["history_requested_days"] == 14
     assert summary["history_usable_days"] == pytest.approx(4 / 1440)
