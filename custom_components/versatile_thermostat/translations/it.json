@@ -21,7 +21,7 @@
                     "central_boiler": "Caldaia centralizzata",
                     "type": "Sottostanti",
                     "tpi": "Parametri TPI",
-                    "features": "Carateristiche",
+                    "features": "Caratteristiche",
                     "presets": "Preimpostazioni",
                     "window": "Rilevamento finestra aperta",
                     "motion": "Rilevamento movimento",
@@ -87,7 +87,7 @@
                 }
             },
             "features": {
-                "title": "Carateristiche",
+                "title": "Caratteristiche",
                 "description": "Caratteristiche del termostato",
                 "data": {
                     "use_window_feature": "Usa il rilevamento finestra aperta",
@@ -428,7 +428,7 @@
                     "central_boiler": "Caldaia centralizzata",
                     "type": "Sottostanti",
                     "tpi": "Parametri TPI",
-                    "features": "Carateristiche",
+                    "features": "Caratteristiche",
                     "presets": "Preimpostazioni",
                     "window": "Rilevamento finestra aperta",
                     "motion": "Rilevamento movimento",
@@ -489,7 +489,7 @@
                 }
             },
             "features": {
-                "title": "Carateristiche - {name}",
+                "title": "Caratteristiche - {name}",
                 "description": "Caratteristiche del termostato",
                 "data": {
                     "use_window_feature": "Utilizzare il rilevamento finestra aperta",
@@ -502,7 +502,7 @@
                 }
             },
             "type": {
-                "title": "Carateristiche - {name}",
+                "title": "Caratteristiche - {name}",
                 "description": "Attributi delle entità collegate",
                 "data": {
                     "underlying_entity_ids": "Dispositivo(i) da controllare",
