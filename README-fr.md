@@ -20,6 +20,18 @@ Ce fichier README est disponible en
 
 L'ensemble de la documentation est disponible sur le [Versatile Thermostat Web site](https://www.versatile-thermostat.org/).
 
+# Intégration native LLM/MCP
+
+VTherm utilise la plateforme LLM native de Home Assistant et expose ses outils via le serveur MCP officiel Home Assistant. Les assistants peuvent lister les VTherm exposés à Assist, lire leur état et obtenir un diagnostic structuré fondé sur les messages et raisons fournis par VTherm.
+
+Sur demande explicite, trois outils permettent de modifier la consigne, le preset ou le mode HVAC via les services standards `climate.*`, avec vérification des permissions utilisateur et des valeurs. Les demandes de diagnostic restent en lecture seule ; l'option **Read only** du serveur MCP masque les outils d'action.
+
+Les coefficients TPI classiques peuvent aussi être analysés à partir de 7 à 14 jours exploitables d’historique Recorder, avec application explicite et confirmation supplémentaire pour les gros changements.
+
+Consultez la [documentation LLM/MCP](documentation/fr/feature-llm-mcp.md) pour la configuration, les garde-fous et les exemples.
+
+Historique Recorder en lecture seule pour exports CSV et graphiques réalisés par le client LLM.
+
 # Captures d'écran
 
 Le composant Versatile Thermostat UI Card (Disponible sur [Github](https://github.com/jmcollin78/versatile-thermostat-ui-card)) :

@@ -6,6 +6,7 @@ aiodiscover
 ulid_transform
 pytest
 coverage
+scipy
 pytest-asyncio
 pytest-homeassistant-custom-component
 # Remove this when incompatibility is resolved:
