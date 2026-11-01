@@ -4,7 +4,7 @@
 import logging
 import math
 from datetime import datetime
-from unittest.mock import PropertyMock, patch
+from unittest.mock import AsyncMock, PropertyMock, patch
 
 import pytest
 
@@ -309,5 +309,56 @@ async def test_modifier_not_called_before_mode_for_underlying_tracking(hass: Hom
         await entity._before_underlying_hvac_mode_change(COMMAND_CAUSE_UNDERLYING_TRACKING)
 
     mock_set_temperature.assert_not_called()
+
+    entity.remove_thermostat()
+
+
+async def create_plain_thermostat(hass: HomeAssistant) -> ThermostatOverClimate:
+    """Create the thermostat with no plugin registered at all"""
+    entry = MockConfigEntry(domain=DOMAIN, title="TheOverClimateMockName", unique_id="uniqueId", data=CONFIG)
+    entity: ThermostatOverClimate = await create_thermostat(hass, entry, "climate.theoverclimatemockname")
+    await wait_for_local_condition(lambda: entity.is_ready is True)
+    now = datetime.now(tz=get_tz(hass))
+    entity._set_now(now)
+    await send_temperature_change_event(entity, 18, now)
+    await entity.async_set_temperature(temperature=21)
+    return entity
+
+
+async def test_plain_thermostat_commands_are_unchanged(hass: HomeAssistant, skip_send_event, fake_temp_sensor, fake_ext_temp_sensor, fake_underlying_climate):
+    """Without any plugin, switching on sends the mode then the target temperature, and the hook is not even called"""
+    entity = await create_plain_thermostat(hass)
+    assert not entity._external_managers
+
+    with patch.object(ThermostatOverClimate, "_before_underlying_hvac_mode_change", new_callable=AsyncMock) as hook:
+        commands = await record_commands(entity, VThermHvacMode_HEAT)
+
+    hook.assert_not_called()
+    assert commands == [("hvac_mode", VThermHvacMode_HEAT), ("temperature", 21.0)]
+
+    entity.remove_thermostat()
+
+
+async def test_unconfigured_manager_commands_are_unchanged(hass: HomeAssistant, skip_send_event, fake_temp_sensor, fake_ext_temp_sensor, fake_underlying_climate):
+    """With a plugin which is not configured, the commands are exactly those of a thermostat without a plugin"""
+    entity, _, _ = await create_modified_thermostat(hass, configured=False)
+    assert entity._external_managers
+
+    commands = await record_commands(entity, VThermHvacMode_HEAT)
+
+    assert commands == [("hvac_mode", VThermHvacMode_HEAT), ("temperature", 21.0)]
+
+    entity.remove_thermostat()
+
+
+async def test_hook_is_called_when_a_manager_is_instantiated(hass: HomeAssistant, skip_send_event, fake_temp_sensor, fake_ext_temp_sensor, fake_underlying_climate):
+    """A thermostat which has an external manager reaches the hook on a mode change"""
+    entity, _, _ = await create_modified_thermostat(hass)
+
+    with patch.object(ThermostatOverClimate, "_before_underlying_hvac_mode_change", new_callable=AsyncMock) as hook:
+        await entity.async_set_hvac_mode(VThermHvacMode_HEAT)
+        await hass.async_block_till_done()
+
+    hook.assert_called_once()
 
     entity.remove_thermostat()
