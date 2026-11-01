@@ -5,6 +5,7 @@
   - [Utilisation d'un Heatzy](#utilisation-dun-heatzy)
   - [Utilisation d'un radiateur avec un fil pilote (Nodon SIN-4-FP-21)](#utilisation-dun-radiateur-avec-un-fil-pilote-nodon-sin-4-fp-21)
   - [Utilisation d'un système Netatmo](#utilisation-dun-système-netatmo)
+  - [La chaudière centrale ne fonctionne pas](#la-chaudière-centrale-ne-fonctionne-pas)
   - [Seul le premier radiateur chauffe](#seul-le-premier-radiateur-chauffe)
   - [Le pourcentage VTherm et le degré d'ouverture de la vanne diffèrent](#le-pourcentage-vtherm-et-le-degré-douverture-de-la-vanne-diffèrent)
   - [Le radiateur chauffe alors que la température de consigne est dépassée ou ne chauffe pas alors que la température de la pièce est bien en-dessous de la consigne](#le-radiateur-chauffe-alors-que-la-température-de-consigne-est-dépassée-ou-ne-chauffe-pas-alors-que-la-température-de-la-pièce-est-bien-en-dessous-de-la-consigne)
@@ -70,6 +71,13 @@ Un exemple plus complet est [ici](https://github.com/jmcollin78/versatile_thermo
 
 ## Utilisation d'un système Netatmo
 Le système à base de TRV Netatmo fonctionne mal avec _VTherm_. Vous avez ici une discussion sur le fonctionnement particulier des systèmes Netatmo (en Français) : https://forum.hacf.fr/t/vannes-netatmo-et-vtherm/56063. Ses limitations connues sont aussi décrites dans le [catalogue des matériels](https://www.versatile-thermostat.org/fr/devices/known-limitations/).
+
+## La chaudière centrale ne fonctionne pas
+
+Si la chaudière centrale ne se déclenche pas alors qu'un _VTherm_ demande du chauffage, vérifiez les trois points suivants :
+1. La fonction de chaudière centrale est activée dans la configuration centrale (« Ajouter une chaudière centrale »),
+2. Dans la configuration principale de chaque _VTherm_ qui doit la piloter, l'option « Déclencheur de chaudière centrale » est cochée.
+3. Enfin, dans les entités de la configuration centrale, le seuil de déclenchement par nombre d'équipements (`number.boiler_activation_threshold`) ou par puissance (`number.boiler_power_activation_threshold`) est configuré avec une valeur adaptée et supérieure à zéro. Seuls les équipements des _VTherm_ marqués comme déclencheurs sont comptabilisés, et la chaudière est activée dès que l'un des seuils non nul est franchi. Voir [le contrôle d'une chaudière centrale](feature-central-boiler.md) et le [choix des attributs de base](base-attributes.md#choix-des-attributs-de-base).
 
 ## Seul le premier radiateur chauffe
 

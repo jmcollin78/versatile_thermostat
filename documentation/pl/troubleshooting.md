@@ -5,6 +5,7 @@
   - [System Heatzy](#system-heatzy)
   - [Grzejnik z przewodem sterującym (Nodon SIN-4-FP-21)](#grzejnik-z-przewodem-sterującym-nodon-sin-4-fp-21)
   - [System Netatmo](#system-netatmo)
+  - [Kocioł główny nie działa](#kocioł-główny-nie-działa)
   - [Gdy grzeje tylko pierwszy grzejnik](#gdy-grzeje-tylko-pierwszy-grzejnik)
   - [Procent VTherm i stopień otwarcia zaworu różnią się](#procent-vtherm-i-stopień-otwarcia-zaworu-różnią-się)
   - [Grzejnik grzeje nawet po przekroczeniu zadanej temperatury lub nie grzeje, gdy temperatura w pomieszczeniu jest znacznie niższa od zadanej.](#grzejnik-grzeje-nawet-po-przekroczeniu-zadanej-temperatury-lub-nie-grzeje-gdy-temperatura-w-pomieszczeniu-jest-znacznie-niższa-od-zadanej)
@@ -106,6 +107,13 @@ System oparty na termostatach TRV Netatmo nie współpracuje dobrze z _VTherm_. 
 
 Niektórym użytkownikom udało się jednak pomyślnie zintegrować _VTherm_ z **Netatmo** poprzez wprowadzenie wirtualnego przełącznika między _VTherm_ a jednostką `climate` Netatmo.
 
+
+## Kocioł główny nie działa
+
+Jeśli kocioł główny nie uruchamia się, mimo że _VTherm_ żąda ogrzewania, sprawdź trzy poniższe punkty:
+1. Funkcja kotła głównego jest włączona w konfiguracji centralnej (zaznaczono « Dodaj kocioł główny »).
+2. W konfiguracji głównej każdego _VTherm_, który ma sterować kotłem, zaznaczono opcję « Wyzwalacz głównego bojlera ».
+3. Na koniec sprawdź, czy wśród encji konfiguracji centralnej próg aktywacji na podstawie liczby urządzeń (`number.boiler_activation_threshold`) lub mocy (`number.boiler_power_activation_threshold`) ma odpowiednią wartość większą od zera. Liczone są tylko urządzenia należące do _VThermów_ oznaczonych jako wyzwalacze kotła głównego. Kocioł zostaje aktywowany, gdy tylko zostanie przekroczony jeden z progów o wartości większej od zera. Zobacz [sterowanie kotłem głównym](feature-central-boiler.md) i [atrybuty podstawowe](base-attributes.md).
 
 ## Gdy grzeje tylko pierwszy grzejnik
 

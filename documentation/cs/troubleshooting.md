@@ -4,6 +4,7 @@
   - [Použití Heatzy](#použití-heatzy)
   - [Použití radiátoru s pilotním drátem (Nodon SIN-4-FP-21)](#použití-radiátoru-s-pilotním-drátem-nodon-sin-4-fp-21)
   - [Použití systému Netatmo](#použití-systému-netatmo)
+  - [Centrální kotel nefunguje](#centrální-kotel-nefunguje)
   - [Topí jen první radiátor](#topí-jen-první-radiátor)
   - [Procento VTherm a stupeň otevření ventilu se liší](#procento-vtherm-a-stupeň-otevření-ventilu-se-liší)
   - [Radiátor topí, i když je překročena cílová teplota, nebo netopí, když je teplota místnosti výrazně pod cílem](#radiátor-topí-i-když-je-překročena-cílová-teplota-nebo-netopí-když-je-teplota-místnosti-výrazně-pod-cílem)
@@ -109,6 +110,13 @@ Někteří uživatelé však úspěšně integrovali _VTherm_ s Netatmo pomocí 
 TODO
 ```
 
+
+## Centrální kotel nefunguje
+
+Pokud se centrální kotel nespustí, přestože _VTherm_ požaduje vytápění, zkontrolujte následující tři body:
+1. Funkce centrálního kotle je povolena v centralizované konfiguraci (je zaškrtnuto « Přidat centrální kotel »).
+2. V hlavní konfiguraci každého _VTherm_, který má kotel ovládat, je povolena volba pro použití _VTherm_ ke spuštění centrálního kotle.
+3. Nakonec zkontrolujte, zda je mezi entitami centralizované konfigurace nastaven vhodný aktivační práh větší než nula, a to podle počtu zařízení (`number.boiler_activation_threshold`) nebo podle výkonu (`number.boiler_power_activation_threshold`). Započítávají se pouze zařízení patřící k _VThermům_ označeným jako spouštěče centrálního kotle. Kotel se aktivuje, jakmile je překročen jeden z nenulových prahů. Viz [ovládání centrálního kotle](feature-central-boiler.md) a [základní atributy](base-attributes.md).
 
 ## Topí jen první radiátor
 

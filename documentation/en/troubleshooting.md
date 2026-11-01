@@ -5,6 +5,7 @@
   - [Using a Heatzy](#using-a-heatzy)
   - [Using a radiator with a pilot wire (Nodon SIN-4-FP-21)](#using-a-radiator-with-a-pilot-wire-nodon-sin-4-fp-21)
   - [Using a Netatmo System](#using-a-netatmo-system)
+  - [The central boiler is not working](#the-central-boiler-is-not-working)
   - [Only the first radiator heats](#only-the-first-radiator-heats)
   - [VTherm percentage and valve opening degree differ](#vtherm-percentage-and-valve-opening-degree-differ)
   - [The radiator heats even though the setpoint temperature is exceeded, or it does not heat when the room temperature is well below the setpoint](#the-radiator-heats-even-though-the-setpoint-temperature-is-exceeded-or-it-does-not-heat-when-the-room-temperature-is-well-below-the-setpoint)
@@ -81,6 +82,13 @@ However, some users have successfully integrated _VTherm_ with Netatmo by incorp
 TODO
 ```
 
+
+## The central boiler is not working
+
+If the central boiler does not start when a _VTherm_ requests heating, check the following three items:
+1. The central boiler feature is enabled in the centralized configuration (« Add Central Boiler »).
+2. In the main configuration of each _VTherm_ that should control it, the « Central Boiler Trigger » option is enabled.
+3. Finally, in the centralized configuration entities, the activation threshold by number of devices (`number.boiler_activation_threshold`) or by power (`number.boiler_power_activation_threshold`) is set to an appropriate value greater than zero. Only devices belonging to _VTherm_ marked as central boiler triggers are counted, and the boiler is activated as soon as one of the non-zero thresholds is exceeded. See [central boiler control](feature-central-boiler.md) and [main attributes](base-attributes.md).
 
 ## Only the first radiator heats
 

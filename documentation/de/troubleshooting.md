@@ -5,6 +5,7 @@
   - [Verwendung eines Heatzy](#verwendung-eines-heatzy)
   - [Verwendung eines Heizkörpers mit Steuerleitung (Nodon SIN-4-FP-21)](#verwendung-eines-heizkörpers-mit-steuerleitung-nodon-sin-4-fp-21)
   - [Verwendung eines Netatmo-Systems](#verwendung-eines-netatmo-systems)
+  - [Der Heizkessel funktioniert nicht](#der-heizkessel-funktioniert-nicht)
   - [Nur der erste Heizkörper heizt](#nur-der-erste-heizkörper-heizt)
   - [VTherm-Prozentwert und Ventilöffnungsgrad weichen voneinander ab](#vtherm-prozentwert-und-ventilöffnungsgrad-weichen-voneinander-ab)
   - [Der Heizkörper heizt, obwohl die Solltemperatur überschritten wird, oder er heizt nicht, wenn die Raumtemperatur deutlich unter dem Sollwert liegt](#der-heizkörper-heizt-obwohl-die-solltemperatur-überschritten-wird-oder-er-heizt-nicht-wenn-die-raumtemperatur-deutlich-unter-dem-sollwert-liegt)
@@ -80,6 +81,13 @@ Einige Benutzer haben jedoch _VTherm_ erfolgreich in Netatmo integriert, indem s
 TODO
 ```
 
+
+## Der Heizkessel funktioniert nicht
+
+Wenn der Heizkessel nicht startet, obwohl ein _VTherm_ Heizleistung anfordert, überprüfen Sie die folgenden drei Punkte:
+1. Die Funktion für den Zentralheizkessel ist in der zentralen Konfiguration aktiviert (« Zentralheizung hinzufügen »).
+2. In der Hauptkonfiguration jedes _VTherm_, das den Heizkessel steuern soll, ist die Option « Zentraler Heizkessel-Trigger » aktiviert.
+3. Prüfen Sie schließlich bei den Entitäten der zentralen Konfiguration, ob der Auslöseschwellwert nach Geräteanzahl (`number.boiler_activation_threshold`) oder Leistung (`number.boiler_power_activation_threshold`) auf einen passenden Wert größer als null eingestellt ist. Es werden nur Geräte von _VTherms_ gezählt, die als Auslöser für den Zentralheizkessel gekennzeichnet sind. Der Heizkessel wird aktiviert, sobald einer der von null verschiedenen Schwellwerte überschritten wird. Siehe [Steuerung der Zentralheizung](feature-central-boiler.md) und [Hauptattribute](base-attributes.md).
 
 ## Nur der erste Heizkörper heizt
 
