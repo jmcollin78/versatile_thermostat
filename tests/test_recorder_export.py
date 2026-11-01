@@ -7,7 +7,6 @@ from unittest.mock import AsyncMock, Mock, patch
 
 import pytest
 from homeassistant.core import Context, State
-from custom_components.versatile_thermostat import llm as module
 from custom_components.versatile_thermostat.recorder_export import (
     async_export_history,
     read_recorder_history,
@@ -15,6 +14,19 @@ from custom_components.versatile_thermostat.recorder_export import (
 
 ENTITY = "climate.test"
 START = datetime(2026, 10, 1, tzinfo=UTC)
+
+
+@pytest.fixture
+def llm_module():
+    from homeassistant.helpers import llm as ha_llm
+
+    if not all(hasattr(ha_llm, name) for name in ("ToolAnnotations", "ToolResult")):
+        pytest.skip(
+            "Home Assistant LLM ToolAnnotations/ToolResult API is unavailable in this test environment"
+        )
+    from custom_components.versatile_thermostat import llm
+
+    return llm
 
 
 @pytest.mark.parametrize(
@@ -84,7 +96,8 @@ async def test_pages():
     "exposed,authenticated,allowed",
     [(False, True, True), (True, False, True), (True, True, False), (True, True, True)],
 )
-async def test_permissions(exposed, authenticated, allowed):
+async def test_permissions(exposed, authenticated, allowed, llm_module):
+    module = llm_module
     user = SimpleNamespace(
         is_admin=False,
         permissions=SimpleNamespace(check_entity=Mock(return_value=allowed)),
@@ -165,7 +178,8 @@ async def test_missing_recorder():
 
 
 @pytest.mark.parametrize("args", [{"limit": 501}, {"limit": 0}, {"offset": -1}])
-async def test_invalid_paging(args):
+async def test_invalid_paging(args, llm_module):
+    module = llm_module
     result = await module.GetVThermHistoryTool([ENTITY]).async_call(
         None,
         SimpleNamespace(

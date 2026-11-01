@@ -216,7 +216,13 @@ def test_physical_simulation_recovers_parameters_or_refuses(seed, scenario):
 
 
 @pytest.mark.parametrize(
-    "scenario", ["constant", "weak_excitation", "collinear", "weak_heater"]
+    "scenario",
+    [
+        "constant",
+        "weak_excitation",
+        "collinear",
+        pytest.param("weak_heater", marks=pytest.mark.timeout(30)),
+    ],
 )
 def test_degenerate_simulations_refuse_without_coefficients(scenario):
     grid, rows, ref, _ = simulate(m, 3, scenario)
@@ -272,6 +278,7 @@ def test_one_converged_start_is_not_enough(bad):
     refused(fit)
 
 
+@pytest.mark.timeout(30)
 def test_validation_data_cannot_change_thermal_parameters():
     grid, rows, ref, _ = simulate(m, 0, "noise")
     before = m.TPIIdentification(grid, 10).fit_latent_model(rows, 10, ref)

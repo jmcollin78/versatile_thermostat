@@ -8,6 +8,14 @@ import pytest
 from homeassistant.core import Context
 from homeassistant.exceptions import HomeAssistantError
 
+from homeassistant.helpers import llm as ha_llm
+
+if not all(hasattr(ha_llm, name) for name in ("ToolAnnotations", "ToolResult")):
+    pytest.skip(
+        "Home Assistant LLM ToolAnnotations/ToolResult API is unavailable in this test environment",
+        allow_module_level=True,
+    )
+
 from custom_components.versatile_thermostat import llm as module
 from custom_components.versatile_thermostat.tpi_history import TPIHistory
 from custom_components.versatile_thermostat.tpi_identification import (
