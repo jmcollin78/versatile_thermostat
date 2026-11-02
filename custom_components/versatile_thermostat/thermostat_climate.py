@@ -298,7 +298,8 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
         else:
             new_regulated_temp = self.target_temperature
 
-        new_regulated_temp = self._adjust_regulated_temperature(new_regulated_temp, regulation_step, _command_cause)
+        if self._setpoint_modifiers:
+            new_regulated_temp = self._adjust_regulated_temperature(new_regulated_temp, regulation_step, _command_cause)
 
         _LOGGER.info(
             "%s - Regulated temp have changed to %.1f. Resend it to underlyings",

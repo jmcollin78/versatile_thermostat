@@ -16,6 +16,7 @@ from custom_components.versatile_thermostat.underlyings import UnderlyingClimate
 from custom_components.versatile_thermostat.vtherm_central_api import VersatileThermostatAPI
 
 from .commons import *  # pylint: disable=wildcard-import, unused-wildcard-import
+from .test_external_feature_manager import FakeExternalFeatureManagerFactory
 
 CONFIG = PARTIAL_CLIMATE_NOT_REGULATED_CONFIG | {CONF_AUTO_REGULATION_PERIOD_MIN: 1, CONF_AUTO_REGULATION_DTEMP: 0.5}
 
@@ -325,40 +326,65 @@ async def create_plain_thermostat(hass: HomeAssistant) -> ThermostatOverClimate:
     return entity
 
 
-async def test_plain_thermostat_commands_are_unchanged(hass: HomeAssistant, skip_send_event, fake_temp_sensor, fake_ext_temp_sensor, fake_underlying_climate):
-    """Without any plugin, switching on sends the mode then the target temperature, and the hook is not even called"""
+async def check_flow_is_unchanged(entity: ThermostatOverClimate) -> None:
+    """Switching on sends the mode then the target temperature, the hook is not called and no plugin adjusts the regulated temperature"""
+    with patch.object(ThermostatOverClimate, "_before_underlying_hvac_mode_change", new_callable=AsyncMock) as hook, patch.object(
+        ThermostatOverClimate, "_adjust_regulated_temperature"
+    ) as adjust:
+        commands = await record_commands(entity, VThermHvacMode_HEAT)
+        await entity._send_regulated_temperature(force=True)
+
+    hook.assert_not_called()
+    adjust.assert_not_called()
+    assert commands == [("hvac_mode", VThermHvacMode_HEAT), ("temperature", 21.0)]
+
+
+async def test_plain_thermostat_flow_is_unchanged(hass: HomeAssistant, skip_send_event, fake_temp_sensor, fake_ext_temp_sensor, fake_underlying_climate):
+    """Without any plugin, the flow is the one of a thermostat without the hook"""
     entity = await create_plain_thermostat(hass)
     assert not entity._external_managers
 
-    with patch.object(ThermostatOverClimate, "_before_underlying_hvac_mode_change", new_callable=AsyncMock) as hook:
-        commands = await record_commands(entity, VThermHvacMode_HEAT)
-
-    hook.assert_not_called()
-    assert commands == [("hvac_mode", VThermHvacMode_HEAT), ("temperature", 21.0)]
+    await check_flow_is_unchanged(entity)
 
     entity.remove_thermostat()
 
 
-async def test_unconfigured_manager_commands_are_unchanged(hass: HomeAssistant, skip_send_event, fake_temp_sensor, fake_ext_temp_sensor, fake_underlying_climate):
-    """With a plugin which is not configured, the commands are exactly those of a thermostat without a plugin"""
+async def test_unconfigured_manager_flow_is_unchanged(hass: HomeAssistant, skip_send_event, fake_temp_sensor, fake_ext_temp_sensor, fake_underlying_climate):
+    """With a plugin which is not configured, the flow is the one of a thermostat without a plugin"""
     entity, _, _ = await create_modified_thermostat(hass, configured=False)
     assert entity._external_managers
 
-    commands = await record_commands(entity, VThermHvacMode_HEAT)
-
-    assert commands == [("hvac_mode", VThermHvacMode_HEAT), ("temperature", 21.0)]
+    await check_flow_is_unchanged(entity)
 
     entity.remove_thermostat()
 
 
-async def test_hook_is_called_when_a_manager_is_instantiated(hass: HomeAssistant, skip_send_event, fake_temp_sensor, fake_ext_temp_sensor, fake_underlying_climate):
-    """A thermostat which has an external manager reaches the hook on a mode change"""
+async def test_other_plugin_flow_is_unchanged(hass: HomeAssistant, skip_send_event, fake_temp_sensor, fake_ext_temp_sensor, fake_underlying_climate):
+    """A plugin which does not adjust the regulated temperature (it has no such method) does not change the flow"""
+    api = VersatileThermostatAPI.get_vtherm_api(hass)
+    api.register_feature_manager(FakeExternalFeatureManagerFactory())
+    try:
+        entity = await create_plain_thermostat(hass)
+        assert entity._external_managers
+
+        await check_flow_is_unchanged(entity)
+
+        entity.remove_thermostat()
+    finally:
+        api.unregister_feature_manager("fake_external_fm")
+
+
+async def test_hook_and_adjustment_are_used_with_a_configured_modifier(hass: HomeAssistant, skip_send_event, fake_temp_sensor, fake_ext_temp_sensor, fake_underlying_climate):
+    """A thermostat with a configured plugin reaches the hook on a mode change and passes the regulated temperature to the plugin"""
     entity, _, _ = await create_modified_thermostat(hass)
 
     with patch.object(ThermostatOverClimate, "_before_underlying_hvac_mode_change", new_callable=AsyncMock) as hook:
         await entity.async_set_hvac_mode(VThermHvacMode_HEAT)
         await hass.async_block_till_done()
-
     hook.assert_called_once()
+
+    with patch.object(ThermostatOverClimate, "_adjust_regulated_temperature", return_value=20.0) as adjust:
+        await entity._send_regulated_temperature(force=True)
+    adjust.assert_called_once()
 
     entity.remove_thermostat()
