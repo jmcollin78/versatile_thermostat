@@ -15,13 +15,21 @@ Możesz sterować kotłem głównym. Jak długo możliwe jest jego załączanie 
 
 Podstawowa zasada działania jest następująca:
 1. Dodawana jest nowa encja typu `binary_sensor`, domyślnie nazwana `binary_sensor.central_configuration_central_boiler`.
-2. W konfiguracji termostatu określasz, czy ma on sterować kotłem. W instalacji heterogenicznej niektóre termostaty _VTherm_ powinny sterować kotłem, a inne nie. Dlatego w konfiguracji każdego termostatu należy wskazać, czy ma on sterować kotłem.
+2. W konfiguracji termostatu określasz, czy ma on sterować kotłem. W instalacji heterogenicznej niektóre termostaty _VTherm_ powinny sterować kotłem, a inne nie. Dlatego w konfiguracji każdego termostatu należy wskazać, czy ma on sterować kotłem. Każdemu termostatowi _VTherm_ sterującemu kotłem można przypisać moc.
 3. `binary_sensor.central_configuration_central_boiler` nasłuchuje zmian stanu w urządzeniach typu _VTherm_ oznaczonych jako sterujące kotłem.
-4. Gdy liczba urządzeń sterowanych termostatem _VTherm_, które żądają ogrzewania (tj. gdy ich `hvac_action` zmienia się na `Heating`), przekroczy konfigurowalny próg, `binary_sensor.central_configuration_central_boiler` włącza się, a jeśli skonfigurowano usługę aktywacji, zostanie ona wywołana.
-5. Jeśli liczba urządzeń żądających ogrzewania spadnie poniżej progu, `binary_sensor.central_configuration_central_boiler` wyłącza się, a jeśli skonfigurowano usługę dezaktywacji, zostanie ona wywołana.
-6. Masz dostęp do dwóch encji:
+4. Gdy liczba urządzeń sterowanych termostatem _VTherm_, które żądają ogrzewania (tj. gdy ich `hvac_action` zmienia się na `Heating`), osiągnie konfigurowalny próg **lub** suma żądanej mocy osiągnie próg mocy, `binary_sensor.central_configuration_central_boiler` włącza się, a jeśli skonfigurowano usługę aktywacji, zostanie ona wywołana.
+5. Jeśli żaden z niezerowych progów nie jest już osiągany, `binary_sensor.central_configuration_central_boiler` wyłącza się, a jeśli skonfigurowano usługę dezaktywacji, zostanie ona wywołana.
+6. Masz dostęp do czterech encji:
    - Encja typu `number`, domyślnie nazwana `number.boiler_activation_threshold`, która określa próg aktywacji. Próg ten to liczba urządzeń (grzejników) żądających ogrzewania.
    - Encja typu `sensor`, domyślnie nazwana `sensor.nb_device_active_for_boiler`, która pokazuje liczbę urządzeń żądających ogrzewania. Na przykład termostat z 4 zaworami, z których 3 żądają ogrzewania, spowoduje, że sensor ten pokaże wartość 3. Zalicza się tu tylko te urządzenia spośród tych termostatów _VTherm_, które oznaczone są jako sterujące kotłem głownym.
+  - Encja typu `number` o nazwie `number.boiler_power_activation_threshold`, która określa próg żądanej mocy. Kocioł zostanie uruchomiony, gdy suma mocy żądanej przez termostaty _VTherm_ oznaczone jako sterujące kotłem osiągnie lub przekroczy ten próg.
+  - Encja typu `sensor` o nazwie `sensor.total_power_active_for_boiler`, która pokazuje ostatnio obliczoną sumę mocy.
+
+Kocioł główny zostanie uruchomiony, gdy zostanie osiągnięty lub przekroczony którykolwiek z dwóch progów: próg liczby aktywnych urządzeń podrzędnych **lub** próg żądanej mocy. Obowiązuje logiczne „LUB”. Ustawienie progu na zero wyłącza odpowiadające mu kryterium.
+
+> **Uwaga dotycząca progu liczby aktywnych urządzeń podrzędnych:** W przypadku termostatu _VTherm_ sterującego zaworami zliczany jest ich stan aktywności. Ustawienia zaworów, w szczególności próg otwarcia, decydują więc o tym, czy zawór zostanie uwzględniony.
+
+> **Ostrzeżenie dotyczące progu mocy:** Jest on obliczany na podstawie mocy żądanej przez algorytm, niezależnie od stopnia otwarcia zaworów. Żądana moc może być niezerowa, mimo że skonfigurowane progi otwarcia powodują, iż zawory nie są uznawane za aktywne. Dlatego próg mocy nie jest zalecany dla termostatów _VTherm_ sterujących zaworami.
 
 Dzięki temu masz zawsze pod ręką informacje potrzebne do zarządzania i dostosowywania uruchamiania kotła.
 

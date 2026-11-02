@@ -12,13 +12,21 @@ Můžete ovládat centralizovaný kotel. Pokud je možné spustit nebo zastavit 
 ## Princip
 Základní princip je následující:
 1. Přidá se nová entita typu `binary_sensor`, pojmenovaná ve výchozím nastavení `binary_sensor.central_boiler`.
-2. V konfiguraci _VTherm_ specifikujete, zda by _VTherm_ měl ovládat kotel. V heterogenní instalaci by některé _VTherm_ měly ovládat kotel a jiné ne. Proto musíte v každé konfiguraci _VTherm_ uvést, zda ovládá kotel.
+2. V konfiguraci _VTherm_ specifikujete, zda by _VTherm_ měl ovládat kotel. V heterogenní instalaci by některé _VTherm_ měly ovládat kotel a jiné ne. Proto musíte v každé konfiguraci _VTherm_ uvést, zda ovládá kotel. Každému _VTherm_, který kotel ovládá, lze přiřadit výkon.
 3. `binary_sensor.central_boiler` poslouchá změny stavu zařízení _VTherm_ označených jako ovládající kotel.
-4. Když počet zařízení ovládaných _VTherm_ požadujících vytápění (tj. když se jejich `hvac_action` změní na `Heating`) překročí konfigurovatelný práh, `binary_sensor.central_boiler` se zapne `on` a **pokud byla nakonfigurována aktivační služba, tato služba se zavolá**.
-5. Pokud počet zařízení požadujících vytápění klesne pod práh, `binary_sensor.central_boiler` se vypne `off` a **pokud byla nakonfigurována deaktivační služba, tato služba se zavolá**.
-6. Máte přístup ke dvěma entitám:
+4. Když počet zařízení ovládaných _VTherm_, která požadují vytápění (tj. když se jejich `hvac_action` změní na `Heating`), dosáhne konfigurovatelného prahu, **nebo** když součet požadovaných výkonů dosáhne prahu výkonu, `binary_sensor.central_boiler` se zapne `on` a **pokud byla nakonfigurována aktivační služba, tato služba se zavolá**.
+5. Pokud již není dosažen žádný z nenulových prahů, `binary_sensor.central_boiler` se vypne `off` a **pokud byla nakonfigurována deaktivační služba, tato služba se zavolá**.
+6. Máte přístup ke čtyřem entitám:
    - Entita typu `number`, pojmenovaná ve výchozím nastavení `number.boiler_activation_threshold`, která udává aktivační práh. Tento práh je počet zařízení (radiátorů) požadujících vytápění.
    - Entita typu `sensor`, pojmenovaná ve výchozím nastavení `sensor.nb_device_active_for_boiler`, která zobrazuje počet zařízení požadujících vytápění. Například _VTherm_ se 4 ventily, z nichž 3 požadují vytápění, způsobí, že tento senzor zobrazí 3. Počítají se pouze zařízení z _VTherm_ označených pro ovládání centrálního kotle.
+  - Entita typu `number` s názvem `number.boiler_power_activation_threshold`, která udává práh požadovaného výkonu. Pokud součet výkonů požadovaných zařízeními _VTherm_ označenými pro ovládání kotle dosáhne nebo překročí tento práh, kotel se aktivuje.
+  - Entita typu `sensor` s názvem `sensor.total_power_active_for_boiler`, která zobrazuje naposledy vypočtený součet výkonů.
+
+Kotel se aktivuje, jakmile je dosaženo nebo překročeno alespoň jedno ze dvou prahových hodnot: práh počtu aktivních podřízených zařízení **nebo** práh požadovaného výkonu. Jde o logickou podmínku „NEBO“. Nastavením prahu na nulu se příslušné kritérium deaktivuje.
+
+> **Poznámka k prahu počtu aktivních podřízených zařízení:** U _VTherm_ ovládajících ventily se při počítání zohledňuje, zda je každý ventil aktivní. Nastavení ventilů, zejména prahová hodnota otevření, proto určuje, zda se ventil započítá.
+
+> **Upozornění k prahu výkonu:** Vypočítává se z výkonu požadovaného algoritmem, nezávisle na otevření ventilů. Požadovaný výkon může být nenulový, i když nakonfigurované prahové hodnoty otevření brání tomu, aby byly ventily považovány za aktivní. Tento práh se proto nedoporučuje pro _VTherm_ ovládající ventily.
 
 Máte tedy vždy informace pro správu a úpravu spouštění kotle.
 

@@ -4,6 +4,7 @@
   - [Principe](#principe)
     - [Calcul de la puissance activée](#calcul-de-la-puissance-activée)
   - [Configuration](#configuration)
+    - [Utiliser un template pour la valeur](#utiliser-un-template-pour-la-valeur)
     - [Comment trouver la bonne action ?](#comment-trouver-la-bonne-action-)
   - [Les évènements](#les-évènements)
   - [Avertissement](#avertissement)
@@ -16,12 +17,18 @@ Le principe mis en place est globalement le suivant :
 2. dans la configuration des _VTherm_ vous indiquez si le VTherm doit contrôler la chaudière. En effet, dans une installation hétérogène, certains VTherm doivent commander la chaudière et d'autres non. Vous devez donc indiquer dans chaque configuration de VTherm si il contrôle la chaudière ou pas. A chauque _VTherm_ controlant la chaudière vous pouvez associer une puissance,
 3. le `binary_sensor.central_configuration_central_boiler` écoute les changements d'états des équipements des VTherm marqués comme contrôlant la chaudière,
 4. dès que le nombre d'équipements pilotés par le VTherm demandant du chauffage (ie son `hvac_action` passe à `Heating`)  ou que le total des puissance dépasse un seuil paramétrable, alors le `binary_sensor.central_configuration_central_boiler` passe à `on` et **si un service d'activation a été configuré, alors ce service est appelé**,
-5. si le nombre d'équipements nécessitant du chauffage repasse en dessous du seuil, alors le `binary_sensor.central_configuration_central_boiler` passe à `off` et si **un service de désactivation a été configuré, alors ce service est appelé**,
+5. si aucun des deux seuils non nuls n'est atteint, alors le `binary_sensor.central_configuration_central_boiler` passe à `off` et si **un service de désactivation a été configuré, alors ce service est appelé**,
 6. vous avez accès à 4 entités :
    - une de type `number` nommée par défaut `number.boiler_activation_threshold`, donne le seuil de déclenchement. Ce seuil est en nombre d'équipements (radiateurs) qui demandent du chauffage et non pas le nombre de _VTherm_ demandant du chauffage.
    - une de type `sensor` nommée par défaut `sensor.nb_device_active_for_boiler`, donne le nombre d'équipements qui demandent du chauffage. Par exemple, un VTherm ayant 4 vannes dont 3 demandent du chauffage fera passer ce capteur à 3. Seuls les équipements des _VTherm_ qui sont marqués pour contrôler la chaudière centrale sont comptabilisés.
    - une de type `number` nommée `number.boiler_power_activation_threshold` qui donne le seuil de puissance de déclenchement. Si le total des puissances activées par des _Vtherm_ controlant la chaudière est dépassé alors la chaudière sera activée,
    - une de type `sensor` nommée `sensor.total_power_active_for_boiler` qui donne le dernier total de puissance calculé.
+
+La chaudière centrale est activée dès que l'un des deux seuils est atteint ou dépassé : le seuil du nombre de sous-jacents actifs **ou** le seuil de puissance demandée. Il s'agit d'un « ou » logique. Mettre un seuil à zéro désactive le critère correspondant.
+
+> **Remarque sur le seuil du nombre de sous-jacents actifs :** pour un _VTherm_ pilotant des vannes, le comptage tient compte de leur état actif. Les réglages des vannes, notamment le seuil d'ouverture, déterminent donc si elles sont comptabilisées.
+
+> **Attention au seuil de puissance :** il est calculé à partir de la puissance demandée par l'algorithme, indépendamment de l'état d'ouverture des vannes. La puissance demandée peut être non nulle alors que les seuils d'ouverture configurés empêchent les vannes d'être considérées comme actives. Ce seuil est donc déconseillé pour les _VTherm_ pilotant des vannes.
 
 Vous avez donc en permanence, les informations qui permettent de piloter et régler le déclenchement de la chaudière.
 

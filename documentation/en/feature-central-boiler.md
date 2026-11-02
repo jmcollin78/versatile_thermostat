@@ -16,12 +16,18 @@ The principle implemented is globally the following:
 2. in the _VTherm_ configuration you indicate whether the VTherm should control the boiler. Indeed, in a heterogeneous installation, some VTherm must control the boiler and others not. You must therefore indicate in each VTherm configuration whether it controls the boiler or not. For each _VTherm_ controlling the boiler you can associate a power,
 3. the `binary_sensor.central_configuration_central_boiler` listens to state changes of equipment from VTherm marked as controlling the boiler,
 4. as soon as the number of equipment controlled by the VTherm requesting heating (i.e. its `hvac_action` changes to `Heating`) or the total power exceeds a configurable threshold, then the `binary_sensor.central_configuration_central_boiler` switches to `on` and **if an activation service has been configured, then this service is called**,
-5. if the number of equipment requiring heating falls below the threshold, then the `binary_sensor.central_configuration_central_boiler` switches to `off` and if **a deactivation service has been configured, then this service is called**,
+5. if neither non-zero threshold is reached anymore, then the `binary_sensor.central_configuration_central_boiler` switches to `off` and if **a deactivation service has been configured, then this service is called**,
 6. you have access to 4 entities:
    - one of type `number` named by default `number.boiler_activation_threshold`, gives the activation threshold. This threshold is in number of equipment (radiators) requesting heating and not the number of _VTherm_ requesting heating.
    - one of type `sensor` named by default `sensor.nb_device_active_for_boiler`, gives the number of equipment requesting heating. For example, a VTherm with 4 valves of which 3 are requesting heating will set this sensor to 3. Only equipment from _VTherm_ that are marked to control the central boiler are counted.
    - one of type `number` named `number.boiler_power_activation_threshold` which gives the power activation threshold. If the total power activated by _Vtherm_ controlling the boiler is exceeded then the boiler will be activated,
    - one of type `sensor` named `sensor.total_power_active_for_boiler` which gives the last calculated total power.
+
+The central boiler is activated as soon as either threshold is reached or exceeded: the active-underlying count threshold **or** the requested-power threshold. This is a logical OR. Setting a threshold to zero disables the corresponding criterion.
+
+> **Note on the active-underlying count threshold:** for a _VTherm_ controlling valves, the count reflects whether each valve is active. The valve settings, especially the opening threshold, therefore determine whether a valve is counted.
+
+> **Warning about the power threshold:** it is calculated from the power requested by the algorithm, independently of the valves' opening state. The requested power can be non-zero even when the configured opening thresholds mean that the valves are not considered active. This threshold is therefore not recommended for _VTherm_ controlling valves.
 
 You therefore have permanent access to the information that allows you to control and adjust the boiler activation.
 

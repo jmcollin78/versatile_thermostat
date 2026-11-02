@@ -16,12 +16,18 @@ Grundlegend funktioniert das so:
 2. In der Konfiguration des _VTherms_ wird festgelegt, ob das _VTherm_ den Heizkessel steuern soll. In einer heterogenen Installation müssen einige _VTherms_ den Kessel steuern, andere hingegen nicht. Daher muss in jeder _VTherm_-Konfiguration angeben werden, ob es den Heizkessel steuert oder nicht. Jedem _VTherm_, der den Heizkessel steuert, kannen eine Leistung zuordnen werden.
 3. Der `binary_sensor.central_configuration_central_boiler` überwacht Statusänderungen der _VTherm_-Geräte, die als Kesselsteuerung gekennzeichnet sind.
 4. Sobald die Anzahl der vom _VTherm_ gesteuerten Geräte, die eine Heizung anfordern (d. h. deren `hvac_action` auf `Heizen` wechselt), oder die Gesamtleistung einen konfigurierbaren Schwellwert überschreitet, wechselt der `binary_sensor.central_configuration_central_boiler` auf ein (`on`), und **wenn ein Aktivierungsdienst konfiguriert wurde, wird dieser Dienst aufgerufen**.
-5. Wenn die Anzahl der zu beheizenden Geräte wieder unter den Schwellwert fällt, wechselt der `binary_sensor.central_configuration_central_boiler` zu aus (`off`), und **wenn ein Deaktivierungsdienst konfiguriert wurde, wird dieser Dienst aufgerufen**.
+5. Wenn keiner der beiden von null verschiedenen Schwellwerte mehr erreicht wird, wechselt der `binary_sensor.central_configuration_central_boiler` zu aus (`off`), und **wenn ein Deaktivierungsdienst konfiguriert wurde, wird dieser Dienst aufgerufen**.
 6. Sie haben Zugriff auf vier Entitäten:
    - Eine vom Typ `number` mit dem Namen `number.boiler_activation_threshold` gibt den Auslöseschwellwert an. Dieser Schwellwert bezieht sich auf die Anzahl der Geräte (Heizkörper), die Heizleistung benötigen, und nicht auf die Anzahl der _VTherm_, die Heizleistung anfordern.
    - Eine vom Typ `sensor` mit dem Namen `sensor.nb_device_active_for_boiler`, die die Anzahl der Geräte angibt, die Heizleistung benötigen. Beispielsweise setzt ein _VTherm_ mit 4 Ventilen, von denen 3 Heizleistung anfordern, diesen Sensor 3. Es werden nur die Geräte von _VTherms_ gezählt, die zfür die Steuerung des Zentralheizkessels gekennzeichnet sind.
    - Ein Sensor vom Typ `number` mit dem Namen `number.boiler_power_activation_threshold`, der den Schwellenwert für die Auslösung der Leistung angibt. Wenn die Gesamtleistung, durch die von den Heizkessel steuernden _Vtherms_ überschritten wird, wird der Heizkessel gestartet.
   - Eine vom Typ `sensor` mit dem Namen `sensor.total_power_active_for_boiler`, die die zuletzt berechnete Gesamtleistung angibt.
+
+Der Heizkessel wird aktiviert, sobald einer der beiden Schwellwerte erreicht oder überschritten wird: entweder der Schwellwert für die Anzahl aktiver untergeordneter Geräte **oder** der Schwellwert für die angeforderte Leistung. Es gilt eine logische ODER-Verknüpfung. Ein Schwellwert von null deaktiviert das entsprechende Kriterium.
+
+> **Hinweis zum Schwellwert für die Anzahl aktiver untergeordneter Geräte:** Bei einem _VTherm_, der Ventile steuert, berücksichtigt die Zählung, ob jedes Ventil aktiv ist. Die Ventileinstellungen, insbesondere der Öffnungsschwellwert, bestimmen daher, ob ein Ventil mitgezählt wird.
+
+> **Achtung beim Leistungsschwellwert:** Er wird anhand der vom Algorithmus angeforderten Leistung berechnet, unabhängig vom Öffnungszustand der Ventile. Die angeforderte Leistung kann ungleich null sein, obwohl die konfigurierten Öffnungsschwellwerte verhindern, dass die Ventile als aktiv gelten. Dieser Schwellwert wird daher für _VTherm_ zur Ventilsteuerung nicht empfohlen.
 
 Der Zugriff auf Informationen zur Steuerung und Regulierung des Heizkessels ist jederzeit gegeben.
 
