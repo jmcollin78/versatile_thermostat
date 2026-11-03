@@ -1929,3 +1929,47 @@ async def test_under_climate_is_device_active(
         f"hvac_mode={hvac_mode}, hvac_action={hvac_action}, "
         f"state={under_state}, target_temp={target_temp}, current_temp={current_temp}"
     )
+
+
+async def test_repeated_turn_off_preserves_last_mode(
+    hass: HomeAssistant,
+    skip_hass_states_is_state,
+    skip_turn_on_off_heater,
+    skip_send_event,
+    fake_underlying_climate,
+):
+    """Test that repeated calls to async_turn_off do not overwrite _last_hvac_mode with OFF."""
+    entry = MockConfigEntry(
+        domain=DOMAIN,
+        title="TheOverClimateMockName",
+        unique_id="uniqueId",
+        data=PARTIAL_CLIMATE_NOT_REGULATED_CONFIG,
+    )
+
+    entity: ThermostatOverClimate = await create_thermostat(hass, entry, "climate.theoverclimatemockname")
+    assert entity is not None
+
+    # Thermostat in HEAT mode
+    await entity.async_set_hvac_mode(VThermHvacMode_HEAT)
+    await hass.async_block_till_done()
+    assert entity.hvac_mode == VThermHvacMode_HEAT
+
+    # 1. First call to async_turn_off() -> State is OFF
+    await entity.async_turn_off()
+    await hass.async_block_till_done()
+    assert entity.hvac_mode == VThermHvacMode_OFF
+    assert entity._last_hvac_mode == VThermHvacMode_HEAT
+
+    # 2. Second call to async_turn_off() -> _last_hvac_mode remains HEAT (not overwritten by OFF)
+    await entity.async_turn_off()
+    await hass.async_block_till_done()
+    assert entity.hvac_mode == VThermHvacMode_OFF
+    assert entity._last_hvac_mode == VThermHvacMode_HEAT
+
+    # 3. Call async_turn_on() -> Thermostat correctly switches back to HEAT
+    await entity.async_turn_on()
+    await hass.async_block_till_done()
+    assert entity.hvac_mode == VThermHvacMode_HEAT
+
+    entity.remove_thermostat()
+

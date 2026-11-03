@@ -1685,13 +1685,18 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
     @overrides
     async def async_turn_off(self) -> None:
         """Turn off the climate entity."""
-        self._last_hvac_mode = self.requested_state.hvac_mode
+        if (
+            self.requested_state
+            and self.requested_state.hvac_mode
+            and self.requested_state.hvac_mode != VThermHvacMode_OFF
+        ):
+            self._last_hvac_mode = self.requested_state.hvac_mode
         await self.async_set_hvac_mode(VThermHvacMode_OFF)
 
     @overrides
     async def async_turn_on(self) -> None:
         """Turn on the climate entity. If multiple modes are available, choose the most appropriate one."""
-        if self._last_hvac_mode:
+        if self._last_hvac_mode and self._last_hvac_mode != VThermHvacMode_OFF:
             await self.async_set_hvac_mode(self._last_hvac_mode)
         elif self._ac_mode:
             await self.async_set_hvac_mode(VThermHvacMode_COOL)
