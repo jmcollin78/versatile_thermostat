@@ -1,0 +1,1182 @@
+{
+  "title": "Versatile Thermostat",
+  "config": {
+    "flow_title": "Configuración de Versatile Thermostat",
+    "step": {
+      "user": {
+        "title": "Tipo de Versatile Thermostat",
+        "description": "Elige el tipo de termostato que quieres crear",
+        "data": {
+          "thermostat_type": "Tipo de termostato"
+        },
+        "data_description": {
+          "thermostat_type": "Solo puede existir una configuración central"
+        }
+      },
+      "menu": {
+        "title": "Menú",
+        "description": "Configura tu termostato. Podrás finalizar la configuración cuando hayas introducido todos los parámetros obligatorios.",
+        "menu_options": {
+          "main": "Atributos principales",
+          "central_boiler": "Caldera central",
+          "type": "Dispositivos controlados",
+          "tpi": "Parámetros TPI",
+          "features": "Funciones",
+          "presets": "Preajustes",
+          "window": "Detección de ventanas abiertas",
+          "motion": "Detección de movimiento",
+          "power": "Gestión de potencia",
+          "presence": "Detección de presencia",
+          "advanced": "Parámetros avanzados",
+          "auto_start_stop": "Encendido y apagado automáticos",
+          "valve_regulation": "Configuración de la regulación de válvulas",
+          "sync_device_internal_temp": "Sincronizar la temperatura del dispositivo",
+          "humidity": "Humedad",
+          "lock": "Bloqueo",
+          "heating_failure_detection": "Detección de fallos de calefacción",
+          "auto_tpi_configuration": "Auto TPI - Configuración",
+          "auto_tpi_avg_settings": "Auto TPI - Media ponderada",
+          "auto_tpi_ema_settings": "Auto TPI - Media móvil exponencial (EWMA)",
+          "finalize": "Todo listo",
+          "configuration_not_complete": "Configuración incompleta"
+        }
+      },
+      "lock": {
+        "title": "Gestión del bloqueo",
+        "description": "La función de bloqueo impide modificar la configuración del termostato desde la interfaz o las automatizaciones, pero permite que siga funcionando.",
+        "data": {
+          "use_lock_central_config": "Usar la configuración central del bloqueo",
+          "lock_code": "Código PIN opcional (4 dígitos)",
+          "lock_users": "Impedir las órdenes de los usuarios",
+          "lock_automations": "Impedir las órdenes de automatizaciones e integraciones (p. ej., el programador)",
+          "auto_relock_sec": "Retardo de bloqueo automático"
+        },
+        "data_description": {
+          "use_lock_central_config": "Marca esta opción para usar la configuración central del bloqueo. Desmárcala para configurar el bloqueo de este VTherm por separado.",
+          "auto_relock_sec": "Segundos que deben transcurrir para volver a bloquear automáticamente tras un desbloqueo. Indica 0 para desactivar el bloqueo automático. Valor predeterminado: 30 segundos."
+        }
+      },
+      "main": {
+        "title": "Añadir un Versatile Thermostat",
+        "description": "Atributos principales obligatorios",
+        "data": {
+          "name": "Nombre",
+          "thermostat_type": "Tipo de termostato",
+          "temperature_sensor_entity_id": "Temperatura ambiente",
+          "last_seen_temperature_sensor_entity_id": "Fecha y hora de la última lectura de temperatura ambiente",
+          "external_temperature_sensor_entity_id": "ID de entidad del sensor de temperatura exterior",
+          "cycle_min": "Duración del ciclo (minutos)",
+          "temp_min": "Temperatura mínima permitida",
+          "temp_max": "Temperatura máxima permitida",
+          "step_temperature": "Incremento de temperatura",
+          "device_power": "Potencia del dispositivo",
+          "power_unit": "Unidad de potencia (del dispositivo)",
+          "use_central_mode": "Permitir el control mediante la entidad central (requiere una configuración central). Activa esta opción para controlar este VTherm mediante las entidades `select` de `central_mode`.",
+          "use_main_central_config": "Usar la configuración central de los atributos principales. Activa esta opción para utilizar la configuración central (temperatura exterior, mínimo, máximo, incremento, etc.).",
+          "used_by_controls_central_boiler": "Controlar la caldera central. Marca esta opción si este VTherm debe participar en su control."
+        },
+        "data_description": {
+          "cycle_min": "Duración mínima, en minutos, de un ciclo de calefacción o refrigeración para evitar conmutaciones demasiado frecuentes",
+          "temp_min": "Temperatura mínima permitida para el termostato",
+          "temp_max": "Temperatura máxima permitida para el termostato",
+          "step_temperature": "Incremento utilizado al ajustar la temperatura de consigna",
+          "temperature_sensor_entity_id": "ID de entidad del sensor de temperatura ambiente",
+          "last_seen_temperature_sensor_entity_id": "ID de entidad del sensor de la última lectura de temperatura ambiente. Debe ser un sensor de fecha y hora.",
+          "external_temperature_sensor_entity_id": "ID de entidad del sensor de temperatura exterior. No se utiliza si está seleccionada la configuración central.",
+          "power_unit": "Unidad de consumo de potencia del dispositivo"
+        }
+      },
+      "features": {
+        "title": "Funciones",
+        "description": "Funciones del termostato",
+        "data": {
+          "use_window_feature": "Usar la detección de ventanas abiertas",
+          "use_motion_feature": "Usar la detección de movimiento",
+          "use_power_feature": "Usar la gestión de potencia",
+          "use_presence_feature": "Usar la detección de presencia",
+          "use_central_boiler_feature": "Usar una caldera central. Marca esta opción para añadir el control de la caldera central. Después, debes configurar qué VTherm participarán en ese control para que surta efecto. Si algún VTherm requiere calefacción, se encenderá la caldera; si ninguno la necesita, se apagará. Las órdenes de encendido y apagado se indican en la página de configuración correspondiente.",
+          "use_auto_start_stop_feature": "Usar la función de encendido y apagado automáticos",
+          "use_heating_failure_detection_feature": "Usar la detección de fallos de calefacción"
+        }
+      },
+      "type": {
+        "title": "Entidades vinculadas",
+        "description": "Atributos de las entidades vinculadas",
+        "data": {
+          "underlying_entity_ids": "Dispositivos que se van a controlar",
+          "heater_keep_alive": "Intervalo de mantenimiento de la orden del interruptor (segundos)",
+          "proportional_function": "Algoritmo",
+          "ac_mode": "Modo de aire acondicionado",
+          "sync_device_internal_temp": "Sincronizar la temperatura interna del dispositivo",
+          "auto_regulation_mode": "Autorregulación",
+          "auto_regulation_dtemp": "Umbral de regulación",
+          "auto_regulation_periode_min": "Periodo mínimo de regulación",
+          "opening_threshold_degree": "Umbral de apertura de la válvula",
+          "min_opening_degrees": "Grado mínimo de apertura",
+          "max_opening_degrees": "Grado máximo de apertura",
+          "max_closing_degree": "Grado máximo de cierre",
+          "auto_regulation_use_device_temp": "Usar la temperatura interna del dispositivo controlado",
+          "inverse_switch_command": "Invertir la orden del interruptor",
+          "auto_fan_mode": "Modo de ventilador automático",
+          "on_command_text": "Personalizar las órdenes de encendido",
+          "vswitch_on_command": "Órdenes de encendido opcionales",
+          "off_command_text": "Personalizar las órdenes de apagado",
+          "vswitch_off_command": "Órdenes de apagado opcionales"
+        },
+        "data_description": {
+          "underlying_entity_ids": "Dispositivos que se van a controlar (se requiere al menos uno)",
+          "heater_keep_alive": "Intervalo opcional para actualizar el estado del interruptor de calefacción. Déjalo vacío si no es necesario.",
+          "proportional_function": "Algoritmo que se va a utilizar (pueden instalarse otros algoritmos como {plugins_link})",
+          "ac_mode": "Usar el modo de aire acondicionado (AC)",
+          "sync_device_internal_temp": "Marca esta opción para sincronizar la temperatura interna del dispositivo controlado (configura la nueva opción de menú «Sincronizar la temperatura del dispositivo»).",
+          "auto_regulation_mode": "Ajuste automático de la temperatura de consigna",
+          "auto_regulation_dtemp": "Umbral, en grados (o en % para las válvulas), por debajo del cual no se enviará el cambio de temperatura",
+          "auto_regulation_periode_min": "Intervalo, en minutos, entre dos actualizaciones de la regulación",
+          "opening_threshold_degree": "Valor de apertura por debajo del cual se considera que la válvula está cerrada (y se aplica `max_closing_degree`)",
+          "min_opening_degrees": "Grado mínimo de apertura de cada dispositivo controlado cuando se supera el umbral anterior, separado por comas. Valor predeterminado: 0. Ejemplo: 20, 25, 30.",
+          "max_opening_degrees": "Grado máximo de apertura. La válvula nunca se abrirá más allá de este valor.",
+          "max_closing_degree": "Grado máximo de cierre. La válvula nunca se cerrará más allá de este valor. Indica 100 para cerrarla por completo.",
+          "auto_regulation_use_device_temp": "Usar el sensor de temperatura interno del dispositivo controlado, si existe, para acelerar la autorregulación (no suele ser necesario)",
+          "inverse_switch_command": "En interruptores de hilo piloto con diodo puede ser necesario invertir la orden",
+          "auto_fan_mode": "Activar automáticamente el ventilador cuando se necesite mucha calefacción o refrigeración",
+          "on_command_text": "Debes personalizar las órdenes de los dispositivos controlados de tipo `select` o `climate`."
+        }
+      },
+      "tpi": {
+        "title": "TPI",
+        "description": "Parámetros del algoritmo proporcional-integral temporal (TPI)",
+        "data": {
+          "tpi_coef_int": "coef_int",
+          "tpi_coef_ext": "coef_ext",
+          "tpi_threshold_low": "Umbral TPI inferior",
+          "tpi_threshold_high": "Umbral TPI superior",
+          "use_tpi_central_config": "Usar la configuración central de TPI",
+          "minimal_activation_delay": "Retardo mínimo de activación",
+          "minimal_deactivation_delay": "Retardo mínimo de desactivación",
+          "auto_tpi_mode": "Activar el aprendizaje automático de TPI"
+        },
+        "data_description": {
+          "tpi_coef_int": "Coeficiente para la diferencia de temperatura interior",
+          "tpi_coef_ext": "Coeficiente para la diferencia de temperatura exterior",
+          "tpi_threshold_low": "Umbral, en grados, por debajo del cual se activará el algoritmo TPI. El valor 0 significa que no hay umbral.",
+          "tpi_threshold_high": "Umbral, en grados, por encima del cual se desactivará el algoritmo TPI. El valor 0 significa que no hay umbral.",
+          "use_tpi_central_config": "Marca esta opción para usar la configuración central de TPI. Desmárcala para configurar TPI específicamente para este VTherm.",
+          "minimal_activation_delay": "Tiempo, en segundos, durante el cual no se activará el equipo",
+          "minimal_deactivation_delay": "Tiempo, en segundos, durante el cual el equipo permanecerá activado",
+          "auto_tpi_mode": "Las sesiones de aprendizaje de TPI se inician manualmente. Lee antes la documentación."
+        }
+      },
+      "presets": {
+        "title": "Preajustes",
+        "description": "Selecciona esta opción si el termostato debe usar los preajustes centrales; desmárcala para que tenga sus propios preajustes.",
+        "data": {
+          "use_presets_central_config": "Usar la configuración central de preajustes"
+        }
+      },
+      "window": {
+        "title": "Gestión de ventanas",
+        "description": "Gestión de ventanas abiertas.\nTambién puedes configurar la detección automática de apertura según el descenso de la temperatura.",
+        "data": {
+          "window_sensor_entity_id": "ID de entidad del sensor de ventana",
+          "window_delay": "Retardo del sensor de ventana al pasar a «on» (segundos)",
+          "window_off_delay": "Retardo del sensor de ventana al pasar a «off» (segundos)",
+          "window_auto_open_threshold": "Umbral de descenso de temperatura para detectar automáticamente una ventana abierta (°/h)",
+          "window_auto_close_threshold": "Umbral de aumento de temperatura para finalizar la detección automática (°/h)",
+          "window_auto_max_duration": "Duración máxima de la detección automática de ventana abierta (minutos)",
+          "use_window_central_config": "Usar la configuración central de ventanas",
+          "window_action": "Acción"
+        },
+        "data_description": {
+          "window_sensor_entity_id": "Déjalo vacío si no vas a utilizar un sensor de ventana y quieres usar la detección automática.",
+          "window_delay": "Retardo, en segundos, antes de tener en cuenta el estado «on» del sensor",
+          "window_off_delay": "Retardo, en segundos, antes de tener en cuenta el estado «off» del sensor. Déjalo vacío para utilizar el mismo valor que el retardo de apertura.",
+          "window_auto_open_threshold": "Valor recomendado: entre 3 y 10. Déjalo vacío si no utilizas la detección automática de ventanas abiertas.",
+          "window_auto_close_threshold": "Valor recomendado: 0. Déjalo vacío si no utilizas la detección automática de ventanas abiertas.",
+          "window_auto_max_duration": "Valor recomendado: 60 (una hora). Déjalo vacío si no utilizas la detección automática de ventanas abiertas.",
+          "use_window_central_config": "Marca esta opción para usar la configuración central de ventanas. Desmárcala para usar una configuración específica en este VTherm.",
+          "window_action": "Acción que se realizará al detectar una ventana abierta"
+        }
+      },
+      "motion": {
+        "title": "Gestión del movimiento",
+        "description": "Gestión del sensor de movimiento. El preajuste puede cambiar automáticamente según se detecte movimiento.\n`motion_preset` y `no_motion_preset` deben contener los nombres de los preajustes correspondientes.",
+        "data": {
+          "motion_sensor_entity_id": "ID de entidad del sensor de movimiento",
+          "motion_delay": "Retardo de activación",
+          "motion_off_delay": "Retardo de desactivación",
+          "motion_preset": "Preajuste con movimiento",
+          "no_motion_preset": "Preajuste sin movimiento",
+          "use_motion_central_config": "Usar la configuración central de movimiento"
+        },
+        "data_description": {
+          "motion_sensor_entity_id": "ID de entidad del sensor de movimiento",
+          "motion_delay": "Retardo de activación por movimiento (segundos)",
+          "motion_off_delay": "Retardo de desactivación por ausencia de movimiento (segundos)",
+          "motion_preset": "Preajuste que se utilizará cuando se detecte movimiento",
+          "no_motion_preset": "Preajuste que se utilizará cuando no se detecte movimiento",
+          "use_motion_central_config": "Marca esta opción para usar la configuración central de movimiento. Desmárcala para configurar el movimiento específicamente en este VTherm."
+        }
+      },
+      "power": {
+        "title": "Gestión de potencia",
+        "description": "Parámetros de gestión de potencia.\nSelecciona W o kW para la potencia de cada dispositivo VTherm, y W, kW o Automático para la configuración central.\nLos valores se normalizan internamente, por lo que pueden combinarse W y kW sin problemas.",
+        "data": {
+          "power_sensor_entity_id": "Potencia",
+          "max_power_sensor_entity_id": "Potencia máxima",
+          "power_unit": "Unidad de potencia central",
+          "power_temp": "Temperatura durante la limitación de carga",
+          "use_power_central_config": "Usar la configuración central de potencia"
+        },
+        "data_description": {
+          "power_sensor_entity_id": "ID de entidad del sensor de potencia",
+          "max_power_sensor_entity_id": "ID de entidad del sensor de potencia máxima",
+          "power_unit": "Selecciona la unidad de potencia o Automático para detectarla a partir del sensor.",
+          "power_temp": "Temperatura que se aplicará durante la limitación de carga",
+          "use_power_central_config": "Marca esta opción para usar la configuración central de potencia. Desmárcala para configurar la potencia específicamente en este VTherm."
+        }
+      },
+      "presence": {
+        "title": "Gestión de la presencia",
+        "description": "Parámetros de gestión de presencia.\nSelecciona el sensor de presencia de tu vivienda (verdadero cuando hay alguien presente) y configura las temperaturas de los preajustes correspondientes.",
+        "data": {
+          "presence_sensor_entity_id": "Sensor de presencia",
+          "use_presence_central_config": "Usar la configuración central de temperaturas según presencia. Desmarca esta opción para usar entidades de temperatura específicas."
+        },
+        "data_description": {
+          "presence_sensor_entity_id": "ID de entidad del sensor de presencia"
+        }
+      },
+      "advanced": {
+        "title": "Parámetros avanzados",
+        "description": "Configuración de parámetros avanzados. Conserva los valores predeterminados si no sabes qué estás modificando.\nEstos parámetros pueden perjudicar seriamente el control de la temperatura o la regulación de potencia.",
+        "data": {
+          "safety_delay_min": "Retardo de seguridad (minutos)",
+          "safety_min_on_percent": "Porcentaje mínimo de potencia para activar el modo de seguridad",
+          "safety_default_on_percent": "Porcentaje de potencia que se utilizará en el modo de seguridad",
+          "repair_incorrect_state": "Corregir un estado incorrecto",
+          "manual_override_duration_min": "Duración de la modificación manual (minutos)",
+          "use_advanced_central_config": "Usar la configuración central de parámetros avanzados"
+        },
+        "data_description": {
+          "safety_delay_min": "Tiempo máximo permitido, en minutos, entre dos mediciones de temperatura. Si se supera, el termostato pasará al estado de seguridad apagado.",
+          "safety_min_on_percent": "Porcentaje mínimo de calefacción necesario para activar el preajuste de seguridad. Por debajo de este porcentaje, el termostato no entrará en ese preajuste.",
+          "safety_default_on_percent": "Porcentaje de potencia de calefacción predeterminado para el preajuste de seguridad. Indica 0 para apagar la calefacción en ese preajuste.",
+          "repair_incorrect_state": "Corregir automáticamente los estados incorrectos de los dispositivos controlados. Si su estado no coincide con el esperado, se reenviará la orden correspondiente.",
+          "manual_override_duration_min": "Después de cambiar manualmente la temperatura, VTherm recuperará el preajuste anterior cuando transcurra este tiempo (en minutos). El valor 0 desactiva esta función.",
+          "use_advanced_central_config": "Marca esta opción para usar la configuración central de parámetros avanzados. Desmárcala para configurar estos parámetros específicamente en este VTherm."
+        }
+      },
+      "central_boiler": {
+        "title": "Control de la caldera central",
+        "description": "Introduce los servicios para encender y apagar la caldera central. El servicio debe tener el formato `entity_id/service_name[/attribute:value]` (`/attribute:value` es opcional).\nPor ejemplo:\n- Para encender un interruptor: `switch.controle_chaudiere/switch.turn_on`\n- Para apagar un interruptor: `switch.controle_chaudiere/switch.turn_off`\n- Para establecer 25° en la caldera y forzar su encendido: `climate.thermostat_chaudiere/climate.set_temperature/temperature:25`\n- Para establecer 10° en la caldera y forzar su apagado: `climate.thermostat_chaudiere/climate.set_temperature/temperature:10`",
+        "data": {
+          "central_boiler_activation_service": "Orden de encendido",
+          "central_boiler_deactivation_service": "Orden de apagado",
+          "central_boiler_activation_delay_sec": "Retardo de activación (segundos)",
+          "keep_alive_boiler_delay_sec": "Intervalo de mantenimiento de la orden (segundos)"
+        },
+        "data_description": {
+          "central_boiler_activation_service": "Orden para encender la caldera central, con el formato `entity_id/service_name[/attribute:value]`",
+          "central_boiler_deactivation_service": "Orden para apagar la caldera central, con el formato `entity_id/service_name[/attribute:value]`",
+          "central_boiler_activation_delay_sec": "Retardo, en segundos, antes de activar la caldera central cuando deba encenderse",
+          "keep_alive_boiler_delay_sec": "Intervalo, en segundos, para reenviar periódicamente la orden a la caldera cuando esté activado el mantenimiento. Indica 0 para desactivarlo."
+        }
+      },
+      "valve_regulation": {
+        "title": "Autorregulación mediante válvula",
+        "description": "Configuración de la autorregulación mediante el control directo de la válvula",
+        "data": {
+          "offset_calibration_entity_ids": "Entidades de calibración de desplazamiento",
+          "opening_degree_entity_ids": "Entidades de grado de apertura",
+          "closing_degree_entity_ids": "Entidades de grado de cierre",
+          "proportional_function": "Algoritmo",
+          "opening_threshold_degree": "Umbral de apertura de la válvula",
+          "min_opening_degrees": "Grado mínimo de apertura",
+          "max_opening_degrees": "Grado máximo de apertura",
+          "max_closing_degree": "Grado máximo de cierre"
+        },
+        "data_description": {
+          "offset_calibration_entity_ids": "Lista de entidades de «calibración de desplazamiento». Configúrala si tu válvula termostática (TRV) ofrece esas entidades para mejorar la regulación. Debe haber una por cada entidad `climate` controlada.",
+          "opening_degree_entity_ids": "Lista de entidades de «grado de apertura». Debe haber una por cada entidad `climate` controlada.",
+          "closing_degree_entity_ids": "Lista de entidades de «grado de cierre». Debe haber una por cada entidad `climate` controlada.",
+          "proportional_function": "Algoritmo que se va a utilizar (pueden instalarse otros algoritmos como {plugins_link})",
+          "opening_threshold_degree": "Valor de apertura por debajo del cual se considera que la válvula está cerrada (y se aplica `max_closing_degree`)",
+          "min_opening_degrees": "Grado mínimo de apertura de cada dispositivo controlado cuando se supera el umbral anterior, separado por comas. Valor predeterminado: 0. Ejemplo: 20, 25, 30.",
+          "max_opening_degrees": "Grado máximo de apertura. La válvula nunca se abrirá más allá de este valor.",
+          "max_closing_degree": "Grado máximo de cierre. La válvula nunca se cerrará más allá de este valor. Indica 100 para cerrarla por completo."
+        }
+      },
+      "auto_tpi_configuration": {
+        "title": "Auto TPI - Configuración",
+        "description": "Configuración general del aprendizaje de Auto TPI.",
+        "data": {
+          "auto_tpi_learning_type": "Tipo de aprendizaje",
+          "heater_heating_time": "Tiempo de calentamiento (minutos)",
+          "heater_cooling_time": "Tiempo de enfriamiento (minutos)",
+          "auto_tpi_heating_rate": "Velocidad de calentamiento ({unit}/h)",
+          "auto_tpi_cooling_rate": "Velocidad de enfriamiento ({unit}/h)",
+          "auto_tpi_aggressiveness": "Agresividad de la regulación",
+          "auto_tpi_enable_advanced_settings": "Activar los parámetros avanzados",
+          "auto_tpi_continuous_kext": "Aprendizaje continuo de Kext"
+        },
+        "data_description": {
+          "auto_tpi_learning_type": "Elige «Descubrimiento» para el inicio (media ponderada, peso 1) o «Ajuste fino» para los ajustes continuos (EWMA, alfa 0,08).",
+          "heater_heating_time": "Tiempo hasta alcanzar la potencia máxima (minutos)",
+          "heater_cooling_time": "Tiempo de enfriamiento después de la parada (minutos)\n\n| Tipo | Tiempo de calentamiento | Tiempo de enfriamiento |\n| :--- | :--- | :--- |\n| Radiador eléctrico | 5 min | 7 min |\n| Radiador de agua | 15 min | 20 min |\n| Suelo radiante | 30 min | 45 min |",
+          "auto_tpi_heating_rate": "Capacidad de calentamiento del radiador ({unit} por hora). Indica 0 para que se aprenda automáticamente (inicialización).",
+          "auto_tpi_cooling_rate": "Capacidad de enfriamiento del radiador ({unit} por hora). Indica 0 para que se aprenda automáticamente (inicialización).",
+          "auto_tpi_aggressiveness": "Factor de reducción de los coeficientes aprendidos (50-100 %). Los valores más bajos proporcionan coeficientes más conservadores y reducen el riesgo de sobrepasar la consigna.",
+          "auto_tpi_enable_advanced_settings": "Marca esta opción para acceder al ajuste fino de los parámetros (alfa, decaimiento y peso).",
+          "auto_tpi_continuous_kext": "Marca esta opción para permitir el aprendizaje continuo del coeficiente exterior (Kext) fuera de las sesiones de Auto TPI."
+        }
+      },
+      "auto_tpi_avg_settings": {
+        "title": "Auto TPI - Media ponderada",
+        "description": "Parámetros del método de media ponderada.",
+        "data": {
+          "auto_tpi_avg_initial_weight": "Peso inicial"
+        },
+        "data_description": {
+          "auto_tpi_avg_initial_weight": "Peso del valor inicial o anterior en el cálculo de la media"
+        }
+      },
+      "auto_tpi_ema_settings": {
+        "title": "Auto TPI - Media móvil exponencial (EWMA)",
+        "description": "Parámetros del método EWMA.\n\nRecomendaciones:\n| Situación | Alfa (ema_alpha) | Tasa de decaimiento (ema_decay_rate) |\n| :--- | :--- | :--- |\n| Aprendizaje inicial | 0.15 | 0.08 |\n| Ajuste fino | 0.08 | 0.12 |\n| Aprendizaje continuo | 0.05 | 0.02 |",
+        "data": {
+          "auto_tpi_ema_alpha": "Alfa",
+          "auto_tpi_ema_decay_rate": "Tasa de decaimiento",
+          "auto_tpi_continuous_kext_alpha": "Alfa para Kext continuo"
+        },
+        "data_description": {
+          "auto_tpi_ema_alpha": "Factor de suavizado (0-1). Cuanto mayor sea, más rápida será la adaptación.",
+          "auto_tpi_ema_decay_rate": "Velocidad a la que disminuye alfa con el tiempo (estabilización)",
+          "auto_tpi_continuous_kext_alpha": "Factor de suavizado para el aprendizaje continuo de Kext (alfa). Valor predeterminado: 0,04 (adaptación aproximada de 3 a 5 días)."
+        }
+      },
+      "sync_device_internal_temp": {
+        "title": "Sincronizar la temperatura interna del dispositivo",
+        "description": "Configuración para sincronizar la temperatura interna de los dispositivos controlados con las entidades seleccionadas",
+        "data": {
+          "sync_with_calibration": "Aplicar la calibración de desplazamiento",
+          "sync_entity_ids": "ID de las entidades utilizadas para la sincronización"
+        },
+        "data_description": {
+          "sync_with_calibration": "Marca esta opción para aplicar la calibración de desplazamiento al sincronizar la temperatura interna. Desmárcala para copiar directamente la temperatura de las entidades seleccionadas.",
+          "sync_entity_ids": "Lista de entidades utilizadas para sincronizar la temperatura interna de los dispositivos controlados. Debe haber una por dispositivo. Si la casilla está marcada, debe ser una entidad de calibración; en caso contrario, una entidad de temperatura. En ambos casos, deben ser entidades `number`."
+        }
+      },
+      "humidity": {
+        "title": "Humedad",
+        "description": "Usar un sensor de humedad externo. Sensor detectado: {humidity_detected}",
+        "data": {
+          "use_humidity_feature": "Usar un sensor de humedad",
+          "humidity_sensor_entity_id": "Sensor de humedad"
+        },
+        "data_description": {
+          "use_humidity_feature": "Desactiva esta opción para utilizar únicamente la humedad del dispositivo `climate` controlado.",
+          "humidity_sensor_entity_id": "Déjalo vacío para utilizar automáticamente el sensor detectado."
+        }
+      },
+      "heating_failure_detection": {
+        "title": "Detección de fallos de calefacción",
+        "description": "Configura la detección de fallos de calefacción. Detecta anomalías cuando se solicita calefacción pero la temperatura no aumenta, o cuando la calefacción está apagada pero la temperatura sigue subiendo.",
+        "data": {
+          "use_heating_failure_detection_feature": "Activar la detección de fallos de calefacción",
+          "use_heating_failure_detection_central_config": "Usar la configuración central de detección de fallos de calefacción",
+          "heating_failure_threshold": "Umbral de detección de fallo de calefacción",
+          "cooling_failure_threshold": "Umbral de detección de fallo de refrigeración",
+          "heating_failure_detection_delay": "Retardo de detección (minutos)",
+          "temperature_change_tolerance": "Tolerancia de variación de temperatura (°C)",
+          "failure_detection_enable_template": "Plantilla de habilitación de la detección"
+        },
+        "data_description": {
+          "use_heating_failure_detection_feature": "Activar la detección de anomalías de calefacción en los VTherm con TPI",
+          "use_heating_failure_detection_central_config": "Marca esta opción para usar la configuración central de detección de fallos de calefacción. Desmárcala para configurar los parámetros específicamente en este VTherm.",
+          "heating_failure_threshold": "Umbral del porcentaje de activación a partir del cual debería aumentar la temperatura (0,9 = 90 %)",
+          "cooling_failure_threshold": "Umbral del porcentaje de activación por debajo del cual la temperatura no debería aumentar (0,0 = 0 %)",
+          "heating_failure_detection_delay": "Tiempo de espera, en minutos, antes de comprobar si la temperatura ha cambiado según lo previsto",
+          "temperature_change_tolerance": "Variación mínima de temperatura, en grados, que se considera significativa. Se ignoran los cambios menores para filtrar el ruido del sensor (valor predeterminado: 0,5 °C).",
+          "failure_detection_enable_template": "Plantilla Jinja2 opcional que debe devolver `True` para habilitar la detección. Permite desactivarla temporalmente cuando hay una fuente de calor externa activa (p. ej., `is_state('binary_sensor.wood_stove', 'off')` entre dos pares de llaves). Si se deja vacía, la detección siempre está habilitada."
+        }
+      }
+    },
+    "error": {
+      "unknown": "Error inesperado",
+      "unknown_entity": "ID de entidad desconocido",
+      "window_open_detection_method": "Solo se puede usar un método de detección de ventanas abiertas: un sensor de ventana o la detección automática por el umbral de temperatura, pero no ambos.",
+      "no_central_config": "No puedes marcar «Usar configuración central» porque no existe ninguna configuración central. Primero debes crear un Versatile Thermostat de tipo «Configuración central».",
+      "service_configuration_format": "El formato de configuración del servicio es incorrecto",
+      "valve_regulation_nb_entities_incorrect": "El número de entidades de regulación de válvulas debe coincidir con el número de dispositivos controlados",
+      "sync_device_internal_temp_nb_entities_incorrect": "El número de entidades para sincronizar la temperatura interna debe coincidir con el número de dispositivos controlados",
+      "min_opening_degrees_format": "Se espera una lista de números enteros positivos separados por comas. Ejemplo: 20, 25, 30.",
+      "max_opening_degrees_format": "Se espera una lista de números enteros positivos entre 0 y la apertura máxima de la válvula, separados por comas. Ejemplo: 80, 85, 90.",
+      "min_max_opening_degrees_inconsistent": "Para cada dispositivo controlado, `max_opening_degrees` debe ser estrictamente mayor que `min_opening_degrees`. Revisa la configuración.",
+      "valve_control_parameters_cardinality_incorrect": "Las listas de grados mínimos y máximos de apertura no pueden contener más valores que el número de válvulas configuradas",
+      "vswitch_configuration_incorrect": "La personalización de órdenes es incorrecta. Es obligatoria para entidades controladas que no sean interruptores, y debe seguir el formato `service_name[/attribute:value]`. Encontrarás más información en el README."
+    },
+    "abort": {
+      "already_configured": "El dispositivo ya está configurado"
+    }
+  },
+  "options": {
+    "flow_title": "Configuración de Versatile Thermostat",
+    "step": {
+      "user": {
+        "title": "Tipo - {name}",
+        "description": "Elige el tipo de termostato que quieres crear",
+        "data": {
+          "thermostat_type": "Tipo de termostato"
+        },
+        "data_description": {
+          "thermostat_type": "Solo puede existir una configuración central"
+        }
+      },
+      "menu": {
+        "title": "Menú",
+        "description": "Configura tu termostato. Podrás finalizar la configuración cuando hayas introducido todos los parámetros obligatorios.",
+        "menu_options": {
+          "main": "Atributos principales",
+          "central_boiler": "Caldera central",
+          "type": "Dispositivos controlados",
+          "tpi": "Parámetros TPI",
+          "features": "Funciones",
+          "presets": "Preajustes",
+          "window": "Detección de ventanas abiertas",
+          "motion": "Detección de movimiento",
+          "power": "Gestión de potencia",
+          "presence": "Detección de presencia",
+          "advanced": "Parámetros avanzados",
+          "auto_start_stop": "Encendido y apagado automáticos",
+          "valve_regulation": "Configuración de la regulación de válvulas",
+          "sync_device_internal_temp": "Sincronizar la temperatura del dispositivo",
+          "humidity": "Humedad",
+          "lock": "Bloqueo",
+          "heating_failure_detection": "Detección de fallos de calefacción",
+          "finalize": "Todo listo",
+          "configuration_not_complete": "Configuración incompleta"
+        }
+      },
+      "lock": {
+        "title": "Gestión del bloqueo - {name}",
+        "description": "La función de bloqueo impide modificar la configuración del termostato desde la interfaz o las automatizaciones, pero permite que siga funcionando.",
+        "data": {
+          "use_lock_central_config": "Usar la configuración central del bloqueo",
+          "lock_code": "Código PIN opcional (4 dígitos)",
+          "lock_users": "Impedir las órdenes de los usuarios",
+          "lock_automations": "Impedir las órdenes de automatizaciones e integraciones (p. ej., el programador)",
+          "auto_relock_sec": "Retardo de bloqueo automático"
+        },
+        "data_description": {
+          "use_lock_central_config": "Marca esta opción para usar la configuración central del bloqueo. Desmárcala para configurar el bloqueo de este VTherm por separado.",
+          "auto_relock_sec": "Segundos que deben transcurrir para volver a bloquear automáticamente tras un desbloqueo. Indica 0 para desactivar el bloqueo automático. Valor predeterminado: 30 segundos."
+        }
+      },
+      "main": {
+        "title": "Principal - {name}",
+        "description": "Atributos principales obligatorios",
+        "data": {
+          "name": "Nombre",
+          "thermostat_type": "Tipo de termostato",
+          "temperature_sensor_entity_id": "Temperatura ambiente",
+          "last_seen_temperature_sensor_entity_id": "Fecha y hora de la última lectura de temperatura ambiente",
+          "external_temperature_sensor_entity_id": "ID de entidad del sensor de temperatura exterior",
+          "cycle_min": "Duración del ciclo (minutos)",
+          "temp_min": "Temperatura mínima permitida",
+          "temp_max": "Temperatura máxima permitida",
+          "step_temperature": "Incremento de temperatura",
+          "device_power": "Potencia del dispositivo",
+          "use_central_mode": "Permitir el control mediante la entidad central (requiere una configuración central). Activa esta opción para controlar este VTherm mediante las entidades `select` de `central_mode`.",
+          "use_main_central_config": "Usar la configuración central de los atributos principales. Activa esta opción para utilizar la configuración central (temperatura exterior, mínimo, máximo, incremento, etc.).",
+          "used_by_controls_central_boiler": "Controlar la caldera central. Marca esta opción si este VTherm debe participar en su control."
+        },
+        "data_description": {
+          "cycle_min": "Duración mínima, en minutos, de un ciclo de calefacción o refrigeración para evitar conmutaciones demasiado frecuentes",
+          "temp_min": "Temperatura mínima permitida para el termostato",
+          "temp_max": "Temperatura máxima permitida para el termostato",
+          "step_temperature": "Incremento utilizado al ajustar la temperatura de consigna",
+          "temperature_sensor_entity_id": "ID de entidad del sensor de temperatura ambiente",
+          "last_seen_temperature_sensor_entity_id": "ID de entidad del sensor de la última lectura de temperatura ambiente. Debe ser un sensor de fecha y hora.",
+          "external_temperature_sensor_entity_id": "ID de entidad del sensor de temperatura exterior. No se utiliza si está seleccionada la configuración central."
+        }
+      },
+      "features": {
+        "title": "Funciones - {name}",
+        "description": "Funciones del termostato",
+        "data": {
+          "use_window_feature": "Usar la detección de ventanas abiertas",
+          "use_motion_feature": "Usar la detección de movimiento",
+          "use_power_feature": "Usar la gestión de potencia",
+          "use_presence_feature": "Usar la detección de presencia",
+          "use_central_boiler_feature": "Usar una caldera central. Marca esta opción para añadir el control de la caldera central. Después, debes configurar qué VTherm participarán en ese control para que surta efecto. Si algún VTherm requiere calefacción, se encenderá la caldera; si ninguno la necesita, se apagará. Las órdenes de encendido y apagado se indican en la página de configuración correspondiente.",
+          "use_auto_start_stop_feature": "Usar la función de encendido y apagado automáticos",
+          "use_heating_failure_detection_feature": "Usar la detección de fallos de calefacción"
+        }
+      },
+      "type": {
+        "title": "Entidades - {name}",
+        "description": "Atributos de las entidades vinculadas",
+        "data": {
+          "underlying_entity_ids": "Dispositivos que se van a controlar",
+          "heater_keep_alive": "Intervalo de mantenimiento de la orden del interruptor (segundos)",
+          "proportional_function": "Algoritmo",
+          "ac_mode": "Modo de aire acondicionado",
+          "sync_device_internal_temp": "Sincronizar la temperatura del dispositivo",
+          "auto_regulation_mode": "Autorregulación",
+          "auto_regulation_dtemp": "Umbral de regulación",
+          "auto_regulation_periode_min": "Periodo mínimo de regulación",
+          "opening_threshold_degree": "Umbral de apertura de la válvula",
+          "min_opening_degrees": "Grado mínimo de apertura",
+          "max_opening_degrees": "Grado máximo de apertura",
+          "max_closing_degree": "Grado máximo de cierre",
+          "auto_regulation_use_device_temp": "Usar la temperatura interna del dispositivo controlado",
+          "inverse_switch_command": "Invertir la orden del interruptor",
+          "auto_fan_mode": "Modo de ventilador automático",
+          "on_command_text": "Personalizar las órdenes de encendido",
+          "vswitch_on_command": "Órdenes de encendido opcionales",
+          "off_command_text": "Personalizar las órdenes de apagado",
+          "vswitch_off_command": "Órdenes de apagado opcionales"
+        },
+        "data_description": {
+          "underlying_entity_ids": "Dispositivos que se van a controlar (se requiere al menos uno)",
+          "heater_keep_alive": "Intervalo opcional para actualizar el estado del interruptor de calefacción. Déjalo vacío si no es necesario.",
+          "proportional_function": "Algoritmo que se va a utilizar (pueden instalarse otros algoritmos como {plugins_link})",
+          "ac_mode": "Usar el modo de aire acondicionado (AC)",
+          "sync_device_internal_temp": "Marca esta opción para sincronizar la temperatura interna del dispositivo controlado (configura la nueva opción de menú «Sincronizar la temperatura del dispositivo»).",
+          "auto_regulation_mode": "Ajuste automático de la temperatura de consigna",
+          "auto_regulation_dtemp": "Umbral, en grados (o en % para las válvulas), por debajo del cual no se enviará el cambio de temperatura",
+          "auto_regulation_periode_min": "Intervalo, en minutos, entre dos actualizaciones de la regulación",
+          "opening_threshold_degree": "Valor de apertura por debajo del cual se considera que la válvula está cerrada (y se aplica `max_closing_degree`)",
+          "min_opening_degrees": "Grado mínimo de apertura de cada dispositivo controlado cuando se supera el umbral anterior, separado por comas. Valor predeterminado: 0. Ejemplo: 20, 25, 30.",
+          "max_opening_degrees": "Grado máximo de apertura. La válvula nunca se abrirá más allá de este valor.",
+          "max_closing_degree": "Grado máximo de cierre. La válvula nunca se cerrará más allá de este valor. Indica 100 para cerrarla por completo.",
+          "auto_regulation_use_device_temp": "Usar el sensor de temperatura interno del dispositivo controlado, si existe, para acelerar la autorregulación (no suele ser necesario)",
+          "inverse_switch_command": "En interruptores de hilo piloto con diodo puede ser necesario invertir la orden",
+          "auto_fan_mode": "Activar automáticamente el ventilador cuando se necesite mucha calefacción o refrigeración",
+          "on_command_text": "Debes personalizar las órdenes de los dispositivos controlados de tipo `select` o `climate`."
+        }
+      },
+      "tpi": {
+        "title": "TPI - {name}",
+        "description": "Parámetros del algoritmo proporcional-integral temporal (TPI)",
+        "data": {
+          "tpi_coef_int": "coef_int",
+          "tpi_coef_ext": "coef_ext",
+          "tpi_threshold_low": "Umbral TPI inferior",
+          "tpi_threshold_high": "Umbral TPI superior",
+          "use_tpi_central_config": "Usar la configuración central de TPI",
+          "minimal_activation_delay": "Retardo mínimo de activación",
+          "minimal_deactivation_delay": "Retardo mínimo de desactivación",
+          "auto_tpi_mode": "Activar el aprendizaje automático de TPI"
+        },
+        "data_description": {
+          "tpi_coef_int": "Coeficiente para la diferencia de temperatura interior",
+          "tpi_coef_ext": "Coeficiente para la diferencia de temperatura exterior",
+          "tpi_threshold_low": "Umbral, en grados, por debajo del cual se activará el algoritmo TPI. El valor 0 significa que no hay umbral.",
+          "tpi_threshold_high": "Umbral, en grados, por encima del cual se desactivará el algoritmo TPI. El valor 0 significa que no hay umbral.",
+          "use_tpi_central_config": "Marca esta opción para usar la configuración central de TPI. Desmárcala para configurar TPI específicamente para este VTherm.",
+          "minimal_activation_delay": "Tiempo, en segundos, durante el cual no se activará el equipo",
+          "minimal_deactivation_delay": "Tiempo, en segundos, durante el cual el equipo permanecerá activado",
+          "auto_tpi_mode": "Las sesiones de aprendizaje de TPI se inician manualmente. Lee antes la documentación."
+        }
+      },
+      "presets": {
+        "title": "Preajustes - {name}",
+        "description": "Comprueba si el termostato va a utilizar los preajustes centrales. Si desmarcas esta opción, tendrá sus propias entidades de preajustes.",
+        "data": {
+          "use_presets_central_config": "Usar la configuración central de preajustes"
+        }
+      },
+      "window": {
+        "title": "Ventanas - {name}",
+        "description": "Gestión de ventanas abiertas.\nTambién puedes configurar la detección automática de apertura según el descenso de la temperatura.",
+        "data": {
+          "window_sensor_entity_id": "ID de entidad del sensor de ventana",
+          "window_delay": "Retardo del sensor de ventana al pasar a «on» (segundos)",
+          "window_off_delay": "Retardo del sensor de ventana al pasar a «off» (segundos)",
+          "window_auto_open_threshold": "Umbral de descenso de temperatura para detectar automáticamente una ventana abierta (°/h)",
+          "window_auto_close_threshold": "Umbral de aumento de temperatura para finalizar la detección automática (°/h)",
+          "window_auto_max_duration": "Duración máxima de la detección automática de ventana abierta (minutos)",
+          "use_window_central_config": "Usar la configuración central de ventanas",
+          "window_action": "Acción"
+        },
+        "data_description": {
+          "window_sensor_entity_id": "Déjalo vacío si no vas a utilizar un sensor de ventana y quieres usar la detección automática.",
+          "window_delay": "Retardo, en segundos, antes de tener en cuenta el estado «on» del sensor",
+          "window_off_delay": "Retardo, en segundos, antes de tener en cuenta el estado «off» del sensor. Déjalo vacío para utilizar el mismo valor que el retardo de apertura.",
+          "window_auto_open_threshold": "Valor recomendado: entre 3 y 10. Déjalo vacío si no utilizas la detección automática de ventanas abiertas.",
+          "window_auto_close_threshold": "Valor recomendado: 0. Déjalo vacío si no utilizas la detección automática de ventanas abiertas.",
+          "window_auto_max_duration": "Valor recomendado: 60 (una hora). Déjalo vacío si no utilizas la detección automática de ventanas abiertas.",
+          "use_window_central_config": "Marca esta opción para usar la configuración central de ventanas. Desmárcala para usar una configuración específica en este VTherm.",
+          "window_action": "Acción que debe realizarse al detectar una ventana abierta"
+        }
+      },
+      "motion": {
+        "title": "Movimiento - {name}",
+        "description": "Gestión del movimiento. El preajuste puede cambiar automáticamente según se detecte movimiento.\n`motion_preset` y `no_motion_preset` deben contener el nombre del preajuste correspondiente.",
+        "data": {
+          "motion_sensor_entity_id": "ID de entidad del sensor de movimiento",
+          "motion_delay": "Retardo de activación",
+          "motion_off_delay": "Retardo de desactivación",
+          "motion_preset": "Preajuste con movimiento",
+          "no_motion_preset": "Preajuste sin movimiento",
+          "use_motion_central_config": "Usar la configuración central de movimiento"
+        },
+        "data_description": {
+          "motion_sensor_entity_id": "ID de entidad del sensor de movimiento",
+          "motion_delay": "Retardo de activación por movimiento (segundos)",
+          "motion_off_delay": "Retardo de desactivación por ausencia de movimiento (segundos)",
+          "motion_preset": "Preajuste que se utilizará cuando se detecte movimiento",
+          "no_motion_preset": "Preajuste que se utilizará cuando no se detecte movimiento",
+          "use_motion_central_config": "Marca esta opción para usar la configuración central de movimiento. Desmárcala para configurar el movimiento específicamente en este VTherm."
+        }
+      },
+      "power": {
+        "title": "Potencia - {name}",
+        "description": "Parámetros de gestión de potencia.\nSelecciona el sensor de potencia y el de potencia máxima de tu vivienda.\nIndica el consumo de potencia del calefactor cuando está encendido.\nTodos los sensores y la potencia del dispositivo deben utilizar la misma unidad (kW o W).",
+        "data": {
+          "power_sensor_entity_id": "Potencia",
+          "max_power_sensor_entity_id": "Potencia máxima",
+          "power_temp": "Temperatura durante la limitación de carga",
+          "use_power_central_config": "Usar la configuración central de potencia"
+        },
+        "data_description": {
+          "power_sensor_entity_id": "ID de entidad del sensor de potencia",
+          "max_power_sensor_entity_id": "ID de entidad del sensor de potencia máxima",
+          "power_temp": "Temperatura que se aplicará durante la limitación de carga",
+          "use_power_central_config": "Marca esta opción para usar la configuración central de potencia. Desmárcala para configurar la potencia específicamente en este VTherm."
+        }
+      },
+      "presence": {
+        "title": "Presencia - {name}",
+        "description": "Parámetros de gestión de presencia.\nSelecciona el sensor de presencia de tu vivienda (verdadero cuando hay alguien presente) y configura las temperaturas de los preajustes correspondientes.",
+        "data": {
+          "presence_sensor_entity_id": "Sensor de presencia",
+          "use_presence_central_config": "Usar la configuración central de temperaturas según presencia. Desmarca esta opción para usar entidades de temperatura específicas."
+        },
+        "data_description": {
+          "presence_sensor_entity_id": "ID de entidad del sensor de presencia"
+        }
+      },
+      "advanced": {
+        "title": "Avanzado - {name}",
+        "description": "Configuración de parámetros avanzados. Conserva los valores predeterminados si no sabes qué estás modificando.\nEstos parámetros pueden perjudicar seriamente el control de la temperatura o la regulación de potencia.",
+        "data": {
+          "minimal_activation_delay": "Retardo mínimo de activación",
+          "minimal_deactivation_delay": "Retardo mínimo de desactivación",
+          "safety_delay_min": "Retardo de seguridad (minutos)",
+          "safety_min_on_percent": "Porcentaje mínimo de potencia para activar el modo de seguridad",
+          "safety_default_on_percent": "Porcentaje de potencia que se utilizará en el modo de seguridad",
+          "repair_incorrect_state": "Corregir un estado incorrecto",
+          "manual_override_duration_min": "Duración de la modificación manual (minutos)",
+          "use_advanced_central_config": "Usar la configuración central de parámetros avanzados"
+        },
+        "data_description": {
+          "minimal_activation_delay": "Tiempo, en segundos, durante el cual no se activará el equipo",
+          "minimal_deactivation_delay": "Tiempo, en segundos, durante el cual el equipo permanecerá activado",
+          "safety_delay_min": "Tiempo máximo permitido, en minutos, entre dos mediciones de temperatura. Si se supera, el termostato pasará al estado de seguridad apagado.",
+          "safety_min_on_percent": "Porcentaje mínimo de calefacción necesario para activar el preajuste de seguridad. Por debajo de este porcentaje, el termostato no entrará en ese preajuste.",
+          "safety_default_on_percent": "Porcentaje de potencia de calefacción predeterminado para el preajuste de seguridad. Indica 0 para apagar la calefacción en ese preajuste.",
+          "repair_incorrect_state": "Corregir automáticamente los estados incorrectos de los dispositivos controlados. Si su estado no coincide con el esperado, se reenviará la orden correspondiente.",
+          "manual_override_duration_min": "Después de cambiar manualmente la temperatura, VTherm recuperará el preajuste anterior cuando transcurra este tiempo (en minutos). El valor 0 desactiva esta función.",
+          "use_advanced_central_config": "Marca esta opción para usar la configuración central de parámetros avanzados. Desmárcala para configurar estos parámetros específicamente en este VTherm."
+        }
+      },
+      "central_boiler": {
+        "title": "Control de la caldera central - {name}",
+        "description": "Introduce los servicios para encender y apagar la caldera central. El servicio debe tener el formato `entity_id/service_name[/attribute:value]` (`/attribute:value` es opcional).\nPor ejemplo:\n- Para encender un interruptor: `switch.controle_chaudiere/switch.turn_on`\n- Para apagar un interruptor: `switch.controle_chaudiere/switch.turn_off`\n- Para establecer 25° en la caldera y forzar su encendido: `climate.thermostat_chaudiere/climate.set_temperature/temperature:25`\n- Para establecer 10° en la caldera y forzar su apagado: `climate.thermostat_chaudiere/climate.set_temperature/temperature:10`",
+        "data": {
+          "central_boiler_activation_service": "Orden de encendido",
+          "central_boiler_deactivation_service": "Orden de apagado",
+          "central_boiler_activation_delay_sec": "Retardo de activación (segundos)",
+          "keep_alive_boiler_delay_sec": "Intervalo de mantenimiento de la orden (segundos)"
+        },
+        "data_description": {
+          "central_boiler_activation_service": "Orden para encender la caldera central, con el formato `entity_id/service_name[/attribute:value]`",
+          "central_boiler_deactivation_service": "Orden para apagar la caldera central, con el formato `entity_id/service_name[/attribute:value]`",
+          "central_boiler_activation_delay_sec": "Retardo, en segundos, antes de activar la caldera central cuando deba encenderse",
+          "keep_alive_boiler_delay_sec": "Intervalo, en segundos, para reenviar periódicamente la orden a la caldera cuando esté activado el mantenimiento. Indica 0 para desactivarlo."
+        }
+      },
+      "valve_regulation": {
+        "title": "Autorregulación mediante válvula - {name}",
+        "description": "Configuración de la autorregulación mediante el control directo de la válvula",
+        "data": {
+          "offset_calibration_entity_ids": "Entidades de calibración de desplazamiento",
+          "opening_degree_entity_ids": "Entidades de grado de apertura",
+          "closing_degree_entity_ids": "Entidades de grado de cierre",
+          "proportional_function": "Algoritmo",
+          "opening_threshold_degree": "Umbral de apertura de la válvula",
+          "min_opening_degrees": "Grado mínimo de apertura",
+          "max_opening_degrees": "Grado máximo de apertura",
+          "max_closing_degree": "Grado máximo de cierre"
+        },
+        "data_description": {
+          "offset_calibration_entity_ids": "Lista de entidades de «calibración de desplazamiento». Configúrala si tu válvula termostática (TRV) ofrece esas entidades para mejorar la regulación. Debe haber una por cada entidad `climate` controlada.",
+          "opening_degree_entity_ids": "Lista de entidades de «grado de apertura». Debe haber una por cada entidad `climate` controlada.",
+          "closing_degree_entity_ids": "Lista de entidades de «grado de cierre». Debe haber una por cada entidad `climate` controlada.",
+          "proportional_function": "Algoritmo que se va a utilizar (pueden instalarse otros algoritmos como {plugins_link})",
+          "opening_threshold_degree": "Valor de apertura por debajo del cual se considera que la válvula está cerrada (y se aplica `max_closing_degree`)",
+          "min_opening_degrees": "Grado mínimo de apertura de cada dispositivo controlado cuando se supera el umbral anterior, separado por comas. Valor predeterminado: 0. Ejemplo: 20, 25, 30.",
+          "max_opening_degrees": "Grado máximo de apertura. La válvula nunca se abrirá más allá de este valor.",
+          "max_closing_degree": "Grado máximo de cierre. La válvula nunca se cerrará más allá de este valor. Indica 100 para cerrarla por completo."
+        }
+      },
+      "sync_device_internal_temp": {
+        "title": "Sincronizar la temperatura interna del dispositivo",
+        "description": "Configuración para sincronizar la temperatura interna de los dispositivos controlados con las entidades seleccionadas",
+        "data": {
+          "sync_with_calibration": "Aplicar la calibración de desplazamiento",
+          "sync_entity_ids": "ID de las entidades utilizadas para la sincronización"
+        },
+        "data_description": {
+          "sync_with_calibration": "Marca esta opción para aplicar la calibración de desplazamiento al sincronizar la temperatura interna. Desmárcala para copiar directamente la temperatura de las entidades seleccionadas.",
+          "sync_entity_ids": "Lista de entidades utilizadas para sincronizar la temperatura interna de los dispositivos controlados. Debe haber una por dispositivo. Si la casilla está marcada, debe ser una entidad de calibración; en caso contrario, una entidad de temperatura. En ambos casos, deben ser entidades `number`."
+        }
+      },
+      "humidity": {
+        "title": "Humedad - {name}",
+        "description": "Usar un sensor de humedad externo. Sensor detectado: {humidity_detected}",
+        "data": {
+          "use_humidity_feature": "Usar un sensor de humedad",
+          "humidity_sensor_entity_id": "Sensor de humedad"
+        },
+        "data_description": {
+          "use_humidity_feature": "Desactiva esta opción para utilizar únicamente la humedad del dispositivo `climate` controlado.",
+          "humidity_sensor_entity_id": "Déjalo vacío para utilizar automáticamente el sensor detectado."
+        }
+      },
+      "auto_tpi_configuration": {
+        "title": "Auto TPI - Configuración - {name}",
+        "description": "Configuración general del aprendizaje de Auto TPI.",
+        "data": {
+          "auto_tpi_learning_type": "Tipo de aprendizaje",
+          "auto_tpi_heating_rate": "Velocidad de calentamiento ({unit}/h)",
+          "auto_tpi_cooling_rate": "Velocidad de enfriamiento ({unit}/h)",
+          "heater_heating_time": "Tiempo de calentamiento (minutos)",
+          "heater_cooling_time": "Tiempo de enfriamiento (minutos)",
+          "auto_tpi_aggressiveness": "Agresividad de la regulación",
+          "auto_tpi_enable_advanced_settings": "Activar los parámetros avanzados",
+          "auto_tpi_continuous_kext": "Aprendizaje continuo de Kext"
+        },
+        "data_description": {
+          "auto_tpi_learning_type": "Elige «Descubrimiento» para el inicio (media ponderada, peso 1) o «Ajuste fino» para los ajustes continuos (EWMA, alfa 0,08).",
+          "auto_tpi_heating_rate": "Capacidad de calentamiento del radiador ({unit} por hora). Indica 0 para que se aprenda automáticamente (inicialización).",
+          "auto_tpi_cooling_rate": "Capacidad de enfriamiento del radiador ({unit} por hora). Indica 0 para que se aprenda automáticamente (inicialización).",
+          "heater_heating_time": "Tiempo hasta alcanzar la potencia máxima (minutos)",
+          "heater_cooling_time": "Tiempo de enfriamiento después de la parada (minutos)\n\n| Tipo | Tiempo de calentamiento | Tiempo de enfriamiento |\n| :--- | :--- | :--- |\n| Radiador eléctrico | 5 min | 7 min |\n| Radiador de agua | 15 min | 20 min |\n| Suelo radiante | 30 min | 45 min |",
+          "auto_tpi_aggressiveness": "Factor de reducción de los coeficientes aprendidos (50-100 %). Los valores más bajos proporcionan coeficientes más conservadores y reducen el riesgo de sobrepasar la consigna.",
+          "auto_tpi_enable_advanced_settings": "Marca esta opción para modificar los parámetros del algoritmo seleccionado.",
+          "auto_tpi_continuous_kext": "Marca esta opción para permitir el aprendizaje continuo del coeficiente exterior (Kext) fuera de las sesiones de Auto TPI."
+        }
+      },
+      "auto_tpi_avg_settings": {
+        "title": "Auto TPI - Media ponderada - {name}",
+        "description": "Parámetros del método de media ponderada.",
+        "data": {
+          "auto_tpi_avg_initial_weight": "Peso inicial"
+        },
+        "data_description": {
+          "auto_tpi_avg_initial_weight": "Peso inicial de los coeficientes existentes en el cálculo de la media (habitualmente entre 1 y 50). Cuanto mayor sea el peso, más lento y estable será el aprendizaje."
+        }
+      },
+      "auto_tpi_ema_settings": {
+        "title": "Auto TPI - EWMA - {name}",
+        "description": "Parámetros del método EWMA.\n\nRecomendaciones:\n| Situación | Alfa (ema_alpha) | Tasa de decaimiento (ema_decay_rate) |\n| :--- | :--- | :--- |\n| Ajustes intensos | 0.15 | 0.08 |\n| Ajuste fino | 0.08 | 0.12 |",
+        "data": {
+          "auto_tpi_ema_alpha": "Alfa",
+          "auto_tpi_ema_decay_rate": "Tasa de decaimiento",
+          "auto_tpi_continuous_kext_alpha": "Alfa para Kext continuo"
+        },
+        "data_description": {
+          "auto_tpi_ema_alpha": "Factor de suavizado (0-1). Cuanto mayor sea, más rápida será la adaptación.",
+          "auto_tpi_ema_decay_rate": "Velocidad a la que disminuye alfa con el tiempo (estabilización)",
+          "auto_tpi_continuous_kext_alpha": "Factor de suavizado para el aprendizaje continuo de Kext (alfa). Valor predeterminado: 0,04 (adaptación aproximada de 3 a 5 días)."
+        }
+      },
+      "heating_failure_detection": {
+        "title": "Detección de fallos de calefacción - {name}",
+        "description": "Configura la detección de fallos de calefacción. Detecta anomalías cuando se solicita calefacción pero la temperatura no aumenta, o cuando la calefacción está apagada pero la temperatura sigue subiendo.",
+        "data": {
+          "use_heating_failure_detection_feature": "Activar la detección de fallos de calefacción",
+          "use_heating_failure_detection_central_config": "Usar la configuración central de detección de fallos de calefacción",
+          "heating_failure_threshold": "Umbral de detección de fallo de calefacción",
+          "cooling_failure_threshold": "Umbral de detección de fallo de refrigeración",
+          "heating_failure_detection_delay": "Retardo de detección (minutos)",
+          "temperature_change_tolerance": "Tolerancia de variación de temperatura (°C)",
+          "failure_detection_enable_template": "Plantilla de habilitación de la detección"
+        },
+        "data_description": {
+          "use_heating_failure_detection_feature": "Activar la detección de anomalías de calefacción en los VTherm con TPI",
+          "use_heating_failure_detection_central_config": "Marca esta opción para usar la configuración central de detección de fallos de calefacción. Desmárcala para configurar los parámetros específicamente en este VTherm.",
+          "heating_failure_threshold": "Umbral del porcentaje de activación a partir del cual debería aumentar la temperatura (0,9 = 90 %)",
+          "cooling_failure_threshold": "Umbral del porcentaje de activación por debajo del cual la temperatura no debería aumentar (0,0 = 0 %)",
+          "heating_failure_detection_delay": "Tiempo de espera, en minutos, antes de comprobar si la temperatura ha cambiado según lo previsto",
+          "temperature_change_tolerance": "Variación mínima de temperatura, en grados, que se considera significativa. Se ignoran los cambios menores para filtrar el ruido del sensor (valor predeterminado: 0,5 °C).",
+          "failure_detection_enable_template": "Plantilla Jinja2 opcional que debe devolver `True` para habilitar la detección. Permite desactivarla temporalmente cuando hay una fuente de calor externa activa (p. ej., `is_state('binary_sensor.wood_stove', 'off')` entre dos pares de llaves). Si se deja vacía, la detección siempre está habilitada."
+        }
+      }
+    },
+    "error": {
+      "unknown": "Error inesperado",
+      "unknown_entity": "ID de entidad desconocido",
+      "window_open_detection_method": "Solo se puede usar un método de detección de ventanas abiertas: un sensor de ventana o la detección automática por el umbral de temperatura, pero no ambos.",
+      "no_central_config": "No puedes marcar «Usar configuración central» porque no existe ninguna configuración central. Primero debes crear un Versatile Thermostat de tipo «Configuración central».",
+      "service_configuration_format": "El formato de configuración del servicio es incorrecto",
+      "valve_regulation_nb_entities_incorrect": "El número de entidades de regulación de válvulas debe coincidir con el número de dispositivos controlados",
+      "sync_device_internal_temp_nb_entities_incorrect": "El número de entidades para sincronizar la temperatura interna debe coincidir con el número de dispositivos controlados",
+      "min_opening_degrees_format": "Se espera una lista de números enteros positivos separados por comas. Ejemplo: 20, 25, 30.",
+      "max_opening_degrees_format": "Se espera una lista de números enteros positivos entre 0 y el valor máximo de la válvula, separados por comas. Ejemplo: 80, 85, 90.",
+      "min_max_opening_degrees_inconsistent": "Para cada dispositivo controlado, `max_opening_degrees` debe ser estrictamente mayor que `min_opening_degrees`. Revisa la configuración.",
+      "valve_control_parameters_cardinality_incorrect": "Las listas de grados mínimos y máximos de apertura no pueden contener más valores que el número de válvulas configuradas",
+      "vswitch_configuration_incorrect": "La personalización de órdenes es incorrecta. Es obligatoria para entidades controladas que no sean interruptores, y debe seguir el formato `service_name[/attribute:value]`. Encontrarás más información en el README."
+    },
+    "abort": {
+      "already_configured": "El dispositivo ya está configurado"
+    }
+  },
+  "selector": {
+    "thermostat_type": {
+      "options": {
+        "thermostat_central_config": "Configuración central",
+        "thermostat_over_switch": "Termostato que controla un interruptor",
+        "thermostat_over_climate": "Termostato que controla otra entidad `climate`",
+        "thermostat_over_valve": "Termostato que controla una válvula"
+      }
+    },
+    "auto_regulation_mode": {
+      "options": {
+        "auto_regulation_slow": "Lenta",
+        "auto_regulation_strong": "Intensa",
+        "auto_regulation_medium": "Media",
+        "auto_regulation_light": "Suave",
+        "auto_regulation_expert": "Experto",
+        "auto_regulation_none": "Sin autorregulación",
+        "auto_regulation_valve": "Control directo de la válvula"
+      }
+    },
+    "auto_fan_mode": {
+      "options": {
+        "auto_fan_none": "Sin ventilador automático",
+        "auto_fan_low": "Baja",
+        "auto_fan_medium": "Media",
+        "auto_fan_high": "Alta",
+        "auto_fan_turbo": "Turbo"
+      }
+    },
+    "window_action": {
+      "options": {
+        "window_turn_off": "Apagar",
+        "window_fan_only": "Solo ventilador",
+        "window_frost_temp": "Protección antihielo",
+        "window_eco_temp": "Eco"
+      }
+    },
+    "presets": {
+      "options": {
+        "frost": "Protección antihielo",
+        "eco": "Eco",
+        "comfort": "Confort",
+        "boost": "Refuerzo"
+      }
+    },
+    "auto_start_stop": {
+      "options": {
+        "auto_start_stop_none": "Sin encendido ni apagado automáticos",
+        "auto_start_stop_very_slow": "Detección muy lenta",
+        "auto_start_stop_slow": "Detección lenta",
+        "auto_start_stop_medium": "Detección media",
+        "auto_start_stop_fast": "Detección rápida"
+      }
+    },
+    "auto_tpi_calculation_method": {
+      "options": {
+        "average": "Media",
+        "ema": "Media móvil exponencial (EMA)"
+      }
+    },
+    "auto_tpi_learning_type": {
+      "options": {
+        "discovery": "Descubrimiento",
+        "fine_tuning": "Ajuste fino"
+      }
+    },
+    "power_unit": {
+      "options": {
+        "w": "Vatios (W)",
+        "kw": "Kilovatios (kW)"
+      }
+    },
+    "central_power_unit": {
+      "options": {
+        "w": "Vatios (W)",
+        "kw": "Kilovatios (kW)",
+        "auto": "Automático (detectar a partir del sensor)"
+      }
+    }
+  },
+  "entity": {
+    "climate": {
+      "versatile_thermostat": {
+        "state_attributes": {
+          "preset_mode": {
+            "state": {
+              "power": "Limitación de carga",
+              "safety": "Seguridad",
+              "none": "Manual",
+              "frost": "Antihielo"
+            }
+          }
+        }
+      }
+    },
+    "binary_sensor": {
+      "safety_state": {
+        "name": "Estado de seguridad"
+      },
+      "heating_failure_state": {
+        "name": "Estado de fallo de calefacción"
+      },
+      "overpowering_state": {
+        "name": "Estado de sobrecarga"
+      },
+      "window_state": {
+        "name": "Estado de las ventanas"
+      },
+      "motion_state": {
+        "name": "Estado del movimiento"
+      },
+      "presence_state": {
+        "name": "Estado de presencia"
+      },
+      "window_bypass_state": {
+        "name": "Anulación de la detección de ventanas abiertas"
+      },
+      "central_boiler_state": {
+        "name": "Caldera central"
+      }
+    },
+    "sensor": {
+      "energy": {
+        "name": "Energía"
+      },
+      "mean_power_cycle": {
+        "name": "Potencia media del ciclo"
+      },
+      "power_percent": {
+        "name": "Porcentaje de potencia"
+      },
+      "auto_tpi_learning": {
+        "name": "Estado del aprendizaje de Auto TPI",
+        "state": {
+          "disabled": "Desactivado",
+          "bootstrap": "Inicialización",
+          "active": "Activo",
+          "off": "Apagado"
+        }
+      },
+      "valve_open_percent": {
+        "name": "Porcentaje de apertura de la válvula"
+      },
+      "on_time": {
+        "name": "Tiempo de encendido"
+      },
+      "off_time": {
+        "name": "Tiempo de apagado"
+      },
+      "last_temperature_date": {
+        "name": "Fecha de la última lectura de temperatura"
+      },
+      "last_external_temperature_date": {
+        "name": "Fecha de la última lectura de temperatura exterior"
+      },
+      "temperature_slope": {
+        "name": "Tasa de variación de temperatura"
+      },
+      "regulated_temperature": {
+        "name": "Temperatura regulada"
+      },
+      "ema_temperature": {
+        "name": "Temperatura EMA"
+      },
+      "nb_device_active_boiler": {
+        "name": "Número de dispositivos activos para la caldera"
+      },
+      "total_power_active_boiler": {
+        "name": "Potencia activa total para la caldera"
+      }
+    },
+    "number": {
+      "frost_temp": {
+        "name": "Antihielo"
+      },
+      "eco_temp": {
+        "name": "Eco"
+      },
+      "comfort_temp": {
+        "name": "Confort"
+      },
+      "boost_temp": {
+        "name": "Refuerzo"
+      },
+      "frost_ac_temp": {
+        "name": "Antihielo (refrigeración)"
+      },
+      "eco_ac_temp": {
+        "name": "Eco (refrigeración)"
+      },
+      "comfort_ac_temp": {
+        "name": "Confort (refrigeración)"
+      },
+      "boost_ac_temp": {
+        "name": "Refuerzo (refrigeración)"
+      },
+      "frost_away_temp": {
+        "name": "Antihielo (ausente)"
+      },
+      "eco_away_temp": {
+        "name": "Eco (ausente)"
+      },
+      "comfort_away_temp": {
+        "name": "Confort (ausente)"
+      },
+      "boost_away_temp": {
+        "name": "Refuerzo (ausente)"
+      },
+      "eco_ac_away_temp": {
+        "name": "Eco (refrigeración, ausente)"
+      },
+      "comfort_ac_away_temp": {
+        "name": "Confort (refrigeración, ausente)"
+      },
+      "boost_ac_away_temp": {
+        "name": "Refuerzo (refrigeración, ausente)"
+      }
+    },
+    "select": {
+      "auto_start_stop_stop_mode": {
+        "name": "Modo de parada del encendido/apagado automático",
+        "state": {
+          "off": "Apagado",
+          "fan_only": "Solo ventilador",
+          "dry": "Deshumidificación"
+        }
+      }
+    }
+  },
+  "services": {
+    "set_hvac_mode_sleep": {
+      "name": "Establecer el modo de climatización en Reposo",
+      "description": "Establece un VTherm en reposo estacional. Se muestra como apagado y, en los tipos `over_climate` con regulación directa de válvula y `over_valve`, envía una orden de apertura de válvula del 100 % sin procesar. La apertura física sigue sujeta a los límites configurados para el control de la válvula y de las entidades `number`."
+    },
+    "set_auto_tpi_mode": {
+      "name": "Establecer el modo Auto TPI",
+      "description": "Activar o desactivar el modo de aprendizaje Auto TPI",
+      "fields": {
+        "auto_tpi_mode": {
+          "name": "Modo Auto TPI",
+          "description": "Activar (`true`) o desactivar (`false`) el aprendizaje Auto TPI"
+        },
+        "reinitialise": {
+          "name": "Restablecer los datos de aprendizaje",
+          "description": "Restablecer todos los datos de aprendizaje al activar el modo Auto TPI (valor predeterminado: activado)"
+        }
+      }
+    },
+    "reset_auto_tpi_capacities": {
+      "name": "Restablecer las capacidades de Auto TPI",
+      "description": "Restablecer las capacidades máximas de calentamiento y enfriamiento aprendidas a 1,0 °C/h. Los coeficientes aprendidos NO se restablecen."
+    },
+    "auto_tpi_calibrate_capacity": {
+      "name": "Calibrar la capacidad de Auto TPI",
+      "description": "Calibrar la capacidad de calentamiento o enfriamiento (en °C/h) mediante una regresión lineal de los datos históricos de la entidad. Los coeficientes aprendidos NO se actualizan.",
+      "fields": {
+        "start_date": {
+          "name": "Fecha inicial del historial",
+          "description": "Fecha a partir de la cual se recuperará el historial (por defecto, hace 30 días)"
+        },
+        "end_date": {
+          "name": "Fecha final del historial",
+          "description": "Fecha hasta la cual se recuperará el historial (por defecto, ahora)"
+        },
+        "hvac_mode": {
+          "name": "Modo de climatización",
+          "description": "Modo que se va a calibrar (`heat` o `cool`)"
+        },
+        "save_to_config": {
+          "name": "Guardar en la configuración",
+          "description": "Aplicar la capacidad calculada a la configuración de Auto TPI"
+        },
+        "min_power_threshold": {
+          "name": "Umbral mínimo de potencia",
+          "description": "Porcentaje mínimo de potencia para considerar que un ciclo está saturado (predeterminado: 95 %). Los valores más bajos incluyen más ciclos, pero pueden reducir la precisión."
+        }
+      }
+    },
+    "set_tpi_parameters": {
+      "name": "Establecer los parámetros TPI",
+      "description": "Cambiar los parámetros TPI",
+      "fields": {
+        "minimal_activation_delay": {
+          "name": "Retardo mínimo de activación",
+          "description": "Tiempo, en segundos, durante el cual no se activará el equipo"
+        },
+        "minimal_deactivation_delay": {
+          "name": "Retardo mínimo de desactivación",
+          "description": "Tiempo, en segundos, durante el cual el equipo permanecerá activado"
+        },
+        "tpi_threshold_low": {
+          "name": "Umbral TPI inferior",
+          "description": "Umbral, en grados, por debajo del cual se activará el algoritmo TPI. El valor 0 significa que no hay umbral."
+        },
+        "tpi_threshold_high": {
+          "name": "Umbral TPI superior",
+          "description": "Umbral, en grados, por encima del cual se desactivará el algoritmo TPI. El valor 0 significa que no hay umbral."
+        }
+      }
+    },
+    "lock": {
+      "name": "Bloqueo",
+      "description": "Bloquea el termostato e impide modificar su configuración desde la interfaz o las automatizaciones.",
+      "fields": {
+        "code": {
+          "name": "Código de bloqueo",
+          "description": "Código de bloqueo opcional"
+        }
+      }
+    },
+    "unlock": {
+      "name": "Desbloquear",
+      "description": "Desbloquea el termostato y permite modificar su configuración.",
+      "fields": {
+        "code": {
+          "name": "Código de bloqueo",
+          "description": "Código de bloqueo opcional"
+        }
+      }
+    },
+    "download_logs": {
+      "name": "Descargar registros",
+      "description": "Recopilar y descargar los registros filtrados de una entidad VTherm.",
+      "fields": {
+        "log_level": {
+          "name": "Nivel de registro",
+          "description": "Nivel mínimo de registro que se incluirá"
+        },
+        "period_start": {
+          "name": "Inicio del periodo",
+          "description": "Fecha y hora de inicio de la extracción"
+        },
+        "period_end": {
+          "name": "Fin del periodo",
+          "description": "Fecha y hora de finalización de la extracción"
+        }
+      }
+    }
+  },
+  "exceptions": {
+    "auto_tpi_learning_stopped": {
+      "message": "El aprendizaje Auto TPI de {name} se ha detenido tras 3 fallos consecutivos. Motivo: {reason}. Revisa la configuración."
+    }
+  }
+}
