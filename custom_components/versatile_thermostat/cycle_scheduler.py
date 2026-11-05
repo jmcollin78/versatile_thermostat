@@ -971,8 +971,18 @@ class CycleScheduler:
             return
         if getattr(self._thermostat, "is_inhibited", False) is True:
             # The inhibition command gate drops every underlying command: nothing is applied
+            _LOGGER.debug("%s - underlying power hook not called (kind=%s): the thermostat is inhibited", self._thermostat, kind)
             return
         for under in self._underlyings:
+            _LOGGER.debug(
+                "%s - underlying power hook for %s: kind=%s requested_on_percent=%s applied_on_percent=%s repeat=%s",
+                self._thermostat,
+                under.entity_id,
+                kind,
+                requested_on_percent,
+                applied_on_percent,
+                is_repeat,
+            )
             climate_entity_id = getattr(under, "climate_entity_id", None)
             offset = offsets.get(under) if offsets else None
             command = UnderlyingPowerCommand(
