@@ -50,6 +50,7 @@ from homeassistant.components.number import SERVICE_SET_VALUE
 from homeassistant.helpers.event import async_call_later
 from homeassistant.util import dt as dt_util
 
+from vtherm_api import ValveCommand, ValveCommandCause
 from vtherm_api.log_collector import get_vtherm_logger
 from .opening_degree_algorithm import OpeningClosingDegreeCalculation
 
@@ -1361,7 +1362,7 @@ class UnderlyingValve(UnderlyingEntity):
                 self._last_sent_opening_value or 9999,
                 self._entity_id,
             )
-            await self.send_percent_open()
+            await self.send_percent_open(cause=ValveCommandCause.STARTUP)
         elif not should_device_be_active and is_device_active:
             _LOGGER.info(
                 "%s - The valve should not be active (percent_open=%.0f), but the underlying valve is open (current_valve_opening=%.0f). Closing valve %s",
@@ -1372,10 +1373,10 @@ class UnderlyingValve(UnderlyingEntity):
             )
             self._percent_open = self._get_controlled_percent(0)
             self._raw_percent_open = 0
-            await self.send_percent_open()
+            await self.send_percent_open(cause=ValveCommandCause.STARTUP)
 
-    async def send_percent_open(self, fixed_value: int = None):
-        """Send the percent open to the underlying valve"""
+    async def send_percent_open(self, fixed_value: int = None, cause: ValveCommandCause = ValveCommandCause.REGULATION):  # pylint: disable=unused-argument
+        """Send the percent open to the underlying valve. The cause is only used by valve-regulation underlyings"""
         # This may fails if called after shutdown
         value = self._percent_open if fixed_value is None else fixed_value
         await self.send_value_to_number(self._entity_id, value)
@@ -1389,7 +1390,7 @@ class UnderlyingValve(UnderlyingEntity):
         self._percent_open = self._get_controlled_percent(0)
         self._raw_percent_open = 0
         if is_active:
-            await self.send_percent_open()
+            await self.send_percent_open(cause=ValveCommandCause.TURN_OFF)
 
     async def turn_on(self):
         """Nothing to do for Valve because it cannot be turned on"""
@@ -1400,7 +1401,7 @@ class UnderlyingValve(UnderlyingEntity):
         """Close the valve, even if it reports it is already closed"""
         self._percent_open = self._get_controlled_percent(0)
         self._raw_percent_open = 0
-        await self.send_percent_open()
+        await self.send_percent_open(cause=ValveCommandCause.TURN_OFF)
 
     @overrides
     async def async_inhibition_resync(self):
@@ -1544,7 +1545,7 @@ class UnderlyingValve(UnderlyingEntity):
             )
             return False
 
-        await self.send_percent_open()
+        await self.send_percent_open(cause=ValveCommandCause.REPAIR)
         return True
 
     @property
@@ -1609,7 +1610,7 @@ class UnderlyingValveRegulation(UnderlyingValve):
 
         if self._thermostat.is_sleeping:
             self._percent_open = 100
-            await self.send_percent_open()
+            await self.send_percent_open(cause=ValveCommandCause.STARTUP)
             return
 
         hvac_mode = self._thermostat.vtherm_hvac_mode
@@ -1635,14 +1636,14 @@ class UnderlyingValveRegulation(UnderlyingValve):
             if self._thermostat.is_sleeping:
                 self._percent_open = 100
                 _LOGGER.debug("%s - is sleeping, setting percent_open to 100", self)
-                await self.send_percent_open()
+                await self.send_percent_open(cause=ValveCommandCause.STARTUP)
             else:
                 calculated_percent = self._thermostat.valve_open_percent
                 if calculated_percent is not None and calculated_percent > 0:
                     # TPI says heating is needed — respect the calculated value
                     self._percent_open = calculated_percent
                     _LOGGER.debug("%s - TPI says %.0f%% heating needed — opening valve", self, calculated_percent)
-                    await self.send_percent_open()
+                    await self.send_percent_open(cause=ValveCommandCause.STARTUP)
                 else:
                     # TPI says 0% (no heating needed) — do not open the valve here.
                     # The normal startup flow will send the correct 0% command separately.
@@ -1661,7 +1662,7 @@ class UnderlyingValveRegulation(UnderlyingValve):
             )
             self._percent_open = self._opening_threshold
             _LOGGER.debug("%s - off and not sleeping, setting percent_open to %d", self, self._percent_open)
-            await self.send_percent_open()
+            await self.send_percent_open(cause=ValveCommandCause.STARTUP)
             # await self._climate_underlying.set_hvac_mode(hvac_mode)
 
     def startup(self):
@@ -1829,7 +1830,7 @@ class UnderlyingValveRegulation(UnderlyingValve):
         """
         return raw_percent
 
-    async def send_percent_open(self, fixed_value: int = None):
+    async def send_percent_open(self, fixed_value: int = None, cause: ValveCommandCause = ValveCommandCause.REGULATION):
         """Send the percent open to the underlying valve"""
         # Caclulate percent_open
         value = self._percent_open if fixed_value is None else fixed_value
@@ -1853,6 +1854,34 @@ class UnderlyingValveRegulation(UnderlyingValve):
             opening_degree,
             closing_degree,
         )
+
+        await self._notify_valve_command(value, opening_degree, closing_degree if self.has_closing_degree_entity else None, cause)
+
+    async def _notify_valve_command(self, percent_open: int, opening_degree: int, closing_degree: int | None, cause: ValveCommandCause) -> None:
+        """Issue #2181 - notify external managers that a valve command was sent"""
+        # The inhibition gate drops the number.set_value commands: nothing was sent, nothing to notify
+        if self.is_command_blocked(self._opening_degree_entity_id.split(".")[0], SERVICE_SET_VALUE):
+            return
+        hook = getattr(self._thermostat, "async_after_valve_command", None)
+        if hook is None:
+            return
+        await hook(
+            ValveCommand(
+                climate_entity_id=self._climate_underlying.entity_id,
+                opening_degree_entity_id=self._opening_degree_entity_id,
+                closing_degree_entity_id=self._closing_degree_entity_id if self.has_closing_degree_entity else None,
+                percent_open=int(percent_open or 0),
+                opening_degree=opening_degree,
+                closing_degree=closing_degree,
+                hvac_mode=str(self._thermostat.vtherm_hvac_mode),
+                cause=cause,
+            )
+        )
+
+    @property
+    def climate_entity_id(self) -> str:
+        """The entity id of the climate driven by this valve regulation"""
+        return self._climate_underlying.entity_id
 
     @property
     def opening_degree_entity_id(self) -> str:
@@ -1924,7 +1953,7 @@ class UnderlyingValveRegulation(UnderlyingValve):
         """Turn valve off. In that context it means set the valve to the minimum opening degree."""
         _LOGGER.debug("%s - Stopping underlying entity %s", self, self._entity_id)
         self._percent_open = 0
-        await self.send_percent_open()
+        await self.send_percent_open(cause=ValveCommandCause.TURN_OFF)
         await self._climate_underlying.set_hvac_mode(VThermHvacMode_OFF)
 
 T = TypeVar("T", bound=UnderlyingEntity)
