@@ -1,6 +1,7 @@
 # pylint: disable=unused-argument, line-too-long, too-many-lines, broad-exception-caught
 
 """Underlying entities classes"""
+import inspect
 import math
 import re
 from typing import Any, Dict, List, Optional, Tuple, TypeVar
@@ -68,6 +69,12 @@ resend_delay_sec = 2
 off_settle_delay_sec = 15
 
 _LOGGER = get_vtherm_logger(__name__)
+
+def _thermostat_hook(thermostat: Any, name: str):
+    """Issue #2181 - the coroutine hook of the thermostat, None if it does not implement it (test doubles)"""
+    hook = getattr(thermostat, name, None)
+    return hook if inspect.iscoroutinefunction(hook) else None
+
 
 class UnderlyingEntityType(StrEnum):
     """All underlying device type"""
@@ -703,7 +710,7 @@ class UnderlyingClimate(UnderlyingEntity):
 
         # Issue #2181 - notify external managers just before the command is really sent
         if not self.is_command_blocked(CLIMATE_DOMAIN, SERVICE_SET_HVAC_MODE):
-            hook = getattr(self._thermostat, "async_before_underlying_hvac_mode", None)
+            hook = _thermostat_hook(self._thermostat, "async_before_underlying_hvac_mode")
             if hook is not None:
                 await hook(self._entity_id, hvac_mode, state.state, command_cause)
 
@@ -1875,7 +1882,7 @@ class UnderlyingValveRegulation(UnderlyingValve):
         # The inhibition gate drops the number.set_value commands: nothing was sent, nothing to notify
         if self.is_command_blocked(self._opening_degree_entity_id.split(".")[0], SERVICE_SET_VALUE):
             return
-        hook = getattr(self._thermostat, "async_after_valve_command", None)
+        hook = _thermostat_hook(self._thermostat, "async_after_valve_command")
         if hook is None:
             return
         await hook(
