@@ -844,6 +844,8 @@ The underlyings notify the optional hooks of the external feature managers (plug
 | `check_initial_state`                                           | `STARTUP`    |
 | `check_and_repair`                                              | `REPAIR`     |
 
+When a VTherm goes OFF, the climates receive the OFF mode first (so `async_before_underlying_hvac_mode` runs first). The valve is closed afterwards by the regulation, with the cause `REGULATION` and `hvac_mode="off"`. This order is kept on purpose. The `TURN_OFF` cause is used only when `turn_off` is called on the underlying itself or when an inhibition stops.
+
 The valve recalibration and `_seed_unknown_degrees_once` write the number entities with `send_value_to_number` and do not call the hook. `UnderlyingValveRegulation.climate_entity_id` exposes the climate it drives. The power hook (`async_on_underlying_power`) is called by the `CycleScheduler`, see [cycle_scheduler.md](cycle_scheduler.md).
 
 ---

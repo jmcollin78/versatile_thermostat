@@ -88,6 +88,6 @@ Objectif : offrir aux feature managers de plugins trois notifications optionnell
 
 **Hypothèse :** `vtherm_api` 0.9.0 est publié avant la fusion de la PR, sinon la CI ne trouve pas la dépendance.
 
-**Question ouverte :** l'ordre « fermeture de la vanne, puis mode OFF » n'est obtenu que sur le chemin `UnderlyingValveRegulation.turn_off`. Le passage en OFF du VTherm envoie aujourd'hui le mode OFF aux climates avant la fermeture de la vanne (voir la conception).
+**Décision :** l'ordre du cœur au passage en OFF est conservé. Le mode OFF part vers les climates avant la fermeture de la vanne, qui arrive ensuite avec la cause `regulation` et le mode `off`. Un plugin qui doit agir avant le mode OFF le fait dans `async_before_underlying_hvac_mode`. L'ordre « fermeture de la vanne, puis mode OFF » n'existe que sur le chemin `UnderlyingValveRegulation.turn_off` (voir la conception).
 
 **Traçabilité :** conception dans [issue-2181-design.md](issue-2181-design.md) ; tests dans `tests/test_underlying_hooks.py`.
