@@ -477,6 +477,52 @@ async def test_underlying_change_follow(
     entity.remove_thermostat()
 
 
+async def test_underlying_setpoint_ambiguous_without_underlying_step(
+    hass: HomeAssistant,
+    skip_hass_states_is_state,
+    skip_turn_on_off_heater,
+    skip_send_event,
+):
+    """Issue #2175: when the underlying publishes no target_temp_step (e.g. Matter), the VTherm step detects an ambiguous setpoint."""
+    temps = {VThermPreset.FROST: 7, VThermPreset.ECO: 16, VThermPreset.COMFORT: 17, VThermPreset.BOOST: 18}
+    entry = MockConfigEntry(
+        domain=DOMAIN,
+        title="TheOverClimateMockName",
+        unique_id="uniqueId",
+        data=PARTIAL_CLIMATE_NOT_REGULATED_CONFIG,
+    )
+    await create_and_register_mock_climate(hass, "mock_climate", "MockClimateName", {}, hvac_mode=VThermHvacMode_OFF, hvac_action=HVACAction.OFF)
+
+    with patch("custom_components.versatile_thermostat.underlyings.UnderlyingClimate.set_hvac_mode"):
+        entity = await create_thermostat(hass, entry, "climate.theoverclimatemockname", temps)
+        entity.set_follow_underlying_temp_change(True)
+        await entity.async_set_hvac_mode(VThermHvacMode_HEAT)
+        under = entity.underlying_entity(0)
+        entity._attr_target_temperature_step = 0.5
+        under._last_sent_temperature = 29.0
+        target = entity.requested_state.target_temperature
+
+        with (
+            patch.object(UnderlyingClimate, "target_temperature_step", new_callable=PropertyMock, return_value=None),
+            patch("custom_components.versatile_thermostat.thermostat_climate.async_call_later", return_value=lambda: None) as call_later,
+        ):
+            # The TRV goes back one VTherm step (29.0 -> 28.5): ambiguous, never debounced nor adopted
+            entity._consider_underlying_temperature_candidate(under, 28.5)
+            assert entity._underlying_temperature_status[under.entity_id] == "ambiguous"
+            assert under.entity_id not in entity._underlying_temperature_candidates
+            call_later.assert_not_called()
+
+            # Two steps away: a genuine change is still debounced
+            entity._consider_underlying_temperature_candidate(under, 28.0)
+            assert entity._underlying_temperature_status[under.entity_id] == "candidate_pending"
+            call_later.assert_called_once()
+
+        assert entity.requested_state.target_temperature == target
+        assert entity._underlying_tracking_attempts == 0
+
+    entity.remove_thermostat()
+
+
 async def test_underlying_tracking_attempt_limit_and_external_rearm(
     hass: HomeAssistant,
     skip_hass_states_is_state,
