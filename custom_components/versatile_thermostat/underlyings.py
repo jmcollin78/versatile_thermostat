@@ -700,6 +700,12 @@ class UnderlyingClimate(UnderlyingEntity):
         # Set before sending: the device may report its new setpoint before the call returns
         self._last_off_sent_datetime = self._thermostat.now if hvac_mode == VThermHvacMode_OFF else None
 
+        # Issue #2181 - notify external managers just before the command is really sent
+        if not self.is_command_blocked(CLIMATE_DOMAIN, SERVICE_SET_HVAC_MODE):
+            hook = getattr(self._thermostat, "async_before_underlying_hvac_mode", None)
+            if hook is not None:
+                await hook(self._entity_id, hvac_mode, state.state, command_cause)
+
         await self.hass_services_async_call(
             CLIMATE_DOMAIN,
             SERVICE_SET_HVAC_MODE,
