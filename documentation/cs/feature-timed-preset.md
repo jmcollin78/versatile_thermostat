@@ -30,7 +30,7 @@ Tato funkce je užitečná v několika scénářích:
 
 > ![Tip](images/tips.png) _*Poznámky*_
 > - Časově omezený preset má střední prioritu: je aplikován po bezpečnostních kontrolách a kontrolách výkonu (odlehčení zátěže), ale před ostatními funkcemi (přítomnost, pohyb atd.)
-> - Pokud ručně změníte preset, zatímco je aktivní časově omezený preset, časovač se zruší
+> - Pokud ručně vyberete preset během aktivního časově omezeného presetu, časovač pokračuje a vybraný preset se použije po jeho uplynutí
 > - Maximální doba trvání je 1440 minut (24 hodin)
 
 ## Aktivace časově omezeného presetu

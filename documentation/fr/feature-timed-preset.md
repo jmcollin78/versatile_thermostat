@@ -33,7 +33,7 @@ Cette fonctionnalité est utile dans plusieurs scénarios :
 
 > ![Tip](images/tips.png) _*Notes*_
 > - Le preset temporisé a une priorité intermédiaire : il est appliqué après les contrôles de sécurité et de puissance (délestage), mais avant les autres fonctionnalités (présence, mouvement, etc.)
-> - Si vous changez manuellement le preset pendant qu'un preset temporisé est actif, le timer est annulé
+> - Si vous sélectionnez manuellement un preset alors qu'un preset temporisé est actif, le timer continue et le preset sélectionné est appliqué à son expiration
 > - La durée maximale est de 1440 minutes (24 heures)
 
 ## Activer un preset temporisé
