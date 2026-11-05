@@ -283,14 +283,22 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
         """
         api = VersatileThermostatAPI.get_vtherm_api(self.hass)
         if api is None or not hasattr(api, "get_feature_manager_factories"):
+            _LOGGER.debug(
+                "%s - external feature managers not loaded: api=%s, has get_feature_manager_factories=%s",
+                self,
+                api is not None,
+                hasattr(api, "get_feature_manager_factories"),
+            )
             return
 
         for factory in api.get_feature_manager_factories():
             name = factory.name
             if name in self._external_manager_names:
+                _LOGGER.debug("%s - external feature manager '%s' already loaded", self, name)
                 continue
             try:
                 if not factory.supports(self):
+                    _LOGGER.debug("%s - external feature manager '%s' not created: supports() returned False", self, name)
                     continue
                 manager = factory.create(self)
                 manager.post_init(self._entry_infos)
@@ -306,6 +314,7 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
             self.register_manager(manager)
             self._external_manager_names.add(name)
             self._external_managers.append(manager)
+            _LOGGER.debug("%s - external feature manager '%s' created (is_configured=%s)", self, name, getattr(manager, "is_configured", None))
             _LOGGER.info("%s - Registered external feature manager '%s'", self, name)
 
     async def _async_call_external_hook(self, method_name: str, *args) -> None:
@@ -315,8 +324,13 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
         """
         for manager in self._external_managers:
             hook = getattr(manager, method_name, None)
-            if hook is None or not manager.is_configured:
+            if hook is None:
+                _LOGGER.debug("%s - external hook %s skipped for '%s': the manager has no such hook", self, method_name, manager.name)
                 continue
+            if not manager.is_configured:
+                _LOGGER.debug("%s - external hook %s skipped for '%s': is_configured is False", self, method_name, manager.name)
+                continue
+            _LOGGER.debug("%s - calling external hook %s of '%s'", self, method_name, manager.name)
             try:
                 async with asyncio.timeout(UNDERLYING_HOOK_TIMEOUT_SEC):
                     await hook(*args)

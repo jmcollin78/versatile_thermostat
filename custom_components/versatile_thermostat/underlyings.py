@@ -712,7 +712,12 @@ class UnderlyingClimate(UnderlyingEntity):
         if not self.is_command_blocked(CLIMATE_DOMAIN, SERVICE_SET_HVAC_MODE):
             hook = _thermostat_hook(self._thermostat, "async_before_underlying_hvac_mode")
             if hook is not None:
+                _LOGGER.debug("%s - calling the before-hvac-mode hook: hvac_mode=%s current=%s cause=%s", self, hvac_mode, state.state, command_cause)
                 await hook(self._entity_id, hvac_mode, state.state, command_cause)
+            else:
+                _LOGGER.debug("%s - before-hvac-mode hook not called: the thermostat has no such hook", self)
+        else:
+            _LOGGER.debug("%s - before-hvac-mode hook not called: %s.%s is blocked", self, CLIMATE_DOMAIN, SERVICE_SET_HVAC_MODE)
 
         await self.hass_services_async_call(
             CLIMATE_DOMAIN,
@@ -1881,10 +1886,21 @@ class UnderlyingValveRegulation(UnderlyingValve):
         """Issue #2181 - notify external managers that a valve command was sent"""
         # The inhibition gate drops the number.set_value commands: nothing was sent, nothing to notify
         if self.is_command_blocked(self._opening_degree_entity_id.split(".")[0], SERVICE_SET_VALUE):
+            _LOGGER.debug("%s - after-valve-command hook not called: %s.%s is blocked", self, self._opening_degree_entity_id.split(".")[0], SERVICE_SET_VALUE)
             return
         hook = _thermostat_hook(self._thermostat, "async_after_valve_command")
         if hook is None:
+            _LOGGER.debug("%s - after-valve-command hook not called: the thermostat has no such hook", self)
             return
+        _LOGGER.debug(
+            "%s - calling the after-valve-command hook: cause=%s percent_open=%s opening_degree=%s closing_degree=%s hvac_mode=%s",
+            self,
+            cause,
+            percent_open,
+            opening_degree,
+            closing_degree,
+            self._thermostat.vtherm_hvac_mode,
+        )
         await hook(
             ValveCommand(
                 climate_entity_id=self._climate_underlying.entity_id,
