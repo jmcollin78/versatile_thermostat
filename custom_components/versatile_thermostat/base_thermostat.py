@@ -2,12 +2,18 @@
 # pylint: disable=too-many-lines
 # pylint: disable=invalid-name
 """ Implements the VersatileThermostat climate component """
+import asyncio
 import math
 from typing import Optional, Any, Generic
 from datetime import datetime
 from collections.abc import Callable
 
-from vtherm_api import ValveDiagnosticState
+from vtherm_api import (
+    UNDERLYING_HOOK_TIMEOUT_SEC,
+    UnderlyingPowerCommand,
+    ValveCommand,
+    ValveDiagnosticState,
+)
 from vtherm_api.log_collector import get_vtherm_logger
 from homeassistant.util import dt as dt_util
 
@@ -301,6 +307,64 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
             self._external_manager_names.add(name)
             self._external_managers.append(manager)
             _LOGGER.info("%s - Registered external feature manager '%s'", self, name)
+
+    async def _async_call_external_hook(self, method_name: str, *args) -> None:
+        """Call an optional hook on each configured external feature manager.
+
+        A failing or slow plugin is logged and never blocks the core command.
+        """
+        for manager in self._external_managers:
+            hook = getattr(manager, method_name, None)
+            if hook is None or not manager.is_configured:
+                continue
+            try:
+                async with asyncio.timeout(UNDERLYING_HOOK_TIMEOUT_SEC):
+                    await hook(*args)
+            except TimeoutError:
+                _LOGGER.error(
+                    "%s - External feature manager '%s' timed out in %s",
+                    self,
+                    manager.name,
+                    method_name,
+                )
+            except Exception as exc:  # pylint: disable=broad-except
+                _LOGGER.error(
+                    "%s - Error in %s of external feature manager '%s': %s",
+                    self,
+                    method_name,
+                    manager.name,
+                    exc,
+                )
+
+    async def async_before_underlying_hvac_mode(
+        self,
+        climate_entity_id: str,
+        hvac_mode: VThermHvacMode | str,
+        current_hvac_mode: VThermHvacMode | str | None,
+        command_cause: str | None = None,
+    ) -> None:
+        """Notify external managers that an underlying climate is about to change its HVAC mode."""
+        if not self._external_managers:
+            return
+        await self._async_call_external_hook(
+            "async_before_underlying_hvac_mode",
+            climate_entity_id,
+            str(hvac_mode),
+            None if current_hvac_mode is None else str(current_hvac_mode),
+            command_cause,
+        )
+
+    async def async_after_valve_command(self, command: ValveCommand) -> None:
+        """Notify external managers that a valve command was sent to a valve-regulation underlying."""
+        if not self._external_managers:
+            return
+        await self._async_call_external_hook("async_after_valve_command", command)
+
+    async def async_on_underlying_power(self, command: UnderlyingPowerCommand) -> None:
+        """Notify external managers of the power requested from and applied to an underlying."""
+        if not self._external_managers:
+            return
+        await self._async_call_external_hook("async_on_underlying_power", command)
 
     def clean_central_config_doublon(
         self, config_entry: ConfigData, central_config: ConfigEntry | None
