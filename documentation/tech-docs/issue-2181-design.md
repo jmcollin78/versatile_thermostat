@@ -60,7 +60,9 @@ Le recalibrage (`service_recalibrate_valves`) et l'amorçage des degrés inconnu
 
 Sur le chemin `UnderlyingValveRegulation.turn_off`, l'ordre est : vanne à 0, hook de vanne (`TURN_OFF`), hook de mode, `climate.set_hvac_mode(off)`. Ce chemin est couvert par un test.
 
-Le passage en OFF du VTherm n'emprunte pas ce chemin. `BaseThermostat` envoie d'abord le mode OFF aux climates sous-jacents (`UnderlyingClimate.set_hvac_mode`, donc le hook de mode puis le service), puis la fermeture de la vanne part à la régulation suivante (`_send_regulated_temperature`), avec la cause `REGULATION` et le mode `off`. Un plugin qui doit agir avant le mode OFF reçoit donc le hook de mode, mais pas encore la fermeture de la vanne. Le cœur n'a pas été modifié sur ce point : inverser l'ordre demanderait de fermer les vannes régulées avant de déléguer le mode aux climates.
+Le passage en OFF du VTherm n'emprunte pas ce chemin. `BaseThermostat` envoie d'abord le mode OFF aux climates sous-jacents (`UnderlyingClimate.set_hvac_mode`, donc le hook de mode puis le service), puis la fermeture de la vanne part à la régulation suivante (`_send_regulated_temperature`), avec la cause `REGULATION` et le mode `off`. Un plugin qui doit agir avant le mode OFF reçoit donc le hook de mode, mais pas encore la fermeture de la vanne. Il doit se fier à `command.hvac_mode` plutôt qu'à l'état HA du climate pour savoir que le thermostat est éteint, car cet état peut encore afficher l'ancien mode quand la fermeture arrive.
+
+Cet ordre est conservé volontairement. L'inverser demanderait de fermer les vannes régulées avant de déléguer le mode aux climates, ce qui changerait le comportement de tous les VTherm `over_climate` à contrôle de vanne.
 
 ## 7. Sécurité, observabilité et exploitation
 
@@ -75,3 +77,4 @@ Les erreurs et délais dépassés sont journalisés au niveau erreur avec le nom
 - La PR vers `jmcollin78/versatile_thermostat` suit la publication de `vtherm_api` 0.9.0.
 - `InterfaceSetpointModifier` n'est appelé nulle part aujourd'hui. Une PR qui l'intègre toucherait aussi `UnderlyingClimate` et la boucle des managers externes ; elle devra réutiliser `_async_call_external_hook` (la version synchrone du modificateur demandera une variante).
 - Risque : un hook qui dépasse 10 s retarde la commande du cœur de 10 s au plus.
+- Décision : l'ordre du cœur au passage en OFF reste « mode OFF, puis fermeture de la vanne » (section 6).
