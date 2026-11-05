@@ -825,6 +825,29 @@ def hvac_action() -> HVACAction
 
 ---
 
+## Plugin Hooks (issue #2181)
+
+The underlyings notify the optional hooks of the external feature managers (plugins) through `BaseThermostat`. The hooks are defined by `vtherm_api` 0.9.0 and are notifications only: they never modify or cancel the core command. A hook is called only for a manager whose `is_configured` is true, is awaited under `UNDERLYING_HOOK_TIMEOUT_SEC` (10 s) and an exception or a timeout is logged without blocking the command. Without any external manager the call returns immediately. See [issue-2181-design.md](issue-2181-design.md) (in French) for the full design.
+
+| Hook                                | Called from                                                  | When                                                                                                                                                                  |
+| ----------------------------------- | ------------------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `async_before_underlying_hvac_mode` | `UnderlyingClimate.set_hvac_mode`                            | Just before `climate.set_hvac_mode`, with the real state of the climate as `current_hvac_mode`. Not called if the mode is already set, if the inhibition gate blocks the command or if the overpowering refuses to turn on. `command_cause` is `"underlying_tracking"` when the VTherm follows a change made on the device. |
+| `async_after_valve_command`         | `UnderlyingValveRegulation.send_percent_open`                | After the opening degree and, if any, the closing degree have been sent. Not called if the inhibition gate blocks `set_value` on the opening entity.                  |
+
+`send_percent_open` takes a `cause` (`ValveCommandCause`), ignored by `UnderlyingValve` which keeps the same signature:
+
+| Caller                                                          | Cause        |
+| --------------------------------------------------------------- | ------------ |
+| `set_valve_open_percent` (cycle and regulation)                 | `REGULATION` |
+| `turn_off` (`UnderlyingValve` and `UnderlyingValveRegulation`)  | `TURN_OFF`   |
+| `async_inhibition_stop`                                         | `TURN_OFF`   |
+| `check_initial_state`                                           | `STARTUP`    |
+| `check_and_repair`                                              | `REPAIR`     |
+
+The valve recalibration and `_seed_unknown_degrees_once` write the number entities with `send_value_to_number` and do not call the hook. `UnderlyingValveRegulation.climate_entity_id` exposes the climate it drives. The power hook (`async_on_underlying_power`) is called by the `CycleScheduler`, see [cycle_scheduler.md](cycle_scheduler.md).
+
+---
+
 ## Initialization and Readiness States
 
 ### Readiness Concept

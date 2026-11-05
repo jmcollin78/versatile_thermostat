@@ -7,6 +7,7 @@
 > 4. **Timed preset restoration after restart**: The configured timed preset is now correctly restored after a thermostat or Home Assistant restart. This preset continues to work normally after the restart. More information [here](feature-timed-preset.md),
 > 5. **Increased power control precision**: The boiler activation threshold (`power_activation_threshold`) now accepts decimal values (0.1, 0.5, etc.) for finer control of activation power. This provides greater flexibility to optimize your energy consumption. More information [here](feature-power.md),
 > 6. **Sensor availability improvements**: Better support for determining temperature sensor availability using Home Assistant's `last_updated` metadata, improving detection of sensor signal loss,
+> 7. **Underlying hooks for plugins**: plugin feature managers can now follow the commands sent to the underlying devices (HVAC mode change, valve commands, power requested and applied by the cycle scheduler) through the optional hooks of `vtherm_api` 0.9.0. Nothing to configure in VTherm. More information [here](https://github.com/jmcollin78/versatile_thermostat/issues/2181).
 
 ## Release 9.2
 > 1. New way of managing heating/off cycles for `over_switch` VTherms. The current algorithm has a time drift and the first cycles are not optimal. This disrupts the TPI and especially the auto-TPI. The new `Cycle Scheduler` solves these issues. This change is completely transparent for you,
