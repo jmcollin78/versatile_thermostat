@@ -716,3 +716,91 @@ async def test_restart_during_override_keeps_manual_target_and_reverts(hass: Hom
     assert entity.target_temperature == 19
     assert manager.is_timed_preset_active is False
     entity.remove_thermostat()
+
+
+@pytest.mark.parametrize("expected_lingering_tasks", [True])
+@pytest.mark.parametrize("expected_lingering_timers", [True])
+async def test_select_preset_cancels_timed_preset(hass: HomeAssistant, skip_hass_states_is_state, fake_underlying_switch):
+    """A preset selected during a regular timed preset applies at once and is not reverted later"""
+    entity = await setup_vtherm_in_comfort(hass)
+    await entity.service_set_timed_preset("boost", 120)
+    assert entity.preset_mode == VThermPreset.BOOST
+    assert entity.target_temperature == 21
+
+    with patch.object(entity, "send_event") as send_event:
+        await entity.async_set_preset_mode(VThermPreset.ECO)
+
+    assert entity.preset_mode == VThermPreset.ECO
+    assert entity.target_temperature == 17
+    assert entity.timed_preset_manager.is_timed_preset_active is False
+    tpm = entity.extra_state_attributes["timed_preset_manager"]
+    assert tpm["is_active"] is False
+    assert hass.states.get(entity.entity_id).attributes["timed_preset_manager"]["is_active"] is False
+
+    end_events = [c.kwargs["data"] for c in send_event.call_args_list if c.kwargs.get("data", {}).get("type") == "end"]
+    assert len(end_events) == 1
+    assert end_events[0]["cause"] == "preset_selected"
+    assert end_events[0]["preset"] == str(VThermPreset.BOOST)
+    assert end_events[0]["restored_preset"] == str(VThermPreset.ECO)
+    assert end_events[0]["manual_override"] is False
+
+    # The original end time passes: the selected preset stays
+    await expire_override(entity, 121)
+    assert entity.preset_mode == VThermPreset.ECO
+    assert entity.target_temperature == 17
+    entity.remove_thermostat()
+
+
+@pytest.mark.parametrize("expected_lingering_tasks", [True])
+@pytest.mark.parametrize("expected_lingering_timers", [True])
+async def test_select_same_preset_keeps_timed_preset(hass: HomeAssistant, skip_hass_states_is_state, fake_underlying_switch):
+    """Selecting the preset a timed preset already forces keeps the timer and its revert"""
+    entity = await setup_vtherm_in_comfort(hass)
+    await entity.service_set_timed_preset("boost", 120)
+
+    await entity.async_set_preset_mode(VThermPreset.BOOST)
+
+    assert entity.preset_mode == VThermPreset.BOOST
+    assert entity.timed_preset_manager.is_timed_preset_active is True
+    assert entity.timed_preset_manager.timed_preset == VThermPreset.BOOST
+
+    await expire_override(entity, 121)
+    assert entity.preset_mode == VThermPreset.COMFORT
+    assert entity.target_temperature == 19
+    entity.remove_thermostat()
+
+
+@pytest.mark.parametrize("expected_lingering_tasks", [True])
+@pytest.mark.parametrize("expected_lingering_timers", [True])
+async def test_cancel_manual_override_without_revert_regular_timed_preset(hass: HomeAssistant):
+    """The helper also drops a regular timed preset, leaving the requested preset untouched"""
+    vtherm, manager = build_manager(hass)
+    with patch("custom_components.versatile_thermostat.feature_timed_preset_manager.async_track_point_in_time"):
+        await manager.set_timed_preset(VThermPreset.BOOST, 30)
+    vtherm.requested_state.set_preset(VThermPreset.ECO)
+
+    manager.cancel_manual_override_without_revert(VThermPreset.ECO)
+
+    assert manager.is_timed_preset_active is False
+    assert vtherm.requested_state.preset == VThermPreset.ECO
+    assert events_data(vtherm)[-1]["cause"] == "preset_selected"
+    assert events_data(vtherm)[-1]["manual_override"] is False
+
+
+@pytest.mark.parametrize("expected_lingering_tasks", [True])
+@pytest.mark.parametrize("expected_lingering_timers", [True])
+async def test_select_preset_cancels_timed_preset_when_hvac_off(hass: HomeAssistant, skip_hass_states_is_state, fake_underlying_switch):
+    """A preset selected while the VTherm is off during a timed preset also drops the timer"""
+    entity = await setup_vtherm_in_comfort(hass)
+    await entity.service_set_timed_preset("boost", 120)
+    await entity.async_set_hvac_mode(VThermHvacMode_OFF)
+    assert entity.timed_preset_manager.is_timed_preset_active is True
+
+    await entity.async_set_preset_mode(VThermPreset.ECO)
+    assert entity.timed_preset_manager.is_timed_preset_active is False
+
+    await expire_override(entity, 121)
+    await entity.async_set_hvac_mode(VThermHvacMode_HEAT)
+    assert entity.preset_mode == VThermPreset.ECO
+    assert entity.target_temperature == 17
+    entity.remove_thermostat()

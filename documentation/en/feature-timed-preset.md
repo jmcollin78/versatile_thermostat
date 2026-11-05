@@ -33,7 +33,7 @@ This feature is useful in several scenarios:
 
 > ![Tip](images/tips.png) _*Notes*_
 > - The timed preset has an intermediate priority: it is applied after safety and power (load shedding) checks, but before other features (presence, motion, etc.)
-> - If you manually change the preset while a timed preset is active, the timer is cancelled
+> - If you manually change the preset while a timed preset is active, the timer is cancelled: the selected preset applies and the original preset is not restored later. Selecting the preset the timed preset already forces keeps the timer
 > - The maximum duration is 1440 minutes (24 hours)
 
 ## Activate a timed preset

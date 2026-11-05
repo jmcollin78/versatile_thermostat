@@ -33,7 +33,7 @@ Ta funkcja jest przydatna w kilku scenariuszach:
 
 > ![Tip](images/tips.png) _*Uwagi*_
 > - Preset czasowy ma pośredni priorytet: jest stosowany po kontrolach bezpieczeństwa i mocy (odciążenie), ale przed innymi funkcjami (obecność, ruch itp.)
-> - Jeśli ręcznie zmienisz preset podczas aktywnego presetu czasowego, timer zostanie anulowany
+> - Jeśli ręcznie zmienisz preset podczas aktywnego presetu czasowego, timer zostanie anulowany: wybrany preset zostaje zastosowany, a pierwotny preset nie jest później przywracany. Wybranie presetu już wymuszonego przez preset czasowy zachowuje timer
 > - Maksymalny czas trwania to 1440 minut (24 godziny)
 
 ## Aktywacja presetu czasowego

@@ -357,23 +357,33 @@ class FeatureTimedPresetManager(BaseFeatureManager):
         self._vtherm.update_custom_attributes()
 
     def cancel_manual_override_without_revert(self, selected_preset: VThermPreset | None = None):
-        """Drop the manual override without restoring the original preset.
-        Used when the user selects a preset during the manual override: the selected preset applies.
+        """Drop the active timed preset or manual override without restoring the original preset.
+        Used when the user selects a preset while a timed preset or a manual override is active:
+        the selected preset applies and nothing is reverted later.
+        Selecting the preset that a regular timed preset already forces keeps the timer running.
         The end event has the cause "preset_selected" and its restored_preset is the selected preset
         (None when not given). The HA attributes and state are refreshed at once, so that a
-        cancelled override is never shown (nor restored after a restart) when the state does not change.
+        cancelled timed preset is never shown (nor restored after a restart) when the state does not change.
 
         Args:
             selected_preset: The preset selected by the user, reported in the end event
         """
-        if not self._is_timed_preset_active or not self._is_manual_override:
+        if not self._is_timed_preset_active:
+            return
+
+        if not self._is_manual_override and selected_preset is not None and selected_preset == self._timed_preset:
             return
 
         old_preset = self._timed_preset
+        was_manual_override = self._is_manual_override
         self._cancel_timed_preset_timer()
         self._reset_state()
 
-        write_event_log(_LOGGER, self._vtherm, f"Manual override ended: {old_preset} (cancelled by a preset change)")
+        write_event_log(
+            _LOGGER,
+            self._vtherm,
+            f"{'Manual override' if was_manual_override else 'Timed preset'} ended: {old_preset} (cancelled by a preset change)",
+        )
 
         self._vtherm.send_event(
             event_type=EventType.TIMED_PRESET_EVENT,
@@ -383,7 +393,7 @@ class FeatureTimedPresetManager(BaseFeatureManager):
                 "preset": str(old_preset),
                 "cause": "preset_selected",
                 "restored_preset": str(selected_preset) if selected_preset is not None else None,
-                "manual_override": True,
+                "manual_override": was_manual_override,
             },
         )
 

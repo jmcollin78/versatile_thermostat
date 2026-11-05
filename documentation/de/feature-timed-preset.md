@@ -33,7 +33,7 @@ Diese Funktion ist in mehreren Szenarien nützlich:
 
 > ![Tip](images/tips.png) _*Hinweise*_
 > - Die zeitgesteuerte Voreinstellung hat eine mittlere Priorität: Es wird nach Sicherheits- und Leistungsprüfungen (Lastabwurf) angewandt, aber noch vor anderen Funktionen (Anwesenheit, Bewegung usw.)
-> - Wenn Sie den Vorgabewert manuell ändern, während eine zeitgesteuerte Voreinstellung aktiv ist, wird der Timer abgebrochen
+> - Wenn Sie den Vorgabewert manuell ändern, während eine zeitgesteuerte Voreinstellung aktiv ist, wird der Timer abgebrochen: die gewählte Voreinstellung gilt und die ursprüngliche wird später nicht wiederhergestellt. Die Wahl der bereits erzwungenen Voreinstellung behält den Timer bei
 > - Die maximale Dauer beträgt 1440 Minuten (24 Stunden)
 
 ## Zeitgesteuerte Voreinstellung aktivieren

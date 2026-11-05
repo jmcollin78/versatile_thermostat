@@ -1669,7 +1669,7 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
 
         self._on_external_command_received()
 
-        # A preset selected during a manual override cancels it: the selected preset applies
+        # A preset selected during a timed preset or a manual override cancels it: the selected preset applies
         self._timed_preset_manager.cancel_manual_override_without_revert(vtherm_preset_mode)
 
         await self.async_set_preset_mode_internal(vtherm_preset_mode)  # overwrite_saved_preset=overwrite_saved_preset)
