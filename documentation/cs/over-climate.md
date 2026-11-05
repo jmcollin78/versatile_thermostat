@@ -105,6 +105,8 @@ Pokud jste v tomto případě, byla do zařízení _VTherm_ přidána entita naz
 
 Když je tato entita 'On', všechny změny teploty nebo stavu provedené přímo na podkladovém zařízení se odrazí ve _VTherm_.
 
+Změna setpointu provedená přímo na zařízení se zpracuje jako ruční změna cílové teploty: pokud je nastavena [doba ručního přepsání](feature-timed-preset.md#ruční-přepsání-s-automatickým-návratem), spustí ruční přepsání a po jeho skončení se obnoví předchozí preset.
+
 Buďte opatrní, pokud používáte tuto funkci, vaše zařízení je nyní ovládáno dvěma způsoby: _VTherm_ a přímo vámi. Příkazy mohou být protichůdné, což by mohlo vést ke zmatku ohledně stavu zařízení. _VTherm_ je vybaven mechanismem zpoždění, který zabraňuje smyčkám: uživatel dá setpoint, který je zachycen _VTherm_ a změní setpoint, ... Toto zpoždění může způsobit, že změna provedená přímo na zařízení bude ignorována, pokud jsou tyto změny příliš blízko v čase.
 
 Některá zařízení (jako například Daikin) mění stav sama od sebe. Pokud je zaškrtnuté políčko, může to vypnout _VTherm_, když to není to, co jste chtěli.
