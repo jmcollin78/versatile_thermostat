@@ -575,6 +575,21 @@ Cet appel est indépendant du callback `on_cycle_started` (qui se déclenche uni
 - Aucun reçu n'est émis tant que le thermostat est inhibé (`is_inhibited`) : la barrière de commandes abandonne les commandes vers les sous-jacents, donc aucune n'est appliquée. Pendant la réconciliation de sortie, le thermostat n'est plus inhibé et les commandes passent : leurs reçus sont émis.
 - Les callbacks sont attendus dans l'ordre d'enregistrement ; une exception est journalisée en warning et ne casse pas le cycle.
 
+### 13.8 Hook de puissance des sous-jacents
+
+`CycleScheduler._fire_underlying_power()` appelle `async_on_underlying_power(command)` (`vtherm_api` 0.9.0, issue #2181) sur les feature managers externes configurés, via `BaseThermostat.async_on_underlying_power()`. Elle construit un `UnderlyingPowerCommand` par sous-jacent (`underlying_type` vaut `switch`, `valve` ou `valve_regulation` ; `climate_entity_id` n'est renseigné que pour `valve_regulation`). C'est une notification : elle ne modifie jamais le cycle. Elle est distincte des reçus de commande appliquée du 13.7 : le reçu décrit le thermostat entier et sert au plugin d'algorithme, le hook décrit chaque sous-jacent et sert aux feature managers.
+
+| Type          | Émission                                                                                                                                                                                                                     |
+| ------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `CYCLE_START` | Dans `start_cycle()`, après `_start_cycle_switch()` ou `_start_cycle_valve()` (donc après l'actionnement), y compris le redémarrage automatique (`is_repeat=True`). Pour un switch, `start_offset_sec` est lu dans `self._states` rempli par `_init_cycle()` ; il vaut `None` pour les branches 0 % et 100 % et pour une vanne. |
+| `UPDATE`      | Vanne uniquement : dans `_update_running_valve_cycle()` et `apply_valve_update()`, après `_apply_valve_command()`, même à valeur inchangée.                                                                                  |
+| `STOP`        | Dans `_cancel_cycle_impl()` quand un cycle tournait, avec `applied_on_percent=0`. Une annulation interne suivie d'un redémarrage (`start_cycle()`, `_restarting=True`) n'envoie pas de `STOP` : le `CYCLE_START` suit.      |
+
+- `requested_on_percent`, `applied_on_percent` et `is_repeat` sont les valeurs données à `_fire_command_receipt()`, pour que les deux notifications restent cohérentes.
+- Les bascules on/off d'un switch pendant le cycle ne sont pas notifiées : `on_time_sec`, `off_time_sec` et `start_offset_sec` suffisent à les déduire.
+- Rien n'est envoyé sans feature manager externe, si le thermostat n'a pas de coroutine `async_on_underlying_power` (doubles de test) ou tant qu'il est inhibé (`is_inhibited`).
+- Chaque appel est coupé après `UNDERLYING_HOOK_TIMEOUT_SEC` ; une exception ou un dépassement de délai est journalisé et ne casse pas le cycle.
+
 ---
 
 ## 14. Cas Particuliers
