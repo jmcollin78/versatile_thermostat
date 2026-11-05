@@ -1303,7 +1303,7 @@ class UnderlyingValve(UnderlyingEntity):
         super().__init__(
             hass=hass,
             thermostat=thermostat,
-            entity_type=UnderlyingEntityType.VALVE,
+            entity_type=entity_type,
             entity_id=valve_entity_id,
         )
         self._hvac_mode = None
