@@ -916,6 +916,17 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
             raise primary_error
         return adopted
 
+    def _underlying_temperature_step(self, under) -> float | None:
+        """Return the setpoint step used to detect an ambiguous underlying setpoint.
+
+        Issue #2175 - some integrations (e.g. Matter) do not publish target_temp_step:
+        fall back to the step of this thermostat.
+        """
+        step = under.target_temperature_step
+        if step is None:
+            step = self.target_temperature_step
+        return step
+
     def _consider_underlying_temperature_candidate(self, under, temperature: float):
         """Debounce a distinct underlying setpoint before applying it to this thermostat."""
         if isinstance(temperature, bool) or not isinstance(temperature, (int, float)) or not (-float("inf") < temperature < float("inf")):
@@ -936,7 +947,7 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
                 self._underlying_temperature_status[under.entity_id] = "echo_possible"
                 return
 
-            underlying_step = under.target_temperature_step
+            underlying_step = self._underlying_temperature_step(under)
             if underlying_step is not None and difference <= underlying_step:
                 self._cancel_underlying_temperature_candidate(under.entity_id)
                 self._underlying_temperature_status[under.entity_id] = "ambiguous"
@@ -964,7 +975,7 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
                 return
 
             latest_sent = under.last_sent_temperature
-            latest_step = under.target_temperature_step
+            latest_step = self._underlying_temperature_step(under)
             if latest_sent is not None and (temperature == latest_sent or (latest_step is not None and abs(temperature - latest_sent) <= latest_step)):
                 self._cancel_underlying_temperature_candidate(under.entity_id)
                 self._underlying_temperature_status[under.entity_id] = "echo_possible" if temperature == latest_sent else "ambiguous"
@@ -986,7 +997,7 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
                 """Recheck live state after calls that may execute reentrantly."""
                 latest_state = self._hass.states.get(under.entity_id)
                 latest_sent = under.last_sent_temperature
-                latest_step = under.target_temperature_step
+                latest_step = self._underlying_temperature_step(under)
                 return (
                     self._underlying_temperature_candidate_version == version
                     and not self._underlying_temperature_candidates
