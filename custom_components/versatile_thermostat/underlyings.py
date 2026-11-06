@@ -1024,7 +1024,9 @@ class UnderlyingClimate(UnderlyingEntity):
         if self._thermostat.now < self._last_command_sent_datetime + timedelta(seconds=resend_delay_sec):
             return False
 
-        return abs(observed - last_sent) > (tolerance or 0)
+        # A small epsilon so a difference of exactly one step (e.g. 18.0 vs 17.9 with a 0.1 step,
+        # which is 0.10000000000000142 in floating point) is not taken as a drift
+        return abs(observed - last_sent) - (tolerance or 0) > 1e-6
 
     @property
     def last_sent_temperature(self) -> float | None:

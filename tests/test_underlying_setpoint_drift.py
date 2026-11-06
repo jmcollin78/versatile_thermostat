@@ -82,13 +82,14 @@ async def test_regulated_temperature_resent_after_underlying_setpoint_drift(hass
     entity.remove_thermostat()
 
 
-async def test_underlying_setpoint_within_step_not_resent(hass: HomeAssistant, skip_hass_states_is_state, skip_send_event):
-    """A difference not greater than the underlying step (device rounding) is not a drift"""
+@pytest.mark.parametrize("step", [0.5, 0.1])
+async def test_underlying_setpoint_within_step_not_resent(hass: HomeAssistant, skip_hass_states_is_state, skip_send_event, step):
+    """A difference not greater than the underlying step (device rounding) is not a drift, including steps like 0.1 that are inexact in floating point"""
     now: datetime = datetime.now(tz=get_tz(hass))
-    entity, fake_underlying_climate, sent = await _create_regulated_vtherm(hass, now - timedelta(minutes=20), step=0.5)
+    entity, fake_underlying_climate, sent = await _create_regulated_vtherm(hass, now - timedelta(minutes=20), step=step)
     under = entity.underlying_entity(0)
 
-    await _change_setpoint_on_device(hass, fake_underlying_climate, sent - 0.5)
+    await _change_setpoint_on_device(hass, fake_underlying_climate, sent - step)
 
     entity._set_now(now - timedelta(minutes=15))
     with patch("custom_components.versatile_thermostat.underlyings.UnderlyingClimate.set_temperature") as mock_set_temperature:
@@ -96,7 +97,7 @@ async def test_underlying_setpoint_within_step_not_resent(hass: HomeAssistant, s
         await hass.async_block_till_done()
 
     mock_set_temperature.assert_not_called()
-    assert fake_underlying_climate.target_temperature == sent - 0.5
+    assert fake_underlying_climate.target_temperature == sent - step
 
     entity.remove_thermostat()
 
