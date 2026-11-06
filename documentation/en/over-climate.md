@@ -59,6 +59,8 @@ To avoid overloading the underlying equipment (some may beep unpleasantly, other
 
 Improperly setting these thresholds may prevent correct self-regulation as new setpoints won't be sent.
 
+The regulation threshold is compared to the last setpoint sent by _VTherm_. If the setpoint of the equipment has been changed outside of _VTherm_ (on the device itself, by its own schedule, after a restart) and `Follow underlying temp changes` is off, the setpoint is sent again at the next regulation even if it did not change. A difference not greater than the step of the equipment is ignored, as well as a difference reported less than 2 seconds after a command or while the equipment is off.
+
 ### Valve regulation startup with write-only degrees
 
 With `auto_regulation_valve`, some `number` entities used for opening and closing degrees are write-only setpoints. After a Home Assistant restart or an integration reload, they can remain `unknown` even though the underlying `climate` entity is usable.

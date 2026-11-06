@@ -279,7 +279,13 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
             # will not have any effect on the device. This avoid to send too many temperature changes to the underlying.
             dtemp = target_temp - (under.last_sent_temperature if under.last_sent_temperature else 0)
 
-            if not force and abs(dtemp) < (self._auto_regulation_dtemp or 0):
+            # The dtemp is computed against what VTherm sent, not against what the underlying has. If the underlying setpoint has been
+            # changed outside of VTherm (local control, own schedule, restart) and this change is not followed, resend the temperature.
+            if (
+                not force
+                and abs(dtemp) < (self._auto_regulation_dtemp or 0)
+                and (self._follow_underlying_temp_change or not under.has_setpoint_drifted(self._underlying_temperature_step(under)))
+            ):
                 _LOGGER.info(
                     "%s - dtemp (%.1f) is < %.1f -> forget the regulation send for %s",
                     self,
