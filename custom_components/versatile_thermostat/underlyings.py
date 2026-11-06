@@ -1008,6 +1008,26 @@ class UnderlyingClimate(UnderlyingEntity):
 
         return True
 
+    def has_setpoint_drifted(self, tolerance: float | None) -> bool:
+        """True if the setpoint reported by the underlying differs from the last sent temperature by more than tolerance.
+        False if nothing has been sent yet, if the underlying is off or reports no setpoint, or if the last command may not be applied yet.
+        """
+        last_sent = self._last_sent_temperature
+        observed = self.underlying_target_temperature
+        if last_sent is None or isinstance(observed, bool) or not isinstance(observed, (int, float)):
+            return False
+
+        under_hvac_mode = self.hvac_mode
+        if under_hvac_mode is None or str(under_hvac_mode) in (str(VThermHvacMode_OFF), STATE_UNAVAILABLE, STATE_UNKNOWN):
+            return False
+
+        if self._thermostat.now < self._last_command_sent_datetime + timedelta(seconds=resend_delay_sec):
+            return False
+
+        # A small epsilon so a difference of exactly one step (e.g. 18.0 vs 17.9 with a 0.1 step,
+        # which is 0.10000000000000142 in floating point) is not taken as a drift
+        return abs(observed - last_sent) - (tolerance or 0) > 1e-6
+
     @property
     def last_sent_temperature(self) -> float | None:
         """Get the last send temperature. None if no temperature have been sent yet"""

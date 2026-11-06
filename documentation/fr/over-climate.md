@@ -59,6 +59,8 @@ Afin d'éviter de trop solliciter l'équipement sous-jacent (certain font un bip
 
 S'ils sont mal réglés, ces seuils peuvent empêcher une auto-régulation correcte puisque les nouvelles consignes ne seront pas envoyées.
 
+Le seuil de régulation est comparé à la dernière consigne envoyée par _VTherm_. Si la consigne de l'équipement a été changée en dehors de _VTherm_ (sur l'équipement lui-même, par son propre programme, après un redémarrage) et que le suivi des changements de température du sous-jacent (`Follow underlying temp changes`) n'est pas activé, la consigne est renvoyée à la prochaine régulation, même si elle n'a pas changé. Un écart inférieur ou égal au pas de l'équipement est ignoré, ainsi qu’un écart remonté moins de 2 secondes après une commande ou quand l’équipement est éteint.
+
 ### Démarrage de la régulation par vanne avec des degrés sans retour
 
 Avec `auto_regulation_valve`, certaines entités `number` utilisées pour les degrés d’ouverture et de fermeture sont des consignes d’écriture sans retour d’état. Après un redémarrage de Home Assistant ou un rechargement de l’intégration, elles peuvent rester `unknown` alors que l’entité `climate` sous-jacente reste utilisable.
