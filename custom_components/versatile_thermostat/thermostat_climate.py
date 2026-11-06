@@ -295,6 +295,15 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
                 )
                 continue
 
+            if not force and abs(dtemp) < (self._auto_regulation_dtemp or 0):
+                _LOGGER.info(
+                    "%s - setpoint of %s (%s) differs from the last sent temperature (%s) -> resend it",
+                    self,
+                    under.entity_id,
+                    under.underlying_target_temperature,
+                    under.last_sent_temperature,
+                )
+
             if _command_cause == COMMAND_CAUSE_UNDERLYING_TRACKING and under.underlying_target_temperature == target_temp:
                 continue
 
