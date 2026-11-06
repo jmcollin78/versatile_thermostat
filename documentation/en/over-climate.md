@@ -132,6 +132,8 @@ Tracking suspends further tracking-induced physical setpoint commands after thre
 
 An old return that differs from the last command can still be mistaken for a manual action; an ambiguous return can instead be rejected. The five-second wait does not prove where a change came from and does not guarantee that every action is captured or that an external automation cannot sustain a loop.
 
+Some TRVs (for example the Sonoff TRVZB) change their own setpoint when _VTherm_ turns them OFF. So a setpoint reported less than 15 seconds after _VTherm_ sent OFF to the equipment is ignored.
+
 Some equipment (like Daikin, for example) changes state by itself. If the checkbox is checked, it may turn off the _VTherm_ when that's not what you intended.
 That's why it's better not to use it. It generates a lot of confusion and many support requests.
 

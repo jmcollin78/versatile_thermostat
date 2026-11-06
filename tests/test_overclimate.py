@@ -858,6 +858,7 @@ async def test_misaligned_underlying_mode_does_not_drop_temperature_change(
 
         reported_underlying = MagicMock()
         reported_underlying.entity_id = "climate.second_underlying"
+        reported_underlying.sent_off_recently.return_value = False
         new_state = State("climate.second_underlying", VThermHvacMode_HEAT, {"temperature": 23})
         old_state = State("climate.second_underlying", VThermHvacMode_OFF, {"temperature": 20})
         with patch.object(entity, "_consider_underlying_temperature_candidate") as consider_candidate:
