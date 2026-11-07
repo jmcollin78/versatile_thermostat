@@ -46,7 +46,7 @@ from homeassistant.components.binary_sensor import BinarySensorEntity, DOMAIN as
 
 from homeassistant.helpers.entity_component import EntityComponent
 
-from pytest_homeassistant_custom_component.common import MockConfigEntry
+from pytest_homeassistant.common import MockConfigEntry
 
 from custom_components.versatile_thermostat.base_thermostat import BaseThermostat
 from custom_components.versatile_thermostat.const import *  # pylint: disable=wildcard-import, unused-wildcard-import

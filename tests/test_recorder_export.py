@@ -132,7 +132,7 @@ async def test_permissions(exposed, authenticated, allowed, llm_module):
 
 @pytest.mark.freeze_time("2026-10-01 00:00:00")
 async def test_native_recorder(recorder_mock, hass, freezer):
-    from pytest_homeassistant_custom_component.components.recorder.common import (
+    from pytest_homeassistant.components.recorder.common import (
         async_wait_recording_done,
     )
 
@@ -237,7 +237,7 @@ async def test_export_and_tpi_share_native_boundary_events(
     """One real Recorder supplies identical boundary states to both consumers."""
     import numpy as np
     from homeassistant.components.recorder import get_instance
-    from pytest_homeassistant_custom_component.components.recorder.common import (
+    from pytest_homeassistant.components.recorder.common import (
         async_wait_recording_done,
     )
     from custom_components.versatile_thermostat.tpi_history import TPIHistory

@@ -12,7 +12,7 @@ from homeassistant.config_entries import ConfigEntryState
 
 from homeassistant.components.climate import ClimateEntityFeature, PRESET_COMFORT, PRESET_ECO, PRESET_BOOST
 
-from pytest_homeassistant_custom_component.common import MockConfigEntry
+from pytest_homeassistant.common import MockConfigEntry
 
 # from custom_components.versatile_thermostat.base_thermostat import BaseThermostat
 from custom_components.versatile_thermostat.thermostat_climate import (
