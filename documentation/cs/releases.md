@@ -7,6 +7,7 @@
 > 4. **Obnovení časovaného presetu po restartu**: časovaný preset se po restartu termostatu nebo Home Assistant obnoví a pokračuje normálně. Více informací [zde](documentation/cs/feature-timed-preset.md),
 > 5. **Přesnější řízení výkonu**: práh aktivace kotle (`power_activation_threshold`) nově přijímá desetinné hodnoty (0.1, 0.5, ...), což umožňuje jemnější řízení spotřeby. Více informací [zde](documentation/cs/feature-power.md),
 > 6. **Zlepšení dostupnosti senzorů**: lepší určování dostupnosti teplotních senzorů přes metadata `last_updated` v Home Assistant.
+> 7. **Háky pro podřízená zařízení (pluginy)**: správci funkcí z pluginů nyní mohou sledovat příkazy odeslané podřízeným zařízením (změna režimu HVAC, příkazy ventilu, výkon požadovaný a použitý plánovačem cyklů) pomocí volitelných háků `vtherm_api` 0.9.0. Ve VTherm není nic k nastavení. Další informace [zde](https://github.com/jmcollin78/versatile_thermostat/issues/2181).
 
 ## Verze 9.2
 > 1. Nový způsob řízení cyklů topení/zastavení pro VTherm `over_switch`. Současný algoritmus má časový drift a první cykly nejsou optimální. To narušuje TPI a zejména auto-TPI. Nový `Cycle Scheduler` řeší tyto potíže. Tato změna je pro vás zcela transparentní,

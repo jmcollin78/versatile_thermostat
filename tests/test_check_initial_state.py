@@ -4,6 +4,8 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
+from vtherm_api import ValveCommandCause
+
 from homeassistant.const import STATE_ON, STATE_OFF, STATE_UNAVAILABLE, STATE_UNKNOWN
 
 from custom_components.versatile_thermostat.underlyings import UnderlyingSwitch, UnderlyingClimate, UnderlyingValve, UnderlyingValveRegulation
@@ -317,7 +319,7 @@ async def test_check_initial_state_underlying_valve(hass, hvac_mode, percent_ope
         assert u._last_known_underlying_state.state == last_state
         if expect_percent_open_call:
             assert u.send_percent_open.await_count == 1
-            assert u.send_percent_open.await_args.kwargs == {}
+            assert u.send_percent_open.await_args.kwargs == {"cause": ValveCommandCause.STARTUP}
             assert u.percent_open == min_open
 
 
@@ -476,7 +478,7 @@ async def test_check_initial_state_underlying_valve_closes_to_effective_floor(ha
     await valve.check_initial_state()
     assert valve.percent_open == 40
     assert valve._raw_percent_open == 0
-    assert valve.send_percent_open.await_args.kwargs == {}
+    assert valve.send_percent_open.await_args.kwargs == {"cause": ValveCommandCause.STARTUP}
 
 
 @pytest.mark.asyncio
@@ -518,7 +520,7 @@ async def test_check_initial_state_underlying_valve_catches_up_with_restored_dem
     assert valve._raw_percent_open == demand
     assert valve.percent_open == valve._get_controlled_percent(demand)
     assert valve.should_device_be_active is True
-    valve.send_percent_open.assert_awaited_once_with()
+    valve.send_percent_open.assert_awaited_once_with(cause=ValveCommandCause.STARTUP)
 
 
 @pytest.mark.asyncio
