@@ -11,6 +11,7 @@ from homeassistant.core import Event, HomeAssistant, State, callback
 from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers.event import async_track_time_interval, async_call_later
 from homeassistant.components.climate import (
+    ClimateEntity,
     HVACAction,
     ClimateEntityFeature,
 )
@@ -1448,7 +1449,7 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
         return None
 
     @property
-    def temperature_unit(self) -> str:
+    def native_temperature_unit(self) -> str:
         """Return the unit of measurement."""
         return self.hass.config.units.temperature_unit
 
@@ -1461,7 +1462,7 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
         return self._support_flags
 
     @property
-    def target_temperature_high(self) -> float | None:
+    def native_target_temperature_high(self) -> float | None:
         """Return the highbound target temperature we try to reach.
 
         Requires ClimateEntityFeature.TARGET_TEMPERATURE_RANGE.
@@ -1472,7 +1473,7 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
         return None
 
     @property
-    def target_temperature_low(self) -> float | None:
+    def native_target_temperature_low(self) -> float | None:
         """Return the lowbound target temperature we try to reach.
 
         Requires ClimateEntityFeature.TARGET_TEMPERATURE_RANGE.
@@ -1481,6 +1482,24 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
             return self.underlying_entity(0).target_temperature_low
 
         return None
+
+    # For backward compatibility with Home Assistant < 2026.11
+    if not hasattr(ClimateEntity, "native_temperature_unit"):
+
+        @property
+        def temperature_unit(self) -> str:
+            """Return the unit of measurement."""
+            return self.native_temperature_unit
+
+        @property
+        def target_temperature_high(self) -> float | None:
+            """Return the highbound target temperature we try to reach."""
+            return self.native_target_temperature_high
+
+        @property
+        def target_temperature_low(self) -> float | None:
+            """Return the lowbound target temperature we try to reach."""
+            return self.native_target_temperature_low
 
     @property
     def current_humidity(self) -> float | None:

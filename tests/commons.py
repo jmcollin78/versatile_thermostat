@@ -291,8 +291,11 @@ class MockClimate(ClimateEntity):
         self._attr_swing_horizontal_mode = swing_horizontal_mode
         self._attr_swing_horizontal_modes = swing_horizontal_modes
         self._attr_temperature_unit = UnitOfTemperature.CELSIUS
+        self._attr_native_temperature_unit = UnitOfTemperature.CELSIUS
         self._attr_target_temperature = 20
+        self._attr_native_target_temperature = 20
         self._attr_current_temperature = 15
+        self._attr_native_current_temperature = 15
         self._attr_target_temperature_step = step
         self._fan_modes = fan_modes if fan_modes else None
         self._attr_fan_mode = None
@@ -463,6 +466,7 @@ class MockUnavailableClimate(ClimateEntity):
         self._attr_hvac_mode = None
         self._attr_hvac_modes = [VThermHvacMode_OFF, VThermHvacMode_COOL, VThermHvacMode_HEAT]
         self._attr_temperature_unit = UnitOfTemperature.CELSIUS
+        self._attr_native_temperature_unit = UnitOfTemperature.CELSIUS
         self._attr_fan_mode = None
         if add_state:
             # add the entity to hass states
@@ -502,6 +506,10 @@ class MagicMockClimate(MagicMock):
         return UnitOfTemperature.CELSIUS
 
     @property
+    def native_temperature_unit(self):  # pylint: disable=missing-function-docstring
+        return self.temperature_unit
+
+    @property
     def hvac_mode(self):  # pylint: disable=missing-function-docstring
         return VThermHvacMode_HEAT
 
@@ -514,8 +522,16 @@ class MagicMockClimate(MagicMock):
         return 15
 
     @property
+    def native_target_temperature(self):  # pylint: disable=missing-function-docstring
+        return self.target_temperature
+
+    @property
     def current_temperature(self):  # pylint: disable=missing-function-docstring
         return 14
+
+    @property
+    def native_current_temperature(self):  # pylint: disable=missing-function-docstring
+        return self.current_temperature
 
     @property
     def target_temperature_step(  # pylint: disable=missing-function-docstring
@@ -530,10 +546,22 @@ class MagicMockClimate(MagicMock):
         return 35
 
     @property
+    def native_target_temperature_high(  # pylint: disable=missing-function-docstring
+        self,
+    ) -> float | None:
+        return self.target_temperature_high
+
+    @property
     def target_temperature_low(  # pylint: disable=missing-function-docstring
         self,
     ) -> float | None:
         return 7
+
+    @property
+    def native_target_temperature_low(  # pylint: disable=missing-function-docstring
+        self,
+    ) -> float | None:
+        return self.target_temperature_low
 
     @property
     def hvac_modes(  # pylint: disable=missing-function-docstring
@@ -609,6 +637,10 @@ class MagicMockClimateWithTemperatureRange(MagicMock, ClimateEntity):
         return UnitOfTemperature.CELSIUS
 
     @property
+    def native_temperature_unit(self):  # pylint: disable=missing-function-docstring
+        return self.temperature_unit
+
+    @property
     def hvac_mode(self):  # pylint: disable=missing-function-docstring
         return VThermHvacMode_HEAT
 
@@ -621,8 +653,16 @@ class MagicMockClimateWithTemperatureRange(MagicMock, ClimateEntity):
         return 15
 
     @property
+    def native_target_temperature(self):  # pylint: disable=missing-function-docstring
+        return self.target_temperature
+
+    @property
     def current_temperature(self):  # pylint: disable=missing-function-docstring
         return 14
+
+    @property
+    def native_current_temperature(self):  # pylint: disable=missing-function-docstring
+        return self.current_temperature
 
     @property
     def target_temperature_step(  # pylint: disable=missing-function-docstring
@@ -637,10 +677,22 @@ class MagicMockClimateWithTemperatureRange(MagicMock, ClimateEntity):
         return 35
 
     @property
+    def native_target_temperature_high(  # pylint: disable=missing-function-docstring
+        self,
+    ) -> float | None:
+        return self.target_temperature_high
+
+    @property
     def target_temperature_low(  # pylint: disable=missing-function-docstring
         self,
     ) -> float | None:
         return 7
+
+    @property
+    def native_target_temperature_low(  # pylint: disable=missing-function-docstring
+        self,
+    ) -> float | None:
+        return self.target_temperature_low
 
     @property
     def hvac_modes(  # pylint: disable=missing-function-docstring

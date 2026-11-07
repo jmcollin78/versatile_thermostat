@@ -1021,7 +1021,7 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
         return self._ac_mode
 
     @property
-    def temperature_unit(self) -> str:
+    def native_temperature_unit(self) -> str:
         """Return the unit of measurement."""
         return self._unit
 
@@ -1070,7 +1070,7 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
         return self._is_used_by_central_boiler
 
     @property
-    def target_temperature(self) -> float | None:
+    def native_target_temperature(self) -> float | None:
         """Return the temperature we try to reach."""
         return self._state_manager.current_state.target_temperature
 
@@ -1134,9 +1134,27 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
         return len(self.device_actives)
 
     @property
-    def current_temperature(self) -> float | None:
+    def native_current_temperature(self) -> float | None:
         """Return the sensor temperature."""
         return self._cur_temp
+
+    # For backward compatibility with Home Assistant < 2026.11
+    if not hasattr(ClimateEntity, "native_temperature_unit"):
+
+        @property
+        def temperature_unit(self) -> str:
+            """Return the unit of measurement."""
+            return self.native_temperature_unit
+
+        @property
+        def target_temperature(self) -> float | None:
+            """Return the temperature we try to reach."""
+            return self.native_target_temperature
+
+        @property
+        def current_temperature(self) -> float | None:
+            """Return the sensor temperature."""
+            return self.native_current_temperature
 
     @property
     def current_outdoor_temperature(self) -> float | None:
@@ -1812,7 +1830,9 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
                 # Apply temperature
                 if self._state_manager.current_state.is_target_temperature_changed:
                     _LOGGER.info("%s - Applying new target temperature: %s", self, self.target_temperature)
-                    self._attr_target_temperature = self.target_temperature
+                    self._attr_native_target_temperature = self.target_temperature
+                    if not hasattr(ClimateEntity, "native_temperature_unit"):
+                        self._attr_target_temperature = self.target_temperature
                     # Reset auto_start_stop switch delay to allow immediate restart when target temp changes
                     if self.auto_start_stop_manager:
                         self.auto_start_stop_manager.reset_switch_delay()
