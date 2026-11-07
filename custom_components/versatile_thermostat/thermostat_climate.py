@@ -1014,6 +1014,12 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
                     and not (latest_sent is not None and (temperature == latest_sent or (latest_step is not None and abs(temperature - latest_sent) <= latest_step)))
                 )
 
+            # Issue #2184 - a TRV setpoint change is a manual change: with a manual override
+            # duration, revert to the previous preset later as for a change made on the VTherm.
+            # The requested preset must be read before the adoption, as in async_set_temperature.
+            previous_preset = self.requested_state.preset
+            start_override = self._timed_preset_manager.can_start_manual_override(previous_preset)
+
             resume_attempted = False
             try:
                 self._cancel_all_underlying_temperature_candidates(resume_timed_preset=False)
@@ -1024,7 +1030,8 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
                         resume_attempted = True
                         self._timed_preset_manager.resume_expiration()
                     return
-                self._timed_preset_manager.cancel_without_revert()
+                if not start_override:
+                    self._timed_preset_manager.cancel_without_revert()
             except BaseException:
                 if not resume_attempted and not self._underlying_temperature_candidates:
                     try:
@@ -1035,6 +1042,8 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
 
             # Indirect cleanup may have installed a newer intention or candidate.
             if not closure_still_valid():
+                if not self._underlying_temperature_candidates:
+                    self._timed_preset_manager.resume_expiration()
                 return
 
             self._adopt_underlying_value(under.entity_id, "temperature", temperature)
@@ -1046,13 +1055,20 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
                 or self._underlying_temperature_candidates
                 or current_snapshot != (snapshot[0], temperature, *snapshot[2:])
             ):
+                if not self._underlying_temperature_candidates:
+                    self._timed_preset_manager.resume_expiration()
                 return
-            self.requested_state.set_preset(VThermPreset.NONE)
-            self.requested_state.force_changed()
             self._underlying_temperature_status[under.entity_id] = "accepted"
             if not self._underlying_tracking_suspended:
                 self._underlying_tracking_reason = "candidate_adopted"
-            await self.update_states(force=True, _command_cause=COMMAND_CAUSE_UNDERLYING_TRACKING)
+
+            if not (start_override and await self._timed_preset_manager.start_manual_override(previous_preset, command_cause=COMMAND_CAUSE_UNDERLYING_TRACKING)):
+                if start_override:
+                    # The override could not start after all: drop the timed preset as without override
+                    self._timed_preset_manager.cancel_without_revert()
+                self.requested_state.set_preset(VThermPreset.NONE)
+                self.requested_state.force_changed()
+                await self.update_states(force=True, _command_cause=COMMAND_CAUSE_UNDERLYING_TRACKING)
             self.update_custom_attributes()
             self.async_write_ha_state()
 

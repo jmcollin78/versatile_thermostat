@@ -180,7 +180,17 @@ class FeatureTimedPresetManager(BaseFeatureManager):
         await self._activate_timed_preset(preset, self._vtherm.now + timedelta(minutes=duration_minutes), duration_minutes)
         return True
 
-    async def start_manual_override(self, previous_preset: VThermPreset | None) -> bool:
+    def can_start_manual_override(self, previous_preset: VThermPreset | None) -> bool:
+        """Return True if a manual change from previous_preset would start a manual override.
+
+        Args:
+            previous_preset: The requested preset before the manual change
+        """
+        if self._manual_override_duration_min <= 0:
+            return False
+        return self._is_timed_preset_active or (previous_preset is not None and previous_preset != VThermPreset.NONE)
+
+    async def start_manual_override(self, previous_preset: VThermPreset | None, command_cause: str | None = None) -> bool:
         """Start a manual override after a manual temperature change.
 
         The manual override is a timed preset of NONE which reverts to the previous preset
@@ -188,17 +198,15 @@ class FeatureTimedPresetManager(BaseFeatureManager):
 
         Args:
             previous_preset: The requested preset before the manual change
+            command_cause: The cause given to the VTherm state update (e.g. an underlying setpoint change)
 
         Returns:
             True if the manual override was started, False if it is disabled or there is nothing to revert to
         """
+        if not self.can_start_manual_override(previous_preset):
+            return False
+
         duration_minutes = self._manual_override_duration_min
-        if duration_minutes <= 0:
-            return False
-
-        if not self._is_timed_preset_active and (previous_preset is None or previous_preset == VThermPreset.NONE):
-            return False
-
         self._cancel_timed_preset_timer()
 
         if not self._is_timed_preset_active:
@@ -210,14 +218,16 @@ class FeatureTimedPresetManager(BaseFeatureManager):
         # else a manual override is already active: keep the original preset and the resume record
 
         self._is_manual_override = True
-        await self._activate_timed_preset(VThermPreset.NONE, self._vtherm.now + timedelta(minutes=duration_minutes), duration_minutes)
+        await self._activate_timed_preset(VThermPreset.NONE, self._vtherm.now + timedelta(minutes=duration_minutes), duration_minutes, command_cause)
         return True
 
-    async def _activate_timed_preset(self, preset: VThermPreset, end_time: datetime, duration_minutes: float):
+    async def _activate_timed_preset(self, preset: VThermPreset, end_time: datetime, duration_minutes: float, command_cause: str | None = None):
         """Activate the timed preset until end_time, schedule its end and update the VTherm"""
         self._timed_preset = preset
         self._timed_preset_end_time = end_time
         self._is_timed_preset_active = True
+        # A new timer is scheduled below: an expiration paused by a pending underlying setpoint no longer applies
+        self._expiration_paused = False
 
         # Keep requested_state aligned with the timed preset while it is active so
         # state recalculation uses the forced preset even if HVAC is currently off.
@@ -252,7 +262,7 @@ class FeatureTimedPresetManager(BaseFeatureManager):
 
         # Force update of the thermostat state
         self._vtherm.requested_state.force_changed()
-        await self._vtherm.update_states(force=True)
+        await self._vtherm.update_states(force=True, _command_cause=command_cause)
 
         self._vtherm.update_custom_attributes()
 

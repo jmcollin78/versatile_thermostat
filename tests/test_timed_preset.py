@@ -69,7 +69,7 @@ async def test_timed_preset_manager_set_timed_preset(hass: HomeAssistant):
 
     # Check that vtherm was updated
     vtherm.requested_state.force_changed.assert_called_once()
-    vtherm.update_states.assert_called_once_with(force=True)
+    vtherm.update_states.assert_called_once_with(force=True, _command_cause=None)
     vtherm.update_custom_attributes.assert_called_once()
 
 

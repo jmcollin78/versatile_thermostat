@@ -112,6 +112,8 @@ In diesem Fall wurde dem Gerät _VTherm_ eine Entität mit der Bezeichnung `foll
 
 Steht diese Entity auf 'Ein', werden alle Temperatur- oder Zustandsänderungen, die direkt am zugehörigen Gerät vorgenommen werden, in _VTherm_ wiedergegeben.
 
+Eine direkt am Gerät vorgenommene Sollwertänderung wird wie eine manuelle Änderung der Zieltemperatur behandelt: Ist eine [Dauer der manuellen Übersteuerung](feature-timed-preset.md#manuelle-übersteuerung-mit-automatischer-rückkehr) konfiguriert, startet sie eine manuelle Übersteuerung, nach deren Ablauf die vorherige Voreinstellung wiederhergestellt wird.
+
 Seien Sie vorsichtig, beim verwenden dieser Funktion, wird Ihr Gerät jetzt auf zwei Arten gesteuert: _VTherm_ und direkt von Ihnen. Die Befehle können widersprüchlich sein, was zu Verwirrung über den Zustand des Geräts führen kann. _VTherm_ ist mit einem Verzögerungsmechanismus ausgestattet, der Schleifen verhindert: der Benutzer gibt einen Sollwert vor, der von _VTherm_ erfasst wird und den Sollwert ändert, ... Diese Verzögerung kann dazu führen, dass die direkt am Gerät vorgenommene Änderung ignoriert wird, wenn diese Änderungen zeitlich zu dicht beieinander liegen.
 
 Einige Geräte (wie z. B. Daikin) ändern ihren Zustand von selbst. Wenn das Kontrollkästchen aktiviert ist, kann es sein, dass _VTherm_ ausgeschaltet wird, obwohl Sie das nicht beabsichtigt haben.
