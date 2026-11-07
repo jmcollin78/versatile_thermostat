@@ -879,7 +879,12 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
         else:
             await end_climate_changed(changes, preserve_temperature_candidates=True)
         if candidate_temperature is not None:
-            self._consider_underlying_temperature_candidate(under, candidate_temperature)
+            if under.sent_off_recently():
+                # Issue #2185 - the device moved its own setpoint after VTherm turned it OFF: not a user gesture
+                self._cancel_underlying_temperature_candidate(under.entity_id)
+                self._underlying_temperature_status[under.entity_id] = "device_settling"
+            else:
+                self._consider_underlying_temperature_candidate(under, candidate_temperature)
 
     def _adopt_underlying_value(self, entity_id: str, kind: str, value: Any):
         """Count a retained mutation once, even if its setter assigns then raises."""

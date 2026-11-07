@@ -135,6 +135,8 @@ Le suivi suspend les nouvelles commandes de température induites après trois t
 
 Un retour ancien, différent de la dernière commande, peut encore être pris à tort pour un geste manuel ; un retour ambigu peut au contraire être écarté. Le délai de 5 secondes n'établit pas l'origine d'un changement et ne garantit ni la capture de tous les gestes ni l'absence de toute boucle entretenue par une automatisation externe.
 
+Certaines vannes (par exemple la Sonoff TRVZB) changent leur propre consigne quand _VTherm_ les éteint. Une consigne remontée moins de 15 secondes après que _VTherm_ a envoyé OFF à l'équipement est donc ignorée.
+
 Certains équipements (Daikin par exemple), changent d'état tout seul. Si la case est cochée, cela peut éteindre le _VTherm_ alors que ce n'est pas ce que vous souhaitiez.
 C'est pour ça qu'il est préférable de ne pas l'utiliser. Cela génère beaucoup d'incompréhensions et de nombreuses demandes de support.
 
