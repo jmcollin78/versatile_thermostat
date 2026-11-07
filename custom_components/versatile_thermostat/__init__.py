@@ -136,11 +136,15 @@ async def reload_all_vtherm(hass):
         hass.config_entries.async_reload(entry.entry_id) for entry in current_entries
     ]
 
-    await asyncio.gather(*reload_tasks)
     api: VersatileThermostatAPI = VersatileThermostatAPI.get_vtherm_api(hass)
-    if api:
+    # While the entries are reloaded, the central boiler sensors only see a part of the VTherms
+    api.central_boiler_manager.suspend_evaluation()
+    try:
+        await asyncio.gather(*reload_tasks)
         await api.central_boiler_manager.reload_central_boiler_entities_list()
         await api.init_vtherm_links()
+    finally:
+        await api.central_boiler_manager.resume_evaluation()
 
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
@@ -205,6 +209,7 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         if api:
             if entry.data.get(CONF_THERMOSTAT_TYPE) == CONF_THERMOSTAT_CENTRAL_CONFIG:
                 api.reset_central_config()
+                api.central_boiler_manager.stop_listening()
             api.remove_entry(entry)
             await api.central_boiler_manager.reload_central_boiler_entities_list()
 
