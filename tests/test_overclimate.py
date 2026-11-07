@@ -8,7 +8,13 @@ import logging
 import pytest
 
 from homeassistant.core import HomeAssistant, State
-from homeassistant.components.climate import ClimateEntityFeature, SERVICE_SET_TEMPERATURE, HVACMode, HVACAction
+from homeassistant.components.climate import (
+    ClimateEntityFeature,
+    SERVICE_SET_TEMPERATURE,
+    SERVICE_SET_HVAC_MODE,
+    HVACMode,
+    HVACAction,
+)
 
 from homeassistant.components.switch import DOMAIN as SWITCH_DOMAIN
 
@@ -20,6 +26,9 @@ from custom_components.versatile_thermostat.underlyings import UnderlyingClimate
 from custom_components.versatile_thermostat.switch import (
     FollowUnderlyingTemperatureChange,
 )
+
+from homeassistant.util import dt as dt_util
+from pytest_homeassistant_custom_component.common import async_fire_time_changed
 
 from .commons import *
 
@@ -2016,6 +2025,67 @@ async def test_repeated_turn_off_preserves_last_mode(
     await entity.async_turn_on()
     await hass.async_block_till_done()
     assert entity.hvac_mode == VThermHvacMode_HEAT
+
+    entity.remove_thermostat()
+
+
+async def test_issue_2198_turn_on_avoids_same_tick_set_temperature(
+    hass: HomeAssistant,
+    skip_hass_states_is_state,
+    skip_turn_on_off_heater,
+    skip_send_event,
+    fake_underlying_climate,
+):
+    """Test #2198: when turning on from OFF to HEAT, set_temperature must not be sent
+    in the same tick as set_hvac_mode (to prevent Daikin AC turning off), and must instead
+    be sent after the 2-second restart delay with the target temperature."""
+    entry = MockConfigEntry(
+        domain=DOMAIN,
+        title="TheOverClimateMockName",
+        unique_id="uniqueId",
+        data=PARTIAL_CLIMATE_NOT_REGULATED_CONFIG,
+    )
+
+    entity: ThermostatOverClimate = await create_thermostat(hass, entry, "climate.theoverclimatemockname")
+    assert entity is not None
+
+    under: UnderlyingClimate = entity.underlying_entity(0)
+
+    # 1. Turn thermostat OFF
+    await entity.async_set_hvac_mode(VThermHvacMode_OFF)
+    await hass.async_block_till_done()
+    assert entity.hvac_mode == VThermHvacMode_OFF
+
+    with patch("homeassistant.core.ServiceRegistry.async_call") as mock_service_call:
+        # 2. Turn thermostat ON to HEAT
+        await entity.async_set_hvac_mode(VThermHvacMode_HEAT)
+        await hass.async_block_till_done()
+
+        # In the same tick: set_hvac_mode MUST be sent, but set_temperature MUST NOT be sent
+        hvac_mode_calls = [
+            c for c in mock_service_call.call_args_list if c[0][0] == "climate" and c[0][1] == SERVICE_SET_HVAC_MODE
+        ]
+        set_temp_calls = [
+            c for c in mock_service_call.call_args_list if c[0][0] == "climate" and c[0][1] == SERVICE_SET_TEMPERATURE
+        ]
+
+        assert len(hvac_mode_calls) == 1
+        assert hvac_mode_calls[0][0][2] == {"entity_id": "climate.mock_climate", "hvac_mode": HVACMode.HEAT}
+        assert len(set_temp_calls) == 0, "set_temperature must not be sent in the same tick as set_hvac_mode (#2198)"
+        assert under._cancel_set_temperature_later is not None
+        assert under._pending_restart_temperature == entity.target_temperature
+
+        # 3. Advance time by 2 seconds (resend_delay_sec) to trigger delayed temperature send
+        async_fire_time_changed(hass, dt_util.utcnow() + timedelta(seconds=2))
+        await hass.async_block_till_done()
+
+        set_temp_calls_after = [
+            c for c in mock_service_call.call_args_list if c[0][0] == "climate" and c[0][1] == SERVICE_SET_TEMPERATURE
+        ]
+        assert len(set_temp_calls_after) == 1
+        assert set_temp_calls_after[0][0][2]["temperature"] == entity.target_temperature
+        assert under._cancel_set_temperature_later is None
+        assert under._pending_restart_temperature is None
 
     entity.remove_thermostat()
 
