@@ -1599,6 +1599,7 @@ async def test_central_boiler_cancel_delayed_activation(hass: HomeAssistant):
     manager.call_service = MagicMock(return_value=None)
     manager._is_ready = True
     manager._is_on = False
+    _set_demand_sensors(manager)
 
     # Capture the _activate_later callback from async_call_later
     captured_callback: Callable = None
@@ -1900,9 +1901,18 @@ async def test_central_boiler_keep_alive_respects_delayed_activation(hass: HomeA
     manager.call_service.assert_not_called()
 
 
+def _set_demand_sensors(manager: FeatureCentralBoilerManager) -> None:
+    """Give the manager demand sensors which are populated from ready VTherms"""
+    manager._nb_active_device_number_entity = MagicMock(native_value=0, all_vtherms_ready=True)
+    manager._total_power_active_entity = MagicMock(native_value=0, all_vtherms_ready=True)
+
+
 def _build_template_boiler_manager(hass: HomeAssistant, activation: str, deactivation: str):
-    """Build a central boiler manager configured with the given services"""
+    """Build a central boiler manager configured with the given services, with their targets available"""
+    hass.states.async_set("climate.hc1", "heat")
+    hass.states.async_set("switch.boiler", "off")
     manager = FeatureCentralBoilerManager(hass, MagicMock())
+    _set_demand_sensors(manager)
     manager._name = "TestCentralBoilerManager"
     boiler_entity_mock = MagicMock()
     boiler_entity_mock.entity_id = "binary_sensor.central_boiler"
