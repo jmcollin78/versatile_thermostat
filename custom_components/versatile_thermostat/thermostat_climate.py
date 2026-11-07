@@ -304,7 +304,7 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
             # UnderlyingClimate.set_hvac_mode already scheduled a delayed temperature send.
             # Avoid sending set_temperature in the exact same tick, which shuts down Daikin ACs.
             if getattr(under, "_cancel_set_temperature_later", None) is not None:
-                _LOGGER.info(
+                _LOGGER.debug(
                     "%s - #2198 - underlying %s has a pending delayed temperature resend after restart. Skipping immediate set_temperature to avoid collision.",
                     self,
                     under.entity_id,
