@@ -1817,6 +1817,11 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
                     if self.auto_start_stop_manager:
                         self.auto_start_stop_manager.reset_switch_delay()
 
+                    if not self._state_manager.current_state.is_hvac_mode_changed:
+                        for under in self._underlyings:
+                            if hasattr(under, "_cancel_delayed_commands"):
+                                under._cancel_delayed_commands()
+
                 # Apply hvac_mode
                 if self._state_manager.current_state.is_hvac_mode_changed:
                     _LOGGER.info("%s - Applying new hvac mode: %s", self, self.vtherm_hvac_mode)

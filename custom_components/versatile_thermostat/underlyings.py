@@ -652,6 +652,7 @@ class UnderlyingClimate(UnderlyingEntity):
         self._last_sent_temperature: Optional[float] = None
         self._cancel_set_fan_mode_later: Optional[Callable[[], None]] = None
         self._cancel_set_temperature_later: Optional[Callable[[], None]] = None
+        self._pending_restart_temperature: Optional[float] = None
         self._min_sync_entity: float = None
         self._max_sync_entity: float = None
         self._step_sync_entity: float = None
@@ -681,6 +682,7 @@ class UnderlyingClimate(UnderlyingEntity):
         if self._cancel_set_temperature_later:
             self._cancel_set_temperature_later()
             self._cancel_set_temperature_later = None
+        self._pending_restart_temperature = None
 
         if command_cause == COMMAND_CAUSE_UNDERLYING_TRACKING:
             if self.is_command_blocked(CLIMATE_DOMAIN, SERVICE_SET_HVAC_MODE):
@@ -701,17 +703,23 @@ class UnderlyingClimate(UnderlyingEntity):
         )
 
         # if restart the climate, then resend the target temperature 2 sec later for lazy SonoffTRVZB
+        # and to avoid Daikin AC shutdown (#2198) when set_hvac_mode and set_temperature collide
         if hvac_mode in (VThermHvacMode_HEAT, VThermHvacMode_COOL):
 
             async def callback_resend_temp(_):
-                temperature = self.last_sent_temperature
+                temperature = self._pending_restart_temperature
+                if temperature is None:
+                    temperature = self.last_sent_temperature
                 if temperature is None:
                     temperature = getattr(self._thermostat, "regulated_target_temperature", None)
                 if temperature is None:
                     temperature = self._thermostat.target_temperature
+                self._pending_restart_temperature = None
+                self._cancel_set_temperature_later = None
                 if temperature is not None:
                     await self.set_temperature(temperature, None, None, command_cause=command_cause)
 
+            self._pending_restart_temperature = None
             self._cancel_set_temperature_later = async_call_later(self._hass, resend_delay_sec, callback_resend_temp)
 
         return True
@@ -740,6 +748,7 @@ class UnderlyingClimate(UnderlyingEntity):
         if self._cancel_set_temperature_later:
             self._cancel_set_temperature_later()
             self._cancel_set_temperature_later = None
+        self._pending_restart_temperature = None
 
     @overrides
     def remove_entity(self):
@@ -750,6 +759,7 @@ class UnderlyingClimate(UnderlyingEntity):
         if self._cancel_set_temperature_later:
             self._cancel_set_temperature_later()
             self._cancel_set_temperature_later = None
+        self._pending_restart_temperature = None
         super().remove_entity()
 
     @property
