@@ -190,7 +190,7 @@ class FeatureCentralBoilerManager(BaseFeatureManager):
                         _LOGGER,
                         self,
                         f"Central boiler is being turned on (nb_active= {self.nb_active_device_for_boiler}/{self.nb_active_device_for_boiler_threshold},"
-                        "total_power= {self.total_power_active_for_boiler}/{self.total_power_active_for_boiler_threshold})",
+                        f"total_power= {self.total_power_active_for_boiler}/{self.total_power_active_for_boiler_threshold})",
                     )
                     if self._call_later_handle:
                         _LOGGER.debug("%s - central boiler activation is already scheduled", self)
@@ -208,7 +208,7 @@ class FeatureCentralBoilerManager(BaseFeatureManager):
                         _LOGGER,
                         self,
                         f"Central boiler is being turned off (nb_active= {self.nb_active_device_for_boiler}/{self.nb_active_device_for_boiler_threshold},"
-                        "total_power= {self.total_power_active_for_boiler}/{self.total_power_active_for_boiler_threshold})",
+                        f"total_power= {self.total_power_active_for_boiler}/{self.total_power_active_for_boiler_threshold})",
                     )
 
                     # Cancel any pending activation
