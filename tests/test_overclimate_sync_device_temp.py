@@ -282,3 +282,64 @@ async def test_over_climate_valve_multi_sync_temperature(hass: HomeAssistant, fa
 
     vtherm.remove_thermostat()
     await hass.async_block_till_done()
+
+
+def _create_sync_temperature_entry() -> MockConfigEntry:
+    """Create an over_climate entry which sends the room temperature to number.mock_ext_temp"""
+    return MockConfigEntry(
+        domain=DOMAIN,
+        title="TheOverClimateMockName",
+        unique_id="uniqueId",
+        version=2,
+        minor_version=2,
+        data={
+            CONF_NAME: "TheOverClimateMockName",
+            CONF_TEMP_SENSOR: "sensor.mock_temp_sensor",
+            CONF_CYCLE_MIN: 5,
+            CONF_DEVICE_POWER: 1,
+            CONF_USE_MAIN_CENTRAL_CONFIG: False,
+            CONF_USE_CENTRAL_MODE: False,
+            CONF_THERMOSTAT_TYPE: CONF_THERMOSTAT_CLIMATE,
+            CONF_EXTERNAL_TEMP_SENSOR: "sensor.mock_ext_temp_sensor",
+            CONF_TEMP_MIN: 15,
+            CONF_TEMP_MAX: 30,
+            CONF_STEP_TEMPERATURE: 0.1,
+            CONF_UNDERLYING_LIST: ["climate.mock_climate"],
+            CONF_AC_MODE: False,
+            CONF_SYNC_DEVICE_INTERNAL_TEMP: True,
+            CONF_SYNC_WITH_CALIBRATION: False,
+            CONF_SYNC_ENTITY_LIST: ["number.mock_ext_temp"],
+            CONF_USE_PRESENCE_FEATURE: False,
+            CONF_USE_WINDOW_FEATURE: False,
+            CONF_USE_MOTION_FEATURE: False,
+            CONF_USE_POWER_FEATURE: False,
+        }
+        | MOCK_DEFAULT_CENTRAL_CONFIG
+        | MOCK_ADVANCED_CONFIG,
+    )
+
+
+async def test_sync_device_temperature_missing_entity_warns_only_when_ready(hass: HomeAssistant, fake_temp_sensor: MockTemperatureSensor, fake_ext_temp_sensor: MockTemperatureSensor, caplog):
+    """A missing sync entity is expected before the VTherm is ready, and is a real problem afterward"""
+    await create_and_register_mock_climate(hass, "mock_climate", "MockClimateName", {})
+    # number.mock_ext_temp is deliberately not created
+
+    vtherm = await create_thermostat(hass, _create_sync_temperature_entry(), "climate.theoverclimatemockname")
+    assert vtherm.is_ready is True
+    await hass.async_block_till_done()
+
+    # Back to the state of a VTherm whose async_startup has not run yet
+    vtherm._is_ready = False
+    vtherm._is_startup_done = False
+    caplog.clear()
+    await vtherm.synchronize_device_temperature()
+    assert "Cannot synchronize device temperature" not in caplog.text
+
+    vtherm._is_startup_done = True
+    assert vtherm.is_ready is True
+    caplog.clear()
+    await vtherm.synchronize_device_temperature()
+    assert "Cannot synchronize device temperature" in caplog.text
+
+    vtherm.remove_thermostat()
+    await hass.async_block_till_done()
