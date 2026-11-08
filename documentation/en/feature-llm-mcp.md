@@ -4,7 +4,7 @@ This documentation describes how to add LLM/MCP tools to **Versatile Thermostat 
 
 The provided `llm.py` file exposes:
 
-- 4 read/diagnostic and history tools;
+- 6 read/diagnostic, log and history tools;
 - 3 simple action tools: temperature, preset and HVAC mode;
 - 2 read-only TPI tools and 1 explicit TPI write tool;
 - descriptions and instructions usable in **French and English**;
@@ -16,16 +16,18 @@ The provided `llm.py` file exposes:
 
 ## 1. File to install
 
-Copy the following four files to the integration directory:
+The following modules must be present together in the integration directory:
 
 ```text
 /config/custom_components/versatile_thermostat/llm.py
+/config/custom_components/versatile_thermostat/llm_diagnostics.py
+/config/custom_components/versatile_thermostat/llm_diagnostic_time.py
 /config/custom_components/versatile_thermostat/recorder_export.py
 /config/custom_components/versatile_thermostat/tpi_history.py
 /config/custom_components/versatile_thermostat/tpi_identification.py
 ```
 
-Install these modules from the same revision. For a manual update, replace `llm.py`, `tpi_history.py` and `tpi_identification.py` together: `TPIHistory` owns one thermostat's Home Assistant context and sources, while `TPIIdentification` owns its grid and analysis parameters. This internal class organization preserves the existing MCP tools and calculations.
+Install these modules from the same revision. `TPIHistory` owns one thermostat's Home Assistant context and sources, while `TPIIdentification` owns its grid and analysis parameters; the two `llm_diagnostic*` modules provide log and plugin reads.
 
 Directory structure:
 
@@ -37,6 +39,8 @@ Directory structure:
 ├── manifest.json
 ├── ...
 ├── llm.py
+├── llm_diagnostics.py
+├── llm_diagnostic_time.py
 ├── recorder_export.py
 ├── tpi_history.py
 └── tpi_identification.py
@@ -63,6 +67,8 @@ assist__versatile_thermostat__list_vtherms
 assist__versatile_thermostat__get_status
 assist__versatile_thermostat__diagnose
 assist__versatile_thermostat__get_history
+assist__versatile_thermostat__get_logs
+assist__versatile_thermostat__get_plugins
 ```
 
 ### Actions — level 2A
@@ -73,7 +79,7 @@ assist__versatile_thermostat__set_preset
 assist__versatile_thermostat__set_hvac_mode
 ```
 
-The first three tools are marked:
+The read-only tools are marked:
 
 ```python
 read_only=True
@@ -92,6 +98,20 @@ open_world=False
 ```
 
 They actually modify the thermostat state, but only through the standard Home Assistant `climate.*` services.
+
+---
+
+## Logs and plugins
+
+`get_logs` reads the existing in-memory collector, not Recorder history. It takes `entity_id`, optional `start_time` and `end_time` in ISO format with an explicit offset (`2026-11-08T02:00:00+02:00` or `2026-11-08T00:00:00Z`), and `min_level` of `DEBUG`, `INFO`, `WARNING`, or `ERROR` (default `DEBUG`). The end defaults to the query time; the start defaults to one hour before the effective end. Bounds are inclusive, with no maximum period or pagination.
+
+Selection includes messages without a thermostat hint and follows the collector's existing name matching. Above 5,000 selected entries, the last 5,000 are returned in collector order with selected, returned and omitted counts and an explicit truncation flag. An empty or untruncated result does not guarantee historical completeness: eviction and restart can remove entries. The cap guarantees neither a full hour nor a maximum response size.
+
+`get_plugins` takes `entity_id` and checks configured links for SmartPI, Hysteresis, Pellet Regulation, Auto-fan, Heating Failure Detection, Climate Replication and Inhibition. It distinguishes configuration, loading, availability and published diagnostics where known. Unavailable sources, unresolved identities or producers, and unknown fields remain explicit; partial state does not establish absence or healthy operation. Future plugins may not be detectable and the list is not an exhaustive third-party inventory. The read triggers no calculation, refresh or command.
+
+Source publication times are UTC ISO strings with `Z`; separate raw values and knowledge fields preserve the original and any timezone uncertainty. Hysteresis activity, when known, is the published logical controller state, not proof of physical heating. A sensor belonging to a different configuration entry is not attributed to the identified plugin.
+
+Both tools target a loaded VTherm exposed to Assist. Actual client availability depends on Home Assistant/MCP compatibility and channel behavior; interpreting logs and diagnostics remains the agent's responsibility.
 
 ---
 
@@ -710,11 +730,11 @@ A simple request is enough, for example: “Are the parents' bedroom thermostat 
 
 Three tools complement the existing tools:
 
-| Tool (suffix `versatile_thermostat__…`) | Access | Stage |
-| --- | --- | --- |
-| `check_tpi_optimization` | Read-only | 1/3 — check |
-| `analyze_tpi_coefficients` | Read-only | 2/3 — analysis |
-| `set_tpi_coefficients` | Explicit write | 3/3 — optional application |
+| Tool (suffix `versatile_thermostat__…`) | Access         | Stage                      |
+| --------------------------------------- | -------------- | -------------------------- |
+| `check_tpi_optimization`                | Read-only      | 1/3 — check                |
+| `analyze_tpi_coefficients`              | Read-only      | 2/3 — analysis             |
+| `set_tpi_coefficients`                  | Explicit write | 3/3 — optional application |
 
 Read tools take only `entity_id`. The client announces each stage before calling; no background work is simulated. Every response contains `stage`, `stage_number`, `stage_total` and `state_changed`.
 
@@ -752,31 +772,31 @@ MCP **Read only** retains both analysis tools and hides `set_tpi_coefficients`, 
 
 # Technical references
 
-- Home Assistant — Model Context Protocol Server  
+- Home Assistant — Model Context Protocol Server
   https://www.home-assistant.io/integrations/mcp_server/
 
-- Home Assistant Core — `climate` LLM platform  
+- Home Assistant Core — `climate` LLM platform
   https://github.com/home-assistant/core/blob/dev/homeassistant/components/climate/llm.py
 
-- Home Assistant Core — `Tool`, `ToolResult`, `ToolAnnotations` API  
+- Home Assistant Core — `Tool`, `ToolResult`, `ToolAnnotations` API
   https://github.com/home-assistant/core/blob/dev/homeassistant/helpers/llm.py
 
-- Home Assistant Core — `climate` services  
+- Home Assistant Core — `climate` services
   https://github.com/home-assistant/core/blob/dev/homeassistant/components/climate/
 
-- Home Assistant Core — MCP Server configuration (`read_only`, `require_admin`)  
+- Home Assistant Core — MCP Server configuration (`read_only`, `require_admin`)
   https://github.com/home-assistant/core/blob/dev/homeassistant/components/mcp_server/config_flow.py
 
-- Versatile Thermostat — official repository  
+- Versatile Thermostat — official repository
   https://github.com/jmcollin78/versatile_thermostat
 
-- Versatile Thermostat — reference documentation  
+- Versatile Thermostat — reference documentation
   https://www.versatile-thermostat.org/fr/docs/reference/
 
-- Versatile Thermostat — log collector  
+- Versatile Thermostat — log collector
   https://www.versatile-thermostat.org/fr/docs/feature-logs-collector/
 
-- Versatile Thermostat — log analyzer  
+- Versatile Thermostat — log analyzer
   https://www.versatile-thermostat.org/fr/debugger/
 
 
