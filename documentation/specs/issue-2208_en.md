@@ -1,5 +1,7 @@
 # Functional Specification: Issue #2208, AI Diagnostic Tools
 
+> **Status update, 2026-11-08:** the user explicitly approved specification and design v1.3, selection of the last 5,000 entries in collector order, and development and testing. This supersedes earlier statements in this document that approval or authorization is pending, which are retained as history. This approval does not certify compatibility or V-01/V-02.
+
 ## 1. Title and Metadata
 
 | Field              | Value                                                                                                                                                                                          |

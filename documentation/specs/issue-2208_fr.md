@@ -1,5 +1,7 @@
 # Spécification fonctionnelle : issue #2208, outils de diagnostic IA
 
+> **Statut actualisé au 2026-11-08 :** l'utilisateur a explicitement validé la spécification et la conception v1.3, ainsi que la sélection des 5 000 dernières entrées en ordre collecteur, et autorisé le développement et les tests. Cette décision remplace les mentions antérieures de validation ou d'autorisation en attente dans ce document, conservées comme historique. La compatibilité et les conditions V-01/V-02 ne sont pas certifiées par cette validation.
+
 ## 1. Titre et métadonnées
 
 | Champ               | Valeur                                                                                                                                                                                                  |

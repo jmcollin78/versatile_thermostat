@@ -54,6 +54,7 @@ from homeassistant.helpers import entity_registry as er
 from homeassistant.helpers import llm
 
 from .const import DOMAIN, SERVICE_SET_TPI_PARAMETERS
+from .llm_diagnostics import GetVThermLogsTool, GetVThermPluginsTool, _target
 from .recorder_export import async_export_history
 from .tpi_history import TPIHistory
 from .tpi_identification import IdentificationError, TPIIdentification
@@ -1362,6 +1363,11 @@ def async_get_tools(
             GetVThermStatusTool(entity_ids),
             DiagnoseVThermTool(entity_ids),
             GetVThermHistoryTool(entity_ids),
+            *(
+                [GetVThermLogsTool(READ_ONLY_ANNOTATIONS), GetVThermPluginsTool(READ_ONLY_ANNOTATIONS)]
+                if any(_target(hass, llm_context, entity_id)[0] is not None for entity_id in entity_ids)
+                else []
+            ),
             SetVThermTemperatureTool(entity_ids),
             SetVThermPresetTool(entity_ids),
             SetVThermHvacModeTool(entity_ids),

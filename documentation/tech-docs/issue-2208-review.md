@@ -1,5 +1,19 @@
 # Revue de l'issue #2208 : outils de diagnostic IA
 
+> **Statut actualisé au 2026-11-08 :** l'utilisateur a validé les spécifications et la conception v1.3, la sélection des 5 000 dernières entrées en ordre collecteur, et autorisé le développement et les tests. Les mentions antérieures d'une validation encore attendue sont conservées comme historique. Cette décision ne certifie pas la compatibilité ; une revue post-développement reste soumise à une autorisation distincte.
+
+## Compte rendu de développement du 2026-11-08
+
+- Deux outils LLM en lecture seule ont été ajoutés : journaux du collecteur et état publié des plugins. La sélection conserve les 5 000 dernières entrées dans l'ordre du collecteur et indique les omissions.
+- Les diagnostics vérifient l'entrée de registre des capteurs pour les plugins identifiés, signalent les valeurs imbriquées invalides et agrègent les échecs des observations non résolues. Une sélection non résolue conserve sa publication avec producteur inconnu. Les instants de publication sont normalisés en UTC et leur valeur brute est conservée ; l'activité Hysteresis connue reste logique, non physique.
+- La sélection globale d'un algorithme prouve le lien de configuration à la cible, pas l'application par le gestionnaire. Pellet peut publier via une plateforme globale : un capteur enregistré sous une autre entrée n'est pas attribué au plugin identifié et son diagnostic est indisponible faute de preuve.
+- Banc existant : Python 3.14.10, Home Assistant 2026.11.0, pytest 9.0.3, pytest-asyncio 1.4.0 et vtherm_api 0.8.0. Les capacités `ToolAnnotations` et `ToolResult` sont présentes. Aucun changement de dépendance ni de version HA n'a été effectué pour ces tests.
+- `rtk proxy .venv/bin/python -m pytest --noconftest -q -p no:sugar --asyncio-mode=auto tests/test_llm_diagnostics.py tests/test_llm_tpi.py` : **78 réussis, 0 échec, 0 skip**, 5 avertissements de dépréciation. Les tests sont synthétiques et ne chargent pas les fixtures globales.
+- `rtk proxy env PYTHONPATH=custom_components/vtherm_api .venv/bin/python -m pytest --noconftest -q -p no:sugar --asyncio-mode=auto custom_components/vtherm_api/tests/test_log_collector.py` : **47 réussis, 0 échec, 0 skip**, 5 avertissements. Le premier essai sans `PYTHONPATH` a échoué à la collecte (`src` introuvable).
+- La commande normale avec `tests/conftest.py` échoue avant collecte : `pytest_homeassistant_custom_component.common` absent. Le banc isolé ne démontre pas la réussite du banc normal, ni de HA 2026.8/2026.10 ou de la version minimale vtherm_api 0.7 (V-01).
+- AC-011 : essai synthétique direct avec le collecteur installé, 3 600 événements par heure dont 1 800 sans attribution, 0 omis, réponse JSON de 567 062 octets ; **1 réussi, 49 désélectionnés**. Ce n'est ni une mesure de production ni un aller-retour MCP ; aucun déploiement ou appel HA réel n'a été effectué.
+- Les avertissements de capture large aux frontières d'isolation des plugins et du collecteur sont maintenus pour contenir les erreurs tierces ; la propagation de `CancelledError` est testée pour les deux outils. Les tests ciblant des fonctions internes conservent des avertissements d'accès protégé. Aucune revue post-développement déléguée n'a été réalisée.
+
 ## Synthèse et décision proposée
 
 **Recommandation : retenir la demande.** Le rapport a été approuvé et la spécification et la conception autorisées ; leur validation finale et une autorisation distincte restent nécessaires avant développement. L'issue demande deux outils IA en lecture seule pour un VTherm : consulter ses journaux internes et lister les plugins qui lui sont liés avec leur état interne. Ces informations peuvent améliorer le diagnostic sans changer la régulation.

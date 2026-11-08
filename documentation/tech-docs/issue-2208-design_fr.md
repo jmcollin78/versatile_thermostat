@@ -1,5 +1,7 @@
 # Issue #2208 : conception technique des outils de diagnostic IA
 
+> **Statut actualisé au 2026-11-08 :** l'utilisateur a explicitement validé la spécification et la conception v1.3, ainsi que la sélection des 5 000 dernières entrées en ordre collecteur, et autorisé le développement et les tests. Cette décision remplace les mentions antérieures de validation ou d'autorisation en attente dans les sections courantes, sans modifier l'archive. Elle ne certifie ni compatibilité ni réussite de V-01/V-02 ; une revue post-développement exige une autorisation distincte.
+
 ## 1. Métadonnées, autorité et sources
 
 | Champ               | Valeur                                                                                                                                                                                                                                                 |
