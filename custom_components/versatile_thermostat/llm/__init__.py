@@ -53,11 +53,11 @@ from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers import entity_registry as er
 from homeassistant.helpers import llm
 
-from .const import DOMAIN, SERVICE_SET_TPI_PARAMETERS
-from .llm_diagnostics import GetVThermLogsTool, GetVThermPluginsTool, _target
-from .recorder_export import async_export_history
-from .tpi_history import TPIHistory
-from .tpi_identification import IdentificationError, TPIIdentification
+from ..const import DOMAIN, SERVICE_SET_TPI_PARAMETERS
+from .diagnostics import GetVThermLogsTool, GetVThermPluginsTool, _target
+from ..recorder_export import async_export_history
+from ..tpi_history import TPIHistory
+from ..tpi_identification import IdentificationError, TPIIdentification
 
 READ_ONLY_ANNOTATIONS = llm.ToolAnnotations(
     read_only=True,

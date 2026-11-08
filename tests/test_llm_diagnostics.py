@@ -18,8 +18,8 @@ if not all(hasattr(ha_llm, name) for name in ("ToolAnnotations", "ToolResult")):
     )
 
 from custom_components.versatile_thermostat import llm
-from custom_components.versatile_thermostat import llm_diagnostics as diag
-from custom_components.versatile_thermostat.llm_diagnostic_time import parse_timestamp
+from custom_components.versatile_thermostat.llm import diagnostics as diag
+from custom_components.versatile_thermostat.llm.diagnostic_time import parse_timestamp
 
 ENTITY = "climate.test"
 UID = "thermostat-1"

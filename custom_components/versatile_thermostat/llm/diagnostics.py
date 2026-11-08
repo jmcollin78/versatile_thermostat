@@ -16,8 +16,8 @@ from homeassistant.components.homeassistant import async_should_expose
 from homeassistant.config_entries import ConfigEntryState
 from homeassistant.helpers import entity_registry as er, llm
 
-from .const import DOMAIN
-from .llm_diagnostic_time import ExactTimestamp, parse_timestamp, utc_timestamp
+from ..const import DOMAIN
+from .diagnostic_time import ExactTimestamp, parse_timestamp, utc_timestamp
 
 LOG_LIMIT = 5000
 LEVELS = {name: getattr(logging, name) for name in ("DEBUG", "INFO", "WARNING", "ERROR")}
