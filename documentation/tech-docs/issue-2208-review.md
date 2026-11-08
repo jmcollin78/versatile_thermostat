@@ -2,7 +2,7 @@
 
 ## Synthèse et décision proposée
 
-**Recommandation : retenir la demande et autoriser la spécification et la conception, sous réserve de préciser le périmètre des plugins et les modalités de troncature avant développement.** L'issue demande deux outils IA en lecture seule pour un VTherm : consulter ses journaux internes et lister les plugins qui lui sont liés avec leur état interne. Ces informations peuvent améliorer le diagnostic sans changer la régulation.
+**Recommandation : retenir la demande.** Le rapport a été approuvé et la spécification et la conception autorisées ; leur validation finale et une autorisation distincte restent nécessaires avant développement. L'issue demande deux outils IA en lecture seule pour un VTherm : consulter ses journaux internes et lister les plugins qui lui sont liés avec leur état interne. Ces informations peuvent améliorer le diagnostic sans changer la régulation.
 
 La priorité `P0` est confirmée par le mainteneur : cette évolution peut réduire fortement les temps de diagnostic et libérer du temps de maintenance. Il s'agit ici d'une priorité forte liée à sa valeur opérationnelle, et non du signalement d'une panne critique ou d'un problème de sécurité, malgré la description habituelle de l'étiquette GitHub.
 
@@ -11,6 +11,7 @@ La priorité `P0` est confirmée par le mainteneur : cette évolution peut rédu
 - [Issue #2208](https://github.com/jmcollin78/versatile_thermostat/issues/2208), description, métadonnées et chronologie consultées le 8 novembre 2026 : ouverte, étiquettes `enhancement` et `P0`, aucun commentaire, aucun sous-ticket ou blocage déclaré. Une branche de développement apparaît sur la page ; son contenu n'a pas été comparé au dépôt local et aucune PR liée n'est affichée.
 - Précision du mainteneur dans la conversation du 8 novembre 2026 : la priorité `P0` reflète le gain attendu sur les temps de diagnostic et la disponibilité du mainteneur.
 - Précisions du mainteneur dans la conversation du 8 novembre 2026 : responsabilité des intégrations pour l'attribution des logs, risque de confusion accepté, absence de contrôles d'authentification ou de droits supplémentaires dans l'outil, limitation par nombre de logs et troncature explicite sans pagination ni limite de période.
+- Décisions du mainteneur après présentation des documents : quatre familles et sept plugins proposés acceptés ; états partiels acceptés si davantage d'information n'est pas disponible ; plafond proposé de 5 000 logs ; dates normalisées ISO avec fuseau. D'autres plugins pourront apparaître et leur découverte dynamique comme plugins liés n'est pas garantie.
 - [PR #2167](https://github.com/jmcollin78/versatile_thermostat/pull/2167), fusionnée : historique et analyse TPI dans les outils LLM/MCP, travail connexe mais pas un doublon de la demande.
 - [Issue #2191](https://github.com/jmcollin78/versatile_thermostat/issues/2191), ouverte : perte signalée des enregistrements des factories lors du rechargement du dernier VTherm. Ce ticket connexe n'est pas une dépendance GitHub déclarée ni un correctif inclus ici ; sa reproduction n'a pas été revérifiée.
 - [Outils LLM](../../custom_components/versatile_thermostat/llm.py) : liste, état, diagnostic et historique existent déjà ; `async_get_tools` enregistre les outils Assist. Le diagnostic renvoie des attributs et des liens d'aide, pas le contenu du collecteur ni un inventaire de plugins.
@@ -66,19 +67,17 @@ Exploitation et migration : un buffer vide n'est pas une preuve d'absence d'év�
 
 **Décisions du mainteneur :** pas de contrôle d'authentification ou de droits de lecture supplémentaire dans les nouveaux outils ; récupération des logs par VTherm et dates ; limitation du nombre de logs, troncature explicite, sans limite de période ni pagination. Le risque de confusion dû aux logs mal attribués est accepté et leur attribution relève des intégrations émettrices. L'interprétation de contenus comme instructions relève de l'agent, pas du Tool.
 
+**Décisions après convergence initiale :** les quatre familles proposées et leurs sept exemples sont acceptés : SmartPI, Hysteresis, Pellet Regulation, Auto-fan, Heating Failure Detection, Climate Replication et Inhibition. Les états partiels ou inconnus sont acceptables lorsque les informations ne sont pas disponibles. Le mainteneur propose 5 000 logs au lieu de 10 000 et souhaite des dates ISO avec fuseau explicite. La découverte automatique des futurs plugins liés au VTherm n'est pas présumée possible ; signaler les limites de couverture. La conservation des dernières entrées reste la proposition présentée avec le plafond, à confirmer lors de la validation des résultats.
+
 **Hypothèses proposées, non validées :** les outils sont accessibles via l'API Assist existante et les réponses sont en lecture seule. La compatibilité avec les contextes MCP sans utilisateur reste à vérifier sans imposer de nouveau contrôle d'authentification.
 
-**Questions bloquantes avant développement :**
-
-1. Quels plugins et mécanismes doivent être couverts initialement : algorithmes proportionnels, gestionnaires externes, inhibition, plugins liés par `PluginClimate`, plugins tiers ? Comment présenter un plugin configuré mais indisponible et les mécanismes non détectables ?
-2. Quel sous-ensemble d'état interne est utile par catégorie, et par quel contrat stable peut-on le lire sans appeler de méthodes à effet de bord ?
-3. Quel plafond de nombre de logs convient pour un diagnostic courant d'une heure, sachant que le débit varie selon l'installation ? Quel ordre de sélection retenir en cas de troncature et comment signaler le dépassement ? Ces choix ne doivent pas introduire de limite de période ni de pagination.
+**Points à vérifier et à présenter pour validation finale :** la faisabilité de la découverte et des états pour les catégories acceptées, la règle de sélection lors de la troncature et la capacité effective de 5 000 entrées à couvrir un diagnostic courant d'une heure. Le débit réel et la taille des réponses ne sont pas mesurés. Conserver les limites du collecteur, sans ajouter de limite de période ni de pagination.
 
 **Question non bloquante pour la conception :** confirmer les langues de documentation à livrer.
 
 ## Suite et critères de passage
 
-1. Validation explicite de ce rapport et autorisation de lancer la spécification et la conception.
-2. Production des deux documents, clarification des questions ci-dessus et convergence sur le périmètre, la faisabilité et les critères d'acceptation. Tout désaccord persistant sera soumis à l'utilisateur.
+1. Rapport approuvé et phase de spécification et conception autorisée par le mainteneur.
+2. Mettre à jour les deux documents avec les décisions ci-dessus et vérifier leur convergence sur le périmètre, la faisabilité et les critères d'acceptation. Tout désaccord persistant sera soumis à l'utilisateur.
 3. Validation explicite des résultats avant tout développement. Les critères devront couvrir au minimum : récupération par VTherm et dates selon le collecteur, messages non attribués conformément au comportement retenu, plafond de nombre, dépassement et troncature explicites, absence de limite de période et de pagination, erreurs et absence de collecteur, distinction configuré/chargé/actif/inconnu, au moins un exemple par catégorie de plugin retenue, absence de plugin, démarrage/rechargement, compatibilité des contextes et absence d'effets de bord.
 4. Après développement, restitution des changements et tests puis nouvelle autorisation avant revue post-développement.
