@@ -432,27 +432,53 @@ def _plugin_record(hass, registry, domain, entry, category, target, entity_id, o
         diagnostic = _diagnostics(hass, registry, domain, target[1], entity_id, observed_at, entry.entry_id)
     except Exception:
         diagnostic = {"status": "unavailable", "producer": "unknown", "values": {}, "sources": [], "reasons": ["plugin_read_failed"]}
+    shared_source_unverified = domain == "vtherm_hysteresis" and selected is not True
+    if shared_source_unverified:
+        diagnostic["producer"] = "unknown"
+        if diagnostic["status"] == "complete":
+            diagnostic["status"] = "partial"
+        diagnostic["reasons"].append("shared_source_identity_unverified")
     if diagnostic["sources"] and "availability" in diagnostic["sources"][0]:
         available = diagnostic["sources"][0]["availability"] == "available"
         facts["available"] = _fact(available, "known", diagnostic["sources"][0]["source_entity_id"], "state_source")
     if domain == "vtherm_auto_fan_extended" and "enabled" in diagnostic["values"]:
         facts["enabled"] = _fact(diagnostic["values"]["enabled"], "known", entity_id, "state_source")
-    if (domain == "vtherm_hysteresis" and selected is True
-            and facts["available"]["value"] is True
-            and isinstance(diagnostic["values"].get("is_active"), bool)):
+    if domain == "vtherm_hysteresis" and selected is True and facts["available"]["value"] is True and isinstance(diagnostic["values"].get("is_active"), bool):
         facts["active"] = _fact(diagnostic["values"]["is_active"], "known", entity_id, "state_source", "published_logical_controller_state")
     source_info = diagnostic["sources"][0] if diagnostic["sources"] else None
     diagnostic["field_facts"] = {
-        key: _fact(value, "known", source_info, "state_source", "last_publication_unavailable" if source_info and source_info.get("availability") == "unavailable" else None)
+        key: _fact(
+            value,
+            "known",
+            source_info,
+            "state_source",
+            (
+                "shared_source_identity_unverified"
+                if shared_source_unverified
+                else ("last_publication_unavailable" if source_info and source_info.get("availability") == "unavailable" else None)
+            ),
+        )
         for key, value in diagnostic["values"].items()
     }
-    applies = _fact(reason="application_unverifiable", source=source, scope="integration_entry") if relation == "global_configuration" else _fact(True, "known", source, "integration_entry")
+    applies = (
+        _fact(reason="application_unverifiable", source=source, scope="integration_entry")
+        if relation == "global_configuration"
+        else _fact(True, "known", source, "integration_entry")
+    )
     link = {"relation": relation, "target": entity_id, "source": source, "applies_to_target": applies}
     if domain == "vtherm_climate_replication":
         link["physical_climate"] = entry.data.get("physical_climate")
-    return {"plugin_id": plugin_id, "domain": domain, "config_entry_id": entry.entry_id,
-            "label": domain, "categories": [category], "links": [link], "facts": facts,
-            "diagnostics": diagnostic, "state_minimum_status": "met" if _minimum_met(diagnostic) else "not_met"}
+    return {
+        "plugin_id": plugin_id,
+        "domain": domain,
+        "config_entry_id": entry.entry_id,
+        "label": domain,
+        "categories": [category],
+        "links": [link],
+        "facts": facts,
+        "diagnostics": diagnostic,
+        "state_minimum_status": "met" if _minimum_met(diagnostic) else "not_met",
+    }
 
 
 def _failure_global_applies(runtime, entry_id, values, target_uid):
@@ -503,7 +529,20 @@ def _read_plugins(hass, entity_id, target, observed_at):
                             if applies:
                                 matches.append((entry, "global_configuration"))
                             elif applies is None:
-                                unresolved.append({"observation_id": f"global:{domain}:{entry.entry_id}:{target[1]}", "link_proof": "unproven", "relation": "global_configuration", "target": entity_id, "source": f"config_entry:{entry.entry_id}", "facts": {"applies_to_target": _fact(reason="runtime_configuration_unavailable", source=f"config_entry:{entry.entry_id}", scope="integration_entry")}})
+                                unresolved.append(
+                                    {
+                                        "observation_id": f"global:{domain}:{entry.entry_id}:{target[1]}",
+                                        "link_proof": "unproven",
+                                        "relation": "global_configuration",
+                                        "target": entity_id,
+                                        "source": f"config_entry:{entry.entry_id}",
+                                        "facts": {
+                                            "applies_to_target": _fact(
+                                                reason="runtime_configuration_unavailable", source=f"config_entry:{entry.entry_id}", scope="integration_entry"
+                                            )
+                                        },
+                                    }
+                                )
                                 categories[category]["status"] = "partial"
                                 categories[category]["reasons"].append("global_application_unverifiable")
                     elif domain == "vtherm_climate_replication" and data.get("target_climate") == entity_id:
@@ -517,12 +556,26 @@ def _read_plugins(hass, entity_id, target, observed_at):
                 except Exception:
                     categories[category]["status"] = "partial"
                     categories[category]["reasons"].append("entry_schema_unavailable")
-                    errors.append({"code": "plugin_read_failed", "scope": category, "plugin_id": None, "source": domain, "field": "config_entry", "message_fr": "Entrée de plugin illisible", "message_en": "Plugin entry unreadable"})
+                    errors.append(
+                        {
+                            "code": "plugin_read_failed",
+                            "scope": category,
+                            "plugin_id": None,
+                            "source": domain,
+                            "field": "config_entry",
+                            "message_fr": "Entrée de plugin illisible",
+                            "message_en": "Plugin entry unreadable",
+                        }
+                    )
             selected_entry = None
             if algorithm_name and algorithm == algorithm_name:
                 targeted = [entry for entry, _ in matches]
                 global_entries = [entry for entry in valid_entries if entry.unique_id == domain and entry.data.get("target_vtherm_unique_id") is None]
-                selected_entry = (targeted[-1] if domain == "vtherm_pellet_stove" else targeted[0]) if targeted else ((global_entries[-1] if domain == "vtherm_pellet_stove" else global_entries[0]) if global_entries else None)
+                selected_entry = (
+                    (targeted[-1] if domain == "vtherm_pellet_stove" else targeted[0])
+                    if targeted
+                    else ((global_entries[-1] if domain == "vtherm_pellet_stove" else global_entries[0]) if global_entries else None)
+                )
                 if selected_entry and not targeted:
                     matches.append((selected_entry, "effective_global"))
             for entry, relation in matches:
@@ -530,20 +583,69 @@ def _read_plugins(hass, entity_id, target, observed_at):
                     selected = entry is selected_entry if algorithm_name and algorithm is not None else None
                     record = _plugin_record(hass, registry, domain, entry, category, target, entity_id, observed_at, selected, relation)
                     if selected:
-                        record["links"].append({"relation": "selected_algorithm", "target": entity_id, "source": "merged_target_configuration.proportional_function", "applies_to_target": _fact(True, "known", "merged_target_configuration", "runtime_component")})
+                        record["links"].append(
+                            {
+                                "relation": "selected_algorithm",
+                                "target": entity_id,
+                                "source": "merged_target_configuration.proportional_function",
+                                "applies_to_target": _fact(True, "known", "merged_target_configuration", "runtime_component"),
+                            }
+                        )
                         selected_attached = True
                     plugins.append(record)
                     if "plugin_read_failed" in record["diagnostics"]["reasons"]:
-                        errors.append({"code": "plugin_read_failed", "scope": category, "plugin_id": record["plugin_id"], "source": domain, "field": "diagnostics", "message_fr": "Diagnostic indisponible", "message_en": "Diagnostic unavailable"})
+                        errors.append(
+                            {
+                                "code": "plugin_read_failed",
+                                "scope": category,
+                                "plugin_id": record["plugin_id"],
+                                "source": domain,
+                                "field": "diagnostics",
+                                "message_fr": "Diagnostic indisponible",
+                                "message_en": "Diagnostic unavailable",
+                            }
+                        )
                 except Exception:
                     categories[category]["status"] = "partial"
-                    errors.append({"code": "plugin_read_failed", "scope": category, "plugin_id": f"{domain}:{entry.entry_id}", "source": domain, "field": None, "message_fr": "Lecture du plugin impossible", "message_en": "Plugin read failed"})
+                    errors.append(
+                        {
+                            "code": "plugin_read_failed",
+                            "scope": category,
+                            "plugin_id": f"{domain}:{entry.entry_id}",
+                            "source": domain,
+                            "field": None,
+                            "message_fr": "Lecture du plugin impossible",
+                            "message_en": "Plugin read failed",
+                        }
+                    )
         except Exception:
             categories[category]["status"] = "partial"
             categories[category]["reasons"].append(f"{domain}:plugin_discovery_unavailable")
-            errors.append({"code": "plugin_read_failed", "scope": category, "plugin_id": None, "source": domain, "field": None, "message_fr": "Découverte du plugin impossible", "message_en": "Plugin discovery failed"})
+            errors.append(
+                {
+                    "code": "plugin_read_failed",
+                    "scope": category,
+                    "plugin_id": None,
+                    "source": domain,
+                    "field": None,
+                    "message_fr": "Découverte du plugin impossible",
+                    "message_en": "Plugin discovery failed",
+                }
+            )
     if isinstance(algorithm, str) and algorithm and algorithm != "tpi" and not selected_attached:
-        observation = {"observation_id": f"selection:{target[1]}:{algorithm}", "link_proof": "proven", "relation": "selected_algorithm", "target": entity_id, "algorithm": algorithm, "source": "merged_target_configuration.proportional_function", "facts": {"configured": _fact(True, "known", "merged_target_configuration", "runtime_component"), "selected": _fact(True, "known", "merged_target_configuration", "runtime_component"), "identity": _fact(reason="configured_identity_unresolved")}}
+        observation = {
+            "observation_id": f"selection:{target[1]}:{algorithm}",
+            "link_proof": "proven",
+            "relation": "selected_algorithm",
+            "target": entity_id,
+            "algorithm": algorithm,
+            "source": "merged_target_configuration.proportional_function",
+            "facts": {
+                "configured": _fact(True, "known", "merged_target_configuration", "runtime_component"),
+                "selected": _fact(True, "known", "merged_target_configuration", "runtime_component"),
+                "identity": _fact(reason="configured_identity_unresolved"),
+            },
+        }
         domain = next((name for name, (_, value) in PLUGIN_DOMAINS.items() if value == algorithm), None)
         if domain:
             try:
@@ -555,7 +657,17 @@ def _read_plugins(hass, entity_id, target, observed_at):
                 observation["diagnostics"] = diagnostic
             except Exception:
                 observation["diagnostics"] = {"status": "unavailable", "producer": "unknown", "values": {}, "sources": [], "reasons": ["plugin_read_failed"]}
-                errors.append({"code": "plugin_read_failed", "scope": "CAT-01", "plugin_id": None, "source": domain, "field": "diagnostics", "message_fr": "Diagnostic indisponible", "message_en": "Diagnostic unavailable"})
+                errors.append(
+                    {
+                        "code": "plugin_read_failed",
+                        "scope": "CAT-01",
+                        "plugin_id": None,
+                        "source": domain,
+                        "field": "diagnostics",
+                        "message_fr": "Diagnostic indisponible",
+                        "message_en": "Diagnostic unavailable",
+                    }
+                )
         unresolved.append(observation)
         categories["CAT-01"]["status"] = "partial"
         categories["CAT-01"]["reasons"].append("configured_identity_unresolved")
@@ -566,7 +678,16 @@ def _read_plugins(hass, entity_id, target, observed_at):
         categories["CAT-01"]["status"] = "partial"
         categories["CAT-01"]["reasons"].append("target_configuration_unavailable")
     elif config.get("use_heating_failure_detection_feature"):
-        unresolved.append({"observation_id": f"legacy_failure:{target[1]}", "link_proof": "unproven", "relation": "legacy_merged", "target": entity_id, "source": "merged_target_configuration.use_heating_failure_detection_feature", "facts": {"external_plugin_application": _fact(reason="native_or_external_producer_unverifiable")}})
+        unresolved.append(
+            {
+                "observation_id": f"legacy_failure:{target[1]}",
+                "link_proof": "unproven",
+                "relation": "legacy_merged",
+                "target": entity_id,
+                "source": "merged_target_configuration.use_heating_failure_detection_feature",
+                "facts": {"external_plugin_application": _fact(reason="native_or_external_producer_unverifiable")},
+            }
+        )
         categories["CAT-02"]["status"] = "partial"
         categories["CAT-02"]["reasons"].append("native_or_external_producer_unverifiable")
     partial_discovery = any(item["status"] != "complete" for item in categories.values())
@@ -581,14 +702,34 @@ def _read_plugins(hass, entity_id, target, observed_at):
         diagnostics_status = "unavailable"
     else:
         diagnostics_status = "partial"
-    return {"status": "error" if not successes and not unresolved else ("partial" if partial_discovery or plugins or errors else "success"),
-            "plugins": plugins, "unresolved_links": unresolved,
-            "identified_configured_plugin_count": len(plugins) if successes else None,
-            "proven_unresolved_selection_count": sum(link["link_proof"] == "proven" for link in unresolved),
-            "configured_plugin_count": None if any(link["link_proof"] == "proven" for link in unresolved) or not successes or partial_discovery else len(plugins),
-            "configured_plugin_count_reason": "configured_identity_unresolved" if any(link["link_proof"] == "proven" for link in unresolved) else ("discovery_incomplete" if partial_discovery else None),
-            "coverage": {"categories": categories, "discovery": {"status": "partial" if partial_discovery else "complete"}, "third_party_exhaustive": False, "future_plugins_discovery": "not_guaranteed"},
-            "diagnostics_status": diagnostics_status, "state_minimum_status": "not_met" if any(plugin["state_minimum_status"] == "not_met" for plugin in plugins) or any(not _minimum_met(link.get("diagnostics", {})) for link in unresolved) or errors else "met", "errors": errors}
+    return {
+        "status": (
+            "error"
+            if not successes and not unresolved
+            else ("partial" if partial_discovery or unresolved or errors or diagnostics_status not in ("complete", "not_supported") else "success")
+        ),
+        "plugins": plugins,
+        "unresolved_links": unresolved,
+        "identified_configured_plugin_count": len(plugins) if successes else None,
+        "proven_unresolved_selection_count": sum(link["link_proof"] == "proven" for link in unresolved),
+        "configured_plugin_count": None if any(link["link_proof"] == "proven" for link in unresolved) or not successes or partial_discovery else len(plugins),
+        "configured_plugin_count_reason": (
+            "configured_identity_unresolved" if any(link["link_proof"] == "proven" for link in unresolved) else ("discovery_incomplete" if partial_discovery else None)
+        ),
+        "coverage": {
+            "categories": categories,
+            "discovery": {"status": "partial" if partial_discovery else "complete"},
+            "third_party_exhaustive": False,
+            "future_plugins_discovery": "not_guaranteed",
+        },
+        "diagnostics_status": diagnostics_status,
+        "state_minimum_status": (
+            "not_met"
+            if any(plugin["state_minimum_status"] == "not_met" for plugin in plugins) or any(not _minimum_met(link.get("diagnostics", {})) for link in unresolved) or errors
+            else "met"
+        ),
+        "errors": errors,
+    }
 
 
 class GetVThermPluginsTool(llm.Tool):

@@ -2,6 +2,13 @@
 
 > **Statut actualisé au 2026-11-08 :** l'utilisateur a validé les spécifications et la conception v1.3, la sélection des 5 000 dernières entrées en ordre collecteur, et autorisé le développement et les tests. Les mentions antérieures d'une validation encore attendue sont conservées comme historique. Cette décision ne certifie pas la compatibilité ; une revue post-développement reste soumise à une autorisation distincte.
 
+## Corrections des deux constats post-développement du 2026-11-08
+
+- **P1 corrigé :** les entrées Hysteresis configurées restent visibles. Pour une entrée non sélectionnée ou dont la sélection est inconnue, la publication partagée du climate conserve ses valeurs et sa provenance, mais son producteur est inconnu et son association à l'entrée est explicitement non vérifiée. Le diagnostic reste partiel ou indisponible ; l'activité de l'entrée n'est pas déduite. Le comportement d'une entrée sélectionnée est conservé.
+- **P2 corrigé :** le statut global repose sur la découverte, les diagnostics, les erreurs et les observations non résolues, au lieu de dépendre de la présence d'un plugin. Une découverte complète avec un diagnostic complet peut retourner `success` ; les lacunes restent `partial` et l'échec total de découverte reste `error`.
+- Tests synthétiques avec fixtures habituelles : Python 3.14.10, Home Assistant 2026.10.4 ; `rtk proxy env -C /workspaces/versatile_thermostat .venv/bin/python -m pytest -q -p no:sugar tests/test_llm_diagnostics.py tests/test_llm_tpi.py` : **88 réussis, 0 échec**. Aucune instance HA ni aucun service MCP n'ont été appelés pour ces corrections.
+- La correction d'attribution est limitée à Hysteresis : les capteurs des autres adaptateurs sont contrôlés par registre, Failure qualifie déjà son producteur d'inconnu, et le flux Auto-fan empêche normalement plusieurs entrées pour une même cible. La couverture des plugins tiers et la fraîcheur des publications ne sont pas garanties ; ces tests ne certifient pas le transport MCP ni les autres versions HA/API.
+
 ## Compte rendu de développement du 2026-11-08
 
 - Deux outils LLM en lecture seule ont été ajoutés : journaux du collecteur et état publié des plugins. La sélection conserve les 5 000 dernières entrées dans l'ordre du collecteur et indique les omissions.

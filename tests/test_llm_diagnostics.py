@@ -221,6 +221,94 @@ async def test_selected_global_hysteresis_completeness_and_logical_activity(fixt
         assert plugin["diagnostics"]["status"] == "partial"
 
 
+@pytest.mark.parametrize("algorithm", ["hysteresis", "tpi", None])
+async def test_hysteresis_shared_publication_is_not_attributed_to_unselected_entry(fixture, algorithm):
+    domain = "vtherm_hysteresis"
+    fixture.thermostat.entry_infos["proportional_function"] = algorithm
+    fixture.entries[domain] = [
+        entry(domain, "first", {"target_vtherm_unique_id": UID}),
+        entry(domain, "second", {"target_vtherm_unique_id": UID}, loaded=False),
+    ]
+    values = dict.fromkeys(diag.HYSTERESIS_FIELDS, None)
+    values["is_active"] = True
+    fixture.states[ENTITY] = state(ENTITY, {"specific_states": {"hysteresis": values}})
+
+    result = await call(diag.GetVThermPluginsTool(llm.READ_ONLY_ANNOTATIONS), fixture)
+    first, second = result.data["plugins"]
+    assert [plugin["config_entry_id"] for plugin in (first, second)] == ["first", "second"]
+    assert result.data["status"] == "partial"
+    assert result.data["coverage"]["discovery"]["status"] == "complete"
+    assert second["facts"]["configured"]["value"] is True
+    assert second["facts"]["loaded"]["value"] is False
+    assert second["facts"]["selected"]["value"] is (None if algorithm is None else False)
+    for plugin in (second,) if algorithm == "hysteresis" else (first, second):
+        diagnostic = plugin["diagnostics"]
+        assert diagnostic["status"] == "partial"
+        assert diagnostic["producer"] == "unknown"
+        assert diagnostic["values"]["is_active"] is True
+        assert diagnostic["sources"][0]["source_entity_id"] == ENTITY
+        assert diagnostic["sources"][0]["attribute_path"] == "specific_states.hysteresis"
+        assert "shared_source_identity_unverified" in diagnostic["reasons"]
+        assert diagnostic["field_facts"]["is_active"]["reason"] == "shared_source_identity_unverified"
+        assert diagnostic["field_facts"]["is_active"]["scope"] == "state_source"
+        assert plugin["facts"]["active"]["knowledge"] == "unknown"
+    if algorithm == "hysteresis":
+        assert first["facts"]["selected"]["value"] is True
+        assert first["diagnostics"]["status"] == "complete"
+        assert first["diagnostics"]["producer"] == domain
+        assert first["facts"]["active"]["value"] is True
+
+
+@pytest.mark.parametrize(
+    "scenario,expected",
+    [
+        ("complete", "success"),
+        ("empty", "success"),
+        ("partial", "partial"),
+        ("unavailable", "partial"),
+        ("unresolved", "partial"),
+        ("discovery", "partial"),
+        ("error", "error"),
+    ],
+)
+async def test_plugin_global_status_reflects_actual_gaps(fixture, scenario, expected):
+    if scenario in ("complete", "partial", "unavailable"):
+        domain = "vtherm_hysteresis"
+        fixture.thermostat.entry_infos["proportional_function"] = "hysteresis"
+        fixture.entries[domain] = [entry(domain, "plugin-entry", {"target_vtherm_unique_id": UID})]
+        if scenario != "unavailable":
+            values = dict.fromkeys(diag.HYSTERESIS_FIELDS, None)
+            values["is_active"] = True
+            if scenario == "partial":
+                del values["hvac_mode"]
+            fixture.states[ENTITY] = state(ENTITY, {"specific_states": {"hysteresis": values}})
+    elif scenario == "unresolved":
+        fixture.thermostat.entry_infos["proportional_function"] = "unknown_external"
+    elif scenario in ("discovery", "error"):
+
+        def entries(domain):
+            if scenario == "error" or domain == "vtherm_smartpi":
+                raise RuntimeError("discovery failed")
+            return fixture.entries.get(domain, [])
+
+        fixture.hass.config_entries.async_entries.side_effect = entries
+
+    result = await call(diag.GetVThermPluginsTool(llm.READ_ONLY_ANNOTATIONS), fixture)
+    assert result.data["status"] == expected
+    assert result.error is (expected == "error")
+    if scenario == "complete":
+        assert result.data["coverage"]["discovery"]["status"] == "complete"
+        assert result.data["diagnostics_status"] == "complete"
+        assert result.data["errors"] == []
+    elif scenario in ("partial", "unavailable"):
+        assert result.data["diagnostics_status"] == scenario
+    elif scenario == "unresolved":
+        assert result.data["unresolved_links"]
+    elif scenario in ("discovery", "error"):
+        assert result.data["coverage"]["discovery"]["status"] == "partial"
+        assert result.data["errors"]
+
+
 async def test_published_tools(fixture, monkeypatch):
     monkeypatch.setattr(llm, "_get_vtherm_entity_ids", lambda hass, context: [ENTITY])
     tools = llm.async_get_tools(fixture.hass, fixture.context, ha_llm.LLM_API_ASSIST)
@@ -284,6 +372,7 @@ async def test_local_diagnostic_failure_preserves_plugin(fixture, monkeypatch):
     assert len(result.data["plugins"]) == 2
     assert result.data["plugins"][0]["diagnostics"]["status"] == "unavailable"
     assert result.data["errors"][0]["code"] == "plugin_read_failed"
+    assert result.data["status"] == "partial"
     assert "private failure" not in json.dumps(result.data)
 
 
