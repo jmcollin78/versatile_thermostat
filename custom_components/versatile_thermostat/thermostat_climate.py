@@ -664,9 +664,6 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
             )
         )
 
-        # Synchronize temperature if activated
-        await self.synchronize_device_temperature()
-
     @overrides
     def restore_specific_previous_state(self, old_state: State):
         """Restore my specific attributes from previous state"""
@@ -1282,6 +1279,12 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
         """Synchronize the device temperature by sending the offset calibration"""
 
         if not self.has_sync_entities:
+            return
+
+        # The sync entities may not be loaded yet during HA startup.
+        # The next temperature change will synchronize the device once the VTherm is ready.
+        if not self.is_ready:
+            _LOGGER.debug("%s - VTherm is not ready. Skip the device temperature synchronization", self)
             return
 
         for idx, sync_entity_id in enumerate(self._sync_entity_list):
