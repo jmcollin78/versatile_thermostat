@@ -574,6 +574,38 @@ async def test_unconfigured_manager_receives_nothing(hass: HomeAssistant, fake_t
     assert events == []
 
 
+class FaultyConfiguredManager(FullManager):
+    """is_configured raises"""
+
+    @property
+    def is_configured(self) -> bool:
+        raise RuntimeError("faulty is_configured")
+
+
+async def test_failing_is_configured_is_isolated(hass: HomeAssistant, fake_temp_sensor, fake_ext_temp_sensor, caplog):
+    """A manager whose is_configured raises is skipped, the others and the core command are not affected"""
+    faulty_events = register(hass, FaultyConfiguredManager)
+    good_events: list = []
+    good_factory = FakeFactory(FullManager, good_events)
+    good_factory.name = "good_hooks_fm"
+    api(hass).register_feature_manager(good_factory)
+
+    vtherm, _, opening, _ = await heating_climate_valve_vtherm(hass, fake_temp_sensor)
+    assert len(vtherm._external_managers) == 2
+    good_events.clear()
+
+    with record_services(good_events):
+        await vtherm.async_set_hvac_mode(VThermHvacMode_OFF)
+        await hass.async_block_till_done()
+
+    assert faulty_events == []
+    assert "before_hvac_mode" in names(good_events)
+    assert "service" in names(good_events)
+    assert hass.states.get(CLIMATE).state == "off"
+    assert float(hass.states.get(OPENING).state) == 0
+    assert "Error while reading is_configured" in caplog.text
+
+
 async def test_failing_hook_is_logged_and_core_command_is_sent(hass: HomeAssistant, fake_temp_sensor, fake_ext_temp_sensor, caplog):
     """An exception in the hooks never blocks the core commands"""
     events = register(hass, FailingManager)

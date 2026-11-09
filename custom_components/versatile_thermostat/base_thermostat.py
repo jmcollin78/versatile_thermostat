@@ -314,8 +314,21 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
             self.register_manager(manager)
             self._external_manager_names.add(name)
             self._external_managers.append(manager)
-            _LOGGER.debug("%s - external feature manager '%s' created (is_configured=%s)", self, name, getattr(manager, "is_configured", None))
+            _LOGGER.debug("%s - external feature manager '%s' created", self, name)
             _LOGGER.info("%s - Registered external feature manager '%s'", self, name)
+
+    def _is_external_manager_configured(self, manager) -> bool:
+        """Read is_configured of an external manager. A failing manager is considered not configured."""
+        try:
+            return bool(manager.is_configured)
+        except Exception as exc:  # pylint: disable=broad-except
+            _LOGGER.error(
+                "%s - Error while reading is_configured of external feature manager '%s': %s",
+                self,
+                getattr(manager, "name", None),
+                exc,
+            )
+            return False
 
     async def _async_call_external_hook(self, method_name: str, *args) -> None:
         """Call an optional hook on each configured external feature manager.
@@ -327,7 +340,7 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
             if hook is None:
                 _LOGGER.debug("%s - external hook %s skipped for '%s': the manager has no such hook", self, method_name, manager.name)
                 continue
-            if not manager.is_configured:
+            if not self._is_external_manager_configured(manager):
                 _LOGGER.debug("%s - external hook %s skipped for '%s': is_configured is False", self, method_name, manager.name)
                 continue
             _LOGGER.debug("%s - calling external hook %s of '%s'", self, method_name, manager.name)
