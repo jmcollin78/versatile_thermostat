@@ -575,6 +575,23 @@ This call is independent of the `on_cycle_started` callback (which fires only at
 - No receipt is emitted while the thermostat is inhibited (`is_inhibited`): the command gate drops the underlying commands, so none is applied. During the exit reconciliation the thermostat is no longer inhibited and the commands pass, so their receipts are emitted.
 - Callbacks are awaited in registration order; an exception is logged as a warning and does not break the cycle.
 
+### 13.8 Underlying Power Hook
+
+`CycleScheduler._fire_underlying_power()` calls `async_on_underlying_power(command)` (`vtherm_api` 0.9.0, issue #2181) on the configured external feature managers, through `BaseThermostat.async_on_underlying_power()`. It builds one `UnderlyingPowerCommand` per underlying (`underlying_type` is `switch`, `valve` or `valve_regulation`; `climate_entity_id` is set for `valve_regulation` only). It is a notification: it never changes the cycle. It is distinct from the applied-command receipts of 13.7: the receipt describes the whole thermostat and serves the algorithm plugin, the hook describes each underlying and serves the feature managers.
+
+| Kind          | Emitted                                                                                                                                                                            |
+| ------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `CYCLE_START` | In `start_cycle()`, after `_start_cycle_switch()` or `_start_cycle_valve()` (so after the actuation), including the automatic restart (`is_repeat=True`). For a switch, `start_offset_sec` is read from `self._states` filled by `_init_cycle()`; it is `None` for the 0 % and 100 % branches and for a valve. |
+| `UPDATE`      | Valve only: in `_update_running_valve_cycle()` and in `apply_valve_update()`, after `_apply_valve_command()`, even when the value is unchanged.                                    |
+| `STOP`        | In `_cancel_cycle_impl()` when a cycle was running, with `applied_on_percent=0`. An internal cancellation followed by a restart (`start_cycle()`, `_restarting=True`) sends no `STOP`: the `CYCLE_START` follows. |
+
+- `requested_on_percent`, `applied_on_percent` and `is_repeat` are the values given to `_fire_command_receipt()`, so the two notifications stay consistent.
+- `cycle_start_monotonic` is `self._cycle_start_monotonic`, the same value as `AppliedCommandReceipt.cycle_start_monotonic`, and `monotonic` is `time.monotonic()` when the command is built. `cycle_start_monotonic` is `None` when no cycle is running: always for `STOP` (the cycle start is cleared before the notification) and for an `UPDATE` emitted outside a cycle.
+- The on/off switches of a switch during the cycle are not notified. In `_init_cycle()` and `_tick()`, a switch turns on at `cycle_start_monotonic + start_offset_sec` and turns off `on_time_sec` later (modulo the cycle duration, so the off time wraps when the ON period crosses the end of the cycle). These times are nominal: the minimal activation and deactivation delays can shift a toggle.
+- The notification can arrive after the actuation, because the managers are awaited one after the other (up to `UNDERLYING_HOOK_TIMEOUT_SEC` each). A manager must use `cycle_start_monotonic` and `monotonic`, not its reception time.
+- Nothing is sent without an external manager, when the thermostat has no `async_on_underlying_power` coroutine (test doubles) or while it is inhibited (`is_inhibited`).
+- Each call is cut after `UNDERLYING_HOOK_TIMEOUT_SEC`; an exception or a timeout is logged and does not break the cycle.
+
 ---
 
 ## 14. Special Cases
