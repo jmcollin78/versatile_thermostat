@@ -7,7 +7,7 @@ from datetime import datetime, timedelta
 from homeassistant.core import HomeAssistant
 from homeassistant.components.climate.const import HVACAction
 
-from pytest_homeassistant_custom_component.common import MockConfigEntry
+from pytest_homeassistant.common import MockConfigEntry
 
 from custom_components.versatile_thermostat.base_thermostat import BaseThermostat
 from custom_components.versatile_thermostat.thermostat_climate import (

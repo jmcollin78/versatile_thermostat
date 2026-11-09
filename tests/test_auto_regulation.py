@@ -11,7 +11,7 @@ from homeassistant.config_entries import ConfigEntryState
 from homeassistant.helpers.entity_component import EntityComponent
 from homeassistant.components.climate import ClimateEntity, DOMAIN as CLIMATE_DOMAIN
 
-from pytest_homeassistant_custom_component.common import MockConfigEntry
+from pytest_homeassistant.common import MockConfigEntry
 
 # from custom_components.versatile_thermostat.base_thermostat import BaseThermostat
 from custom_components.versatile_thermostat.thermostat_climate import (

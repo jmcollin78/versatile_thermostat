@@ -40,6 +40,7 @@ jobs:
             --durations=10 \
             -n auto \
             -o console_output_style=count \
+            -p no:respx \
             -p no:sugar \
             tests
 
