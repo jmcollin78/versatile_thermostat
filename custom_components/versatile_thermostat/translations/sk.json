@@ -527,7 +527,7 @@
         }
       },
       "type": {
-        "title": "Prepojené entity - {name}",
+        "title": "Prepojené entity",
         "description": "{wizard_progress}Zariadenia ovládané týmto VTherm. Otvorte spoločné nastavenia, zariadenie na zobrazenie a zmenu všetkých jeho nastavení, alebo pridajte zariadenie. Zariadeniam označeným ⚠ chýba nastavenie požadované spoločnými nastaveniami.",
         "menu_options": {
           "underlying_common": "Spoločné nastavenia",
@@ -724,7 +724,7 @@
         }
       },
       "configuration_not_complete": {
-        "title": "Konfigurácia nie je úplná - {name}",
+        "title": "Konfigurácia nie je úplná",
         "description": "Tieto nastavenia sú potrebné na dokončenie konfigurácie. Vyberte položku na otvorenie obrazovky, kde ju opravíte.",
         "menu_options": {
           "main": "Hlavné atribúty",

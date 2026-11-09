@@ -615,7 +615,7 @@
         }
       },
       "type": {
-        "title": "Zugehörige Entities - {name}",
+        "title": "Zugehörige Entities",
         "description": "{wizard_progress}Von diesem VTherm gesteuerte Geräte. Öffnen Sie die gemeinsamen Einstellungen, ein Gerät, um alle seine Einstellungen zu sehen und zu ändern, oder fügen Sie ein Gerät hinzu. Mit ⚠ markierten Geräten fehlt eine von den gemeinsamen Einstellungen geforderte Einstellung.",
         "menu_options": {
           "underlying_common": "Gemeinsame Einstellungen",
@@ -894,7 +894,7 @@
         }
       },
       "configuration_not_complete": {
-        "title": "Konfiguration unvollständig - {name}",
+        "title": "Konfiguration unvollständig",
         "description": "Diese Einstellungen sind erforderlich, um die Konfiguration abzuschließen. Wählen Sie einen Eintrag, um den Bildschirm zu öffnen, auf dem er behoben wird.",
         "menu_options": {
           "main": "Grundlegendes (Name, Temperatursensor...)",

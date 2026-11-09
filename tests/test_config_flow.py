@@ -2084,6 +2084,11 @@ def test_translations_of_the_config_flow_steps(language_file: Path, section: str
     if "menu" in steps:
         assert "{missing_summary}" not in steps["menu"]["description"]
 
+    # The frontend translates the title of a menu without the placeholders: a placeholder would raise a MISSING_VALUE error
+    for step_id in ("menu", "type", "configuration_not_complete"):
+        if step_id in steps:
+            assert "{" not in steps[step_id].get("title", ""), f"{section}.step.{step_id}.title"
+
     errors = translations[section]["error"]
     for key in ("underlying_already_added", "max_opening_degree_out_of_range", "min_max_opening_degrees_inconsistent", "vswitch_configuration_incorrect"):
         assert errors[key], key

@@ -603,7 +603,7 @@
                 }
             },
             "type": {
-                "title": "实体 - {name}",
+                "title": "实体",
                 "description": "{wizard_progress}此 VTherm 控制的设备。打开通用设置，打开某个设备以查看和修改其所有设置，或添加设备。标有 ⚠ 的设备缺少通用设置所要求的设置。",
                 "menu_options": {
                     "underlying_common": "通用设置",
@@ -870,7 +870,7 @@
                 }
             },
             "configuration_not_complete": {
-                "title": "配置不完整 - {name}",
+                "title": "配置不完整",
                 "description": "完成配置前必须填写这些设置。选择一项以打开可修正它的页面。",
                 "menu_options": {
                     "main": "主要属性",

@@ -603,7 +603,7 @@
                 }
             },
             "type": {
-                "title": "Caratteristiche - {name}",
+                "title": "Caratteristiche",
                 "description": "{wizard_progress}Dispositivi controllati da questo VTherm. Apri le impostazioni comuni, un dispositivo per vedere e modificare tutte le sue impostazioni, oppure aggiungi un dispositivo. Ai dispositivi contrassegnati con ⚠ manca un'impostazione richiesta dalle impostazioni comuni.",
                 "menu_options": {
                     "underlying_common": "Impostazioni comuni",
@@ -870,7 +870,7 @@
                 }
             },
             "configuration_not_complete": {
-                "title": "Configurazione incompleta - {name}",
+                "title": "Configurazione incompleta",
                 "description": "Queste impostazioni sono obbligatorie per completare la configurazione. Scegli una voce per aprire la schermata che permette di correggerla.",
                 "menu_options": {
                     "main": "Attributi principali",

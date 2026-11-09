@@ -615,7 +615,7 @@
                 }
             },
             "type": {
-                "title": "Entities - {name}",
+                "title": "Entities",
                 "description": "{wizard_progress}Devices controlled by this VTherm. Open the common settings, a device to see and change all its settings, or add a device. Devices marked with ⚠ are missing a setting required by the common settings.",
                 "menu_options": {
                     "underlying_common": "Common settings",
@@ -894,7 +894,7 @@
                 }
             },
             "configuration_not_complete": {
-                "title": "Configuration not complete - {name}",
+                "title": "Configuration not complete",
                 "description": "These settings are required before the configuration can be finalized. Pick an item to open the screen that fixes it.",
                 "menu_options": {
                     "main": "Main attributes",

@@ -575,7 +575,7 @@
         }
       },
       "type": {
-        "title": "Encje - {name}",
+        "title": "Encje",
         "description": "{wizard_progress}Urządzenia sterowane przez ten VTherm. Otwórz ustawienia wspólne, urządzenie, aby zobaczyć i zmienić wszystkie jego ustawienia, lub dodaj urządzenie. Urządzeniom oznaczonym ⚠ brakuje ustawienia wymaganego przez ustawienia wspólne.",
         "menu_options": {
           "underlying_common": "Ustawienia wspólne",
@@ -853,7 +853,7 @@
         }
       },
       "configuration_not_complete": {
-        "title": "Konfiguracja niekompletna - {name}",
+        "title": "Konfiguracja niekompletna",
         "description": "Te ustawienia są wymagane do zakończenia konfiguracji. Wybierz pozycję, aby otworzyć ekran, na którym ją poprawisz.",
         "menu_options": {
           "main": "Arybuty podstawowe",

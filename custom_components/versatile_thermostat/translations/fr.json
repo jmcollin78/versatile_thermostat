@@ -617,7 +617,7 @@
         }
       },
       "type": {
-        "title": "Entité(s) liée(s) - {name}",
+        "title": "Entité(s) liée(s)",
         "description": "{wizard_progress}Appareils pilotés par ce VTherm. Ouvrez les réglages communs, un appareil pour voir et modifier tous ses réglages, ou ajoutez un appareil. Les appareils marqués ⚠ n'ont pas un réglage exigé par les réglages communs.",
         "menu_options": {
           "underlying_common": "Réglages communs",
@@ -896,7 +896,7 @@
         }
       },
       "configuration_not_complete": {
-        "title": "Configuration incomplète - {name}",
+        "title": "Configuration incomplète",
         "description": "Ces réglages sont obligatoires pour pouvoir finaliser la configuration. Choisissez un élément pour ouvrir l'écran qui permet de le corriger.",
         "menu_options": {
           "main": "Principaux Attributs",

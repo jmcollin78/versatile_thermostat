@@ -615,7 +615,7 @@
         }
       },
       "type": {
-        "title": "Entidades - {name}",
+        "title": "Entidades",
         "description": "{wizard_progress}Dispositivos controlados por este VTherm. Abra los ajustes comunes, un dispositivo para ver y cambiar todos sus ajustes, o añada un dispositivo. A los dispositivos marcados con ⚠ les falta un ajuste exigido por los ajustes comunes.",
         "menu_options": {
           "underlying_common": "Ajustes comunes",
@@ -894,7 +894,7 @@
         }
       },
       "configuration_not_complete": {
-        "title": "Configuración incompleta - {name}",
+        "title": "Configuración incompleta",
         "description": "Estos ajustes son obligatorios para poder finalizar la configuración. Elija un elemento para abrir la pantalla que lo corrige.",
         "menu_options": {
           "main": "Atributos principales",
