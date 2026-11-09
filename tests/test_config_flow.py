@@ -443,7 +443,7 @@ async def test_user_config_flow_over_climate(hass: HomeAssistant, skip_hass_stat
     assert result["step_id"] == "main"
     assert result.get("errors") == {}
     # climate without regulation: type, main, underlyings, features, advanced
-    assert result["description_placeholders"]["wizard_progress"].startswith("**Step 2 / 5**")
+    assert result["description_placeholders"]["wizard_progress"].startswith("▰▰▱▱▱ **2 / 5**")
 
     # 2. Main
     result = await _submit(
@@ -472,7 +472,7 @@ async def test_user_config_flow_over_climate(hass: HomeAssistant, skip_hass_stat
 
     # 4. Underlyings: the common settings, then the first device
     assert result["step_id"] == "underlying_common"
-    assert result["description_placeholders"]["wizard_progress"].startswith("**Step 3 / 5**")
+    assert result["description_placeholders"]["wizard_progress"].startswith("▰▰▰▱▱ **3 / 5**")
     result = await _submit(
         hass,
         result,
@@ -496,7 +496,7 @@ async def test_user_config_flow_over_climate(hass: HomeAssistant, skip_hass_stat
 
     # 6. Features
     assert result["step_id"] == "features"
-    assert result["description_placeholders"]["wizard_progress"].startswith("**Step 4 / 5**")
+    assert result["description_placeholders"]["wizard_progress"].startswith("▰▰▰▰▱ **4 / 5**")
     result = await _submit(
         hass,
         result,
@@ -1580,16 +1580,14 @@ async def test_configuration_not_complete_menu(hass: HomeAssistant, init_vtherm_
     assert result["menu_options"][-1] == "configuration_not_complete"
     assert "finalize" not in result["menu_options"]
     assert result["description_placeholders"]["missing_count"] == "2"
-    assert "2" in result["description_placeholders"]["missing_summary"]
 
     # The detail menu lists the steps to fix, and a way back
     result = await flow.async_step_configuration_not_complete()
     assert result["type"] == FlowResultType.MENU
     assert result["step_id"] == "configuration_not_complete"
     assert result["menu_options"] == ["main", "motion", "menu"]
-    items = result["description_placeholders"]["missing_items"]
-    assert len(items.splitlines()) == 2
-    assert items.splitlines()[0].startswith("- **")
+    # the texts are static translations: the flow does not know the language of the user
+    assert "missing_items" not in result["description_placeholders"]
 
     # Once everything is fixed, the user is sent back to the main menu with 'finalize'
     flow._infos.update({CONF_NAME: "TheOverSwitchMockName", CONF_MOTION_SENSOR: "binary_sensor.motion"})
@@ -1597,7 +1595,6 @@ async def test_configuration_not_complete_menu(hass: HomeAssistant, init_vtherm_
     assert result["step_id"] == "menu"
     assert result["menu_options"][-1] == "finalize"
     assert result["description_placeholders"]["missing_count"] == "0"
-    assert result["description_placeholders"]["missing_summary"] == ""
 
 
 async def test_configuration_not_complete_flow(hass: HomeAssistant, init_vtherm_api, skip_hass_states_get) -> None:
@@ -1680,8 +1677,8 @@ async def test_options_flow_opens_the_menu_and_lists_existing_underlyings(hass: 
     assert "10" in placeholders["underlying_1_details"]
     assert "80" in placeholders["underlying_1_details"]
     assert "90" in placeholders["underlying_2_details"]
-    assert not placeholders["underlying_1_details"].startswith("⚠")
-    assert placeholders["underlying_common_details"] != ""
+    assert not placeholders["underlying_1"].startswith("⚠")
+    assert placeholders["underlying_1_details"] == "climate.mock_climate1 · number.opening1 · number.calibration1 · 10–80 %"
     hass.config_entries.options.async_abort(result["flow_id"])
 
 
@@ -1694,12 +1691,11 @@ async def test_options_flow_underlying_with_missing_settings(hass: HomeAssistant
     result = await hass.config_entries.options.async_configure(result["flow_id"], user_input={"next_step_id": "configuration_not_complete"})
     assert result["step_id"] == "configuration_not_complete"
     assert result["menu_options"] == ["type", "menu"]
-    assert "climate.mock_climate2" in result["description_placeholders"]["missing_items"]
 
     result = await hass.config_entries.options.async_configure(result["flow_id"], user_input={"next_step_id": "type"})
     assert result["step_id"] == "type"
-    assert not result["description_placeholders"]["underlying_1_details"].startswith("⚠")
-    assert result["description_placeholders"]["underlying_2_details"].startswith("⚠")
+    assert not result["description_placeholders"]["underlying_1"].startswith("⚠")
+    assert result["description_placeholders"]["underlying_2"].startswith("⚠")
 
     # Open the device with the missing opening entity and fix it
     result = await hass.config_entries.options.async_configure(result["flow_id"], user_input={"next_step_id": "underlying_2"})
@@ -1715,7 +1711,7 @@ async def test_options_flow_underlying_with_missing_settings(hass: HomeAssistant
         },
     )
     assert result["step_id"] == "type"
-    assert not result["description_placeholders"]["underlying_2_details"].startswith("⚠")
+    assert not result["description_placeholders"]["underlying_2"].startswith("⚠")
     result = await hass.config_entries.options.async_configure(result["flow_id"], user_input={"next_step_id": "menu"})
     assert "finalize" in result["menu_options"]
     hass.config_entries.options.async_abort(result["flow_id"])
@@ -1762,8 +1758,8 @@ async def test_underlying_edit_keeps_the_lists_consistent(hass: HomeAssistant, i
     assert infos[CONF_SYNC_ENTITY_LIST] == ["number.calibration1", "number.new_calibration2"]
     assert infos[CONF_MIN_OPENING_DEGREES] == "10, 25"
     assert infos[CONF_MAX_OPENING_DEGREES] == "80, 95"
-    assert result["description_placeholders"]["underlying_1_details"].startswith("⚠")
-    assert not result["description_placeholders"]["underlying_2_details"].startswith("⚠")
+    assert result["description_placeholders"]["underlying_1"].startswith("⚠")
+    assert not result["description_placeholders"]["underlying_2"].startswith("⚠")
     assert [(item.step_id, item.fields) for item in flow.get_missing_config(infos)] == [("type", [CONF_CLOSING_DEGREE_ENTITY])]
 
     # the configuration entry is not modified until the finalization
@@ -1950,7 +1946,7 @@ async def test_over_switch_underlyings(hass: HomeAssistant, init_vtherm_api, ski
         ("type", [CONF_VSWITCH_ON_CMD, CONF_VSWITCH_OFF_CMD], "switch.mock_switch"),
         ("type", [CONF_VSWITCH_ON_CMD, CONF_VSWITCH_OFF_CMD], "switch.mock_switch2"),
     ]
-    assert result["description_placeholders"]["underlying_1_details"].startswith("⚠")
+    assert result["description_placeholders"]["underlying_1"].startswith("⚠")
     for idx, entity_id in ((1, "switch.mock_switch"), (2, "switch.mock_switch2")):
         result = await hass.config_entries.options.async_configure(flow_id, user_input={"next_step_id": f"underlying_{idx}"})
         assert result["step_id"] == "underlying"
@@ -2082,8 +2078,12 @@ def test_translations_of_the_config_flow_steps(language_file: Path, section: str
     # The steps which can be fixed from the 'configuration not complete' menu
     for step_id in ("main", "type", "tpi", "presets", "power", "motion", "presence", "advanced", "central_boiler", "menu"):
         assert steps["configuration_not_complete"]["menu_options"][step_id]
-    assert "{missing_items}" in steps["configuration_not_complete"]["description"]
+        if step_id != "menu":
+            assert steps["configuration_not_complete"]["menu_option_descriptions"][step_id]
+    assert "{" not in steps["configuration_not_complete"]["description"]
+    if "menu" in steps:
+        assert "{missing_summary}" not in steps["menu"]["description"]
 
     errors = translations[section]["error"]
-    for key in ("underlying_already_added", "max_opening_degree_out_of_range", "underlying_field_missing", "missing_settings_summary", "min_max_opening_degrees_inconsistent", "vswitch_configuration_incorrect"):
+    for key in ("underlying_already_added", "max_opening_degree_out_of_range", "min_max_opening_degrees_inconsistent", "vswitch_configuration_incorrect"):
         assert errors[key], key

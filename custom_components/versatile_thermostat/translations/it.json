@@ -5,7 +5,7 @@
         "step": {
             "user": {
                 "title": "Tipo di Versatile Thermostat",
-                "description": "Scegliere il tipo di termostato che si desidera creare",
+                "description": "Scegliere il tipo di termostato che si desidera creare\n\nLe schermate successive ti guidano nelle impostazioni obbligatorie. Potrai modificare tutto in seguito dal menu.",
                 "data": {
                     "thermostat_type": "Tipo di termostato"
                 },
@@ -15,7 +15,7 @@
             },
             "menu": {
                 "title": "Menu",
-                "description": "Configurare il termostato. Una volta inseriti tutti i parametri richiesti, sarà possibile completare la configurazione.\n\n{missing_summary}",
+                "description": "Configurare il termostato. Una volta inseriti tutti i parametri richiesti, sarà possibile completare la configurazione.",
                 "menu_options": {
                     "main": "Attributi principali",
                     "central_boiler": "Caldaia centralizzata",
@@ -99,7 +99,7 @@
             },
             "type": {
                 "title": "Entità collegate",
-                "description": "{wizard_progress}Dispositivi controllati da questo VTherm. Apri le impostazioni comuni, un dispositivo per vedere e modificare tutte le sue impostazioni, oppure aggiungi un dispositivo.",
+                "description": "{wizard_progress}Dispositivi controllati da questo VTherm. Apri le impostazioni comuni, un dispositivo per vedere e modificare tutte le sue impostazioni, oppure aggiungi un dispositivo. Ai dispositivi contrassegnati con ⚠ manca un'impostazione richiesta dalle impostazioni comuni.",
                 "menu_options": {
                     "underlying_common": "Impostazioni comuni",
                     "underlying_1": "{underlying_1}",
@@ -127,7 +127,7 @@
                     "menu": "Torna al menu"
                 },
                 "menu_option_descriptions": {
-                    "underlying_common": "{underlying_common_details}",
+                    "underlying_common": "Impostazioni condivise da tutti i dispositivi",
                     "underlying_1": "{underlying_1_details}",
                     "underlying_2": "{underlying_2_details}",
                     "underlying_3": "{underlying_3_details}",
@@ -364,7 +364,7 @@
             },
             "configuration_not_complete": {
                 "title": "Configurazione incompleta",
-                "description": "Mancano ancora le seguenti impostazioni:\n{missing_items}\n\nScegli una voce per aprire la schermata che permette di correggerla.",
+                "description": "Queste impostazioni sono obbligatorie per completare la configurazione. Scegli una voce per aprire la schermata che permette di correggerla.",
                 "menu_options": {
                     "main": "Attributi principali",
                     "type": "Sottostanti",
@@ -378,15 +378,15 @@
                     "menu": "Torna al menu"
                 },
                 "menu_option_descriptions": {
-                    "main": "Apri questa schermata per compilare le impostazioni mancanti",
-                    "type": "Apri questa schermata per compilare le impostazioni mancanti",
-                    "tpi": "Apri questa schermata per compilare le impostazioni mancanti",
-                    "presets": "Apri questa schermata per compilare le impostazioni mancanti",
-                    "power": "Apri questa schermata per compilare le impostazioni mancanti",
-                    "motion": "Apri questa schermata per compilare le impostazioni mancanti",
-                    "presence": "Apri questa schermata per compilare le impostazioni mancanti",
-                    "advanced": "Apri questa schermata per compilare le impostazioni mancanti",
-                    "central_boiler": "Apri questa schermata per compilare le impostazioni mancanti"
+                    "main": "Mancano il nome, i sensori di temperatura o la durata del ciclo",
+                    "type": "Aggiungi almeno un dispositivo e completa i dispositivi contrassegnati con ⚠",
+                    "tpi": "I coefficienti TPI sono obbligatori",
+                    "presets": "La configurazione centrale è necessaria per usare i suoi preset",
+                    "power": "Mancano i sensori di potenza o la temperatura del preset di distacco carichi",
+                    "motion": "Un sensore di movimento è obbligatorio quando la funzione è attiva",
+                    "presence": "Un sensore di presenza è obbligatorio quando la funzione è attiva",
+                    "advanced": "I parametri di sicurezza sono obbligatori",
+                    "central_boiler": "I comandi di attivazione e disattivazione sono obbligatori"
                 }
             },
             "underlying_common": {
@@ -503,11 +503,8 @@
             "service_configuration_format": "Il formato della configurazione del servizio è errato",
             "min_max_opening_degrees_inconsistent": "Per ogni dispositivo sottostante, max_opening_degrees deve essere strettamente maggiore di min_opening_degrees. Verificare la configurazione.",
             "vswitch_configuration_incorrect": "La configurazione della personalizzazione dei comandi non è corretta. È obbligatoria per i sottostanti non switch e il formato deve essere ‘nome_servizio[/attributo:valore]’. Maggiori informazioni nel README.",
-            "missing_settings_summary": "{count} impostazione/i da completare",
             "underlying_already_added": "Questa entità è già usata da un dispositivo di questo VTherm",
-            "max_opening_degree_out_of_range": "L'apertura massima deve essere maggiore di 0 e non deve superare il massimo della valvola",
-            "underlying_field_missing": "{field} mancante",
-            "wizard_progress": "**Passaggio {current} / {total}**. Potrai modificare tutto in seguito dal menu.\n\n"
+            "max_opening_degree_out_of_range": "L'apertura massima deve essere maggiore di 0 e non deve superare il massimo della valvola"
         },
         "abort": {
             "already_configured": "Il dispositivo è gia configurato"
@@ -528,7 +525,7 @@
             },
             "menu": {
                 "title": "Menu",
-                "description": "Configurare il termostato. Una volta inseriti tutti i parametri richiesti, sarà possibile completare la configurazione.\n\n{missing_summary}",
+                "description": "Configurare il termostato. Una volta inseriti tutti i parametri richiesti, sarà possibile completare la configurazione.",
                 "menu_options": {
                     "main": "Attributi principali",
                     "central_boiler": "Caldaia centralizzata",
@@ -607,7 +604,7 @@
             },
             "type": {
                 "title": "Caratteristiche - {name}",
-                "description": "{wizard_progress}Dispositivi controllati da questo VTherm. Apri le impostazioni comuni, un dispositivo per vedere e modificare tutte le sue impostazioni, oppure aggiungi un dispositivo.",
+                "description": "{wizard_progress}Dispositivi controllati da questo VTherm. Apri le impostazioni comuni, un dispositivo per vedere e modificare tutte le sue impostazioni, oppure aggiungi un dispositivo. Ai dispositivi contrassegnati con ⚠ manca un'impostazione richiesta dalle impostazioni comuni.",
                 "menu_options": {
                     "underlying_common": "Impostazioni comuni",
                     "underlying_1": "{underlying_1}",
@@ -635,7 +632,7 @@
                     "menu": "Torna al menu"
                 },
                 "menu_option_descriptions": {
-                    "underlying_common": "{underlying_common_details}",
+                    "underlying_common": "Impostazioni condivise da tutti i dispositivi",
                     "underlying_1": "{underlying_1_details}",
                     "underlying_2": "{underlying_2_details}",
                     "underlying_3": "{underlying_3_details}",
@@ -874,7 +871,7 @@
             },
             "configuration_not_complete": {
                 "title": "Configurazione incompleta - {name}",
-                "description": "Mancano ancora le seguenti impostazioni:\n{missing_items}\n\nScegli una voce per aprire la schermata che permette di correggerla.",
+                "description": "Queste impostazioni sono obbligatorie per completare la configurazione. Scegli una voce per aprire la schermata che permette di correggerla.",
                 "menu_options": {
                     "main": "Attributi principali",
                     "type": "Sottostanti",
@@ -888,15 +885,15 @@
                     "menu": "Torna al menu"
                 },
                 "menu_option_descriptions": {
-                    "main": "Apri questa schermata per compilare le impostazioni mancanti",
-                    "type": "Apri questa schermata per compilare le impostazioni mancanti",
-                    "tpi": "Apri questa schermata per compilare le impostazioni mancanti",
-                    "presets": "Apri questa schermata per compilare le impostazioni mancanti",
-                    "power": "Apri questa schermata per compilare le impostazioni mancanti",
-                    "motion": "Apri questa schermata per compilare le impostazioni mancanti",
-                    "presence": "Apri questa schermata per compilare le impostazioni mancanti",
-                    "advanced": "Apri questa schermata per compilare le impostazioni mancanti",
-                    "central_boiler": "Apri questa schermata per compilare le impostazioni mancanti"
+                    "main": "Mancano il nome, i sensori di temperatura o la durata del ciclo",
+                    "type": "Aggiungi almeno un dispositivo e completa i dispositivi contrassegnati con ⚠",
+                    "tpi": "I coefficienti TPI sono obbligatori",
+                    "presets": "La configurazione centrale è necessaria per usare i suoi preset",
+                    "power": "Mancano i sensori di potenza o la temperatura del preset di distacco carichi",
+                    "motion": "Un sensore di movimento è obbligatorio quando la funzione è attiva",
+                    "presence": "Un sensore di presenza è obbligatorio quando la funzione è attiva",
+                    "advanced": "I parametri di sicurezza sono obbligatori",
+                    "central_boiler": "I comandi di attivazione e disattivazione sono obbligatori"
                 }
             },
             "underlying_common": {
@@ -1013,11 +1010,8 @@
             "service_configuration_format": "Il formato della configurazione del servizio è errato",
             "min_max_opening_degrees_inconsistent": "Per ogni dispositivo sottostante, max_opening_degrees deve essere strettamente maggiore di min_opening_degrees. Verificare la configurazione.",
             "vswitch_configuration_incorrect": "La configurazione della personalizzazione dei comandi non è corretta. È obbligatoria per i sottostanti non switch e il formato deve essere ‘nome_servizio[/attributo:valore]’. Maggiori informazioni nel file README.",
-            "missing_settings_summary": "{count} impostazione/i da completare",
             "underlying_already_added": "Questa entità è già usata da un dispositivo di questo VTherm",
-            "max_opening_degree_out_of_range": "L'apertura massima deve essere maggiore di 0 e non deve superare il massimo della valvola",
-            "underlying_field_missing": "{field} mancante",
-            "wizard_progress": "**Passaggio {current} / {total}**. Potrai modificare tutto in seguito dal menu.\n\n"
+            "max_opening_degree_out_of_range": "L'apertura massima deve essere maggiore di 0 e non deve superare il massimo della valvola"
         },
         "abort": {
             "already_configured": "Device is already configured"

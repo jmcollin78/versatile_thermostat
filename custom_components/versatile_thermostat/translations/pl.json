@@ -5,7 +5,7 @@
     "step": {
       "user": {
         "title": "Typ termostatu VTherm",
-        "description": "Wybierz typ termostatu, który chcesz utworzyć",
+        "description": "Wybierz typ termostatu, który chcesz utworzyć\n\nKolejne ekrany przeprowadzą Cię przez wymagane ustawienia. Wszystko możesz później zmienić z menu.",
         "data": {
           "thermostat_type": "Typ termostatu"
         },
@@ -15,7 +15,7 @@
       },
       "menu": {
         "title": "Menu",
-        "description": "Skonfiguruj termostat. Konfiguracja zostanie zakończona po wprowadzeniu wszystkich wymaganych parametrów.\n\n{missing_summary}",
+        "description": "Skonfiguruj termostat. Konfiguracja zostanie zakończona po wprowadzeniu wszystkich wymaganych parametrów.",
         "menu_options": {
           "main": "Arybuty podstawowe",
           "central_boiler": "Kocioł centralny",
@@ -96,7 +96,7 @@
       },
       "type": {
         "title": "Encje powiązane",
-        "description": "{wizard_progress}Urządzenia sterowane przez ten VTherm. Otwórz ustawienia wspólne, urządzenie, aby zobaczyć i zmienić wszystkie jego ustawienia, lub dodaj urządzenie.",
+        "description": "{wizard_progress}Urządzenia sterowane przez ten VTherm. Otwórz ustawienia wspólne, urządzenie, aby zobaczyć i zmienić wszystkie jego ustawienia, lub dodaj urządzenie. Urządzeniom oznaczonym ⚠ brakuje ustawienia wymaganego przez ustawienia wspólne.",
         "menu_options": {
           "underlying_common": "Ustawienia wspólne",
           "underlying_1": "{underlying_1}",
@@ -124,7 +124,7 @@
           "menu": "Powrót do menu"
         },
         "menu_option_descriptions": {
-          "underlying_common": "{underlying_common_details}",
+          "underlying_common": "Ustawienia wspólne dla wszystkich urządzeń",
           "underlying_1": "{underlying_1_details}",
           "underlying_2": "{underlying_2_details}",
           "underlying_3": "{underlying_3_details}",
@@ -333,7 +333,7 @@
       },
       "configuration_not_complete": {
         "title": "Konfiguracja niekompletna",
-        "description": "Nadal brakuje następujących ustawień:\n{missing_items}\n\nWybierz pozycję, aby otworzyć ekran, na którym można ją poprawić.",
+        "description": "Te ustawienia są wymagane do zakończenia konfiguracji. Wybierz pozycję, aby otworzyć ekran, na którym ją poprawisz.",
         "menu_options": {
           "main": "Arybuty podstawowe",
           "type": "Urządzenia",
@@ -347,15 +347,15 @@
           "menu": "Powrót do menu"
         },
         "menu_option_descriptions": {
-          "main": "Otwórz ten ekran, aby uzupełnić brakujące ustawienia",
-          "type": "Otwórz ten ekran, aby uzupełnić brakujące ustawienia",
-          "tpi": "Otwórz ten ekran, aby uzupełnić brakujące ustawienia",
-          "presets": "Otwórz ten ekran, aby uzupełnić brakujące ustawienia",
-          "power": "Otwórz ten ekran, aby uzupełnić brakujące ustawienia",
-          "motion": "Otwórz ten ekran, aby uzupełnić brakujące ustawienia",
-          "presence": "Otwórz ten ekran, aby uzupełnić brakujące ustawienia",
-          "advanced": "Otwórz ten ekran, aby uzupełnić brakujące ustawienia",
-          "central_boiler": "Otwórz ten ekran, aby uzupełnić brakujące ustawienia"
+          "main": "Brakuje nazwy, czujników temperatury lub długości cyklu",
+          "type": "Dodaj co najmniej jedno urządzenie i uzupełnij urządzenia oznaczone ⚠",
+          "tpi": "Współczynniki TPI są wymagane",
+          "presets": "Do używania presetów konfiguracji centralnej wymagana jest konfiguracja centralna",
+          "power": "Brakuje czujników mocy lub temperatury presetu odciążenia",
+          "motion": "Czujnik ruchu jest wymagany, gdy funkcja jest włączona",
+          "presence": "Czujnik obecności jest wymagany, gdy funkcja jest włączona",
+          "advanced": "Parametry bezpieczeństwa są wymagane",
+          "central_boiler": "Polecenia włączenia i wyłączenia są wymagane"
         }
       },
       "underlying_common": {
@@ -472,11 +472,8 @@
       "service_configuration_format": "Błędny format konfiguracji polecenia lub usługi",
       "min_max_opening_degrees_inconsistent": "Dla każdego urządzenia bazowego max_opening_degrees musi być ściśle większy niż min_opening_degrees. Sprawdź swoją konfigurację.",
       "vswitch_configuration_incorrect": "Błąd konfiguracji poleceń własnych. Wymagane są one dla urządzeń nie będących przełącznikami. Ich format musi być następujący: `service_name[/attribute:value]`. Więcej informacji znajdziesz w dokumentacji",
-      "missing_settings_summary": "Ustawienia do uzupełnienia: {count}",
       "underlying_already_added": "Ta encja jest już używana przez urządzenie tego VTherm",
-      "max_opening_degree_out_of_range": "Maksymalne otwarcie musi być większe od 0 i nie może przekraczać maksimum zaworu",
-      "underlying_field_missing": "Brak: {field}",
-      "wizard_progress": "**Krok {current} / {total}**. Wszystko można później zmienić w menu.\n\n"
+      "max_opening_degree_out_of_range": "Maksymalne otwarcie musi być większe od 0 i nie może przekraczać maksimum zaworu"
     },
     "abort": {
       "already_configured": "Urządzenie jest już skonfigurowane"
@@ -497,7 +494,7 @@
       },
       "menu": {
         "title": "Menu",
-        "description": "Skonfiguruj termostat. Dokończysz konfigurację, gdy wszystkie wymagane parametry zostaną wprowadzone.\n\n{missing_summary}",
+        "description": "Skonfiguruj termostat. Dokończysz konfigurację, gdy wszystkie wymagane parametry zostaną wprowadzone.",
         "menu_options": {
           "main": "Arybuty podstawowe",
           "central_boiler": "Kocioł centralny",
@@ -579,7 +576,7 @@
       },
       "type": {
         "title": "Encje - {name}",
-        "description": "{wizard_progress}Urządzenia sterowane przez ten VTherm. Otwórz ustawienia wspólne, urządzenie, aby zobaczyć i zmienić wszystkie jego ustawienia, lub dodaj urządzenie.",
+        "description": "{wizard_progress}Urządzenia sterowane przez ten VTherm. Otwórz ustawienia wspólne, urządzenie, aby zobaczyć i zmienić wszystkie jego ustawienia, lub dodaj urządzenie. Urządzeniom oznaczonym ⚠ brakuje ustawienia wymaganego przez ustawienia wspólne.",
         "menu_options": {
           "underlying_common": "Ustawienia wspólne",
           "underlying_1": "{underlying_1}",
@@ -607,7 +604,7 @@
           "menu": "Powrót do menu"
         },
         "menu_option_descriptions": {
-          "underlying_common": "{underlying_common_details}",
+          "underlying_common": "Ustawienia wspólne dla wszystkich urządzeń",
           "underlying_1": "{underlying_1_details}",
           "underlying_2": "{underlying_2_details}",
           "underlying_3": "{underlying_3_details}",
@@ -857,7 +854,7 @@
       },
       "configuration_not_complete": {
         "title": "Konfiguracja niekompletna - {name}",
-        "description": "Nadal brakuje następujących ustawień:\n{missing_items}\n\nWybierz pozycję, aby otworzyć ekran, na którym można ją poprawić.",
+        "description": "Te ustawienia są wymagane do zakończenia konfiguracji. Wybierz pozycję, aby otworzyć ekran, na którym ją poprawisz.",
         "menu_options": {
           "main": "Arybuty podstawowe",
           "type": "Urządzenia",
@@ -871,15 +868,15 @@
           "menu": "Powrót do menu"
         },
         "menu_option_descriptions": {
-          "main": "Otwórz ten ekran, aby uzupełnić brakujące ustawienia",
-          "type": "Otwórz ten ekran, aby uzupełnić brakujące ustawienia",
-          "tpi": "Otwórz ten ekran, aby uzupełnić brakujące ustawienia",
-          "presets": "Otwórz ten ekran, aby uzupełnić brakujące ustawienia",
-          "power": "Otwórz ten ekran, aby uzupełnić brakujące ustawienia",
-          "motion": "Otwórz ten ekran, aby uzupełnić brakujące ustawienia",
-          "presence": "Otwórz ten ekran, aby uzupełnić brakujące ustawienia",
-          "advanced": "Otwórz ten ekran, aby uzupełnić brakujące ustawienia",
-          "central_boiler": "Otwórz ten ekran, aby uzupełnić brakujące ustawienia"
+          "main": "Brakuje nazwy, czujników temperatury lub długości cyklu",
+          "type": "Dodaj co najmniej jedno urządzenie i uzupełnij urządzenia oznaczone ⚠",
+          "tpi": "Współczynniki TPI są wymagane",
+          "presets": "Do używania presetów konfiguracji centralnej wymagana jest konfiguracja centralna",
+          "power": "Brakuje czujników mocy lub temperatury presetu odciążenia",
+          "motion": "Czujnik ruchu jest wymagany, gdy funkcja jest włączona",
+          "presence": "Czujnik obecności jest wymagany, gdy funkcja jest włączona",
+          "advanced": "Parametry bezpieczeństwa są wymagane",
+          "central_boiler": "Polecenia włączenia i wyłączenia są wymagane"
         }
       },
       "underlying_common": {
@@ -996,11 +993,8 @@
       "service_configuration_format": "Błędny format konfiguracji polecenia lub usługi",
       "min_max_opening_degrees_inconsistent": "Dla każdego urządzenia bazowego max_opening_degrees musi być ściśle większy niż min_opening_degrees. Sprawdź swoją konfigurację.",
       "vswitch_configuration_incorrect": "Błąd konfiguracji poleceń własnych. Wymagane są one dla urządzeń nie będących przełącznikami. Ich format musi być następujący: `service_name[/attribute:value]`. Więcej informacji znajdziesz w dokumentacji",
-      "missing_settings_summary": "Ustawienia do uzupełnienia: {count}",
       "underlying_already_added": "Ta encja jest już używana przez urządzenie tego VTherm",
-      "max_opening_degree_out_of_range": "Maksymalne otwarcie musi być większe od 0 i nie może przekraczać maksimum zaworu",
-      "underlying_field_missing": "Brak: {field}",
-      "wizard_progress": "**Krok {current} / {total}**. Wszystko można później zmienić w menu.\n\n"
+      "max_opening_degree_out_of_range": "Maksymalne otwarcie musi być większe od 0 i nie może przekraczać maksimum zaworu"
     },
     "abort": {
       "already_configured": "Urządzenie jest już skonfigurowane"

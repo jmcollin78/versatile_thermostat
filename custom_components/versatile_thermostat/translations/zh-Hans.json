@@ -5,7 +5,7 @@
         "step": {
             "user": {
                 "title": "多功能恒温器类型",
-                "description": "选择要创建的恒温器类型",
+                "description": "选择要创建的恒温器类型\n\n接下来的页面会引导你完成必填设置。之后可以在菜单中修改所有设置。",
                 "data": {
                     "thermostat_type": "恒温器类型"
                 },
@@ -15,7 +15,7 @@
             },
             "menu": {
                 "title": "菜单",
-                "description": "配置你的恒温器。输入所有必填参数后即可完成配置。\n\n{missing_summary}",
+                "description": "配置你的恒温器。输入所有必填参数后即可完成配置。",
                 "menu_options": {
                     "main": "主要属性",
                     "central_boiler": "中央锅炉",
@@ -98,7 +98,7 @@
             },
             "type": {
                 "title": "链接实体",
-                "description": "{wizard_progress}此 VTherm 控制的设备。打开通用设置，打开某个设备以查看和修改其所有设置，或添加设备。",
+                "description": "{wizard_progress}此 VTherm 控制的设备。打开通用设置，打开某个设备以查看和修改其所有设置，或添加设备。标有 ⚠ 的设备缺少通用设置所要求的设置。",
                 "menu_options": {
                     "underlying_common": "通用设置",
                     "underlying_1": "{underlying_1}",
@@ -126,7 +126,7 @@
                     "menu": "返回菜单"
                 },
                 "menu_option_descriptions": {
-                    "underlying_common": "{underlying_common_details}",
+                    "underlying_common": "所有设备共用的设置",
                     "underlying_1": "{underlying_1_details}",
                     "underlying_2": "{underlying_2_details}",
                     "underlying_3": "{underlying_3_details}",
@@ -363,7 +363,7 @@
             },
             "configuration_not_complete": {
                 "title": "配置不完整",
-                "description": "以下设置仍然缺失：\n{missing_items}\n\n选择一项以打开可修复它的界面。",
+                "description": "完成配置前必须填写这些设置。选择一项以打开可修正它的页面。",
                 "menu_options": {
                     "main": "主要属性",
                     "type": "底层设备",
@@ -377,15 +377,15 @@
                     "menu": "返回菜单"
                 },
                 "menu_option_descriptions": {
-                    "main": "打开此界面以填写缺失的设置",
-                    "type": "打开此界面以填写缺失的设置",
-                    "tpi": "打开此界面以填写缺失的设置",
-                    "presets": "打开此界面以填写缺失的设置",
-                    "power": "打开此界面以填写缺失的设置",
-                    "motion": "打开此界面以填写缺失的设置",
-                    "presence": "打开此界面以填写缺失的设置",
-                    "advanced": "打开此界面以填写缺失的设置",
-                    "central_boiler": "打开此界面以填写缺失的设置"
+                    "main": "缺少名称、温度传感器或周期时长",
+                    "type": "至少添加一个设备，并补全标有 ⚠ 的设备",
+                    "tpi": "必须填写 TPI 系数",
+                    "presets": "使用中央配置的预设需要中央配置",
+                    "power": "缺少功率传感器或减载预设温度",
+                    "motion": "启用该功能时必须设置运动传感器",
+                    "presence": "启用该功能时必须设置在场传感器",
+                    "advanced": "必须填写安全参数",
+                    "central_boiler": "必须填写启用和停用命令"
                 }
             },
             "underlying_common": {
@@ -502,11 +502,8 @@
             "service_configuration_format": "服务配置格式错误",
             "min_max_opening_degrees_inconsistent": "对于每个底层设备，max_opening_degrees 必须严格大于 min_opening_degrees。请检查你的配置。",
             "vswitch_configuration_incorrect": "命令自定义配置不正确。对于不是 switch 的底层实体，这是必需的，格式必须为 service_name[/attribute:value]。更多信息请参阅 README。",
-            "missing_settings_summary": "还有 {count} 项设置待完成",
             "underlying_already_added": "此实体已被此 VTherm 的某个设备使用",
-            "max_opening_degree_out_of_range": "最大开度必须大于 0，且不能超过阀门的最大值",
-            "underlying_field_missing": "缺少 {field}",
-            "wizard_progress": "**第 {current} / {total} 步**。之后您可以在菜单中更改所有内容。\n\n"
+            "max_opening_degree_out_of_range": "最大开度必须大于 0，且不能超过阀门的最大值"
         },
         "abort": {
             "already_configured": "设备已配置"
@@ -527,7 +524,7 @@
             },
             "menu": {
                 "title": "菜单",
-                "description": "配置你的恒温器。输入所有必填参数后即可完成配置。\n\n{missing_summary}",
+                "description": "配置你的恒温器。输入所有必填参数后即可完成配置。",
                 "menu_options": {
                     "main": "主要属性",
                     "central_boiler": "中央锅炉",
@@ -607,7 +604,7 @@
             },
             "type": {
                 "title": "实体 - {name}",
-                "description": "{wizard_progress}此 VTherm 控制的设备。打开通用设置，打开某个设备以查看和修改其所有设置，或添加设备。",
+                "description": "{wizard_progress}此 VTherm 控制的设备。打开通用设置，打开某个设备以查看和修改其所有设置，或添加设备。标有 ⚠ 的设备缺少通用设置所要求的设置。",
                 "menu_options": {
                     "underlying_common": "通用设置",
                     "underlying_1": "{underlying_1}",
@@ -635,7 +632,7 @@
                     "menu": "返回菜单"
                 },
                 "menu_option_descriptions": {
-                    "underlying_common": "{underlying_common_details}",
+                    "underlying_common": "所有设备共用的设置",
                     "underlying_1": "{underlying_1_details}",
                     "underlying_2": "{underlying_2_details}",
                     "underlying_3": "{underlying_3_details}",
@@ -874,7 +871,7 @@
             },
             "configuration_not_complete": {
                 "title": "配置不完整 - {name}",
-                "description": "以下设置仍然缺失：\n{missing_items}\n\n选择一项以打开可修复它的界面。",
+                "description": "完成配置前必须填写这些设置。选择一项以打开可修正它的页面。",
                 "menu_options": {
                     "main": "主要属性",
                     "type": "底层设备",
@@ -888,15 +885,15 @@
                     "menu": "返回菜单"
                 },
                 "menu_option_descriptions": {
-                    "main": "打开此界面以填写缺失的设置",
-                    "type": "打开此界面以填写缺失的设置",
-                    "tpi": "打开此界面以填写缺失的设置",
-                    "presets": "打开此界面以填写缺失的设置",
-                    "power": "打开此界面以填写缺失的设置",
-                    "motion": "打开此界面以填写缺失的设置",
-                    "presence": "打开此界面以填写缺失的设置",
-                    "advanced": "打开此界面以填写缺失的设置",
-                    "central_boiler": "打开此界面以填写缺失的设置"
+                    "main": "缺少名称、温度传感器或周期时长",
+                    "type": "至少添加一个设备，并补全标有 ⚠ 的设备",
+                    "tpi": "必须填写 TPI 系数",
+                    "presets": "使用中央配置的预设需要中央配置",
+                    "power": "缺少功率传感器或减载预设温度",
+                    "motion": "启用该功能时必须设置运动传感器",
+                    "presence": "启用该功能时必须设置在场传感器",
+                    "advanced": "必须填写安全参数",
+                    "central_boiler": "必须填写启用和停用命令"
                 }
             },
             "underlying_common": {
@@ -1013,11 +1010,8 @@
             "service_configuration_format": "服务配置格式错误",
             "min_max_opening_degrees_inconsistent": "对于每个底层设备，max_opening_degrees 必须严格大于 min_opening_degrees。请检查你的配置。",
             "vswitch_configuration_incorrect": "命令自定义配置不正确。对于不是 switch 的底层实体，这是必需的，格式必须为 service_name[/attribute:value]。更多信息请参阅 README。",
-            "missing_settings_summary": "还有 {count} 项设置待完成",
             "underlying_already_added": "此实体已被此 VTherm 的某个设备使用",
-            "max_opening_degree_out_of_range": "最大开度必须大于 0，且不能超过阀门的最大值",
-            "underlying_field_missing": "缺少 {field}",
-            "wizard_progress": "**第 {current} / {total} 步**。之后您可以在菜单中更改所有内容。\n\n"
+            "max_opening_degree_out_of_range": "最大开度必须大于 0，且不能超过阀门的最大值"
         },
         "abort": {
             "already_configured": "设备已配置"

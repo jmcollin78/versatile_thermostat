@@ -5,7 +5,7 @@
         "step": {
             "user": {
                 "title": "Type of Versatile Thermostat",
-                "description": "Choose thermostat type you want to create",
+                "description": "Choose thermostat type you want to create\n\nThe next screens guide you through the required settings. You can change everything later from the menu.",
                 "data": {
                     "thermostat_type": "Thermostat type"
                 },
@@ -15,7 +15,7 @@
             },
             "menu": {
                 "title": "Menu",
-                "description": "Configure your thermostat. You will be able to finalize the configuration when all required parameters are entered.\n\n{missing_summary}",
+                "description": "Configure your thermostat. You will be able to finalize the configuration when all required parameters are entered.",
                 "menu_options": {
                     "main": "Main attributes",
                     "central_boiler": "Central boiler",
@@ -99,7 +99,7 @@
             },
             "type": {
                 "title": "Linked entities",
-                "description": "{wizard_progress}Devices controlled by this VTherm. Open the common settings, a device to see and change all its settings, or add a device.",
+                "description": "{wizard_progress}Devices controlled by this VTherm. Open the common settings, a device to see and change all its settings, or add a device. Devices marked with ⚠ are missing a setting required by the common settings.",
                 "menu_options": {
                     "underlying_common": "Common settings",
                     "underlying_1": "{underlying_1}",
@@ -127,7 +127,7 @@
                     "menu": "Back to menu"
                 },
                 "menu_option_descriptions": {
-                    "underlying_common": "{underlying_common_details}",
+                    "underlying_common": "Settings shared by all the devices",
                     "underlying_1": "{underlying_1_details}",
                     "underlying_2": "{underlying_2_details}",
                     "underlying_3": "{underlying_3_details}",
@@ -376,7 +376,7 @@
             },
             "configuration_not_complete": {
                 "title": "Configuration not complete",
-                "description": "The following settings are still missing:\n{missing_items}\n\nPick an item to open the screen that fixes it.",
+                "description": "These settings are required before the configuration can be finalized. Pick an item to open the screen that fixes it.",
                 "menu_options": {
                     "main": "Main attributes",
                     "type": "Underlyings",
@@ -390,15 +390,15 @@
                     "menu": "Back to menu"
                 },
                 "menu_option_descriptions": {
-                    "main": "Open this screen to fill in the missing settings",
-                    "type": "Open this screen to fill in the missing settings",
-                    "tpi": "Open this screen to fill in the missing settings",
-                    "presets": "Open this screen to fill in the missing settings",
-                    "power": "Open this screen to fill in the missing settings",
-                    "motion": "Open this screen to fill in the missing settings",
-                    "presence": "Open this screen to fill in the missing settings",
-                    "advanced": "Open this screen to fill in the missing settings",
-                    "central_boiler": "Open this screen to fill in the missing settings"
+                    "main": "The name, the temperature sensors or the cycle duration are missing",
+                    "type": "Add at least one device and complete the devices marked with ⚠",
+                    "tpi": "The TPI coefficients are required",
+                    "presets": "The central configuration is required to use its presets",
+                    "power": "The power sensors or the power preset temperature are missing",
+                    "motion": "A motion sensor is required when the feature is enabled",
+                    "presence": "A presence sensor is required when the feature is enabled",
+                    "advanced": "The safety parameters are required",
+                    "central_boiler": "The activation and deactivation commands are required"
                 }
             },
             "underlying_common": {
@@ -515,11 +515,8 @@
             "service_configuration_format": "The format of the service configuration is wrong",
             "min_max_opening_degrees_inconsistent": "For each underlying device, max_opening_degrees must be strictly greater than min_opening_degrees. Please check your configuration.",
             "vswitch_configuration_incorrect": "The command customization configuration is incorrect. It is required for underlying entities that are not switches, and the format must be service_name[/attribute:value]. More information is available in the README",
-            "missing_settings_summary": "{count} setting(s) to complete",
             "underlying_already_added": "This entity is already used by a device of this VTherm",
-            "max_opening_degree_out_of_range": "The maximum opening must be greater than 0 and must not exceed the maximum of the valve",
-            "underlying_field_missing": "{field} is missing",
-            "wizard_progress": "**Step {current} / {total}**. You can change everything later from the menu.\n\n"
+            "max_opening_degree_out_of_range": "The maximum opening must be greater than 0 and must not exceed the maximum of the valve"
         },
         "abort": {
             "already_configured": "Device is already configured"
@@ -540,7 +537,7 @@
             },
             "menu": {
                 "title": "Menu",
-                "description": "Configure your thermostat. You will be able to finalize the configuration when all required parameters are entered.\n\n{missing_summary}",
+                "description": "Configure your thermostat. You will be able to finalize the configuration when all required parameters are entered.",
                 "menu_options": {
                     "main": "Main attributes",
                     "central_boiler": "Central boiler",
@@ -619,7 +616,7 @@
             },
             "type": {
                 "title": "Entities - {name}",
-                "description": "{wizard_progress}Devices controlled by this VTherm. Open the common settings, a device to see and change all its settings, or add a device.",
+                "description": "{wizard_progress}Devices controlled by this VTherm. Open the common settings, a device to see and change all its settings, or add a device. Devices marked with ⚠ are missing a setting required by the common settings.",
                 "menu_options": {
                     "underlying_common": "Common settings",
                     "underlying_1": "{underlying_1}",
@@ -647,7 +644,7 @@
                     "menu": "Back to menu"
                 },
                 "menu_option_descriptions": {
-                    "underlying_common": "{underlying_common_details}",
+                    "underlying_common": "Settings shared by all the devices",
                     "underlying_1": "{underlying_1_details}",
                     "underlying_2": "{underlying_2_details}",
                     "underlying_3": "{underlying_3_details}",
@@ -898,7 +895,7 @@
             },
             "configuration_not_complete": {
                 "title": "Configuration not complete - {name}",
-                "description": "The following settings are still missing:\n{missing_items}\n\nPick an item to open the screen that fixes it.",
+                "description": "These settings are required before the configuration can be finalized. Pick an item to open the screen that fixes it.",
                 "menu_options": {
                     "main": "Main attributes",
                     "type": "Underlyings",
@@ -912,15 +909,15 @@
                     "menu": "Back to menu"
                 },
                 "menu_option_descriptions": {
-                    "main": "Open this screen to fill in the missing settings",
-                    "type": "Open this screen to fill in the missing settings",
-                    "tpi": "Open this screen to fill in the missing settings",
-                    "presets": "Open this screen to fill in the missing settings",
-                    "power": "Open this screen to fill in the missing settings",
-                    "motion": "Open this screen to fill in the missing settings",
-                    "presence": "Open this screen to fill in the missing settings",
-                    "advanced": "Open this screen to fill in the missing settings",
-                    "central_boiler": "Open this screen to fill in the missing settings"
+                    "main": "The name, the temperature sensors or the cycle duration are missing",
+                    "type": "Add at least one device and complete the devices marked with ⚠",
+                    "tpi": "The TPI coefficients are required",
+                    "presets": "The central configuration is required to use its presets",
+                    "power": "The power sensors or the power preset temperature are missing",
+                    "motion": "A motion sensor is required when the feature is enabled",
+                    "presence": "A presence sensor is required when the feature is enabled",
+                    "advanced": "The safety parameters are required",
+                    "central_boiler": "The activation and deactivation commands are required"
                 }
             },
             "underlying_common": {
@@ -1037,11 +1034,8 @@
             "service_configuration_format": "The format of the service configuration is wrong",
             "min_max_opening_degrees_inconsistent": "For each underlying device, max_opening_degrees must be strictly greater than min_opening_degrees. Please check your configuration.",
             "vswitch_configuration_incorrect": "The command customization configuration is incorrect. It is required for underlying entities that are not switches, and the format must be service_name[/attribute:value]. More information is available in the README",
-            "missing_settings_summary": "{count} setting(s) to complete",
             "underlying_already_added": "This entity is already used by a device of this VTherm",
-            "max_opening_degree_out_of_range": "The maximum opening must be greater than 0 and must not exceed the maximum of the valve",
-            "underlying_field_missing": "{field} is missing",
-            "wizard_progress": "**Step {current} / {total}**. You can change everything later from the menu.\n\n"
+            "max_opening_degree_out_of_range": "The maximum opening must be greater than 0 and must not exceed the maximum of the valve"
         },
         "abort": {
             "already_configured": "Device is already configured"

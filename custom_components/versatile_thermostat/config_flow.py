@@ -23,7 +23,6 @@ from homeassistant.data_entry_flow import FlowHandler, FlowResult, section
 from homeassistant.exceptions import TemplateError
 from homeassistant.helpers import entity_registry as er
 from homeassistant.helpers.template import Template
-from homeassistant.helpers.translation import async_get_translations
 
 from .const import *  # pylint: disable=wildcard-import, unused-wildcard-import
 from .config_schema import *  # pylint: disable=wildcard-import, unused-wildcard-import
@@ -73,7 +72,6 @@ class VersatileThermostatBaseConfigFlow(FlowHandler):
 
     VERSION = CONFIG_VERSION
     MINOR_VERSION = CONFIG_MINOR_VERSION
-    TRANSLATION_CATEGORY = "config"
 
     def __init__(self, infos) -> None:
         super().__init__()
@@ -328,44 +326,6 @@ class VersatileThermostatBaseConfigFlow(FlowHandler):
         """True if the config is now complete (ie all mandatory attributes are set)"""
         return not self.get_missing_config(infos)
 
-    async def _async_get_translations(self) -> dict[str, str]:
-        """Return the translations of this flow (config or options category) in the language of the server"""
-        try:
-            return await async_get_translations(self.hass, self.hass.config.language, self.TRANSLATION_CATEGORY, [DOMAIN])
-        except Exception:  # pylint: disable=broad-except
-            _LOGGER.debug("Unable to load the translations of the flow", exc_info=True)
-            return {}
-
-    def _get_field_label(self, translations: dict[str, str], step_id: str, conf: str) -> str:
-        """Return the translated label of a field. Falls back on the label of the same field in another step then on the field name"""
-        prefix = f"component.{DOMAIN}.{self.TRANSLATION_CATEGORY}.step."
-        label = translations.get(f"{prefix}{step_id}.data.{conf}")
-        if label is None:
-            suffix = f".data.{conf}"
-            label = next((value for key, value in translations.items() if key.startswith(prefix) and key.endswith(suffix)), conf)
-        return label
-
-    async def _async_missing_config_to_text(self, missing: list[MissingItem]) -> str:
-        """Build the bulleted list (markdown) of the missing items from the translated labels"""
-        translations = await self._async_get_translations()
-        prefix = f"component.{DOMAIN}.{self.TRANSLATION_CATEGORY}.step."
-        lines = []
-        for item in missing:
-            step_label = translations.get(f"{prefix}menu.menu_options.{item.step_id}", item.step_id)
-            labels = ", ".join(self._get_field_label(translations, item.step_id, conf) for conf in item.fields)
-            if item.device:
-                labels = f"{item.device} - {labels}"
-            lines.append(f"- **{step_label}**: {labels}")
-        return "\n".join(lines)
-
-    async def _async_missing_config_summary(self, missing: list[MissingItem]) -> str:
-        """Build the sentence summarizing the number of settings to complete. Empty if the configuration is complete"""
-        if not missing:
-            return ""
-        translations = await self._async_get_translations()
-        template = translations.get(f"component.{DOMAIN}.{self.TRANSLATION_CATEGORY}.error.missing_settings_summary", "{count} setting(s) to complete")
-        return template.replace("{count}", str(len(missing)))
-
     def merge_user_input(self, data_schema: vol.Schema, user_input: dict):
         """For each schema entry not in user_input, set or remove values in infos"""
         self._infos.update(user_input)
@@ -445,18 +405,18 @@ class VersatileThermostatBaseConfigFlow(FlowHandler):
         return await self.async_step_menu()
 
     async def _async_get_placeholders(self, step_id: str) -> dict:
-        """Return the description placeholders of a step. During the creation wizard they include the progress"""
+        """Return the description placeholders of a step. During the creation wizard they include the progress.
+        The progress is language neutral because the flow does not know the language of the user (the
+        translations of the server would be in the language of the server)"""
         placeholders = self._placeholders | {"wizard_progress": ""}
         if self._wizard_active:
             steps = self._get_wizard_steps()
             # All the screens of the underlyings are one step of the wizard. The type of VTherm is the first step
             wizard_step = "type" if step_id.startswith("underlying") else step_id
             if wizard_step in steps:
-                translations = await self._async_get_translations()
-                template = translations.get(
-                    f"component.{DOMAIN}.{self.TRANSLATION_CATEGORY}.error.wizard_progress", "Step {current} / {total}\n\n"
-                )
-                placeholders["wizard_progress"] = template.replace("{current}", str(steps.index(wizard_step) + 2)).replace("{total}", str(len(steps) + 1))
+                current = steps.index(wizard_step) + 2
+                total = len(steps) + 1
+                placeholders["wizard_progress"] = f"{'▰' * current}{'▱' * (total - current)} **{current} / {total}**\n\n"
         return placeholders
 
     async def generic_step(self, step_id, data_schema, user_input, next_step_function):
@@ -547,11 +507,10 @@ class VersatileThermostatBaseConfigFlow(FlowHandler):
         menu_options = list(dict.fromkeys(item.step_id for item in missing))
         menu_options.append("menu")
 
-        placeholders = self._placeholders | {"missing_items": await self._async_missing_config_to_text(missing)}
         return self.async_show_menu(
             step_id="configuration_not_complete",
             menu_options=menu_options,
-            description_placeholders=placeholders,
+            description_placeholders=self._placeholders,
         )
 
     async def async_step_menu(self, user_input: dict | None = None) -> FlowResult:
@@ -619,10 +578,7 @@ class VersatileThermostatBaseConfigFlow(FlowHandler):
             _LOGGER.info("The configuration is not terminated. Missing: %s", missing)
             menu_options.append("configuration_not_complete")
 
-        placeholders = self._placeholders | {
-            "missing_count": str(len(missing)),
-            "missing_summary": await self._async_missing_config_summary(missing),
-        }
+        placeholders = self._placeholders | {"missing_count": str(len(missing))}
         return self.async_show_menu(
             step_id="menu",
             menu_options=menu_options,
@@ -975,46 +931,18 @@ class VersatileThermostatBaseConfigFlow(FlowHandler):
             placeholders["underlying_entity"] = entity_id
         return placeholders
 
-    def _format_value(self, translations: dict[str, str], conf: str, value: Any) -> str:
-        """Format a value of the common settings for the details displayed in the underlyings menu"""
-        if isinstance(value, bool):
-            return "✓" if value else "✗"
-        selector_key = {CONF_AUTO_REGULATION_MODE: "auto_regulation_mode", CONF_AUTO_FAN_MODE: "auto_fan_mode"}.get(conf)
-        if selector_key is not None:
-            return translations.get(f"component.{DOMAIN}.selector.{selector_key}.options.{value}", str(value))
-        return str(value)
-
-    def _get_underlying_common_details(self, translations: dict[str, str]) -> str:
-        """Summary of the common settings, displayed under the 'Common settings' entry of the underlyings menu"""
-        thermostat_type = self._infos.get(CONF_THERMOSTAT_TYPE)
-        if thermostat_type == CONF_THERMOSTAT_SWITCH:
-            schema = build_step_thermostat_switch_schema()
-        elif thermostat_type == CONF_THERMOSTAT_VALVE:
-            schema = build_step_thermostat_valve_schema()
-        else:
-            schema = STEP_THERMOSTAT_CLIMATE
-        confs = [str(key) for key in schema.schema]
-        if thermostat_type == CONF_THERMOSTAT_CLIMATE:
-            confs += [str(key) for key in build_step_underlying_extra_schema(self.is_valve_regulation_selected(self._infos), self.is_sync_device_internal_temp_selected(self._infos)).schema]
-        parts = []
-        for conf in dict.fromkeys(confs):
-            value = self._infos.get(conf)
-            if value is not None and value != "":
-                parts.append(f"{self._get_field_label(translations, 'underlying_common', conf)}: {self._format_value(translations, conf, value)}")
-        return " · ".join(parts)
-
-    def _get_underlying_details(self, translations: dict[str, str], idx: int) -> str:
-        """Summary of a device, displayed under its entry of the underlyings menu"""
+    def _get_underlying_details(self, idx: int) -> str:
+        """Summary of a device, displayed under its entry of the underlyings menu. Only entities and values are
+        displayed because the flow does not know the language of the user"""
         entity_id = self._infos[CONF_UNDERLYING_LIST][idx]
-        missing_fields = self._get_underlying_missing_fields(self._infos, idx)
-        if missing_fields:
-            template = translations.get(f"component.{DOMAIN}.{self.TRANSLATION_CATEGORY}.error.underlying_field_missing", "{field} is missing")
-            labels = (template.replace("{field}", self._get_field_label(translations, "underlying", conf)) for conf in missing_fields)
-            return f"⚠ {entity_id} · " + ", ".join(labels)
+        fields = self._get_underlying_form_fields(entity_id)
+        values = self._get_underlying_values(idx)
         parts = [entity_id]
-        for conf, value in self._get_underlying_values(idx).items():
-            if conf in self._get_underlying_form_fields(entity_id) and value not in (None, ""):
-                parts.append(f"{self._get_field_label(translations, 'underlying', conf)}: {value}")
+        for conf in (CONF_OPENING_DEGREE_ENTITY, CONF_CLOSING_DEGREE_ENTITY, CONF_SYNC_ENTITY, CONF_VSWITCH_ON_CMD, CONF_VSWITCH_OFF_CMD):
+            if conf in fields and values.get(conf) not in (None, ""):
+                parts.append(str(values[conf]))
+        if CONF_MAX_OPENING_DEGREE in fields:
+            parts.append(f"{values[CONF_MIN_OPENING_DEGREE]}–{values[CONF_MAX_OPENING_DEGREE]} %")
         return " · ".join(parts)
 
     async def async_step_type(self, user_input: dict | None = None) -> FlowResult:
@@ -1029,15 +957,15 @@ class VersatileThermostatBaseConfigFlow(FlowHandler):
             # The first device is added at once
             return await self.async_step_underlying_add()
 
-        translations = await self._async_get_translations()
         placeholders = await self._async_get_placeholders("type")
-        placeholders["underlying_common_details"] = self._get_underlying_common_details(translations)
 
         menu_options = ["underlying_common"]
         for idx in range(min(len(underlyings), MAX_UNDERLYINGS)):
             menu_options.append(f"underlying_{idx + 1}")
-            placeholders[f"underlying_{idx + 1}"] = self._get_entity_name(underlyings[idx])
-            placeholders[f"underlying_{idx + 1}_details"] = self._get_underlying_details(translations, idx)
+            # an incomplete device is flagged in its label. The legend is in the (translated) description of the menu
+            name = self._get_entity_name(underlyings[idx])
+            placeholders[f"underlying_{idx + 1}"] = f"⚠ {name}" if self._get_underlying_missing_fields(self._infos, idx) else name
+            placeholders[f"underlying_{idx + 1}_details"] = self._get_underlying_details(idx)
         if len(underlyings) < MAX_UNDERLYINGS:
             menu_options.append("underlying_add")
         if not self._wizard_active:
@@ -1750,8 +1678,6 @@ class VersatileThermostatOptionsFlowHandler(
     VersatileThermostatBaseConfigFlow, OptionsFlow
 ):
     """Handle options flow for Versatile Thermostat integration."""
-
-    TRANSLATION_CATEGORY = "options"
 
     def __init__(self, config_entry: ConfigEntry) -> None:
         """Initialize options flow."""

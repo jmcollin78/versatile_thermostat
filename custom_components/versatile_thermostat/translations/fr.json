@@ -5,7 +5,7 @@
     "step": {
       "user": {
         "title": "Type du nouveau Versatile Thermostat",
-        "description": "Choisissez le type de thermostat que vous voulez créer",
+        "description": "Choisissez le type de thermostat que vous voulez créer\n\nLes écrans suivants vous guident dans les réglages obligatoires. Vous pourrez tout modifier plus tard depuis le menu.",
         "data": {
           "thermostat_type": "Type de thermostat"
         },
@@ -15,7 +15,7 @@
       },
       "menu": {
         "title": "Menu",
-        "description": "Paramétrez votre thermostat. Vous pourrez finaliser la configuration quand tous les paramètres auront été saisis.\n\n{missing_summary}",
+        "description": "Paramétrez votre thermostat. Vous pourrez finaliser la configuration quand tous les paramètres auront été saisis.",
         "menu_options": {
           "main": "Principaux Attributs",
           "central_boiler": "Chauffage central",
@@ -100,7 +100,7 @@
       },
       "type": {
         "title": "Entité(s) liée(s)",
-        "description": "{wizard_progress}Appareils pilotés par ce VTherm. Ouvrez les réglages communs, un appareil pour voir et modifier tous ses réglages, ou ajoutez un appareil.",
+        "description": "{wizard_progress}Appareils pilotés par ce VTherm. Ouvrez les réglages communs, un appareil pour voir et modifier tous ses réglages, ou ajoutez un appareil. Les appareils marqués ⚠ n'ont pas un réglage exigé par les réglages communs.",
         "menu_options": {
           "underlying_common": "Réglages communs",
           "underlying_1": "{underlying_1}",
@@ -128,7 +128,7 @@
           "menu": "Retour au menu"
         },
         "menu_option_descriptions": {
-          "underlying_common": "{underlying_common_details}",
+          "underlying_common": "Réglages partagés par tous les appareils",
           "underlying_1": "{underlying_1_details}",
           "underlying_2": "{underlying_2_details}",
           "underlying_3": "{underlying_3_details}",
@@ -377,7 +377,7 @@
       },
       "configuration_not_complete": {
         "title": "Configuration incomplète",
-        "description": "Les paramètres suivants sont encore manquants :\n{missing_items}\n\nChoisissez un élément pour ouvrir l'écran qui permet de le corriger.",
+        "description": "Ces réglages sont obligatoires pour pouvoir finaliser la configuration. Choisissez un élément pour ouvrir l'écran qui permet de le corriger.",
         "menu_options": {
           "main": "Principaux Attributs",
           "type": "Sous-jacents",
@@ -391,15 +391,15 @@
           "menu": "Retour au menu"
         },
         "menu_option_descriptions": {
-          "main": "Ouvrir cet écran pour renseigner les paramètres manquants",
-          "type": "Ouvrir cet écran pour renseigner les paramètres manquants",
-          "tpi": "Ouvrir cet écran pour renseigner les paramètres manquants",
-          "presets": "Ouvrir cet écran pour renseigner les paramètres manquants",
-          "power": "Ouvrir cet écran pour renseigner les paramètres manquants",
-          "motion": "Ouvrir cet écran pour renseigner les paramètres manquants",
-          "presence": "Ouvrir cet écran pour renseigner les paramètres manquants",
-          "advanced": "Ouvrir cet écran pour renseigner les paramètres manquants",
-          "central_boiler": "Ouvrir cet écran pour renseigner les paramètres manquants"
+          "main": "Le nom, les capteurs de température ou la durée du cycle sont manquants",
+          "type": "Ajoutez au moins un appareil et complétez les appareils marqués ⚠",
+          "tpi": "Les coefficients TPI sont obligatoires",
+          "presets": "La configuration centrale est nécessaire pour utiliser ses préréglages",
+          "power": "Les capteurs de puissance ou la température du préréglage délestage sont manquants",
+          "motion": "Un capteur de mouvement est obligatoire quand la fonction est activée",
+          "presence": "Un capteur de présence est obligatoire quand la fonction est activée",
+          "advanced": "Les paramètres de sécurité sont obligatoires",
+          "central_boiler": "Les commandes d'activation et de désactivation sont obligatoires"
         }
       },
       "underlying_common": {
@@ -516,11 +516,8 @@
       "service_configuration_format": "Mauvais format de la configuration du service",
       "min_max_opening_degrees_inconsistent": "Pour chaque équipement sous-jacent, max_opening_degrees doit être strictement supérieur à min_opening_degrees. Veuillez vérifier votre configuration.",
       "vswitch_configuration_incorrect": "La configuration de la personnalisation des commandes est incorrecte. Elle est obligatoire pour les sous-jacents non switch et le format doit être 'service_name[/attribut:valeur]'. Plus d'informations dans le README.",
-      "missing_settings_summary": "{count} paramètre(s) à compléter",
       "underlying_already_added": "Cette entité est déjà utilisée par un appareil de ce VTherm",
-      "max_opening_degree_out_of_range": "L'ouverture maximale doit être supérieure à 0 et ne doit pas dépasser le maximum de la vanne",
-      "underlying_field_missing": "{field} manquant",
-      "wizard_progress": "**Étape {current} / {total}**. Vous pourrez tout modifier plus tard depuis le menu.\n\n"
+      "max_opening_degree_out_of_range": "L'ouverture maximale doit être supérieure à 0 et ne doit pas dépasser le maximum de la vanne"
     },
     "abort": {
       "already_configured": "L'appareil est déjà configuré"
@@ -541,7 +538,7 @@
       },
       "menu": {
         "title": "Menu",
-        "description": "Paramétrez votre thermostat. Vous pourrez finaliser la configuration quand tous les paramètres auront été saisis.\n\n{missing_summary}",
+        "description": "Paramétrez votre thermostat. Vous pourrez finaliser la configuration quand tous les paramètres auront été saisis.",
         "menu_options": {
           "main": "Principaux Attributs",
           "central_boiler": "Chauffage central",
@@ -621,7 +618,7 @@
       },
       "type": {
         "title": "Entité(s) liée(s) - {name}",
-        "description": "{wizard_progress}Appareils pilotés par ce VTherm. Ouvrez les réglages communs, un appareil pour voir et modifier tous ses réglages, ou ajoutez un appareil.",
+        "description": "{wizard_progress}Appareils pilotés par ce VTherm. Ouvrez les réglages communs, un appareil pour voir et modifier tous ses réglages, ou ajoutez un appareil. Les appareils marqués ⚠ n'ont pas un réglage exigé par les réglages communs.",
         "menu_options": {
           "underlying_common": "Réglages communs",
           "underlying_1": "{underlying_1}",
@@ -649,7 +646,7 @@
           "menu": "Retour au menu"
         },
         "menu_option_descriptions": {
-          "underlying_common": "{underlying_common_details}",
+          "underlying_common": "Réglages partagés par tous les appareils",
           "underlying_1": "{underlying_1_details}",
           "underlying_2": "{underlying_2_details}",
           "underlying_3": "{underlying_3_details}",
@@ -900,7 +897,7 @@
       },
       "configuration_not_complete": {
         "title": "Configuration incomplète - {name}",
-        "description": "Les paramètres suivants sont encore manquants :\n{missing_items}\n\nChoisissez un élément pour ouvrir l'écran qui permet de le corriger.",
+        "description": "Ces réglages sont obligatoires pour pouvoir finaliser la configuration. Choisissez un élément pour ouvrir l'écran qui permet de le corriger.",
         "menu_options": {
           "main": "Principaux Attributs",
           "type": "Sous-jacents",
@@ -914,15 +911,15 @@
           "menu": "Retour au menu"
         },
         "menu_option_descriptions": {
-          "main": "Ouvrir cet écran pour renseigner les paramètres manquants",
-          "type": "Ouvrir cet écran pour renseigner les paramètres manquants",
-          "tpi": "Ouvrir cet écran pour renseigner les paramètres manquants",
-          "presets": "Ouvrir cet écran pour renseigner les paramètres manquants",
-          "power": "Ouvrir cet écran pour renseigner les paramètres manquants",
-          "motion": "Ouvrir cet écran pour renseigner les paramètres manquants",
-          "presence": "Ouvrir cet écran pour renseigner les paramètres manquants",
-          "advanced": "Ouvrir cet écran pour renseigner les paramètres manquants",
-          "central_boiler": "Ouvrir cet écran pour renseigner les paramètres manquants"
+          "main": "Le nom, les capteurs de température ou la durée du cycle sont manquants",
+          "type": "Ajoutez au moins un appareil et complétez les appareils marqués ⚠",
+          "tpi": "Les coefficients TPI sont obligatoires",
+          "presets": "La configuration centrale est nécessaire pour utiliser ses préréglages",
+          "power": "Les capteurs de puissance ou la température du préréglage délestage sont manquants",
+          "motion": "Un capteur de mouvement est obligatoire quand la fonction est activée",
+          "presence": "Un capteur de présence est obligatoire quand la fonction est activée",
+          "advanced": "Les paramètres de sécurité sont obligatoires",
+          "central_boiler": "Les commandes d'activation et de désactivation sont obligatoires"
         }
       },
       "underlying_common": {
@@ -1039,11 +1036,8 @@
       "service_configuration_format": "Mauvais format de la configuration du service",
       "min_max_opening_degrees_inconsistent": "Pour chaque équipement sous-jacent, max_opening_degrees doit être strictement supérieur à min_opening_degrees. Veuillez vérifier votre configuration.",
       "vswitch_configuration_incorrect": "La configuration de la personnalisation des commandes est incorrecte. Elle est obligatoire pour les sous-jacents non switch et le format doit être 'service_name[/attribut:valeur]'. Plus d'informations dans le README.",
-      "missing_settings_summary": "{count} paramètre(s) à compléter",
       "underlying_already_added": "Cette entité est déjà utilisée par un appareil de ce VTherm",
-      "max_opening_degree_out_of_range": "L'ouverture maximale doit être supérieure à 0 et ne doit pas dépasser le maximum de la vanne",
-      "underlying_field_missing": "{field} manquant",
-      "wizard_progress": "**Étape {current} / {total}**. Vous pourrez tout modifier plus tard depuis le menu.\n\n"
+      "max_opening_degree_out_of_range": "L'ouverture maximale doit être supérieure à 0 et ne doit pas dépasser le maximum de la vanne"
     },
     "abort": {
       "already_configured": "L'appareil est déjà configuré"

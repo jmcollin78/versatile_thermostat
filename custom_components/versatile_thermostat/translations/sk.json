@@ -10,11 +10,12 @@
         },
         "data_description": {
           "thermostat_type": "Len jeden centrálny typ konfigurácie je možný"
-        }
+        },
+        "description": "Ďalšie obrazovky vás prevedú povinnými nastaveniami. Všetko môžete neskôr zmeniť z ponuky."
       },
       "menu": {
         "title": "Menu",
-        "description": "Nakonfigurujte si termostat. Po zadaní všetkých požadovaných parametrov budete môcť dokončiť konfiguráciu.\n\n{missing_summary}",
+        "description": "Nakonfigurujte si termostat. Po zadaní všetkých požadovaných parametrov budete môcť dokončiť konfiguráciu.",
         "menu_options": {
           "main": "Hlavné atribúty",
           "central_boiler": "Centrálny kotol",
@@ -92,7 +93,7 @@
       },
       "type": {
         "title": "Prepojené entity",
-        "description": "{wizard_progress}Zariadenia ovládané týmto VTherm. Otvorte spoločné nastavenia, zariadenie na zobrazenie a zmenu všetkých jeho nastavení, alebo pridajte zariadenie.",
+        "description": "{wizard_progress}Zariadenia ovládané týmto VTherm. Otvorte spoločné nastavenia, zariadenie na zobrazenie a zmenu všetkých jeho nastavení, alebo pridajte zariadenie. Zariadeniam označeným ⚠ chýba nastavenie požadované spoločnými nastaveniami.",
         "menu_options": {
           "underlying_common": "Spoločné nastavenia",
           "underlying_1": "{underlying_1}",
@@ -120,7 +121,7 @@
           "menu": "Späť do ponuky"
         },
         "menu_option_descriptions": {
-          "underlying_common": "{underlying_common_details}",
+          "underlying_common": "Nastavenia spoločné pre všetky zariadenia",
           "underlying_1": "{underlying_1_details}",
           "underlying_2": "{underlying_2_details}",
           "underlying_3": "{underlying_3_details}",
@@ -291,7 +292,7 @@
       },
       "configuration_not_complete": {
         "title": "Konfigurácia nie je úplná",
-        "description": "Stále chýbajú nasledujúce nastavenia:\n{missing_items}\n\nVyberte položku a otvorte obrazovku, kde ju môžete opraviť.",
+        "description": "Tieto nastavenia sú potrebné na dokončenie konfigurácie. Vyberte položku na otvorenie obrazovky, kde ju opravíte.",
         "menu_options": {
           "main": "Hlavné atribúty",
           "type": "Podklady",
@@ -305,15 +306,15 @@
           "menu": "Späť do ponuky"
         },
         "menu_option_descriptions": {
-          "main": "Otvoriť túto obrazovku a doplniť chýbajúce nastavenia",
-          "type": "Otvoriť túto obrazovku a doplniť chýbajúce nastavenia",
-          "tpi": "Otvoriť túto obrazovku a doplniť chýbajúce nastavenia",
-          "presets": "Otvoriť túto obrazovku a doplniť chýbajúce nastavenia",
-          "power": "Otvoriť túto obrazovku a doplniť chýbajúce nastavenia",
-          "motion": "Otvoriť túto obrazovku a doplniť chýbajúce nastavenia",
-          "presence": "Otvoriť túto obrazovku a doplniť chýbajúce nastavenia",
-          "advanced": "Otvoriť túto obrazovku a doplniť chýbajúce nastavenia",
-          "central_boiler": "Otvoriť túto obrazovku a doplniť chýbajúce nastavenia"
+          "main": "Chýba názov, teplotné snímače alebo dĺžka cyklu",
+          "type": "Pridajte aspoň jedno zariadenie a doplňte zariadenia označené ⚠",
+          "tpi": "Koeficienty TPI sú povinné",
+          "presets": "Na použitie predvolieb centrálnej konfigurácie je potrebná centrálna konfigurácia",
+          "power": "Chýbajú snímače výkonu alebo teplota predvoľby odľahčenia",
+          "motion": "Keď je funkcia zapnutá, je potrebný snímač pohybu",
+          "presence": "Keď je funkcia zapnutá, je potrebný snímač prítomnosti",
+          "advanced": "Bezpečnostné parametre sú povinné",
+          "central_boiler": "Príkazy na zapnutie a vypnutie sú povinné"
         }
       },
       "underlying_common": {
@@ -430,11 +431,8 @@
       "service_configuration_format": "Formát konfigurácie služby je nesprávny",
       "min_max_opening_degrees_inconsistent": "Pre každé základné zariadenie musí byť max_opening_degrees striktne väčší ako min_opening_degrees. Skontrolujte prosím svoju konfiguráciu.",
       "vswitch_configuration_incorrect": "The command customization configuration is incorrect. It is required for underlying entities that are not switches, and the format must be service_name[/attribute:value]. More information is available in the README",
-      "missing_settings_summary": "Na doplnenie: {count}",
       "underlying_already_added": "Túto entitu už používa zariadenie tohto VTherm",
-      "max_opening_degree_out_of_range": "Maximálne otvorenie musí byť väčšie ako 0 a nesmie prekročiť maximum ventilu",
-      "underlying_field_missing": "Chýba: {field}",
-      "wizard_progress": "**Krok {current} / {total}**. Všetko môžete neskôr zmeniť v ponuke.\n\n"
+      "max_opening_degree_out_of_range": "Maximálne otvorenie musí byť väčšie ako 0 a nesmie prekročiť maximum ventilu"
     },
     "abort": {
       "already_configured": "Zariadenie je už nakonfigurované"
@@ -454,7 +452,7 @@
       },
       "menu": {
         "title": "Menu",
-        "description": "Nakonfigurujte si termostat. Po zadaní všetkých požadovaných parametrov budete môcť dokončiť konfiguráciu.\n\n{missing_summary}",
+        "description": "Nakonfigurujte si termostat. Po zadaní všetkých požadovaných parametrov budete môcť dokončiť konfiguráciu.",
         "menu_options": {
           "main": "Hlavné atribúty",
           "central_boiler": "Centrálny kotol",
@@ -530,7 +528,7 @@
       },
       "type": {
         "title": "Prepojené entity - {name}",
-        "description": "{wizard_progress}Zariadenia ovládané týmto VTherm. Otvorte spoločné nastavenia, zariadenie na zobrazenie a zmenu všetkých jeho nastavení, alebo pridajte zariadenie.",
+        "description": "{wizard_progress}Zariadenia ovládané týmto VTherm. Otvorte spoločné nastavenia, zariadenie na zobrazenie a zmenu všetkých jeho nastavení, alebo pridajte zariadenie. Zariadeniam označeným ⚠ chýba nastavenie požadované spoločnými nastaveniami.",
         "menu_options": {
           "underlying_common": "Spoločné nastavenia",
           "underlying_1": "{underlying_1}",
@@ -558,7 +556,7 @@
           "menu": "Späť do ponuky"
         },
         "menu_option_descriptions": {
-          "underlying_common": "{underlying_common_details}",
+          "underlying_common": "Nastavenia spoločné pre všetky zariadenia",
           "underlying_1": "{underlying_1_details}",
           "underlying_2": "{underlying_2_details}",
           "underlying_3": "{underlying_3_details}",
@@ -727,7 +725,7 @@
       },
       "configuration_not_complete": {
         "title": "Konfigurácia nie je úplná - {name}",
-        "description": "Stále chýbajú nasledujúce nastavenia:\n{missing_items}\n\nVyberte položku a otvorte obrazovku, kde ju môžete opraviť.",
+        "description": "Tieto nastavenia sú potrebné na dokončenie konfigurácie. Vyberte položku na otvorenie obrazovky, kde ju opravíte.",
         "menu_options": {
           "main": "Hlavné atribúty",
           "type": "Podklady",
@@ -741,15 +739,15 @@
           "menu": "Späť do ponuky"
         },
         "menu_option_descriptions": {
-          "main": "Otvoriť túto obrazovku a doplniť chýbajúce nastavenia",
-          "type": "Otvoriť túto obrazovku a doplniť chýbajúce nastavenia",
-          "tpi": "Otvoriť túto obrazovku a doplniť chýbajúce nastavenia",
-          "presets": "Otvoriť túto obrazovku a doplniť chýbajúce nastavenia",
-          "power": "Otvoriť túto obrazovku a doplniť chýbajúce nastavenia",
-          "motion": "Otvoriť túto obrazovku a doplniť chýbajúce nastavenia",
-          "presence": "Otvoriť túto obrazovku a doplniť chýbajúce nastavenia",
-          "advanced": "Otvoriť túto obrazovku a doplniť chýbajúce nastavenia",
-          "central_boiler": "Otvoriť túto obrazovku a doplniť chýbajúce nastavenia"
+          "main": "Chýba názov, teplotné snímače alebo dĺžka cyklu",
+          "type": "Pridajte aspoň jedno zariadenie a doplňte zariadenia označené ⚠",
+          "tpi": "Koeficienty TPI sú povinné",
+          "presets": "Na použitie predvolieb centrálnej konfigurácie je potrebná centrálna konfigurácia",
+          "power": "Chýbajú snímače výkonu alebo teplota predvoľby odľahčenia",
+          "motion": "Keď je funkcia zapnutá, je potrebný snímač pohybu",
+          "presence": "Keď je funkcia zapnutá, je potrebný snímač prítomnosti",
+          "advanced": "Bezpečnostné parametre sú povinné",
+          "central_boiler": "Príkazy na zapnutie a vypnutie sú povinné"
         }
       },
       "underlying_common": {
@@ -866,11 +864,8 @@
       "service_configuration_format": "Formát konfigurácie služby je nesprávny",
       "min_max_opening_degrees_inconsistent": "Pre každé základné zariadenie musí byť max_opening_degrees striktne väčší ako min_opening_degrees. Skontrolujte prosím svoju konfiguráciu.",
       "vswitch_configuration_incorrect": "The command customization configuration is incorrect. It is required for underlying entities that are not switches, and the format must be service_name[/attribute:value]. More information is available in the README",
-      "missing_settings_summary": "Na doplnenie: {count}",
       "underlying_already_added": "Túto entitu už používa zariadenie tohto VTherm",
-      "max_opening_degree_out_of_range": "Maximálne otvorenie musí byť väčšie ako 0 a nesmie prekročiť maximum ventilu",
-      "underlying_field_missing": "Chýba: {field}",
-      "wizard_progress": "**Krok {current} / {total}**. Všetko môžete neskôr zmeniť v ponuke.\n\n"
+      "max_opening_degree_out_of_range": "Maximálne otvorenie musí byť väčšie ako 0 a nesmie prekročiť maximum ventilu"
     },
     "abort": {
       "already_configured": "Zariadenie je už nakonfigurované"

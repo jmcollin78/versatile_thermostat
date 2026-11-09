@@ -5,7 +5,7 @@
         "step": {
             "user": {
                 "title": "Typ Versatile Thermostatu",
-                "description": "Vyberte typ termostatu, který chcete vytvořit&nbsp;[![?](https://img.icons8.com/color/18/help.png)](https://github.com/jmcollin78/versatile_thermostat/blob/main/documentation/cs/creation.md)",
+                "description": "Vyberte typ termostatu, který chcete vytvořit&nbsp;[![?](https://img.icons8.com/color/18/help.png)](https://github.com/jmcollin78/versatile_thermostat/blob/main/documentation/cs/creation.md)\n\nDalší obrazovky vás provedou povinnými nastaveními. Vše můžete později změnit z nabídky.",
                 "data": {
                     "thermostat_type": "Typ termostatu"
                 },
@@ -15,7 +15,7 @@
             },
             "menu": {
                 "title": "Nabídka",
-                "description": "Nakonfigurujte váš termostat. Konfiguraci budete moci dokončit až po zadání všech požadovaných parametrů.\n\n{missing_summary}",
+                "description": "Nakonfigurujte váš termostat. Konfiguraci budete moci dokončit až po zadání všech požadovaných parametrů.",
                 "menu_options": {
                     "main": "Hlavní atributy",
                     "central_boiler": "Centrální kotel",
@@ -99,7 +99,7 @@
             },
             "type": {
                 "title": "Propojené entity",
-                "description": "{wizard_progress}Zařízení ovládaná tímto VTherm. Otevřete společná nastavení, zařízení pro zobrazení a změnu všech jeho nastavení, nebo přidejte zařízení.",
+                "description": "{wizard_progress}Zařízení ovládaná tímto VTherm. Otevřete společná nastavení, zařízení pro zobrazení a změnu všech jeho nastavení, nebo přidejte zařízení. Zařízením označeným ⚠ chybí nastavení vyžadované společnými nastaveními.",
                 "menu_options": {
                     "underlying_common": "Společná nastavení",
                     "underlying_1": "{underlying_1}",
@@ -127,7 +127,7 @@
                     "menu": "Zpět do nabídky"
                 },
                 "menu_option_descriptions": {
-                    "underlying_common": "{underlying_common_details}",
+                    "underlying_common": "Nastavení společná pro všechna zařízení",
                     "underlying_1": "{underlying_1_details}",
                     "underlying_2": "{underlying_2_details}",
                     "underlying_3": "{underlying_3_details}",
@@ -376,7 +376,7 @@
             },
             "configuration_not_complete": {
                 "title": "Konfigurace není úplná",
-                "description": "Stále chybí následující nastavení:\n{missing_items}\n\nVyberte položku a otevřete obrazovku, kde ji můžete opravit.",
+                "description": "Tato nastavení jsou nutná k dokončení konfigurace. Vyberte položku pro otevření obrazovky, kde ji opravíte.",
                 "menu_options": {
                     "main": "Hlavní atributy",
                     "type": "Podřízená zařízení",
@@ -390,15 +390,15 @@
                     "menu": "Zpět do nabídky"
                 },
                 "menu_option_descriptions": {
-                    "main": "Otevřít tuto obrazovku a doplnit chybějící nastavení",
-                    "type": "Otevřít tuto obrazovku a doplnit chybějící nastavení",
-                    "tpi": "Otevřít tuto obrazovku a doplnit chybějící nastavení",
-                    "presets": "Otevřít tuto obrazovku a doplnit chybějící nastavení",
-                    "power": "Otevřít tuto obrazovku a doplnit chybějící nastavení",
-                    "motion": "Otevřít tuto obrazovku a doplnit chybějící nastavení",
-                    "presence": "Otevřít tuto obrazovku a doplnit chybějící nastavení",
-                    "advanced": "Otevřít tuto obrazovku a doplnit chybějící nastavení",
-                    "central_boiler": "Otevřít tuto obrazovku a doplnit chybějící nastavení"
+                    "main": "Chybí název, teplotní čidla nebo délka cyklu",
+                    "type": "Přidejte alespoň jedno zařízení a doplňte zařízení označená ⚠",
+                    "tpi": "Koeficienty TPI jsou povinné",
+                    "presets": "Pro použití předvoleb centrální konfigurace je nutná centrální konfigurace",
+                    "power": "Chybí čidla výkonu nebo teplota předvolby odlehčení",
+                    "motion": "Když je funkce zapnutá, je nutné čidlo pohybu",
+                    "presence": "Když je funkce zapnutá, je nutné čidlo přítomnosti",
+                    "advanced": "Bezpečnostní parametry jsou povinné",
+                    "central_boiler": "Příkazy pro zapnutí a vypnutí jsou povinné"
                 }
             },
             "underlying_common": {
@@ -515,11 +515,8 @@
             "min_max_opening_degrees_inconsistent": "Pro každé základní zařízení musí být max_opening_degrees striktně větší než min_opening_degrees. Zkontrolujte prosím svou konfiguraci.",
             "vswitch_configuration_incorrect": "Konfigurace virtuálního spínače je nesprávná. Jedna nebo více podřízených entit není správně nakonfigurována.",
             "service_configuration_format": "Formát konfigurace služby je nesprávný",
-            "missing_settings_summary": "K doplnění: {count}",
             "underlying_already_added": "Tuto entitu již používá zařízení tohoto VTherm",
-            "max_opening_degree_out_of_range": "Maximální otevření musí být větší než 0 a nesmí překročit maximum ventilu",
-            "underlying_field_missing": "Chybí: {field}",
-            "wizard_progress": "**Krok {current} / {total}**. Vše můžete později změnit v nabídce.\n\n"
+            "max_opening_degree_out_of_range": "Maximální otevření musí být větší než 0 a nesmí překročit maximum ventilu"
         },
         "abort": {
             "already_configured": "Zařízení je již nakonfigurováno"
@@ -540,7 +537,7 @@
             },
             "menu": {
                 "title": "Nabídka",
-                "description": "Nakonfigurujte váš termostat. Konfiguraci budete moci dokončit až po zadání všech požadovaných parametrů.\n\n{missing_summary}",
+                "description": "Nakonfigurujte váš termostat. Konfiguraci budete moci dokončit až po zadání všech požadovaných parametrů.",
                 "menu_options": {
                     "main": "Hlavní atributy",
                     "central_boiler": "Centrální kotel",
@@ -619,7 +616,7 @@
             },
             "type": {
                 "title": "Propojené entity - {name}",
-                "description": "{wizard_progress}Zařízení ovládaná tímto VTherm. Otevřete společná nastavení, zařízení pro zobrazení a změnu všech jeho nastavení, nebo přidejte zařízení.",
+                "description": "{wizard_progress}Zařízení ovládaná tímto VTherm. Otevřete společná nastavení, zařízení pro zobrazení a změnu všech jeho nastavení, nebo přidejte zařízení. Zařízením označeným ⚠ chybí nastavení vyžadované společnými nastaveními.",
                 "menu_options": {
                     "underlying_common": "Společná nastavení",
                     "underlying_1": "{underlying_1}",
@@ -647,7 +644,7 @@
                     "menu": "Zpět do nabídky"
                 },
                 "menu_option_descriptions": {
-                    "underlying_common": "{underlying_common_details}",
+                    "underlying_common": "Nastavení společná pro všechna zařízení",
                     "underlying_1": "{underlying_1_details}",
                     "underlying_2": "{underlying_2_details}",
                     "underlying_3": "{underlying_3_details}",
@@ -898,7 +895,7 @@
             },
             "configuration_not_complete": {
                 "title": "Konfigurace není úplná - {name}",
-                "description": "Stále chybí následující nastavení:\n{missing_items}\n\nVyberte položku a otevřete obrazovku, kde ji můžete opravit.",
+                "description": "Tato nastavení jsou nutná k dokončení konfigurace. Vyberte položku pro otevření obrazovky, kde ji opravíte.",
                 "menu_options": {
                     "main": "Hlavní atributy",
                     "type": "Podřízená zařízení",
@@ -912,15 +909,15 @@
                     "menu": "Zpět do nabídky"
                 },
                 "menu_option_descriptions": {
-                    "main": "Otevřít tuto obrazovku a doplnit chybějící nastavení",
-                    "type": "Otevřít tuto obrazovku a doplnit chybějící nastavení",
-                    "tpi": "Otevřít tuto obrazovku a doplnit chybějící nastavení",
-                    "presets": "Otevřít tuto obrazovku a doplnit chybějící nastavení",
-                    "power": "Otevřít tuto obrazovku a doplnit chybějící nastavení",
-                    "motion": "Otevřít tuto obrazovku a doplnit chybějící nastavení",
-                    "presence": "Otevřít tuto obrazovku a doplnit chybějící nastavení",
-                    "advanced": "Otevřít tuto obrazovku a doplnit chybějící nastavení",
-                    "central_boiler": "Otevřít tuto obrazovku a doplnit chybějící nastavení"
+                    "main": "Chybí název, teplotní čidla nebo délka cyklu",
+                    "type": "Přidejte alespoň jedno zařízení a doplňte zařízení označená ⚠",
+                    "tpi": "Koeficienty TPI jsou povinné",
+                    "presets": "Pro použití předvoleb centrální konfigurace je nutná centrální konfigurace",
+                    "power": "Chybí čidla výkonu nebo teplota předvolby odlehčení",
+                    "motion": "Když je funkce zapnutá, je nutné čidlo pohybu",
+                    "presence": "Když je funkce zapnutá, je nutné čidlo přítomnosti",
+                    "advanced": "Bezpečnostní parametry jsou povinné",
+                    "central_boiler": "Příkazy pro zapnutí a vypnutí jsou povinné"
                 }
             },
             "underlying_common": {
@@ -1037,11 +1034,8 @@
             "min_max_opening_degrees_inconsistent": "Pro každé základní zařízení musí být max_opening_degrees striktně větší než min_opening_degrees. Zkontrolujte prosím svou konfiguraci.",
             "vswitch_configuration_incorrect": "Konfigurace virtuálního spínače je nesprávná. Jedna nebo více podřízených entit není správně nakonfigurována.",
             "service_configuration_format": "Formát konfigurace služby je nesprávný",
-            "missing_settings_summary": "K doplnění: {count}",
             "underlying_already_added": "Tuto entitu již používá zařízení tohoto VTherm",
-            "max_opening_degree_out_of_range": "Maximální otevření musí být větší než 0 a nesmí překročit maximum ventilu",
-            "underlying_field_missing": "Chybí: {field}",
-            "wizard_progress": "**Krok {current} / {total}**. Vše můžete později změnit v nabídce.\n\n"
+            "max_opening_degree_out_of_range": "Maximální otevření musí být větší než 0 a nesmí překročit maximum ventilu"
         },
         "abort": {
             "already_configured": "Zařízení je již nakonfigurováno"

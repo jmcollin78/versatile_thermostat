@@ -5,7 +5,7 @@
     "step": {
       "user": {
         "title": "Typ des Versatile Thermostat",
-        "description": "Zu erstellenden Thermostattyp auswählen.",
+        "description": "Zu erstellenden Thermostattyp auswählen.\n\nDie nächsten Bildschirme führen Sie durch die erforderlichen Einstellungen. Sie können später alles über das Menü ändern.",
         "data": {
           "thermostat_type": "Thermostattyp"
         },
@@ -15,7 +15,7 @@
       },
       "menu": {
         "title": "Menü",
-        "description": "Konfigurieren Sie Ihr Thermostat. Sobald alle erforderlichen Parameter eingegeben sind, kann die Konfiguration abgeschlossen werden.\n\n{missing_summary}",
+        "description": "Konfigurieren Sie Ihr Thermostat. Sobald alle erforderlichen Parameter eingegeben sind, kann die Konfiguration abgeschlossen werden.",
         "menu_options": {
           "main": "Wichtigste Eigenschaften",
           "central_boiler": "Zentralheizung",
@@ -99,7 +99,7 @@
       },
       "type": {
         "title": "Verknüpfte Entities",
-        "description": "{wizard_progress}Von diesem VTherm gesteuerte Geräte. Öffnen Sie die gemeinsamen Einstellungen, ein Gerät, um alle seine Einstellungen zu sehen und zu ändern, oder fügen Sie ein Gerät hinzu.",
+        "description": "{wizard_progress}Von diesem VTherm gesteuerte Geräte. Öffnen Sie die gemeinsamen Einstellungen, ein Gerät, um alle seine Einstellungen zu sehen und zu ändern, oder fügen Sie ein Gerät hinzu. Mit ⚠ markierten Geräten fehlt eine von den gemeinsamen Einstellungen geforderte Einstellung.",
         "menu_options": {
           "underlying_common": "Gemeinsame Einstellungen",
           "underlying_1": "{underlying_1}",
@@ -127,7 +127,7 @@
           "menu": "Zurück zum Menü"
         },
         "menu_option_descriptions": {
-          "underlying_common": "{underlying_common_details}",
+          "underlying_common": "Einstellungen, die für alle Geräte gelten",
           "underlying_1": "{underlying_1_details}",
           "underlying_2": "{underlying_2_details}",
           "underlying_3": "{underlying_3_details}",
@@ -376,7 +376,7 @@
       },
       "configuration_not_complete": {
         "title": "Konfiguration unvollständig",
-        "description": "Die folgenden Einstellungen fehlen noch:\n{missing_items}\n\nWählen Sie einen Eintrag, um den Bildschirm zur Korrektur zu öffnen.",
+        "description": "Diese Einstellungen sind erforderlich, um die Konfiguration abzuschließen. Wählen Sie einen Eintrag, um den Bildschirm zu öffnen, auf dem er behoben wird.",
         "menu_options": {
           "main": "Wichtigste Eigenschaften",
           "type": "Basiswerte",
@@ -390,15 +390,15 @@
           "menu": "Zurück zum Menü"
         },
         "menu_option_descriptions": {
-          "main": "Diesen Bildschirm öffnen, um die fehlenden Einstellungen auszufüllen",
-          "type": "Diesen Bildschirm öffnen, um die fehlenden Einstellungen auszufüllen",
-          "tpi": "Diesen Bildschirm öffnen, um die fehlenden Einstellungen auszufüllen",
-          "presets": "Diesen Bildschirm öffnen, um die fehlenden Einstellungen auszufüllen",
-          "power": "Diesen Bildschirm öffnen, um die fehlenden Einstellungen auszufüllen",
-          "motion": "Diesen Bildschirm öffnen, um die fehlenden Einstellungen auszufüllen",
-          "presence": "Diesen Bildschirm öffnen, um die fehlenden Einstellungen auszufüllen",
-          "advanced": "Diesen Bildschirm öffnen, um die fehlenden Einstellungen auszufüllen",
-          "central_boiler": "Diesen Bildschirm öffnen, um die fehlenden Einstellungen auszufüllen"
+          "main": "Der Name, die Temperatursensoren oder die Zyklusdauer fehlen",
+          "type": "Fügen Sie mindestens ein Gerät hinzu und vervollständigen Sie die mit ⚠ markierten Geräte",
+          "tpi": "Die TPI-Koeffizienten sind erforderlich",
+          "presets": "Die zentrale Konfiguration ist erforderlich, um ihre Voreinstellungen zu verwenden",
+          "power": "Die Leistungssensoren oder die Temperatur der Lastabwurf-Voreinstellung fehlen",
+          "motion": "Ein Bewegungssensor ist erforderlich, wenn die Funktion aktiviert ist",
+          "presence": "Ein Anwesenheitssensor ist erforderlich, wenn die Funktion aktiviert ist",
+          "advanced": "Die Sicherheitsparameter sind erforderlich",
+          "central_boiler": "Die Befehle zum Aktivieren und Deaktivieren sind erforderlich"
         }
       },
       "underlying_common": {
@@ -515,11 +515,8 @@
       "service_configuration_format": "Falsches Format der Servicekonfiguration",
       "min_max_opening_degrees_inconsistent": "Für jedes zugeordnete Gerät muss max_opening_degrees absolut größer als min_opening_degrees sein. Bitte die Konfiguration überprüfen.",
       "vswitch_configuration_incorrect": "Die Konfiguration der Befehlsanpassung ist falsch. Sie ist für nicht umschaltbare Basiswerte erforderlich und muss das Format 'service_name[/attribut:wert]' haben. Weitere Informationen in der README-Datei.",
-      "missing_settings_summary": "{count} Einstellung(en) zu vervollständigen",
       "underlying_already_added": "Diese Entität wird bereits von einem Gerät dieses VTherm verwendet",
-      "max_opening_degree_out_of_range": "Die maximale Öffnung muss größer als 0 sein und darf das Maximum des Ventils nicht überschreiten",
-      "underlying_field_missing": "{field} fehlt",
-      "wizard_progress": "**Schritt {current} / {total}**. Sie können später alles über das Menü ändern.\n\n"
+      "max_opening_degree_out_of_range": "Die maximale Öffnung muss größer als 0 sein und darf das Maximum des Ventils nicht überschreiten"
     },
     "abort": {
       "already_configured": "Gerät ist bereits konfiguriert"
@@ -540,7 +537,7 @@
       },
       "menu": {
         "title": "Menü",
-        "description": "Konfiguration des Thermostats. Wenn alle erforderlichen Parameter eingegeben sind, kann die Konfiguration abgeschlossen werden.\n\n{missing_summary}",
+        "description": "Konfiguration des Thermostats. Wenn alle erforderlichen Parameter eingegeben sind, kann die Konfiguration abgeschlossen werden.",
         "menu_options": {
           "main": "Grundlegendes (Name, Temperatursensor...)",
           "central_boiler": "Zentralheizung",
@@ -619,7 +616,7 @@
       },
       "type": {
         "title": "Zugehörige Entities - {name}",
-        "description": "{wizard_progress}Von diesem VTherm gesteuerte Geräte. Öffnen Sie die gemeinsamen Einstellungen, ein Gerät, um alle seine Einstellungen zu sehen und zu ändern, oder fügen Sie ein Gerät hinzu.",
+        "description": "{wizard_progress}Von diesem VTherm gesteuerte Geräte. Öffnen Sie die gemeinsamen Einstellungen, ein Gerät, um alle seine Einstellungen zu sehen und zu ändern, oder fügen Sie ein Gerät hinzu. Mit ⚠ markierten Geräten fehlt eine von den gemeinsamen Einstellungen geforderte Einstellung.",
         "menu_options": {
           "underlying_common": "Gemeinsame Einstellungen",
           "underlying_1": "{underlying_1}",
@@ -647,7 +644,7 @@
           "menu": "Zurück zum Menü"
         },
         "menu_option_descriptions": {
-          "underlying_common": "{underlying_common_details}",
+          "underlying_common": "Einstellungen, die für alle Geräte gelten",
           "underlying_1": "{underlying_1_details}",
           "underlying_2": "{underlying_2_details}",
           "underlying_3": "{underlying_3_details}",
@@ -898,7 +895,7 @@
       },
       "configuration_not_complete": {
         "title": "Konfiguration unvollständig - {name}",
-        "description": "Die folgenden Einstellungen fehlen noch:\n{missing_items}\n\nWählen Sie einen Eintrag, um den Bildschirm zur Korrektur zu öffnen.",
+        "description": "Diese Einstellungen sind erforderlich, um die Konfiguration abzuschließen. Wählen Sie einen Eintrag, um den Bildschirm zu öffnen, auf dem er behoben wird.",
         "menu_options": {
           "main": "Grundlegendes (Name, Temperatursensor...)",
           "type": "Gerätezuordnung",
@@ -912,15 +909,15 @@
           "menu": "Zurück zum Menü"
         },
         "menu_option_descriptions": {
-          "main": "Diesen Bildschirm öffnen, um die fehlenden Einstellungen auszufüllen",
-          "type": "Diesen Bildschirm öffnen, um die fehlenden Einstellungen auszufüllen",
-          "tpi": "Diesen Bildschirm öffnen, um die fehlenden Einstellungen auszufüllen",
-          "presets": "Diesen Bildschirm öffnen, um die fehlenden Einstellungen auszufüllen",
-          "power": "Diesen Bildschirm öffnen, um die fehlenden Einstellungen auszufüllen",
-          "motion": "Diesen Bildschirm öffnen, um die fehlenden Einstellungen auszufüllen",
-          "presence": "Diesen Bildschirm öffnen, um die fehlenden Einstellungen auszufüllen",
-          "advanced": "Diesen Bildschirm öffnen, um die fehlenden Einstellungen auszufüllen",
-          "central_boiler": "Diesen Bildschirm öffnen, um die fehlenden Einstellungen auszufüllen"
+          "main": "Der Name, die Temperatursensoren oder die Zyklusdauer fehlen",
+          "type": "Fügen Sie mindestens ein Gerät hinzu und vervollständigen Sie die mit ⚠ markierten Geräte",
+          "tpi": "Die TPI-Koeffizienten sind erforderlich",
+          "presets": "Die zentrale Konfiguration ist erforderlich, um ihre Voreinstellungen zu verwenden",
+          "power": "Die Leistungssensoren oder die Temperatur der Lastabwurf-Voreinstellung fehlen",
+          "motion": "Ein Bewegungssensor ist erforderlich, wenn die Funktion aktiviert ist",
+          "presence": "Ein Anwesenheitssensor ist erforderlich, wenn die Funktion aktiviert ist",
+          "advanced": "Die Sicherheitsparameter sind erforderlich",
+          "central_boiler": "Die Befehle zum Aktivieren und Deaktivieren sind erforderlich"
         }
       },
       "underlying_common": {
@@ -1037,11 +1034,8 @@
       "service_configuration_format": "Falsches Format der Servicekonfiguration",
       "min_max_opening_degrees_inconsistent": "Für jedes zugeordnete Gerät muss max_opening_degrees absolut größer als min_opening_degrees sein. Bitte die Konfiguration überprüfen.",
       "vswitch_configuration_incorrect": "Die Konfiguration der Befehlsanpassung ist falsch. Sie ist für nicht umschaltbare Basiswerte erforderlich und muss das Format 'service_name[/attribut:wert]' haben. Weitere Informationen dazu in der README-Datei.",
-      "missing_settings_summary": "{count} Einstellung(en) zu vervollständigen",
       "underlying_already_added": "Diese Entität wird bereits von einem Gerät dieses VTherm verwendet",
-      "max_opening_degree_out_of_range": "Die maximale Öffnung muss größer als 0 sein und darf das Maximum des Ventils nicht überschreiten",
-      "underlying_field_missing": "{field} fehlt",
-      "wizard_progress": "**Schritt {current} / {total}**. Sie können später alles über das Menü ändern.\n\n"
+      "max_opening_degree_out_of_range": "Die maximale Öffnung muss größer als 0 sein und darf das Maximum des Ventils nicht überschreiten"
     },
     "abort": {
       "already_configured": "Das Gerät ist bereits konfiguriert"

@@ -5,7 +5,7 @@
     "step": {
       "user": {
         "title": "Tipo de Versatile Thermostat",
-        "description": "Elige el tipo de termostato que quieres crear",
+        "description": "Elige el tipo de termostato que quieres crear\n\nLas siguientes pantallas le guían por los ajustes obligatorios. Podrá cambiarlo todo más tarde desde el menú.",
         "data": {
           "thermostat_type": "Tipo de termostato"
         },
@@ -15,7 +15,7 @@
       },
       "menu": {
         "title": "Menú",
-        "description": "Configura tu termostato. Podrás finalizar la configuración cuando hayas introducido todos los parámetros obligatorios.\n\n{missing_summary}",
+        "description": "Configura tu termostato. Podrás finalizar la configuración cuando hayas introducido todos los parámetros obligatorios.",
         "menu_options": {
           "main": "Atributos principales",
           "central_boiler": "Caldera central",
@@ -99,7 +99,7 @@
       },
       "type": {
         "title": "Entidades vinculadas",
-        "description": "{wizard_progress}Dispositivos controlados por este VTherm. Abra los ajustes comunes, un dispositivo para ver y cambiar todos sus ajustes, o añada un dispositivo.",
+        "description": "{wizard_progress}Dispositivos controlados por este VTherm. Abra los ajustes comunes, un dispositivo para ver y cambiar todos sus ajustes, o añada un dispositivo. A los dispositivos marcados con ⚠ les falta un ajuste exigido por los ajustes comunes.",
         "menu_options": {
           "underlying_common": "Ajustes comunes",
           "underlying_1": "{underlying_1}",
@@ -127,7 +127,7 @@
           "menu": "Volver al menú"
         },
         "menu_option_descriptions": {
-          "underlying_common": "{underlying_common_details}",
+          "underlying_common": "Ajustes compartidos por todos los dispositivos",
           "underlying_1": "{underlying_1_details}",
           "underlying_2": "{underlying_2_details}",
           "underlying_3": "{underlying_3_details}",
@@ -376,7 +376,7 @@
       },
       "configuration_not_complete": {
         "title": "Configuración incompleta",
-        "description": "Aún faltan los siguientes ajustes:\n{missing_items}\n\nElija un elemento para abrir la pantalla que permite corregirlo.",
+        "description": "Estos ajustes son obligatorios para poder finalizar la configuración. Elija un elemento para abrir la pantalla que lo corrige.",
         "menu_options": {
           "main": "Atributos principales",
           "type": "Dispositivos controlados",
@@ -390,15 +390,15 @@
           "menu": "Volver al menú"
         },
         "menu_option_descriptions": {
-          "main": "Abrir esta pantalla para completar los ajustes que faltan",
-          "type": "Abrir esta pantalla para completar los ajustes que faltan",
-          "tpi": "Abrir esta pantalla para completar los ajustes que faltan",
-          "presets": "Abrir esta pantalla para completar los ajustes que faltan",
-          "power": "Abrir esta pantalla para completar los ajustes que faltan",
-          "motion": "Abrir esta pantalla para completar los ajustes que faltan",
-          "presence": "Abrir esta pantalla para completar los ajustes que faltan",
-          "advanced": "Abrir esta pantalla para completar los ajustes que faltan",
-          "central_boiler": "Abrir esta pantalla para completar los ajustes que faltan"
+          "main": "Falta el nombre, los sensores de temperatura o la duración del ciclo",
+          "type": "Añada al menos un dispositivo y complete los dispositivos marcados con ⚠",
+          "tpi": "Los coeficientes TPI son obligatorios",
+          "presets": "La configuración central es necesaria para usar sus preajustes",
+          "power": "Faltan los sensores de potencia o la temperatura del preajuste de deslastre",
+          "motion": "Se necesita un sensor de movimiento cuando la función está activada",
+          "presence": "Se necesita un sensor de presencia cuando la función está activada",
+          "advanced": "Los parámetros de seguridad son obligatorios",
+          "central_boiler": "Los comandos de activación y desactivación son obligatorios"
         }
       },
       "underlying_common": {
@@ -515,11 +515,8 @@
       "service_configuration_format": "El formato de configuración del servicio es incorrecto",
       "min_max_opening_degrees_inconsistent": "Para cada dispositivo controlado, `max_opening_degrees` debe ser estrictamente mayor que `min_opening_degrees`. Revisa la configuración.",
       "vswitch_configuration_incorrect": "La personalización de órdenes es incorrecta. Es obligatoria para entidades controladas que no sean interruptores, y debe seguir el formato `service_name[/attribute:value]`. Encontrarás más información en el README.",
-      "missing_settings_summary": "{count} ajuste(s) por completar",
       "underlying_already_added": "Esta entidad ya la utiliza un dispositivo de este VTherm",
-      "max_opening_degree_out_of_range": "La apertura máxima debe ser mayor que 0 y no puede superar el máximo de la válvula",
-      "underlying_field_missing": "Falta {field}",
-      "wizard_progress": "**Paso {current} / {total}**. Podrá cambiarlo todo más tarde desde el menú.\n\n"
+      "max_opening_degree_out_of_range": "La apertura máxima debe ser mayor que 0 y no puede superar el máximo de la válvula"
     },
     "abort": {
       "already_configured": "El dispositivo ya está configurado"
@@ -540,7 +537,7 @@
       },
       "menu": {
         "title": "Menú",
-        "description": "Configura tu termostato. Podrás finalizar la configuración cuando hayas introducido todos los parámetros obligatorios.\n\n{missing_summary}",
+        "description": "Configura tu termostato. Podrás finalizar la configuración cuando hayas introducido todos los parámetros obligatorios.",
         "menu_options": {
           "main": "Atributos principales",
           "central_boiler": "Caldera central",
@@ -619,7 +616,7 @@
       },
       "type": {
         "title": "Entidades - {name}",
-        "description": "{wizard_progress}Dispositivos controlados por este VTherm. Abra los ajustes comunes, un dispositivo para ver y cambiar todos sus ajustes, o añada un dispositivo.",
+        "description": "{wizard_progress}Dispositivos controlados por este VTherm. Abra los ajustes comunes, un dispositivo para ver y cambiar todos sus ajustes, o añada un dispositivo. A los dispositivos marcados con ⚠ les falta un ajuste exigido por los ajustes comunes.",
         "menu_options": {
           "underlying_common": "Ajustes comunes",
           "underlying_1": "{underlying_1}",
@@ -647,7 +644,7 @@
           "menu": "Volver al menú"
         },
         "menu_option_descriptions": {
-          "underlying_common": "{underlying_common_details}",
+          "underlying_common": "Ajustes compartidos por todos los dispositivos",
           "underlying_1": "{underlying_1_details}",
           "underlying_2": "{underlying_2_details}",
           "underlying_3": "{underlying_3_details}",
@@ -898,7 +895,7 @@
       },
       "configuration_not_complete": {
         "title": "Configuración incompleta - {name}",
-        "description": "Aún faltan los siguientes ajustes:\n{missing_items}\n\nElija un elemento para abrir la pantalla que permite corregirlo.",
+        "description": "Estos ajustes son obligatorios para poder finalizar la configuración. Elija un elemento para abrir la pantalla que lo corrige.",
         "menu_options": {
           "main": "Atributos principales",
           "type": "Dispositivos controlados",
@@ -912,15 +909,15 @@
           "menu": "Volver al menú"
         },
         "menu_option_descriptions": {
-          "main": "Abrir esta pantalla para completar los ajustes que faltan",
-          "type": "Abrir esta pantalla para completar los ajustes que faltan",
-          "tpi": "Abrir esta pantalla para completar los ajustes que faltan",
-          "presets": "Abrir esta pantalla para completar los ajustes que faltan",
-          "power": "Abrir esta pantalla para completar los ajustes que faltan",
-          "motion": "Abrir esta pantalla para completar los ajustes que faltan",
-          "presence": "Abrir esta pantalla para completar los ajustes que faltan",
-          "advanced": "Abrir esta pantalla para completar los ajustes que faltan",
-          "central_boiler": "Abrir esta pantalla para completar los ajustes que faltan"
+          "main": "Falta el nombre, los sensores de temperatura o la duración del ciclo",
+          "type": "Añada al menos un dispositivo y complete los dispositivos marcados con ⚠",
+          "tpi": "Los coeficientes TPI son obligatorios",
+          "presets": "La configuración central es necesaria para usar sus preajustes",
+          "power": "Faltan los sensores de potencia o la temperatura del preajuste de deslastre",
+          "motion": "Se necesita un sensor de movimiento cuando la función está activada",
+          "presence": "Se necesita un sensor de presencia cuando la función está activada",
+          "advanced": "Los parámetros de seguridad son obligatorios",
+          "central_boiler": "Los comandos de activación y desactivación son obligatorios"
         }
       },
       "underlying_common": {
@@ -1037,11 +1034,8 @@
       "service_configuration_format": "El formato de configuración del servicio es incorrecto",
       "min_max_opening_degrees_inconsistent": "Para cada dispositivo controlado, `max_opening_degrees` debe ser estrictamente mayor que `min_opening_degrees`. Revisa la configuración.",
       "vswitch_configuration_incorrect": "La personalización de órdenes es incorrecta. Es obligatoria para entidades controladas que no sean interruptores, y debe seguir el formato `service_name[/attribute:value]`. Encontrarás más información en el README.",
-      "missing_settings_summary": "{count} ajuste(s) por completar",
       "underlying_already_added": "Esta entidad ya la utiliza un dispositivo de este VTherm",
-      "max_opening_degree_out_of_range": "La apertura máxima debe ser mayor que 0 y no puede superar el máximo de la válvula",
-      "underlying_field_missing": "Falta {field}",
-      "wizard_progress": "**Paso {current} / {total}**. Podrá cambiarlo todo más tarde desde el menú.\n\n"
+      "max_opening_degree_out_of_range": "La apertura máxima debe ser mayor que 0 y no puede superar el máximo de la válvula"
     },
     "abort": {
       "already_configured": "El dispositivo ya está configurado"
