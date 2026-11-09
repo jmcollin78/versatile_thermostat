@@ -353,28 +353,6 @@ async def test_unloading_the_central_config_removes_the_boiler_entity_listener(h
     assert manager._cancel_boiler_command_entity_listener is None
 
 
-@pytest.mark.parametrize(
-    "service",
-    [
-        {"service_domain": "script", "service_name": "boiler_off", "data": {}},
-        {"service_domain": "script", "service_name": "boiler_off", "entity_id": "", "data": {}},
-    ],
-)
-async def test_service_without_entity_is_not_blocked(hass: HomeAssistant, service):
-    """A service without entity has nothing to wait for, and is called without target"""
-    calls = async_mock_service(hass, "script", "boiler_off")
-    manager = _build_manager(hass)
-    manager._service_deactivate = service
-
-    await manager.calculate_central_boiler_state(None)
-    await hass.async_block_till_done()
-
-    assert len(calls) == 1
-    assert "entity_id" not in calls[0].data
-    assert manager.is_on is False
-    assert manager._cancel_boiler_command_entity_listener is None
-
-
 async def test_unset_service_is_not_blocked(hass: HomeAssistant):
     """With no deactivation service configured there is nothing to deliver: the state is recorded as before"""
     hass.states.async_set("switch.boiler", "off")

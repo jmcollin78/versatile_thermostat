@@ -394,12 +394,13 @@ class FeatureCentralBoilerManager(BaseFeatureManager):
             f"{service_config['service_domain']}.{service_config['service_name']}",
             service_data,
         )
-        entity_id = service_config.get("entity_id")
         await self._hass.services.async_call(
             service_config["service_domain"],
             service_config["service_name"],
             service_data=service_data,
-            target={"entity_id": entity_id} if entity_id else None,
+            target={
+                "entity_id": service_config["entity_id"],
+            },
         )
 
     async def reload_central_boiler_binary_listener(self):
