@@ -16,19 +16,18 @@ Diese Seite fasst die Schritte zusammen, um ein funktionierendes _VTherm_ zu erh
 
 ## Das VTherm erstellen
 
-1. **Fügen Sie die Integration** Versatile Thermostat über die Seite der Integrationen hinzu und wählen Sie den zum Gerät passenden _VTherm_-Typ (siehe [Wahl eines VTherm](creation.md)). Die zentrale Konfiguration ist optional: Ohne sie lassen Sie die Kästchen „Zentrale Konfiguration verwenden“ deaktiviert.
+1. **Fügen Sie die Integration** Versatile Thermostat über die Seite der Integrationen hinzu und wählen Sie den zum Gerät passenden _VTherm_-Typ (siehe [Wahl eines VTherm](creation.md)). Die zentrale Konfiguration ist optional: Ohne sie lassen Sie die Kästchen „Zentrale Konfiguration verwenden“ deaktiviert. Ein Assistent zeigt dann nacheinander die folgenden Bildschirme an.
 2. **Wichtigste Eigenschaften**: Geben Sie dem _VTherm_ einen Namen und wählen Sie den Raumtemperatursensor, dann den Außentemperatursensor. Behalten Sie die Standard-Zyklusdauer bei (siehe [Auswahl der grundlegenden Attribute](base-attributes.md)).
-3. **Funktionen**: Aktivieren Sie vorerst keine. Sie fügen sie hinzu, sobald das _VTherm_ funktioniert.
-4. **Basiswerte**: Wählen Sie die Entity des Geräts. Die Einstellungen hängen vom Typ ab:
-   - [`over_climate`](over-climate.md): Ist die Ventilöffnung eines TRV steuerbar, wählen Sie die [direkte Ventilsteuerung](self-regulation.md#selbstregulierung-bei-direkter-ventilkontrolle). Andernfalls lassen Sie die Selbstregulierung zunächst deaktiviert.
+3. **Basiswerte**: zuerst die für alle Geräte gemeinsamen Einstellungen, dann die Entity des Geräts und seine eigenen Einstellungen. Sie hängen vom Typ ab:
+   - [`over_climate`](over-climate.md): Ist die Ventilöffnung eines TRV steuerbar, wählen Sie die [direkte Ventilsteuerung](self-regulation.md#selbstregulierung-bei-direkter-ventilkontrolle): Die Ventil-Entities werden dann für jedes Gerät abgefragt. Andernfalls lassen Sie die Selbstregulierung zunächst deaktiviert.
    - [`over_valve`](over-valve.md): Wählen Sie die `number`-Entity des Ventils.
-   - [`over_switch`](over-switch.md): Ein `switch` genügt. Für ein Steuerleitungsmodul (`select`) oder eine `climate`-Entity geben Sie die [angepassten Befehle](over-switch.md#befehlsanpassung) ein.
+   - [`over_switch`](over-switch.md): Ein `switch` genügt. Für ein Steuerleitungsmodul (`select`) oder eine `climate`-Entity geben Sie die [angepassten Befehle](over-switch.md#befehlsanpassung) dieses Geräts ein.
 
-   Die gerätespezifischen Einstellungen (zu verwendende Entities, Befehle, bekannte Fallstricke) stehen auf der Seite des Geräts im [Gerätekatalog](https://www.versatile-thermostat.org/de/devices/).
-5. **TPI-Parameter**, wenn dieses Menü angeboten wird: Behalten Sie die Standardwerte bei (siehe [die TPI-Koeffizienten](algorithms.md#konfigurieren-der-tpi-algorithmusfaktoren)).
-6. **Temperaturvoreinstellungen**: Bestätigen Sie das Menü (siehe [Voreinstellungen](feature-presets.md)).
-7. **Erweiterte Einstellungen**: Behalten Sie die Standardwerte des Sicherheitsmodus bei (siehe [Sicherheitsparameter](feature-advanced.md#sicherheitsparameter)).
-8. **Alles erledigt**: Das _VTherm_ ist erstellt.
+   Um mehrere Geräte zu steuern, fügen Sie sie mit „Gerät hinzufügen“ hinzu und wählen Sie dann „Weiter“. Die gerätespezifischen Einstellungen (zu verwendende Entities, Befehle, bekannte Fallstricke) stehen auf der Seite des Geräts im [Gerätekatalog](https://www.versatile-thermostat.org/de/devices/).
+4. **TPI-Parameter**, wenn dieser Bildschirm angezeigt wird: Behalten Sie die Standardwerte bei (siehe [die TPI-Koeffizienten](algorithms.md#konfigurieren-der-tpi-algorithmusfaktoren)).
+5. **Funktionen**: Aktivieren Sie vorerst keine. Sie fügen sie hinzu, sobald das _VTherm_ funktioniert.
+6. **Erweiterte Einstellungen**: Behalten Sie die Standardwerte des Sicherheitsmodus bei (siehe [Sicherheitsparameter](feature-advanced.md#sicherheitsparameter)).
+7. **Alles erledigt**: Der Assistent endet im Konfigurationsmenü. Wählen Sie „Alles erledigt“, um das _VTherm_ zu erstellen. Die Temperaturvoreinstellungen behalten ihre Standardwerte, bis Sie sie einstellen.
 
 ## Einstellen und prüfen
 

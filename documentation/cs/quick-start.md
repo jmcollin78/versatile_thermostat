@@ -2,6 +2,8 @@
 
 Tato stránka popisuje kroky k rychlému nastavení základního, ale funkčního _VTherm_. Je strukturována podle typu vybavení.
 
+Po výběru typu _VTherm_ vás průvodce postupně provede obrazovkami s povinnými nastaveními (viz [vytvoření _VTherm_](creation.md)). U podkladových zařízení se nejprve zobrazí nastavení společná pro všechna zařízení, poté entita vybavení a její vlastní nastavení. Pro ovládání více zařízení je přidejte pomocí "Přidat zařízení" a poté zvolte "Pokračovat". Na konci průvodce otevře konfigurační menu: zvolte "Vše hotovo" pro vytvoření _VTherm_. Předvolby si ponechají výchozí hodnoty, dokud je nenastavíte.
+
 - [Rychlý start](#rychlý-start)
   - [Nodon SIN-4-FP-21 nebo podobný (pilotní drát)](#nodon-sin-4-fp-21-nebo-podobný-pilotní-drát)
   - [Heatzy, eCosy nebo podobný (`climate` entita)](#heatzy-ecosy-nebo-podobný-climate-entita)
@@ -24,7 +26,7 @@ Pro integraci do _VTherm_ musíte:
 1. Vytvořit _VTherm_ typu `over_switch`. Viz [vytvoření _VTherm_](creation.md),
 2. Přiřadit mu hlavní atributy (název, senzor teploty místnosti a senzor venkovní teploty minimálně). Viz [hlavní atributy](base-attributes.md),
 3. Přiřadit jedno nebo více podkladových zařízení k ovládání. Podkladové zařízení zde je entita `select`, která ovládá Nodon. Viz [podkladová zařízení](over-switch.md),
-4. Poskytnout vlastní příkazy zapnutí/vypnutí (povinné pro Nodon). Viz [přizpůsobení příkazů](over-switch.md#přizpůsobení-příkazů). Vlastní příkazy následují formát `select_option/option:<preset>` jak je uvedeno v odkazu.
+4. Poskytnout v nastavení zařízení vlastní příkazy zapnutí/vypnutí (povinné pro Nodon). Viz [přizpůsobení příkazů](over-switch.md#přizpůsobení-příkazů). Vlastní příkazy následují formát `select_option/option:<preset>` jak je uvedeno v odkazu.
 
 Po dokončení těchto čtyř kroků budete mít plně funkční _VTherm_, který ovládá váš Nodon nebo podobné zařízení.
 
@@ -38,7 +40,7 @@ Pro integraci do _VTherm_ musíte:
 1. Vytvořit _VTherm_ typu `over_switch`. Viz [vytvoření _VTherm_](creation.md),
 2. Přiřadit mu hlavní atributy (název, senzor teploty místnosti a senzor venkovní teploty minimálně). Viz [hlavní atributy](base-attributes.md),
 3. Přiřadit jedno nebo více podkladových zařízení k ovládání. Podkladové zařízení zde je entita `climate`, která ovládá Heatzy nebo eCosy. Viz [podkladová zařízení](over-switch.md),
-4. Poskytnout vlastní příkazy zapnutí/vypnutí (povinné). Viz [přizpůsobení příkazů](over-switch.md#přizpůsobení-příkazů). Vlastní příkazy následují formát `set_hvac_mode/hvac_mode:<mode>` nebo `set_preset_mode/preset_mode:<preset>` jak je uvedeno v odkazu.
+4. Poskytnout v nastavení zařízení vlastní příkazy zapnutí/vypnutí (povinné). Viz [přizpůsobení příkazů](over-switch.md#přizpůsobení-příkazů). Vlastní příkazy následují formát `set_hvac_mode/hvac_mode:<mode>` nebo `set_preset_mode/preset_mode:<preset>` jak je uvedeno v odkazu.
 
 Po dokončení těchto čtyř kroků budete mít plně funkční _VTherm_, který ovládá váš Heatzy, eCosy nebo podobné zařízení.
 
@@ -66,7 +68,7 @@ Pro integraci do _VTherm_ musíte:
 2. Přiřadit mu hlavní atributy (název, senzor teploty místnosti a senzor venkovní teploty minimálně). Viz [hlavní atributy](base-attributes.md),
 3. Přiřadit jedno nebo více podkladových zařízení k ovládání. Podkladové zařízení zde je entita `climate`, která ovládá TRV. Viz [podkladová zařízení](over-climate.md),
 4. Specifikovat typ regulace pouze jako `Přímé ovládání ventilu`. Nechte možnost `Kompenzovat podkladovou teplotu` nezaškrtnutou. Viz [auto-regulace](over-climate.md#auto-regulation),
-5. Poskytnout entity `number` pojmenované `opening_degree`, `closing_degree` a `calibration_offset`. Viz [podkladová zařízení](over-switch.md).
+5. Při přidání každého zařízení zadat jeho entity `number` pojmenované `opening_degree` ("Entita otevření ventilu") a `closing_degree` ("Entita zavření ventilu (volitelné)") a entitu `calibration_offset` jako "Synchronizační entita" se [synchronizací vnitřní teploty](feature-sync_device_temp.md) v režimu 1. Viz [samo-regulace přímým ovládáním ventilu](self-regulation.md#samo-regulace-přímým-ovládáním-ventilu).
 
 Aby to fungovalo, `closing degree` musí být nastaven na maximum (100%). Nepovolujte okamžitě možnost `Sledovat změnu podkladové teploty`, dokud neověříte, že tato základní konfigurace funguje správně.
 

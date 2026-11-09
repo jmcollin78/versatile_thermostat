@@ -31,17 +31,19 @@ Ten schemat pokazuje, że VTherm działa cyklicznie – każdorazowo mierzy temp
 
 ## Konfiguracja
 
-W pierwszej kolejności skonfiguruj ustawienia główne, wspólne dla wszystkich termostatów _VTherm_ (patrz: [ustawienia główne](base-attributes.md)). Następnie wybierz z menu opcję "Encje podstawowe", a zobaczysz poniższy ekran konfiguracji:
-
-![image](images/config-linked-entity.png)
+W pierwszej kolejności skonfiguruj ustawienia główne, wspólne dla wszystkich termostatów _VTherm_ (patrz: [ustawienia główne](base-attributes.md)). Następnie skonfiguruj urządzenia. Podczas tworzenia termostatu _VTherm_ kreator wyświetla je po atrybutach podstawowych. Później wybierz z menu opcję "Urządzenia". To menu zawiera:
+- "Ustawienia wspólne": ustawienia wspólne dla wszystkich urządzeń (algorytm, podtrzymanie aktywności, tryb AC, inwersja poleceń),
+- po jednej pozycji dla każdego sterowanego urządzenia, z jego encją i poleceniami,
+- "Dodaj urządzenie".
 
 ### Podstawowe urządzenia
 
-Do listy "Sterowane urządzenia" dodaj encje, które mają być sterowane termostatem. Akceptowane są tu jedynie encje typu `switch`, `input_boolean`, `select`, `input_select`, lub `climate`.
+"Dodaj urządzenie" najpierw pyta o encję do sterowania. Akceptowane są tu jedynie encje typu `switch`, `input_boolean`, `select`, `input_select`, lub `climate`. Następny ekran pokazuje ustawienia tego urządzenia: jego [polecenia niestandardowe](#dostosowywanie-poleceń).
 
-Jeśli jedno z urządzeń podrzędnych nie jest przełącznikiem, wówczas dostosowanie poleceń jest obowiązkowe. Domyślnie dla encji typu `switch` polecenia to standardowe komendy `włącz`/`wyłącz` (`turn_on`, `turn_off`).
+Wybranie urządzenia na liście pokazuje te same ustawienia oraz dwa dodatkowe pola: "Zamień encję", aby sterować inną encją, i "Usuń to urządzenie".
 
-Aktualnie dostępny algorytm to TPI. Zobacz: [algorytm](#algorithm). Jeśli skonfigurowano wiele encji, termostat przeplata ich aktywacje, aby zminimalizować liczbę jednocześnie włączonych przełączników. Pozwala to na lepsze rozłożenie mocy, ponieważ każdy grzejnik włącza się po kolei.
+Pole "Algorytm" w ustawieniach wspólnych wybiera algorytm regulacji: wbudowany TPI lub algorytm zainstalowany jako wtyczka. Zobacz: [algorytmy](algorithms.md).
+Jeśli skonfigurowano wiele encji, termostat przeplata ich aktywacje, aby zminimalizować liczbę jednocześnie włączonych przełączników. Pozwala to na lepsze rozłożenie mocy, ponieważ każdy grzejnik włącza się po kolei.
 
 VTherm będzie jak najlepiej wygładzać zużycie energii poprzez naprzemienne aktywacje.
 Oto przykład przeplatania aktywacji:
@@ -67,13 +69,11 @@ Jeśli urządzenie jest sterowane przewodem sterującym z diodą, może być kon
 
 ### Dostosowywanie poleceń
 
-Ta sekcja konfiguracji umożliwia dostosowanie poleceń włączania i wyłączania wysyłanych do urządzenia bazowego. Polecenia te są obowiązkowe, jeśli jedno z urządzeń bazowych nie jest przełącznikiem `switch` (w przypadku przełączników używane są standardowe polecenia włączania/wyłączania (`turn_on` i `turn_off`).
+Polecenia włączania i wyłączania wysyłane do urządzenia ustawia się w ustawieniach tego urządzenia:
+- dla encji `switch` lub `input_boolean` są opcjonalne i zgrupowane w zwiniętej sekcji "Polecenia niestandardowe". Bez nich używane są standardowe polecenia `turn_on` i `turn_off`,
+- dla encji `select`, `input_select` lub `climate` pola "Polecenie włączenia" i "Polecenie wyłączenia" są wymagane.
 
-Aby dostosować polecenia, kliknij „Dodaj” u dołu okna, zarówno dla poleceń włączania, jak i wyłączania:
-
-![virtual switch](images/config-vswitch1.png)
-
-Następnie określ polecenia włączania i wyłączania, używając formatu `polecenie[/atrybut[:wartość]]`
+Polecenia podaj w formacie `polecenie[/atrybut[:wartość]]`.
 Dostępne polecenia zależą od typu urządzenia bazowego:
 
 | Typ urządzenia bazowego      | Polecenie załączenia                  | Poleenie wyłączenia                            | Zastosowanie                    |
@@ -85,18 +85,8 @@ Dostępne polecenia zależą od typu urządzenia bazowego:
 
 (*) Aby skorzystać z tego rozwiązania, należy upewnić się, że stan encji bazowej jest zgodny z presetem. W przeciwnym razie _VTherm_ nie będzie w stanie stwierdzić, czy urządzenie jest włączone, czy wyłączone. Aby to sprawdzić, przejdź do zakładki _Narzędzia deweloperskie -> Stany_ w HA, wyszukaj encję bazową i sprawdź, czy jej stan odpowiada nazwie presetu. Jeśli widzisz `„ogrzewanie”`, `„wyłączone”` lub `„chłodzenie”`, nie są to dozwolone presety i taka konfiguracja nie zadziała. W takim przypadku należy użyć przełącznika wirtualnego. Przykłady przełączników wirtualnych można znaleźć na stronie rozwiązywania problemów. Jeśli nalegasz na użycie tej konfiguracji, sprawdź dokładnie wartości akceptowane przez urządzenie w _Narzędzia deweloperskie -> Stany_ i wyszukaj swoje urządzenie, aby zobaczyć akceptowane opcje. Muszą być one **identyczne**, łącznie z uwzględnieniem wielkości liter.
 
-Przykład dla Nodon SIN-4-FP-21:
+Przykład dla Nodon SIN-4-FP-21 (encja `select`): polecenie włączenia to `select_option/option:comfort`, a polecenie wyłączenia to `select_option/option:frost_protection`.
 
-![virtual switch Nodon](images/config-vswitch2.png)
-
-
-Kliknij 'Zatwierdź' aby potwierdzić zmiany.
-
-Jeśli pojawi się błąd:
-> Konfiguracja dostosowywania polecenia jest nieprawidłowa. Jest ona wymagana dla urządzeń bazowych innych niż przełączniki, a format musi być następujący: `nazwa_usługi[/atrybut:wartość]`. Więcej szczegółów w pliku README.
-
-oznacza to, że jedno z wprowadzonych poleceń jest nieprawidłowe.
-Należy przestrzegać następujących zasad:
-1. Każde polecenie musi być zgodne z formatem `polecenie[/atrybut[:wartość]]` (np. `select_option/option:comfort` lub `turn_on`) bez spacji ani znaków specjalnych z wyjątkiem _.
-2. Poleceń musi być tyle, ile zadeklarowanych urządzeń bazowych, z wyjątkiem sytuacji, gdy wszystkie urządzenia bazowe są przełącznikami. W takim przypadku dostosowywanie poleceń nie jest wymagane.
-3. W przypadku konfiguracji wielu urządzeń bazowych polecenia muszą być podane w tej samej kolejności. Liczba poleceń `on` musi być równa liczbie poleceń `off` i liczbie urządzeń bazowych (w odpowiedniej kolejności). Możliwe jest mieszanie różnych typów urządzeń bazowych. Gdy chociaż jedno z urządzeń bazowych nie jest przełącznikiem `switch`, wszystkie polecenia dla wszystkich urządzeń bazowych, w tym przełączników, muszą zostać skonfigurowane.
+Obowiązują następujące zasady:
+1. Każde polecenie musi być zgodne z formatem `polecenie[/atrybut[:wartość]]` (np. `select_option/option:comfort` lub `turn_on`) bez spacji ani znaków specjalnych z wyjątkiem _. W przeciwnym razie ustawienia urządzenia pokazują błąd "Błąd konfiguracji poleceń własnych".
+2. Polecenia podaje się dla wszystkich urządzeń albo dla żadnego. Możliwe jest mieszanie różnych typów urządzeń bazowych, ale gdy tylko jedno urządzenie nie jest przełącznikiem `switch` albo jedno urządzenie ma polecenia niestandardowe, każde urządzenie potrzebuje swoich poleceń, także przełączniki `switch`. Urządzenie bez poleceń jest oznaczone ⚠ na liście urządzeń, a opcja "Konfiguracja niekompletna" prowadzi bezpośrednio do niego.

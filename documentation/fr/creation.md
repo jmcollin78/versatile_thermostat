@@ -34,9 +34,20 @@ et choisissez votre type de thermostat :
 
 ![image](images/config-main0.png)
 
-La configuration peut être modifiée via la même interface. Sélectionnez simplement le thermostat à modifier, appuyez sur "Configurer" et vous pourrez modifier certains paramètres ou la configuration.
+Un assistant affiche ensuite, l'un après l'autre, les écrans des réglages obligatoires :
+1. Principaux attributs,
+2. Sous-jacents : les réglages communs à tous les appareils, puis les appareils à piloter (voir la page du type choisi),
+3. Paramètres TPI, quand l'algorithme est TPI ou que la vanne est contrôlée directement,
+4. Fonctions, puis un écran par fonction activée,
+5. Paramètres avancés.
 
-Suivez ensuite les étapes de configuration en sélectionnant dans le menu l'option à configurer.
+Pour la configuration centrale, l'assistant affiche les principaux attributs, les fonctions et l'écran de chaque fonction activée (y compris la chaudière centrale), les paramètres TPI et les paramètres avancés.
+
+Chaque écran indique sa progression, par exemple `▰▰▱▱▱ 2 / 5`. La liste des écrans dépend de vos réponses : activer une fonction ajoute son écran. À la fin, l'assistant ouvre le menu de configuration avec l'option « Finaliser la création », qui crée le _VTherm_. Les pré-réglages, le verrouillage et l'humidité ne font pas partie de l'assistant : ils gardent leurs valeurs par défaut et se modifient depuis ce menu.
+
+Pour modifier un _VTherm_ existant, sélectionnez-le dans la page de l'intégration et appuyez sur « Configurer » : le menu de configuration s'ouvre directement, sans l'assistant.
+
+Quand un réglage obligatoire manque, le menu affiche « Configuration incomplète (n) » à la place de « Finaliser la création », n étant le nombre de réglages à compléter. Cette option liste les écrans à corriger, indique ce que chacun exige et les ouvre directement.
 
 > ![Astuce](images/tips.png) _*Configuration centrale*_
 > La plupart des pages de configuration (principaux attributs, paramètres TPI, pré-réglages, paramètres avancés...) ont une case « Utiliser la configuration centrale » : cochée, elle reprend ces réglages du _VTherm_ de type « Configuration centrale ». Si une configuration centrale existe, ces cases sont cochées par défaut. Sinon, elles sont décochées, les réglages se saisissent sur chaque _VTherm_, et cocher l'une d'elles provoque une erreur à l'enregistrement de la page. Pour partager des réglages entre plusieurs _VTherm_, créez d'abord la configuration centrale : elle est unique, et proposée dans la liste des types tant qu'elle n'existe pas.

@@ -22,11 +22,14 @@ Instalace by měla být podobná nastavení VTherm `over_switch`, kromě toho, �
 ## Konfigurace
 
 Nejprve nakonfigurujte hlavní nastavení společná pro všechny _VTherm_ (viz [hlavní nastavení](base-attributes.md)).
-Poté klikněte na možnost "Podkladové entity" z menu a uvidíte tuto konfigurační stránku, měli byste přidat entity `number`, které budou ovládány VTherm. Akceptovány jsou pouze entity `number` nebo `input_number`.
+Poté nakonfigurujte podkladová zařízení. Při vytváření _VTherm_ je průvodce zobrazí po hlavních atributech. Později vyberte v menu "Podřízená zařízení". Toto menu obsahuje:
+- "Společná nastavení": nastavení sdílená všemi ventily (algoritmus, AC režim, práh a perioda regulace, prahová hodnota otevření, maximální stupeň zavření),
+- jednu položku pro každý ovládaný ventil s jeho entitou a otevřeními,
+- "Přidat zařízení".
 
-![image](images/config-linked-entity3.png)
+"Přidat zařízení" se nejprve zeptá na entitu `number` ventilu. Akceptovány jsou pouze entity `number` nebo `input_number`. Další obrazovka zobrazí nastavení tohoto ventilu: jeho minimální a maximální otevření (viz [Řízení otevření ventilu](#řízení-otevření-ventilu)). Otevření ventilu v seznamu zobrazí stejná nastavení s poli "Nahradit entitu" a "Odebrat toto zařízení".
 
-Aktuálně dostupný algoritmus je TPI. Viz [algoritmus](#algorithm).
+Pole "Algoritmus" ve společných nastaveních vybírá regulační algoritmus: vestavěný TPI, nebo algoritmus nainstalovaný jako plugin. Viz [algoritmy](algorithms.md).
 
 ### Řízení otevření ventilu
 
@@ -35,8 +38,8 @@ ventilu. `opening_threshold_degree` se vyhodnocuje podle surového procenta
 TPI. Je-li tato hodnota pod prahem, cílová hodnota je
 `100 - max_closing_degree`. Poté se použije minimální stupeň otevření a
 následně maximální stupeň otevření. `opening_threshold_degree` a
-`max_closing_degree` platí pro celý termostat. Při výchozím nastavení zůstává
-odeslaný povel stejný jako surové procento TPI.
+`max_closing_degree` platí pro celý termostat a zadávají se ve společných
+nastaveních.
 
 Fyzický povel nikdy neklesne pod `100 - max_closing_degree`, ani když surový
 požadavek TPI dosáhne `opening_threshold_degree`, a při růstu požadavku je
@@ -45,10 +48,16 @@ na prahu nebo nad ním; pozorovaný ventil je aktivní pouze nad svým účinný
 fyzickým minimem, omezeným také minimem entity. Při spuštění nebo opětovném
 načtení se ventil bez požadavku vrátí na toto minimum.
 
-`min_opening_degrees` a `max_opening_degrees` jsou seznamy CSV v pořadí
-podkladových ventilů. Neúplné seznamy jsou povoleny: chybějící hodnoty použijí
-výchozí nastavení. Seznamy s více hodnotami než nakonfigurovaných ventilů jsou
-odmítnuty.
+Každý ventil má vlastní minimální a maximální otevření, zadávané v jeho
+nastavení:
+- "Minimální otevření (%)" (`min_opening_degrees`) se použije, jakmile je
+	dosaženo prahu. Výchozí hodnota je `0`.
+- "Maximální otevření (%)" (`max_opening_degrees`): ventil se nikdy neotevře
+	více než na tuto hodnotu. Nesmí překročit maximum podporované entitou
+	`number`, které je výchozí hodnotou.
+
+S výchozími hodnotami (práh `0`, minimum `0`, maximum ventilu, maximální
+zavření `100`) zůstává povel odeslaný ventilu stejný jako surové procento TPI.
 
 Je možné vybrat `thermostat_over_valve` pro ovládání klimatizace zaškrtnutím políčka "AC režim". V tomto případě bude viditelný pouze chladicí režim.
 

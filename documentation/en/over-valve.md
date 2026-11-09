@@ -24,11 +24,14 @@ The installation should be similar to the `over_switch` VTherm setup, except tha
 ## Configuration
 
 First, configure the main settings common to all _VTherms_ (see [main settings](base-attributes.md)).
-Then, click on the "Underlyings" option from the menu, and you will see this configuration page, you should add the `number` entities that will be controlled by VTherm. Only `number` or `input_number` entities are accepted.
+Then configure the underlyings. When the _VTherm_ is created, the wizard shows them after the main attributes. Afterwards, select "Underlyings" in the menu. This menu lists:
+- "Common settings": the settings shared by all the valves (algorithm, AC mode, regulation threshold and period, opening threshold, maximum closing),
+- one entry for each controlled valve, with its entity and its openings,
+- "Add a device".
 
-![image](images/config-linked-entity3.png)
+"Add a device" first asks for the `number` entity of the valve. Only `number` or `input_number` entities are accepted. The next screen shows the settings of this valve: its minimum and maximum openings (see [Valve opening control](#valve-opening-control)). Opening a valve in the list shows the same settings, with "Replace entity" and "Remove this device".
 
-The "Algorithm" field selects the regulation algorithm: the built-in TPI, or an algorithm installed as a plugin. See [algorithms](algorithms.md).
+The "Algorithm" field of the common settings selects the regulation algorithm: the built-in TPI, or an algorithm installed as a plugin. See [algorithms](algorithms.md).
 
 ### Regulation Threshold and Period
 
@@ -42,16 +45,16 @@ Two fields limit the number of commands sent to the valve:
 each valve. The configuration uses the same parameters as direct valve control
 with `over_climate`:
 
-1. `opening_threshold_degree`: below this raw TPI percentage, the valve is
-	considered closed.
-2. `max_closing_degree`: maximum closing percentage. The command under the
-	threshold is `100 - max_closing_degree`; keep the default `100` to close it
-	fully.
-3. `min_opening_degrees`: comma-separated minimum opening values, one per
-	underlying valve. A value is applied as soon as the threshold is reached.
-4. `max_opening_degrees`: comma-separated maximum opening values, one per
-	underlying valve. Omitted values use the maximum supported by the related
-	`number` entity.
+1. `opening_threshold_degree`, in the common settings: below this raw TPI
+	percentage, the valve is considered closed.
+2. `max_closing_degree`, in the common settings: maximum closing percentage.
+	The command under the threshold is `100 - max_closing_degree`; keep the
+	default `100` to close it fully.
+3. "Minimum opening (%)" (`min_opening_degrees`), in the settings of each
+	valve: applied as soon as the threshold is reached. Defaults to `0`.
+4. "Maximum opening (%)" (`max_opening_degrees`), in the settings of each
+	valve: the valve never opens more than this value. It cannot exceed the
+	maximum supported by the `number` entity, which is the default value.
 
 The physical command never falls below `100 - max_closing_degree`, including
 when the raw TPI demand reaches `opening_threshold_degree`; it is monotonically
@@ -61,9 +64,8 @@ active only above its effective physical floor (also constrained by the entity
 minimum). At startup or reload, a valve without demand is returned to this
 floor.
 
-For several valves, values are applied in the same order as the underlying
-entities. Short lists use defaults for remaining valves; lists longer than the
-underlying list are rejected. With the defaults (`0`, empty lists, `100`), the
+Each valve has its own minimum and maximum openings. With the defaults
+(threshold `0`, minimum `0`, maximum of the valve, maximum closing `100`), the
 command sent to the valve remains identical to the raw TPI percentage.
 
 It is possible to choose a `thermostat_over_valve` to control an air conditioner by checking the "AC Mode" box. In this case, only the cooling mode will be visible.

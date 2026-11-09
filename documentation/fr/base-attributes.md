@@ -4,7 +4,7 @@
 
 # Choix des attributs de base
 
-Choisisez le menu "Principaux attributs".
+À la création d'un _VTherm_, cet écran suit le choix du type. Ensuite, choisissez le menu "Principaux attributs".
 
 ![image](images/config-main.png)
 
@@ -22,7 +22,7 @@ Choisisez le menu "Principaux attributs".
 
 ## Choix des fonctions utilisées
 
-Choisissez le menu "Fonctions".
+À la création d'un _VTherm_, cet écran suit les sous-jacents et les paramètres TPI. Ensuite, choisissez le menu "Fonctions".
 
 ![image](images/config-features.png)
 
@@ -38,12 +38,12 @@ Choisissez le menu "Fonctions".
 
 > ![Astuce](images/tips.png) _*Notes*_
 > 1. La liste des fonctions disponibles s'adapte à votre type de VTherm.
-> 2. Lorsque vous cochez une fonction, une nouvelle entrée menu s'ajoute pour configurer la fonction.
-> 3. Vous ne pourrez pas valider la création d'un VTherm si tous les paramètres de toutes les fonctions n'ont pas été saisis.
+> 2. Lorsque vous cochez une fonction, une nouvelle entrée menu s'ajoute pour configurer la fonction. Pendant la création, l'assistant affiche son écran juste après les fonctions.
+> 3. Vous ne pourrez pas valider la création d'un VTherm si tous les paramètres de toutes les fonctions n'ont pas été saisis. L'option de menu « Configuration incomplète » liste alors ce qui manque.
 
 ## Étape suivante
 
-Configurez les équipements pilotés (menu « Sous-jacents ») sur la page du type choisi :
+Configurez les équipements pilotés (écrans « Sous-jacents » de l'assistant, ou menu « Sous-jacents ») sur la page du type choisi :
 
 - [Thermostat de type `over_switch`](over-switch.md) : radiateurs électriques commandés par un interrupteur ou un fil pilote,
 - [Thermostat de type `over_climate`](over-climate.md) : pompes à chaleur, climatisations et vannes thermostatiques exposées par une entité `climate`,

@@ -31,12 +31,18 @@ The installation should look like this:
 ## Configuration
 
 First, configure the main settings common to all _VTherms_ (see [main settings](base-attributes.md)).
-Then, click on the "Underlyings" option from the menu, and you will see this configuration page:
-
-![image](images/config-linked-entity2.png)
+Then configure the underlyings. When the _VTherm_ is created, the wizard shows them after the main attributes. Afterwards, select "Underlyings" in the menu. This menu lists:
+- "Common settings": the settings shared by all the devices (AC mode, synchronization of the internal temperature, self-regulation, auto-fan...). With [direct valve control](self-regulation.md#self-regulation-by-direct-valve-control) or the [synchronization of the internal temperature](feature-sync_device_temp.md), a second page called "Valve regulation and synchronization" follows, with the settings of these functions shared by all the devices,
+- one entry for each controlled device, with its entity and its own settings,
+- "Add a device".
 
 ### The Underlying Entities
-In the "Equipment to Control" list, you should add the `climate` entities that will be controlled by VTherm. Only entities of type `climate` are accepted.
+"Add a device" first asks for the `climate` entity to control. Only entities of type `climate` are accepted. Then:
+- with direct valve control, the next screen asks for the valve entities and the openings of this device,
+- with the synchronization of the internal temperature, it asks for the synchronization entity of this device,
+- otherwise, the device is added directly.
+
+The entities of the same physical device are suggested. Opening a device in the list shows its settings, with "Replace entity" and "Remove this device".
 
 ### AC Mode
 

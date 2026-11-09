@@ -34,22 +34,14 @@ Diese Funktion erfordert:
 
 ## Konfiguration
 
-Die Konfiguration dieser Funktion erfolgt in zwei Schritten.
+Diese Funktion wird im Menü „Basiswerte“ des _VTherm_ konfiguriert:
+1. Aktivieren Sie in den „Gemeinsamen Einstellungen“ die Option „Synchronisierung der internen Gerätetemperatur“, um anzugeben, dass Ihre Geräte mit einer der beiden internen Temperatursynchronisationsfunktionen ausgestattet sind.
+2. Die nächste Seite, „Ventilregelung und Synchronisierung“, enthält die Option „Offset-Kalibrierung anwenden“. Aktivieren Sie sie, um Modus 1 zu wählen. Andernfalls wird Modus 2 benutzt.
+3. Jedes Gerät benötigt dann seine „Synchronisierungs-Entität“, die beim Hinzufügen des Geräts abgefragt und beim Öffnen des Geräts in der Liste des Menüs „Basiswerte“ angezeigt wird:
+   1. die Entität `local_temperature_calibration` in Modus 1,
+   2. die Entität `external_temperature_input` in Modus 2.
 
-In der zugeordneten Konfiguration wid angegeben, dass das Gerät mit einer der beiden internen Temperatursynchronisationsfunktionen ausgestattet ist, indem entsprechende Option aktiviert wird:
-
-![image](images/config-synchronize-device-temp.png)
-
-Dadurch wird ein Menü namens `Synchronisation der Gerätetemperatur` hinzugefügt, das konfiguriert werden muss:
-
-![image](images/config-synchro.png)
-
-Um Option 1 auszuwählen, muss `Offset-Kalibrierung anwenden` aktivieren werden. Andernfalls wird Option 2 benutzt.
-Anschließend geben Sie die Liste der zu steuernden Elemente an:
-1. entweder die Liste der Elemente vom Typ `local_temperature_calibration`, wenn Sie sich in Fall 1 befinden,
-2. oder die Liste der Elemente vom Typ `external_temperature_input`, wenn Sie sich in Fall 2 befinden.
-
-Die Entitäten müssen in der Reihenfolge der Deklaration der zugeordneten Geräte aufgeführt sein, und ihre Anzahl muss übereinstimmen.
+Die Entitäten desselben physischen Geräts werden vorgeschlagen. Ein Gerät ohne Synchronisierungs-Entität wird in der Liste mit ⚠ markiert, und die Erstellung kann erst abgeschlossen werden, wenn sie angegeben ist.
 
 > ![Tip](images/tips.png) _*Hinweis*_
 > - Die beiden Modi schließen sich gegenseitig aus. Es kann jeweils nur einer aktiviert werden.

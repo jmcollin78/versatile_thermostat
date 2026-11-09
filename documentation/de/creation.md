@@ -32,9 +32,20 @@ und wählen Sie Ihren Thermostattyp:
 
 ![image](images/config-main0.png)
 
-Die Konfiguration kann über die gleiche Schnittstelle geändert werden. Wählen Sie einfach den zu ändernden Thermostat aus, drücken Sie auf "Konfigurieren", und Sie können einige Parameter oder Einstellungen ändern.
+Ein Assistent zeigt dann nacheinander die Bildschirme mit den erforderlichen Einstellungen an:
+1. Wichtigste Eigenschaften,
+2. Basiswerte: die für alle Geräte gemeinsamen Einstellungen, dann die zu steuernden Geräte (siehe die Seite des gewählten Typs),
+3. TPI-Parameter, wenn der Algorithmus TPI ist oder das Ventil direkt gesteuert wird,
+4. Funktionen, dann ein Bildschirm für jede aktivierte Funktion,
+5. Erweiterte Einstellungen.
 
-Folgen Sie den Konfigurationsschritten, indem Sie die zu konfigurierende Menüoption auswählen.
+Bei der zentralen Konfiguration zeigt der Assistent die wichtigsten Eigenschaften, die Funktionen und den Bildschirm jeder aktivierten Funktion (einschließlich der Zentralheizung), die TPI-Parameter und die erweiterten Einstellungen an.
+
+Jeder Bildschirm zeigt seinen Fortschritt an, zum Beispiel `▰▰▱▱▱ 2 / 5`. Die Liste der Bildschirme hängt von Ihren Antworten ab: Das Aktivieren einer Funktion fügt ihren Bildschirm hinzu. Am Ende öffnet der Assistent das Konfigurationsmenü mit der Option „Alles erledigt“, die das _VTherm_ erstellt. Temperaturvoreinstellungen, Sperrenverwaltung und Luftfeuchtigkeit sind nicht Teil des Assistenten: Sie behalten ihre Standardwerte und können über dieses Menü geändert werden.
+
+Um ein bestehendes _VTherm_ zu ändern, wählen Sie es auf der Integrationsseite aus und drücken Sie auf „Konfigurieren“: Das Konfigurationsmenü öffnet sich direkt, ohne den Assistenten.
+
+Fehlt eine erforderliche Einstellung, zeigt das Menü „Konfiguration unvollständig (n)“ statt „Alles erledigt“ an, wobei n die Anzahl der zu vervollständigenden Einstellungen ist. Diese Option listet die zu korrigierenden Bildschirme auf, gibt an, was jeder davon erfordert, und öffnet sie direkt.
 
 > ![Tip](images/tips.png) _*Zentrale Konfiguration*_
 > Die meisten Konfigurationsseiten (wichtigste Eigenschaften, TPI-Parameter, Temperaturvoreinstellungen, erweiterte Einstellungen...) haben ein Kästchen „Zentrale Konfiguration verwenden“: Ist es aktiviert, stammen diese Einstellungen aus dem _VTherm_ vom Typ „Zentrale Konfiguration“. Existiert eine zentrale Konfiguration, sind diese Kästchen standardmäßig aktiviert. Andernfalls sind sie deaktiviert, die Einstellungen werden in jedem _VTherm_ eingegeben, und das Aktivieren eines dieser Kästchen führt beim Speichern der Seite zu einem Fehler. Um Einstellungen zwischen mehreren _VTherm_ zu teilen, erstellen Sie zuerst die zentrale Konfiguration: Sie ist eindeutig und wird in der Typenliste angeboten, solange sie nicht existiert.

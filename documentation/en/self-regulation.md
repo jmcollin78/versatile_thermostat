@@ -26,23 +26,18 @@ This type of self-regulation called `Direct valve control` requires:
 2. a `number` entity that allows controlling the valve opening rate of the _TRV_,
 3. an optional `number` entity allowing to control the valve closing
 
-When the chosen self-regulation is `Direct valve control` on an `over_climate` _VTherm_, a new configuration page called `Valve regulation configuration` appears:
+When `Direct valve control` is chosen in the common settings of the underlyings of an `over_climate` _VTherm_, these settings continue on a second page called `Valve regulation and synchronization`. It holds the settings shared by all the valves:
+1. "Algorithm": the algorithm that calculates the opening rate: the built-in _TPI_, the same as for `over_switch` and `over_valve` _VTherm_, or an algorithm installed as a plugin. See [algorithms](algorithms.md),
+2. `opening_threshold`: the minimum valve opening below which the valve should be considered closed, and consequently, the 'max_closing_degree' parameter applies,
+3. `max_closing_degree`: the absolute maximum closing percentage. The valve will never close more than what is indicated in this value. If you want to allow complete valve closing, then leave this parameter at 100.
 
-![Configuration menu](images/config-self-regulation-valve-1.png)
+Each device then has its own valve settings, asked when the device is added and shown when it is opened in the list of the underlyings:
+1. "Valve opening entity": the `number` entity that controls the valve opening rate. It is required,
+2. "Valve closing entity (optional)": the `number` entity that controls the valve closing rate. Set it for all the devices or for none: when only some devices have one, the others are marked with ⚠ in the list and the creation cannot be validated,
+3. "Minimum opening (%)" (`minimum_opening_degrees`): the minimum opening percentage when the `opening_threshold` is exceeded and the VTherm needs to heat. The default value is 0. When heating starts (ie the requested opening is greater than `opening_threshold`), the valve will open with a value greater than or equal to this and will continue to increase regularly if necessary,
+4. "Maximum opening (%)" (`max_opening_degrees`): the maximum opening percentage that the valve can reach. The default value is the maximum of the valve (full opening). The valve will never open beyond this value, allowing you to limit the hot water flow and optimize energy consumption. This value must be strictly greater than the minimum opening, and cannot exceed the maximum of the valve.
 
-It allows configuring the valve control entities:
-
-![Configuration entities](images/config-self-regulation-valve-2.png)
-
-You must provide:
-1. as many valve opening control entities as there are underlying entities and in the same order. These parameters are mandatory,
-2. as many closing rate control entities as there are underlying entities and in the same order. These parameters are optional; they must all be provided or none,
-3. `opening_threshold`: the minimum valve opening below which the valve should be considered closed, and consequently, the 'max_closing_degree' parameter applies,
-4. `max_closing_degree`: the absolute maximum closing percentage. The valve will never close more than what is indicated in this value. If you want to allow complete valve closing, then leave this parameter at 100,
-5. `minimum_opening_degrees`: the minimum opening percentage when the `opening_threshold` is exceeded and the VTherm needs to heat. This field is customizable per valve in the case of a VTherm with multiple valves. You specify the list of minimum openings separated by ','. The default value is 0. Example: '20, 25, 30'. When heating starts (ie the requested opening is greater than `opening_threshold`), the valve will open with a value greater than or equal to this and will continue to increase regularly if necessary.
-6. `max_opening_degrees`: the maximum opening percentage that the valve can reach. This field is customizable per valve in the case of a VTherm with multiple valves. You specify the list of maximum openings separated by ','. The default value is 100 (full opening). Example: '80, 85, 90'. The valve will never open beyond this value, allowing you to limit the hot water flow and optimize energy consumption. This value must be strictly greater than `minimum_opening_degrees` for each valve.
-
-The opening rate is calculated by the algorithm chosen in the "Algorithm" field of this page: the built-in _TPI_, the same as for `over_switch` and `over_valve` _VTherm_, or an algorithm installed as a plugin. See [algorithms](algorithms.md).
+The entities of the same physical device are suggested first.
 
 If a valve closing rate entity is configured, it will be set to the value `100 - opening rate` to force the valve into a state, otherwise it is set to 100.
 

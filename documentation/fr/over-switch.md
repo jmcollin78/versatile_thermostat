@@ -30,16 +30,17 @@ L'installation doit ressembler à ça :
 ## Configuration
 
 Configurez d'abord les paramètres principaux et communs à tous les _VTherm_ (cf. [paramètres principaux](base-attributes.md)).
-Ensuite cliquez sur l'option de menu "Sous-jacents" et vous allez avoir cette page de configuration :
-
-![image](images/config-linked-entity.png)
+Configurez ensuite les sous-jacents. À la création du _VTherm_, l'assistant les affiche après les principaux attributs. Ensuite, choisissez « Sous-jacents » dans le menu. Ce menu liste :
+- « Réglages communs » : les réglages partagés par tous les appareils (algorithme, keep-alive, mode AC, inversion de la commande),
+- une entrée par appareil piloté, avec son entité et ses commandes,
+- « Ajouter un appareil ».
 
 ### les sous-jacents
-Dans la "liste des équipements à contrôler" vous mettez les switchs qui vont être controllés par le VTherm. Seuls les entités de type `switch` ou `input_boolean` ou `select` ou `input_select` ou `climate` sont acceptées.
+« Ajouter un appareil » demande d'abord l'entité à piloter. Seules les entités de type `switch`, `input_boolean`, `select`, `input_select` ou `climate` sont acceptées. L'écran suivant affiche les réglages de cet appareil : ses [commandes personnalisées](#la-personnalisation-des-commandes).
 
-Si un des sous-jacents n'est pas un `switch` alors la personnalisation des commandes est obligatoire. Par défaut pour les `switch` les commandes sont les commandes classique d'allumage / extinction du switch (`turn_on`, `turn_off`)
+Ouvrir un appareil dans la liste affiche les mêmes réglages, avec deux champs en plus : « Remplacer l'entité », pour piloter une autre entité à sa place, et « Supprimer cet appareil ».
 
-Le champ « Algorithme » permet de choisir l'algorithme de régulation : le TPI intégré, ou un algorithme installé sous forme de plugin. Voir [les algorithmes](algorithms.md).
+Le champ « Algorithme » des réglages communs permet de choisir l'algorithme de régulation : le TPI intégré, ou un algorithme installé sous forme de plugin. Voir [les algorithmes](algorithms.md).
 Si plusieurs entités de type sont configurées, la thermostat décale les activations afin de minimiser le nombre de switch actif à un instant t. Ca permet une meilleure répartition de la puissance puisque chaque radiateur va s'allumer à son tour.
 
 VTherm va donc lisser la puissance consommée le plus possible en alternant les activations. Exemple d'activations décalées :
@@ -62,14 +63,11 @@ Si votre équipement est commandé par un fil pilote avec une diode, vous aurez 
 
 ### La personnalisation des commandes
 
-Cette section de configuration permet de personnaliser les commandes d'allumage et d'extinction envoyée à l'équipement sous-jacent,
-Ces commandes sont obligatoires si un des sous-jacents n'est pas un `switch` (pour les `switchs` les commandes d'allumage/extinction classiques sont utilisées).
+Les commandes d'allumage et d'extinction envoyées à un appareil se règlent dans les réglages de cet appareil :
+- pour un `switch` ou un `input_boolean`, elles sont facultatives et regroupées dans la section repliée « Commandes personnalisées ». Sans elles, les commandes classiques `turn_on` et `turn_off` sont utilisées,
+- pour un `select`, un `input_select` ou un `climate`, les champs « Commande d'allumage » et « Commande d'extinction » sont obligatoires.
 
-Pour personnaliser les commande, cliquez sur `Ajouter` en bas de page sur les commandes d'allumage et sur les commandes d'extinction :
-
-![virtual switch](images/config-vswitch1.png)
-
-et donner la commande d'allumage et d'extinction avec le format `commande[/attribut[:valeur]]`.
+Donnez les commandes avec le format `commande[/attribut[:valeur]]`.
 Les commandes possibles dépendent du type de sous-jacents :
 
 | type de sous-jacent         | commandes d'allumage possibles        | commandes d'extinction possibles               | S'applique à                       |
@@ -83,19 +81,11 @@ Les commandes possibles dépendent du type de sous-jacents :
 
 Evidemment, tous ces exemples peuvent être adaptés à votre cas.
 
-Exemple pour un Nodon SIN-4-FP-21 :
-![virtual switch Nodon](images/config-vswitch2.png)
+Exemple pour un Nodon SIN-4-FP-21 (entité `select`) : la commande d'allumage est `select_option/option:comfort` et la commande d'extinction est `select_option/option:frost_protection`.
 
-Cliquez sur valider pour accepter les modifications.
-
-Si l'erreur suivante se produit :
-
-> La configuration de la personnalisation des commandes est incorrecte. Elle est obligatoire pour les sous-jacents non switch et le format doit être 'service_name[/attribut:valeur]'. Plus d'informations dans le README.
-
-Cela signifie que une des commandes saisies est invalide. Les règles à respecter sont les suivantes :
-1. chaque commande doit avoir le format `commande[/attribut[:valeur]]` (ex: `select_option/option:comfort` ou `turn_on`) sans blanc et sans caractères spéciaux sauf '_',
-2. il doit y avoir autant de commandes qu'il y a de sous-jacents déclarés sauf si tous les sous-jacents sont des `switchs` auquel cas il n'est pas nécessaire de paramétrer les commandes,
-3. si plusieurs sous-jacents sont configurés, les commandes doivent être dans le même ordre. Le nombre de commandes d'allumage doit être égal au nombre de commandes d'extinction et de sous-jacents (dans l'ordre donc). Il est possible de mettre des sous-jacents de type différent. À partir du moment où un sous-jacent n'est pas un `switch`, il faut paramétrer toutes les commandes de tous les sous-jacents y compris des éventuels switchs.
+Les règles à respecter sont les suivantes :
+1. chaque commande doit avoir le format `commande[/attribut[:valeur]]` (ex: `select_option/option:comfort` ou `turn_on`) sans blanc et sans caractères spéciaux sauf '_'. Sinon, les réglages de l'appareil affichent l'erreur « La configuration de la personnalisation des commandes est incorrecte »,
+2. les commandes se donnent pour tous les appareils ou pour aucun. Il est possible de mélanger des sous-jacents de types différents, mais dès qu'un appareil n'est pas un `switch`, ou qu'un appareil a des commandes personnalisées, chaque appareil doit avoir ses commandes, y compris les `switchs`. Un appareil sans ses commandes est marqué ⚠ dans la liste des sous-jacents, et « Configuration incomplète » y mène.
 
 ## Étape suivante
 
