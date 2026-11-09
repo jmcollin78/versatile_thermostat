@@ -170,6 +170,7 @@ def test_thermal_parameter_near_bound_is_refused_even_if_coefficients_in_range()
     refused(fit)
 
 
+@pytest.mark.scientific
 @pytest.mark.parametrize("seed", [0, 1])
 @pytest.mark.parametrize(
     "scenario",
@@ -226,7 +227,7 @@ def test_physical_simulation_recovers_parameters_or_refuses(seed, scenario):
         "constant",
         "weak_excitation",
         "collinear",
-        "weak_heater",
+        pytest.param("weak_heater", marks=pytest.mark.scientific),
     ],
 )
 def test_degenerate_simulations_refuse_without_coefficients(scenario):
@@ -283,6 +284,7 @@ def test_one_converged_start_is_not_enough(bad):
     refused(fit)
 
 
+@pytest.mark.scientific
 def test_validation_data_cannot_change_thermal_parameters():
     grid, rows, ref, _ = simulate(m, 0, "noise", days=8, minutes=30)
     before = m.TPIIdentification(grid, 30).fit_latent_model(rows, 30, ref)

@@ -11,7 +11,7 @@ from typing import List, Optional, Callable, Any
 import logging
 from vtherm_api.log_collector import get_vtherm_logger
 
-from homeassistant.core import HomeAssistant, State
+from homeassistant.core import CoreState, HomeAssistant, State
 from homeassistant.const import STATE_UNAVAILABLE, STATE_UNKNOWN
 from homeassistant.helpers.event import async_track_state_change_event
 
@@ -85,7 +85,9 @@ class UnderlyingStateManager:
                     entity_id,
                 )
                 return state
-            _LOGGER.warning("UnderlyingStateManager - Requested state for unknown entity_id: %s", entity_id)
+            # While HA is starting, entities may simply not be loaded yet
+            if self._hass.state == CoreState.running:
+                _LOGGER.warning("UnderlyingStateManager - Requested state for unknown entity_id: %s", entity_id)
             return None
         return self._states[idx]
 

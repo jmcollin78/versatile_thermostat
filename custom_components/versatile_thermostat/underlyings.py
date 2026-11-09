@@ -9,13 +9,28 @@ from datetime import datetime, timedelta
 
 from enum import StrEnum
 
-from homeassistant.const import ATTR_ENTITY_ID, STATE_ON, STATE_OFF, STATE_UNAVAILABLE, STATE_UNKNOWN, UnitOfTemperature
+from homeassistant.const import ATTR_ENTITY_ID, ATTR_SUPPORTED_FEATURES, ATTR_TEMPERATURE, STATE_ON, STATE_OFF, STATE_UNAVAILABLE, STATE_UNKNOWN, UnitOfTemperature
 from homeassistant.core import State
 
 from homeassistant.exceptions import ServiceNotFound
 
 from homeassistant.core import HomeAssistant, CALLBACK_TYPE, Context, ServiceResponse
 from homeassistant.components.climate import (
+    ATTR_CURRENT_HUMIDITY,
+    ATTR_CURRENT_TEMPERATURE,
+    ATTR_FAN_MODE,
+    ATTR_FAN_MODES,
+    ATTR_HVAC_ACTION,
+    ATTR_HVAC_MODES,
+    ATTR_MAX_TEMP,
+    ATTR_MIN_TEMP,
+    ATTR_SWING_HORIZONTAL_MODE,
+    ATTR_SWING_HORIZONTAL_MODES,
+    ATTR_SWING_MODE,
+    ATTR_SWING_MODES,
+    ATTR_TARGET_TEMP_HIGH,
+    ATTR_TARGET_TEMP_LOW,
+    ATTR_TARGET_TEMP_STEP,
     ClimateEntityFeature,
     DOMAIN as CLIMATE_DOMAIN,
     HVACAction,
@@ -47,6 +62,9 @@ from .underlying_state_manager import UnderlyingStateManager
 from .inhibition_manager import CommandGate, InhibitionManager
 
 resend_delay_sec = 2
+# Issue #2185 - some devices move their own setpoint when VTherm turns them OFF (a Sonoff TRVZB drops to 7 °C).
+# A setpoint reported within this delay after an OFF sent by VTherm is not a user gesture.
+off_settle_delay_sec = 15
 
 _LOGGER = get_vtherm_logger(__name__)
 
@@ -635,6 +653,7 @@ class UnderlyingClimate(UnderlyingEntity):
             entity_id=climate_entity_id,
         )
         self._last_sent_temperature: Optional[float] = None
+        self._last_off_sent_datetime: Optional[datetime] = None
         self._cancel_set_fan_mode_later: Optional[Callable[[], None]] = None
         self._cancel_set_temperature_later: Optional[Callable[[], None]] = None
         self._min_sync_entity: float = None
@@ -678,6 +697,8 @@ class UnderlyingClimate(UnderlyingEntity):
         data = {ATTR_ENTITY_ID: self._entity_id, "hvac_mode": to_legacy_ha_hvac_mode(hvac_mode)}
         if command_cause == COMMAND_CAUSE_UNDERLYING_TRACKING:
             self._thermostat._record_underlying_tracking_command(self.entity_id, hvac_mode)
+        # Set before sending: the device may report its new setpoint before the call returns
+        self._last_off_sent_datetime = self._thermostat.now if hvac_mode == VThermHvacMode_OFF else None
 
         await self.hass_services_async_call(
             CLIMATE_DOMAIN,
@@ -706,6 +727,7 @@ class UnderlyingClimate(UnderlyingEntity):
         """Send hvac_mode OFF, even if the underlying reports it is already off"""
         self._cancel_delayed_commands()
         self._hvac_mode = VThermHvacMode_OFF
+        self._last_off_sent_datetime = self._thermostat.now
         data = {ATTR_ENTITY_ID: self._entity_id, "hvac_mode": to_legacy_ha_hvac_mode(VThermHvacMode_OFF)}
         await self.hass_services_async_call(CLIMATE_DOMAIN, SERVICE_SET_HVAC_MODE, data)
 
@@ -758,7 +780,7 @@ class UnderlyingClimate(UnderlyingEntity):
             return None
 
         # Issue 1779 - if no hvac_action is available use a fake hvac_action based on temperature
-        hvac_action = state.attributes.get("hvac_action", None)
+        hvac_action = state.attributes.get(ATTR_HVAC_ACTION, None)
         if not hvac_action:
             hvac_action = self.hvac_action
 
@@ -808,11 +830,11 @@ class UnderlyingClimate(UnderlyingEntity):
         # Check if one attributes has changed that could impact the thermostat
         new_hvac_mode = VThermHvacMode(new_state.state)
         old_hvac_mode = VThermHvacMode(old_state.state) if old_state else None
-        new_hvac_action = new_state.attributes.get("hvac_action") if new_state.attributes else None
-        old_hvac_action = old_state.attributes.get("hvac_action") if old_state and old_state.attributes else None
-        new_fan_mode = new_state.attributes.get("fan_mode") if new_state.attributes else None
-        new_target_temp = new_state.attributes.get("temperature") if new_state.attributes else None
-        old_target_temp = old_state.attributes.get("temperature") if old_state and old_state.attributes else None
+        new_hvac_action = new_state.attributes.get(ATTR_HVAC_ACTION) if new_state.attributes else None
+        old_hvac_action = old_state.attributes.get(ATTR_HVAC_ACTION) if old_state and old_state.attributes else None
+        new_fan_mode = new_state.attributes.get(ATTR_FAN_MODE) if new_state.attributes else None
+        new_target_temp = new_state.attributes.get(ATTR_TEMPERATURE) if new_state.attributes else None
+        old_target_temp = old_state.attributes.get(ATTR_TEMPERATURE) if old_state and old_state.attributes else None
 
         # Ignore new target temperature when out of range
         if (
@@ -962,13 +984,13 @@ class UnderlyingClimate(UnderlyingEntity):
         if self.supported_features & ClimateEntityFeature.TARGET_TEMPERATURE_RANGE:
             data.update(
                 {
-                    "target_temp_high": target_temp,
-                    "target_temp_low": target_temp,
+                    ATTR_TARGET_TEMP_HIGH: target_temp,
+                    ATTR_TARGET_TEMP_LOW: target_temp,
                 }
             )
 
         if self.supported_features & ClimateEntityFeature.TARGET_TEMPERATURE:
-            data["temperature"] = target_temp
+            data[ATTR_TEMPERATURE] = target_temp
 
         if self.is_command_blocked(CLIMATE_DOMAIN, SERVICE_SET_TEMPERATURE):
             return False
@@ -992,6 +1014,12 @@ class UnderlyingClimate(UnderlyingEntity):
         _LOGGER.debug("%s - Last_sent_temperature is now: %s", self, self._last_sent_temperature)
 
         return True
+
+    def sent_off_recently(self) -> bool:
+        """True if VTherm sent OFF to this underlying less than off_settle_delay_sec ago"""
+        if self._last_off_sent_datetime is None:
+            return False
+        return self._thermostat.now <= self._last_off_sent_datetime + timedelta(seconds=off_settle_delay_sec)
 
     @property
     def last_sent_temperature(self) -> float | None:
@@ -1052,57 +1080,57 @@ class UnderlyingClimate(UnderlyingEntity):
         """Get the fan_mode of the underlying"""
         if not self.is_initialized or self.supported_features & ClimateEntityFeature.FAN_MODE == 0:
             return None
-        return self.get_underlying_attribute("fan_mode")
+        return self.get_underlying_attribute(ATTR_FAN_MODE)
 
     @property
     def swing_mode(self) -> str | None:
         """Get the swing_mode of the underlying"""
         if not self.is_initialized or self.supported_features & ClimateEntityFeature.SWING_MODE == 0:
             return None
-        return self.get_underlying_attribute("swing_mode")
+        return self.get_underlying_attribute(ATTR_SWING_MODE)
 
     @property
     def swing_horizontal_mode(self) -> str | None:
         """Get the swing_horizontal_mode of the underlying"""
-        return self.get_underlying_attribute("swing_horizontal_mode")
+        return self.get_underlying_attribute(ATTR_SWING_HORIZONTAL_MODE)
 
     @property
     def supported_features(self) -> ClimateEntityFeature:
         """Get the supported features of the climate"""
-        return self.get_underlying_attribute("supported_features") or ClimateEntityFeature(0)
+        return self.get_underlying_attribute(ATTR_SUPPORTED_FEATURES) or ClimateEntityFeature(0)
 
     @property
     def hvac_modes(self) -> list[VThermHvacMode]:
         """Get the hvac_modes"""
         if not self.is_initialized:
             return []
-        return self.get_underlying_attribute("hvac_modes")
+        return self.get_underlying_attribute(ATTR_HVAC_MODES)
 
     @property
     def current_humidity(self) -> float | None:
         """Get the humidity"""
-        return self.get_underlying_attribute("current_humidity")
+        return self.get_underlying_attribute(ATTR_CURRENT_HUMIDITY)
 
     @property
     def fan_modes(self) -> list[str]:
         """Get the fan_modes"""
         if not self.is_initialized or self.supported_features & ClimateEntityFeature.FAN_MODE == 0:
             return []
-        return self.get_underlying_attribute("fan_modes")
+        return self.get_underlying_attribute(ATTR_FAN_MODES)
 
     @property
     def swing_modes(self) -> list[str]:
         """Get the swing_modes"""
         if not self.is_initialized or self.supported_features & ClimateEntityFeature.SWING_MODE == 0:
             return []
-        return self.get_underlying_attribute("swing_modes")
+        return self.get_underlying_attribute(ATTR_SWING_MODES)
 
     @property
     def swing_horizontal_modes(self) -> list[str]:
         """Get the swing_horizontal_modes"""
         if not self.is_initialized or self.supported_features & ClimateEntityFeature.SWING_HORIZONTAL_MODE == 0:
             return []
-        return self.get_underlying_attribute("swing_horizontal_modes")
+        return self.get_underlying_attribute(ATTR_SWING_HORIZONTAL_MODES)
 
     @property
     def temperature_unit(self) -> str:
@@ -1112,27 +1140,27 @@ class UnderlyingClimate(UnderlyingEntity):
     @property
     def min_temp(self) -> str:
         """Get the min_temp"""
-        return self.get_underlying_attribute("min_temp")
+        return self.get_underlying_attribute(ATTR_MIN_TEMP)
 
     @property
     def max_temp(self) -> str:
         """Get the max_temp"""
-        return self.get_underlying_attribute("max_temp")
+        return self.get_underlying_attribute(ATTR_MAX_TEMP)
 
     @property
     def target_temperature_step(self) -> float:
         """Get the target_temperature_step"""
-        return self.get_underlying_attribute("target_temperature_step")
+        return self.get_underlying_attribute(ATTR_TARGET_TEMP_STEP)
 
     @property
     def target_temperature_high(self) -> float:
         """Get the target_temperature_high"""
-        return self.get_underlying_attribute("target_temperature_high")
+        return self.get_underlying_attribute(ATTR_TARGET_TEMP_HIGH)
 
     @property
     def target_temperature_low(self) -> float:
         """Get the target_temperature_low"""
-        return self.get_underlying_attribute("target_temperature_low")
+        return self.get_underlying_attribute(ATTR_TARGET_TEMP_LOW)
 
     @property
     def underlying_target_temperature(self) -> float:
@@ -1140,19 +1168,19 @@ class UnderlyingClimate(UnderlyingEntity):
         value = self.get_underlying_attribute("target_temperature")
         if value is not None:
             return value
-        return self.get_underlying_attribute("temperature")
+        return self.get_underlying_attribute(ATTR_TEMPERATURE)
 
     @property
     def underlying_current_temperature(self) -> float | None:
         """Get the underlying current_temperature if it exists
         and if initialized"""
-        return self.get_underlying_attribute("current_temperature")
+        return self.get_underlying_attribute(ATTR_CURRENT_TEMPERATURE)
 
     @property
     def underlying_hvac_action(self) -> HVACAction | None:
         """Get the underlying hvac_action if it exists
         and if initialized"""
-        return self.get_underlying_attribute("hvac_action")
+        return self.get_underlying_attribute(ATTR_HVAC_ACTION)
 
     @property
     def is_aux_heat(self) -> bool:

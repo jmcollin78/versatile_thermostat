@@ -128,7 +128,7 @@ async def test_start_manual_override_from_preset(hass: HomeAssistant):
     assert manager.timed_preset_end_time == NOW + timedelta(minutes=60)
     assert vtherm.requested_state.preset == VThermPreset.NONE
     assert mock_track.call_args[0][2] == NOW + timedelta(minutes=60)
-    vtherm.update_states.assert_called_with(force=True)
+    vtherm.update_states.assert_called_with(force=True, _command_cause=None)
 
 
 async def test_start_manual_override_disabled_or_no_preset(hass: HomeAssistant):
@@ -540,8 +540,8 @@ async def test_override_expires_during_window_open(hass: HomeAssistant, skip_has
 
 @pytest.mark.parametrize("expected_lingering_tasks", [True])
 @pytest.mark.parametrize("expected_lingering_timers", [True])
-async def test_over_climate_follow_underlying_cancels_override_and_preserves_off(hass: HomeAssistant, skip_hass_states_is_state, skip_turn_on_off_heater, skip_send_event):
-    """A TRV gesture becomes manual without an override and does not cancel OFF."""
+async def test_over_climate_follow_underlying_restarts_override_and_preserves_off(hass: HomeAssistant, skip_hass_states_is_state, skip_turn_on_off_heater, skip_send_event):
+    """A TRV gesture during a manual override restarts it and does not cancel OFF (issue #2184)."""
     temps = {VThermPreset.FROST: 7, VThermPreset.ECO: 16, VThermPreset.COMFORT: 17, VThermPreset.BOOST: 18}
     entry = MockConfigEntry(
         domain=DOMAIN,
@@ -593,14 +593,92 @@ async def test_over_climate_follow_underlying_cancels_override_and_preserves_off
         await entity.timed_preset_manager._async_timed_preset_expired(entity.timed_preset_manager._timed_preset_end_time)
         assert entity.timed_preset_manager.is_timed_preset_active is True
 
+        # The TRV setpoint is adopted 10 minutes after the first manual change
+        entity._set_now(NOW_TZ + timedelta(minutes=10))
         hass.states.async_set("climate.mock_climate", VThermHvacMode_OFF, {"temperature": 21})
         await pending_callbacks[0](None)
 
         assert entity.requested_state.hvac_mode == VThermHvacMode_OFF
         assert entity.requested_state.target_temperature == 21
         assert entity.preset_mode == VThermPreset.NONE
+        assert entity._underlying_temperature_status["climate.mock_climate"] == "accepted"
+        # The manual override is restarted with its full duration and keeps the original preset
+        manager = entity.timed_preset_manager
+        assert manager.is_manual_override is True
+        assert manager._original_preset == VThermPreset.COMFORT
+        assert manager.timed_preset_end_time == NOW_TZ + timedelta(minutes=70)
+        assert manager._expiration_paused is False
+
+    entity.remove_thermostat()
+
+
+@pytest.mark.parametrize("expected_lingering_tasks", [True])
+@pytest.mark.parametrize("expected_lingering_timers", [True])
+async def test_over_climate_follow_underlying_starts_override_and_reverts(hass: HomeAssistant, skip_hass_states_is_state, skip_turn_on_off_heater, skip_send_event):
+    """A TRV setpoint change starts a manual override which reverts to the previous preset (issue #2184)."""
+    temps = {VThermPreset.FROST: 7, VThermPreset.ECO: 16, VThermPreset.COMFORT: 17, VThermPreset.BOOST: 18}
+    entry = MockConfigEntry(
+        domain=DOMAIN,
+        title="TheOverClimateMockName",
+        unique_id="uniqueId",
+        data=PARTIAL_CLIMATE_NOT_REGULATED_CONFIG | OVERRIDE_60,
+    )
+    await create_and_register_mock_climate(hass, "mock_climate", "MockClimateName", {}, hvac_mode=VThermHvacMode_OFF, hvac_action=HVACAction.OFF)
+
+    with patch("custom_components.versatile_thermostat.underlyings.UnderlyingClimate.set_hvac_mode"):
+        entity = await create_thermostat(hass, entry, "climate.theoverclimatemockname", temps)
+        assert entity
+        entity._set_now(NOW_TZ)
+        entity.set_follow_underlying_temp_change(True)
+
+        await entity.async_set_hvac_mode(VThermHvacMode_HEAT)
+        await entity.async_set_preset_mode(VThermPreset.ECO)
+        assert entity.target_temperature == 16
         assert entity.timed_preset_manager.is_timed_preset_active is False
-        assert entity.requested_state.hvac_mode == VThermHvacMode_OFF
+
+        pending_callbacks = []
+
+        def capture_debounce(hass, delay, callback):
+            assert delay == 5
+            pending_callbacks.append(callback)
+            return lambda: None
+
+        with patch("custom_components.versatile_thermostat.thermostat_climate.async_call_later", side_effect=capture_debounce):
+            await send_climate_change_event_with_temperature(
+                entity,
+                VThermHvacMode_HEAT,
+                VThermHvacMode_HEAT,
+                HVACAction.OFF,
+                HVACAction.OFF,
+                NOW_TZ,
+                20,
+                True,
+                "climate.mock_climate",
+            )
+            # The TRV state now reports the new setpoint
+            hass.states.async_set("climate.mock_climate", VThermHvacMode_HEAT, {"temperature": 20})
+            await hass.async_block_till_done()
+        assert pending_callbacks
+
+        await pending_callbacks[-1](None)
+
+        # The TRV setpoint is adopted and a manual override is started from the eco preset
+        assert entity.target_temperature == 20
+        assert entity.preset_mode == VThermPreset.NONE
+        assert entity._underlying_temperature_status["climate.mock_climate"] == "accepted"
+        manager = entity.timed_preset_manager
+        assert manager.is_manual_override is True
+        assert manager._original_preset == VThermPreset.ECO
+        assert manager.timed_preset_end_time == NOW_TZ + timedelta(minutes=60)
+
+        # At the end of the override the eco preset is restored
+        entity._set_now(NOW_TZ + timedelta(minutes=60))
+        await manager._async_timed_preset_expired(manager.timed_preset_end_time)
+
+        assert manager.is_timed_preset_active is False
+        assert entity.preset_mode == VThermPreset.ECO
+        assert entity.target_temperature == 16
+        assert entity.hvac_mode == VThermHvacMode_HEAT
 
     entity.remove_thermostat()
 

@@ -1,10 +1,11 @@
 # pylint: disable=unused-argument, line-too-long, protected-access
 """Unit tests for UnderlyingStateManager."""
+import logging
 from typing import List
 
 import pytest
 
-from homeassistant.core import HomeAssistant
+from homeassistant.core import CoreState, HomeAssistant
 from homeassistant.const import STATE_UNAVAILABLE, STATE_UNKNOWN
 
 from custom_components.versatile_thermostat.underlying_state_manager import UnderlyingStateManager
@@ -115,3 +116,26 @@ async def test_get_state_unknown_but_found_in_ha(hass: HomeAssistant):
     state_unknown = mgr.get_state("sensor.not_existing")
     assert state_unknown is None
     assert "sensor.not_existing" not in mgr._entity_ids
+
+
+@pytest.mark.parametrize(
+    "core_state, expected_levels",
+    [
+        (CoreState.not_running, []),
+        (CoreState.starting, []),
+        (CoreState.running, [logging.WARNING]),
+    ],
+)
+async def test_get_state_unknown_log_level(hass: HomeAssistant, caplog, core_state: CoreState, expected_levels: list[int]):
+    """A missing entity is only a warning once HA is running: before, it may just not be loaded yet."""
+    mgr = UnderlyingStateManager(hass)
+    caplog.set_level(logging.DEBUG, logger="custom_components.versatile_thermostat.underlying_state_manager")
+
+    hass.set_state(core_state)
+    try:
+        assert mgr.get_state("sensor.not_existing") is None
+    finally:
+        hass.set_state(CoreState.running)
+
+    records = [r for r in caplog.records if "Requested state for unknown entity_id" in r.getMessage()]
+    assert [r.levelno for r in records] == expected_levels

@@ -39,6 +39,29 @@ from custom_components.versatile_thermostat.vtherm_hvac_mode import *
 
 from .commons import *
 
+
+def pytest_addoption(parser):
+    """Make expensive scientific validation an explicit local choice."""
+    parser.addoption(
+        "--run-scientific",
+        action="store_true",
+        default=False,
+        help="run scientific validation tests skipped by default",
+    )
+
+
+def pytest_collection_modifyitems(config, items):
+    """Keep scientific tests collected but skipped in the default CI run."""
+    if config.getoption("--run-scientific"):
+        return
+    skip_scientific = pytest.mark.skip(
+        reason="scientific validation: opt in locally with --run-scientific"
+    )
+    for item in items:
+        if item.get_closest_marker("scientific"):
+            item.add_marker(skip_scientific)
+
+
 # ...
 def pytest_runtest_setup():
     """setup tests"""

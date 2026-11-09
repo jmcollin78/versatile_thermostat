@@ -35,6 +35,8 @@ async def tracking_thermostat(hass, skip_hass_states_is_state, skip_turn_on_off_
     entity.set_follow_underlying_temp_change(True)
     await hass.async_block_till_done()
     entity._on_external_command_received()
+    # The fixture models a heating VTherm: the OFF sent while creating it is not a recent VTherm OFF (#2185).
+    entity.underlying_entity(0)._last_off_sent_datetime = None
     # Most isolated tests adopt HEAT -> OFF while application is mocked.
     entity._state_manager.current_state.set_hvac_mode(VThermHvacMode_HEAT)
     yield entity
@@ -163,7 +165,8 @@ async def test_effective_mode_echo_preserves_pending_candidate(tracking_thermost
 
 
 async def test_filtered_mode_keeps_action_fan_and_temperature_tracking(hass, tracking_thermostat):
-    """Rejecting an effective-mode echo must not discard other delivered fields."""
+    """Rejecting an effective-mode echo must not discard other delivered fields.
+    VTherm imposed OFF earlier than off_settle_delay_sec (see test_issue_2185.py for a recent OFF)."""
     entity = tracking_thermostat
     under = entity.underlying_entity(0)
     with patch.object(entity, "underlying_changed", new=AsyncMock()):
