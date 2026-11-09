@@ -56,11 +56,15 @@ Le recalibrage (`service_recalibrate_valves`) et l'amorçage des degrés inconnu
 
 `requested_on_percent` et `is_repeat` sont ceux déjà utilisés pour `_fire_command_receipt`, pour garder les deux notifications cohérentes.
 
+`cycle_start_monotonic` reprend `self._cycle_start_monotonic`, la valeur des reçus, et `monotonic` vaut `time.monotonic()` à la construction de la commande. `cycle_start_monotonic` vaut `None` hors cycle : pour `STOP`, le début de cycle est effacé par `_cancel_cycle_impl` avant la notification, et pour un `UPDATE` émis hors cycle (`apply_valve_update` sans cycle en cours).
+
+Un switch s'allume à `cycle_start_monotonic + start_offset_sec` et s'éteint `on_time_sec` plus tard, modulo la durée du cycle (`_init_cycle` et `_tick`). Ces instants sont nominaux : les délais minimaux d'activation et de désactivation peuvent décaler une bascule. Comme les managers sont attendus l'un après l'autre, la notification peut arriver après l'actionnement : un manager doit se fier à ces horodatages, pas à son heure de réception.
+
 ## 6. Ordre des commandes au passage en OFF
 
 Sur le chemin `UnderlyingValveRegulation.turn_off`, l'ordre est : vanne à 0, hook de vanne (`TURN_OFF`), hook de mode, `climate.set_hvac_mode(off)`. Ce chemin est couvert par un test.
 
-Le passage en OFF du VTherm n'emprunte pas ce chemin. `BaseThermostat` envoie d'abord le mode OFF aux climates sous-jacents (`UnderlyingClimate.set_hvac_mode`, donc le hook de mode puis le service), puis la fermeture de la vanne part à la régulation suivante (`_send_regulated_temperature`), avec la cause `REGULATION` et le mode `off`. Un plugin qui doit agir avant le mode OFF reçoit donc le hook de mode, mais pas encore la fermeture de la vanne. Il doit se fier à `command.hvac_mode` plutôt qu'à l'état HA du climate pour savoir que le thermostat est éteint, car cet état peut encore afficher l'ancien mode quand la fermeture arrive.
+Le passage en OFF du VTherm n'emprunte pas ce chemin. `BaseThermostat` envoie d'abord le mode OFF aux climates sous-jacents (`UnderlyingClimate.set_hvac_mode`, donc le hook de mode puis le service), puis la fermeture de la vanne part à la régulation suivante (`_send_regulated_temperature`), avec la cause `REGULATION` et le mode `off`. Un plugin qui doit agir avant le mode OFF reçoit donc le hook de mode, mais pas encore la fermeture de la vanne. Dans le hook de mode, le mode cible est le paramètre `hvac_mode` du hook (il n'y a pas d'objet commande). Dans le hook de vanne, il doit lire `command.hvac_mode` de la `ValveCommand`. Dans les deux cas, il ne doit pas se fier à l'état HA du climate pour savoir que le thermostat est éteint, car cet état peut encore afficher l'ancien mode.
 
 Cet ordre est conservé volontairement. L'inverser demanderait de fermer les vannes régulées avant de déléguer le mode aux climates, ce qui changerait le comportement de tous les VTherm `over_climate` à contrôle de vanne.
 

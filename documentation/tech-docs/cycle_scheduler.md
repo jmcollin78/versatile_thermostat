@@ -586,7 +586,9 @@ This call is independent of the `on_cycle_started` callback (which fires only at
 | `STOP`        | In `_cancel_cycle_impl()` when a cycle was running, with `applied_on_percent=0`. An internal cancellation followed by a restart (`start_cycle()`, `_restarting=True`) sends no `STOP`: the `CYCLE_START` follows. |
 
 - `requested_on_percent`, `applied_on_percent` and `is_repeat` are the values given to `_fire_command_receipt()`, so the two notifications stay consistent.
-- The on/off switches of a switch during the cycle are not notified: `on_time_sec`, `off_time_sec` and `start_offset_sec` are enough to deduce them.
+- `cycle_start_monotonic` is `self._cycle_start_monotonic`, the same value as `AppliedCommandReceipt.cycle_start_monotonic`, and `monotonic` is `time.monotonic()` when the command is built. `cycle_start_monotonic` is `None` when no cycle is running: always for `STOP` (the cycle start is cleared before the notification) and for an `UPDATE` emitted outside a cycle.
+- The on/off switches of a switch during the cycle are not notified. In `_init_cycle()` and `_tick()`, a switch turns on at `cycle_start_monotonic + start_offset_sec` and turns off `on_time_sec` later (modulo the cycle duration, so the off time wraps when the ON period crosses the end of the cycle). These times are nominal: the minimal activation and deactivation delays can shift a toggle.
+- The notification can arrive after the actuation, because the managers are awaited one after the other (up to `UNDERLYING_HOOK_TIMEOUT_SEC` each). A manager must use `cycle_start_monotonic` and `monotonic`, not its reception time.
 - Nothing is sent without an external manager, when the thermostat has no `async_on_underlying_power` coroutine (test doubles) or while it is inhibited (`is_inhibited`).
 - Each call is cut after `UNDERLYING_HOOK_TIMEOUT_SEC`; an exception or a timeout is logged and does not break the cycle.
 

@@ -586,7 +586,9 @@ Cet appel est indépendant du callback `on_cycle_started` (qui se déclenche uni
 | `STOP`        | Dans `_cancel_cycle_impl()` quand un cycle tournait, avec `applied_on_percent=0`. Une annulation interne suivie d'un redémarrage (`start_cycle()`, `_restarting=True`) n'envoie pas de `STOP` : le `CYCLE_START` suit.      |
 
 - `requested_on_percent`, `applied_on_percent` et `is_repeat` sont les valeurs données à `_fire_command_receipt()`, pour que les deux notifications restent cohérentes.
-- Les bascules on/off d'un switch pendant le cycle ne sont pas notifiées : `on_time_sec`, `off_time_sec` et `start_offset_sec` suffisent à les déduire.
+- `cycle_start_monotonic` vaut `self._cycle_start_monotonic`, la même valeur que `AppliedCommandReceipt.cycle_start_monotonic`, et `monotonic` vaut `time.monotonic()` à la construction de la commande. `cycle_start_monotonic` vaut `None` quand aucun cycle ne tourne : toujours pour `STOP` (le début de cycle est effacé avant la notification) et pour un `UPDATE` émis hors cycle.
+- Les bascules on/off d'un switch pendant le cycle ne sont pas notifiées. Dans `_init_cycle()` et `_tick()`, un switch s'allume à `cycle_start_monotonic + start_offset_sec` et s'éteint `on_time_sec` plus tard (modulo la durée du cycle : l'extinction revient au début du cycle quand la période ON franchit la fin). Ces instants sont nominaux : les délais minimaux d'activation et de désactivation peuvent décaler une bascule.
+- La notification peut arriver après l'actionnement, car les managers sont attendus l'un après l'autre (jusqu'à `UNDERLYING_HOOK_TIMEOUT_SEC` chacun). Un manager doit utiliser `cycle_start_monotonic` et `monotonic`, pas son heure de réception.
 - Rien n'est envoyé sans feature manager externe, si le thermostat n'a pas de coroutine `async_on_underlying_power` (doubles de test) ou tant qu'il est inhibé (`is_inhibited`).
 - Chaque appel est coupé après `UNDERLYING_HOOK_TIMEOUT_SEC` ; une exception ou un dépassement de délai est journalisé et ne casse pas le cycle.
 
