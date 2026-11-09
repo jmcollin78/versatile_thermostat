@@ -85,6 +85,9 @@ async def async_setup(
     else:
         _LOGGER.info("No global config from configuration.yaml available")
 
+    # The central boiler state is decided only once all VTherms have started (see init_vtherm_links)
+    api.central_boiler_manager.suspend_evaluation()
+
     # Listen HA starts to initialize all links between
     @callback
     async def _async_startup_internal(*_):
@@ -137,7 +140,8 @@ async def reload_all_vtherm(hass):
     ]
 
     api: VersatileThermostatAPI = VersatileThermostatAPI.get_vtherm_api(hass)
-    # While the entries are reloaded, the central boiler sensors only see a part of the VTherms
+    # While the entries are reloaded, the central boiler sensors only see a part of the VTherms.
+    # init_vtherm_links resumes the evaluation; the finally covers a failed reload.
     api.central_boiler_manager.suspend_evaluation()
     try:
         await asyncio.gather(*reload_tasks)

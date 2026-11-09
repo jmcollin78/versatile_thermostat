@@ -682,12 +682,6 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
         # await self._check_initial_state()
         self.reset_last_change_time_from_vtherm()
 
-        # The central boiler waits for its VTherms to be ready, and the demand may not change when this one is
-        if self.is_used_by_central_boiler:
-            central_boiler_manager = VersatileThermostatAPI.get_vtherm_api(self._hass).central_boiler_manager
-            if central_boiler_manager is not None and central_boiler_manager.is_ready:
-                await central_boiler_manager.refresh_active_devices()
-
     def restore_specific_previous_state(self, old_state: State):
         """Should be overridden in each specific thermostat
         if a specific previous state or attribute should be

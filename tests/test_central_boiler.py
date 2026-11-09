@@ -1902,9 +1902,9 @@ async def test_central_boiler_keep_alive_respects_delayed_activation(hass: HomeA
 
 
 def _set_demand_sensors(manager: FeatureCentralBoilerManager) -> None:
-    """Give the manager demand sensors which are populated from ready VTherms"""
-    manager._nb_active_device_number_entity = MagicMock(native_value=0, all_vtherms_ready=True)
-    manager._total_power_active_entity = MagicMock(native_value=0, all_vtherms_ready=True)
+    """Give the manager demand sensors which have been calculated"""
+    manager._nb_active_device_number_entity = MagicMock(native_value=0)
+    manager._total_power_active_entity = MagicMock(native_value=0)
 
 
 def _build_template_boiler_manager(hass: HomeAssistant, activation: str, deactivation: str):

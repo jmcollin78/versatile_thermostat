@@ -5,7 +5,6 @@ from typing import Any
 
 from homeassistant.const import STATE_UNAVAILABLE
 from homeassistant.core import (
-    HassJob,
     HomeAssistant,
     HomeAssistantError,
 )
@@ -25,10 +24,6 @@ from vtherm_api.log_collector import get_vtherm_logger
 
 
 _LOGGER = get_vtherm_logger(__name__)
-
-# How long a VTherm which is not ready can hold back the boiler decision. A VTherm is not ready until
-# its underlyings are available, and an underlying may be broken: this must not block the boiler forever.
-DEMAND_MAX_WAIT_SEC = 300
 
 
 class FeatureCentralBoilerManager(BaseFeatureManager):
@@ -66,10 +61,9 @@ class FeatureCentralBoilerManager(BaseFeatureManager):
         # The activation delay is over but the activation could not be sent
         self._activation_delay_elapsed: bool = False
 
-        # Demand knowledge
+        # True while the VTherms are not all started (HA startup, reload of all VTherms):
+        # the demand sensors only see a part of the VTherms and a low value is not a real one
         self._evaluation_suspended: bool = False
-        self._cancel_demand_wait = None
-        self._demand_wait_expired: bool = False
 
     @overrides
     def post_init(self, entry_infos: dict):
@@ -136,17 +130,18 @@ class FeatureCentralBoilerManager(BaseFeatureManager):
 
     @overrides
     def stop_listening(self) -> bool:
-        """Stop all listeners, including the ones which are waiting for the demand or the service target"""
+        """Stop all listeners, including the one which is waiting for the service target"""
         self._stop_waiting_service_target()
-        self._stop_waiting_demand()
         return super().stop_listening()
 
     def suspend_evaluation(self) -> None:
-        """Stop deciding the boiler state while VTherms are being reloaded: the sensors only see a part of them"""
+        """Stop deciding the boiler state until all VTherms have started (HA startup, reload of all VTherms)"""
         self._evaluation_suspended = True
 
     async def resume_evaluation(self) -> None:
-        """All VTherms have been reloaded: decide the boiler state"""
+        """All VTherms have started: decide the boiler state"""
+        if not self._evaluation_suspended:
+            return
         self._evaluation_suspended = False
         if self.is_ready:
             await self.calculate_central_boiler_state(None)
@@ -232,7 +227,7 @@ class FeatureCentralBoilerManager(BaseFeatureManager):
             )
             return False
 
-        if self._evaluation_suspended or not self._check_demand_known():
+        if not self._check_demand_known():
             _LOGGER.debug("%s - the demand is not known yet. Central boiler state is not calculated", self)
             return
 
@@ -301,46 +296,11 @@ class FeatureCentralBoilerManager(BaseFeatureManager):
                 )
 
     def _check_demand_known(self) -> bool:
-        """True if the demand can be trusted. The sensors must have been calculated, and calculated
-        from VTherms which are all ready: before this, a 0 only means that a VTherm has not started."""
-        sensors = (self._nb_active_device_number_entity, self._total_power_active_entity)
-        if any(sensor is None or sensor.native_value is None for sensor in sensors):
+        """True if the demand can be trusted: all VTherms have started and both sensors have been calculated"""
+        if self._evaluation_suspended:
             return False
-
-        if all(sensor.all_vtherms_ready for sensor in sensors):
-            self._stop_waiting_demand()
-            self._demand_wait_expired = False
-            return True
-
-        if self._demand_wait_expired:
-            return True
-
-        if self._cancel_demand_wait is None:
-            self._cancel_demand_wait = async_call_later(
-                self._hass,
-                timedelta(seconds=DEMAND_MAX_WAIT_SEC),
-                HassJob(self._on_demand_wait_expired, cancel_on_shutdown=True),
-            )
-        return False
-
-    async def _on_demand_wait_expired(self, _) -> None:
-        """Some VTherms are still not ready after the maximum wait: decide without them"""
-        self._cancel_demand_wait = None
-        self._demand_wait_expired = True
-        if not (self._nb_active_device_number_entity.all_vtherms_ready and self._total_power_active_entity.all_vtherms_ready):
-            _LOGGER.warning(
-                "%s - some VTherm used by the central boiler are not ready after %d seconds (check their underlying devices and temperature sensor). "
-                "The central boiler state is now calculated without them",
-                self,
-                DEMAND_MAX_WAIT_SEC,
-            )
-        await self.calculate_central_boiler_state(None)
-
-    def _stop_waiting_demand(self) -> None:
-        """Cancel the maximum wait of the demand"""
-        if self._cancel_demand_wait is not None:
-            self._cancel_demand_wait()
-            self._cancel_demand_wait = None
+        sensors = (self._nb_active_device_number_entity, self._total_power_active_entity)
+        return all(sensor is not None and sensor.native_value is not None for sensor in sensors)
 
     def _is_service_target_available(self, service_config: dict | None) -> bool:
         """True if the service can be delivered. A service with no entity target has nothing to wait for.

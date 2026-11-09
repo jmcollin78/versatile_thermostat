@@ -944,12 +944,6 @@ class NbActiveDeviceForBoilerSensor(SensorEntity):
         """Get the list of active device id"""
         return self._attr_active_device_ids
 
-    @property
-    def all_vtherms_ready(self) -> bool:
-        """True if the VTherms this sensor is calculated from are all ready and have a temperature.
-        If not, they count for no demand and the value of this sensor can be wrongly low"""
-        return all(entity.is_ready and entity.current_temperature is not None for entity in self._entities)
-
     def __str__(self):
         return f"{self.name}"
 

@@ -10,8 +10,8 @@ import pytest
 
 from homeassistant.components.climate import DOMAIN as CLIMATE_DOMAIN
 from homeassistant.components.switch import DOMAIN as SWITCH_DOMAIN
-from homeassistant.const import UnitOfPower
-from homeassistant.core import HomeAssistant
+from homeassistant.const import EVENT_HOMEASSISTANT_STARTED, UnitOfPower
+from homeassistant.core import CoreState, HomeAssistant
 from homeassistant.util import dt as dt_util
 
 from pytest_homeassistant_custom_component.common import (
@@ -20,12 +20,8 @@ from pytest_homeassistant_custom_component.common import (
     async_mock_service,
 )
 
-from custom_components.versatile_thermostat import reload_all_vtherm
-from custom_components.versatile_thermostat.feature_central_boiler_manager import (
-    DEMAND_MAX_WAIT_SEC,
-    FeatureCentralBoilerManager,
-)
-from custom_components.versatile_thermostat.sensor import NbActiveDeviceForBoilerSensor
+from custom_components.versatile_thermostat import async_setup, reload_all_vtherm
+from custom_components.versatile_thermostat.feature_central_boiler_manager import FeatureCentralBoilerManager
 from custom_components.versatile_thermostat.vtherm_central_api import VersatileThermostatAPI
 
 from .commons import *  # pylint: disable=wildcard-import, unused-wildcard-import
@@ -43,7 +39,6 @@ def _build_manager(
     *,
     power: float | None = 0.0,
     nb_active: int | None = 0,
-    ready: bool = True,
     delay: int = 0,
     keep_alive: int = 0,
     activate: str = ACTIVATE,
@@ -60,20 +55,18 @@ def _build_manager(
             CONF_KEEP_ALIVE_BOILER_DELAY_SEC: keep_alive,
         }
     )
-    manager._nb_active_device_number_entity = MagicMock(entity_id="sensor.nb", native_value=nb_active, all_vtherms_ready=ready)
-    manager._total_power_active_entity = MagicMock(entity_id="sensor.power", native_value=power, native_unit_of_measurement=UnitOfPower.WATT, all_vtherms_ready=ready)
+    manager._nb_active_device_number_entity = MagicMock(entity_id="sensor.nb", native_value=nb_active)
+    manager._total_power_active_entity = MagicMock(entity_id="sensor.power", native_value=power, native_unit_of_measurement=UnitOfPower.WATT)
     manager._nb_active_device_threshold_number_entity = MagicMock(entity_id="number.nb", native_value=0)
     manager._total_power_active_threshold_number_entity = MagicMock(entity_id="number.power", native_value=POWER_THRESHOLD, native_unit_of_measurement=UnitOfPower.WATT)
     manager._is_ready = True
     return manager
 
 
-def _set_demand(manager: FeatureCentralBoilerManager, power: float | None, ready: bool = True) -> None:
+def _set_demand(manager: FeatureCentralBoilerManager, power: float | None) -> None:
     """Change what the mocked demand sensors report"""
     manager._total_power_active_entity.native_value = power
-    manager._total_power_active_entity.all_vtherms_ready = ready
     manager._nb_active_device_number_entity.native_value = 0 if power is not None else None
-    manager._nb_active_device_number_entity.all_vtherms_ready = ready
 
 
 def _temperatures(calls) -> list:
@@ -113,22 +106,20 @@ async def test_target_missing_defers_deactivate_until_it_appears(hass: HomeAssis
 
 
 @pytest.mark.parametrize(
-    "power, nb_active, ready",
+    "power, nb_active",
     [
         # the sensors have never been calculated
-        (None, None, False),
+        (None, None),
         # only one of the sensors have been calculated
-        (0.0, None, True),
-        (None, 0, True),
-        # a 0 calculated before the VTherms have started is not a real 0
-        (0.0, 0, False),
+        (0.0, None),
+        (None, 0),
     ],
 )
-async def test_target_present_but_demand_not_populated_sends_nothing(hass: HomeAssistant, power, nb_active, ready):
+async def test_target_present_but_demand_not_populated_sends_nothing(hass: HomeAssistant, power, nb_active):
     """With the target available, no deactivate is sent while the demand is not known"""
     calls = async_mock_service(hass, CLIMATE_DOMAIN, "set_temperature")
     hass.states.async_set(TARGET, "heat")
-    manager = _build_manager(hass, power=power, nb_active=nb_active, ready=ready)
+    manager = _build_manager(hass, power=power, nb_active=nb_active)
 
     await manager.calculate_central_boiler_state(None)
     await hass.async_block_till_done()
@@ -136,42 +127,28 @@ async def test_target_present_but_demand_not_populated_sends_nothing(hass: HomeA
     assert calls == []
     assert manager.is_on is None
 
-    manager.stop_listening()
 
-
-async def test_real_zero_demand_deactivates(hass: HomeAssistant):
-    """A 0 calculated once all VTherms are ready is a real one"""
+async def test_zero_before_vtherms_have_started_sends_nothing(hass: HomeAssistant):
+    """At startup the sensors are calculated before the VTherms start: their 0 is decided only once the links are initialized"""
     calls = async_mock_service(hass, CLIMATE_DOMAIN, "set_temperature")
     hass.states.async_set(TARGET, "heat")
-    manager = _build_manager(hass, power=0.0, nb_active=0, ready=False)
-
-    await manager.calculate_central_boiler_state(None)
-    assert calls == []
-
-    _set_demand(manager, 0.0, ready=True)
-    await manager.calculate_central_boiler_state(None)
-    await hass.async_block_till_done()
-
-    assert _temperatures(calls) == ["11"]
-    assert manager.is_on is False
-
-
-async def test_vtherm_never_ready_does_not_block_the_boiler_forever(hass: HomeAssistant, caplog):
-    """A VTherm which is never ready stops blocking the decision after a bounded wait"""
-    calls = async_mock_service(hass, CLIMATE_DOMAIN, "set_temperature")
-    hass.states.async_set(TARGET, "heat")
-    manager = _build_manager(hass, power=0.0, nb_active=0, ready=False)
+    manager = _build_manager(hass, power=0.0, nb_active=0)
+    manager.suspend_evaluation()
 
     await manager.calculate_central_boiler_state(None)
     await hass.async_block_till_done()
     assert calls == []
+    assert manager.is_on is None
 
-    with caplog.at_level(logging.WARNING):
-        await _fire_after(hass, DEMAND_MAX_WAIT_SEC)
-
+    await manager.resume_evaluation()
+    await hass.async_block_till_done()
     assert _temperatures(calls) == ["11"]
     assert manager.is_on is False
-    assert "not ready" in caplog.text
+
+    # resume evaluates only when the evaluation was suspended
+    await manager.resume_evaluation()
+    await hass.async_block_till_done()
+    assert len(calls) == 1
 
 
 async def test_reload_with_boiler_needed_sends_no_off(hass: HomeAssistant):
@@ -498,23 +475,6 @@ async def test_event_log_shows_the_total_power_values(hass: HomeAssistant, caplo
     assert "{self." not in caplog.text
 
 
-async def test_nb_sensor_all_vtherms_ready():
-    """The sensor is ready only if all the VTherms it has been calculated from are ready"""
-    sensor = object.__new__(NbActiveDeviceForBoilerSensor)
-    sensor._entities = []
-    assert sensor.all_vtherms_ready is True
-
-    sensor._entities = [MagicMock(is_ready=True, current_temperature=20), MagicMock(is_ready=False, current_temperature=20)]
-    assert sensor.all_vtherms_ready is False
-
-    sensor._entities[1].is_ready = True
-    assert sensor.all_vtherms_ready is True
-
-    # ready, but its temperature sensor has not been read: it counts for no demand
-    sensor._entities[1].current_temperature = None
-    assert sensor.all_vtherms_ready is False
-
-
 async def _create_heating_vtherm(hass: HomeAssistant, fake_underlying_switch):
     """Create a real VTherm which needs the boiler"""
     entry = MockConfigEntry(
@@ -645,17 +605,41 @@ async def test_suspended_evaluation_decides_on_resume(hass: HomeAssistant):
     assert manager.is_on is False
 
 
-@pytest.mark.parametrize("expected_lingering_tasks", [True])
-@pytest.mark.parametrize("expected_lingering_timers", [True])
-@pytest.mark.parametrize("used_by_boiler", [True, False])
-async def test_vtherm_becoming_ready_refreshes_the_boiler(hass: HomeAssistant, init_central_config_with_boiler_fixture, fake_underlying_switch, used_by_boiler):
-    """The demand may not change when a VTherm becomes ready, and the boiler is waiting for it: it has to be told"""
+async def test_init_vtherm_links_resumes_the_evaluation(hass: HomeAssistant, init_central_config_with_boiler_fixture):
+    """Only the initialization of all the VTherms resumes the evaluation, not the one of a single entry"""
+    api = VersatileThermostatAPI.get_vtherm_api(hass)
+    manager = api.central_boiler_manager
+    manager.suspend_evaluation()
+
+    with patch.object(manager, "calculate_central_boiler_state") as mock_calculate:
+        await api.init_vtherm_links("some_entry_id")
+        assert manager._evaluation_suspended is True
+        mock_calculate.assert_not_called()
+
+        await api.init_vtherm_links()
+        assert manager._evaluation_suspended is False
+        mock_calculate.assert_called()
+
+
+async def test_ha_startup_suspends_until_vtherm_links_are_initialized(hass: HomeAssistant):
+    """While HA starts, VT does not decide the boiler state. HA started initializes the links, which resumes the evaluation"""
+    hass.set_state(CoreState.starting)
+    with patch("custom_components.versatile_thermostat.async_register_log_download_endpoint"):
+        assert await async_setup(hass, {})
+
     manager = VersatileThermostatAPI.get_vtherm_api(hass).central_boiler_manager
-    entity = await _create_heating_vtherm(hass, fake_underlying_switch)
-    entity._is_used_by_central_boiler = used_by_boiler
+    assert manager._evaluation_suspended is True
 
-    with patch.object(manager, "refresh_active_devices") as mock_refresh:
-        await entity.init_underlyings_completed()
+    hass.set_state(CoreState.running)
+    hass.bus.async_fire(EVENT_HOMEASSISTANT_STARTED)
+    await hass.async_block_till_done()
 
-    assert mock_refresh.called is used_by_boiler
-    entity.remove_thermostat()
+    assert manager._evaluation_suspended is False
+
+
+async def test_setup_when_ha_is_running_does_not_stay_suspended(hass: HomeAssistant):
+    """Installing the integration while HA runs initializes the links immediately"""
+    with patch("custom_components.versatile_thermostat.async_register_log_download_endpoint"):
+        assert await async_setup(hass, {})
+
+    assert VersatileThermostatAPI.get_vtherm_api(hass).central_boiler_manager._evaluation_suspended is False
