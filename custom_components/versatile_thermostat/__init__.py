@@ -146,9 +146,8 @@ async def reload_all_vtherm(hass):
     try:
         await asyncio.gather(*reload_tasks)
         api: VersatileThermostatAPI = VersatileThermostatAPI.get_vtherm_api(hass)
-        if api:
-            await api.central_boiler_manager.reload_central_boiler_entities_list()
-            await api.init_vtherm_links()
+        await api.central_boiler_manager.reload_central_boiler_entities_list()
+        await api.init_vtherm_links()
     finally:
         await VersatileThermostatAPI.get_vtherm_api(hass).central_boiler_manager.notify_vtherms_started()
 
