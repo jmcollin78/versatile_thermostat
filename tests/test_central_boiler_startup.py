@@ -27,9 +27,9 @@ from custom_components.versatile_thermostat.vtherm_central_api import VersatileT
 from .commons import *  # pylint: disable=wildcard-import, unused-wildcard-import
 from .const import *  # pylint: disable=wildcard-import, unused-wildcard-import
 
-TARGET = "climate.kitchen"
-ACTIVATE = f"{TARGET}/climate.set_temperature/temperature:23"
-DEACTIVATE = f"{TARGET}/climate.set_temperature/temperature:11"
+BOILER_ENTITY = "climate.kitchen"
+ACTIVATE = f"{BOILER_ENTITY}/climate.set_temperature/temperature:23"
+DEACTIVATE = f"{BOILER_ENTITY}/climate.set_temperature/temperature:11"
 POWER_THRESHOLD = 1500
 MANAGER_MODULE = "custom_components.versatile_thermostat.feature_central_boiler_manager"
 
@@ -80,8 +80,8 @@ async def _fire_after(hass: HomeAssistant, seconds: int) -> None:
     await hass.async_block_till_done()
 
 
-async def test_target_missing_defers_deactivate_until_it_appears(hass: HomeAssistant):
-    """A missing target means no call and no recorded state. The deactivate is sent when the target appears, with the demand unchanged"""
+async def test_boiler_entity_missing_defers_deactivate_until_it_appears(hass: HomeAssistant):
+    """A missing boiler entity means no call and no recorded state. The deactivate is sent when the entity appears, with the demand unchanged"""
     calls = async_mock_service(hass, CLIMATE_DOMAIN, "set_temperature")
     manager = _build_manager(hass)
 
@@ -92,15 +92,15 @@ async def test_target_missing_defers_deactivate_until_it_appears(hass: HomeAssis
     assert manager.is_on is None
     assert manager._last_activated_service is None
 
-    hass.states.async_set(TARGET, "heat")
+    hass.states.async_set(BOILER_ENTITY, "heat")
     await hass.async_block_till_done()
 
     assert _temperatures(calls) == ["11"]
     assert manager.is_on is False
     assert manager._last_activated_service is None  # keep-alive is disabled
 
-    # the retry is done: others states of the target do not send anything more
-    hass.states.async_set(TARGET, "off")
+    # the retry is done: other states of the boiler entity do not send anything more
+    hass.states.async_set(BOILER_ENTITY, "off")
     await hass.async_block_till_done()
     assert len(calls) == 1
 
@@ -115,10 +115,10 @@ async def test_target_missing_defers_deactivate_until_it_appears(hass: HomeAssis
         (None, 0),
     ],
 )
-async def test_target_present_but_demand_not_populated_sends_nothing(hass: HomeAssistant, power, nb_active):
-    """With the target available, no deactivate is sent while the demand is not known"""
+async def test_boiler_entity_present_but_demand_not_populated_sends_nothing(hass: HomeAssistant, power, nb_active):
+    """With the boiler entity available, no deactivate is sent while the demand is not known"""
     calls = async_mock_service(hass, CLIMATE_DOMAIN, "set_temperature")
-    hass.states.async_set(TARGET, "heat")
+    hass.states.async_set(BOILER_ENTITY, "heat")
     manager = _build_manager(hass, power=power, nb_active=nb_active)
 
     await manager.calculate_central_boiler_state(None)
@@ -131,22 +131,22 @@ async def test_target_present_but_demand_not_populated_sends_nothing(hass: HomeA
 async def test_zero_before_vtherms_have_started_sends_nothing(hass: HomeAssistant):
     """At startup the sensors are calculated before the VTherms start: their 0 is decided only once the links are initialized"""
     calls = async_mock_service(hass, CLIMATE_DOMAIN, "set_temperature")
-    hass.states.async_set(TARGET, "heat")
+    hass.states.async_set(BOILER_ENTITY, "heat")
     manager = _build_manager(hass, power=0.0, nb_active=0)
-    manager.suspend_evaluation()
+    manager.notify_vtherms_starting()
 
     await manager.calculate_central_boiler_state(None)
     await hass.async_block_till_done()
     assert calls == []
     assert manager.is_on is None
 
-    await manager.resume_evaluation()
+    await manager.notify_vtherms_started()
     await hass.async_block_till_done()
     assert _temperatures(calls) == ["11"]
     assert manager.is_on is False
 
-    # resume evaluates only when the evaluation was suspended
-    await manager.resume_evaluation()
+    # a second notification does nothing
+    await manager.notify_vtherms_started()
     await hass.async_block_till_done()
     assert len(calls) == 1
 
@@ -154,7 +154,7 @@ async def test_zero_before_vtherms_have_started_sends_nothing(hass: HomeAssistan
 async def test_reload_with_boiler_needed_sends_no_off(hass: HomeAssistant):
     """A reload keeps the manager and is_on=True. The new sensors must not turn the boiler off before the real demand is read"""
     calls = async_mock_service(hass, CLIMATE_DOMAIN, "set_temperature")
-    hass.states.async_set(TARGET, "heat")
+    hass.states.async_set(BOILER_ENTITY, "heat")
     manager = _build_manager(hass, power=1620.0, keep_alive=60)
     manager._is_on = True
 
@@ -210,7 +210,7 @@ async def test_reload_with_changed_services_resends_the_state(hass: HomeAssistan
 async def test_demand_above_threshold_after_restart_activates_after_delay(hass: HomeAssistant):
     """The unknown demand is skipped, then the normal delayed activation takes place"""
     calls = async_mock_service(hass, CLIMATE_DOMAIN, "set_temperature")
-    hass.states.async_set(TARGET, "off")
+    hass.states.async_set(BOILER_ENTITY, "off")
     manager = _build_manager(hass, power=None, nb_active=None, delay=120)
 
     await manager.calculate_central_boiler_state(None)
@@ -229,14 +229,14 @@ async def test_demand_above_threshold_after_restart_activates_after_delay(hass: 
     assert manager._call_later_handle is None
 
 
-async def test_target_unavailable_when_delayed_activation_fires_is_retried(hass: HomeAssistant):
-    """The activation is kept when the delay ends with an unavailable target, and is sent as soon as the target is back"""
+async def test_boiler_entity_unavailable_when_delayed_activation_fires_is_retried(hass: HomeAssistant):
+    """The activation is kept when the delay ends with an unavailable boiler entity, and is sent as soon as the entity is back"""
     calls = async_mock_service(hass, CLIMATE_DOMAIN, "set_temperature")
-    hass.states.async_set(TARGET, "heat")
+    hass.states.async_set(BOILER_ENTITY, "heat")
     manager = _build_manager(hass, power=1620.0, delay=120, keep_alive=60)
 
     await manager.calculate_central_boiler_state(None)
-    hass.states.async_set(TARGET, "unavailable")
+    hass.states.async_set(BOILER_ENTITY, "unavailable")
     await _fire_after(hass, 120)
 
     assert calls == []
@@ -244,13 +244,13 @@ async def test_target_unavailable_when_delayed_activation_fires_is_retried(hass:
     assert manager._last_activated_service is None
     assert manager._call_later_handle is None
 
-    # still unavailable: a new evaluation sends nothing and does not restart the delay
+    # still unavailable: a new calculation sends nothing and does not restart the delay
     await manager.calculate_central_boiler_state(None)
     assert calls == []
     assert manager._call_later_handle is None
 
     with patch(f"{MANAGER_MODULE}.send_vtherm_event") as mock_event:
-        hass.states.async_set(TARGET, "heat")
+        hass.states.async_set(BOILER_ENTITY, "heat")
         await hass.async_block_till_done()
 
     assert _temperatures(calls) == ["23"]
@@ -261,10 +261,10 @@ async def test_target_unavailable_when_delayed_activation_fires_is_retried(hass:
     assert mock_event.call_args.kwargs["data"] == {"central_boiler": True}
 
 
-async def test_activation_on_unavailable_target_without_delay_is_retried(hass: HomeAssistant):
+async def test_activation_on_unavailable_boiler_entity_without_delay_is_retried(hass: HomeAssistant):
     """The same retry applies to an immediate activation"""
     calls = async_mock_service(hass, CLIMATE_DOMAIN, "set_temperature")
-    hass.states.async_set(TARGET, "unavailable")
+    hass.states.async_set(BOILER_ENTITY, "unavailable")
     manager = _build_manager(hass, power=1620.0)
     manager._is_on = False
 
@@ -272,7 +272,7 @@ async def test_activation_on_unavailable_target_without_delay_is_retried(hass: H
     assert calls == []
     assert manager.is_on is False
 
-    hass.states.async_set(TARGET, "heat")
+    hass.states.async_set(BOILER_ENTITY, "heat")
     await hass.async_block_till_done()
 
     assert _temperatures(calls) == ["23"]
@@ -282,7 +282,7 @@ async def test_activation_on_unavailable_target_without_delay_is_retried(hass: H
 async def test_demand_change_during_outage_restarts_the_activation_delay(hass: HomeAssistant):
     """A demand that drops during the outage cancels the retry: when it returns, the delay applies again"""
     calls = async_mock_service(hass, CLIMATE_DOMAIN, "set_temperature")
-    hass.states.async_set(TARGET, "unavailable")
+    hass.states.async_set(BOILER_ENTITY, "unavailable")
     manager = _build_manager(hass, power=1620.0, delay=120)
     manager._is_on = False
 
@@ -293,9 +293,9 @@ async def test_demand_change_during_outage_restarts_the_activation_delay(hass: H
     # the demand drops: is_on=False is already right, nothing is pending anymore
     _set_demand(manager, 100.0)
     await manager.calculate_central_boiler_state(None)
-    assert manager._cancel_service_target_listener is None
+    assert manager._cancel_boiler_command_entity_listener is None
 
-    hass.states.async_set(TARGET, "heat")
+    hass.states.async_set(BOILER_ENTITY, "heat")
     await hass.async_block_till_done()
     assert calls == []
     assert manager.is_on is False
@@ -310,7 +310,7 @@ async def test_demand_change_during_outage_restarts_the_activation_delay(hass: H
     assert _temperatures(calls) == ["23"]
 
 
-async def test_target_listener_is_neither_duplicated_nor_leaked(hass: HomeAssistant):
+async def test_boiler_entity_listener_is_neither_duplicated_nor_leaked(hass: HomeAssistant):
     """Only one listener exists while a command is pending, and it is removed by stop_listening"""
     calls = async_mock_service(hass, CLIMATE_DOMAIN, "set_temperature")
     manager = _build_manager(hass)
@@ -320,12 +320,12 @@ async def test_target_listener_is_neither_duplicated_nor_leaked(hass: HomeAssist
         await manager.calculate_central_boiler_state(None)
         await manager.calculate_central_boiler_state(None)
         mock_track.assert_called_once()
-        assert mock_track.call_args.args[1] == [TARGET]
+        assert mock_track.call_args.args[1] == [BOILER_ENTITY]
         cancel.assert_not_called()
 
         manager.stop_listening()
         cancel.assert_called_once()
-        assert manager._cancel_service_target_listener is None
+        assert manager._cancel_boiler_command_entity_listener is None
 
         # stop_listening is idempotent
         manager.stop_listening()
@@ -334,23 +334,23 @@ async def test_target_listener_is_neither_duplicated_nor_leaked(hass: HomeAssist
     # with a real listener: nothing is sent after the cleanup
     await manager.calculate_central_boiler_state(None)
     manager.stop_listening()
-    hass.states.async_set(TARGET, "heat")
+    hass.states.async_set(BOILER_ENTITY, "heat")
     await hass.async_block_till_done()
     assert calls == []
     assert manager.is_on is None
 
 
-async def test_unloading_the_central_config_removes_the_target_listener(hass: HomeAssistant, init_central_config_with_boiler_fixture):
+async def test_unloading_the_central_config_removes_the_boiler_entity_listener(hass: HomeAssistant, init_central_config_with_boiler_fixture):
     """Unloading the central configuration stops the pending retry"""
     manager = VersatileThermostatAPI.get_vtherm_api(hass).central_boiler_manager
     # switch.pompe_chaudiere is not registered in this test
     await hass.async_block_till_done()
-    assert manager._cancel_service_target_listener is not None
+    assert manager._cancel_boiler_command_entity_listener is not None
 
     entry = hass.config_entries.async_entries(DOMAIN)[0]
     await hass.config_entries.async_unload(entry.entry_id)
 
-    assert manager._cancel_service_target_listener is None
+    assert manager._cancel_boiler_command_entity_listener is None
 
 
 @pytest.mark.parametrize(
@@ -360,8 +360,8 @@ async def test_unloading_the_central_config_removes_the_target_listener(hass: Ho
         {"service_domain": "script", "service_name": "boiler_off", "entity_id": "", "data": {}},
     ],
 )
-async def test_service_without_target_is_not_blocked(hass: HomeAssistant, service):
-    """A service with no entity target has nothing to wait for, and is called without target"""
+async def test_service_without_entity_is_not_blocked(hass: HomeAssistant, service):
+    """A service without entity has nothing to wait for, and is called without target"""
     calls = async_mock_service(hass, "script", "boiler_off")
     manager = _build_manager(hass)
     manager._service_deactivate = service
@@ -372,7 +372,7 @@ async def test_service_without_target_is_not_blocked(hass: HomeAssistant, servic
     assert len(calls) == 1
     assert "entity_id" not in calls[0].data
     assert manager.is_on is False
-    assert manager._cancel_service_target_listener is None
+    assert manager._cancel_boiler_command_entity_listener is None
 
 
 async def test_unset_service_is_not_blocked(hass: HomeAssistant):
@@ -384,13 +384,13 @@ async def test_unset_service_is_not_blocked(hass: HomeAssistant):
 
     assert manager._service_deactivate == {}
     assert manager.is_on is False
-    assert manager._cancel_service_target_listener is None
+    assert manager._cancel_boiler_command_entity_listener is None
 
 
 async def test_normal_transitions_and_keep_alive_are_unchanged(hass: HomeAssistant):
     """on / off transitions, the or logic of thresholds, and the keep-alive once running"""
     calls = async_mock_service(hass, CLIMATE_DOMAIN, "set_temperature")
-    hass.states.async_set(TARGET, "heat")
+    hass.states.async_set(BOILER_ENTITY, "heat")
     manager = _build_manager(hass, power=0.0, keep_alive=60)
 
     # off
@@ -441,7 +441,7 @@ async def test_normal_transitions_and_keep_alive_are_unchanged(hass: HomeAssista
 async def test_demand_drop_still_cancels_a_pending_activation(hass: HomeAssistant):
     """A pending activation is cancelled by a demand drop and the deactivate is sent as before"""
     calls = async_mock_service(hass, CLIMATE_DOMAIN, "set_temperature")
-    hass.states.async_set(TARGET, "heat")
+    hass.states.async_set(BOILER_ENTITY, "heat")
     manager = _build_manager(hass, power=1620.0, delay=120)
 
     await manager.calculate_central_boiler_state(None)
@@ -462,7 +462,7 @@ async def test_demand_drop_still_cancels_a_pending_activation(hass: HomeAssistan
 async def test_event_log_shows_the_total_power_values(hass: HomeAssistant, caplog):
     """The second part of the event log was not an f-string"""
     async_mock_service(hass, CLIMATE_DOMAIN, "set_temperature")
-    hass.states.async_set(TARGET, "heat")
+    hass.states.async_set(BOILER_ENTITY, "heat")
     manager = _build_manager(hass, power=0.0)
     with caplog.at_level(logging.INFO):
         await manager.calculate_central_boiler_state(None)
@@ -543,16 +543,16 @@ async def test_real_reload_with_boiler_needed_sends_no_off(hass: HomeAssistant, 
     central_entry = next(entry for entry in hass.config_entries.async_entries(DOMAIN) if entry.data.get(CONF_THERMOSTAT_TYPE) == CONF_THERMOSTAT_CENTRAL_CONFIG)
 
     real_init_vtherm_links = api.init_vtherm_links
-    suspended_during_reload = []
+    starting_during_reload = []
 
-    async def evaluate_then_init_vtherm_links(entry_id=None):
-        """On a real system, the evaluation started by the registration of the entities runs before the links are initialized"""
-        suspended_during_reload.append(manager._evaluation_suspended)
+    async def calculate_then_init_vtherm_links(entry_id=None):
+        """On a real system, the calculation started by the registration of the entities runs before the links are initialized"""
+        starting_during_reload.append(manager._vtherms_starting)
         await manager.calculate_central_boiler_state(None)
         await real_init_vtherm_links(entry_id)
 
     with (
-        patch.object(api, "init_vtherm_links", side_effect=evaluate_then_init_vtherm_links),
+        patch.object(api, "init_vtherm_links", side_effect=calculate_then_init_vtherm_links),
         patch.object(manager, "call_service", wraps=manager.call_service) as spy,
     ):
         if reload_all:
@@ -569,21 +569,21 @@ async def test_real_reload_with_boiler_needed_sends_no_off(hass: HomeAssistant, 
         for call in spy.call_args_list:
             assert call.args[0] != manager._service_deactivate, f"the boiler has been turned off during the reload: {spy.call_args_list}"
 
-    assert suspended_during_reload
-    assert all(suspended_during_reload) is reload_all
-    assert manager._evaluation_suspended is False
+    assert starting_during_reload
+    assert all(starting_during_reload) is reload_all
+    assert manager._vtherms_starting is False
     assert manager.is_on is True
     entity.remove_thermostat()
 
 
-async def test_suspended_evaluation_decides_on_resume(hass: HomeAssistant):
-    """While VTherms are being reloaded a low demand is only a partial one. The decision is taken on resume"""
+async def test_boiler_state_is_decided_when_vtherms_have_started(hass: HomeAssistant):
+    """While VTherms are being reloaded a low demand is only a partial one. The decision is taken when they have all started"""
     calls = async_mock_service(hass, CLIMATE_DOMAIN, "set_temperature")
-    hass.states.async_set(TARGET, "heat")
+    hass.states.async_set(BOILER_ENTITY, "heat")
     manager = _build_manager(hass, power=100.0)
     manager._is_on = True
 
-    manager.suspend_evaluation()
+    manager.notify_vtherms_starting()
     await manager.calculate_central_boiler_state(None)
     await hass.async_block_till_done()
     assert calls == []
@@ -591,55 +591,55 @@ async def test_suspended_evaluation_decides_on_resume(hass: HomeAssistant):
 
     # the other VTherms are back: the boiler is needed and nothing has to be sent
     _set_demand(manager, 1620.0)
-    await manager.resume_evaluation()
+    await manager.notify_vtherms_started()
     await hass.async_block_till_done()
     assert calls == []
     assert manager.is_on is True
 
     # the same with a demand which is really low
-    manager.suspend_evaluation()
+    manager.notify_vtherms_starting()
     _set_demand(manager, 100.0)
-    await manager.resume_evaluation()
+    await manager.notify_vtherms_started()
     await hass.async_block_till_done()
     assert _temperatures(calls) == ["11"]
     assert manager.is_on is False
 
 
-async def test_init_vtherm_links_resumes_the_evaluation(hass: HomeAssistant, init_central_config_with_boiler_fixture):
-    """Only the initialization of all the VTherms resumes the evaluation, not the one of a single entry"""
+async def test_init_vtherm_links_notifies_vtherms_started(hass: HomeAssistant, init_central_config_with_boiler_fixture):
+    """Only the initialization of all the VTherms notifies that they have started, not the one of a single entry"""
     api = VersatileThermostatAPI.get_vtherm_api(hass)
     manager = api.central_boiler_manager
-    manager.suspend_evaluation()
+    manager.notify_vtherms_starting()
 
     with patch.object(manager, "calculate_central_boiler_state") as mock_calculate:
         await api.init_vtherm_links("some_entry_id")
-        assert manager._evaluation_suspended is True
+        assert manager._vtherms_starting is True
         mock_calculate.assert_not_called()
 
         await api.init_vtherm_links()
-        assert manager._evaluation_suspended is False
+        assert manager._vtherms_starting is False
         mock_calculate.assert_called()
 
 
-async def test_ha_startup_suspends_until_vtherm_links_are_initialized(hass: HomeAssistant):
-    """While HA starts, VT does not decide the boiler state. HA started initializes the links, which resumes the evaluation"""
+async def test_ha_startup_waits_for_vtherm_links_to_be_initialized(hass: HomeAssistant):
+    """While HA starts, VT does not decide the boiler state. HA started initializes the links, which notifies that the VTherms have started"""
     hass.set_state(CoreState.starting)
     with patch("custom_components.versatile_thermostat.async_register_log_download_endpoint"):
         assert await async_setup(hass, {})
 
     manager = VersatileThermostatAPI.get_vtherm_api(hass).central_boiler_manager
-    assert manager._evaluation_suspended is True
+    assert manager._vtherms_starting is True
 
     hass.set_state(CoreState.running)
     hass.bus.async_fire(EVENT_HOMEASSISTANT_STARTED)
     await hass.async_block_till_done()
 
-    assert manager._evaluation_suspended is False
+    assert manager._vtherms_starting is False
 
 
-async def test_setup_when_ha_is_running_does_not_stay_suspended(hass: HomeAssistant):
+async def test_setup_when_ha_is_running_does_not_keep_waiting(hass: HomeAssistant):
     """Installing the integration while HA runs initializes the links immediately"""
     with patch("custom_components.versatile_thermostat.async_register_log_download_endpoint"):
         assert await async_setup(hass, {})
 
-    assert VersatileThermostatAPI.get_vtherm_api(hass).central_boiler_manager._evaluation_suspended is False
+    assert VersatileThermostatAPI.get_vtherm_api(hass).central_boiler_manager._vtherms_starting is False

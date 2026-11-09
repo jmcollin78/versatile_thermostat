@@ -55,31 +55,30 @@ class FeatureCentralBoilerManager(BaseFeatureManager):
         self._time_interval_listener_cancel = None
         self._last_activated_service: dict | None = None
 
-        # A command waiting for its target entity to be available
-        self._cancel_service_target_listener = None
-        self._service_target_entity_id: str | None = None
+        # The boiler command entity is the entity on which the activation or deactivation service is called
+        # (for example the switch or the climate of the boiler). When it is not available, the command waits for it.
+        self._cancel_boiler_command_entity_listener = None
+        self._waiting_boiler_command_entity_id: str | None = None
         # The activation delay is over but the activation could not be sent
         self._activation_delay_elapsed: bool = False
 
-        # True while the VTherms are not all started (HA startup, reload of all VTherms):
+        # True while the VTherms are starting (HA startup, reload of all VTherms):
         # the demand sensors only see a part of the VTherms and a low value is not a real one
-        self._evaluation_suspended: bool = False
+        self._vtherms_starting: bool = False
 
     @overrides
     def post_init(self, entry_infos: dict):
         """Reinit of the manager. Called at each reload: _is_on survives it, as the boiler device did not change"""
-        old_services = (self._service_activate, self._service_deactivate)
+        existing_activation_commands = (self._service_activate, self._service_deactivate)
         self._service_activate = check_and_extract_service_configuration(
             entry_infos.get(CONF_CENTRAL_BOILER_ACTIVATION_SRV)
         )
         self._service_deactivate = check_and_extract_service_configuration(
             entry_infos.get(CONF_CENTRAL_BOILER_DEACTIVATION_SRV)
         )
-        if old_services != (self._service_activate, self._service_deactivate):
+        if existing_activation_commands != (self._service_activate, self._service_deactivate):
             # The configured commands have changed: what is known about the device is not valid anymore
             self._is_on = None
-        self._stop_waiting_service_target()
-        self._activation_delay_elapsed = False
         self._activation_delay_sec = entry_infos.get(CONF_CENTRAL_BOILER_ACTIVATION_DELAY_SEC, 0)
         self._keep_alive_boiler_delay_sec = entry_infos.get(CONF_KEEP_ALIVE_BOILER_DELAY_SEC, DEFAULT_KEEP_ALIVE_BOILER_DELAY_SEC)
         self._is_configured = bool(self._service_activate or self._service_deactivate)
@@ -130,19 +129,20 @@ class FeatureCentralBoilerManager(BaseFeatureManager):
 
     @overrides
     def stop_listening(self) -> bool:
-        """Stop all listeners, including the one which is waiting for the service target"""
-        self._stop_waiting_service_target()
+        """Stop all listeners, including the one which waits for the boiler command entity"""
+        self._stop_waiting_for_boiler_command_entity()
         return super().stop_listening()
 
-    def suspend_evaluation(self) -> None:
-        """Stop deciding the boiler state until all VTherms have started (HA startup, reload of all VTherms)"""
-        self._evaluation_suspended = True
+    def notify_vtherms_starting(self) -> None:
+        """The VTherms are starting (HA startup, reload of all VTherms).
+        The boiler state is not decided until notify_vtherms_started is called"""
+        self._vtherms_starting = True
 
-    async def resume_evaluation(self) -> None:
-        """All VTherms have started: decide the boiler state"""
-        if not self._evaluation_suspended:
+    async def notify_vtherms_started(self) -> None:
+        """All VTherms have started: the demand is now the real one, so decide the boiler state once"""
+        if not self._vtherms_starting:
             return
-        self._evaluation_suspended = False
+        self._vtherms_starting = False
         if self.is_ready:
             await self.calculate_central_boiler_state(None)
 
@@ -192,10 +192,10 @@ class FeatureCentralBoilerManager(BaseFeatureManager):
                 _LOGGER.info("%s - central boiler delayed activation cancelled because condition is not valid anymore", self)
                 return
 
-            if not self._is_service_target_available(self._service_activate):
-                # The delay is over: the activation will be sent as soon as the target is back
+            if not self._is_boiler_command_entity_available(self._service_activate):
+                # The delay is over: the activation will be sent as soon as the boiler command entity is available
                 self._activation_delay_elapsed = True
-                self._wait_for_service_target(self._service_activate)
+                self._wait_for_boiler_command_entity(self._service_activate)
                 return
 
             _LOGGER.info("%s - central boiler will be turned on", self)
@@ -204,7 +204,7 @@ class FeatureCentralBoilerManager(BaseFeatureManager):
                 _LOGGER.info("%s - central boiler have been turned on after delay", self)
                 self._is_on = True
                 self._activation_delay_elapsed = False
-                self._stop_waiting_service_target()
+                self._stop_waiting_for_boiler_command_entity()
                 if self._keep_alive_boiler_state_enabled:
                     self._last_activated_service = self._service_activate
                 _send_vtherm_event(
@@ -227,7 +227,7 @@ class FeatureCentralBoilerManager(BaseFeatureManager):
             )
             return False
 
-        if not self._check_demand_known():
+        if not self._is_demand_known():
             _LOGGER.debug("%s - the demand is not known yet. Central boiler state is not calculated", self)
             return
 
@@ -237,8 +237,8 @@ class FeatureCentralBoilerManager(BaseFeatureManager):
             self._activation_delay_elapsed = False
 
         if self._is_on == active:
-            # Nothing to send anymore, even if a command was waiting for its target
-            self._stop_waiting_service_target()
+            # Nothing to send anymore, even if a command was waiting for the boiler command entity
+            self._stop_waiting_for_boiler_command_entity()
         else:
             try:
                 if active:
@@ -265,8 +265,8 @@ class FeatureCentralBoilerManager(BaseFeatureManager):
                         self._call_later_handle()
                         self._call_later_handle = None
 
-                    if not self._is_service_target_available(self._service_deactivate):
-                        self._wait_for_service_target(self._service_deactivate)
+                    if not self._is_boiler_command_entity_available(self._service_deactivate):
+                        self._wait_for_boiler_command_entity(self._service_deactivate)
                         return
 
                     write_event_log(
@@ -280,7 +280,7 @@ class FeatureCentralBoilerManager(BaseFeatureManager):
                     await self.call_service(self._service_deactivate)
                     _LOGGER.info("%s - central boiler have been turned off", self)
                     self._is_on = active
-                    self._stop_waiting_service_target()
+                    self._stop_waiting_for_boiler_command_entity()
                     if self._keep_alive_boiler_state_enabled:
                         self._last_activated_service = self._service_deactivate
                     _send_vtherm_event(
@@ -295,15 +295,15 @@ class FeatureCentralBoilerManager(BaseFeatureManager):
                     err,
                 )
 
-    def _check_demand_known(self) -> bool:
+    def _is_demand_known(self) -> bool:
         """True if the demand can be trusted: all VTherms have started and both sensors have been calculated"""
-        if self._evaluation_suspended:
+        if self._vtherms_starting:
             return False
         sensors = (self._nb_active_device_number_entity, self._total_power_active_entity)
         return all(sensor is not None and sensor.native_value is not None for sensor in sensors)
 
-    def _is_service_target_available(self, service_config: dict | None) -> bool:
-        """True if the service can be delivered. A service with no entity target has nothing to wait for.
+    def _is_boiler_command_entity_available(self, service_config: dict | None) -> bool:
+        """True if the service can be called now. A service without entity has nothing to wait for.
         STATE_UNKNOWN is available: the entity is loaded, and a scene for example is unknown until its first use."""
         entity_id = service_config.get("entity_id") if service_config else None
         if not entity_id:
@@ -311,37 +311,37 @@ class FeatureCentralBoilerManager(BaseFeatureManager):
         state = self._hass.states.get(entity_id)
         return state is not None and state.state != STATE_UNAVAILABLE
 
-    def _wait_for_service_target(self, service_config: dict) -> None:
-        """Calculate the boiler state again when the target of this service becomes available.
+    def _wait_for_boiler_command_entity(self, service_config: dict) -> None:
+        """Calculate the boiler state again when the entity of this service becomes available.
         This is needed because the demand may not change in the meantime."""
         entity_id = service_config["entity_id"]
-        if self._service_target_entity_id == entity_id:
+        if self._waiting_boiler_command_entity_id == entity_id:
             return
 
-        self._stop_waiting_service_target()
+        self._stop_waiting_for_boiler_command_entity()
         _LOGGER.warning(
-            "%s - the target %s of the central boiler command is not available. The command will be sent when it becomes available",
+            "%s - the boiler command entity %s is not available. The central boiler service will be called when this entity is available",
             self,
             entity_id,
         )
-        self._service_target_entity_id = entity_id
-        self._cancel_service_target_listener = async_track_state_change_event(self._hass, [entity_id], self._on_service_target_changed)
+        self._waiting_boiler_command_entity_id = entity_id
+        self._cancel_boiler_command_entity_listener = async_track_state_change_event(self._hass, [entity_id], self._on_boiler_command_entity_changed)
 
-    def _stop_waiting_service_target(self) -> None:
-        """Remove the listener of the service target if any"""
-        if self._cancel_service_target_listener is not None:
-            self._cancel_service_target_listener()
-            self._cancel_service_target_listener = None
-        self._service_target_entity_id = None
+    def _stop_waiting_for_boiler_command_entity(self) -> None:
+        """Remove the listener of the boiler command entity, if any"""
+        if self._cancel_boiler_command_entity_listener is not None:
+            self._cancel_boiler_command_entity_listener()
+            self._cancel_boiler_command_entity_listener = None
+        self._waiting_boiler_command_entity_id = None
 
-    async def _on_service_target_changed(self, event) -> None:
-        """The target of a waiting command has changed"""
+    async def _on_boiler_command_entity_changed(self, event) -> None:
+        """The state of the boiler command entity has changed while a command is waiting for it"""
         new_state = event.data.get("new_state")
         if new_state is None or new_state.state == STATE_UNAVAILABLE:
             return
 
-        _LOGGER.debug("%s - the central boiler target %s is available", self, new_state.entity_id)
-        self._stop_waiting_service_target()
+        _LOGGER.debug("%s - the boiler command entity %s is available", self, new_state.entity_id)
+        self._stop_waiting_for_boiler_command_entity()
         await self.calculate_central_boiler_state(None)
 
     async def _keep_alive_boiler(self, _=None):
