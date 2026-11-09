@@ -55,7 +55,7 @@
             },
             "main": {
                 "title": "添加新的多功能恒温器",
-                "description": "主要必填属性",
+                "description": "{wizard_progress}主要必填属性",
                 "data": {
                     "name": "名称",
                     "thermostat_type": "恒温器类型",
@@ -85,7 +85,7 @@
             },
             "features": {
                 "title": "功能",
-                "description": "恒温器功能",
+                "description": "{wizard_progress}恒温器功能",
                 "data": {
                     "use_window_feature": "使用窗户检测",
                     "use_motion_feature": "使用运动检测",
@@ -122,6 +122,7 @@
                     "underlying_19": "{underlying_19}",
                     "underlying_20": "{underlying_20}",
                     "underlying_add": "添加设备",
+                    "underlying_continue": "继续",
                     "menu": "返回菜单"
                 },
                 "menu_option_descriptions": {
@@ -146,12 +147,13 @@
                     "underlying_18": "{underlying_18_details}",
                     "underlying_19": "{underlying_19_details}",
                     "underlying_20": "{underlying_20_details}",
-                    "underlying_add": "选择另一个要控制的设备"
+                    "underlying_add": "选择另一个要控制的设备",
+                    "underlying_continue": "前往下一步"
                 }
             },
             "tpi": {
                 "title": "TPI",
-                "description": "时间比例积分属性",
+                "description": "{wizard_progress}时间比例积分属性",
                 "data": {
                     "tpi_coef_int": "coef_int",
                     "tpi_coef_ext": "coef_ext",
@@ -182,7 +184,7 @@
             },
             "window": {
                 "title": "窗户管理",
-                "description": "窗户管理。\n也可以根据温度下降配置自动开窗检测",
+                "description": "{wizard_progress}窗户管理。\n也可以根据温度下降配置自动开窗检测",
                 "data": {
                     "window_sensor_entity_id": "窗户传感器实体 ID",
                     "window_delay": "窗户传感器“开启”延迟（秒）",
@@ -206,7 +208,7 @@
             },
             "motion": {
                 "title": "运动管理",
-                "description": "运动传感器管理。预设可根据运动检测自动切换\nmotion_preset 和 no_motion_preset 应设置为对应的预设名称",
+                "description": "{wizard_progress}运动传感器管理。预设可根据运动检测自动切换\nmotion_preset 和 no_motion_preset 应设置为对应的预设名称",
                 "data": {
                     "motion_sensor_entity_id": "运动传感器实体 ID",
                     "motion_delay": "激活延迟",
@@ -226,7 +228,7 @@
             },
             "power": {
                 "title": "功率管理",
-                "description": "功率管理属性。\n为每个 VTherm 的设备功率选择 W 或 kW，并为中央配置选择 W、kW 或自动。\n数值会在内部标准化，因此可以安全地混用 W 和 kW。",
+                "description": "{wizard_progress}功率管理属性。\n为每个 VTherm 的设备功率选择 W 或 kW，并为中央配置选择 W、kW 或自动。\n数值会在内部标准化，因此可以安全地混用 W 和 kW。",
                 "data": {
                     "power_sensor_entity_id": "功率",
                     "max_power_sensor_entity_id": "最大功率",
@@ -244,7 +246,7 @@
             },
             "presence": {
                 "title": "在家状态管理",
-                "description": "在家状态管理属性。\n提供家中的在家状态传感器（true 表示有人在家），并设置对应的温度预设",
+                "description": "{wizard_progress}在家状态管理属性。\n提供家中的在家状态传感器（true 表示有人在家），并设置对应的温度预设",
                 "data": {
                     "presence_sensor_entity_id": "在家状态传感器",
                     "use_presence_central_config": "使用中央在家状态温度配置。取消选择则使用特定温度实体"
@@ -255,7 +257,7 @@
             },
             "advanced": {
                 "title": "高级参数",
-                "description": "高级参数配置。如果您不知道自己在做什么，请保留默认值。\n这些参数可能导致温度控制很差或功率调节很差",
+                "description": "{wizard_progress}高级参数配置。如果您不知道自己在做什么，请保留默认值。\n这些参数可能导致温度控制很差或功率调节很差",
                 "data": {
                     "safety_delay_min": "安全延时（分钟）",
                     "safety_min_on_percent": "启用安全模式的最低功率百分比",
@@ -275,7 +277,7 @@
             },
             "central_boiler": {
                 "title": "中央锅炉控制",
-                "description": "输入要调用的服务以打开/关闭中央锅炉。调用的服务必须格式如下：`entity_id/service_name[/attribute:value]`（/attribute:value 是可选的）\n例如：\n- 打开开关：`switch.controle_chaudiere/switch.turn_on`\n- 关闭开关：`switch.controle_chaudiere/switch.turn_off`\n- 将锅炉编程至 25°，从而强制其点火：`climate.thermostat_chaudiere/climate.set_temperature/temperature:25`\n- 向锅炉发送 10°，从而强制其熄灭：`climate.thermostat_chaudiere/climate.set_temperature/temperature:10`",
+                "description": "{wizard_progress}输入要调用的服务以打开/关闭中央锅炉。调用的服务必须格式如下：`entity_id/service_name[/attribute:value]`（/attribute:value 是可选的）\n例如：\n- 打开开关：`switch.controle_chaudiere/switch.turn_on`\n- 关闭开关：`switch.controle_chaudiere/switch.turn_off`\n- 将锅炉编程至 25°，从而强制其点火：`climate.thermostat_chaudiere/climate.set_temperature/temperature:25`\n- 向锅炉发送 10°，从而强制其熄灭：`climate.thermostat_chaudiere/climate.set_temperature/temperature:10`",
                 "data": {
                     "central_boiler_activation_service": "开启命令",
                     "central_boiler_deactivation_service": "关闭命令",
@@ -339,7 +341,7 @@
             },
             "heating_failure_detection": {
                 "title": "加热故障检测",
-                "description": "配置加热故障检测功能。当预期加热但温度不升高时，或者当加热关闭但温度持续升高时，该功能会检测到异常情况。",
+                "description": "{wizard_progress}配置加热故障检测功能。当预期加热但温度不升高时，或者当加热关闭但温度持续升高时，该功能会检测到异常情况。",
                 "data": {
                     "use_heating_failure_detection_feature": "启用加热故障检测",
                     "use_heating_failure_detection_central_config": "使用中央加热故障检测配置",
@@ -483,6 +485,13 @@
                         }
                     }
                 }
+            },
+            "auto_start_stop": {
+                "title": "自动启动和停止",
+                "description": "{wizard_progress}",
+                "data": {
+                    "auto_start_stop_level": "自动启动和停止"
+                }
             }
         },
         "error": {
@@ -496,7 +505,8 @@
             "missing_settings_summary": "还有 {count} 项设置待完成",
             "underlying_already_added": "此实体已被此 VTherm 的某个设备使用",
             "max_opening_degree_out_of_range": "最大开度必须大于 0，且不能超过阀门的最大值",
-            "underlying_field_missing": "缺少 {field}"
+            "underlying_field_missing": "缺少 {field}",
+            "wizard_progress": "**第 {current} / {total} 步**。之后您可以在菜单中更改所有内容。\n\n"
         },
         "abort": {
             "already_configured": "设备已配置"
@@ -554,7 +564,7 @@
             },
             "main": {
                 "title": "主要 - {name}",
-                "description": "主要必填属性",
+                "description": "{wizard_progress}主要必填属性",
                 "data": {
                     "name": "名称",
                     "thermostat_type": "恒温器类型",
@@ -584,7 +594,7 @@
             },
             "features": {
                 "title": "特点 - {name}",
-                "description": "恒温器功能",
+                "description": "{wizard_progress}恒温器功能",
                 "data": {
                     "use_window_feature": "使用窗户检测",
                     "use_motion_feature": "使用运动检测",
@@ -621,6 +631,7 @@
                     "underlying_19": "{underlying_19}",
                     "underlying_20": "{underlying_20}",
                     "underlying_add": "添加设备",
+                    "underlying_continue": "继续",
                     "menu": "返回菜单"
                 },
                 "menu_option_descriptions": {
@@ -645,12 +656,13 @@
                     "underlying_18": "{underlying_18_details}",
                     "underlying_19": "{underlying_19_details}",
                     "underlying_20": "{underlying_20_details}",
-                    "underlying_add": "选择另一个要控制的设备"
+                    "underlying_add": "选择另一个要控制的设备",
+                    "underlying_continue": "前往下一步"
                 }
             },
             "tpi": {
                 "title": "TPI - {name}",
-                "description": "时间比例积分属性",
+                "description": "{wizard_progress}时间比例积分属性",
                 "data": {
                     "tpi_coef_int": "coef_int",
                     "tpi_coef_ext": "coef_ext",
@@ -681,7 +693,7 @@
             },
             "window": {
                 "title": "窗户 - {name}",
-                "description": "窗户管理。\n也可以根据温度下降配置自动开窗检测",
+                "description": "{wizard_progress}窗户管理。\n也可以根据温度下降配置自动开窗检测",
                 "data": {
                     "window_sensor_entity_id": "窗户传感器实体 ID",
                     "window_delay": "窗户传感器“开启”延迟（秒）",
@@ -705,7 +717,7 @@
             },
             "motion": {
                 "title": "运动 - {name}",
-                "description": "运动传感器管理。预设可根据运动检测自动切换\nmotion_preset 和 no_motion_preset 应设置为对应的预设名称",
+                "description": "{wizard_progress}运动传感器管理。预设可根据运动检测自动切换\nmotion_preset 和 no_motion_preset 应设置为对应的预设名称",
                 "data": {
                     "motion_sensor_entity_id": "运动传感器实体 ID",
                     "motion_delay": "激活延迟",
@@ -725,7 +737,7 @@
             },
             "power": {
                 "title": "功率 - {name}",
-                "description": "电源管理属性。\n提供您家的功率和最大功率传感器。\n指定加热器开启时的功耗。\n所有传感器和设备功率应使用相同的单位（kW 或 W）",
+                "description": "{wizard_progress}电源管理属性。\n提供您家的功率和最大功率传感器。\n指定加热器开启时的功耗。\n所有传感器和设备功率应使用相同的单位（kW 或 W）",
                 "data": {
                     "power_sensor_entity_id": "功率",
                     "max_power_sensor_entity_id": "最大功率",
@@ -741,7 +753,7 @@
             },
             "presence": {
                 "title": "在家状态 - {name}",
-                "description": "在家状态管理属性。\n提供家中的在家状态传感器（true 表示有人在家），并设置对应的温度预设",
+                "description": "{wizard_progress}在家状态管理属性。\n提供家中的在家状态传感器（true 表示有人在家），并设置对应的温度预设",
                 "data": {
                     "presence_sensor_entity_id": "在家状态传感器",
                     "use_presence_central_config": "使用中央在家状态温度配置。取消选择则使用特定温度实体"
@@ -752,7 +764,7 @@
             },
             "advanced": {
                 "title": "高级 - {name}",
-                "description": "高级参数配置。如果您不知道自己在做什么，请保留默认值。\n这些参数可能导致温度控制很差或功率调节很差",
+                "description": "{wizard_progress}高级参数配置。如果您不知道自己在做什么，请保留默认值。\n这些参数可能导致温度控制很差或功率调节很差",
                 "data": {
                     "minimal_activation_delay": "最小激活延迟",
                     "minimal_deactivation_delay": "最小停用延迟",
@@ -776,7 +788,7 @@
             },
             "central_boiler": {
                 "title": "中央锅炉控制 - {name}",
-                "description": "输入要调用的服务以打开/关闭中央锅炉。调用的服务必须格式如下：`entity_id/service_name[/attribute:value]`（/attribute:value 是可选的）\n例如：\n- 打开开关：`switch.controle_chaudiere/switch.turn_on`\n- 关闭开关：`switch.controle_chaudiere/switch.turn_off`\n- 将锅炉编程至 25°，从而强制其点火：`climate.thermostat_chaudiere/climate.set_temperature/temperature:25`\n- 向锅炉发送 10°，从而强制其熄灭：`climate.thermostat_chaudiere/climate.set_temperature/temperature:10`",
+                "description": "{wizard_progress}输入要调用的服务以打开/关闭中央锅炉。调用的服务必须格式如下：`entity_id/service_name[/attribute:value]`（/attribute:value 是可选的）\n例如：\n- 打开开关：`switch.controle_chaudiere/switch.turn_on`\n- 关闭开关：`switch.controle_chaudiere/switch.turn_off`\n- 将锅炉编程至 25°，从而强制其点火：`climate.thermostat_chaudiere/climate.set_temperature/temperature:25`\n- 向锅炉发送 10°，从而强制其熄灭：`climate.thermostat_chaudiere/climate.set_temperature/temperature:10`",
                 "data": {
                     "central_boiler_activation_service": "开启命令",
                     "central_boiler_deactivation_service": "关闭命令",
@@ -840,7 +852,7 @@
             },
             "heating_failure_detection": {
                 "title": "加热故障检测 - {name}",
-                "description": "配置加热故障检测功能。当预期加热但温度不升高时，或者当加热关闭但温度持续升高时，该功能会检测到异常情况。",
+                "description": "{wizard_progress}配置加热故障检测功能。当预期加热但温度不升高时，或者当加热关闭但温度持续升高时，该功能会检测到异常情况。",
                 "data": {
                     "use_heating_failure_detection_feature": "启用加热故障检测",
                     "use_heating_failure_detection_central_config": "使用中央加热故障检测配置",
@@ -984,6 +996,13 @@
                         }
                     }
                 }
+            },
+            "auto_start_stop": {
+                "title": "自动启动和停止 - {name}",
+                "description": "{wizard_progress}",
+                "data": {
+                    "auto_start_stop_level": "自动启动和停止"
+                }
             }
         },
         "error": {
@@ -997,7 +1016,8 @@
             "missing_settings_summary": "还有 {count} 项设置待完成",
             "underlying_already_added": "此实体已被此 VTherm 的某个设备使用",
             "max_opening_degree_out_of_range": "最大开度必须大于 0，且不能超过阀门的最大值",
-            "underlying_field_missing": "缺少 {field}"
+            "underlying_field_missing": "缺少 {field}",
+            "wizard_progress": "**第 {current} / {total} 步**。之后您可以在菜单中更改所有内容。\n\n"
         },
         "abort": {
             "already_configured": "设备已配置"

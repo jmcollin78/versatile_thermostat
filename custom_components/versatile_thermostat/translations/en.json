@@ -56,7 +56,7 @@
             },
             "main": {
                 "title": "Add new Versatile Thermostat",
-                "description": "Main mandatory attributes",
+                "description": "{wizard_progress}Main mandatory attributes",
                 "data": {
                     "name": "Name",
                     "thermostat_type": "Thermostat type",
@@ -86,7 +86,7 @@
             },
             "features": {
                 "title": "Features",
-                "description": "Thermostat features",
+                "description": "{wizard_progress}Thermostat features",
                 "data": {
                     "use_window_feature": "Use window detection",
                     "use_motion_feature": "Use motion detection",
@@ -123,6 +123,7 @@
                     "underlying_19": "{underlying_19}",
                     "underlying_20": "{underlying_20}",
                     "underlying_add": "Add a device",
+                    "underlying_continue": "Continue",
                     "menu": "Back to menu"
                 },
                 "menu_option_descriptions": {
@@ -147,12 +148,13 @@
                     "underlying_18": "{underlying_18_details}",
                     "underlying_19": "{underlying_19_details}",
                     "underlying_20": "{underlying_20_details}",
-                    "underlying_add": "Select another device to control"
+                    "underlying_add": "Select another device to control",
+                    "underlying_continue": "Go to the next step"
                 }
             },
             "tpi": {
                 "title": "TPI",
-                "description": "Time Proportional Integral attributes",
+                "description": "{wizard_progress}Time Proportional Integral attributes",
                 "data": {
                     "tpi_coef_int": "coef_int",
                     "tpi_coef_ext": "coef_ext",
@@ -183,7 +185,7 @@
             },
             "window": {
                 "title": "Window management",
-                "description": "Open window management.\nYou can also configure automatic window open detection based on temperature decrease",
+                "description": "{wizard_progress}Open window management.\nYou can also configure automatic window open detection based on temperature decrease",
                 "data": {
                     "window_sensor_entity_id": "Window sensor entity id",
                     "window_delay": "Window sensor 'on' delay (seconds)",
@@ -207,7 +209,7 @@
             },
             "motion": {
                 "title": "Motion management",
-                "description": "Motion sensor management. Preset can switch automatically depending on motion detection\nmotion_preset and no_motion_preset should be set to the corresponding preset name",
+                "description": "{wizard_progress}Motion sensor management. Preset can switch automatically depending on motion detection\nmotion_preset and no_motion_preset should be set to the corresponding preset name",
                 "data": {
                     "motion_sensor_entity_id": "Motion sensor entity id",
                     "motion_delay": "Activation delay",
@@ -227,7 +229,7 @@
             },
             "power": {
                 "title": "Power management",
-                "description": "Power management attributes.\nSelect W or kW for each VTherm device power, and W, kW, or Auto for the central configuration.\nValues are normalized internally, so W and kW can be mixed safely.",
+                "description": "{wizard_progress}Power management attributes.\nSelect W or kW for each VTherm device power, and W, kW, or Auto for the central configuration.\nValues are normalized internally, so W and kW can be mixed safely.",
                 "data": {
                     "power_sensor_entity_id": "Power",
                     "max_power_sensor_entity_id": "Max power",
@@ -245,7 +247,7 @@
             },
             "presence": {
                 "title": "Presence management",
-                "description": "Presence management attributes.\nGives the a presence sensor of your home (true is someone is present) and give the corresponding temperature preset setting",
+                "description": "{wizard_progress}Presence management attributes.\nGives the a presence sensor of your home (true is someone is present) and give the corresponding temperature preset setting",
                 "data": {
                     "presence_sensor_entity_id": "Presence sensor",
                     "use_presence_central_config": "Use central presence temperature configuration. Deselect to use specific temperature entities"
@@ -256,7 +258,7 @@
             },
             "advanced": {
                 "title": "Advanced parameters",
-                "description": "Configuration of advanced parameters. Leave the default values if you don't know what you are doing.\nThese parameters can lead to very poor temperature control or bad power regulation",
+                "description": "{wizard_progress}Configuration of advanced parameters. Leave the default values if you don't know what you are doing.\nThese parameters can lead to very poor temperature control or bad power regulation",
                 "data": {
                     "safety_delay_min": "Safety delay (in minutes)",
                     "safety_min_on_percent": "Minimum power percent to enable safety mode",
@@ -276,7 +278,7 @@
             },
             "central_boiler": {
                 "title": "Control of the central boiler",
-                "description": "Enter the services to call to turn on/off the central boiler. The service called must be formatted as follows: `entity_id/service_name[/attribute:value]` (/attribute:value is optional)\nFor example:\n- to turn on a switch: `switch.controle_chaudiere/switch.turn_on`\n- to turn off a switch: `switch.controle_chaudiere/switch.turn_off`\n- to program the boiler to 25° and thus force its ignition: `climate.thermostat_chaudiere/climate.set_temperature/temperature:25`\n- to send 10° to the boiler and thus force its extinction: `climate.thermostat_chaudiere/climate.set_temperature/temperature:10`",
+                "description": "{wizard_progress}Enter the services to call to turn on/off the central boiler. The service called must be formatted as follows: `entity_id/service_name[/attribute:value]` (/attribute:value is optional)\nFor example:\n- to turn on a switch: `switch.controle_chaudiere/switch.turn_on`\n- to turn off a switch: `switch.controle_chaudiere/switch.turn_off`\n- to program the boiler to 25° and thus force its ignition: `climate.thermostat_chaudiere/climate.set_temperature/temperature:25`\n- to send 10° to the boiler and thus force its extinction: `climate.thermostat_chaudiere/climate.set_temperature/temperature:10`",
                 "data": {
                     "central_boiler_activation_service": "Command to turn-on",
                     "central_boiler_deactivation_service": "Command to turn-off",
@@ -352,7 +354,7 @@
             },
             "heating_failure_detection": {
                 "title": "Heating failure detection",
-                "description": "Configure the heating failure detection feature. This detects anomalies when heating is expected but temperature doesn't increase, or when heating is off but temperature keeps rising.",
+                "description": "{wizard_progress}Configure the heating failure detection feature. This detects anomalies when heating is expected but temperature doesn't increase, or when heating is off but temperature keeps rising.",
                 "data": {
                     "use_heating_failure_detection_feature": "Enable heating failure detection",
                     "use_heating_failure_detection_central_config": "Use central heating failure detection configuration",
@@ -496,6 +498,13 @@
                         }
                     }
                 }
+            },
+            "auto_start_stop": {
+                "title": "Auto start and stop",
+                "description": "{wizard_progress}",
+                "data": {
+                    "auto_start_stop_level": "Auto start and stop"
+                }
             }
         },
         "error": {
@@ -509,7 +518,8 @@
             "missing_settings_summary": "{count} setting(s) to complete",
             "underlying_already_added": "This entity is already used by a device of this VTherm",
             "max_opening_degree_out_of_range": "The maximum opening must be greater than 0 and must not exceed the maximum of the valve",
-            "underlying_field_missing": "{field} is missing"
+            "underlying_field_missing": "{field} is missing",
+            "wizard_progress": "**Step {current} / {total}**. You can change everything later from the menu.\n\n"
         },
         "abort": {
             "already_configured": "Device is already configured"
@@ -568,7 +578,7 @@
             },
             "main": {
                 "title": "Main - {name}",
-                "description": "Main mandatory attributes",
+                "description": "{wizard_progress}Main mandatory attributes",
                 "data": {
                     "name": "Name",
                     "thermostat_type": "Thermostat type",
@@ -596,7 +606,7 @@
             },
             "features": {
                 "title": "Features - {name}",
-                "description": "Thermostat features",
+                "description": "{wizard_progress}Thermostat features",
                 "data": {
                     "use_window_feature": "Use window detection",
                     "use_motion_feature": "Use motion detection",
@@ -633,6 +643,7 @@
                     "underlying_19": "{underlying_19}",
                     "underlying_20": "{underlying_20}",
                     "underlying_add": "Add a device",
+                    "underlying_continue": "Continue",
                     "menu": "Back to menu"
                 },
                 "menu_option_descriptions": {
@@ -657,12 +668,13 @@
                     "underlying_18": "{underlying_18_details}",
                     "underlying_19": "{underlying_19_details}",
                     "underlying_20": "{underlying_20_details}",
-                    "underlying_add": "Select another device to control"
+                    "underlying_add": "Select another device to control",
+                    "underlying_continue": "Go to the next step"
                 }
             },
             "tpi": {
                 "title": "TPI - {name}",
-                "description": "Time Proportional Integral attributes",
+                "description": "{wizard_progress}Time Proportional Integral attributes",
                 "data": {
                     "tpi_coef_int": "coef_int",
                     "tpi_coef_ext": "coef_ext",
@@ -693,7 +705,7 @@
             },
             "window": {
                 "title": "Window - {name}",
-                "description": "Open window management.\nYou can also configure automatic window open detection based on temperature decrease",
+                "description": "{wizard_progress}Open window management.\nYou can also configure automatic window open detection based on temperature decrease",
                 "data": {
                     "window_sensor_entity_id": "Window sensor entity id",
                     "window_delay": "Window sensor 'on' delay (seconds)",
@@ -717,7 +729,7 @@
             },
             "motion": {
                 "title": "Motion - {name}",
-                "description": "Motion management. Preset can switch automatically depending of a motion detection\nmotion_preset and no_motion_preset should be set to the corresponding preset name",
+                "description": "{wizard_progress}Motion management. Preset can switch automatically depending of a motion detection\nmotion_preset and no_motion_preset should be set to the corresponding preset name",
                 "data": {
                     "motion_sensor_entity_id": "Motion sensor entity id",
                     "motion_delay": "Activation delay",
@@ -737,7 +749,7 @@
             },
             "power": {
                 "title": "Power - {name}",
-                "description": "Power management attributes.\nGives the power and max power sensor of your home.\nSpecify the power consumption of the heater when on.\nAll sensors and device power should use the same unit (kW or W)",
+                "description": "{wizard_progress}Power management attributes.\nGives the power and max power sensor of your home.\nSpecify the power consumption of the heater when on.\nAll sensors and device power should use the same unit (kW or W)",
                 "data": {
                     "power_sensor_entity_id": "Power",
                     "max_power_sensor_entity_id": "Max power",
@@ -753,7 +765,7 @@
             },
             "presence": {
                 "title": "Presence - {name}",
-                "description": "Presence management attributes.\nGives the a presence sensor of your home (true is someone is present) and give the corresponding temperature preset setting",
+                "description": "{wizard_progress}Presence management attributes.\nGives the a presence sensor of your home (true is someone is present) and give the corresponding temperature preset setting",
                 "data": {
                     "presence_sensor_entity_id": "Presence sensor",
                     "use_presence_central_config": "Use central presence temperature configuration. Uncheck to use specific temperature entities"
@@ -764,7 +776,7 @@
             },
             "advanced": {
                 "title": "Advanced - {name}",
-                "description": "Configuration of advanced parameters. Leave the default values if you don't know what you are doing.\nThese parameters can lead to very poor temperature control or bad power regulation",
+                "description": "{wizard_progress}Configuration of advanced parameters. Leave the default values if you don't know what you are doing.\nThese parameters can lead to very poor temperature control or bad power regulation",
                 "data": {
                     "minimal_activation_delay": "Minimum activation delay",
                     "minimal_deactivation_delay": "Minimum deactivation delay",
@@ -788,7 +800,7 @@
             },
             "central_boiler": {
                 "title": "Control of the central boiler - {name}",
-                "description": "Enter the services to call to turn on/off the central boiler. The service called must be formatted as follows: `entity_id/service_name[/attribute:value]` (/attribute:value is optional)\nFor example:\n- to turn on a switch: `switch.controle_chaudiere/switch.turn_on`\n- to turn off a switch: `switch.controle_chaudiere/switch.turn_off`\n- to program the boiler to 25° and thus force its ignition: `climate.thermostat_chaudiere/climate.set_temperature/temperature:25`\n- to send 10° to the boiler and thus force its extinction: `climate.thermostat_chaudiere/climate.set_temperature/temperature:10`",
+                "description": "{wizard_progress}Enter the services to call to turn on/off the central boiler. The service called must be formatted as follows: `entity_id/service_name[/attribute:value]` (/attribute:value is optional)\nFor example:\n- to turn on a switch: `switch.controle_chaudiere/switch.turn_on`\n- to turn off a switch: `switch.controle_chaudiere/switch.turn_off`\n- to program the boiler to 25° and thus force its ignition: `climate.thermostat_chaudiere/climate.set_temperature/temperature:25`\n- to send 10° to the boiler and thus force its extinction: `climate.thermostat_chaudiere/climate.set_temperature/temperature:10`",
                 "data": {
                     "central_boiler_activation_service": "Command to turn-on",
                     "central_boiler_deactivation_service": "Command to turn-off",
@@ -864,7 +876,7 @@
             },
             "heating_failure_detection": {
                 "title": "Heating failure detection - {name}",
-                "description": "Configure the heating failure detection feature. This detects anomalies when heating is expected but temperature doesn't increase, or when heating is off but temperature keeps rising.",
+                "description": "{wizard_progress}Configure the heating failure detection feature. This detects anomalies when heating is expected but temperature doesn't increase, or when heating is off but temperature keeps rising.",
                 "data": {
                     "use_heating_failure_detection_feature": "Enable heating failure detection",
                     "use_heating_failure_detection_central_config": "Use central heating failure detection configuration",
@@ -1008,6 +1020,13 @@
                         }
                     }
                 }
+            },
+            "auto_start_stop": {
+                "title": "Auto start and stop - {name}",
+                "description": "{wizard_progress}",
+                "data": {
+                    "auto_start_stop_level": "Auto start and stop"
+                }
             }
         },
         "error": {
@@ -1021,7 +1040,8 @@
             "missing_settings_summary": "{count} setting(s) to complete",
             "underlying_already_added": "This entity is already used by a device of this VTherm",
             "max_opening_degree_out_of_range": "The maximum opening must be greater than 0 and must not exceed the maximum of the valve",
-            "underlying_field_missing": "{field} is missing"
+            "underlying_field_missing": "{field} is missing",
+            "wizard_progress": "**Step {current} / {total}**. You can change everything later from the menu.\n\n"
         },
         "abort": {
             "already_configured": "Device is already configured"

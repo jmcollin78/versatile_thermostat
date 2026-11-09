@@ -56,7 +56,7 @@
       },
       "main": {
         "title": "Neues Versatile Thermostat",
-        "description": "Wichtigste notwendige Eigenschaften",
+        "description": "{wizard_progress}Wichtigste notwendige Eigenschaften",
         "data": {
           "name": "Name",
           "thermostat_type": "Thermostattyp",
@@ -86,7 +86,7 @@
       },
       "features": {
         "title": "Funktionen",
-        "description": "Thermostatfunktionen",
+        "description": "{wizard_progress}Thermostatfunktionen",
         "data": {
           "use_window_feature": "Fensteröffnungserkennung",
           "use_motion_feature": "Bewegungserkennung",
@@ -123,6 +123,7 @@
           "underlying_19": "{underlying_19}",
           "underlying_20": "{underlying_20}",
           "underlying_add": "Gerät hinzufügen",
+          "underlying_continue": "Weiter",
           "menu": "Zurück zum Menü"
         },
         "menu_option_descriptions": {
@@ -147,12 +148,13 @@
           "underlying_18": "{underlying_18_details}",
           "underlying_19": "{underlying_19_details}",
           "underlying_20": "{underlying_20_details}",
-          "underlying_add": "Ein weiteres zu steuerndes Gerät auswählen"
+          "underlying_add": "Ein weiteres zu steuerndes Gerät auswählen",
+          "underlying_continue": "Zum nächsten Schritt gehen"
         }
       },
       "tpi": {
         "title": "TPI",
-        "description": "Attribute des zeitproportionalen Integral (Time Proportional Integral)",
+        "description": "{wizard_progress}Attribute des zeitproportionalen Integral (Time Proportional Integral)",
         "data": {
           "tpi_coef_int": "coef_int",
           "tpi_coef_ext": "coef_ext",
@@ -183,7 +185,7 @@
       },
       "window": {
         "title": "Fensteröffnung verwalten",
-        "description": "Heizkörper ausschalten, sobald Fenster offen ist. Entity-ID leer lassen, um die automatische Erkennung zu verwenden.",
+        "description": "{wizard_progress}Heizkörper ausschalten, sobald Fenster offen ist. Entity-ID leer lassen, um die automatische Erkennung zu verwenden.",
         "data": {
           "window_sensor_entity_id": "Öffnungssensor (Entity-ID)",
           "window_delay": "Auswertverzögerung beim Öffnen (Sekunden)",
@@ -207,7 +209,7 @@
       },
       "motion": {
         "title": "Verwaltung Bewegungserkennung",
-        "description": "Die Voreinstellung passt sich automatisch an, wenn eine Bewegung erkannt wird.\n'Voreinstellung bei Bewegung' und 'Voreinstellung ohne Bewegung' müssen mit den zu verwendenden Voreinstellungen ausgewählt werden.",
+        "description": "{wizard_progress}Die Voreinstellung passt sich automatisch an, wenn eine Bewegung erkannt wird.\n'Voreinstellung bei Bewegung' und 'Voreinstellung ohne Bewegung' müssen mit den zu verwendenden Voreinstellungen ausgewählt werden.",
         "data": {
           "motion_sensor_entity_id": "Bewegungsmelder",
           "motion_delay": "Aktivierungsverzögerung",
@@ -227,7 +229,7 @@
       },
       "power": {
         "title": "Powermanagement",
-        "description": "Attribute für das Powermanagement.\nWählen Sie W oder kW für die Leistung jedes VTherm sowie W, kW oder Automatisch für die zentrale Konfiguration.\nDie Werte werden intern normalisiert, daher können W und kW sicher gemischt werden.",
+        "description": "{wizard_progress}Attribute für das Powermanagement.\nWählen Sie W oder kW für die Leistung jedes VTherm sowie W, kW oder Automatisch für die zentrale Konfiguration.\nDie Werte werden intern normalisiert, daher können W und kW sicher gemischt werden.",
         "data": {
           "power_sensor_entity_id": "Gesamtleistungssensor (Entity-ID)",
           "max_power_sensor_entity_id": "Sensor für maximale Leistung (Entity-ID)",
@@ -245,7 +247,7 @@
       },
       "presence": {
         "title": "Verwaltung Anwesenheit",
-        "description": "Geben Sie einen Präsenzsensor (Status true, wenn jemand anwesend ist) und die bei Abwesenheit zu verwendenden Zieltemperaturen an.",
+        "description": "{wizard_progress}Geben Sie einen Präsenzsensor (Status true, wenn jemand anwesend ist) und die bei Abwesenheit zu verwendenden Zieltemperaturen an.",
         "data": {
           "presence_sensor_entity_id": "Anwesenheitssensor",
           "use_presence_central_config": "Verwendung der zentralen Temperaturkonfiguration bei Abwesenheit. Abwählen, um spezifische Temperaturen zu verwenden."
@@ -256,7 +258,7 @@
       },
       "advanced": {
         "title": "Erweiterte Einstellungen",
-        "description": "Konfiguration der erweiterten Einstellungen. Belassen Sie die Standardwerte, wenn Sie nicht wissen, was Sie tun.\nDiese Einstellungen können zu Fehlfunktionen des Thermostats führen.",
+        "description": "{wizard_progress}Konfiguration der erweiterten Einstellungen. Belassen Sie die Standardwerte, wenn Sie nicht wissen, was Sie tun.\nDiese Einstellungen können zu Fehlfunktionen des Thermostats führen.",
         "data": {
           "safety_delay_min": "Maximale Zeitspanne zwischen zwei Temperaturmessungen",
           "safety_min_on_percent": "Mindestprozentsatz der Leistung",
@@ -276,7 +278,7 @@
       },
       "central_boiler": {
         "title": "Steuerung der Zentralheizung",
-        "description": "Geben Sie die Dienste an, die zum Ein- und Ausschalten des Zentralheizungskessels aufgerufen werden sollen. Der aufzurufende Dienst muss wie folgt formatiert sein: `entity_id/service_name[/attribut:wert]` (/attribut:wert ist optional)\nBeispiel:\n- zum Einschalten eines Schalters: `switch.kesselsteuerung/switch.turn_on`\n- zum Ausschalten eines Schalters: `switch.kesselsteuerung/switch. turn_off`\n- Um den Heizkessel auf 25 °C zu programmieren und somit sein Einschalten zu erzwingen: `climate.heizungsthermostat/climate.set_temperature/temperature:25`\n- Um 10 °C an den Heizkessel zu senden und somit sein Ausschalten zu erzwingen: `climate.heizungsthermostat/climate.set_temperature/temperature:10`",
+        "description": "{wizard_progress}Geben Sie die Dienste an, die zum Ein- und Ausschalten des Zentralheizungskessels aufgerufen werden sollen. Der aufzurufende Dienst muss wie folgt formatiert sein: `entity_id/service_name[/attribut:wert]` (/attribut:wert ist optional)\nBeispiel:\n- zum Einschalten eines Schalters: `switch.kesselsteuerung/switch.turn_on`\n- zum Ausschalten eines Schalters: `switch.kesselsteuerung/switch. turn_off`\n- Um den Heizkessel auf 25 °C zu programmieren und somit sein Einschalten zu erzwingen: `climate.heizungsthermostat/climate.set_temperature/temperature:25`\n- Um 10 °C an den Heizkessel zu senden und somit sein Ausschalten zu erzwingen: `climate.heizungsthermostat/climate.set_temperature/temperature:10`",
         "data": {
           "central_boiler_activation_service": "Befehl zum Einschalten",
           "central_boiler_deactivation_service": "Befehl zum Ausschalten",
@@ -352,7 +354,7 @@
       },
       "heating_failure_detection": {
         "title": "Erkennung von Heizungsausfällen",
-        "description": "Konfiguration der Heizungsausfallerkennung. Diese Funktion erkennt Anomalien, wenn Heizleistung angefordert wird, die Temperatur jedoch nicht steigt, oder wenn die Heizung ausgeschaltet ist, die Temperatur jedoch weiter steigt.",
+        "description": "{wizard_progress}Konfiguration der Heizungsausfallerkennung. Diese Funktion erkennt Anomalien, wenn Heizleistung angefordert wird, die Temperatur jedoch nicht steigt, oder wenn die Heizung ausgeschaltet ist, die Temperatur jedoch weiter steigt.",
         "data": {
           "use_heating_failure_detection_feature": "Heizungsausfallerkennung aktivieren",
           "use_heating_failure_detection_central_config": "Zentrale Konfiguration der Fehlererkennung verwenden",
@@ -496,6 +498,13 @@
             }
           }
         }
+      },
+      "auto_start_stop": {
+        "title": "Auto Start und Stop",
+        "description": "{wizard_progress}",
+        "data": {
+          "auto_start_stop_level": "Auto Start und Stop"
+        }
       }
     },
     "error": {
@@ -509,7 +518,8 @@
       "missing_settings_summary": "{count} Einstellung(en) zu vervollständigen",
       "underlying_already_added": "Diese Entität wird bereits von einem Gerät dieses VTherm verwendet",
       "max_opening_degree_out_of_range": "Die maximale Öffnung muss größer als 0 sein und darf das Maximum des Ventils nicht überschreiten",
-      "underlying_field_missing": "{field} fehlt"
+      "underlying_field_missing": "{field} fehlt",
+      "wizard_progress": "**Schritt {current} / {total}**. Sie können später alles über das Menü ändern.\n\n"
     },
     "abort": {
       "already_configured": "Gerät ist bereits konfiguriert"
@@ -568,7 +578,7 @@
       },
       "main": {
         "title": "Attribute - {name}",
-        "description": "Wichtigste erforderliche Attribute",
+        "description": "{wizard_progress}Wichtigste erforderliche Attribute",
         "data": {
           "name": "Name",
           "thermostat_type": "Thermostattyp",
@@ -596,7 +606,7 @@
       },
       "features": {
         "title": "Funktionen - {name}",
-        "description": "Zu verwendende Thermostatfunktionen",
+        "description": "{wizard_progress}Zu verwendende Thermostatfunktionen",
         "data": {
           "use_window_feature": "Mit Fensteröffnungserkennung",
           "use_motion_feature": "Mit Bewegungserkennung",
@@ -633,6 +643,7 @@
           "underlying_19": "{underlying_19}",
           "underlying_20": "{underlying_20}",
           "underlying_add": "Gerät hinzufügen",
+          "underlying_continue": "Weiter",
           "menu": "Zurück zum Menü"
         },
         "menu_option_descriptions": {
@@ -657,12 +668,13 @@
           "underlying_18": "{underlying_18_details}",
           "underlying_19": "{underlying_19_details}",
           "underlying_20": "{underlying_20_details}",
-          "underlying_add": "Ein weiteres zu steuerndes Gerät auswählen"
+          "underlying_add": "Ein weiteres zu steuerndes Gerät auswählen",
+          "underlying_continue": "Zum nächsten Schritt gehen"
         }
       },
       "tpi": {
         "title": "TPI (Zeitproportionales Integral) - {name}",
-        "description": "Attribute des Algorithmus 'zeitproportionales Integral'",
+        "description": "{wizard_progress}Attribute des Algorithmus 'zeitproportionales Integral'",
         "data": {
           "tpi_coef_int": "coeff_int",
           "tpi_coef_ext": "coeff_ext",
@@ -693,7 +705,7 @@
       },
       "window": {
         "title": "Fenster - {name}",
-        "description": "Schaltet den Heizkörper aus, wenn das Fenster offen ist.\nIst keine Entity-ID angegeben, wird die automatische Erkennung von geöffneten Fenstern verwendet.",
+        "description": "{wizard_progress}Schaltet den Heizkörper aus, wenn das Fenster offen ist.\nIst keine Entity-ID angegeben, wird die automatische Erkennung von geöffneten Fenstern verwendet.",
         "data": {
           "window_sensor_entity_id": "Öffnungssensor (Entity-ID)",
           "window_delay": "Verzögerung bei 'Offen' (Sekunden)",
@@ -717,7 +729,7 @@
       },
       "motion": {
         "title": "Bewegung (Motion) - {name}",
-        "description": "Die Voreinstellung passt sich automatisch an, wenn eine Bewegung erkannt wird.\n'Voreinstellung bei Bewegung' und 'Voreinstellung ohne Bewegung müssen mit den zu verwendenden Voreinstellungen ausgewählt werden.",
+        "description": "{wizard_progress}Die Voreinstellung passt sich automatisch an, wenn eine Bewegung erkannt wird.\n'Voreinstellung bei Bewegung' und 'Voreinstellung ohne Bewegung müssen mit den zu verwendenden Voreinstellungen ausgewählt werden.",
         "data": {
           "motion_sensor_entity_id": "Bewegungssensor",
           "motion_delay": "Einschaltverzögerung",
@@ -737,7 +749,7 @@
       },
       "power": {
         "title": "Powermanagement - {name}",
-        "description": "Wählt automatisch die Voreinstellung 'power', wenn der Stromverbrauch ein Maximum überschreitet. Gib ie die Entity-IDs der Sensoren an, die die Gesamtleistung und die maximal zulässige Leistung messen. Gib anschließend die Leistung des Geräts an. Alle Sensoren und der Stromverbrauch des Geräts müssen dieselbe Maßeinheit haben (kW oder W)",
+        "description": "{wizard_progress}Wählt automatisch die Voreinstellung 'power', wenn der Stromverbrauch ein Maximum überschreitet. Gib ie die Entity-IDs der Sensoren an, die die Gesamtleistung und die maximal zulässige Leistung messen. Gib anschließend die Leistung des Geräts an. Alle Sensoren und der Stromverbrauch des Geräts müssen dieselbe Maßeinheit haben (kW oder W)",
         "data": {
           "power_sensor_entity_id": "Gesamtleistung",
           "max_power_sensor_entity_id": "Leistungssensor Max (Entity-ID)",
@@ -753,7 +765,7 @@
       },
       "presence": {
         "title": "Anwesenheit - {name}",
-        "description": "Gib einen Präsenzsensor (true, wenn jemand anwesend ist) und die bei Abwesenheit zu verwendenden Zieltemperaturen an.",
+        "description": "{wizard_progress}Gib einen Präsenzsensor (true, wenn jemand anwesend ist) und die bei Abwesenheit zu verwendenden Zieltemperaturen an.",
         "data": {
           "presence_sensor_entity_id": "Anwesenheitssensor",
           "use_presence_central_config": "Zentrale Temperaturkonfiguration bei Abweseheit benutzen. Nicht setzen bei dedizierten Temperatureinstellungen."
@@ -764,7 +776,7 @@
       },
       "advanced": {
         "title": "Erweitert - {name}",
-        "description": "Konfiguration der erweiterten Parameter. Belassen Sie die Standardwerte, wenn Sie nicht wissen, was Sie tun.\nDiese Einstellugen können zu Fehlfunktionen des Thermostats führen.",
+        "description": "{wizard_progress}Konfiguration der erweiterten Parameter. Belassen Sie die Standardwerte, wenn Sie nicht wissen, was Sie tun.\nDiese Einstellugen können zu Fehlfunktionen des Thermostats führen.",
         "data": {
           "minimal_activation_delay": "Minimale Aktivierungsverzögerung",
           "minimal_deactivation_delay": "Minimale Deaktivierungsverzögerung",
@@ -788,7 +800,7 @@
       },
       "central_boiler": {
         "title": "Steuerung der Zentralheizung - {name}",
-        "description": "Geben Sie die Dienste ein, die zum Ein- und Ausschalten der Zentralheizung benutzt werden sollen. Der verwendete Dienst muss wie folgt formatiert sein: `entity_id/service_name[/attribute:wert]` (/attribute:wert ist optional)\nBeispiel:\n- zum Einschalten eines Schalters: `switch.control_heizung/switch.turn_on`\n- zum ausschalten eines Schalter: `switch.control_heizung/switch.turn_off`\n- Um den Kessel auf 25° zu programmieren und somit ein Einschalten zu erzwingen: `climate.thermostat_heizung/climate.set_temperature/temperature:25`\n- Um 10° an den Heizessel zu senden und so sein Ausschalten zu erzwingen: `climate.thermostat_heizung/climate.set_temperature/temperature:10`",
+        "description": "{wizard_progress}Geben Sie die Dienste ein, die zum Ein- und Ausschalten der Zentralheizung benutzt werden sollen. Der verwendete Dienst muss wie folgt formatiert sein: `entity_id/service_name[/attribute:wert]` (/attribute:wert ist optional)\nBeispiel:\n- zum Einschalten eines Schalters: `switch.control_heizung/switch.turn_on`\n- zum ausschalten eines Schalter: `switch.control_heizung/switch.turn_off`\n- Um den Kessel auf 25° zu programmieren und somit ein Einschalten zu erzwingen: `climate.thermostat_heizung/climate.set_temperature/temperature:25`\n- Um 10° an den Heizessel zu senden und so sein Ausschalten zu erzwingen: `climate.thermostat_heizung/climate.set_temperature/temperature:10`",
         "data": {
           "central_boiler_activation_service": "Einschaltbefehl",
           "central_boiler_deactivation_service": "Ausschaltbefehl",
@@ -864,7 +876,7 @@
       },
       "heating_failure_detection": {
         "title": "Erkennung eines Heizungsausfalls - {name}",
-        "description": "Konfiguration der Heizungsausfallerkennung. Diese Funktion erkennt Anomalien, wenn Heizleistung angefordert wird, die Temperatur jedoch nicht steigt, oder wenn die Heizung ausgeschaltet ist, die Temperatur jedoch weiter steigt.",
+        "description": "{wizard_progress}Konfiguration der Heizungsausfallerkennung. Diese Funktion erkennt Anomalien, wenn Heizleistung angefordert wird, die Temperatur jedoch nicht steigt, oder wenn die Heizung ausgeschaltet ist, die Temperatur jedoch weiter steigt.",
         "data": {
           "use_heating_failure_detection_feature": "Heizungsausfallerkennung aktivieren",
           "use_heating_failure_detection_central_config": "Zentrale Konfiguration der Fehlererkennung verwenden",
@@ -1008,6 +1020,13 @@
             }
           }
         }
+      },
+      "auto_start_stop": {
+        "title": "Auto Start/Stopp - {name}",
+        "description": "{wizard_progress}",
+        "data": {
+          "auto_start_stop_level": "Auto Start/Stopp"
+        }
       }
     },
     "error": {
@@ -1021,7 +1040,8 @@
       "missing_settings_summary": "{count} Einstellung(en) zu vervollständigen",
       "underlying_already_added": "Diese Entität wird bereits von einem Gerät dieses VTherm verwendet",
       "max_opening_degree_out_of_range": "Die maximale Öffnung muss größer als 0 sein und darf das Maximum des Ventils nicht überschreiten",
-      "underlying_field_missing": "{field} fehlt"
+      "underlying_field_missing": "{field} fehlt",
+      "wizard_progress": "**Schritt {current} / {total}**. Sie können später alles über das Menü ändern.\n\n"
     },
     "abort": {
       "already_configured": "Das Gerät ist bereits konfiguriert"

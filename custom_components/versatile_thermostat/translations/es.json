@@ -56,7 +56,7 @@
       },
       "main": {
         "title": "Añadir un Versatile Thermostat",
-        "description": "Atributos principales obligatorios",
+        "description": "{wizard_progress}Atributos principales obligatorios",
         "data": {
           "name": "Nombre",
           "thermostat_type": "Tipo de termostato",
@@ -86,7 +86,7 @@
       },
       "features": {
         "title": "Funciones",
-        "description": "Funciones del termostato",
+        "description": "{wizard_progress}Funciones del termostato",
         "data": {
           "use_window_feature": "Usar la detección de ventanas abiertas",
           "use_motion_feature": "Usar la detección de movimiento",
@@ -123,6 +123,7 @@
           "underlying_19": "{underlying_19}",
           "underlying_20": "{underlying_20}",
           "underlying_add": "Añadir un dispositivo",
+          "underlying_continue": "Continuar",
           "menu": "Volver al menú"
         },
         "menu_option_descriptions": {
@@ -147,12 +148,13 @@
           "underlying_18": "{underlying_18_details}",
           "underlying_19": "{underlying_19_details}",
           "underlying_20": "{underlying_20_details}",
-          "underlying_add": "Seleccionar otro dispositivo para controlar"
+          "underlying_add": "Seleccionar otro dispositivo para controlar",
+          "underlying_continue": "Pasar al siguiente paso"
         }
       },
       "tpi": {
         "title": "TPI",
-        "description": "Parámetros del algoritmo proporcional-integral temporal (TPI)",
+        "description": "{wizard_progress}Parámetros del algoritmo proporcional-integral temporal (TPI)",
         "data": {
           "tpi_coef_int": "coef_int",
           "tpi_coef_ext": "coef_ext",
@@ -183,7 +185,7 @@
       },
       "window": {
         "title": "Gestión de ventanas",
-        "description": "Gestión de ventanas abiertas.\nTambién puedes configurar la detección automática de apertura según el descenso de la temperatura.",
+        "description": "{wizard_progress}Gestión de ventanas abiertas.\nTambién puedes configurar la detección automática de apertura según el descenso de la temperatura.",
         "data": {
           "window_sensor_entity_id": "ID de entidad del sensor de ventana",
           "window_delay": "Retardo del sensor de ventana al pasar a «on» (segundos)",
@@ -207,7 +209,7 @@
       },
       "motion": {
         "title": "Gestión del movimiento",
-        "description": "Gestión del sensor de movimiento. El preajuste puede cambiar automáticamente según se detecte movimiento.\n`motion_preset` y `no_motion_preset` deben contener los nombres de los preajustes correspondientes.",
+        "description": "{wizard_progress}Gestión del sensor de movimiento. El preajuste puede cambiar automáticamente según se detecte movimiento.\n`motion_preset` y `no_motion_preset` deben contener los nombres de los preajustes correspondientes.",
         "data": {
           "motion_sensor_entity_id": "ID de entidad del sensor de movimiento",
           "motion_delay": "Retardo de activación",
@@ -227,7 +229,7 @@
       },
       "power": {
         "title": "Gestión de potencia",
-        "description": "Parámetros de gestión de potencia.\nSelecciona W o kW para la potencia de cada dispositivo VTherm, y W, kW o Automático para la configuración central.\nLos valores se normalizan internamente, por lo que pueden combinarse W y kW sin problemas.",
+        "description": "{wizard_progress}Parámetros de gestión de potencia.\nSelecciona W o kW para la potencia de cada dispositivo VTherm, y W, kW o Automático para la configuración central.\nLos valores se normalizan internamente, por lo que pueden combinarse W y kW sin problemas.",
         "data": {
           "power_sensor_entity_id": "Potencia",
           "max_power_sensor_entity_id": "Potencia máxima",
@@ -245,7 +247,7 @@
       },
       "presence": {
         "title": "Gestión de la presencia",
-        "description": "Parámetros de gestión de presencia.\nSelecciona el sensor de presencia de tu vivienda (verdadero cuando hay alguien presente) y configura las temperaturas de los preajustes correspondientes.",
+        "description": "{wizard_progress}Parámetros de gestión de presencia.\nSelecciona el sensor de presencia de tu vivienda (verdadero cuando hay alguien presente) y configura las temperaturas de los preajustes correspondientes.",
         "data": {
           "presence_sensor_entity_id": "Sensor de presencia",
           "use_presence_central_config": "Usar la configuración central de temperaturas según presencia. Desmarca esta opción para usar entidades de temperatura específicas."
@@ -256,7 +258,7 @@
       },
       "advanced": {
         "title": "Parámetros avanzados",
-        "description": "Configuración de parámetros avanzados. Conserva los valores predeterminados si no sabes qué estás modificando.\nEstos parámetros pueden perjudicar seriamente el control de la temperatura o la regulación de potencia.",
+        "description": "{wizard_progress}Configuración de parámetros avanzados. Conserva los valores predeterminados si no sabes qué estás modificando.\nEstos parámetros pueden perjudicar seriamente el control de la temperatura o la regulación de potencia.",
         "data": {
           "safety_delay_min": "Retardo de seguridad (minutos)",
           "safety_min_on_percent": "Porcentaje mínimo de potencia para activar el modo de seguridad",
@@ -276,7 +278,7 @@
       },
       "central_boiler": {
         "title": "Control de la caldera central",
-        "description": "Introduce los servicios para encender y apagar la caldera central. El servicio debe tener el formato `entity_id/service_name[/attribute:value]` (`/attribute:value` es opcional).\nPor ejemplo:\n- Para encender un interruptor: `switch.controle_chaudiere/switch.turn_on`\n- Para apagar un interruptor: `switch.controle_chaudiere/switch.turn_off`\n- Para establecer 25° en la caldera y forzar su encendido: `climate.thermostat_chaudiere/climate.set_temperature/temperature:25`\n- Para establecer 10° en la caldera y forzar su apagado: `climate.thermostat_chaudiere/climate.set_temperature/temperature:10`",
+        "description": "{wizard_progress}Introduce los servicios para encender y apagar la caldera central. El servicio debe tener el formato `entity_id/service_name[/attribute:value]` (`/attribute:value` es opcional).\nPor ejemplo:\n- Para encender un interruptor: `switch.controle_chaudiere/switch.turn_on`\n- Para apagar un interruptor: `switch.controle_chaudiere/switch.turn_off`\n- Para establecer 25° en la caldera y forzar su encendido: `climate.thermostat_chaudiere/climate.set_temperature/temperature:25`\n- Para establecer 10° en la caldera y forzar su apagado: `climate.thermostat_chaudiere/climate.set_temperature/temperature:10`",
         "data": {
           "central_boiler_activation_service": "Orden de encendido",
           "central_boiler_deactivation_service": "Orden de apagado",
@@ -352,7 +354,7 @@
       },
       "heating_failure_detection": {
         "title": "Detección de fallos de calefacción",
-        "description": "Configura la detección de fallos de calefacción. Detecta anomalías cuando se solicita calefacción pero la temperatura no aumenta, o cuando la calefacción está apagada pero la temperatura sigue subiendo.",
+        "description": "{wizard_progress}Configura la detección de fallos de calefacción. Detecta anomalías cuando se solicita calefacción pero la temperatura no aumenta, o cuando la calefacción está apagada pero la temperatura sigue subiendo.",
         "data": {
           "use_heating_failure_detection_feature": "Activar la detección de fallos de calefacción",
           "use_heating_failure_detection_central_config": "Usar la configuración central de detección de fallos de calefacción",
@@ -496,6 +498,13 @@
             }
           }
         }
+      },
+      "auto_start_stop": {
+        "title": "Encendido y apagado automáticos",
+        "description": "{wizard_progress}",
+        "data": {
+          "auto_start_stop_level": "Encendido y apagado automáticos"
+        }
       }
     },
     "error": {
@@ -509,7 +518,8 @@
       "missing_settings_summary": "{count} ajuste(s) por completar",
       "underlying_already_added": "Esta entidad ya la utiliza un dispositivo de este VTherm",
       "max_opening_degree_out_of_range": "La apertura máxima debe ser mayor que 0 y no puede superar el máximo de la válvula",
-      "underlying_field_missing": "Falta {field}"
+      "underlying_field_missing": "Falta {field}",
+      "wizard_progress": "**Paso {current} / {total}**. Podrá cambiarlo todo más tarde desde el menú.\n\n"
     },
     "abort": {
       "already_configured": "El dispositivo ya está configurado"
@@ -568,7 +578,7 @@
       },
       "main": {
         "title": "Principal - {name}",
-        "description": "Atributos principales obligatorios",
+        "description": "{wizard_progress}Atributos principales obligatorios",
         "data": {
           "name": "Nombre",
           "thermostat_type": "Tipo de termostato",
@@ -596,7 +606,7 @@
       },
       "features": {
         "title": "Funciones - {name}",
-        "description": "Funciones del termostato",
+        "description": "{wizard_progress}Funciones del termostato",
         "data": {
           "use_window_feature": "Usar la detección de ventanas abiertas",
           "use_motion_feature": "Usar la detección de movimiento",
@@ -633,6 +643,7 @@
           "underlying_19": "{underlying_19}",
           "underlying_20": "{underlying_20}",
           "underlying_add": "Añadir un dispositivo",
+          "underlying_continue": "Continuar",
           "menu": "Volver al menú"
         },
         "menu_option_descriptions": {
@@ -657,12 +668,13 @@
           "underlying_18": "{underlying_18_details}",
           "underlying_19": "{underlying_19_details}",
           "underlying_20": "{underlying_20_details}",
-          "underlying_add": "Seleccionar otro dispositivo para controlar"
+          "underlying_add": "Seleccionar otro dispositivo para controlar",
+          "underlying_continue": "Pasar al siguiente paso"
         }
       },
       "tpi": {
         "title": "TPI - {name}",
-        "description": "Parámetros del algoritmo proporcional-integral temporal (TPI)",
+        "description": "{wizard_progress}Parámetros del algoritmo proporcional-integral temporal (TPI)",
         "data": {
           "tpi_coef_int": "coef_int",
           "tpi_coef_ext": "coef_ext",
@@ -693,7 +705,7 @@
       },
       "window": {
         "title": "Ventanas - {name}",
-        "description": "Gestión de ventanas abiertas.\nTambién puedes configurar la detección automática de apertura según el descenso de la temperatura.",
+        "description": "{wizard_progress}Gestión de ventanas abiertas.\nTambién puedes configurar la detección automática de apertura según el descenso de la temperatura.",
         "data": {
           "window_sensor_entity_id": "ID de entidad del sensor de ventana",
           "window_delay": "Retardo del sensor de ventana al pasar a «on» (segundos)",
@@ -717,7 +729,7 @@
       },
       "motion": {
         "title": "Movimiento - {name}",
-        "description": "Gestión del movimiento. El preajuste puede cambiar automáticamente según se detecte movimiento.\n`motion_preset` y `no_motion_preset` deben contener el nombre del preajuste correspondiente.",
+        "description": "{wizard_progress}Gestión del movimiento. El preajuste puede cambiar automáticamente según se detecte movimiento.\n`motion_preset` y `no_motion_preset` deben contener el nombre del preajuste correspondiente.",
         "data": {
           "motion_sensor_entity_id": "ID de entidad del sensor de movimiento",
           "motion_delay": "Retardo de activación",
@@ -737,7 +749,7 @@
       },
       "power": {
         "title": "Potencia - {name}",
-        "description": "Parámetros de gestión de potencia.\nSelecciona el sensor de potencia y el de potencia máxima de tu vivienda.\nIndica el consumo de potencia del calefactor cuando está encendido.\nTodos los sensores y la potencia del dispositivo deben utilizar la misma unidad (kW o W).",
+        "description": "{wizard_progress}Parámetros de gestión de potencia.\nSelecciona el sensor de potencia y el de potencia máxima de tu vivienda.\nIndica el consumo de potencia del calefactor cuando está encendido.\nTodos los sensores y la potencia del dispositivo deben utilizar la misma unidad (kW o W).",
         "data": {
           "power_sensor_entity_id": "Potencia",
           "max_power_sensor_entity_id": "Potencia máxima",
@@ -753,7 +765,7 @@
       },
       "presence": {
         "title": "Presencia - {name}",
-        "description": "Parámetros de gestión de presencia.\nSelecciona el sensor de presencia de tu vivienda (verdadero cuando hay alguien presente) y configura las temperaturas de los preajustes correspondientes.",
+        "description": "{wizard_progress}Parámetros de gestión de presencia.\nSelecciona el sensor de presencia de tu vivienda (verdadero cuando hay alguien presente) y configura las temperaturas de los preajustes correspondientes.",
         "data": {
           "presence_sensor_entity_id": "Sensor de presencia",
           "use_presence_central_config": "Usar la configuración central de temperaturas según presencia. Desmarca esta opción para usar entidades de temperatura específicas."
@@ -764,7 +776,7 @@
       },
       "advanced": {
         "title": "Avanzado - {name}",
-        "description": "Configuración de parámetros avanzados. Conserva los valores predeterminados si no sabes qué estás modificando.\nEstos parámetros pueden perjudicar seriamente el control de la temperatura o la regulación de potencia.",
+        "description": "{wizard_progress}Configuración de parámetros avanzados. Conserva los valores predeterminados si no sabes qué estás modificando.\nEstos parámetros pueden perjudicar seriamente el control de la temperatura o la regulación de potencia.",
         "data": {
           "minimal_activation_delay": "Retardo mínimo de activación",
           "minimal_deactivation_delay": "Retardo mínimo de desactivación",
@@ -788,7 +800,7 @@
       },
       "central_boiler": {
         "title": "Control de la caldera central - {name}",
-        "description": "Introduce los servicios para encender y apagar la caldera central. El servicio debe tener el formato `entity_id/service_name[/attribute:value]` (`/attribute:value` es opcional).\nPor ejemplo:\n- Para encender un interruptor: `switch.controle_chaudiere/switch.turn_on`\n- Para apagar un interruptor: `switch.controle_chaudiere/switch.turn_off`\n- Para establecer 25° en la caldera y forzar su encendido: `climate.thermostat_chaudiere/climate.set_temperature/temperature:25`\n- Para establecer 10° en la caldera y forzar su apagado: `climate.thermostat_chaudiere/climate.set_temperature/temperature:10`",
+        "description": "{wizard_progress}Introduce los servicios para encender y apagar la caldera central. El servicio debe tener el formato `entity_id/service_name[/attribute:value]` (`/attribute:value` es opcional).\nPor ejemplo:\n- Para encender un interruptor: `switch.controle_chaudiere/switch.turn_on`\n- Para apagar un interruptor: `switch.controle_chaudiere/switch.turn_off`\n- Para establecer 25° en la caldera y forzar su encendido: `climate.thermostat_chaudiere/climate.set_temperature/temperature:25`\n- Para establecer 10° en la caldera y forzar su apagado: `climate.thermostat_chaudiere/climate.set_temperature/temperature:10`",
         "data": {
           "central_boiler_activation_service": "Orden de encendido",
           "central_boiler_deactivation_service": "Orden de apagado",
@@ -864,7 +876,7 @@
       },
       "heating_failure_detection": {
         "title": "Detección de fallos de calefacción - {name}",
-        "description": "Configura la detección de fallos de calefacción. Detecta anomalías cuando se solicita calefacción pero la temperatura no aumenta, o cuando la calefacción está apagada pero la temperatura sigue subiendo.",
+        "description": "{wizard_progress}Configura la detección de fallos de calefacción. Detecta anomalías cuando se solicita calefacción pero la temperatura no aumenta, o cuando la calefacción está apagada pero la temperatura sigue subiendo.",
         "data": {
           "use_heating_failure_detection_feature": "Activar la detección de fallos de calefacción",
           "use_heating_failure_detection_central_config": "Usar la configuración central de detección de fallos de calefacción",
@@ -1008,6 +1020,13 @@
             }
           }
         }
+      },
+      "auto_start_stop": {
+        "title": "Encendido y apagado automáticos - {name}",
+        "description": "{wizard_progress}",
+        "data": {
+          "auto_start_stop_level": "Encendido y apagado automáticos"
+        }
       }
     },
     "error": {
@@ -1021,7 +1040,8 @@
       "missing_settings_summary": "{count} ajuste(s) por completar",
       "underlying_already_added": "Esta entidad ya la utiliza un dispositivo de este VTherm",
       "max_opening_degree_out_of_range": "La apertura máxima debe ser mayor que 0 y no puede superar el máximo de la válvula",
-      "underlying_field_missing": "Falta {field}"
+      "underlying_field_missing": "Falta {field}",
+      "wizard_progress": "**Paso {current} / {total}**. Podrá cambiarlo todo más tarde desde el menú.\n\n"
     },
     "abort": {
       "already_configured": "El dispositivo ya está configurado"

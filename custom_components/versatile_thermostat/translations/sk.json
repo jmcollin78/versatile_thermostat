@@ -50,7 +50,7 @@
       },
       "main": {
         "title": "Pridajte nový všestranný termostat",
-        "description": "Hlavné povinné atribúty",
+        "description": "{wizard_progress}Hlavné povinné atribúty",
         "data": {
           "name": "Názov",
           "thermostat_type": "Termostat typ",
@@ -80,7 +80,7 @@
       },
       "features": {
         "title": "Vlastnosti",
-        "description": "Vlastnosti termostatu",
+        "description": "{wizard_progress}Vlastnosti termostatu",
         "data": {
           "use_window_feature": "Použite detekciu okien",
           "use_motion_feature": "Použite detekciu pohybu",
@@ -116,6 +116,7 @@
           "underlying_19": "{underlying_19}",
           "underlying_20": "{underlying_20}",
           "underlying_add": "Pridať zariadenie",
+          "underlying_continue": "Pokračovať",
           "menu": "Späť do ponuky"
         },
         "menu_option_descriptions": {
@@ -140,12 +141,13 @@
           "underlying_18": "{underlying_18_details}",
           "underlying_19": "{underlying_19_details}",
           "underlying_20": "{underlying_20_details}",
-          "underlying_add": "Vybrať ďalšie zariadenie na ovládanie"
+          "underlying_add": "Vybrať ďalšie zariadenie na ovládanie",
+          "underlying_continue": "Prejsť na ďalší krok"
         }
       },
       "tpi": {
         "title": "TPI",
-        "description": "Časovo proporcionálne integrálne atribúty",
+        "description": "{wizard_progress}Časovo proporcionálne integrálne atribúty",
         "data": {
           "tpi_coef_int": "Koeficient na použitie pre vnútornú teplotnú deltu",
           "tpi_coef_ext": "Koeficient na použitie pre deltu vonkajšej teploty",
@@ -166,7 +168,7 @@
       },
       "window": {
         "title": "Správa okien",
-        "description": "Otvoriť správu okien.\nAk sa príslušné entity_id nepoužíva, ponechajte prázdne\nMôžete tiež nakonfigurovať automatickú detekciu otvoreného okna na základe poklesu teploty",
+        "description": "{wizard_progress}Otvoriť správu okien.\nAk sa príslušné entity_id nepoužíva, ponechajte prázdne\nMôžete tiež nakonfigurovať automatickú detekciu otvoreného okna na základe poklesu teploty",
         "data": {
           "window_sensor_entity_id": "ID entity snímača okna",
           "window_delay": "Oneskorenie snímača okna (sekundy)",
@@ -188,7 +190,7 @@
       },
       "motion": {
         "title": "Riadenie pohybu",
-        "description": "Správa snímača pohybu. Predvoľba sa môže automaticky prepínať v závislosti od detekcie pohybu\nAk sa nepoužíva, ponechajte zodpovedajúce entity_id prázdne.\nmotion_preset a no_motion_preset by mali byť nastavené na zodpovedajúci názov predvoľby",
+        "description": "{wizard_progress}Správa snímača pohybu. Predvoľba sa môže automaticky prepínať v závislosti od detekcie pohybu\nAk sa nepoužíva, ponechajte zodpovedajúce entity_id prázdne.\nmotion_preset a no_motion_preset by mali byť nastavené na zodpovedajúci názov predvoľby",
         "data": {
           "motion_sensor_entity_id": "ID entity snímača pohybu",
           "motion_delay": "Oneskorenie aktivácie",
@@ -208,7 +210,7 @@
       },
       "power": {
         "title": "Správa napájania",
-        "description": "Atribúty správy výkonu.\nPre výkon zariadenia každého VTherm vyberte W alebo kW a pre centrálnu konfiguráciu W, kW alebo Automaticky.\nHodnoty sú interne normalizované, takže W a kW možno bezpečne kombinovať.",
+        "description": "{wizard_progress}Atribúty správy výkonu.\nPre výkon zariadenia každého VTherm vyberte W alebo kW a pre centrálnu konfiguráciu W, kW alebo Automaticky.\nHodnoty sú interne normalizované, takže W a kW možno bezpečne kombinovať.",
         "data": {
           "power_sensor_entity_id": "ID entity snímača výkonu",
           "max_power_sensor_entity_id": "ID entity snímača maximálneho výkonu",
@@ -226,7 +228,7 @@
       },
       "presence": {
         "title": "Riadenie prítomnosti",
-        "description": "Atribúty správy prítomnosti.\nPoskytuje senzor prítomnosti vášho domova (pravda, ak je niekto prítomný).\nPotom zadajte buď predvoľbu, ktorá sa má použiť, keď je senzor prítomnosti nepravdivý, alebo posun teploty, ktorý sa má použiť.\nAk je zadaná predvoľba, posun sa nepoužije.\nAk sa nepoužije, ponechajte zodpovedajúce entity_id prázdne.",
+        "description": "{wizard_progress}Atribúty správy prítomnosti.\nPoskytuje senzor prítomnosti vášho domova (pravda, ak je niekto prítomný).\nPotom zadajte buď predvoľbu, ktorá sa má použiť, keď je senzor prítomnosti nepravdivý, alebo posun teploty, ktorý sa má použiť.\nAk je zadaná predvoľba, posun sa nepoužije.\nAk sa nepoužije, ponechajte zodpovedajúce entity_id prázdne.",
         "data": {
           "presence_sensor_entity_id": "Senzora prítomnosti",
           "use_presence_central_config": "Použite konfiguráciu centrálnej prítomnosti teploty. Ak chcete použiť špecifické teplotné entity, zrušte výber"
@@ -237,7 +239,7 @@
       },
       "advanced": {
         "title": "Pokročilé parametre",
-        "description": "Konfigurácia pokročilých parametrov. Ak neviete, čo robíte, ponechajte predvolené hodnoty.\nTento parameter môže viesť k veľmi zlej regulácii teploty alebo výkonu.",
+        "description": "{wizard_progress}Konfigurácia pokročilých parametrov. Ak neviete, čo robíte, ponechajte predvolené hodnoty.\nTento parameter môže viesť k veľmi zlej regulácii teploty alebo výkonu.",
         "data": {
           "minimal_activation_delay": "Minimálne oneskorenie aktivácie",
           "safety_delay_min": "Bezpečnostné oneskorenie (v minútach)",
@@ -267,7 +269,7 @@
       },
       "heating_failure_detection": {
         "title": "Detekcia porúch vykurovania",
-        "description": "Konfigurácia funkcie detekcie porúch vykurovania. Detekuje anomálie, keď sa očakáva vykurovanie, ale teplota nestúpa, alebo keď je vykurovanie vypnuté, ale teplota stále stúpa.",
+        "description": "{wizard_progress}Konfigurácia funkcie detekcie porúch vykurovania. Detekuje anomálie, keď sa očakáva vykurovanie, ale teplota nestúpa, alebo keď je vykurovanie vypnuté, ale teplota stále stúpa.",
         "data": {
           "use_heating_failure_detection_feature": "Povoliť detekciu porúch vykurovania",
           "use_heating_failure_detection_central_config": "Použiť centrálnu konfiguráciu detekcie porúch",
@@ -411,6 +413,13 @@
             }
           }
         }
+      },
+      "auto_start_stop": {
+        "title": "Automatické spustenie a zastavenie",
+        "description": "{wizard_progress}",
+        "data": {
+          "auto_start_stop_level": "Automatické spustenie a zastavenie"
+        }
       }
     },
     "error": {
@@ -424,7 +433,8 @@
       "missing_settings_summary": "Na doplnenie: {count}",
       "underlying_already_added": "Túto entitu už používa zariadenie tohto VTherm",
       "max_opening_degree_out_of_range": "Maximálne otvorenie musí byť väčšie ako 0 a nesmie prekročiť maximum ventilu",
-      "underlying_field_missing": "Chýba: {field}"
+      "underlying_field_missing": "Chýba: {field}",
+      "wizard_progress": "**Krok {current} / {total}**. Všetko môžete neskôr zmeniť v ponuke.\n\n"
     },
     "abort": {
       "already_configured": "Zariadenie je už nakonfigurované"
@@ -480,7 +490,7 @@
       },
       "main": {
         "title": "Hlavný - {name}",
-        "description": "Hlavné povinné atribúty",
+        "description": "{wizard_progress}Hlavné povinné atribúty",
         "data": {
           "name": "Názov",
           "thermostat_type": "Termostat typ",
@@ -508,7 +518,7 @@
       },
       "features": {
         "title": "Vlastnosti - {name}",
-        "description": "Vlastnosti termostatu",
+        "description": "{wizard_progress}Vlastnosti termostatu",
         "data": {
           "use_window_feature": "Použite detekciu okien",
           "use_motion_feature": "Použite detekciu pohybu",
@@ -544,6 +554,7 @@
           "underlying_19": "{underlying_19}",
           "underlying_20": "{underlying_20}",
           "underlying_add": "Pridať zariadenie",
+          "underlying_continue": "Pokračovať",
           "menu": "Späť do ponuky"
         },
         "menu_option_descriptions": {
@@ -568,12 +579,13 @@
           "underlying_18": "{underlying_18_details}",
           "underlying_19": "{underlying_19_details}",
           "underlying_20": "{underlying_20_details}",
-          "underlying_add": "Vybrať ďalšie zariadenie na ovládanie"
+          "underlying_add": "Vybrať ďalšie zariadenie na ovládanie",
+          "underlying_continue": "Prejsť na ďalší krok"
         }
       },
       "tpi": {
         "title": "TPI - {name}",
-        "description": "Časovo proporcionálne integrálne atribúty",
+        "description": "{wizard_progress}Časovo proporcionálne integrálne atribúty",
         "data": {
           "tpi_coef_int": "Koeficient na použitie pre vnútornú teplotnú deltu",
           "tpi_coef_ext": "Koeficient na použitie pre vonkajšiu teplotnú deltu",
@@ -594,7 +606,7 @@
       },
       "window": {
         "title": "Správa okien - {name}",
-        "description": "Otvoriť správu okien.\nAk sa príslušné entity_id nepoužíva, ponechajte prázdne\nMôžete tiež nakonfigurovať automatickú detekciu otvoreného okna na základe poklesu teploty",
+        "description": "{wizard_progress}Otvoriť správu okien.\nAk sa príslušné entity_id nepoužíva, ponechajte prázdne\nMôžete tiež nakonfigurovať automatickú detekciu otvoreného okna na základe poklesu teploty",
         "data": {
           "window_sensor_entity_id": "ID entity snímača okna",
           "window_delay": "Oneskorenie snímača okna (sekundy)",
@@ -616,7 +628,7 @@
       },
       "motion": {
         "title": "Riadenie pohybu - {name}",
-        "description": "Správa snímača pohybu. Predvoľba sa môže automaticky prepínať v závislosti od detekcie pohybu\nAk sa nepoužíva, ponechajte zodpovedajúce entity_id prázdne.\nmotion_preset a no_motion_preset by mali byť nastavené na zodpovedajúci názov predvoľby",
+        "description": "{wizard_progress}Správa snímača pohybu. Predvoľba sa môže automaticky prepínať v závislosti od detekcie pohybu\nAk sa nepoužíva, ponechajte zodpovedajúce entity_id prázdne.\nmotion_preset a no_motion_preset by mali byť nastavené na zodpovedajúci názov predvoľby",
         "data": {
           "motion_sensor_entity_id": "ID entity snímača pohybu",
           "motion_delay": "Oneskorenie aktivácie",
@@ -636,7 +648,7 @@
       },
       "power": {
         "title": "Správa napájania - {name}",
-        "description": "Atribúty správy napájania.\nPoskytuje senzor výkonu a maximálneho výkonu vášho domova.\nPotom zadajte spotrebu energie ohrievača, keď je zapnutý.\nVšetky senzory a výkon zariadenia by mali mať rovnakú jednotku (kW alebo W).\nPonechajte zodpovedajúce entity_id prázdne ak sa nepoužíva.",
+        "description": "{wizard_progress}Atribúty správy napájania.\nPoskytuje senzor výkonu a maximálneho výkonu vášho domova.\nPotom zadajte spotrebu energie ohrievača, keď je zapnutý.\nVšetky senzory a výkon zariadenia by mali mať rovnakú jednotku (kW alebo W).\nPonechajte zodpovedajúce entity_id prázdne ak sa nepoužíva.",
         "data": {
           "power_sensor_entity_id": "ID entity snímača výkonu",
           "max_power_sensor_entity_id": "ID entity snímača maximálneho výkonu",
@@ -652,7 +664,7 @@
       },
       "presence": {
         "title": "Prítommnosť - {name}",
-        "description": "Atribúty riadenia prítomnosti.\nPoskytuje senzor prítomnosti vášho domova (pravda, je niekto prítomný) a poskytuje zodpovedajúce prednastavené nastavenie teploty.",
+        "description": "{wizard_progress}Atribúty riadenia prítomnosti.\nPoskytuje senzor prítomnosti vášho domova (pravda, je niekto prítomný) a poskytuje zodpovedajúce prednastavené nastavenie teploty.",
         "data": {
           "presence_sensor_entity_id": "Senzor prítomnosti",
           "use_presence_central_config": "Použite konfiguráciu centrálnej prítomnosti teploty. Ak chcete použiť špecifické entity teploty, zrušte začiarknutie"
@@ -663,7 +675,7 @@
       },
       "advanced": {
         "title": "Pokročilé parametre - {name}",
-        "description": "Konfigurácia pokročilých parametrov. Ak neviete, čo robíte, ponechajte predvolené hodnoty.\nTento parameter môže viesť k veľmi zlej regulácii teploty alebo výkonu.",
+        "description": "{wizard_progress}Konfigurácia pokročilých parametrov. Ak neviete, čo robíte, ponechajte predvolené hodnoty.\nTento parameter môže viesť k veľmi zlej regulácii teploty alebo výkonu.",
         "data": {
           "minimal_activation_delay": "Minimálne oneskorenie aktivácie",
           "safety_delay_min": "Bezpečnostné oneskorenie (v minútach)",
@@ -693,7 +705,7 @@
       },
       "heating_failure_detection": {
         "title": "Detekcia porúch vykurovania",
-        "description": "Konfigurácia funkcie detekcie porúch vykurovania. Detekuje anomálie, keď sa očakáva vykurovanie, ale teplota nestúpa, alebo keď je vykurovanie vypnuté, ale teplota stále stúpa.",
+        "description": "{wizard_progress}Konfigurácia funkcie detekcie porúch vykurovania. Detekuje anomálie, keď sa očakáva vykurovanie, ale teplota nestúpa, alebo keď je vykurovanie vypnuté, ale teplota stále stúpa.",
         "data": {
           "use_heating_failure_detection_feature": "Povoliť detekciu porúch vykurovania",
           "use_heating_failure_detection_central_config": "Použiť centrálnu konfiguráciu detekcie porúch",
@@ -837,6 +849,13 @@
             }
           }
         }
+      },
+      "auto_start_stop": {
+        "title": "Automatické spustenie a zastavenie - {name}",
+        "description": "{wizard_progress}",
+        "data": {
+          "auto_start_stop_level": "Automatické spustenie a zastavenie"
+        }
       }
     },
     "error": {
@@ -850,7 +869,8 @@
       "missing_settings_summary": "Na doplnenie: {count}",
       "underlying_already_added": "Túto entitu už používa zariadenie tohto VTherm",
       "max_opening_degree_out_of_range": "Maximálne otvorenie musí byť väčšie ako 0 a nesmie prekročiť maximum ventilu",
-      "underlying_field_missing": "Chýba: {field}"
+      "underlying_field_missing": "Chýba: {field}",
+      "wizard_progress": "**Krok {current} / {total}**. Všetko môžete neskôr zmeniť v ponuke.\n\n"
     },
     "abort": {
       "already_configured": "Zariadenie je už nakonfigurované"

@@ -83,6 +83,10 @@ class VersatileThermostatBaseConfigFlow(FlowHandler):
         # The device being edited (index in the underlyings) or added (entity) in the underlying steps
         self._underlying_idx: int | None = None
         self._underlying_entity: str | None = None
+        # The creation wizard (only used by the config flow): the steps already displayed and the steps displayed to fix a missing setting
+        self._wizard_active = False
+        self._wizard_visited: set[str] = set()
+        self._wizard_fixed: set[str] = set()
         self._placeholders = {
             CONF_NAME: "",
             PLUGINS_LINK_PLACEHOLDER: PLUGINS_LINK,
@@ -377,9 +381,83 @@ class VersatileThermostatBaseConfigFlow(FlowHandler):
 
         _LOGGER.debug("merge_user_input: infos is now %s", self._infos)
 
+    def _get_wizard_steps(self) -> list[str]:
+        """Return the steps of the creation wizard. The list depends on what has been chosen in the previous steps (type, algorithm, features)"""
+        infos = self._infos
+        is_central_config = infos.get(CONF_THERMOSTAT_TYPE) == CONF_THERMOSTAT_CENTRAL_CONFIG
+
+        feature_steps = []
+        for conf, step_id in (
+            (CONF_USE_WINDOW_FEATURE, "window"),
+            (CONF_USE_MOTION_FEATURE, "motion"),
+            (CONF_USE_POWER_FEATURE, "power"),
+            (CONF_USE_PRESENCE_FEATURE, "presence"),
+        ):
+            if infos.get(conf, False) is True:
+                feature_steps.append(step_id)
+        if is_central_config:
+            if infos.get(CONF_USE_CENTRAL_BOILER_FEATURE, False) is True:
+                feature_steps.append("central_boiler")
+        elif (
+            infos.get(CONF_USE_AUTO_START_STOP_FEATURE, False) is True
+            and infos.get(CONF_THERMOSTAT_TYPE) == CONF_THERMOSTAT_CLIMATE
+            and not self.is_valve_regulation_selected(infos)
+        ):
+            feature_steps.append("auto_start_stop")
+        if infos.get(CONF_USE_HEATING_FAILURE_DETECTION_FEATURE, False) is True:
+            feature_steps.append("heating_failure_detection")
+
+        if is_central_config:
+            return ["main", "features"] + feature_steps + ["tpi", "advanced"]
+
+        steps = ["main", "type"]
+        if infos.get(CONF_PROP_FUNCTION) == PROPORTIONAL_FUNCTION_TPI or self.is_valve_regulation_selected(infos):
+            steps.append("tpi")
+        return steps + ["features"] + feature_steps + ["advanced"]
+
+    async def _start_wizard(self) -> FlowResult:
+        """Called when the type of VTherm is chosen. Outside of the creation, the menu is displayed"""
+        return await self.async_step_menu()
+
+    async def _next_step(self) -> FlowResult:
+        """Return the next step: the next screen of the creation wizard or, outside of the wizard, the menu"""
+        if not self._wizard_active:
+            return await self.async_step_menu()
+
+        # The list is computed again each time because it depends on the previous answers
+        for step_id in self._get_wizard_steps():
+            if step_id not in self._wizard_visited:
+                self._wizard_visited.add(step_id)
+                _LOGGER.debug("Wizard: next step is %s", step_id)
+                if step_id == "type":
+                    # The underlyings start with their common settings
+                    return await self.async_step_underlying_common()
+                return await getattr(self, f"async_step_{step_id}")()
+
+        # End of the wizard: the configuration should be complete. If not, the screens to fix are displayed (once each) before the menu
+        for item in self.get_missing_config(self._infos):
+            if item.step_id not in self._wizard_fixed:
+                _LOGGER.debug("Wizard: the configuration is not complete, step %s is displayed again", item.step_id)
+                self._wizard_fixed.add(item.step_id)
+                return await getattr(self, f"async_step_{item.step_id}")()
+
+        self._wizard_active = False
+        return await self.async_step_menu()
+
     async def _async_get_placeholders(self, step_id: str) -> dict:
-        """Return the description placeholders of a step"""
-        return self._placeholders | {"wizard_progress": ""}
+        """Return the description placeholders of a step. During the creation wizard they include the progress"""
+        placeholders = self._placeholders | {"wizard_progress": ""}
+        if self._wizard_active:
+            steps = self._get_wizard_steps()
+            # All the screens of the underlyings are one step of the wizard. The type of VTherm is the first step
+            wizard_step = "type" if step_id.startswith("underlying") else step_id
+            if wizard_step in steps:
+                translations = await self._async_get_translations()
+                template = translations.get(
+                    f"component.{DOMAIN}.{self.TRANSLATION_CATEGORY}.error.wizard_progress", "Step {current} / {total}\n\n"
+                )
+                placeholders["wizard_progress"] = template.replace("{current}", str(steps.index(wizard_step) + 2)).replace("{total}", str(len(steps) + 1))
+        return placeholders
 
     async def generic_step(self, step_id, data_schema, user_input, next_step_function):
         """A generic method step"""
@@ -453,7 +531,7 @@ class VersatileThermostatBaseConfigFlow(FlowHandler):
         else:
             schema = STEP_USER_DATA_SCHEMA
 
-        return await self.generic_step("user", schema, user_input, self.async_step_menu)
+        return await self.generic_step("user", schema, user_input, self._start_wizard)
 
     async def async_step_configuration_not_complete(
         self, user_input: dict | None = None
@@ -555,7 +633,7 @@ class VersatileThermostatBaseConfigFlow(FlowHandler):
         """Handle the flow steps"""
         _LOGGER.debug("Into ConfigFlow.async_step_main user_input=%s", user_input)
 
-        next_step = self.async_step_menu
+        next_step = self._next_step
         if self._infos[CONF_THERMOSTAT_TYPE] == CONF_THERMOSTAT_CENTRAL_CONFIG:
             self._infos[CONF_NAME] = CENTRAL_CONFIG_NAME
             schema = STEP_CENTRAL_MAIN_DATA_SCHEMA
@@ -595,7 +673,7 @@ class VersatileThermostatBaseConfigFlow(FlowHandler):
             schema = STEP_CENTRAL_MAIN_DATA_SCHEMA
         else:
             schema = STEP_CENTRAL_SPEC_MAIN_DATA_SCHEMA
-        next_step = self.async_step_menu
+        next_step = self._next_step
 
         self._infos[COMES_FROM] = "async_step_spec_main"
 
@@ -611,7 +689,7 @@ class VersatileThermostatBaseConfigFlow(FlowHandler):
         )
 
         schema = STEP_CENTRAL_BOILER_SCHEMA
-        next_step = self.async_step_menu
+        next_step = self._next_step
 
         return await self.generic_step("central_boiler", schema, user_input, next_step)
 
@@ -947,6 +1025,10 @@ class VersatileThermostatBaseConfigFlow(FlowHandler):
         if len(underlyings) > MAX_UNDERLYINGS:
             _LOGGER.warning("%s has more than %d underlyings. Only the first ones can be edited in the configuration", self._infos.get(CONF_NAME), MAX_UNDERLYINGS)
 
+        if self._wizard_active and not underlyings:
+            # The first device is added at once
+            return await self.async_step_underlying_add()
+
         translations = await self._async_get_translations()
         placeholders = await self._async_get_placeholders("type")
         placeholders["underlying_common_details"] = self._get_underlying_common_details(translations)
@@ -958,7 +1040,11 @@ class VersatileThermostatBaseConfigFlow(FlowHandler):
             placeholders[f"underlying_{idx + 1}_details"] = self._get_underlying_details(translations, idx)
         if len(underlyings) < MAX_UNDERLYINGS:
             menu_options.append("underlying_add")
-        menu_options.append("menu")
+        if not self._wizard_active:
+            menu_options.append("menu")
+        elif not self._get_underlying_missing_items(self._infos):
+            # In the wizard, the user continues when all the devices are complete
+            menu_options.append("underlying_continue")
 
         return self.async_show_menu(step_id="type", menu_options=menu_options, description_placeholders=placeholders)
 
@@ -1103,6 +1189,10 @@ class VersatileThermostatBaseConfigFlow(FlowHandler):
             description_placeholders=await self._async_get_underlying_placeholders("type", entity_id),
         )
 
+    async def async_step_underlying_continue(self, user_input: dict | None = None) -> FlowResult:
+        """Go to the next step of the creation wizard when the underlyings are configured"""
+        return await self._next_step()
+
     async def _async_open_underlying(self, idx: int) -> FlowResult:
         """Open the settings of the device at idx. Called by the generated steps async_step_underlying_<n>"""
         if idx >= len(self._infos.get(CONF_UNDERLYING_LIST, [])):
@@ -1127,7 +1217,7 @@ class VersatileThermostatBaseConfigFlow(FlowHandler):
             "features",
             schema,
             user_input,
-            self.async_step_menu,
+            self._next_step,
         )
 
     async def async_step_auto_start_stop(self, user_input: dict | None = None) -> FlowResult:
@@ -1136,7 +1226,7 @@ class VersatileThermostatBaseConfigFlow(FlowHandler):
 
         schema = STEP_AUTO_START_STOP
         self._infos[COMES_FROM] = None
-        next_step = self.async_step_menu
+        next_step = self._next_step
 
         return await self.generic_step("auto_start_stop", schema, user_input, next_step)
 
@@ -1155,13 +1245,13 @@ class VersatileThermostatBaseConfigFlow(FlowHandler):
         if user_input is None and self._infos.get(CONF_HUMIDITY_SENSOR) is None:
             schema = add_suggested_values_to_schema(schema, {CONF_HUMIDITY_SENSOR: detected_sensor})
 
-        return await self.generic_step("humidity", schema, user_input, self.async_step_menu)
+        return await self.generic_step("humidity", schema, user_input, self._next_step)
 
     async def async_step_tpi(self, user_input: dict | None = None) -> FlowResult:
         """Handle the TPI flow steps"""
         _LOGGER.debug("Into ConfigFlow.async_step_tpi user_input=%s", user_input)
 
-        next_step = self.async_step_menu
+        next_step = self._next_step
         if self._infos[CONF_THERMOSTAT_TYPE] == CONF_THERMOSTAT_CENTRAL_CONFIG:
             schema = STEP_CENTRAL_TPI_DATA_SCHEMA_CENTRAL
         else:
@@ -1187,7 +1277,7 @@ class VersatileThermostatBaseConfigFlow(FlowHandler):
 
         schema = STEP_CENTRAL_TPI_DATA_SCHEMA
         self._infos[COMES_FROM] = "async_step_spec_tpi"
-        next_step = self.async_step_menu
+        next_step = self._next_step
 
         if user_input and user_input.get(CONF_AUTO_TPI_MODE) is True:
             next_step = self.async_step_auto_tpi_configuration
@@ -1230,7 +1320,7 @@ class VersatileThermostatBaseConfigFlow(FlowHandler):
             else:
                 return await self.async_step_auto_tpi_avg_settings()
         else:
-            return await self.async_step_menu()
+            return await self._next_step()
 
     def _apply_learning_type_defaults(self):
         """Apply defaults based on learning type"""
@@ -1254,7 +1344,7 @@ class VersatileThermostatBaseConfigFlow(FlowHandler):
             "Into ConfigFlow.async_step_auto_tpi_avg_settings user_input=%s", user_input
         )
         schema = STEP_AUTO_TPI_AVG_SETTINGS_SCHEMA
-        next_step = self.async_step_menu
+        next_step = self._next_step
 
         # Update placeholders with unit
         self._placeholders["temperature_unit"] = self.hass.config.units.temperature_unit
@@ -1270,14 +1360,14 @@ class VersatileThermostatBaseConfigFlow(FlowHandler):
             "Into ConfigFlow.async_step_auto_tpi_ema_settings user_input=%s", user_input
         )
         schema = STEP_AUTO_TPI_EMA_SETTINGS_SCHEMA
-        next_step = self.async_step_menu
+        next_step = self._next_step
         return await self.generic_step("auto_tpi_ema_settings", schema, user_input, next_step)
 
     async def async_step_presets(self, user_input: dict | None = None) -> FlowResult:
         """Handle the presets flow steps"""
         _LOGGER.debug("Into ConfigFlow.async_step_presets user_input=%s", user_input)
 
-        next_step = self.async_step_menu  # advanced
+        next_step = self._next_step  # advanced
         schema = STEP_PRESETS_DATA_SCHEMA
 
         # In Central config -> display the next step immedialty
@@ -1291,7 +1381,7 @@ class VersatileThermostatBaseConfigFlow(FlowHandler):
         """Handle the window  sensor flow steps"""
         _LOGGER.debug("Into ConfigFlow.async_step_window user_input=%s", user_input)
 
-        next_step = self.async_step_menu
+        next_step = self._next_step
         if self._infos[CONF_THERMOSTAT_TYPE] == CONF_THERMOSTAT_CENTRAL_CONFIG:
             schema = STEP_CENTRAL_WINDOW_DATA_SCHEMA
         else:
@@ -1338,7 +1428,7 @@ class VersatileThermostatBaseConfigFlow(FlowHandler):
         """Handle the window and motion sensor flow steps"""
         _LOGGER.debug("Into ConfigFlow.async_step_motion user_input=%s", user_input)
 
-        next_step = self.async_step_menu
+        next_step = self._next_step
         if self._infos[CONF_THERMOSTAT_TYPE] == CONF_THERMOSTAT_CENTRAL_CONFIG:
             schema = STEP_CENTRAL_MOTION_DATA_SCHEMA
         else:
@@ -1371,7 +1461,7 @@ class VersatileThermostatBaseConfigFlow(FlowHandler):
 
         self._infos[COMES_FROM] = "async_step_spec_motion"
 
-        next_step = self.async_step_menu
+        next_step = self._next_step
 
         # This will return to async_step_main (to keep the "main" step)
         return await self.generic_step("motion", schema, user_input, next_step)
@@ -1380,7 +1470,7 @@ class VersatileThermostatBaseConfigFlow(FlowHandler):
         """Handle the power management flow steps"""
         _LOGGER.debug("Into ConfigFlow.async_step_power user_input=%s", user_input)
 
-        next_step = self.async_step_menu
+        next_step = self._next_step
         if self._infos[CONF_THERMOSTAT_TYPE] == CONF_THERMOSTAT_CENTRAL_CONFIG:
             schema = STEP_CENTRAL_POWER_DATA_SCHEMA
         else:
@@ -1409,7 +1499,7 @@ class VersatileThermostatBaseConfigFlow(FlowHandler):
 
         self._infos[COMES_FROM] = "async_step_spec_power"
 
-        next_step = self.async_step_menu
+        next_step = self._next_step
 
         # This will return to async_step_power (to keep the "power" step)
         return await self.generic_step("power", schema, user_input, next_step)
@@ -1418,7 +1508,7 @@ class VersatileThermostatBaseConfigFlow(FlowHandler):
         """Handle the presence management flow steps"""
         _LOGGER.debug("Into ConfigFlow.async_step_presence user_input=%s", user_input)
 
-        next_step = self.async_step_menu
+        next_step = self._next_step
         if self._infos[CONF_THERMOSTAT_TYPE] == CONF_THERMOSTAT_CENTRAL_CONFIG:
             schema = STEP_CENTRAL_PRESENCE_DATA_SCHEMA
         else:
@@ -1451,7 +1541,7 @@ class VersatileThermostatBaseConfigFlow(FlowHandler):
 
         self._infos[COMES_FROM] = "async_step_spec_presence"
 
-        next_step = self.async_step_menu
+        next_step = self._next_step
 
         # This will return to async_step_power (to keep the "power" step)
         return await self.generic_step("presence", schema, user_input, next_step)
@@ -1460,7 +1550,7 @@ class VersatileThermostatBaseConfigFlow(FlowHandler):
         """Handle the advanced parameter flow steps"""
         _LOGGER.debug("Into ConfigFlow.async_step_advanced user_input=%s", user_input)
 
-        next_step = self.async_step_menu
+        next_step = self._next_step
         if self._infos[CONF_THERMOSTAT_TYPE] == CONF_THERMOSTAT_CENTRAL_CONFIG:
             schema = STEP_CENTRAL_ADVANCED_DATA_SCHEMA
         else:
@@ -1502,7 +1592,7 @@ class VersatileThermostatBaseConfigFlow(FlowHandler):
         """Handle the lock flow steps"""
         _LOGGER.debug("Into ConfigFlow.async_step_lock user_input=%s", user_input)
 
-        next_step = self.async_step_menu
+        next_step = self._next_step
         if self._infos[CONF_THERMOSTAT_TYPE] == CONF_THERMOSTAT_CENTRAL_CONFIG:
             schema = STEP_CENTRAL_LOCK_DATA_SCHEMA
         else:
@@ -1535,7 +1625,7 @@ class VersatileThermostatBaseConfigFlow(FlowHandler):
 
         self._infos[COMES_FROM] = "async_step_spec_lock"
 
-        next_step = self.async_step_menu
+        next_step = self._next_step
 
         return await self.generic_step("lock", schema, user_input, next_step)
 
@@ -1543,7 +1633,7 @@ class VersatileThermostatBaseConfigFlow(FlowHandler):
         """Handle the heating failure detection flow steps"""
         _LOGGER.debug("Into ConfigFlow.async_step_heating_failure_detection user_input=%s", user_input)
 
-        next_step = self.async_step_menu
+        next_step = self._next_step
         if self._infos[CONF_THERMOSTAT_TYPE] == CONF_THERMOSTAT_CENTRAL_CONFIG:
             schema = STEP_CENTRAL_HEATING_FAILURE_DETECTION_SCHEMA
         else:
@@ -1642,6 +1732,11 @@ class VersatileThermostatConfigFlow(  # pylint: disable=abstract-method
         # #713 doesn't work as explained here:https://developers.home-assistant.io/blog/2024/11/12/options-flow
         #  should be - return VersatileThermostatOptionsFlowHandler() but hass is not initialized
         return VersatileThermostatOptionsFlowHandler(config_entry)
+
+    async def _start_wizard(self) -> FlowResult:
+        """The type of VTherm is chosen: the creation wizard starts and leads the user through the screens to fill"""
+        self._wizard_active = True
+        return await self._next_step()
 
     async def async_step_finalize(self, _):
         """Finalization of the ConfigEntry creation"""
