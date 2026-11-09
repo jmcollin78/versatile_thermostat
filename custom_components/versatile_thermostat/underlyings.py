@@ -62,6 +62,9 @@ from .underlying_state_manager import UnderlyingStateManager
 from .inhibition_manager import CommandGate, InhibitionManager
 
 resend_delay_sec = 2
+# Issue #2185 - some devices move their own setpoint when VTherm turns them OFF (a Sonoff TRVZB drops to 7 °C).
+# A setpoint reported within this delay after an OFF sent by VTherm is not a user gesture.
+off_settle_delay_sec = 15
 
 _LOGGER = get_vtherm_logger(__name__)
 
@@ -650,6 +653,7 @@ class UnderlyingClimate(UnderlyingEntity):
             entity_id=climate_entity_id,
         )
         self._last_sent_temperature: Optional[float] = None
+        self._last_off_sent_datetime: Optional[datetime] = None
         self._cancel_set_fan_mode_later: Optional[Callable[[], None]] = None
         self._cancel_set_temperature_later: Optional[Callable[[], None]] = None
         self._min_sync_entity: float = None
@@ -693,6 +697,8 @@ class UnderlyingClimate(UnderlyingEntity):
         data = {ATTR_ENTITY_ID: self._entity_id, "hvac_mode": to_legacy_ha_hvac_mode(hvac_mode)}
         if command_cause == COMMAND_CAUSE_UNDERLYING_TRACKING:
             self._thermostat._record_underlying_tracking_command(self.entity_id, hvac_mode)
+        # Set before sending: the device may report its new setpoint before the call returns
+        self._last_off_sent_datetime = self._thermostat.now if hvac_mode == VThermHvacMode_OFF else None
 
         await self.hass_services_async_call(
             CLIMATE_DOMAIN,
@@ -721,6 +727,7 @@ class UnderlyingClimate(UnderlyingEntity):
         """Send hvac_mode OFF, even if the underlying reports it is already off"""
         self._cancel_delayed_commands()
         self._hvac_mode = VThermHvacMode_OFF
+        self._last_off_sent_datetime = self._thermostat.now
         data = {ATTR_ENTITY_ID: self._entity_id, "hvac_mode": to_legacy_ha_hvac_mode(VThermHvacMode_OFF)}
         await self.hass_services_async_call(CLIMATE_DOMAIN, SERVICE_SET_HVAC_MODE, data)
 
@@ -1007,6 +1014,12 @@ class UnderlyingClimate(UnderlyingEntity):
         _LOGGER.debug("%s - Last_sent_temperature is now: %s", self, self._last_sent_temperature)
 
         return True
+
+    def sent_off_recently(self) -> bool:
+        """True if VTherm sent OFF to this underlying less than off_settle_delay_sec ago"""
+        if self._last_off_sent_datetime is None:
+            return False
+        return self._thermostat.now <= self._last_off_sent_datetime + timedelta(seconds=off_settle_delay_sec)
 
     @property
     def last_sent_temperature(self) -> float | None:

@@ -119,6 +119,8 @@ W takim przypadku do urządzenia _VTherm_ dodano sensor "Śledzenie zmiany tempe
 
 Gdy ta opcja jest aktywna, wszystkie zmiany temperatury lub stanu dokonane bezpośrednio na sterowanym urządzeniu są odzwierciedlane w termostacie VTherm.
 
+Zmiana wartości zadanej dokonana bezpośrednio na urządzeniu jest traktowana jak ręczna zmiana temperatury docelowej: jeśli skonfigurowano [czas ręcznego nadpisania](feature-timed-preset.md#ręczne-nadpisanie-z-automatycznym-powrotem), uruchamia ona ręczne nadpisanie, po którego zakończeniu przywracany jest poprzedni preset.
+
 **Uważaj** — jeśli korzystasz z tej funkcji, Twoje urządzenie jest sterowane na dwa sposoby: przez termostat _VTherm_ oraz bezpośrednio przez Ciebie. Polecenia mogą się wzajemnie wykluczać, co może prowadzić do niejednoznaczności aktualnego stanu urządzenia.
 Termostat _VTherm_ posiada mechanizm opóźnienia, który zapobiega zapętleniom: użytkownik ustawia żądaną wartość, termostat _VTherm_ ją przechwytuje i odpowiednio zmienia wartość. To opóźnienie może powodować zignorowanie zmiany dokonanej bezpośrednio na urządzeniu, jeśli nastąpi w zbyt krótkim czasie.
 
