@@ -1,10 +1,14 @@
 # pylint: disable=unused-argument, line-too-long, too-many-lines
 """ Test the Versatile Thermostat config flow """
 
+import json
+from pathlib import Path
 from typing import Any, cast
 
 from homeassistant.data_entry_flow import FlowResultType
-from homeassistant.core import HomeAssistant
+from unittest.mock import patch
+
+from homeassistant.core import HomeAssistant, State, StateMachine
 from homeassistant.config_entries import SOURCE_USER, ConfigEntry
 
 from custom_components.versatile_thermostat.const import DOMAIN
@@ -12,6 +16,39 @@ from custom_components.versatile_thermostat.config_flow import VersatileThermost
 
 from .commons import *  # pylint: disable=wildcard-import, unused-wildcard-import
 from .const import *  # pylint: disable=wildcard-import, unused-wildcard-import
+
+
+async def _fill_underlyings(hass: HomeAssistant, flow_id: str, common_input: dict | None, devices: list, extra_input: dict | None = None):
+    """From the menu: open the underlyings, fill the common settings, add the devices (list of (entity_id, device input)) and come back to the menu"""
+    result = await hass.config_entries.flow.async_configure(flow_id, user_input={"next_step_id": "type"})
+    assert result["type"] == FlowResultType.MENU
+    assert result["step_id"] == "type"
+
+    if common_input is not None:
+        result = await hass.config_entries.flow.async_configure(flow_id, user_input={"next_step_id": "underlying_common"})
+        assert result["type"] == FlowResultType.FORM
+        assert result["step_id"] == "underlying_common"
+        result = await hass.config_entries.flow.async_configure(flow_id, user_input=common_input)
+        if extra_input is not None:
+            assert result["type"] == FlowResultType.FORM
+            assert result["step_id"] == "underlying_common_extra"
+            result = await hass.config_entries.flow.async_configure(flow_id, user_input=extra_input)
+        assert result["type"] == FlowResultType.MENU
+        assert result["step_id"] == "type"
+
+    for entity_id, device_input in devices:
+        result = await hass.config_entries.flow.async_configure(flow_id, user_input={"next_step_id": "underlying_add"})
+        assert result["type"] == FlowResultType.FORM
+        assert result["step_id"] == "underlying_add"
+        result = await hass.config_entries.flow.async_configure(flow_id, user_input={CONF_UNDERLYING_ENTITY: entity_id})
+        if device_input is not None:
+            assert result["type"] == FlowResultType.FORM
+            assert result["step_id"] == "underlying"
+            result = await hass.config_entries.flow.async_configure(flow_id, user_input=device_input)
+        assert result["type"] == FlowResultType.MENU
+        assert result["step_id"] == "type"
+
+    return await hass.config_entries.flow.async_configure(flow_id, user_input={"next_step_id": "menu"})
 
 
 @pytest.mark.parametrize("expected_lingering_tasks", [True])
@@ -496,17 +533,10 @@ async def test_user_config_flow_over_climate(
     assert result.get("errors") is None
 
     # 4. Type
-    result = await hass.config_entries.flow.async_configure(
-        result["flow_id"], user_input={"next_step_id": "type"}
-    )
-    assert result["type"] == FlowResultType.FORM
-    assert result["step_id"] == "type"
-    assert result.get("errors") == {}
-
-    result = await hass.config_entries.flow.async_configure(
+    result = await _fill_underlyings(
+        hass,
         result["flow_id"],
-        user_input={
-            CONF_UNDERLYING_LIST: ["climate.mock_climate"],
+        {
             CONF_AC_MODE: False,
             CONF_AUTO_REGULATION_MODE: CONF_AUTO_REGULATION_STRONG,
             CONF_AUTO_REGULATION_DTEMP: 10,
@@ -514,6 +544,7 @@ async def test_user_config_flow_over_climate(
             CONF_AUTO_FAN_MODE: CONF_AUTO_FAN_HIGH,
             CONF_AUTO_REGULATION_USE_DEVICE_TEMP: False,
         },
+        [("climate.mock_climate", None)],
     )
     assert result["type"] == FlowResultType.MENU
     assert result["step_id"] == "menu"
@@ -786,17 +817,10 @@ async def test_user_config_flow_over_climate_auto_start_stop(
     assert result.get("errors") is None
 
     # 5. Configure type attributes
-    result = await hass.config_entries.flow.async_configure(
-        result["flow_id"], user_input={"next_step_id": "type"}
-    )
-    assert result["type"] == FlowResultType.FORM
-    assert result["step_id"] == "type"
-    assert result.get("errors") == {}
-
-    result = await hass.config_entries.flow.async_configure(
+    result = await _fill_underlyings(
+        hass,
         result["flow_id"],
-        user_input={
-            CONF_UNDERLYING_LIST: ["climate.mock_climate"],
+        {
             CONF_AC_MODE: False,
             CONF_AUTO_REGULATION_MODE: CONF_AUTO_REGULATION_STRONG,
             CONF_AUTO_REGULATION_DTEMP: 0.5,
@@ -804,6 +828,7 @@ async def test_user_config_flow_over_climate_auto_start_stop(
             CONF_AUTO_FAN_MODE: CONF_AUTO_FAN_HIGH,
             CONF_AUTO_REGULATION_USE_DEVICE_TEMP: False,
         },
+        [("climate.mock_climate", None)],
     )
     assert result["type"] == FlowResultType.MENU
     assert result["step_id"] == "menu"
@@ -1006,22 +1031,16 @@ async def test_user_config_flow_over_switch_bug_552_tpi(
     ]
 
     # 6. Type
-    result = await hass.config_entries.flow.async_configure(
-        result["flow_id"], user_input={"next_step_id": "type"}
-    )
-    assert result["type"] == FlowResultType.FORM
-    assert result["step_id"] == "type"
-    assert result.get("errors") == {}
-
-    result = await hass.config_entries.flow.async_configure(
+    result = await _fill_underlyings(
+        hass,
         result["flow_id"],
-        user_input={
-            CONF_UNDERLYING_LIST: ["switch.mock_switch"],
+        {
             CONF_HEATER_KEEP_ALIVE: 0,
             CONF_PROP_FUNCTION: PROPORTIONAL_FUNCTION_TPI,
             CONF_AC_MODE: False,
             CONF_INVERSE_SWITCH: False,
         },
+        [("switch.mock_switch", {})],
     )
 
     # 7. Menu
@@ -1261,18 +1280,20 @@ async def test_user_config_flow_over_climate_valve(
     assert result["step_id"] == "menu"
     assert result.get("errors") is None
 
-    # 4. Type
-    result = await hass.config_entries.flow.async_configure(
-        result["flow_id"], user_input={"next_step_id": "type"}
-    )
-    assert result["type"] == FlowResultType.FORM
+    # 4. Type: the common settings and the two devices
+    result = await hass.config_entries.flow.async_configure(result["flow_id"], user_input={"next_step_id": "type"})
+    assert result["type"] == FlowResultType.MENU
     assert result["step_id"] == "type"
+    assert result["menu_options"] == ["underlying_common", "underlying_add", "menu"]
+
+    result = await hass.config_entries.flow.async_configure(result["flow_id"], user_input={"next_step_id": "underlying_common"})
+    assert result["type"] == FlowResultType.FORM
+    assert result["step_id"] == "underlying_common"
     assert result.get("errors") == {}
 
     result = await hass.config_entries.flow.async_configure(
         result["flow_id"],
         user_input={
-            CONF_UNDERLYING_LIST: ["climate.mock_climate1", "climate.mock_climate2"],
             CONF_AC_MODE: False,
             CONF_SYNC_DEVICE_INTERNAL_TEMP: True,
             CONF_AUTO_REGULATION_MODE: CONF_AUTO_REGULATION_VALVE,
@@ -1282,6 +1303,71 @@ async def test_user_config_flow_over_climate_valve(
             CONF_AUTO_REGULATION_USE_DEVICE_TEMP: False,
         },
     )
+    # The valve regulation and the synchronization have their common settings
+    assert result["type"] == FlowResultType.FORM
+    assert result["step_id"] == "underlying_common_extra"
+    assert set(result["data_schema"].schema.keys()) == {CONF_PROP_FUNCTION, CONF_OPENING_THRESHOLD_DEGREE, CONF_MAX_CLOSING_DEGREE, CONF_SYNC_WITH_CALIBRATION}
+
+    result = await hass.config_entries.flow.async_configure(
+        result["flow_id"],
+        user_input={
+            CONF_PROP_FUNCTION: PROPORTIONAL_FUNCTION_TPI,
+            CONF_MAX_CLOSING_DEGREE: 30,
+            CONF_OPENING_THRESHOLD_DEGREE: 5,
+            CONF_SYNC_WITH_CALIBRATION: True,
+        },
+    )
+    assert result["type"] == FlowResultType.MENU
+    assert result["step_id"] == "type"
+
+    # 4.1 the first device: the opening entity is mandatory
+    result = await hass.config_entries.flow.async_configure(result["flow_id"], user_input={"next_step_id": "underlying_add"})
+    result = await hass.config_entries.flow.async_configure(result["flow_id"], user_input={CONF_UNDERLYING_ENTITY: "climate.mock_climate1"})
+    assert result["type"] == FlowResultType.FORM
+    assert result["step_id"] == "underlying"
+    assert set(result["data_schema"].schema.keys()) == {
+        CONF_OPENING_DEGREE_ENTITY,
+        CONF_CLOSING_DEGREE_ENTITY,
+        CONF_MIN_OPENING_DEGREE,
+        CONF_MAX_OPENING_DEGREE,
+        CONF_SYNC_ENTITY,
+    }
+    # an unknown entity is refused
+    with patch.object(StateMachine, "get", return_value=None):
+        result = await hass.config_entries.flow.async_configure(
+            result["flow_id"], user_input={CONF_OPENING_DEGREE_ENTITY: "number.unknown", CONF_SYNC_ENTITY: "number.offset_calibration1"}
+        )
+    assert result["step_id"] == "underlying"
+    assert result.get("errors") == {CONF_OPENING_DEGREE_ENTITY: "unknown_entity", CONF_SYNC_ENTITY: "unknown_entity"}
+
+    result = await hass.config_entries.flow.async_configure(
+        result["flow_id"],
+        user_input={
+            CONF_OPENING_DEGREE_ENTITY: "number.opening_degree1",
+            CONF_MIN_OPENING_DEGREE: 10,
+            CONF_MAX_OPENING_DEGREE: 90,
+            CONF_SYNC_ENTITY: "number.offset_calibration1",
+        },
+    )
+    assert result["type"] == FlowResultType.MENU
+    assert result["step_id"] == "type"
+    # the second device is missing: the first one is complete, only the second one is added
+    result = await hass.config_entries.flow.async_configure(result["flow_id"], user_input={"next_step_id": "underlying_add"})
+    result = await hass.config_entries.flow.async_configure(result["flow_id"], user_input={CONF_UNDERLYING_ENTITY: "climate.mock_climate2"})
+    result = await hass.config_entries.flow.async_configure(
+        result["flow_id"],
+        user_input={
+            CONF_OPENING_DEGREE_ENTITY: "number.opening_degree2",
+            CONF_MIN_OPENING_DEGREE: 20,
+            CONF_MAX_OPENING_DEGREE: 100,
+            CONF_SYNC_ENTITY: "number.offset_calibration2",
+        },
+    )
+    assert result["type"] == FlowResultType.MENU
+    assert result["step_id"] == "type"
+    assert result["menu_options"] == ["underlying_common", "underlying_1", "underlying_2", "underlying_add", "menu"]
+
+    result = await hass.config_entries.flow.async_configure(result["flow_id"], user_input={"next_step_id": "menu"})
     assert result["type"] == FlowResultType.MENU
     assert result["step_id"] == "menu"
     assert result["menu_options"] == [
@@ -1290,8 +1376,6 @@ async def test_user_config_flow_over_climate_valve(
         "type",
         "tpi",
         "presets",
-        "valve_regulation",
-        "sync_device_internal_temp",
         "advanced",
         "lock",
         "humidity",
@@ -1380,134 +1464,6 @@ async def test_user_config_flow_over_climate_valve(
         "type",
         "tpi",
         "presets",
-        "valve_regulation",
-        "sync_device_internal_temp",
-        "advanced",
-        "lock",
-        "humidity",
-        "configuration_not_complete",
-        # "finalize", finalize is not present waiting for advanced configuration
-    ]
-
-    # 10. Valve_regulation
-    result = await hass.config_entries.flow.async_configure(
-        result["flow_id"], user_input={"next_step_id": "valve_regulation"}
-    )
-    assert result["type"] == FlowResultType.FORM
-    assert result["step_id"] == "valve_regulation"
-    assert result.get("errors") == {}
-
-    # 10.1 Only one but 2 expected
-    result = await hass.config_entries.flow.async_configure(
-        result["flow_id"],
-        user_input={
-            # CONF_OFFSET_CALIBRATION_LIST: ["number.offset_calibration1"],
-            CONF_OPENING_DEGREE_LIST: ["number.opening_degree1"],
-            CONF_CLOSING_DEGREE_LIST: ["number.closing_degree1"],
-            CONF_MIN_OPENING_DEGREES: "10, 20",
-            CONF_MAX_CLOSING_DEGREE: "30",
-            CONF_MAX_OPENING_DEGREES: "90",
-            CONF_OPENING_THRESHOLD_DEGREE: "5",
-        },
-    )
-    assert result["type"] == FlowResultType.FORM
-    assert result["step_id"] == "valve_regulation"
-    assert result.get("errors") == {"base": "valve_regulation_nb_entities_incorrect"}
-
-    # 10.2 Give two openings but only one offset_calibration
-    result = await hass.config_entries.flow.async_configure(
-        result["flow_id"],
-        user_input={
-            # CONF_OFFSET_CALIBRATION_LIST: [
-            #     "number.offset_calibration1",
-            #     "number.offset_calibration2",
-            # ],
-            CONF_OPENING_DEGREE_LIST: [
-                "number.opening_degree1",
-                "number.opening_degree2",
-            ],
-            CONF_CLOSING_DEGREE_LIST: ["number.closing_degree1"],
-        },
-    )
-    assert result["type"] == FlowResultType.FORM
-    assert result["step_id"] == "valve_regulation"
-    assert result.get("errors") == {"base": "valve_regulation_nb_entities_incorrect"}
-
-    # Test bad values on the min opening degrees
-    result = await hass.config_entries.flow.async_configure(
-        result["flow_id"],
-        user_input={
-            # CONF_OFFSET_CALIBRATION_LIST: [
-            #     "number.offset_calibration1",
-            #     "number.offset_calibration2",
-            # ],
-            CONF_OPENING_DEGREE_LIST: [
-                "number.opening_degree1",
-                "number.opening_degree2",
-            ],
-            CONF_CLOSING_DEGREE_LIST: [],
-            CONF_MIN_OPENING_DEGREES: "10, 20,0",
-            CONF_MAX_CLOSING_DEGREE: "30",
-            CONF_MAX_OPENING_DEGREES: "-90",
-            CONF_OPENING_THRESHOLD_DEGREE: "5",
-        },
-    )
-    assert result["type"] == FlowResultType.FORM
-    assert result["step_id"] == "valve_regulation"
-    assert result.get("errors") == {"max_opening_degrees": "max_opening_degrees_format"}
-
-    result = await hass.config_entries.flow.async_configure(
-        result["flow_id"],
-        user_input={
-            # CONF_OFFSET_CALIBRATION_LIST: [
-            #     "number.offset_calibration1",
-            #     "number.offset_calibration2",
-            # ],
-            CONF_OPENING_DEGREE_LIST: [
-                "number.opening_degree1",
-                "number.opening_degree2",
-            ],
-            CONF_CLOSING_DEGREE_LIST: [],
-            CONF_MIN_OPENING_DEGREES: "10, 20,0",
-            CONF_MAX_CLOSING_DEGREE: "30",
-            CONF_MAX_OPENING_DEGREES: "390",
-            CONF_OPENING_THRESHOLD_DEGREE: "5",
-        },
-    )
-    assert result["type"] == FlowResultType.FORM
-    assert result["step_id"] == "valve_regulation"
-    assert result.get("errors") == {"max_opening_degrees": "max_opening_degrees_format"}
-
-    # 10.3 Give two openings and 2 calibration and 0 closing
-    result = await hass.config_entries.flow.async_configure(
-        result["flow_id"],
-        user_input={
-            # CONF_OFFSET_CALIBRATION_LIST: [
-            #     "number.offset_calibration1",
-            #     "number.offset_calibration2",
-            # ],
-            CONF_OPENING_DEGREE_LIST: [
-                "number.opening_degree1",
-                "number.opening_degree2",
-            ],
-            CONF_CLOSING_DEGREE_LIST: [],
-            CONF_MIN_OPENING_DEGREES: "10, 20",
-            CONF_MAX_CLOSING_DEGREE: "30",
-            CONF_MAX_OPENING_DEGREES: "90",
-            CONF_OPENING_THRESHOLD_DEGREE: "5",
-        },
-    )
-    assert result["type"] == FlowResultType.MENU
-    assert result["step_id"] == "menu"
-    assert result.get("errors") is None
-    assert result["menu_options"] == [
-        "main",
-        "features",
-        "type",
-        "tpi",
-        "presets",
-        "valve_regulation",
-        "sync_device_internal_temp",
         "advanced",
         "lock",
         "humidity",
@@ -1548,73 +1504,10 @@ async def test_user_config_flow_over_climate_valve(
         "type",
         "tpi",
         "presets",
-        "valve_regulation",
-        "sync_device_internal_temp",
         "advanced",
         "lock",
         "humidity",
-        "configuration_not_complete",
-        # "finalize",  finalize is not present awaiting for sync_device_internal_temp configuration
-    ]
-
-    # 12. Synchronize device internal temp
-    result = await hass.config_entries.flow.async_configure(result["flow_id"], user_input={"next_step_id": "sync_device_internal_temp"})
-    assert result["type"] == FlowResultType.FORM
-    assert result["step_id"] == "sync_device_internal_temp"
-    assert result.get("errors") == {}
-
-    # 12.1 Only one but 2 expected
-    result = await hass.config_entries.flow.async_configure(
-        result["flow_id"],
-        user_input={
-            CONF_SYNC_WITH_CALIBRATION: True,
-            CONF_SYNC_ENTITY_LIST: ["number.offset_calibration1"],
-        },
-    )
-    assert result["type"] == FlowResultType.FORM
-    assert result["step_id"] == "sync_device_internal_temp"
-    assert result.get("errors") == {"base": "sync_device_internal_temp_nb_entities_incorrect"}
-
-    # 12.2 Give one sync entity and change the SYNC_WITH_CALIBRATION to False
-    result = await hass.config_entries.flow.async_configure(
-        result["flow_id"],
-        user_input={
-            CONF_SYNC_WITH_CALIBRATION: False,
-            CONF_SYNC_ENTITY_LIST: [
-                "number.offset_calibration1",
-            ],
-        },
-    )
-    assert result["type"] == FlowResultType.FORM
-    assert result["step_id"] == "sync_device_internal_temp"
-    assert result.get("errors") == {"base": "sync_device_internal_temp_nb_entities_incorrect"}
-
-    # 12.3 Give two openings and 2 calibration and 0 closing
-    result = await hass.config_entries.flow.async_configure(
-        result["flow_id"],
-        user_input={
-            CONF_SYNC_WITH_CALIBRATION: True,
-            CONF_SYNC_ENTITY_LIST: [
-                "number.offset_calibration1",
-                "number.offset_calibration2",
-            ],
-        },
-    )
-    assert result["type"] == FlowResultType.MENU
-    assert result["step_id"] == "menu"
-    assert result.get("errors") is None
-    assert result["menu_options"] == [
-        "main",
-        "features",
-        "type",
-        "tpi",
-        "presets",
-        "valve_regulation",
-        "sync_device_internal_temp",
-        "advanced",
-        "lock",
-        "humidity",
-        "finalize",  # This time finalize is present
+        "finalize",  # Now finalize is present
     ]
 
     result = await hass.config_entries.flow.async_configure(
@@ -1666,7 +1559,7 @@ async def test_user_config_flow_over_climate_valve(
         CONF_TPI_COEF_EXT: 0.1,
         CONF_MIN_OPENING_DEGREES: "10, 20",
         CONF_MAX_CLOSING_DEGREE: 30,
-        CONF_MAX_OPENING_DEGREES: "90",
+        CONF_MAX_OPENING_DEGREES: "90, 100",
         CONF_OPENING_THRESHOLD_DEGREE: 5,
         CONF_AUTO_START_STOP_LEVEL: AUTO_START_STOP_LEVEL_NONE,
     }
@@ -1728,17 +1621,16 @@ async def test_user_config_flow_valve_min_max_opening_degrees_error(hass: HomeAs
     assert result["type"] == FlowResultType.MENU
     assert result["step_id"] == "menu"
 
-    # 4. Type
+    # 4. Type: common settings with valve regulation
     result = await hass.config_entries.flow.async_configure(result["flow_id"], user_input={"next_step_id": "type"})
+    result = await hass.config_entries.flow.async_configure(result["flow_id"], user_input={"next_step_id": "underlying_common"})
     assert result["type"] == FlowResultType.FORM
-    assert result["step_id"] == "type"
+    assert result["step_id"] == "underlying_common"
 
     result = await hass.config_entries.flow.async_configure(
         result["flow_id"],
         user_input={
-            CONF_UNDERLYING_LIST: ["climate.mock_climate1", "climate.mock_climate2"],
             CONF_AC_MODE: False,
-            CONF_SYNC_DEVICE_INTERNAL_TEMP: True,
             CONF_AUTO_REGULATION_MODE: CONF_AUTO_REGULATION_VALVE,
             CONF_AUTO_REGULATION_DTEMP: 0.5,
             CONF_AUTO_REGULATION_PERIOD_MIN: 2,
@@ -1746,6 +1638,83 @@ async def test_user_config_flow_valve_min_max_opening_degrees_error(hass: HomeAs
             CONF_AUTO_REGULATION_USE_DEVICE_TEMP: False,
         },
     )
+    assert result["type"] == FlowResultType.FORM
+    assert result["step_id"] == "underlying_common_extra"
+    result = await hass.config_entries.flow.async_configure(
+        result["flow_id"],
+        user_input={CONF_PROP_FUNCTION: PROPORTIONAL_FUNCTION_TPI, CONF_MAX_CLOSING_DEGREE: 30, CONF_OPENING_THRESHOLD_DEGREE: 5},
+    )
+    assert result["type"] == FlowResultType.MENU
+    assert result["step_id"] == "type"
+
+    # 4.1 Test with max <= min for the first underlying (50 <= 60)
+    result = await hass.config_entries.flow.async_configure(result["flow_id"], user_input={"next_step_id": "underlying_add"})
+    result = await hass.config_entries.flow.async_configure(result["flow_id"], user_input={CONF_UNDERLYING_ENTITY: "climate.mock_climate1"})
+    assert result["type"] == FlowResultType.FORM
+    assert result["step_id"] == "underlying"
+    result = await hass.config_entries.flow.async_configure(
+        result["flow_id"],
+        user_input={
+            CONF_OPENING_DEGREE_ENTITY: "number.opening_degree1",
+            CONF_MIN_OPENING_DEGREE: 60,
+            CONF_MAX_OPENING_DEGREE: 50,  # 50 <= 60 -> error
+        },
+    )
+    assert result["type"] == FlowResultType.FORM
+    assert result["step_id"] == "underlying"
+    assert result.get("errors") == {CONF_MAX_OPENING_DEGREE: "min_max_opening_degrees_inconsistent"}
+
+    # 4.2 Test with max == min (70 == 70)
+    result = await hass.config_entries.flow.async_configure(
+        result["flow_id"],
+        user_input={
+            CONF_OPENING_DEGREE_ENTITY: "number.opening_degree1",
+            CONF_MIN_OPENING_DEGREE: 70,
+            CONF_MAX_OPENING_DEGREE: 70,  # 70 == 70 -> error
+        },
+    )
+    assert result["step_id"] == "underlying"
+    assert result.get("errors") == {CONF_MAX_OPENING_DEGREE: "min_max_opening_degrees_inconsistent"}
+
+    # 4.3 Test with a max above the max of the valve (50), which is known only when the opening entity is given
+    with patch.object(StateMachine, "get", return_value=State("number.opening_degree1", "0", attributes={"max": 50, "min": 0})):
+        result = await hass.config_entries.flow.async_configure(
+            result["flow_id"],
+            user_input={
+                CONF_OPENING_DEGREE_ENTITY: "number.opening_degree1",
+                CONF_MIN_OPENING_DEGREE: 10,
+                CONF_MAX_OPENING_DEGREE: 80,
+            },
+        )
+    assert result["step_id"] == "underlying"
+    assert result.get("errors") == {CONF_MAX_OPENING_DEGREE: "max_opening_degree_out_of_range"}
+
+    # 4.4 Test with a valid configuration (max > min)
+    result = await hass.config_entries.flow.async_configure(
+        result["flow_id"],
+        user_input={
+            CONF_OPENING_DEGREE_ENTITY: "number.opening_degree1",
+            CONF_MIN_OPENING_DEGREE: 10,
+            CONF_MAX_OPENING_DEGREE: 80,
+        },
+    )
+    assert result["type"] == FlowResultType.MENU
+    assert result["step_id"] == "type"
+
+    # The second device
+    result = await hass.config_entries.flow.async_configure(result["flow_id"], user_input={"next_step_id": "underlying_add"})
+    result = await hass.config_entries.flow.async_configure(result["flow_id"], user_input={CONF_UNDERLYING_ENTITY: "climate.mock_climate2"})
+    result = await hass.config_entries.flow.async_configure(
+        result["flow_id"],
+        user_input={
+            CONF_OPENING_DEGREE_ENTITY: "number.opening_degree2",
+            CONF_MIN_OPENING_DEGREE: 20,
+            CONF_MAX_OPENING_DEGREE: 85,
+        },
+    )
+    assert result["type"] == FlowResultType.MENU
+    assert result["step_id"] == "type"
+    result = await hass.config_entries.flow.async_configure(result["flow_id"], user_input={"next_step_id": "menu"})
     assert result["type"] == FlowResultType.MENU
     assert result["step_id"] == "menu"
 
@@ -1775,69 +1744,6 @@ async def test_user_config_flow_valve_min_max_opening_degrees_error(hass: HomeAs
     result = await hass.config_entries.flow.async_configure(result["flow_id"], user_input={CONF_USE_PRESETS_CENTRAL_CONFIG: False})
     assert result["type"] == FlowResultType.MENU
     assert result["step_id"] == "menu"
-
-    # 8. Valve_regulation - Test case where max_opening_degrees <= min_opening_degrees for first underlying
-    result = await hass.config_entries.flow.async_configure(result["flow_id"], user_input={"next_step_id": "valve_regulation"})
-    assert result["type"] == FlowResultType.FORM
-    assert result["step_id"] == "valve_regulation"
-
-    # 8.1 Test with max <= min for the first underlying (50 <= 60)
-    result = await hass.config_entries.flow.async_configure(
-        result["flow_id"],
-        user_input={
-            CONF_OPENING_DEGREE_LIST: [
-                "number.opening_degree1",
-                "number.opening_degree2",
-            ],
-            CONF_CLOSING_DEGREE_LIST: [],
-            CONF_MIN_OPENING_DEGREES: "60, 20",
-            CONF_MAX_OPENING_DEGREES: "50, 85",  # 50 <= 60 -> error
-            CONF_MAX_CLOSING_DEGREE: 30,
-            CONF_OPENING_THRESHOLD_DEGREE: 5,
-        },
-    )
-    assert result["type"] == FlowResultType.FORM
-    assert result["step_id"] == "valve_regulation"
-    assert result.get("errors") == {CONF_MAX_OPENING_DEGREES: "min_max_opening_degrees_inconsistent"}
-
-    # 8.2 Test with max == min for the second underlying (70 == 70)
-    result = await hass.config_entries.flow.async_configure(
-        result["flow_id"],
-        user_input={
-            CONF_OPENING_DEGREE_LIST: [
-                "number.opening_degree1",
-                "number.opening_degree2",
-            ],
-            CONF_CLOSING_DEGREE_LIST: [],
-            CONF_MIN_OPENING_DEGREES: "10, 70",
-            CONF_MAX_OPENING_DEGREES: "80, 70",  # 70 == 70 -> error
-            CONF_MAX_CLOSING_DEGREE: 30,
-            CONF_OPENING_THRESHOLD_DEGREE: 5,
-        },
-    )
-    assert result["type"] == FlowResultType.FORM
-    assert result["step_id"] == "valve_regulation"
-    assert result.get("errors") == {CONF_MAX_OPENING_DEGREES: "min_max_opening_degrees_inconsistent"}
-
-    # 8.3 Test with valid configuration (max > min for all underlyings)
-    result = await hass.config_entries.flow.async_configure(
-        result["flow_id"],
-        user_input={
-            CONF_OPENING_DEGREE_LIST: [
-                "number.opening_degree1",
-                "number.opening_degree2",
-            ],
-            CONF_CLOSING_DEGREE_LIST: [],
-            CONF_MIN_OPENING_DEGREES: "10, 20",
-            CONF_MAX_OPENING_DEGREES: "80, 85",  # All valid: 80 > 10 and 85 > 20
-            CONF_MAX_CLOSING_DEGREE: 30,
-            CONF_OPENING_THRESHOLD_DEGREE: 5,
-        },
-    )
-    assert result["type"] == FlowResultType.MENU
-    assert result["step_id"] == "menu"
-    assert result.get("errors") is None
-
 
 @pytest.mark.parametrize("expected_lingering_tasks", [True])
 @pytest.mark.parametrize("expected_lingering_timers", [True])
@@ -2001,7 +1907,7 @@ def _complete_central_infos() -> dict:
         (_complete_switch_infos(), {CONF_TEMP_SENSOR: None}, [("main", [CONF_TEMP_SENSOR])]),
         (_complete_switch_infos(), {CONF_CYCLE_MIN: None}, [("main", [CONF_CYCLE_MIN])]),
         (_complete_switch_infos(), {CONF_EXTERNAL_TEMP_SENSOR: None}, [("main", [CONF_EXTERNAL_TEMP_SENSOR])]),
-        (_complete_switch_infos(), {CONF_UNDERLYING_LIST: []}, [("type", [CONF_UNDERLYING_LIST])]),
+        (_complete_switch_infos(), {CONF_UNDERLYING_LIST: []}, [("type", [CONF_UNDERLYING_ENTITY])]),
         (_complete_switch_infos(), {CONF_USE_MOTION_FEATURE: True}, [("motion", [CONF_MOTION_SENSOR])]),
         (_complete_switch_infos(), {CONF_USE_POWER_FEATURE: True}, [("power", [CONF_PRESET_POWER])]),
         (_complete_switch_infos(), {CONF_USE_PRESENCE_FEATURE: True}, [("presence", [CONF_PRESENCE_SENSOR])]),
@@ -2014,16 +1920,34 @@ def _complete_central_infos() -> dict:
         (_complete_switch_infos(), {CONF_TPI_COEF_EXT: None}, [("tpi", [CONF_TPI_COEF_EXT])]),
         # presets central config selected but no central configuration exists
         (_complete_switch_infos(), {CONF_USE_PRESETS_CENTRAL_CONFIG: True}, [("presets", [CONF_USE_PRESETS_CENTRAL_CONFIG])]),
-        # valve regulation: one opening entity for 2 underlyings
-        (_complete_climate_valve_infos(), {CONF_OPENING_DEGREE_LIST: ["number.opening1"]}, [("valve_regulation", [CONF_OPENING_DEGREE_LIST])]),
-        # valve regulation: closing entities should be none or one per underlying
-        (_complete_climate_valve_infos(), {CONF_CLOSING_DEGREE_LIST: ["number.closing1"]}, [("valve_regulation", [CONF_CLOSING_DEGREE_LIST])]),
-        # synchronize internal temperature: one entity for 2 underlyings
+        # valve regulation: the second device has no opening entity
+        (_complete_climate_valve_infos(), {CONF_OPENING_DEGREE_LIST: ["number.opening1"]}, [("type", [CONF_OPENING_DEGREE_ENTITY])]),
+        (_complete_climate_valve_infos(), {CONF_OPENING_DEGREE_LIST: ["number.opening1", ""]}, [("type", [CONF_OPENING_DEGREE_ENTITY])]),
+        # valve regulation: closing entities are given for all the devices or for none
+        (_complete_climate_valve_infos(), {CONF_CLOSING_DEGREE_LIST: ["number.closing1"]}, [("type", [CONF_CLOSING_DEGREE_ENTITY])]),
+        (_complete_climate_valve_infos(), {CONF_CLOSING_DEGREE_LIST: ["number.closing1", "number.closing2"]}, []),
+        # valve regulation is not selected: the lists are not checked
+        (_complete_climate_valve_infos(), {CONF_AUTO_REGULATION_MODE: CONF_AUTO_REGULATION_NONE, CONF_OPENING_DEGREE_LIST: []}, []),
+        # synchronize internal temperature: the second device has no synchronization entity
         (
             _complete_climate_valve_infos(),
             {CONF_SYNC_DEVICE_INTERNAL_TEMP: True, CONF_SYNC_ENTITY_LIST: ["number.sync1"]},
-            [("sync_device_internal_temp", [CONF_SYNC_ENTITY_LIST])],
+            [("type", [CONF_SYNC_ENTITY])],
         ),
+        # custom commands: mandatory for an entity which is not a switch
+        (_complete_switch_infos(), {CONF_UNDERLYING_LIST: ["select.mock_select"]}, [("type", [CONF_VSWITCH_ON_CMD, CONF_VSWITCH_OFF_CMD])]),
+        (
+            _complete_switch_infos(),
+            {CONF_UNDERLYING_LIST: ["select.mock_select"], CONF_VSWITCH_ON_CMD_LIST: ["select_option/option:on"], CONF_VSWITCH_OFF_CMD_LIST: ["select_option/option:off"]},
+            [],
+        ),
+        # custom commands: given for all the devices or for none
+        (
+            _complete_switch_infos(),
+            {CONF_UNDERLYING_LIST: ["switch.mock_switch1", "switch.mock_switch2"], CONF_VSWITCH_ON_CMD_LIST: ["turn_on", ""]},
+            [("type", [CONF_VSWITCH_ON_CMD])],
+        ),
+        (_complete_switch_infos(), {CONF_UNDERLYING_LIST: ["switch.mock_switch1", "switch.mock_switch2"]}, []),
         # Rules of a central configuration
         (_complete_central_infos(), {CONF_NAME: None}, [("main", [CONF_NAME])]),
         (_complete_central_infos(), {CONF_EXTERNAL_TEMP_SENSOR: None}, [("main", [CONF_EXTERNAL_TEMP_SENSOR])]),
@@ -2042,7 +1966,7 @@ def _complete_central_infos() -> dict:
     ],
 )
 async def test_get_missing_config(hass: HomeAssistant, init_vtherm_api, infos, mutation, expected) -> None:
-    """Each rule of get_missing_config gives the step to open and the fields involved"""
+    """Each rule of get_missing_config gives the step to open and the fields involved (no item if the mutation is still valid)"""
     flow = VersatileThermostatConfigFlow()
     flow.hass = hass
 
@@ -2053,7 +1977,7 @@ async def test_get_missing_config(hass: HomeAssistant, init_vtherm_api, infos, m
     infos = {**infos, **mutation}
     missing = flow.get_missing_config(infos)
     assert [(item.step_id, item.fields) for item in missing] == expected
-    assert flow.check_config_complete(infos) is False
+    assert flow.check_config_complete(infos) is (not expected)
 
 
 async def test_get_missing_config_several_items(hass: HomeAssistant, init_vtherm_api) -> None:
@@ -2125,3 +2049,454 @@ async def test_configuration_not_complete_flow(hass: HomeAssistant, init_vtherm_
     assert result["step_id"] == "main"
 
     hass.config_entries.flow.async_abort(result["flow_id"])
+
+
+async def _open_options(hass: HomeAssistant, data: dict):
+    """Open the options flow of a configuration entry made of data. Returns the first result (the menu)"""
+    entry = MockConfigEntry(domain=DOMAIN, title=data[CONF_NAME], unique_id=data[CONF_NAME], data=data, version=2)
+    entry.add_to_hass(hass)
+    result = await hass.config_entries.options.async_init(entry.entry_id)
+    return entry, result
+
+
+def _climate_valve_data() -> dict:
+    """The data of an existing over_climate VTherm with valve regulation, 2 devices and the synchronization of the internal temperature"""
+    return _complete_climate_valve_infos() | {
+        CONF_SYNC_DEVICE_INTERNAL_TEMP: True,
+        CONF_SYNC_WITH_CALIBRATION: True,
+        CONF_SYNC_ENTITY_LIST: ["number.calibration1", "number.calibration2"],
+        CONF_MIN_OPENING_DEGREES: "10, 20",
+        CONF_MAX_OPENING_DEGREES: "80, 90",
+        CONF_OPENING_THRESHOLD_DEGREE: 5,
+    }
+
+
+async def test_options_flow_opens_the_menu_and_lists_existing_underlyings(hass: HomeAssistant, init_vtherm_api, skip_hass_states_get) -> None:
+    """The options flow opens the menu directly and an existing configuration is correctly displayed in the underlyings list"""
+    _, result = await _open_options(hass, _climate_valve_data())
+    assert result["type"] == FlowResultType.MENU
+    assert result["step_id"] == "menu"
+    assert "finalize" in result["menu_options"]
+    assert "valve_regulation" not in result["menu_options"]
+    assert "sync_device_internal_temp" not in result["menu_options"]
+
+    result = await hass.config_entries.options.async_configure(result["flow_id"], user_input={"next_step_id": "type"})
+    assert result["type"] == FlowResultType.MENU
+    assert result["step_id"] == "type"
+    assert result["menu_options"] == ["underlying_common", "underlying_1", "underlying_2", "underlying_add", "menu"]
+    placeholders = result["description_placeholders"]
+    assert placeholders["underlying_1"] == "climate.mock_climate1"
+    assert placeholders["underlying_2"] == "climate.mock_climate2"
+    # the details give the entities of the device and its settings
+    assert "number.opening1" in placeholders["underlying_1_details"]
+    assert "number.calibration1" in placeholders["underlying_1_details"]
+    assert "10" in placeholders["underlying_1_details"]
+    assert "80" in placeholders["underlying_1_details"]
+    assert "90" in placeholders["underlying_2_details"]
+    assert not placeholders["underlying_1_details"].startswith("⚠")
+    assert placeholders["underlying_common_details"] != ""
+    hass.config_entries.options.async_abort(result["flow_id"])
+
+
+async def test_options_flow_underlying_with_missing_settings(hass: HomeAssistant, init_vtherm_api, skip_hass_states_get) -> None:
+    """A device with a missing mandatory setting is flagged in the list and the 'configuration not complete' menu opens the list"""
+    data = _climate_valve_data() | {CONF_OPENING_DEGREE_LIST: ["number.opening1"]}
+    _, result = await _open_options(hass, data)
+    assert result["menu_options"][-1] == "configuration_not_complete"
+
+    result = await hass.config_entries.options.async_configure(result["flow_id"], user_input={"next_step_id": "configuration_not_complete"})
+    assert result["step_id"] == "configuration_not_complete"
+    assert result["menu_options"] == ["type", "menu"]
+    assert "climate.mock_climate2" in result["description_placeholders"]["missing_items"]
+
+    result = await hass.config_entries.options.async_configure(result["flow_id"], user_input={"next_step_id": "type"})
+    assert result["step_id"] == "type"
+    assert not result["description_placeholders"]["underlying_1_details"].startswith("⚠")
+    assert result["description_placeholders"]["underlying_2_details"].startswith("⚠")
+
+    # Open the device with the missing opening entity and fix it
+    result = await hass.config_entries.options.async_configure(result["flow_id"], user_input={"next_step_id": "underlying_2"})
+    assert result["type"] == FlowResultType.FORM
+    assert result["step_id"] == "underlying"
+    result = await hass.config_entries.options.async_configure(
+        result["flow_id"],
+        user_input={
+            CONF_OPENING_DEGREE_ENTITY: "number.opening2",
+            CONF_SYNC_ENTITY: "number.calibration2",
+            CONF_MIN_OPENING_DEGREE: 20,
+            CONF_MAX_OPENING_DEGREE: 90,
+        },
+    )
+    assert result["step_id"] == "type"
+    assert not result["description_placeholders"]["underlying_2_details"].startswith("⚠")
+    result = await hass.config_entries.options.async_configure(result["flow_id"], user_input={"next_step_id": "menu"})
+    assert "finalize" in result["menu_options"]
+    hass.config_entries.options.async_abort(result["flow_id"])
+
+
+async def test_underlying_edit_keeps_the_lists_consistent(hass: HomeAssistant, init_vtherm_api, skip_hass_states_get) -> None:
+    """Editing a device changes the position of this device in all the lists and nothing else"""
+    entry, result = await _open_options(hass, _climate_valve_data())
+    original = dict(entry.data)
+    flow_id = result["flow_id"]
+    result = await hass.config_entries.options.async_configure(flow_id, user_input={"next_step_id": "type"})
+    result = await hass.config_entries.options.async_configure(flow_id, user_input={"next_step_id": "underlying_2"})
+    assert result["step_id"] == "underlying"
+    # The edit form has the replace and remove fields, with the current values suggested
+    assert CONF_REPLACE_ENTITY in result["data_schema"].schema
+    assert CONF_REMOVE_UNDERLYING in result["data_schema"].schema
+    suggested = {str(key): key.description["suggested_value"] for key in result["data_schema"].schema if key.description}
+    assert suggested[CONF_OPENING_DEGREE_ENTITY] == "number.opening2"
+    assert suggested[CONF_SYNC_ENTITY] == "number.calibration2"
+    assert suggested[CONF_MIN_OPENING_DEGREE] == 20
+    assert suggested[CONF_MAX_OPENING_DEGREE] == 90
+    assert suggested[CONF_REPLACE_ENTITY] == "climate.mock_climate2"
+
+    result = await hass.config_entries.options.async_configure(
+        flow_id,
+        user_input={
+            CONF_OPENING_DEGREE_ENTITY: "number.new_opening2",
+            CONF_CLOSING_DEGREE_ENTITY: "number.new_closing2",
+            CONF_SYNC_ENTITY: "number.new_calibration2",
+            CONF_MIN_OPENING_DEGREE: 25,
+            CONF_MAX_OPENING_DEGREE: 95,
+            CONF_REPLACE_ENTITY: "climate.mock_climate2",
+            CONF_REMOVE_UNDERLYING: False,
+        },
+    )
+    assert result["step_id"] == "type"
+
+    # The other device is untouched, the closing entity of the first device is missing: closing entities are all or none
+    flow = hass.config_entries.options._progress[flow_id]  # pylint: disable=protected-access
+    infos = flow._infos  # pylint: disable=protected-access
+    assert infos[CONF_UNDERLYING_LIST] == original[CONF_UNDERLYING_LIST]
+    assert infos[CONF_OPENING_DEGREE_LIST] == ["number.opening1", "number.new_opening2"]
+    assert infos[CONF_CLOSING_DEGREE_LIST] == ["", "number.new_closing2"]
+    assert infos[CONF_SYNC_ENTITY_LIST] == ["number.calibration1", "number.new_calibration2"]
+    assert infos[CONF_MIN_OPENING_DEGREES] == "10, 25"
+    assert infos[CONF_MAX_OPENING_DEGREES] == "80, 95"
+    assert result["description_placeholders"]["underlying_1_details"].startswith("⚠")
+    assert not result["description_placeholders"]["underlying_2_details"].startswith("⚠")
+    assert [(item.step_id, item.fields) for item in flow.get_missing_config(infos)] == [("type", [CONF_CLOSING_DEGREE_ENTITY])]
+
+    # the configuration entry is not modified until the finalization
+    assert dict(entry.data) == original
+    hass.config_entries.options.async_abort(flow_id)
+
+
+async def test_underlying_replace_and_remove(hass: HomeAssistant, init_vtherm_api, skip_hass_states_get) -> None:
+    """Replace the entity of a device, then remove a device: all the lists stay aligned"""
+    entry, result = await _open_options(hass, _climate_valve_data() | {CONF_CLOSING_DEGREE_LIST: ["number.closing1", "number.closing2"]})
+    flow_id = result["flow_id"]
+    flow = hass.config_entries.options._progress[flow_id]  # pylint: disable=protected-access
+    result = await hass.config_entries.options.async_configure(flow_id, user_input={"next_step_id": "type"})
+
+    # 1. replace the entity of the first device, an entity already used is refused
+    result = await hass.config_entries.options.async_configure(flow_id, user_input={"next_step_id": "underlying_1"})
+    result = await hass.config_entries.options.async_configure(
+        flow_id,
+        user_input={
+            CONF_OPENING_DEGREE_ENTITY: "number.opening1",
+            CONF_CLOSING_DEGREE_ENTITY: "number.closing1",
+            CONF_SYNC_ENTITY: "number.calibration1",
+            CONF_MIN_OPENING_DEGREE: 10,
+            CONF_MAX_OPENING_DEGREE: 80,
+            CONF_REPLACE_ENTITY: "climate.mock_climate2",
+        },
+    )
+    assert result["step_id"] == "underlying"
+    assert result["errors"] == {CONF_REPLACE_ENTITY: "underlying_already_added"}
+
+    result = await hass.config_entries.options.async_configure(
+        flow_id,
+        user_input={
+            CONF_OPENING_DEGREE_ENTITY: "number.opening1",
+            CONF_CLOSING_DEGREE_ENTITY: "number.closing1",
+            CONF_SYNC_ENTITY: "number.calibration1",
+            CONF_MIN_OPENING_DEGREE: 10,
+            CONF_MAX_OPENING_DEGREE: 80,
+            CONF_REPLACE_ENTITY: "climate.mock_climate3",
+        },
+    )
+    assert result["step_id"] == "type"
+    assert flow._infos[CONF_UNDERLYING_LIST] == ["climate.mock_climate3", "climate.mock_climate2"]  # pylint: disable=protected-access
+    assert flow._infos[CONF_OPENING_DEGREE_LIST] == ["number.opening1", "number.opening2"]  # pylint: disable=protected-access
+
+    # 2. add a third device
+    result = await hass.config_entries.options.async_configure(flow_id, user_input={"next_step_id": "underlying_add"})
+    result = await hass.config_entries.options.async_configure(flow_id, user_input={CONF_UNDERLYING_ENTITY: "climate.mock_climate2"})
+    assert result["step_id"] == "underlying_add"
+    assert result["errors"] == {CONF_UNDERLYING_ENTITY: "underlying_already_added"}
+    result = await hass.config_entries.options.async_configure(flow_id, user_input={CONF_UNDERLYING_ENTITY: "climate.mock_climate4"})
+    assert result["step_id"] == "underlying"
+    # no replace nor remove for a new device
+    assert CONF_REPLACE_ENTITY not in result["data_schema"].schema
+    assert CONF_REMOVE_UNDERLYING not in result["data_schema"].schema
+    result = await hass.config_entries.options.async_configure(
+        flow_id,
+        user_input={
+            CONF_OPENING_DEGREE_ENTITY: "number.opening4",
+            CONF_CLOSING_DEGREE_ENTITY: "number.closing4",
+            CONF_SYNC_ENTITY: "number.calibration4",
+            CONF_MIN_OPENING_DEGREE: 0,
+            CONF_MAX_OPENING_DEGREE: 100,
+        },
+    )
+    assert result["menu_options"] == ["underlying_common", "underlying_1", "underlying_2", "underlying_3", "underlying_add", "menu"]
+    infos = flow._infos  # pylint: disable=protected-access
+    assert infos[CONF_UNDERLYING_LIST] == ["climate.mock_climate3", "climate.mock_climate2", "climate.mock_climate4"]
+    assert infos[CONF_OPENING_DEGREE_LIST] == ["number.opening1", "number.opening2", "number.opening4"]
+    assert infos[CONF_CLOSING_DEGREE_LIST] == ["number.closing1", "number.closing2", "number.closing4"]
+    assert infos[CONF_SYNC_ENTITY_LIST] == ["number.calibration1", "number.calibration2", "number.calibration4"]
+    assert infos[CONF_MIN_OPENING_DEGREES] == "10, 20, 0"
+    assert infos[CONF_MAX_OPENING_DEGREES] == "80, 90, 100"
+
+    # 3. remove the second device
+    result = await hass.config_entries.options.async_configure(flow_id, user_input={"next_step_id": "underlying_2"})
+    result = await hass.config_entries.options.async_configure(flow_id, user_input={CONF_REMOVE_UNDERLYING: True})
+    assert result["step_id"] == "type"
+    assert result["menu_options"] == ["underlying_common", "underlying_1", "underlying_2", "underlying_add", "menu"]
+    assert infos[CONF_UNDERLYING_LIST] == ["climate.mock_climate3", "climate.mock_climate4"]
+    assert infos[CONF_OPENING_DEGREE_LIST] == ["number.opening1", "number.opening4"]
+    assert infos[CONF_CLOSING_DEGREE_LIST] == ["number.closing1", "number.closing4"]
+    assert infos[CONF_SYNC_ENTITY_LIST] == ["number.calibration1", "number.calibration4"]
+    assert infos[CONF_MIN_OPENING_DEGREES] == "10, 0"
+    assert infos[CONF_MAX_OPENING_DEGREES] == "80, 100"
+    assert flow.get_missing_config(infos) == []
+
+    # 4. the configuration entry is updated when the flow is finalized
+    result = await hass.config_entries.options.async_configure(flow_id, user_input={"next_step_id": "menu"})
+    result = await hass.config_entries.options.async_configure(flow_id, user_input={"next_step_id": "finalize"})
+    assert result["type"] == FlowResultType.CREATE_ENTRY
+    assert entry.data[CONF_UNDERLYING_LIST] == ["climate.mock_climate3", "climate.mock_climate4"]
+    assert entry.data[CONF_OPENING_DEGREE_LIST] == ["number.opening1", "number.opening4"]
+
+
+async def test_underlying_remove_last_values_removes_the_optional_lists(hass: HomeAssistant, init_vtherm_api, skip_hass_states_get) -> None:
+    """The optional lists are removed when no device uses them anymore, the min / max opening degrees when they are the default ones"""
+    data = _climate_valve_data() | {CONF_CLOSING_DEGREE_LIST: ["number.closing1", ""]}
+    _, result = await _open_options(hass, data)
+    flow_id = result["flow_id"]
+    flow = hass.config_entries.options._progress[flow_id]  # pylint: disable=protected-access
+    await hass.config_entries.options.async_configure(flow_id, user_input={"next_step_id": "type"})
+
+    # The closing entity of the first device is removed: the closing list is empty
+    await hass.config_entries.options.async_configure(flow_id, user_input={"next_step_id": "underlying_1"})
+    await hass.config_entries.options.async_configure(
+        flow_id,
+        user_input={CONF_OPENING_DEGREE_ENTITY: "number.opening1", CONF_SYNC_ENTITY: "number.calibration1", CONF_MIN_OPENING_DEGREE: 0, CONF_MAX_OPENING_DEGREE: 100},
+    )
+    assert flow._infos[CONF_CLOSING_DEGREE_LIST] == []  # pylint: disable=protected-access
+    # the second device has min 20 and max 90, so the lists are still there
+    assert flow._infos[CONF_MIN_OPENING_DEGREES] == "0, 20"  # pylint: disable=protected-access
+    assert flow._infos[CONF_MAX_OPENING_DEGREES] == "100, 90"  # pylint: disable=protected-access
+
+    await hass.config_entries.options.async_configure(flow_id, user_input={"next_step_id": "underlying_2"})
+    await hass.config_entries.options.async_configure(
+        flow_id,
+        user_input={CONF_OPENING_DEGREE_ENTITY: "number.opening2", CONF_SYNC_ENTITY: "number.calibration2", CONF_MIN_OPENING_DEGREE: 0, CONF_MAX_OPENING_DEGREE: 100},
+    )
+    assert CONF_MIN_OPENING_DEGREES not in flow._infos  # pylint: disable=protected-access
+    assert CONF_MAX_OPENING_DEGREES not in flow._infos  # pylint: disable=protected-access
+    hass.config_entries.options.async_abort(flow_id)
+
+
+async def test_underlying_shorter_csv_lists_use_default_values(hass: HomeAssistant, init_vtherm_api, skip_hass_states_get) -> None:
+    """The min / max opening degrees of an existing configuration can be shorter than the underlyings: the default values are used"""
+    data = _climate_valve_data() | {CONF_MIN_OPENING_DEGREES: "10", CONF_MAX_OPENING_DEGREES: "80"}
+    _, result = await _open_options(hass, data)
+    flow_id = result["flow_id"]
+    await hass.config_entries.options.async_configure(flow_id, user_input={"next_step_id": "type"})
+    result = await hass.config_entries.options.async_configure(flow_id, user_input={"next_step_id": "underlying_2"})
+    suggested = {str(key): key.description["suggested_value"] for key in result["data_schema"].schema if key.description}
+    assert suggested[CONF_MIN_OPENING_DEGREE] == 0
+    assert suggested[CONF_MAX_OPENING_DEGREE] == 100
+    # the number selectors are bounded by the maximum of the valve
+    assert result["data_schema"].schema[CONF_MAX_OPENING_DEGREE].config["max"] == 100
+    hass.config_entries.options.async_abort(flow_id)
+
+
+async def test_over_switch_underlyings(hass: HomeAssistant, init_vtherm_api, skip_hass_states_get) -> None:
+    """An over_switch device: custom commands are optional for a switch (in a section) and mandatory for the other entities"""
+    data = _complete_switch_infos()
+    entry, result = await _open_options(hass, data)
+    flow_id = result["flow_id"]
+    flow = hass.config_entries.options._progress[flow_id]  # pylint: disable=protected-access
+    await hass.config_entries.options.async_configure(flow_id, user_input={"next_step_id": "type"})
+
+    # common settings of a switch
+    result = await hass.config_entries.options.async_configure(flow_id, user_input={"next_step_id": "underlying_common"})
+    assert set(result["data_schema"].schema.keys()) == {CONF_HEATER_KEEP_ALIVE, CONF_PROP_FUNCTION, CONF_AC_MODE, CONF_INVERSE_SWITCH}
+    result = await hass.config_entries.options.async_configure(flow_id, user_input={CONF_PROP_FUNCTION: PROPORTIONAL_FUNCTION_TPI, CONF_AC_MODE: True})
+    assert result["step_id"] == "type"
+    assert flow._infos[CONF_AC_MODE] is True  # pylint: disable=protected-access
+
+    # a switch: the commands are in a section
+    result = await hass.config_entries.options.async_configure(flow_id, user_input={"next_step_id": "underlying_add"})
+    result = await hass.config_entries.options.async_configure(flow_id, user_input={CONF_UNDERLYING_ENTITY: "switch.mock_switch2"})
+    assert result["step_id"] == "underlying"
+    assert CONF_VSWITCH_COMMANDS_SECTION in result["data_schema"].schema
+    assert CONF_VSWITCH_ON_CMD not in result["data_schema"].schema
+    result = await hass.config_entries.options.async_configure(flow_id, user_input={CONF_VSWITCH_COMMANDS_SECTION: {}})
+    assert result["step_id"] == "type"
+    assert CONF_VSWITCH_ON_CMD_LIST not in flow._infos  # pylint: disable=protected-access
+    assert flow._infos[CONF_UNDERLYING_LIST] == ["switch.mock_switch", "switch.mock_switch2"]  # pylint: disable=protected-access
+
+    # an entity which is not a switch: the commands are mandatory and are checked
+    result = await hass.config_entries.options.async_configure(flow_id, user_input={"next_step_id": "underlying_add"})
+    result = await hass.config_entries.options.async_configure(flow_id, user_input={CONF_UNDERLYING_ENTITY: "select.mock_select"})
+    assert result["step_id"] == "underlying"
+    assert CONF_VSWITCH_ON_CMD in result["data_schema"].schema
+    assert CONF_VSWITCH_COMMANDS_SECTION not in result["data_schema"].schema
+    result = await hass.config_entries.options.async_configure(flow_id, user_input={CONF_VSWITCH_ON_CMD: "select_option/option on", CONF_VSWITCH_OFF_CMD: "select_option/option:off"})
+    assert result["step_id"] == "underlying"
+    assert result["errors"] == {"base": "vswitch_configuration_incorrect"}
+    result = await hass.config_entries.options.async_configure(flow_id, user_input={CONF_VSWITCH_ON_CMD: "select_option/option:on", CONF_VSWITCH_OFF_CMD: "select_option/option:off"})
+    assert result["step_id"] == "type"
+    infos = flow._infos  # pylint: disable=protected-access
+    assert infos[CONF_UNDERLYING_LIST] == ["switch.mock_switch", "switch.mock_switch2", "select.mock_select"]
+    assert infos[CONF_VSWITCH_ON_CMD_LIST] == ["", "", "select_option/option:on"]
+    assert infos[CONF_VSWITCH_OFF_CMD_LIST] == ["", "", "select_option/option:off"]
+
+    # The commands are given for all the devices or for none: the switches have to be completed
+    assert [(item.step_id, item.fields, item.device) for item in flow.get_missing_config(infos)] == [
+        ("type", [CONF_VSWITCH_ON_CMD, CONF_VSWITCH_OFF_CMD], "switch.mock_switch"),
+        ("type", [CONF_VSWITCH_ON_CMD, CONF_VSWITCH_OFF_CMD], "switch.mock_switch2"),
+    ]
+    assert result["description_placeholders"]["underlying_1_details"].startswith("⚠")
+    for idx, entity_id in ((1, "switch.mock_switch"), (2, "switch.mock_switch2")):
+        result = await hass.config_entries.options.async_configure(flow_id, user_input={"next_step_id": f"underlying_{idx}"})
+        assert result["step_id"] == "underlying"
+        # the section is expanded when a device has commands
+        result = await hass.config_entries.options.async_configure(
+            flow_id, user_input={CONF_VSWITCH_COMMANDS_SECTION: {CONF_VSWITCH_ON_CMD: f"turn_on{idx}", CONF_VSWITCH_OFF_CMD: f"turn_off{idx}"}}
+        )
+        assert result["step_id"] == "type"
+    assert infos[CONF_VSWITCH_ON_CMD_LIST] == ["turn_on1", "turn_on2", "select_option/option:on"]
+    assert infos[CONF_VSWITCH_OFF_CMD_LIST] == ["turn_off1", "turn_off2", "select_option/option:off"]
+    assert flow.get_missing_config(infos) == []
+
+    # Replace the select by a switch: the commands become optional
+    result = await hass.config_entries.options.async_configure(flow_id, user_input={"next_step_id": "underlying_3"})
+    result = await hass.config_entries.options.async_configure(
+        flow_id, user_input={CONF_VSWITCH_ON_CMD: "select_option/option:on", CONF_VSWITCH_OFF_CMD: "select_option/option:off", CONF_REPLACE_ENTITY: "switch.mock_switch3"}
+    )
+    # the form is displayed again for the new kind of entity
+    assert result["step_id"] == "underlying"
+    assert flow._infos[CONF_UNDERLYING_LIST][2] == "switch.mock_switch3"  # pylint: disable=protected-access
+    assert CONF_VSWITCH_COMMANDS_SECTION in result["data_schema"].schema
+    result = await hass.config_entries.options.async_configure(flow_id, user_input={CONF_VSWITCH_COMMANDS_SECTION: {CONF_VSWITCH_ON_CMD: "turn_on3", CONF_VSWITCH_OFF_CMD: "turn_off3"}})
+    assert result["step_id"] == "type"
+    assert flow._infos[CONF_VSWITCH_ON_CMD_LIST] == ["turn_on1", "turn_on2", "turn_on3"]  # pylint: disable=protected-access
+    assert dict(entry.data) == data
+    hass.config_entries.options.async_abort(flow_id)
+
+
+async def test_over_valve_underlyings(hass: HomeAssistant, init_vtherm_api, skip_hass_states_get) -> None:
+    """An over_valve device has a minimum and a maximum opening, bounded by the maximum of the valve"""
+    data = _complete_switch_infos() | {
+        CONF_THERMOSTAT_TYPE: CONF_THERMOSTAT_VALVE,
+        CONF_UNDERLYING_LIST: ["number.valve1"],
+        CONF_MIN_OPENING_DEGREES: "10",
+        CONF_MAX_OPENING_DEGREES: "80",
+    }
+    _, result = await _open_options(hass, data)
+    flow_id = result["flow_id"]
+    flow = hass.config_entries.options._progress[flow_id]  # pylint: disable=protected-access
+    result = await hass.config_entries.options.async_configure(flow_id, user_input={"next_step_id": "type"})
+    assert result["menu_options"] == ["underlying_common", "underlying_1", "underlying_add", "menu"]
+
+    # add a second valve whose max is 50
+    result = await hass.config_entries.options.async_configure(flow_id, user_input={"next_step_id": "underlying_add"})
+    with patch.object(StateMachine, "get", return_value=State("number.valve2", "0", attributes={"max": 50, "min": 0})):
+        result = await hass.config_entries.options.async_configure(flow_id, user_input={CONF_UNDERLYING_ENTITY: "number.valve2"})
+        assert result["step_id"] == "underlying"
+        assert result["data_schema"].schema[CONF_MAX_OPENING_DEGREE].config["max"] == 50
+        assert set(result["data_schema"].schema.keys()) == {CONF_MIN_OPENING_DEGREE, CONF_MAX_OPENING_DEGREE}
+        result = await hass.config_entries.options.async_configure(flow_id, user_input={CONF_MIN_OPENING_DEGREE: 5, CONF_MAX_OPENING_DEGREE: 50})
+    assert result["step_id"] == "type"
+    assert flow._infos[CONF_UNDERLYING_LIST] == ["number.valve1", "number.valve2"]  # pylint: disable=protected-access
+    assert flow._infos[CONF_MIN_OPENING_DEGREES] == "10, 5"  # pylint: disable=protected-access
+    # 50 is the default of the second valve but the first one has 80
+    assert flow._infos[CONF_MAX_OPENING_DEGREES] == "80, 50"  # pylint: disable=protected-access
+    hass.config_entries.options.async_abort(flow_id)
+
+
+async def test_underlying_slots_are_generated(hass: HomeAssistant, init_vtherm_api, skip_hass_states_get) -> None:
+    """One step is generated for each device which can be displayed, and the menu is limited to the slots"""
+    from custom_components.versatile_thermostat.config_flow import VersatileThermostatOptionsFlowHandler  # pylint: disable=import-outside-toplevel
+
+    for slot in range(1, MAX_UNDERLYINGS + 1):
+        assert hasattr(VersatileThermostatOptionsFlowHandler, f"async_step_underlying_{slot}")
+        assert hasattr(VersatileThermostatConfigFlow, f"async_step_underlying_{slot}")
+    assert not hasattr(VersatileThermostatConfigFlow, f"async_step_underlying_{MAX_UNDERLYINGS + 1}")
+
+    # with the maximum of devices, a device cannot be added anymore
+    entities = [f"switch.mock_switch{idx}" for idx in range(MAX_UNDERLYINGS)]
+    _, result = await _open_options(hass, _complete_switch_infos() | {CONF_UNDERLYING_LIST: entities})
+    result = await hass.config_entries.options.async_configure(result["flow_id"], user_input={"next_step_id": "type"})
+    assert len(result["menu_options"]) == MAX_UNDERLYINGS + 2
+    assert "underlying_add" not in result["menu_options"]
+    assert result["menu_options"][-2] == f"underlying_{MAX_UNDERLYINGS}"
+    hass.config_entries.options.async_abort(result["flow_id"])
+
+
+async def test_underlying_with_nothing_to_ask_is_added_directly(hass: HomeAssistant, init_vtherm_api, skip_hass_states_get) -> None:
+    """An over_climate without valve regulation nor synchronization has no specific setting: the device is added at once"""
+    data = _complete_switch_infos() | {CONF_THERMOSTAT_TYPE: CONF_THERMOSTAT_CLIMATE, CONF_UNDERLYING_LIST: ["climate.mock_climate1"]}
+    _, result = await _open_options(hass, data)
+    flow_id = result["flow_id"]
+    await hass.config_entries.options.async_configure(flow_id, user_input={"next_step_id": "type"})
+    await hass.config_entries.options.async_configure(flow_id, user_input={"next_step_id": "underlying_add"})
+    result = await hass.config_entries.options.async_configure(flow_id, user_input={CONF_UNDERLYING_ENTITY: "climate.mock_climate2"})
+    assert result["step_id"] == "type"
+    assert result["menu_options"] == ["underlying_common", "underlying_1", "underlying_2", "underlying_add", "menu"]
+
+    # the edit form of such a device only has the replace and remove fields
+    result = await hass.config_entries.options.async_configure(flow_id, user_input={"next_step_id": "underlying_2"})
+    assert result["step_id"] == "underlying"
+    assert set(result["data_schema"].schema.keys()) == {CONF_REPLACE_ENTITY, CONF_REMOVE_UNDERLYING}
+    result = await hass.config_entries.options.async_configure(flow_id, user_input={CONF_REMOVE_UNDERLYING: True})
+    assert result["menu_options"] == ["underlying_common", "underlying_1", "underlying_add", "menu"]
+    hass.config_entries.options.async_abort(flow_id)
+
+
+TRANSLATIONS_DIR = Path(__file__).parent.parent / "custom_components" / DOMAIN / "translations"
+
+
+@pytest.mark.parametrize("language_file", sorted(TRANSLATIONS_DIR.glob("*.json")), ids=lambda path: path.stem)
+@pytest.mark.parametrize("section", ["config", "options"])
+def test_translations_of_the_config_flow_steps(language_file: Path, section: str) -> None:
+    """The steps and the errors added by the config flow are translated in all the languages, in the config and options sections"""
+    translations = json.loads(language_file.read_text(encoding="utf-8"))
+    steps = translations[section]["step"]
+
+    # The steps of the underlyings
+    for step_id in ("type", "underlying_common", "underlying_common_extra", "underlying_add", "underlying", "configuration_not_complete"):
+        assert step_id in steps, step_id
+        assert steps[step_id]["title"]
+    assert steps["underlying"]["sections"]["commands"]["name"]
+
+    # The menu of the underlyings has one option and one description for each device which can be displayed
+    menu_options = steps["type"]["menu_options"]
+    descriptions = steps["type"]["menu_option_descriptions"]
+    for key in ["underlying_common", "underlying_add", "menu"] + [f"underlying_{slot}" for slot in range(1, MAX_UNDERLYINGS + 1)]:
+        assert menu_options[key], key
+    for slot in range(1, MAX_UNDERLYINGS + 1):
+        assert menu_options[f"underlying_{slot}"] == "{underlying_%d}" % slot
+        assert descriptions[f"underlying_{slot}"] == "{underlying_%d_details}" % slot
+
+    # The valve regulation and the synchronization are now settings of the underlyings
+    for step_id in ("valve_regulation", "sync_device_internal_temp"):
+        assert step_id not in steps
+        assert step_id not in steps.get("menu", {}).get("menu_options", {})
+        assert step_id not in steps["configuration_not_complete"]["menu_options"]
+
+    # The steps which can be fixed from the 'configuration not complete' menu
+    for step_id in ("main", "type", "tpi", "presets", "power", "motion", "presence", "advanced", "central_boiler", "menu"):
+        assert steps["configuration_not_complete"]["menu_options"][step_id]
+    assert "{missing_items}" in steps["configuration_not_complete"]["description"]
+
+    errors = translations[section]["error"]
+    for key in ("underlying_already_added", "max_opening_degree_out_of_range", "underlying_field_missing", "missing_settings_summary", "min_max_opening_degrees_inconsistent", "vswitch_configuration_incorrect"):
+        assert errors[key], key

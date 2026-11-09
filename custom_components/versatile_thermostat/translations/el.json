@@ -56,58 +56,55 @@
       },
       "type": {
         "title": "Συνδεδεμένες οντότητες",
-        "description": "Χαρακτηριστικά συνδεδεμένων οντοτήτων",
-        "data": {
-          "heater_entity_id": "1ος διακόπτης θερμαντήρα",
-          "heater_entity2_id": "2ος διακόπτης θερμαντήρα",
-          "heater_entity3_id": "3ος διακόπτης θερμαντήρα",
-          "heater_entity4_id": "4ος διακόπτης θερμαντήρα",
-          "proportional_function": "Αλγόριθμος",
-          "climate_entity_id": "1η υποκείμενη κλιματική οντότητα",
-          "climate_entity2_id": "2η υποκείμενη κλιματική οντότητα",
-          "climate_entity3_id": "3η υποκείμενη κλιματική οντότητα",
-          "climate_entity4_id": "4η υποκείμενη κλιματική οντότητα",
-          "ac_mode": "Λειτουργία AC",
-          "sync_device_internal_temp": "Συγχρονισμός εσωτερικής θερμοκρασίας συσκευής",
-          "valve_entity_id": "1ος αριθμός βαλβίδας",
-          "valve_entity2_id": "2ος αριθμός βαλβίδας",
-          "valve_entity3_id": "3ος αριθμός βαλβίδας",
-          "valve_entity4_id": "4ος αριθμός βαλβίδας",
-          "auto_regulation_mode": "Αυτόματη ρύθμιση",
-          "auto_regulation_dtemp": "Όριο ρύθμισης",
-          "auto_regulation_periode_min": "Ελάχιστη περίοδος ρύθμισης",
-          "opening_threshold_degree": "Κατώφλι ανοίγματος",
-          "min_opening_degrees": "Ελάχιστοι βαθμοί ανοίγματος",
-          "max_opening_degrees": "Μέγιστος βαθμός ανοίγματος",
-          "max_closing_degree": "Μέγιστος βαθμός κλεισίματος",
-          "inverse_switch_command": "Αντίστροφη εντολή διακόπτη",
-          "auto_fan_mode": "Auto fan mode"
+        "description": "{wizard_progress}Συσκευές που ελέγχει αυτό το VTherm. Ανοίξτε τις κοινές ρυθμίσεις, μια συσκευή για να δείτε και να αλλάξετε όλες τις ρυθμίσεις της, ή προσθέστε μια συσκευή.",
+        "menu_options": {
+          "underlying_common": "Κοινές ρυθμίσεις",
+          "underlying_1": "{underlying_1}",
+          "underlying_2": "{underlying_2}",
+          "underlying_3": "{underlying_3}",
+          "underlying_4": "{underlying_4}",
+          "underlying_5": "{underlying_5}",
+          "underlying_6": "{underlying_6}",
+          "underlying_7": "{underlying_7}",
+          "underlying_8": "{underlying_8}",
+          "underlying_9": "{underlying_9}",
+          "underlying_10": "{underlying_10}",
+          "underlying_11": "{underlying_11}",
+          "underlying_12": "{underlying_12}",
+          "underlying_13": "{underlying_13}",
+          "underlying_14": "{underlying_14}",
+          "underlying_15": "{underlying_15}",
+          "underlying_16": "{underlying_16}",
+          "underlying_17": "{underlying_17}",
+          "underlying_18": "{underlying_18}",
+          "underlying_19": "{underlying_19}",
+          "underlying_20": "{underlying_20}",
+          "underlying_add": "Προσθήκη συσκευής",
+          "menu": "Πίσω στο μενού"
         },
-        "data_description": {
-          "heater_entity_id": "Υποχρεωτική ταυτότητα οντότητας θερμαντήρα",
-          "heater_entity2_id": "Προαιρετική 2η ταυτότητα οντότητας θερμαντήρα. Αφήστε κενό αν δεν χρησιμοποιείται",
-          "heater_entity3_id": "Προαιρετική 3η ταυτότητα οντότητας θερμαντήρα. Αφήστε κενό αν δεν χρησιμοποιείται",
-          "heater_entity4_id": "Προαιρετική 4η ταυτότητα οντότητας θερμαντήρα. Αφήστε κενό αν δεν χρησιμοποιείται",
-          "proportional_function": "Αλγόριθμος προς χρήση (άλλοι αλγόριθμοι μπορούν να εγκατασταθούν ως {plugins_link})",
-          "climate_entity_id": "Ταυτότητα υποκείμενης κλιματικής οντότητας",
-          "climate_entity2_id": "2η ταυτότητα υποκείμενης κλιματικής οντότητας",
-          "climate_entity3_id": "3η ταυτότητα υποκείμενης κλιματικής οντότητας",
-          "climate_entity4_id": "4η ταυτότητα υποκείμενης κλιματικής οντότητας",
-          "ac_mode": "Χρήση της λειτουργίας Κλιματισμού (AC)",
-          "sync_device_internal_temp": "Συγχρονισμός εσωτερικής θερμοκρασίας συσκευής",
-          "valve_entity_id": "1η ταυτότητα αριθμού βαλβίδας",
-          "valve_entity2_id": "2η ταυτότητα αριθμού βαλβίδας",
-          "valve_entity3_id": "3η ταυτότητα αριθμού βαλβίδας",
-          "valve_entity4_id": "4η ταυτότητα αριθμού βαλβίδας",
-          "auto_regulation_mode": "Αυτόματη προσαρμογή της στοχευμένης θερμοκρασίας",
-          "auto_regulation_dtemp": "Το όριο σε ° κάτω από το οποίο η αλλαγή θερμοκρασίας δεν θα αποστέλλεται",
-          "auto_regulation_periode_min": "Διάρκεια σε λεπτά μεταξύ δύο ενημερώσεων ρύθμισης",
-          "opening_threshold_degree": "Τιμή ανοίγματος της βαλβίδας κάτω από την οποία η βαλβίδα πρέπει να θεωρείται κλειστή (και τότε θα ισχύει το 'max_closing_degree')",
-          "min_opening_degrees": "Ελάχιστη τιμή βαθμού ανοίγματος για κάθε υποκείμενη συσκευή, διαχωρισμένη με κόμμα. Προεπιλεγμένη τιμή 0. Παράδειγμα: 20, 25, 30",
-          "max_opening_degrees": "Μέγιστη τιμή του βαθμού ανοίγματος. Η βαλβίδα δεν θα ανοίξει ποτέ περισσότερο από αυτήν την τιμή",
-          "max_closing_degree": "Μέγιστη τιμή του βαθμού κλεισίματος. Η βαλβίδα δεν θα κλείσει ποτέ περισσότερο από αυτήν την τιμή. Ορίστε το στο 100 για πλήρες κλείσιμο της βαλβίδας",
-          "inverse_switch_command": "Για διακόπτη με πιλοτικό καλώδιο και δίοδο μπορεί να χρειαστεί να αντιστρέψετε την εντολή",
-          "auto_fan_mode": "Automatically activate fan when huge heating/cooling is necessary"
+        "menu_option_descriptions": {
+          "underlying_common": "{underlying_common_details}",
+          "underlying_1": "{underlying_1_details}",
+          "underlying_2": "{underlying_2_details}",
+          "underlying_3": "{underlying_3_details}",
+          "underlying_4": "{underlying_4_details}",
+          "underlying_5": "{underlying_5_details}",
+          "underlying_6": "{underlying_6_details}",
+          "underlying_7": "{underlying_7_details}",
+          "underlying_8": "{underlying_8_details}",
+          "underlying_9": "{underlying_9_details}",
+          "underlying_10": "{underlying_10_details}",
+          "underlying_11": "{underlying_11_details}",
+          "underlying_12": "{underlying_12_details}",
+          "underlying_13": "{underlying_13_details}",
+          "underlying_14": "{underlying_14_details}",
+          "underlying_15": "{underlying_15_details}",
+          "underlying_16": "{underlying_16_details}",
+          "underlying_17": "{underlying_17_details}",
+          "underlying_18": "{underlying_18_details}",
+          "underlying_19": "{underlying_19_details}",
+          "underlying_20": "{underlying_20_details}",
+          "underlying_add": "Επιλογή άλλης συσκευής προς έλεγχο"
         }
       },
       "tpi": {
@@ -214,42 +211,6 @@
           "manual_override_duration_min": "Μετά από χειροκίνητη αλλαγή θερμοκρασίας, το VTherm επιστρέφει στην προηγούμενη προεπιλογή μετά από αυτή τη διάρκεια (σε λεπτά). Το 0 απενεργοποιεί τη λειτουργία."
         }
       },
-      "sync_device_internal_temp": {
-        "title": "Synchronize device internal temperature",
-        "description": "Configuration to synchronize the internal temperature of the underlying devices with selected entities",
-        "data": {
-          "sync_with_calibration": "Apply offset calibration",
-          "sync_entity_ids": "Entities id used for synchronization"
-        },
-        "data_description": {
-          "sync_with_calibration": "Check to apply the offset calibration when synchronizing the internal temperature. Uncheck to directly copy the temperature from the selected entities",
-          "sync_entity_ids": "The list of the entities used to synchronize the internal temperature of the underlying devices. There should be one per underlying device. Should be a calibration entity if checkbox is selected or a temperature entity otherwise. Both are `number` entities."
-        }
-      },
-      "valve_regulation": {
-        "title": "Αυτορύθμιση με βαλβίδα",
-        "description": "Διαμόρφωση για αυτορύθμιση με άμεσο έλεγχο της βαλβίδας",
-        "data": {
-          "offset_calibration_entity_ids": "Οντότητες βαθμονόμησης μετατόπισης",
-          "opening_degree_entity_ids": "Οντότητες βαθμού ανοίγματος",
-          "closing_degree_entity_ids": "Οντότητες βαθμού κλεισίματος",
-          "proportional_function": "Αλγόριθμος",
-          "opening_threshold_degree": "Κατώφλι ανοίγματος",
-          "min_opening_degrees": "Ελάχιστοι βαθμοί ανοίγματος",
-          "max_opening_degrees": "Μέγιστος βαθμός ανοίγματος",
-          "max_closing_degree": "Μέγιστος βαθμός κλεισίματος"
-        },
-        "data_description": {
-          "offset_calibration_entity_ids": "Η λίστα των οντοτήτων 'βαθμονόμησης μετατόπισης'. Ορίστε το εάν το TRV σας διαθέτει την οντότητα για καλύτερη ρύθμιση. Θα πρέπει να υπάρχει ένα για κάθε υποκείμενη κλιματική οντότητα",
-          "opening_degree_entity_ids": "Η λίστα των οντοτήτων 'βαθμού ανοίγματος'. Θα πρέπει να υπάρχει ένα για κάθε υποκείμενη κλιματική οντότητα",
-          "closing_degree_entity_ids": "Η λίστα των οντοτήτων 'βαθμού κλεισίματος'. Ορίστε το εάν το TRV σας διαθέτει την οντότητα για καλύτερη ρύθμιση. Θα πρέπει να υπάρχει ένα για κάθε υποκείμενη κλιματική οντότητα",
-          "proportional_function": "Αλγόριθμος προς χρήση (άλλοι αλγόριθμοι μπορούν να εγκατασταθούν ως {plugins_link})",
-          "opening_threshold_degree": "Τιμή ανοίγματος της βαλβίδας κάτω από την οποία η βαλβίδα πρέπει να θεωρείται κλειστή (και τότε θα ισχύει το 'max_closing_degree')",
-          "min_opening_degrees": "Ελάχιστη τιμή βαθμού ανοίγματος για κάθε υποκείμενη συσκευή, διαχωρισμένη με κόμμα. Προεπιλεγμένη τιμή 0. Παράδειγμα: 20, 25, 30",
-          "max_opening_degrees": "Μέγιστη τιμή του βαθμού ανοίγματος. Η βαλβίδα δεν θα ανοίξει ποτέ περισσότερο από αυτήν την τιμή",
-          "max_closing_degree": "Μέγιστη τιμή του βαθμού κλεισίματος. Η βαλβίδα δεν θα κλείσει ποτέ περισσότερο από αυτήν την τιμή. Ορίστε το στο 100 για πλήρες κλείσιμο της βαλβίδας"
-        }
-      },
       "auto_tpi_configuration": {
         "data": {
           "auto_tpi_cooling_rate": "Ρυθμός ψύξης ({unit}/h)"
@@ -293,8 +254,6 @@
           "presence": "Presence detection",
           "advanced": "Advanced parameters",
           "central_boiler": "Central boiler",
-          "valve_regulation": "Valve regulation configuration",
-          "sync_device_internal_temp": "Synchronize device temperature",
           "menu": "Πίσω στο μενού"
         },
         "menu_option_descriptions": {
@@ -306,9 +265,101 @@
           "motion": "Ανοίξτε αυτή την οθόνη για να συμπληρώσετε τις ρυθμίσεις που λείπουν",
           "presence": "Ανοίξτε αυτή την οθόνη για να συμπληρώσετε τις ρυθμίσεις που λείπουν",
           "advanced": "Ανοίξτε αυτή την οθόνη για να συμπληρώσετε τις ρυθμίσεις που λείπουν",
-          "central_boiler": "Ανοίξτε αυτή την οθόνη για να συμπληρώσετε τις ρυθμίσεις που λείπουν",
-          "valve_regulation": "Ανοίξτε αυτή την οθόνη για να συμπληρώσετε τις ρυθμίσεις που λείπουν",
-          "sync_device_internal_temp": "Ανοίξτε αυτή την οθόνη για να συμπληρώσετε τις ρυθμίσεις που λείπουν"
+          "central_boiler": "Ανοίξτε αυτή την οθόνη για να συμπληρώσετε τις ρυθμίσεις που λείπουν"
+        }
+      },
+      "underlying_common": {
+        "title": "Κοινές ρυθμίσεις",
+        "description": "{wizard_progress}Ρυθμίσεις που μοιράζονται όλες οι συσκευές αυτού του VTherm.",
+        "data": {
+          "proportional_function": "Αλγόριθμος",
+          "ac_mode": "Λειτουργία AC",
+          "inverse_switch_command": "Αντίστροφη εντολή διακόπτη",
+          "auto_regulation_dtemp": "Όριο ρύθμισης",
+          "auto_regulation_periode_min": "Ελάχιστη περίοδος ρύθμισης",
+          "opening_threshold_degree": "Κατώφλι ανοίγματος",
+          "max_closing_degree": "Μέγιστος βαθμός κλεισίματος",
+          "sync_device_internal_temp": "Συγχρονισμός εσωτερικής θερμοκρασίας συσκευής",
+          "auto_regulation_mode": "Αυτόματη ρύθμιση",
+          "auto_fan_mode": "Auto fan mode"
+        },
+        "data_description": {
+          "proportional_function": "Αλγόριθμος προς χρήση (άλλοι αλγόριθμοι μπορούν να εγκατασταθούν ως {plugins_link})",
+          "ac_mode": "Χρήση της λειτουργίας Κλιματισμού (AC)",
+          "inverse_switch_command": "Για διακόπτη με πιλοτικό καλώδιο και δίοδο μπορεί να χρειαστεί να αντιστρέψετε την εντολή",
+          "auto_regulation_dtemp": "Το όριο σε ° κάτω από το οποίο η αλλαγή θερμοκρασίας δεν θα αποστέλλεται",
+          "auto_regulation_periode_min": "Διάρκεια σε λεπτά μεταξύ δύο ενημερώσεων ρύθμισης",
+          "opening_threshold_degree": "Τιμή ανοίγματος της βαλβίδας κάτω από την οποία η βαλβίδα πρέπει να θεωρείται κλειστή (και τότε θα ισχύει το 'max_closing_degree')",
+          "max_closing_degree": "Μέγιστη τιμή του βαθμού κλεισίματος. Η βαλβίδα δεν θα κλείσει ποτέ περισσότερο από αυτήν την τιμή. Ορίστε το στο 100 για πλήρες κλείσιμο της βαλβίδας",
+          "sync_device_internal_temp": "Επιλέξτε για συγχρονισμό της εσωτερικής θερμοκρασίας των υποκείμενων συσκευών. Κάθε συσκευή χρειάζεται τότε τη δική της οντότητα συγχρονισμού, που ορίζεται στις ρυθμίσεις της συσκευής",
+          "auto_regulation_mode": "Αυτόματη προσαρμογή της στοχευμένης θερμοκρασίας",
+          "auto_fan_mode": "Automatically activate fan when huge heating/cooling is necessary"
+        }
+      },
+      "underlying_common_extra": {
+        "title": "Ρύθμιση με βαλβίδα και συγχρονισμός",
+        "description": "{wizard_progress}Ρυθμίσεις κοινές για όλες τις συσκευές, για τον άμεσο έλεγχο των βαλβίδων και τον συγχρονισμό της εσωτερικής θερμοκρασίας.",
+        "data": {
+          "proportional_function": "Αλγόριθμος",
+          "opening_threshold_degree": "Κατώφλι ανοίγματος",
+          "max_closing_degree": "Μέγιστος βαθμός κλεισίματος",
+          "sync_with_calibration": "Apply offset calibration"
+        },
+        "data_description": {
+          "proportional_function": "Αλγόριθμος προς χρήση (άλλοι αλγόριθμοι μπορούν να εγκατασταθούν ως {plugins_link})",
+          "opening_threshold_degree": "Τιμή ανοίγματος της βαλβίδας κάτω από την οποία η βαλβίδα πρέπει να θεωρείται κλειστή (και τότε θα ισχύει το 'max_closing_degree')",
+          "max_closing_degree": "Μέγιστη τιμή του βαθμού κλεισίματος. Η βαλβίδα δεν θα κλείσει ποτέ περισσότερο από αυτήν την τιμή. Ορίστε το στο 100 για πλήρες κλείσιμο της βαλβίδας",
+          "sync_with_calibration": "Check to apply the offset calibration when synchronizing the internal temperature. Uncheck to directly copy the temperature from the selected entities"
+        }
+      },
+      "underlying_add": {
+        "title": "Προσθήκη συσκευής",
+        "description": "{wizard_progress}Επιλέξτε τη συσκευή που θα ελέγχεται. Οι δικές της ρυθμίσεις ζητούνται στην επόμενη οθόνη.",
+        "data": {
+          "underlying_entity_id": "Συσκευή"
+        },
+        "data_description": {
+          "underlying_entity_id": "Η οντότητα που θα ελέγχεται"
+        }
+      },
+      "underlying": {
+        "title": "{underlying_name}",
+        "description": "{underlying_entity}\n\nΡυθμίσεις αυτής της συσκευής. Εμφανίζονται μόνο τα πεδία που ισχύουν για τον τύπο του VTherm και τις κοινές ρυθμίσεις. Οι προσαρμοσμένες εντολές και οι οντότητες κλεισίματος πρέπει να οριστούν για όλες τις συσκευές ή για καμία.",
+        "data": {
+          "opening_degree_entity_id": "Οντότητα ανοίγματος βαλβίδας",
+          "closing_degree_entity_id": "Οντότητα κλεισίματος βαλβίδας (προαιρετικό)",
+          "sync_entity_id": "Οντότητα συγχρονισμού",
+          "on_command": "Εντολή ενεργοποίησης",
+          "off_command": "Εντολή απενεργοποίησης",
+          "min_opening_degree": "Ελάχιστο άνοιγμα (%)",
+          "max_opening_degree": "Μέγιστο άνοιγμα (%)",
+          "replace_entity_id": "Αντικατάσταση οντότητας",
+          "remove_underlying": "Αφαίρεση αυτής της συσκευής"
+        },
+        "data_description": {
+          "opening_degree_entity_id": "Η οντότητα number που ορίζει τον βαθμό ανοίγματος της βαλβίδας. Προτείνονται οντότητες της ίδιας συσκευής.",
+          "closing_degree_entity_id": "Προαιρετική οντότητα number που ορίζει τον βαθμό κλεισίματος της βαλβίδας. Ορίστε την για όλες τις συσκευές ή για καμία.",
+          "sync_entity_id": "Η οντότητα number που χρησιμοποιείται για τον συγχρονισμό της εσωτερικής θερμοκρασίας αυτής της συσκευής: η οντότητα βαθμονόμησης αν είναι επιλεγμένο το 'Εφαρμογή βαθμονόμησης μετατόπισης', αλλιώς η οντότητα θερμοκρασίας.",
+          "on_command": "Μορφή: όνομα_υπηρεσίας[/χαρακτηριστικό:τιμή]. Υποχρεωτική για οντότητες select και climate. Ορίστε την για όλες τις συσκευές ή για καμία.",
+          "off_command": "Μορφή: όνομα_υπηρεσίας[/χαρακτηριστικό:τιμή]. Υποχρεωτική για οντότητες select και climate. Ορίστε την για όλες τις συσκευές ή για καμία.",
+          "min_opening_degree": "Ελάχιστος βαθμός ανοίγματος αυτής της συσκευής όταν ξεπεραστεί το όριο ανοίγματος. Προεπιλογή 0.",
+          "max_opening_degree": "Μέγιστος βαθμός ανοίγματος αυτής της συσκευής: η βαλβίδα δεν θα ανοίξει ποτέ περισσότερο από αυτή την τιμή. Δεν μπορεί να υπερβεί το μέγιστο της βαλβίδας.",
+          "replace_entity_id": "Επιλέξτε άλλη οντότητα για να αντικαταστήσετε αυτή τη συσκευή. Αν αλλάξει ο τύπος της οντότητας, οι ρυθμίσεις της συσκευής πρέπει να συμπληρωθούν ξανά.",
+          "remove_underlying": "Επιλέξτε για να αφαιρέσετε αυτή τη συσκευή από το VTherm"
+        },
+        "sections": {
+          "commands": {
+            "name": "Προσαρμοσμένες εντολές",
+            "description": "Προαιρετικές εντολές ενεργοποίησης και απενεργοποίησης αυτής της συσκευής, με μορφή όνομα_υπηρεσίας[/χαρακτηριστικό:τιμή]. Ορίστε τις για όλες τις συσκευές ή για καμία.",
+            "data": {
+              "on_command": "Εντολή ενεργοποίησης",
+              "off_command": "Εντολή απενεργοποίησης"
+            },
+            "data_description": {
+              "on_command": "Μορφή: όνομα_υπηρεσίας[/χαρακτηριστικό:τιμή]. Υποχρεωτική για οντότητες select και climate. Ορίστε την για όλες τις συσκευές ή για καμία.",
+              "off_command": "Μορφή: όνομα_υπηρεσίας[/χαρακτηριστικό:τιμή]. Υποχρεωτική για οντότητες select και climate. Ορίστε την για όλες τις συσκευές ή για καμία."
+            }
+          }
         }
       }
     },
@@ -318,14 +369,12 @@
       "window_open_detection_method": "Πρέπει να χρησιμοποιηθεί μόνο μία μέθοδος ανίχνευσης ανοιχτού παραθύρου. Χρησιμοποιήστε αισθητήρα ή αυτόματη ανίχνευση μέσω κατωφλίου θερμοκρασίας αλλά όχι και τα δύο",
       "no_central_config": "You cannot check 'use central configuration' because no central configuration was found. You need to create a Versatile Thermostat of type 'Central Configuration' to use it.",
       "service_configuration_format": "The format of the service configuration is wrong",
-      "valve_regulation_nb_entities_incorrect": "The number of valve entities for valve regulation should be equal to the number of underlyings",
-      "sync_device_internal_temp_nb_entities_incorrect": "The number of entities for synchronize device internal temperature should be equal to the number of underlyings",
-      "min_opening_degrees_format": "A comma separated list of positive integer is expected. Example: 20, 25, 30",
-      "max_opening_degrees_format": "Αναμένεται μια λίστα θετικών ακεραίων μεταξύ 0 και 100 χωρισμένη με κόμματα. Παράδειγμα: 80, 85, 90",
       "min_max_opening_degrees_inconsistent": "Για κάθε υποκείμενη συσκευή, το max_opening_degrees πρέπει να είναι αυστηρά μεγαλύτερο από το min_opening_degrees. Ελέγξτε τη διαμόρφωσή σας.",
-      "valve_control_parameters_cardinality_incorrect": "Οι λίστες ελάχιστου και μέγιστου βαθμού ανοίγματος δεν μπορούν να περιέχουν περισσότερες τιμές από τις διαμορφωμένες βαλβίδες",
       "vswitch_configuration_incorrect": "The command customization configuration is incorrect. It is required for underlying entities that are not switches, and the format must be service_name[/attribute:value]. More information is available in the README",
-      "missing_settings_summary": "Ρυθμίσεις προς συμπλήρωση: {count}"
+      "missing_settings_summary": "Ρυθμίσεις προς συμπλήρωση: {count}",
+      "underlying_already_added": "Αυτή η οντότητα χρησιμοποιείται ήδη από συσκευή αυτού του VTherm",
+      "max_opening_degree_out_of_range": "Το μέγιστο άνοιγμα πρέπει να είναι μεγαλύτερο από 0 και να μην υπερβαίνει το μέγιστο της βαλβίδας",
+      "underlying_field_missing": "Λείπει: {field}"
     },
     "abort": {
       "already_configured": "Η συσκευή έχει ήδη ρυθμιστεί"
@@ -363,58 +412,55 @@
       },
       "type": {
         "title": "Συνδεδεμένες οντότητες",
-        "description": "Χαρακτηριστικά συνδεδεμένων οντοτήτων",
-        "data": {
-          "heater_entity_id": "1ος διακόπτης θερμαντήρα",
-          "heater_entity2_id": "2ος διακόπτης θερμαντήρα",
-          "heater_entity3_id": "3ος διακόπτης θερμαντήρα",
-          "heater_entity4_id": "4ος διακόπτης θερμαντήρα",
-          "proportional_function": "Αλγόριθμος",
-          "climate_entity_id": "1η υποκείμενη κλιματική οντότητα",
-          "climate_entity2_id": "2η υποκείμενη κλιματική οντότητα",
-          "climate_entity3_id": "3η υποκείμενη κλιματική οντότητα",
-          "climate_entity4_id": "4η υποκείμενη κλιματική οντότητα",
-          "ac_mode": "Λειτουργία AC",
-          "sync_device_internal_temp": "Συγχρονισμός εσωτερικής θερμοκρασίας συσκευής",
-          "valve_entity_id": "1ος αριθμός βαλβίδας",
-          "valve_entity2_id": "2ος αριθμός βαλβίδας",
-          "valve_entity3_id": "3ος αριθμός βαλβίδας",
-          "valve_entity4_id": "4ος αριθμός βαλβίδας",
-          "auto_regulation_mode": "Αυτορύθμιση",
-          "auto_regulation_dtemp": "Όριο ρύθμισης",
-          "auto_regulation_periode_min": "Ελάχιστη περίοδος ρύθμισης",
-          "inverse_switch_command": "Αντίστροφη εντολή διακόπτη",
-          "auto_fan_mode": "Auto fan mode",
-          "opening_threshold_degree": "Κατώφλι ανοίγματος",
-          "min_opening_degrees": "Ελάχιστοι βαθμοί ανοίγματος",
-          "max_opening_degrees": "Μέγιστος βαθμός ανοίγματος",
-          "max_closing_degree": "Μέγιστος βαθμός κλεισίματος"
+        "description": "{wizard_progress}Συσκευές που ελέγχει αυτό το VTherm. Ανοίξτε τις κοινές ρυθμίσεις, μια συσκευή για να δείτε και να αλλάξετε όλες τις ρυθμίσεις της, ή προσθέστε μια συσκευή.",
+        "menu_options": {
+          "underlying_common": "Κοινές ρυθμίσεις",
+          "underlying_1": "{underlying_1}",
+          "underlying_2": "{underlying_2}",
+          "underlying_3": "{underlying_3}",
+          "underlying_4": "{underlying_4}",
+          "underlying_5": "{underlying_5}",
+          "underlying_6": "{underlying_6}",
+          "underlying_7": "{underlying_7}",
+          "underlying_8": "{underlying_8}",
+          "underlying_9": "{underlying_9}",
+          "underlying_10": "{underlying_10}",
+          "underlying_11": "{underlying_11}",
+          "underlying_12": "{underlying_12}",
+          "underlying_13": "{underlying_13}",
+          "underlying_14": "{underlying_14}",
+          "underlying_15": "{underlying_15}",
+          "underlying_16": "{underlying_16}",
+          "underlying_17": "{underlying_17}",
+          "underlying_18": "{underlying_18}",
+          "underlying_19": "{underlying_19}",
+          "underlying_20": "{underlying_20}",
+          "underlying_add": "Προσθήκη συσκευής",
+          "menu": "Πίσω στο μενού"
         },
-        "data_description": {
-          "heater_entity_id": "Υποχρεωτική ταυτότητα οντότητας θερμαντήρα",
-          "heater_entity2_id": "Προαιρετική ταυτότητα οντότητας 2ου θερμαντήρα. Αφήστε το κενό αν δεν χρησιμοποιείται",
-          "heater_entity3_id": "Προαιρετική ταυτότητα οντότητας 3ου θερμαντήρα. Αφήστε το κενό αν δεν χρησιμοποιείται",
-          "heater_entity4_id": "Προαιρετική ταυτότητα οντότητας 4ου θερμαντήρα. Αφήστε το κενό αν δεν χρησιμοποιείται",
-          "proportional_function": "Αλγόριθμος προς χρήση (άλλοι αλγόριθμοι μπορούν να εγκατασταθούν ως {plugins_link})",
-          "climate_entity_id": "Ταυτότητα οντότητας υποκείμενου κλίματος",
-          "climate_entity2_id": "Ταυτότητα οντότητας 2ου υποκείμενου κλίματος",
-          "climate_entity3_id": "Ταυτότητα οντότητας 3ου υποκείμενου κλίματος",
-          "climate_entity4_id": "Ταυτότητα οντότητας 4ου υποκείμενου κλίματος",
-          "ac_mode": "Χρήση της λειτουργίας Κλιματισμού (AC)",
-          "sync_device_internal_temp": "Συγχρονισμός εσωτερικής θερμοκρασίας συσκευής",
-          "valve_entity_id": "Ταυτότητα οντότητας 1ης βαλβίδας",
-          "valve_entity2_id": "Ταυτότητα οντότητας 2ης βαλβίδας",
-          "valve_entity3_id": "Ταυτότητα οντότητας 3ης βαλβίδας",
-          "valve_entity4_id": "Ταυτότητα οντότητας 4ης βαλβίδας",
-          "auto_regulation_mode": "Αυτόματη ρύθμιση της στοχευόμενης θερμοκρασίας",
-          "auto_regulation_dtemp": "Το κατώφλι σε °C κάτω από το οποίο η αλλαγή της θερμοκρασίας δεν θα αποστέλλεται",
-          "auto_regulation_periode_min": "Διάρκεια σε λεπτά μεταξύ δύο ενημερώσεων ρύθμισης",
-          "inverse_switch_command": "Για διακόπτες με πιλοτικό καλώδιο και δίοδο μπορεί να χρειαστεί να αντιστραφεί η εντολή",
-          "auto_fan_mode": "Automatically activate fan when huge heating/cooling is necessary",
-          "opening_threshold_degree": "Τιμή ανοίγματος της βαλβίδας κάτω από την οποία η βαλβίδα πρέπει να θεωρείται κλειστή (και τότε θα ισχύει το 'max_closing_degree')",
-          "min_opening_degrees": "Ελάχιστη τιμή βαθμού ανοίγματος για κάθε υποκείμενη συσκευή, διαχωρισμένη με κόμμα. Προεπιλεγμένη τιμή 0. Παράδειγμα: 20, 25, 30",
-          "max_opening_degrees": "Μέγιστη τιμή του βαθμού ανοίγματος. Η βαλβίδα δεν θα ανοίξει ποτέ περισσότερο από αυτήν την τιμή",
-          "max_closing_degree": "Μέγιστη τιμή του βαθμού κλεισίματος. Η βαλβίδα δεν θα κλείσει ποτέ περισσότερο από αυτήν την τιμή. Ορίστε το στο 100 για πλήρες κλείσιμο της βαλβίδας"
+        "menu_option_descriptions": {
+          "underlying_common": "{underlying_common_details}",
+          "underlying_1": "{underlying_1_details}",
+          "underlying_2": "{underlying_2_details}",
+          "underlying_3": "{underlying_3_details}",
+          "underlying_4": "{underlying_4_details}",
+          "underlying_5": "{underlying_5_details}",
+          "underlying_6": "{underlying_6_details}",
+          "underlying_7": "{underlying_7_details}",
+          "underlying_8": "{underlying_8_details}",
+          "underlying_9": "{underlying_9_details}",
+          "underlying_10": "{underlying_10_details}",
+          "underlying_11": "{underlying_11_details}",
+          "underlying_12": "{underlying_12_details}",
+          "underlying_13": "{underlying_13_details}",
+          "underlying_14": "{underlying_14_details}",
+          "underlying_15": "{underlying_15_details}",
+          "underlying_16": "{underlying_16_details}",
+          "underlying_17": "{underlying_17_details}",
+          "underlying_18": "{underlying_18_details}",
+          "underlying_19": "{underlying_19_details}",
+          "underlying_20": "{underlying_20_details}",
+          "underlying_add": "Επιλογή άλλης συσκευής προς έλεγχο"
         }
       },
       "tpi": {
@@ -533,42 +579,6 @@
           "lock_code": "Ο κωδικός PIN για το ξεκλείδωμα του θερμοστάτη (4 ψηφία)"
         }
       },
-      "sync_device_internal_temp": {
-        "title": "Synchronize device internal temperature",
-        "description": "Configuration to synchronize the internal temperature of the underlying devices with selected entities",
-        "data": {
-          "sync_with_calibration": "Apply offset calibration",
-          "sync_entity_ids": "Entities id used for synchronization"
-        },
-        "data_description": {
-          "sync_with_calibration": "Check to apply the offset calibration when synchronizing the internal temperature. Uncheck to directly copy the temperature from the selected entities",
-          "sync_entity_ids": "The list of the entities used to synchronize the internal temperature of the underlying devices. There should be one per underlying device. Should be a calibration entity if checkbox is selected or a temperature entity otherwise. Both are `number` entities."
-        }
-      },
-      "valve_regulation": {
-        "title": "Αυτορύθμιση με βαλβίδα - {name}",
-        "description": "Διαμόρφωση για αυτορύθμιση με άμεσο έλεγχο της βαλβίδας",
-        "data": {
-          "offset_calibration_entity_ids": "Οντότητες βαθμονόμησης μετατόπισης",
-          "opening_degree_entity_ids": "Οντότητες βαθμού ανοίγματος",
-          "closing_degree_entity_ids": "Οντότητες βαθμού κλεισίματος",
-          "proportional_function": "Αλγόριθμος",
-          "opening_threshold_degree": "Κατώφλι ανοίγματος",
-          "min_opening_degrees": "Ελάχιστοι βαθμοί ανοίγματος",
-          "max_opening_degrees": "Μέγιστος βαθμός ανοίγματος",
-          "max_closing_degree": "Μέγιστος βαθμός κλεισίματος"
-        },
-        "data_description": {
-          "offset_calibration_entity_ids": "Η λίστα των οντοτήτων 'βαθμονόμησης μετατόπισης'. Ορίστε το εάν το TRV σας διαθέτει την οντότητα για καλύτερη ρύθμιση. Θα πρέπει να υπάρχει ένα για κάθε υποκείμενη κλιματική οντότητα",
-          "opening_degree_entity_ids": "Η λίστα των οντοτήτων 'βαθμού ανοίγματος'. Θα πρέπει να υπάρχει ένα για κάθε υποκείμενη κλιματική οντότητα",
-          "closing_degree_entity_ids": "Η λίστα των οντοτήτων 'βαθμού κλεισίματος'. Ορίστε το εάν το TRV σας διαθέτει την οντότητα για καλύτερη ρύθμιση. Θα πρέπει να υπάρχει ένα για κάθε υποκείμενη κλιματική οντότητα",
-          "proportional_function": "Αλγόριθμος προς χρήση (άλλοι αλγόριθμοι μπορούν να εγκατασταθούν ως {plugins_link})",
-          "opening_threshold_degree": "Τιμή ανοίγματος της βαλβίδας κάτω από την οποία η βαλβίδα πρέπει να θεωρείται κλειστή (και τότε θα ισχύει το 'max_closing_degree')",
-          "min_opening_degrees": "Ελάχιστη τιμή βαθμού ανοίγματος για κάθε υποκείμενη συσκευή, διαχωρισμένη με κόμμα. Προεπιλεγμένη τιμή 0. Παράδειγμα: 20, 25, 30",
-          "max_opening_degrees": "Μέγιστη τιμή του βαθμού ανοίγματος. Η βαλβίδα δεν θα ανοίξει ποτέ περισσότερο από αυτήν την τιμή",
-          "max_closing_degree": "Μέγιστη τιμή του βαθμού κλεισίματος. Η βαλβίδα δεν θα κλείσει ποτέ περισσότερο από αυτήν την τιμή. Ορίστε το στο 100 για πλήρες κλείσιμο της βαλβίδας"
-        }
-      },
       "auto_tpi_configuration": {
         "data": {
           "auto_tpi_cooling_rate": "Ρυθμός ψύξης ({unit}/h)"
@@ -612,8 +622,6 @@
           "presence": "Presence detection",
           "advanced": "Advanced parameters",
           "central_boiler": "Central boiler",
-          "valve_regulation": "Valve regulation configuration",
-          "sync_device_internal_temp": "Synchronize device temperature",
           "menu": "Πίσω στο μενού"
         },
         "menu_option_descriptions": {
@@ -625,9 +633,101 @@
           "motion": "Ανοίξτε αυτή την οθόνη για να συμπληρώσετε τις ρυθμίσεις που λείπουν",
           "presence": "Ανοίξτε αυτή την οθόνη για να συμπληρώσετε τις ρυθμίσεις που λείπουν",
           "advanced": "Ανοίξτε αυτή την οθόνη για να συμπληρώσετε τις ρυθμίσεις που λείπουν",
-          "central_boiler": "Ανοίξτε αυτή την οθόνη για να συμπληρώσετε τις ρυθμίσεις που λείπουν",
-          "valve_regulation": "Ανοίξτε αυτή την οθόνη για να συμπληρώσετε τις ρυθμίσεις που λείπουν",
-          "sync_device_internal_temp": "Ανοίξτε αυτή την οθόνη για να συμπληρώσετε τις ρυθμίσεις που λείπουν"
+          "central_boiler": "Ανοίξτε αυτή την οθόνη για να συμπληρώσετε τις ρυθμίσεις που λείπουν"
+        }
+      },
+      "underlying_common": {
+        "title": "Κοινές ρυθμίσεις - {name}",
+        "description": "{wizard_progress}Ρυθμίσεις που μοιράζονται όλες οι συσκευές αυτού του VTherm.",
+        "data": {
+          "proportional_function": "Αλγόριθμος",
+          "ac_mode": "Λειτουργία AC",
+          "inverse_switch_command": "Αντίστροφη εντολή διακόπτη",
+          "auto_regulation_dtemp": "Όριο ρύθμισης",
+          "auto_regulation_periode_min": "Ελάχιστη περίοδος ρύθμισης",
+          "opening_threshold_degree": "Κατώφλι ανοίγματος",
+          "max_closing_degree": "Μέγιστος βαθμός κλεισίματος",
+          "sync_device_internal_temp": "Συγχρονισμός εσωτερικής θερμοκρασίας συσκευής",
+          "auto_regulation_mode": "Αυτορύθμιση",
+          "auto_fan_mode": "Auto fan mode"
+        },
+        "data_description": {
+          "proportional_function": "Αλγόριθμος προς χρήση (άλλοι αλγόριθμοι μπορούν να εγκατασταθούν ως {plugins_link})",
+          "ac_mode": "Χρήση της λειτουργίας Κλιματισμού (AC)",
+          "inverse_switch_command": "Για διακόπτες με πιλοτικό καλώδιο και δίοδο μπορεί να χρειαστεί να αντιστραφεί η εντολή",
+          "auto_regulation_dtemp": "Το κατώφλι σε °C κάτω από το οποίο η αλλαγή της θερμοκρασίας δεν θα αποστέλλεται",
+          "auto_regulation_periode_min": "Διάρκεια σε λεπτά μεταξύ δύο ενημερώσεων ρύθμισης",
+          "opening_threshold_degree": "Τιμή ανοίγματος της βαλβίδας κάτω από την οποία η βαλβίδα πρέπει να θεωρείται κλειστή (και τότε θα ισχύει το 'max_closing_degree')",
+          "max_closing_degree": "Μέγιστη τιμή του βαθμού κλεισίματος. Η βαλβίδα δεν θα κλείσει ποτέ περισσότερο από αυτήν την τιμή. Ορίστε το στο 100 για πλήρες κλείσιμο της βαλβίδας",
+          "sync_device_internal_temp": "Επιλέξτε για συγχρονισμό της εσωτερικής θερμοκρασίας των υποκείμενων συσκευών. Κάθε συσκευή χρειάζεται τότε τη δική της οντότητα συγχρονισμού, που ορίζεται στις ρυθμίσεις της συσκευής",
+          "auto_regulation_mode": "Αυτόματη ρύθμιση της στοχευόμενης θερμοκρασίας",
+          "auto_fan_mode": "Automatically activate fan when huge heating/cooling is necessary"
+        }
+      },
+      "underlying_common_extra": {
+        "title": "Ρύθμιση με βαλβίδα και συγχρονισμός - {name}",
+        "description": "{wizard_progress}Ρυθμίσεις κοινές για όλες τις συσκευές, για τον άμεσο έλεγχο των βαλβίδων και τον συγχρονισμό της εσωτερικής θερμοκρασίας.",
+        "data": {
+          "proportional_function": "Αλγόριθμος",
+          "opening_threshold_degree": "Κατώφλι ανοίγματος",
+          "max_closing_degree": "Μέγιστος βαθμός κλεισίματος",
+          "sync_with_calibration": "Apply offset calibration"
+        },
+        "data_description": {
+          "proportional_function": "Αλγόριθμος προς χρήση (άλλοι αλγόριθμοι μπορούν να εγκατασταθούν ως {plugins_link})",
+          "opening_threshold_degree": "Τιμή ανοίγματος της βαλβίδας κάτω από την οποία η βαλβίδα πρέπει να θεωρείται κλειστή (και τότε θα ισχύει το 'max_closing_degree')",
+          "max_closing_degree": "Μέγιστη τιμή του βαθμού κλεισίματος. Η βαλβίδα δεν θα κλείσει ποτέ περισσότερο από αυτήν την τιμή. Ορίστε το στο 100 για πλήρες κλείσιμο της βαλβίδας",
+          "sync_with_calibration": "Check to apply the offset calibration when synchronizing the internal temperature. Uncheck to directly copy the temperature from the selected entities"
+        }
+      },
+      "underlying_add": {
+        "title": "Προσθήκη συσκευής - {name}",
+        "description": "{wizard_progress}Επιλέξτε τη συσκευή που θα ελέγχεται. Οι δικές της ρυθμίσεις ζητούνται στην επόμενη οθόνη.",
+        "data": {
+          "underlying_entity_id": "Συσκευή"
+        },
+        "data_description": {
+          "underlying_entity_id": "Η οντότητα που θα ελέγχεται"
+        }
+      },
+      "underlying": {
+        "title": "{underlying_name}",
+        "description": "{underlying_entity}\n\nΡυθμίσεις αυτής της συσκευής. Εμφανίζονται μόνο τα πεδία που ισχύουν για τον τύπο του VTherm και τις κοινές ρυθμίσεις. Οι προσαρμοσμένες εντολές και οι οντότητες κλεισίματος πρέπει να οριστούν για όλες τις συσκευές ή για καμία.",
+        "data": {
+          "opening_degree_entity_id": "Οντότητα ανοίγματος βαλβίδας",
+          "closing_degree_entity_id": "Οντότητα κλεισίματος βαλβίδας (προαιρετικό)",
+          "sync_entity_id": "Οντότητα συγχρονισμού",
+          "on_command": "Εντολή ενεργοποίησης",
+          "off_command": "Εντολή απενεργοποίησης",
+          "min_opening_degree": "Ελάχιστο άνοιγμα (%)",
+          "max_opening_degree": "Μέγιστο άνοιγμα (%)",
+          "replace_entity_id": "Αντικατάσταση οντότητας",
+          "remove_underlying": "Αφαίρεση αυτής της συσκευής"
+        },
+        "data_description": {
+          "opening_degree_entity_id": "Η οντότητα number που ορίζει τον βαθμό ανοίγματος της βαλβίδας. Προτείνονται οντότητες της ίδιας συσκευής.",
+          "closing_degree_entity_id": "Προαιρετική οντότητα number που ορίζει τον βαθμό κλεισίματος της βαλβίδας. Ορίστε την για όλες τις συσκευές ή για καμία.",
+          "sync_entity_id": "Η οντότητα number που χρησιμοποιείται για τον συγχρονισμό της εσωτερικής θερμοκρασίας αυτής της συσκευής: η οντότητα βαθμονόμησης αν είναι επιλεγμένο το 'Εφαρμογή βαθμονόμησης μετατόπισης', αλλιώς η οντότητα θερμοκρασίας.",
+          "on_command": "Μορφή: όνομα_υπηρεσίας[/χαρακτηριστικό:τιμή]. Υποχρεωτική για οντότητες select και climate. Ορίστε την για όλες τις συσκευές ή για καμία.",
+          "off_command": "Μορφή: όνομα_υπηρεσίας[/χαρακτηριστικό:τιμή]. Υποχρεωτική για οντότητες select και climate. Ορίστε την για όλες τις συσκευές ή για καμία.",
+          "min_opening_degree": "Ελάχιστος βαθμός ανοίγματος αυτής της συσκευής όταν ξεπεραστεί το όριο ανοίγματος. Προεπιλογή 0.",
+          "max_opening_degree": "Μέγιστος βαθμός ανοίγματος αυτής της συσκευής: η βαλβίδα δεν θα ανοίξει ποτέ περισσότερο από αυτή την τιμή. Δεν μπορεί να υπερβεί το μέγιστο της βαλβίδας.",
+          "replace_entity_id": "Επιλέξτε άλλη οντότητα για να αντικαταστήσετε αυτή τη συσκευή. Αν αλλάξει ο τύπος της οντότητας, οι ρυθμίσεις της συσκευής πρέπει να συμπληρωθούν ξανά.",
+          "remove_underlying": "Επιλέξτε για να αφαιρέσετε αυτή τη συσκευή από το VTherm"
+        },
+        "sections": {
+          "commands": {
+            "name": "Προσαρμοσμένες εντολές",
+            "description": "Προαιρετικές εντολές ενεργοποίησης και απενεργοποίησης αυτής της συσκευής, με μορφή όνομα_υπηρεσίας[/χαρακτηριστικό:τιμή]. Ορίστε τις για όλες τις συσκευές ή για καμία.",
+            "data": {
+              "on_command": "Εντολή ενεργοποίησης",
+              "off_command": "Εντολή απενεργοποίησης"
+            },
+            "data_description": {
+              "on_command": "Μορφή: όνομα_υπηρεσίας[/χαρακτηριστικό:τιμή]. Υποχρεωτική για οντότητες select και climate. Ορίστε την για όλες τις συσκευές ή για καμία.",
+              "off_command": "Μορφή: όνομα_υπηρεσίας[/χαρακτηριστικό:τιμή]. Υποχρεωτική για οντότητες select και climate. Ορίστε την για όλες τις συσκευές ή για καμία."
+            }
+          }
         }
       }
     },
@@ -637,14 +737,12 @@
       "window_open_detection_method": "Πρέπει να χρησιμοποιηθεί μόνο μία μέθοδος ανίχνευσης ανοιχτού παραθύρου. Χρησιμοποιήστε αισθητήρα ή αυτόματη ανίχνευση μέσω κατωφλίου θερμοκρασίας αλλά όχι και τα δύο",
       "no_central_config": "You cannot check 'use central configuration' because no central configuration was found. You need to create a Versatile Thermostat of type 'Central Configuration' to use it.",
       "service_configuration_format": "The format of the service configuration is wrong",
-      "valve_regulation_nb_entities_incorrect": "The number of valve entities for valve regulation should be equal to the number of underlyings",
-      "sync_device_internal_temp_nb_entities_incorrect": "The number of entities for synchronize device internal temperature should be equal to the number of underlyings",
-      "min_opening_degrees_format": "A comma separated list of positive integer is expected. Example: 20, 25, 30",
-      "max_opening_degrees_format": "Αναμένεται μια λίστα θετικών ακεραίων μεταξύ 0 και 100 χωρισμένη με κόμματα. Παράδειγμα: 80, 85, 90",
       "min_max_opening_degrees_inconsistent": "Για κάθε υποκείμενη συσκευή, το max_opening_degrees πρέπει να είναι αυστηρά μεγαλύτερο από το min_opening_degrees. Ελέγξτε τη διαμόρφωσή σας.",
-      "valve_control_parameters_cardinality_incorrect": "Οι λίστες ελάχιστου και μέγιστου βαθμού ανοίγματος δεν μπορούν να περιέχουν περισσότερες τιμές από τις διαμορφωμένες βαλβίδες",
       "vswitch_configuration_incorrect": "The command customization configuration is incorrect. It is required for underlying entities that are not switches, and the format must be service_name[/attribute:value]. More information is available in the README",
-      "missing_settings_summary": "Ρυθμίσεις προς συμπλήρωση: {count}"
+      "missing_settings_summary": "Ρυθμίσεις προς συμπλήρωση: {count}",
+      "underlying_already_added": "Αυτή η οντότητα χρησιμοποιείται ήδη από συσκευή αυτού του VTherm",
+      "max_opening_degree_out_of_range": "Το μέγιστο άνοιγμα πρέπει να είναι μεγαλύτερο από 0 και να μην υπερβαίνει το μέγιστο της βαλβίδας",
+      "underlying_field_missing": "Λείπει: {field}"
     },
     "abort": {
       "already_configured": "Η συσκευή έχει ήδη ρυθμιστεί"

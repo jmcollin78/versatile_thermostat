@@ -28,8 +28,6 @@
           "presence": "Detekcia prítomnosti",
           "advanced": "Pokročilé parametre",
           "auto_start_stop": "Automatické spustenie a zastavenie",
-          "valve_regulation": "Konfigurácia regulácie ventilu",
-          "sync_device_internal_temp": "Synchronizácia teploty zariadenia",
           "lock": "Správa zámku",
           "finalize": "Všetko hotové",
           "configuration_not_complete": "Konfigurácia nie je dokončená ({missing_count})",
@@ -94,62 +92,55 @@
       },
       "type": {
         "title": "Prepojené entity",
-        "description": "Atribúty prepojených entít",
-        "data": {
-          "heater_entity_id": "1. spínač ohrievača",
-          "heater_entity2_id": "2. spínač ohrievača",
-          "heater_entity3_id": "3. spínač ohrievača",
-          "heater_entity4_id": "4. spínač ohrievača",
-          "heater_keep_alive": "Prepnite interval udržiavania v sekundách",
-          "proportional_function": "Algoritmus",
-          "climate_entity_id": "1. základná klíma",
-          "climate_entity2_id": "2. základná klíma",
-          "climate_entity3_id": "3. základná klíma",
-          "climate_entity4_id": "4. základná klíma",
-          "ac_mode": "AC režim",
-          "sync_device_internal_temp": "Synchronizácia vnútornej teploty zariadenia",
-          "valve_entity_id": "1. ventil číslo",
-          "valve_entity2_id": "2. ventil číslo",
-          "valve_entity3_id": "3. ventil číslo",
-          "valve_entity4_id": "4. ventil číslo",
-          "auto_regulation_mode": "Samoregulácia",
-          "auto_regulation_dtemp": "Regulačný prah",
-          "auto_regulation_periode_min": "Regulačné minimálne obdobie",
-          "opening_threshold_degree": "Prah otvorenia",
-          "min_opening_degrees": "Minimálne stupne otvorenia",
-          "max_opening_degrees": "Maximálny stupeň otvorenia",
-          "max_closing_degree": "Maximálny stupeň zatvorenia",
-          "auto_regulation_use_device_temp": "Použite vnútornú teplotu podkladu",
-          "inverse_switch_command": "Inverzný prepínací príkaz",
-          "auto_fan_mode": "Režim automatického ventilátora"
+        "description": "{wizard_progress}Zariadenia ovládané týmto VTherm. Otvorte spoločné nastavenia, zariadenie na zobrazenie a zmenu všetkých jeho nastavení, alebo pridajte zariadenie.",
+        "menu_options": {
+          "underlying_common": "Spoločné nastavenia",
+          "underlying_1": "{underlying_1}",
+          "underlying_2": "{underlying_2}",
+          "underlying_3": "{underlying_3}",
+          "underlying_4": "{underlying_4}",
+          "underlying_5": "{underlying_5}",
+          "underlying_6": "{underlying_6}",
+          "underlying_7": "{underlying_7}",
+          "underlying_8": "{underlying_8}",
+          "underlying_9": "{underlying_9}",
+          "underlying_10": "{underlying_10}",
+          "underlying_11": "{underlying_11}",
+          "underlying_12": "{underlying_12}",
+          "underlying_13": "{underlying_13}",
+          "underlying_14": "{underlying_14}",
+          "underlying_15": "{underlying_15}",
+          "underlying_16": "{underlying_16}",
+          "underlying_17": "{underlying_17}",
+          "underlying_18": "{underlying_18}",
+          "underlying_19": "{underlying_19}",
+          "underlying_20": "{underlying_20}",
+          "underlying_add": "Pridať zariadenie",
+          "menu": "Späť do ponuky"
         },
-        "data_description": {
-          "heater_entity_id": "ID entity povinného ohrievača",
-          "heater_entity2_id": "Voliteľné ID entity 2. ohrievača. Ak sa nepoužíva, nechajte prázdne",
-          "heater_entity3_id": "Voliteľné ID entity 3. ohrievača. Ak sa nepoužíva, nechajte prázdne",
-          "heater_entity4_id": "Voliteľné ID entity 4. ohrievača. Ak sa nepoužíva, nechajte prázdne",
-          "heater_keep_alive": "Voliteľný interval obnovy stavu spínača ohrievača. Ak to nie je potrebné, nechajte prázdne.",
-          "proportional_function": "Algoritmus, ktorý sa má použiť (ďalšie algoritmy je možné nainštalovať ako {plugins_link})",
-          "climate_entity_id": "ID základnej klimatickej entity",
-          "climate_entity2_id": "2. základné identifikačné číslo klimatickej entity",
-          "climate_entity3_id": "3. základné identifikačné číslo klimatickej entity",
-          "climate_entity4_id": "4. základné identifikačné číslo klimatickej entity",
-          "ac_mode": "Použite režim klimatizácie (AC)",
-          "sync_device_internal_temp": "Synchronizácia vnútornej teploty zariadenia",
-          "valve_entity_id": "1. ventil číslo entity id",
-          "valve_entity2_id": "2. ventil číslo entity id",
-          "valve_entity3_id": "3. ventil číslo entity id",
-          "valve_entity4_id": "4. ventil číslo entity id",
-          "auto_regulation_mode": "Automatické nastavenie cieľovej teploty",
-          "auto_regulation_dtemp": "Hranica v °, pod ktorou sa zmena teploty neodošle",
-          "auto_regulation_periode_min": "Trvanie v minútach medzi dvoma aktualizáciami predpisov",
-          "opening_threshold_degree": "Hodnota otvorenia ventilu, pod ktorou by mal byť ventil považovaný za zatvorený (a potom bude platný 'max_closing_degree')",
-          "min_opening_degrees": "Minimálna hodnota stupňa otvorenia pre každé základné zariadenie, oddelená čiarkami. Predvolená hodnota je 0. Príklad: 20, 25, 30",
-          "max_opening_degrees": "Maximálna hodnota stupňa otvorenia pre každé základné zariadenie, oddelené čiarkami. Predvolená hodnota je 100. Ventil sa nikdy neotvorí viac ako táto hodnota. Príklad: 80, 85, 90",
-          "max_closing_degree": "Maximálna hodnota stupňa zatvorenia. Ventil sa nikdy nezatvorí viac ako táto hodnota. Nastavte na 100 pre úplné zatvorenie ventilu",
-          "auto_regulation_use_device_temp": "Na urýchlenie samoregulácie použite prípadný vnútorný snímač teploty podkladu (vo väčšine prípadov nie je potrebné)",
-          "inverse_switch_command": "V prípade spínača s pilotným vodičom a diódou možno budete musieť príkaz invertovať",
-          "auto_fan_mode": "Automaticky aktivujte ventilátor, keď je potrebné veľké vykurovanie/chladenie"
+        "menu_option_descriptions": {
+          "underlying_common": "{underlying_common_details}",
+          "underlying_1": "{underlying_1_details}",
+          "underlying_2": "{underlying_2_details}",
+          "underlying_3": "{underlying_3_details}",
+          "underlying_4": "{underlying_4_details}",
+          "underlying_5": "{underlying_5_details}",
+          "underlying_6": "{underlying_6_details}",
+          "underlying_7": "{underlying_7_details}",
+          "underlying_8": "{underlying_8_details}",
+          "underlying_9": "{underlying_9_details}",
+          "underlying_10": "{underlying_10_details}",
+          "underlying_11": "{underlying_11_details}",
+          "underlying_12": "{underlying_12_details}",
+          "underlying_13": "{underlying_13_details}",
+          "underlying_14": "{underlying_14_details}",
+          "underlying_15": "{underlying_15_details}",
+          "underlying_16": "{underlying_16_details}",
+          "underlying_17": "{underlying_17_details}",
+          "underlying_18": "{underlying_18_details}",
+          "underlying_19": "{underlying_19_details}",
+          "underlying_20": "{underlying_20_details}",
+          "underlying_add": "Vybrať ďalšie zariadenie na ovládanie"
         }
       },
       "tpi": {
@@ -266,42 +257,6 @@
           "use_advanced_central_config": "Začiarknite, ak chcete použiť centrálnu rozšírenú konfiguráciu. Zrušte začiarknutie, ak chcete použiť špecifickú rozšírenú konfiguráciu pre tento VTherm"
         }
       },
-      "sync_device_internal_temp": {
-        "title": "Synchronize device internal temperature",
-        "description": "Configuration to synchronize the internal temperature of the underlying devices with selected entities",
-        "data": {
-          "sync_with_calibration": "Apply offset calibration",
-          "sync_entity_ids": "Entities id used for synchronization"
-        },
-        "data_description": {
-          "sync_with_calibration": "Check to apply the offset calibration when synchronizing the internal temperature. Uncheck to directly copy the temperature from the selected entities",
-          "sync_entity_ids": "The list of the entities used to synchronize the internal temperature of the underlying devices. There should be one per underlying device. Should be a calibration entity if checkbox is selected or a temperature entity otherwise. Both are `number` entities."
-        }
-      },
-      "valve_regulation": {
-        "title": "Samoregulácia s ventilon",
-        "description": "Konfigurácia samoregulácie s priamym ovládaním ventilu",
-        "data": {
-          "offset_calibration_entity_ids": "Entity kalibrácie offsetu",
-          "opening_degree_entity_ids": "Entity stupňa otvorenia",
-          "closing_degree_entity_ids": "Entity stupňa zatvorenia",
-          "proportional_function": "Algoritmus",
-          "opening_threshold_degree": "Prah otvorenia",
-          "min_opening_degrees": "Minimálne stupne otvorenia",
-          "max_opening_degrees": "Maximálny stupeň otvorenia",
-          "max_closing_degree": "Maximálny stupeň zatvorenia"
-        },
-        "data_description": {
-          "offset_calibration_entity_ids": "Zoznam entít 'kalibrácie offsetu'. Nastavte, ak má váš TRV entitu pre lepšiu reguláciu. Mala by byť jedna na každú základnú klimatickú entitu",
-          "opening_degree_entity_ids": "Zoznam entít 'stupňa otvorenia'. Mala by byť jedna na každú základnú klimatickú entitu",
-          "closing_degree_entity_ids": "Zoznam entít 'stupňa zatvorenia'. Nastavte, ak má váš TRV entitu pre lepšiu reguláciu. Mala by byť jedna na každú základnú klimatickú entitu",
-          "proportional_function": "Algoritmus, ktorý sa má použiť (ďalšie algoritmy je možné nainštalovať ako {plugins_link})",
-          "opening_threshold_degree": "Hodnota otvorenia ventilu, pod ktorou by mal byť ventil považovaný za zatvorený (a potom bude platný 'max_closing_degree')",
-          "min_opening_degrees": "Minimálna hodnota stupňa otvorenia pre každé základné zariadenie, oddelená čiarkami. Predvolená hodnota je 0. Príklad: 20, 25, 30",
-          "max_opening_degrees": "Maximálna hodnota stupňa otvorenia pre každé základné zariadenie, oddelené čiarkami. Predvolená hodnota je 100. Ventil sa nikdy neotvorí viac ako táto hodnota. Príklad: 80, 85, 90",
-          "max_closing_degree": "Maximálna hodnota stupňa zatvorenia. Ventil sa nikdy nezatvorí viac ako táto hodnota. Nastavte na 100 pre úplné zatvorenie ventilu"
-        }
-      },
       "auto_tpi_configuration": {
         "data": {
           "auto_tpi_cooling_rate": "Rýchlosť chladenia ({unit}/h)"
@@ -345,8 +300,6 @@
           "presence": "Detekcia prítomnosti",
           "advanced": "Pokročilé parametre",
           "central_boiler": "Centrálny kotol",
-          "valve_regulation": "Konfigurácia regulácie ventilu",
-          "sync_device_internal_temp": "Synchronizácia teploty zariadenia",
           "menu": "Späť do ponuky"
         },
         "menu_option_descriptions": {
@@ -358,9 +311,105 @@
           "motion": "Otvoriť túto obrazovku a doplniť chýbajúce nastavenia",
           "presence": "Otvoriť túto obrazovku a doplniť chýbajúce nastavenia",
           "advanced": "Otvoriť túto obrazovku a doplniť chýbajúce nastavenia",
-          "central_boiler": "Otvoriť túto obrazovku a doplniť chýbajúce nastavenia",
-          "valve_regulation": "Otvoriť túto obrazovku a doplniť chýbajúce nastavenia",
-          "sync_device_internal_temp": "Otvoriť túto obrazovku a doplniť chýbajúce nastavenia"
+          "central_boiler": "Otvoriť túto obrazovku a doplniť chýbajúce nastavenia"
+        }
+      },
+      "underlying_common": {
+        "title": "Spoločné nastavenia",
+        "description": "{wizard_progress}Nastavenia zdieľané všetkými zariadeniami tohto VTherm.",
+        "data": {
+          "heater_keep_alive": "Prepnite interval udržiavania v sekundách",
+          "proportional_function": "Algoritmus",
+          "ac_mode": "AC režim",
+          "inverse_switch_command": "Inverzný prepínací príkaz",
+          "auto_regulation_dtemp": "Regulačný prah",
+          "auto_regulation_periode_min": "Regulačné minimálne obdobie",
+          "opening_threshold_degree": "Prah otvorenia",
+          "max_closing_degree": "Maximálny stupeň zatvorenia",
+          "sync_device_internal_temp": "Synchronizácia vnútornej teploty zariadenia",
+          "auto_regulation_mode": "Samoregulácia",
+          "auto_fan_mode": "Režim automatického ventilátora",
+          "auto_regulation_use_device_temp": "Použite vnútornú teplotu podkladu"
+        },
+        "data_description": {
+          "heater_keep_alive": "Voliteľný interval obnovy stavu spínača ohrievača. Ak to nie je potrebné, nechajte prázdne.",
+          "proportional_function": "Algoritmus, ktorý sa má použiť (ďalšie algoritmy je možné nainštalovať ako {plugins_link})",
+          "ac_mode": "Použite režim klimatizácie (AC)",
+          "inverse_switch_command": "V prípade spínača s pilotným vodičom a diódou možno budete musieť príkaz invertovať",
+          "auto_regulation_dtemp": "Hranica v °, pod ktorou sa zmena teploty neodošle",
+          "auto_regulation_periode_min": "Trvanie v minútach medzi dvoma aktualizáciami predpisov",
+          "opening_threshold_degree": "Hodnota otvorenia ventilu, pod ktorou by mal byť ventil považovaný za zatvorený (a potom bude platný 'max_closing_degree')",
+          "max_closing_degree": "Maximálna hodnota stupňa zatvorenia. Ventil sa nikdy nezatvorí viac ako táto hodnota. Nastavte na 100 pre úplné zatvorenie ventilu",
+          "sync_device_internal_temp": "Zaškrtnite na synchronizáciu vnútornej teploty podriadených zariadení. Každé zariadenie potom potrebuje vlastnú synchronizačnú entitu, zadanú v nastaveniach zariadenia",
+          "auto_regulation_mode": "Automatické nastavenie cieľovej teploty",
+          "auto_fan_mode": "Automaticky aktivujte ventilátor, keď je potrebné veľké vykurovanie/chladenie",
+          "auto_regulation_use_device_temp": "Na urýchlenie samoregulácie použite prípadný vnútorný snímač teploty podkladu (vo väčšine prípadov nie je potrebné)"
+        }
+      },
+      "underlying_common_extra": {
+        "title": "Regulácia ventilom a synchronizácia",
+        "description": "{wizard_progress}Nastavenia zdieľané všetkými zariadeniami pre priame ovládanie ventilov a synchronizáciu vnútornej teploty.",
+        "data": {
+          "proportional_function": "Algoritmus",
+          "opening_threshold_degree": "Prah otvorenia",
+          "max_closing_degree": "Maximálny stupeň zatvorenia",
+          "sync_with_calibration": "Apply offset calibration"
+        },
+        "data_description": {
+          "proportional_function": "Algoritmus, ktorý sa má použiť (ďalšie algoritmy je možné nainštalovať ako {plugins_link})",
+          "opening_threshold_degree": "Hodnota otvorenia ventilu, pod ktorou by mal byť ventil považovaný za zatvorený (a potom bude platný 'max_closing_degree')",
+          "max_closing_degree": "Maximálna hodnota stupňa zatvorenia. Ventil sa nikdy nezatvorí viac ako táto hodnota. Nastavte na 100 pre úplné zatvorenie ventilu",
+          "sync_with_calibration": "Check to apply the offset calibration when synchronizing the internal temperature. Uncheck to directly copy the temperature from the selected entities"
+        }
+      },
+      "underlying_add": {
+        "title": "Pridať zariadenie",
+        "description": "{wizard_progress}Vyberte zariadenie, ktoré chcete ovládať. Jeho vlastné nastavenia sa zadávajú na ďalšej obrazovke.",
+        "data": {
+          "underlying_entity_id": "Zariadenie"
+        },
+        "data_description": {
+          "underlying_entity_id": "Entita, ktorá sa má ovládať"
+        }
+      },
+      "underlying": {
+        "title": "{underlying_name}",
+        "description": "{underlying_entity}\n\nNastavenia tohto zariadenia. Zobrazujú sa iba polia platné pre typ VTherm a spoločné nastavenia. Vlastné príkazy a zatváracie entity musia byť zadané pre všetky zariadenia, alebo pre žiadne.",
+        "data": {
+          "opening_degree_entity_id": "Entita otvorenia ventilu",
+          "closing_degree_entity_id": "Entita zatvorenia ventilu (voliteľné)",
+          "sync_entity_id": "Synchronizačná entita",
+          "on_command": "Príkaz zapnutia",
+          "off_command": "Príkaz vypnutia",
+          "min_opening_degree": "Minimálne otvorenie (%)",
+          "max_opening_degree": "Maximálne otvorenie (%)",
+          "replace_entity_id": "Nahradiť entitu",
+          "remove_underlying": "Odstrániť toto zariadenie"
+        },
+        "data_description": {
+          "opening_degree_entity_id": "Entita number, ktorá nastavuje stupeň otvorenia ventilu. Navrhujú sa entity rovnakého zariadenia.",
+          "closing_degree_entity_id": "Voliteľná entita number, ktorá nastavuje stupeň zatvorenia ventilu. Zadajte ju pre všetky zariadenia, alebo pre žiadne.",
+          "sync_entity_id": "Entita number použitá na synchronizáciu vnútornej teploty tohto zariadenia: kalibračná entita, ak je zaškrtnuté 'Použiť kalibráciu offsetu', inak teplotná entita.",
+          "on_command": "Formát: názov_služby[/atribút:hodnota]. Povinné pre entity select a climate. Zadajte pre všetky zariadenia, alebo pre žiadne.",
+          "off_command": "Formát: názov_služby[/atribút:hodnota]. Povinné pre entity select a climate. Zadajte pre všetky zariadenia, alebo pre žiadne.",
+          "min_opening_degree": "Minimálny stupeň otvorenia tohto zariadenia po prekročení prahu otvorenia. Predvolená hodnota je 0.",
+          "max_opening_degree": "Maximálny stupeň otvorenia tohto zariadenia: ventil sa nikdy neotvorí viac ako o túto hodnotu. Nesmie prekročiť maximum ventilu.",
+          "replace_entity_id": "Vyberte inú entitu, ktorá nahradí toto zariadenie. Ak sa zmení typ entity, treba nastavenia zariadenia vyplniť znova.",
+          "remove_underlying": "Zaškrtnutím odstránite toto zariadenie z VTherm"
+        },
+        "sections": {
+          "commands": {
+            "name": "Vlastné príkazy",
+            "description": "Voliteľné príkazy na zapnutie a vypnutie tohto zariadenia vo formáte názov_služby[/atribút:hodnota]. Zadajte ich pre všetky zariadenia, alebo pre žiadne.",
+            "data": {
+              "on_command": "Príkaz zapnutia",
+              "off_command": "Príkaz vypnutia"
+            },
+            "data_description": {
+              "on_command": "Formát: názov_služby[/atribút:hodnota]. Povinné pre entity select a climate. Zadajte pre všetky zariadenia, alebo pre žiadne.",
+              "off_command": "Formát: názov_služby[/atribút:hodnota]. Povinné pre entity select a climate. Zadajte pre všetky zariadenia, alebo pre žiadne."
+            }
+          }
         }
       }
     },
@@ -370,14 +419,12 @@
       "window_open_detection_method": "Mala by sa použiť iba jedna metóda detekcie otvoreného okna. Použite senzor alebo automatickú detekciu cez teplotný prah, ale nie oboje",
       "no_central_config": "Nemôžete zaškrtnúť „použiť centrálnu konfiguráciu“, pretože sa nenašla žiadna centrálna konfigurácia. Aby ste ho mohli používať, musíte si vytvoriť všestranný termostat typu „Central Configuration“.",
       "service_configuration_format": "Formát konfigurácie služby je nesprávny",
-      "valve_regulation_nb_entities_incorrect": "The number of valve entities for valve regulation should be equal to the number of underlyings",
-      "sync_device_internal_temp_nb_entities_incorrect": "The number of entities for synchronize device internal temperature should be equal to the number of underlyings",
-      "min_opening_degrees_format": "A comma separated list of positive integer is expected. Example: 20, 25, 30",
-      "max_opening_degrees_format": "Očakáva sa zoznam kladných celých čísel medzi 0 a 100 oddelených čiarkou. Príklad: 80, 85, 90",
       "min_max_opening_degrees_inconsistent": "Pre každé základné zariadenie musí byť max_opening_degrees striktne väčší ako min_opening_degrees. Skontrolujte prosím svoju konfiguráciu.",
-      "valve_control_parameters_cardinality_incorrect": "Zoznamy minimálnych a maximálnych stupňov otvorenia nemôžu obsahovať viac hodnôt než nakonfigurované ventily",
       "vswitch_configuration_incorrect": "The command customization configuration is incorrect. It is required for underlying entities that are not switches, and the format must be service_name[/attribute:value]. More information is available in the README",
-      "missing_settings_summary": "Na doplnenie: {count}"
+      "missing_settings_summary": "Na doplnenie: {count}",
+      "underlying_already_added": "Túto entitu už používa zariadenie tohto VTherm",
+      "max_opening_degree_out_of_range": "Maximálne otvorenie musí byť väčšie ako 0 a nesmie prekročiť maximum ventilu",
+      "underlying_field_missing": "Chýba: {field}"
     },
     "abort": {
       "already_configured": "Zariadenie je už nakonfigurované"
@@ -411,8 +458,6 @@
           "presence": "Detekcia prítomnosti",
           "advanced": "Pokročilé parametre",
           "auto_start_stop": "Automatické spustenie a zastavenie",
-          "valve_regulation": "Konfigurácia regulácie ventilu",
-          "sync_device_internal_temp": "Synchronizácia teploty zariadenia",
           "lock": "Správa zámku",
           "finalize": "Všetko hotové",
           "configuration_not_complete": "Konfigurácia nie je dokončená ({missing_count})",
@@ -475,62 +520,55 @@
       },
       "type": {
         "title": "Prepojené entity - {name}",
-        "description": "Atribúty prepojených entít",
-        "data": {
-          "heater_entity_id": "Spínač ohrievača",
-          "heater_entity2_id": "2. spínač ohrievača",
-          "heater_entity3_id": "3. spínač ohrievača",
-          "heater_entity4_id": "4. spínač ohrievača",
-          "heater_keep_alive": "Prepnite interval udržiavania v sekundách",
-          "proportional_function": "Algoritmus",
-          "climate_entity_id": "Základná klíma",
-          "climate_entity2_id": "2. základná klíma",
-          "climate_entity3_id": "3. základná klíma",
-          "climate_entity4_id": "4. základná klíma",
-          "ac_mode": "AC režim",
-          "sync_device_internal_temp": "Synchronizácia vnútornej teploty zariadenia",
-          "valve_entity_id": "1. ventil číslo",
-          "valve_entity2_id": "2. ventil číslo",
-          "valve_entity3_id": "3. ventil číslo",
-          "valve_entity4_id": "4. ventil číslo",
-          "auto_regulation_mode": "Samoregulácia",
-          "auto_regulation_dtemp": "Regulačný prah",
-          "auto_regulation_periode_min": "Regulačné minimálne obdobie",
-          "auto_regulation_use_device_temp": "Použite vnútornú teplotu podkladu",
-          "inverse_switch_command": "Inverzný prepínací príkaz",
-          "auto_fan_mode": "Režim automatického ventilátora",
-          "opening_threshold_degree": "Prah otvorenia",
-          "min_opening_degrees": "Minimálne stupne otvorenia",
-          "max_opening_degrees": "Maximálny stupeň otvorenia",
-          "max_closing_degree": "Maximálny stupeň zatvorenia"
+        "description": "{wizard_progress}Zariadenia ovládané týmto VTherm. Otvorte spoločné nastavenia, zariadenie na zobrazenie a zmenu všetkých jeho nastavení, alebo pridajte zariadenie.",
+        "menu_options": {
+          "underlying_common": "Spoločné nastavenia",
+          "underlying_1": "{underlying_1}",
+          "underlying_2": "{underlying_2}",
+          "underlying_3": "{underlying_3}",
+          "underlying_4": "{underlying_4}",
+          "underlying_5": "{underlying_5}",
+          "underlying_6": "{underlying_6}",
+          "underlying_7": "{underlying_7}",
+          "underlying_8": "{underlying_8}",
+          "underlying_9": "{underlying_9}",
+          "underlying_10": "{underlying_10}",
+          "underlying_11": "{underlying_11}",
+          "underlying_12": "{underlying_12}",
+          "underlying_13": "{underlying_13}",
+          "underlying_14": "{underlying_14}",
+          "underlying_15": "{underlying_15}",
+          "underlying_16": "{underlying_16}",
+          "underlying_17": "{underlying_17}",
+          "underlying_18": "{underlying_18}",
+          "underlying_19": "{underlying_19}",
+          "underlying_20": "{underlying_20}",
+          "underlying_add": "Pridať zariadenie",
+          "menu": "Späť do ponuky"
         },
-        "data_description": {
-          "heater_entity_id": "ID entity povinného ohrievača",
-          "heater_entity2_id": "Voliteľné ID entity 2. ohrievača. Ak sa nepoužíva, nechajte prázdne",
-          "heater_entity3_id": "Voliteľné ID entity 3. ohrievača. Ak sa nepoužíva, nechajte prázdne",
-          "heater_entity4_id": "Voliteľné ID entity 4. ohrievača. Ak sa nepoužíva, nechajte prázdne",
-          "heater_keep_alive": "Voliteľný interval obnovy stavu spínača ohrievača. Ak to nie je potrebné, nechajte prázdne.",
-          "proportional_function": "Algoritmus, ktorý sa má použiť (ďalšie algoritmy je možné nainštalovať ako {plugins_link})",
-          "climate_entity_id": "ID základnej klimatickej entity",
-          "climate_entity2_id": "2. základný identifikátor klimatickej entity",
-          "climate_entity3_id": "3. základný identifikátor klimatickej entity",
-          "climate_entity4_id": "4. základný identifikátor klimatickej entity",
-          "ac_mode": "Použite režim klimatizácie (AC)",
-          "sync_device_internal_temp": "Synchronizácia vnútornej teploty zariadenia",
-          "valve_entity_id": "1. ventil číslo entity id",
-          "valve_entity2_id": "2. ventil číslo entity id",
-          "valve_entity3_id": "3. ventil číslo entity id",
-          "valve_entity4_id": "4. ventil číslo entity id",
-          "auto_regulation_mode": "Automatické nastavenie cieľovej teploty",
-          "auto_regulation_dtemp": "Hranica v °, pod ktorou sa zmena teploty neodošle",
-          "auto_regulation_periode_min": "Trvanie v minútach medzi dvoma aktualizáciami predpisov",
-          "auto_regulation_use_device_temp": "Na urýchlenie samoregulácie použite prípadný vnútorný snímač teploty podkladu (vo väčšine prípadov nie je potrebné)",
-          "inverse_switch_command": "V prípade spínača s pilotným vodičom a diódou možno budete musieť príkaz invertovať",
-          "auto_fan_mode": "Automaticky aktivujte ventilátor, keď je potrebné veľké vykurovanie/chladenie",
-          "opening_threshold_degree": "Hodnota otvorenia ventilu, pod ktorou by mal byť ventil považovaný za zatvorený (a potom bude platný 'max_closing_degree')",
-          "min_opening_degrees": "Minimálna hodnota stupňa otvorenia pre každé základné zariadenie, oddelená čiarkami. Predvolená hodnota je 0. Príklad: 20, 25, 30",
-          "max_opening_degrees": "Maximálna hodnota stupňa otvorenia pre každé základné zariadenie, oddelené čiarkami. Predvolená hodnota je 100. Ventil sa nikdy neotvorí viac ako táto hodnota. Príklad: 80, 85, 90",
-          "max_closing_degree": "Maximálna hodnota stupňa zatvorenia. Ventil sa nikdy nezatvorí viac ako táto hodnota. Nastavte na 100 pre úplné zatvorenie ventilu"
+        "menu_option_descriptions": {
+          "underlying_common": "{underlying_common_details}",
+          "underlying_1": "{underlying_1_details}",
+          "underlying_2": "{underlying_2_details}",
+          "underlying_3": "{underlying_3_details}",
+          "underlying_4": "{underlying_4_details}",
+          "underlying_5": "{underlying_5_details}",
+          "underlying_6": "{underlying_6_details}",
+          "underlying_7": "{underlying_7_details}",
+          "underlying_8": "{underlying_8_details}",
+          "underlying_9": "{underlying_9_details}",
+          "underlying_10": "{underlying_10_details}",
+          "underlying_11": "{underlying_11_details}",
+          "underlying_12": "{underlying_12_details}",
+          "underlying_13": "{underlying_13_details}",
+          "underlying_14": "{underlying_14_details}",
+          "underlying_15": "{underlying_15_details}",
+          "underlying_16": "{underlying_16_details}",
+          "underlying_17": "{underlying_17_details}",
+          "underlying_18": "{underlying_18_details}",
+          "underlying_19": "{underlying_19_details}",
+          "underlying_20": "{underlying_20_details}",
+          "underlying_add": "Vybrať ďalšie zariadenie na ovládanie"
         }
       },
       "tpi": {
@@ -645,42 +683,6 @@
           "use_advanced_central_config": "Začiarknite, ak chcete použiť centrálnu rozšírenú konfiguráciu. Zrušte začiarknutie, ak chcete použiť špecifickú rozšírenú konfiguráciu pre tento VTherm"
         }
       },
-      "sync_device_internal_temp": {
-        "title": "Synchronize device internal temperature",
-        "description": "Configuration to synchronize the internal temperature of the underlying devices with selected entities",
-        "data": {
-          "sync_with_calibration": "Apply offset calibration",
-          "sync_entity_ids": "Entities id used for synchronization"
-        },
-        "data_description": {
-          "sync_with_calibration": "Check to apply the offset calibration when synchronizing the internal temperature. Uncheck to directly copy the temperature from the selected entities",
-          "sync_entity_ids": "The list of the entities used to synchronize the internal temperature of the underlying devices. There should be one per underlying device. Should be a calibration entity if checkbox is selected or a temperature entity otherwise. Both are `number` entities."
-        }
-      },
-      "valve_regulation": {
-        "title": "Samoregulácia s ventilon - {name}",
-        "description": "Konfigurácia samoregulácie s priamym ovládaním ventilu",
-        "data": {
-          "offset_calibration_entity_ids": "Entity kalibrácie offsetu",
-          "opening_degree_entity_ids": "Entity stupňa otvorenia",
-          "closing_degree_entity_ids": "Entity stupňa zatvorenia",
-          "proportional_function": "Algoritmus",
-          "opening_threshold_degree": "Prah otvorenia",
-          "min_opening_degrees": "Minimálne stupne otvorenia",
-          "max_opening_degrees": "Maximálny stupeň otvorenia",
-          "max_closing_degree": "Maximálny stupeň zatvorenia"
-        },
-        "data_description": {
-          "offset_calibration_entity_ids": "Zoznam entít 'kalibrácie offsetu'. Nastavte, ak má váš TRV entitu pre lepšiu reguláciu. Mala by byť jedna na každú základnú klimatickú entitu",
-          "opening_degree_entity_ids": "Zoznam entít 'stupňa otvorenia'. Mala by byť jedna na každú základnú klimatickú entitu",
-          "closing_degree_entity_ids": "Zoznam entít 'stupňa zatvorenia'. Nastavte, ak má váš TRV entitu pre lepšiu reguláciu. Mala by byť jedna na každú základnú klimatickú entitu",
-          "proportional_function": "Algoritmus, ktorý sa má použiť (ďalšie algoritmy je možné nainštalovať ako {plugins_link})",
-          "opening_threshold_degree": "Hodnota otvorenia ventilu, pod ktorou by mal byť ventil považovaný za zatvorený (a potom bude platný 'max_closing_degree')",
-          "min_opening_degrees": "Minimálna hodnota stupňa otvorenia pre každé základné zariadenie, oddelená čiarkami. Predvolená hodnota je 0. Príklad: 20, 25, 30",
-          "max_opening_degrees": "Maximálna hodnota stupňa otvorenia pre každé základné zariadenie, oddelené čiarkami. Predvolená hodnota je 100. Ventil sa nikdy neotvorí viac ako táto hodnota. Príklad: 80, 85, 90",
-          "max_closing_degree": "Maximálna hodnota stupňa zatvorenia. Ventil sa nikdy nezatvorí viac ako táto hodnota. Nastavte na 100 pre úplné zatvorenie ventilu"
-        }
-      },
       "auto_tpi_configuration": {
         "data": {
           "auto_tpi_cooling_rate": "Rýchlosť chladenia ({unit}/h)"
@@ -724,8 +726,6 @@
           "presence": "Detekcia prítomnosti",
           "advanced": "Pokročilé parametre",
           "central_boiler": "Centrálny kotol",
-          "valve_regulation": "Konfigurácia regulácie ventilu",
-          "sync_device_internal_temp": "Synchronizácia teploty zariadenia",
           "menu": "Späť do ponuky"
         },
         "menu_option_descriptions": {
@@ -737,9 +737,105 @@
           "motion": "Otvoriť túto obrazovku a doplniť chýbajúce nastavenia",
           "presence": "Otvoriť túto obrazovku a doplniť chýbajúce nastavenia",
           "advanced": "Otvoriť túto obrazovku a doplniť chýbajúce nastavenia",
-          "central_boiler": "Otvoriť túto obrazovku a doplniť chýbajúce nastavenia",
-          "valve_regulation": "Otvoriť túto obrazovku a doplniť chýbajúce nastavenia",
-          "sync_device_internal_temp": "Otvoriť túto obrazovku a doplniť chýbajúce nastavenia"
+          "central_boiler": "Otvoriť túto obrazovku a doplniť chýbajúce nastavenia"
+        }
+      },
+      "underlying_common": {
+        "title": "Spoločné nastavenia - {name}",
+        "description": "{wizard_progress}Nastavenia zdieľané všetkými zariadeniami tohto VTherm.",
+        "data": {
+          "heater_keep_alive": "Prepnite interval udržiavania v sekundách",
+          "proportional_function": "Algoritmus",
+          "ac_mode": "AC režim",
+          "inverse_switch_command": "Inverzný prepínací príkaz",
+          "auto_regulation_dtemp": "Regulačný prah",
+          "auto_regulation_periode_min": "Regulačné minimálne obdobie",
+          "opening_threshold_degree": "Prah otvorenia",
+          "max_closing_degree": "Maximálny stupeň zatvorenia",
+          "sync_device_internal_temp": "Synchronizácia vnútornej teploty zariadenia",
+          "auto_regulation_mode": "Samoregulácia",
+          "auto_fan_mode": "Režim automatického ventilátora",
+          "auto_regulation_use_device_temp": "Použite vnútornú teplotu podkladu"
+        },
+        "data_description": {
+          "heater_keep_alive": "Voliteľný interval obnovy stavu spínača ohrievača. Ak to nie je potrebné, nechajte prázdne.",
+          "proportional_function": "Algoritmus, ktorý sa má použiť (ďalšie algoritmy je možné nainštalovať ako {plugins_link})",
+          "ac_mode": "Použite režim klimatizácie (AC)",
+          "inverse_switch_command": "V prípade spínača s pilotným vodičom a diódou možno budete musieť príkaz invertovať",
+          "auto_regulation_dtemp": "Hranica v °, pod ktorou sa zmena teploty neodošle",
+          "auto_regulation_periode_min": "Trvanie v minútach medzi dvoma aktualizáciami predpisov",
+          "opening_threshold_degree": "Hodnota otvorenia ventilu, pod ktorou by mal byť ventil považovaný za zatvorený (a potom bude platný 'max_closing_degree')",
+          "max_closing_degree": "Maximálna hodnota stupňa zatvorenia. Ventil sa nikdy nezatvorí viac ako táto hodnota. Nastavte na 100 pre úplné zatvorenie ventilu",
+          "sync_device_internal_temp": "Zaškrtnite na synchronizáciu vnútornej teploty podriadených zariadení. Každé zariadenie potom potrebuje vlastnú synchronizačnú entitu, zadanú v nastaveniach zariadenia",
+          "auto_regulation_mode": "Automatické nastavenie cieľovej teploty",
+          "auto_fan_mode": "Automaticky aktivujte ventilátor, keď je potrebné veľké vykurovanie/chladenie",
+          "auto_regulation_use_device_temp": "Na urýchlenie samoregulácie použite prípadný vnútorný snímač teploty podkladu (vo väčšine prípadov nie je potrebné)"
+        }
+      },
+      "underlying_common_extra": {
+        "title": "Regulácia ventilom a synchronizácia - {name}",
+        "description": "{wizard_progress}Nastavenia zdieľané všetkými zariadeniami pre priame ovládanie ventilov a synchronizáciu vnútornej teploty.",
+        "data": {
+          "proportional_function": "Algoritmus",
+          "opening_threshold_degree": "Prah otvorenia",
+          "max_closing_degree": "Maximálny stupeň zatvorenia",
+          "sync_with_calibration": "Apply offset calibration"
+        },
+        "data_description": {
+          "proportional_function": "Algoritmus, ktorý sa má použiť (ďalšie algoritmy je možné nainštalovať ako {plugins_link})",
+          "opening_threshold_degree": "Hodnota otvorenia ventilu, pod ktorou by mal byť ventil považovaný za zatvorený (a potom bude platný 'max_closing_degree')",
+          "max_closing_degree": "Maximálna hodnota stupňa zatvorenia. Ventil sa nikdy nezatvorí viac ako táto hodnota. Nastavte na 100 pre úplné zatvorenie ventilu",
+          "sync_with_calibration": "Check to apply the offset calibration when synchronizing the internal temperature. Uncheck to directly copy the temperature from the selected entities"
+        }
+      },
+      "underlying_add": {
+        "title": "Pridať zariadenie - {name}",
+        "description": "{wizard_progress}Vyberte zariadenie, ktoré chcete ovládať. Jeho vlastné nastavenia sa zadávajú na ďalšej obrazovke.",
+        "data": {
+          "underlying_entity_id": "Zariadenie"
+        },
+        "data_description": {
+          "underlying_entity_id": "Entita, ktorá sa má ovládať"
+        }
+      },
+      "underlying": {
+        "title": "{underlying_name}",
+        "description": "{underlying_entity}\n\nNastavenia tohto zariadenia. Zobrazujú sa iba polia platné pre typ VTherm a spoločné nastavenia. Vlastné príkazy a zatváracie entity musia byť zadané pre všetky zariadenia, alebo pre žiadne.",
+        "data": {
+          "opening_degree_entity_id": "Entita otvorenia ventilu",
+          "closing_degree_entity_id": "Entita zatvorenia ventilu (voliteľné)",
+          "sync_entity_id": "Synchronizačná entita",
+          "on_command": "Príkaz zapnutia",
+          "off_command": "Príkaz vypnutia",
+          "min_opening_degree": "Minimálne otvorenie (%)",
+          "max_opening_degree": "Maximálne otvorenie (%)",
+          "replace_entity_id": "Nahradiť entitu",
+          "remove_underlying": "Odstrániť toto zariadenie"
+        },
+        "data_description": {
+          "opening_degree_entity_id": "Entita number, ktorá nastavuje stupeň otvorenia ventilu. Navrhujú sa entity rovnakého zariadenia.",
+          "closing_degree_entity_id": "Voliteľná entita number, ktorá nastavuje stupeň zatvorenia ventilu. Zadajte ju pre všetky zariadenia, alebo pre žiadne.",
+          "sync_entity_id": "Entita number použitá na synchronizáciu vnútornej teploty tohto zariadenia: kalibračná entita, ak je zaškrtnuté 'Použiť kalibráciu offsetu', inak teplotná entita.",
+          "on_command": "Formát: názov_služby[/atribút:hodnota]. Povinné pre entity select a climate. Zadajte pre všetky zariadenia, alebo pre žiadne.",
+          "off_command": "Formát: názov_služby[/atribút:hodnota]. Povinné pre entity select a climate. Zadajte pre všetky zariadenia, alebo pre žiadne.",
+          "min_opening_degree": "Minimálny stupeň otvorenia tohto zariadenia po prekročení prahu otvorenia. Predvolená hodnota je 0.",
+          "max_opening_degree": "Maximálny stupeň otvorenia tohto zariadenia: ventil sa nikdy neotvorí viac ako o túto hodnotu. Nesmie prekročiť maximum ventilu.",
+          "replace_entity_id": "Vyberte inú entitu, ktorá nahradí toto zariadenie. Ak sa zmení typ entity, treba nastavenia zariadenia vyplniť znova.",
+          "remove_underlying": "Zaškrtnutím odstránite toto zariadenie z VTherm"
+        },
+        "sections": {
+          "commands": {
+            "name": "Vlastné príkazy",
+            "description": "Voliteľné príkazy na zapnutie a vypnutie tohto zariadenia vo formáte názov_služby[/atribút:hodnota]. Zadajte ich pre všetky zariadenia, alebo pre žiadne.",
+            "data": {
+              "on_command": "Príkaz zapnutia",
+              "off_command": "Príkaz vypnutia"
+            },
+            "data_description": {
+              "on_command": "Formát: názov_služby[/atribút:hodnota]. Povinné pre entity select a climate. Zadajte pre všetky zariadenia, alebo pre žiadne.",
+              "off_command": "Formát: názov_služby[/atribút:hodnota]. Povinné pre entity select a climate. Zadajte pre všetky zariadenia, alebo pre žiadne."
+            }
+          }
         }
       }
     },
@@ -749,14 +845,12 @@
       "window_open_detection_method": "Mala by sa použiť iba jedna metóda detekcie otvoreného okna. Použite senzor alebo automatickú detekciu cez teplotný prah, ale nie oboje",
       "no_central_config": "Nemôžete zaškrtnúť „použiť centrálnu konfiguráciu“, pretože sa nenašla žiadna centrálna konfigurácia. Aby ste ho mohli používať, musíte si vytvoriť všestranný termostat typu „Central Configuration“.",
       "service_configuration_format": "Formát konfigurácie služby je nesprávny",
-      "valve_regulation_nb_entities_incorrect": "The number of valve entities for valve regulation should be equal to the number of underlyings",
-      "sync_device_internal_temp_nb_entities_incorrect": "The number of entities for synchronize device internal temperature should be equal to the number of underlyings",
-      "min_opening_degrees_format": "A comma separated list of positive integer is expected. Example: 20, 25, 30",
-      "max_opening_degrees_format": "Očakáva sa zoznam kladných celých čísel medzi 0 a 100 oddelených čiarkou. Príklad: 80, 85, 90",
       "min_max_opening_degrees_inconsistent": "Pre každé základné zariadenie musí byť max_opening_degrees striktne väčší ako min_opening_degrees. Skontrolujte prosím svoju konfiguráciu.",
-      "valve_control_parameters_cardinality_incorrect": "Zoznamy minimálnych a maximálnych stupňov otvorenia nemôžu obsahovať viac hodnôt než nakonfigurované ventily",
       "vswitch_configuration_incorrect": "The command customization configuration is incorrect. It is required for underlying entities that are not switches, and the format must be service_name[/attribute:value]. More information is available in the README",
-      "missing_settings_summary": "Na doplnenie: {count}"
+      "missing_settings_summary": "Na doplnenie: {count}",
+      "underlying_already_added": "Túto entitu už používa zariadenie tohto VTherm",
+      "max_opening_degree_out_of_range": "Maximálne otvorenie musí byť väčšie ako 0 a nesmie prekročiť maximum ventilu",
+      "underlying_field_missing": "Chýba: {field}"
     },
     "abort": {
       "already_configured": "Zariadenie je už nakonfigurované"

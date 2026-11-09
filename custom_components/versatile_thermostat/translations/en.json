@@ -29,8 +29,6 @@
                     "presence": "Presence detection",
                     "advanced": "Advanced parameters",
                     "auto_start_stop": "Auto start and stop",
-                    "valve_regulation": "Valve regulation configuration",
-                    "sync_device_internal_temp": "Synchronize device temperature",
                     "humidity": "Humidity",
                     "lock": "Lock",
                     "heating_failure_detection": "Heating failure detection",
@@ -101,45 +99,55 @@
             },
             "type": {
                 "title": "Linked entities",
-                "description": "Linked entities attributes",
-                "data": {
-                    "underlying_entity_ids": "The device(s) to be controlled",
-                    "heater_keep_alive": "Switch keep-alive interval in seconds",
-                    "proportional_function": "Algorithm",
-                    "ac_mode": "AC mode",
-                    "sync_device_internal_temp": "Synchronize device internal temperature",
-                    "auto_regulation_mode": "Self-regulation",
-                    "auto_regulation_dtemp": "Regulation threshold",
-                    "auto_regulation_periode_min": "Regulation minimum period",
-                    "opening_threshold_degree": "Opening threshold degree",
-                    "min_opening_degrees": "Min opening degrees",
-                    "max_opening_degrees": "Max opening degrees",
-                    "max_closing_degree": "Max closing degree",
-                    "auto_regulation_use_device_temp": "Use internal temperature of the underlying",
-                    "inverse_switch_command": "Inverse switch command",
-                    "auto_fan_mode": "Auto fan mode",
-                    "on_command_text": "Turn on command customization",
-                    "vswitch_on_command": "Optional turn on commands",
-                    "off_command_text": "Turn off command customization",
-                    "vswitch_off_command": "Optional turn off commands"
+                "description": "{wizard_progress}Devices controlled by this VTherm. Open the common settings, a device to see and change all its settings, or add a device.",
+                "menu_options": {
+                    "underlying_common": "Common settings",
+                    "underlying_1": "{underlying_1}",
+                    "underlying_2": "{underlying_2}",
+                    "underlying_3": "{underlying_3}",
+                    "underlying_4": "{underlying_4}",
+                    "underlying_5": "{underlying_5}",
+                    "underlying_6": "{underlying_6}",
+                    "underlying_7": "{underlying_7}",
+                    "underlying_8": "{underlying_8}",
+                    "underlying_9": "{underlying_9}",
+                    "underlying_10": "{underlying_10}",
+                    "underlying_11": "{underlying_11}",
+                    "underlying_12": "{underlying_12}",
+                    "underlying_13": "{underlying_13}",
+                    "underlying_14": "{underlying_14}",
+                    "underlying_15": "{underlying_15}",
+                    "underlying_16": "{underlying_16}",
+                    "underlying_17": "{underlying_17}",
+                    "underlying_18": "{underlying_18}",
+                    "underlying_19": "{underlying_19}",
+                    "underlying_20": "{underlying_20}",
+                    "underlying_add": "Add a device",
+                    "menu": "Back to menu"
                 },
-                "data_description": {
-                    "underlying_entity_ids": "The device(s) to be controlled - 1 is required",
-                    "heater_keep_alive": "Optional heater switch state refresh interval. Leave empty if not required.",
-                    "proportional_function": "Algorithm to use (other algorithms can be installed as {plugins_link})",
-                    "ac_mode": "Use the Air Conditioning (AC) mode",
-                    "sync_device_internal_temp": "Check to synchronize the internal temperature of the underlying device (fill the new menu item 'Synchronize device temperature' to configure it)",
-                    "auto_regulation_mode": "Auto adjustment of the target temperature",
-                    "auto_regulation_dtemp": "The threshold in ° (or % for valve) under which the temperature change will not be sent",
-                    "auto_regulation_periode_min": "Duration in minutes between two regulation update",
-                    "opening_threshold_degree": "Valve opening value under which the valve should be considered as closed (and then 'max_closing_degree' will apply)",
-                    "min_opening_degrees": "Opening degree minimum value for each underlying device when previous threshold is exceeded, comma separated. Default to 0. Example: 20, 25, 30",
-                    "max_opening_degrees": "Opening degree maximum value. The valve will never open more than this value",
-                    "max_closing_degree": "Closing degree maximum value. The valve will never be closed above this value. Set it to 100 to fully close the valve",
-                    "auto_regulation_use_device_temp": "Use the eventual internal temperature sensor of the underlying to speedup the self-regulation (not needed in most cases)",
-                    "inverse_switch_command": "For switch with pilot wire and diode you may need to inverse the command",
-                    "auto_fan_mode": "Automatically activate fan when huge heating/cooling is necessary",
-                    "on_command_text": "For underlying of type `select` or `climate` you have to customize the commands."
+                "menu_option_descriptions": {
+                    "underlying_common": "{underlying_common_details}",
+                    "underlying_1": "{underlying_1_details}",
+                    "underlying_2": "{underlying_2_details}",
+                    "underlying_3": "{underlying_3_details}",
+                    "underlying_4": "{underlying_4_details}",
+                    "underlying_5": "{underlying_5_details}",
+                    "underlying_6": "{underlying_6_details}",
+                    "underlying_7": "{underlying_7_details}",
+                    "underlying_8": "{underlying_8_details}",
+                    "underlying_9": "{underlying_9_details}",
+                    "underlying_10": "{underlying_10_details}",
+                    "underlying_11": "{underlying_11_details}",
+                    "underlying_12": "{underlying_12_details}",
+                    "underlying_13": "{underlying_13_details}",
+                    "underlying_14": "{underlying_14_details}",
+                    "underlying_15": "{underlying_15_details}",
+                    "underlying_16": "{underlying_16_details}",
+                    "underlying_17": "{underlying_17_details}",
+                    "underlying_18": "{underlying_18_details}",
+                    "underlying_19": "{underlying_19_details}",
+                    "underlying_20": "{underlying_20_details}",
+                    "underlying_add": "Select another device to control"
                 }
             },
             "tpi": {
@@ -282,30 +290,6 @@
                     "keep_alive_boiler_delay_sec": "Delay in seconds to periodically resend the boiler command if keep-alive is enabled. Set to 0 to disable keep-alive."
                 }
             },
-            "valve_regulation": {
-                "title": "Self-regulation with valve",
-                "description": "Configuration for self-regulation with direct control of the valve",
-                "data": {
-                    "offset_calibration_entity_ids": "Offset calibration entities",
-                    "opening_degree_entity_ids": "Opening degree entities",
-                    "closing_degree_entity_ids": "Closing degree entities",
-                    "proportional_function": "Algorithm",
-                    "opening_threshold_degree": "Opening threshold degree",
-                    "min_opening_degrees": "Min opening degrees",
-                    "max_opening_degrees": "Max opening degrees",
-                    "max_closing_degree": "Max closing degree"
-                },
-                "data_description": {
-                    "offset_calibration_entity_ids": "The list of the 'offset calibration' entities. Set it if your TRV has the entity for better regulation. There should be one per underlying climate entities",
-                    "opening_degree_entity_ids": "The list of the 'opening degree' entities. There should be one per underlying climate entities",
-                    "closing_degree_entity_ids": "The list of the 'closing degree' entities. Set it if your TRV has the entity for better regulation. There should be one per underlying climate entities",
-                    "proportional_function": "Algorithm to use (other algorithms can be installed as {plugins_link})",
-                    "opening_threshold_degree": "Valve opening value under which the valve should be considered as closed (and then 'max_closing_degree' will apply)",
-                    "min_opening_degrees": "Opening degree minimum value for each underlying device when previous threshold is exceeded, comma separated. Default to 0. Example: 20, 25, 30",
-                    "max_opening_degrees": "Opening degree maximum value. The valve will never open more than this value",
-                    "max_closing_degree": "Closing degree maximum value. The valve will never be closed above this value. Set it to 100 to fully close the valve"
-                }
-            },
             "auto_tpi_configuration": {
                 "title": "Auto TPI - Configuration",
                 "description": "General settings for Auto TPI learning.",
@@ -352,18 +336,6 @@
                     "auto_tpi_ema_alpha": "Smoothing factor (0-1). Higher = faster adaptation",
                     "auto_tpi_ema_decay_rate": "Rate at which Alpha decreases over time (stabilization)",
                     "auto_tpi_continuous_kext_alpha": "Smoothing factor for continuous Kext learning (Alpha). Default 0.04 (approx 3-5 days adaptation)."
-                }
-            },
-            "sync_device_internal_temp": {
-                "title": "Synchronize device internal temperature",
-                "description": "Configuration to synchronize the internal temperature of the underlying devices with selected entities",
-                "data": {
-                    "sync_with_calibration": "Apply offset calibration",
-                    "sync_entity_ids": "Entities id used for synchronization"
-                },
-                "data_description": {
-                    "sync_with_calibration": "Check to apply the offset calibration when synchronizing the internal temperature. Uncheck to directly copy the temperature from the selected entities",
-                    "sync_entity_ids": "The list of the entities used to synchronize the internal temperature of the underlying devices. There should be one per underlying device. Should be a calibration entity if checkbox is selected or a temperature entity otherwise. Both are `number` entities."
                 }
             },
             "humidity": {
@@ -413,8 +385,6 @@
                     "presence": "Presence detection",
                     "advanced": "Advanced parameters",
                     "central_boiler": "Central boiler",
-                    "valve_regulation": "Valve regulation configuration",
-                    "sync_device_internal_temp": "Synchronize device temperature",
                     "menu": "Back to menu"
                 },
                 "menu_option_descriptions": {
@@ -426,9 +396,105 @@
                     "motion": "Open this screen to fill in the missing settings",
                     "presence": "Open this screen to fill in the missing settings",
                     "advanced": "Open this screen to fill in the missing settings",
-                    "central_boiler": "Open this screen to fill in the missing settings",
-                    "valve_regulation": "Open this screen to fill in the missing settings",
-                    "sync_device_internal_temp": "Open this screen to fill in the missing settings"
+                    "central_boiler": "Open this screen to fill in the missing settings"
+                }
+            },
+            "underlying_common": {
+                "title": "Common settings",
+                "description": "{wizard_progress}Settings shared by all the devices of this VTherm.",
+                "data": {
+                    "heater_keep_alive": "Switch keep-alive interval in seconds",
+                    "proportional_function": "Algorithm",
+                    "ac_mode": "AC mode",
+                    "inverse_switch_command": "Inverse switch command",
+                    "auto_regulation_dtemp": "Regulation threshold",
+                    "auto_regulation_periode_min": "Regulation minimum period",
+                    "opening_threshold_degree": "Opening threshold degree",
+                    "max_closing_degree": "Max closing degree",
+                    "sync_device_internal_temp": "Synchronize device internal temperature",
+                    "auto_regulation_mode": "Self-regulation",
+                    "auto_fan_mode": "Auto fan mode",
+                    "auto_regulation_use_device_temp": "Use internal temperature of the underlying"
+                },
+                "data_description": {
+                    "heater_keep_alive": "Optional heater switch state refresh interval. Leave empty if not required.",
+                    "proportional_function": "Algorithm to use (other algorithms can be installed as {plugins_link})",
+                    "ac_mode": "Use the Air Conditioning (AC) mode",
+                    "inverse_switch_command": "For switch with pilot wire and diode you may need to inverse the command",
+                    "auto_regulation_dtemp": "The threshold in ° (or % for valve) under which the temperature change will not be sent",
+                    "auto_regulation_periode_min": "Duration in minutes between two regulation update",
+                    "opening_threshold_degree": "Valve opening value under which the valve should be considered as closed (and then 'max_closing_degree' will apply)",
+                    "max_closing_degree": "Closing degree maximum value. The valve will never be closed above this value. Set it to 100 to fully close the valve",
+                    "sync_device_internal_temp": "Check to synchronize the internal temperature of the underlying devices. Each device then needs its own synchronization entity, set in the settings of the device",
+                    "auto_regulation_mode": "Auto adjustment of the target temperature",
+                    "auto_fan_mode": "Automatically activate fan when huge heating/cooling is necessary",
+                    "auto_regulation_use_device_temp": "Use the eventual internal temperature sensor of the underlying to speedup the self-regulation (not needed in most cases)"
+                }
+            },
+            "underlying_common_extra": {
+                "title": "Valve regulation and synchronization",
+                "description": "{wizard_progress}Settings shared by all the devices for the direct control of the valves and for the synchronization of the internal temperature.",
+                "data": {
+                    "proportional_function": "Algorithm",
+                    "opening_threshold_degree": "Opening threshold degree",
+                    "max_closing_degree": "Max closing degree",
+                    "sync_with_calibration": "Apply offset calibration"
+                },
+                "data_description": {
+                    "proportional_function": "Algorithm to use (other algorithms can be installed as {plugins_link})",
+                    "opening_threshold_degree": "Valve opening value under which the valve should be considered as closed (and then 'max_closing_degree' will apply)",
+                    "max_closing_degree": "Closing degree maximum value. The valve will never be closed above this value. Set it to 100 to fully close the valve",
+                    "sync_with_calibration": "Check to apply the offset calibration when synchronizing the internal temperature. Uncheck to directly copy the temperature from the selected entities"
+                }
+            },
+            "underlying_add": {
+                "title": "Add a device",
+                "description": "{wizard_progress}Select the device to control. Its own settings are asked on the next screen.",
+                "data": {
+                    "underlying_entity_id": "Device"
+                },
+                "data_description": {
+                    "underlying_entity_id": "The entity to control"
+                }
+            },
+            "underlying": {
+                "title": "{underlying_name}",
+                "description": "{underlying_entity}\n\nSettings of this device. Only the fields that apply to the type of VTherm and to the common settings are displayed. Custom commands and closing entities must be set for all the devices or for none.",
+                "data": {
+                    "opening_degree_entity_id": "Valve opening entity",
+                    "closing_degree_entity_id": "Valve closing entity (optional)",
+                    "sync_entity_id": "Synchronization entity",
+                    "on_command": "Turn on command",
+                    "off_command": "Turn off command",
+                    "min_opening_degree": "Minimum opening (%)",
+                    "max_opening_degree": "Maximum opening (%)",
+                    "replace_entity_id": "Replace entity",
+                    "remove_underlying": "Remove this device"
+                },
+                "data_description": {
+                    "opening_degree_entity_id": "The number entity that sets the opening degree of the valve. Entities of the same device are suggested.",
+                    "closing_degree_entity_id": "Optional number entity that sets the closing degree of the valve. Set it for all the devices or for none.",
+                    "sync_entity_id": "The number entity used to synchronize the internal temperature of this device: the calibration entity if 'Apply offset calibration' is checked, the temperature entity otherwise.",
+                    "on_command": "Format: service_name[/attribute:value]. Required for select and climate entities. Set the commands for all the devices or for none.",
+                    "off_command": "Format: service_name[/attribute:value]. Required for select and climate entities. Set the commands for all the devices or for none.",
+                    "min_opening_degree": "Minimum opening degree of this device when the opening threshold is exceeded. Defaults to 0.",
+                    "max_opening_degree": "Maximum opening degree of this device: the valve will never open more than this value. It cannot exceed the maximum of the valve.",
+                    "replace_entity_id": "Select another entity to replace this device. If the type of entity changes, the settings of the device have to be filled in again.",
+                    "remove_underlying": "Check to remove this device from the VTherm"
+                },
+                "sections": {
+                    "commands": {
+                        "name": "Custom commands",
+                        "description": "Optional commands to turn this device on and off, formatted as service_name[/attribute:value]. Set them for all the devices or for none.",
+                        "data": {
+                            "on_command": "Turn on command",
+                            "off_command": "Turn off command"
+                        },
+                        "data_description": {
+                            "on_command": "Format: service_name[/attribute:value]. Required for select and climate entities. Set the commands for all the devices or for none.",
+                            "off_command": "Format: service_name[/attribute:value]. Required for select and climate entities. Set the commands for all the devices or for none."
+                        }
+                    }
                 }
             }
         },
@@ -438,14 +504,12 @@
             "window_open_detection_method": "Only one window open detection method should be used. Use either window sensor or automatic detection through temperature threshold but not both",
             "no_central_config": "You cannot check 'use central configuration' because no central configuration was found. You need to create a Versatile Thermostat of type 'Central Configuration' to use it.",
             "service_configuration_format": "The format of the service configuration is wrong",
-            "valve_regulation_nb_entities_incorrect": "The number of valve entities for valve regulation should be equal to the number of underlyings",
-            "sync_device_internal_temp_nb_entities_incorrect": "The number of entities for synchronize device internal temperature should be equal to the number of underlyings",
-            "min_opening_degrees_format": "A comma separated list of positive integer is expected. Example: 20, 25, 30",
-            "max_opening_degrees_format": "A comma separated list of positive integer between 0 and the max valve opening is expected. Example: 80, 85, 90",
             "min_max_opening_degrees_inconsistent": "For each underlying device, max_opening_degrees must be strictly greater than min_opening_degrees. Please check your configuration.",
-            "valve_control_parameters_cardinality_incorrect": "The minimum and maximum opening degree lists cannot contain more values than the configured valves",
             "vswitch_configuration_incorrect": "The command customization configuration is incorrect. It is required for underlying entities that are not switches, and the format must be service_name[/attribute:value]. More information is available in the README",
-            "missing_settings_summary": "{count} setting(s) to complete"
+            "missing_settings_summary": "{count} setting(s) to complete",
+            "underlying_already_added": "This entity is already used by a device of this VTherm",
+            "max_opening_degree_out_of_range": "The maximum opening must be greater than 0 and must not exceed the maximum of the valve",
+            "underlying_field_missing": "{field} is missing"
         },
         "abort": {
             "already_configured": "Device is already configured"
@@ -480,8 +544,6 @@
                     "presence": "Presence detection",
                     "advanced": "Advanced parameters",
                     "auto_start_stop": "Auto start and stop",
-                    "valve_regulation": "Valve regulation configuration",
-                    "sync_device_internal_temp": "Synchronize device temperature",
                     "humidity": "Humidity",
                     "lock": "Lock",
                     "heating_failure_detection": "Heating failure detection",
@@ -547,45 +609,55 @@
             },
             "type": {
                 "title": "Entities - {name}",
-                "description": "Linked entities attributes",
-                "data": {
-                    "underlying_entity_ids": "The device(s) to be controlled",
-                    "heater_keep_alive": "Switch keep-alive interval in seconds",
-                    "proportional_function": "Algorithm",
-                    "ac_mode": "AC mode",
-                    "sync_device_internal_temp": "Synchronize device temperature",
-                    "auto_regulation_mode": "Self-regulation",
-                    "auto_regulation_dtemp": "Regulation threshold",
-                    "auto_regulation_periode_min": "Regulation minimum period",
-                    "opening_threshold_degree": "Opening threshold degree",
-                    "min_opening_degrees": "Min opening degrees",
-                    "max_opening_degrees": "Max opening degrees",
-                    "max_closing_degree": "Max closing degree",
-                    "auto_regulation_use_device_temp": "Use internal temperature of the underlying",
-                    "inverse_switch_command": "Inverse switch command",
-                    "auto_fan_mode": "Auto fan mode",
-                    "on_command_text": "Turn on command customization",
-                    "vswitch_on_command": "Optional turn on commands",
-                    "off_command_text": "Turn off command customization",
-                    "vswitch_off_command": "Optional turn off commands"
+                "description": "{wizard_progress}Devices controlled by this VTherm. Open the common settings, a device to see and change all its settings, or add a device.",
+                "menu_options": {
+                    "underlying_common": "Common settings",
+                    "underlying_1": "{underlying_1}",
+                    "underlying_2": "{underlying_2}",
+                    "underlying_3": "{underlying_3}",
+                    "underlying_4": "{underlying_4}",
+                    "underlying_5": "{underlying_5}",
+                    "underlying_6": "{underlying_6}",
+                    "underlying_7": "{underlying_7}",
+                    "underlying_8": "{underlying_8}",
+                    "underlying_9": "{underlying_9}",
+                    "underlying_10": "{underlying_10}",
+                    "underlying_11": "{underlying_11}",
+                    "underlying_12": "{underlying_12}",
+                    "underlying_13": "{underlying_13}",
+                    "underlying_14": "{underlying_14}",
+                    "underlying_15": "{underlying_15}",
+                    "underlying_16": "{underlying_16}",
+                    "underlying_17": "{underlying_17}",
+                    "underlying_18": "{underlying_18}",
+                    "underlying_19": "{underlying_19}",
+                    "underlying_20": "{underlying_20}",
+                    "underlying_add": "Add a device",
+                    "menu": "Back to menu"
                 },
-                "data_description": {
-                    "underlying_entity_ids": "The device(s) to be controlled - 1 is required",
-                    "heater_keep_alive": "Optional heater switch state refresh interval. Leave empty if not required.",
-                    "proportional_function": "Algorithm to use (other algorithms can be installed as {plugins_link})",
-                    "ac_mode": "Use the Air Conditioning (AC) mode",
-                    "sync_device_internal_temp": "Check to synchronize the internal temperature of the underlying device (fill the new menu item 'Synchronize device temperature' to configure it)",
-                    "auto_regulation_mode": "Auto adjustment of the target temperature",
-                    "auto_regulation_dtemp": "The threshold in ° (or % for valve) under which the temperature change will not be sent",
-                    "auto_regulation_periode_min": "Duration in minutes between two regulation update",
-                    "opening_threshold_degree": "Valve opening value under which the valve should be considered as closed (and then 'max_closing_degree' will apply)",
-                    "min_opening_degrees": "Opening degree minimum value for each underlying device when previous threshold is exceeded, comma separated. Default to 0. Example: 20, 25, 30",
-                    "max_opening_degrees": "Opening degree maximum value. The valve will never open more than this value",
-                    "max_closing_degree": "Closing degree maximum value. The valve will never be closed above this value. Set it to 100 to fully close the valve",
-                    "auto_regulation_use_device_temp": "Use the eventual internal temperature sensor of the underlying to speedup the self-regulation (not needed in most cases)",
-                    "inverse_switch_command": "For switch with pilot wire and diode you may need to inverse the command",
-                    "auto_fan_mode": "Automatically activate fan when huge heating/cooling is necessary",
-                    "on_command_text": "For underlying of type `select` or `climate` you have to customize the commands."
+                "menu_option_descriptions": {
+                    "underlying_common": "{underlying_common_details}",
+                    "underlying_1": "{underlying_1_details}",
+                    "underlying_2": "{underlying_2_details}",
+                    "underlying_3": "{underlying_3_details}",
+                    "underlying_4": "{underlying_4_details}",
+                    "underlying_5": "{underlying_5_details}",
+                    "underlying_6": "{underlying_6_details}",
+                    "underlying_7": "{underlying_7_details}",
+                    "underlying_8": "{underlying_8_details}",
+                    "underlying_9": "{underlying_9_details}",
+                    "underlying_10": "{underlying_10_details}",
+                    "underlying_11": "{underlying_11_details}",
+                    "underlying_12": "{underlying_12_details}",
+                    "underlying_13": "{underlying_13_details}",
+                    "underlying_14": "{underlying_14_details}",
+                    "underlying_15": "{underlying_15_details}",
+                    "underlying_16": "{underlying_16_details}",
+                    "underlying_17": "{underlying_17_details}",
+                    "underlying_18": "{underlying_18_details}",
+                    "underlying_19": "{underlying_19_details}",
+                    "underlying_20": "{underlying_20_details}",
+                    "underlying_add": "Select another device to control"
                 }
             },
             "tpi": {
@@ -730,42 +802,6 @@
                     "keep_alive_boiler_delay_sec": "Delay in seconds to periodically resend the boiler command if keep-alive is enabled. Set to 0 to disable keep-alive."
                 }
             },
-            "valve_regulation": {
-                "title": "Self-regulation with valve - {name}",
-                "description": "Configuration for self-regulation with direct control of the valve",
-                "data": {
-                    "offset_calibration_entity_ids": "Offset calibration entities",
-                    "opening_degree_entity_ids": "Opening degree entities",
-                    "closing_degree_entity_ids": "Closing degree entities",
-                    "proportional_function": "Algorithm",
-                    "opening_threshold_degree": "Opening threshold degree",
-                    "min_opening_degrees": "Min opening degrees",
-                    "max_opening_degrees": "Max opening degrees",
-                    "max_closing_degree": "Max closing degree"
-                },
-                "data_description": {
-                    "offset_calibration_entity_ids": "The list of the 'offset calibration' entities. Set it if your TRV has the entity for better regulation. There should be one per underlying climate entities",
-                    "opening_degree_entity_ids": "The list of the 'opening degree' entities. There should be one per underlying climate entities",
-                    "closing_degree_entity_ids": "The list of the 'closing degree' entities. Set it if your TRV has the entity for better regulation. There should be one per underlying climate entities",
-                    "proportional_function": "Algorithm to use (other algorithms can be installed as {plugins_link})",
-                    "opening_threshold_degree": "Valve opening value under which the valve should be considered as closed (and then 'max_closing_degree' will apply)",
-                    "min_opening_degrees": "Opening degree minimum value for each underlying device when previous threshold is exceeded, comma separated. Default to 0. Example: 20, 25, 30",
-                    "max_opening_degrees": "Opening degree maximum value. The valve will never open more than this value",
-                    "max_closing_degree": "Closing degree maximum value. The valve will never be closed above this value. Set it to 100 to fully close the valve"
-                }
-            },
-            "sync_device_internal_temp": {
-                "title": "Synchronize device internal temperature",
-                "description": "Configuration to synchronize the internal temperature of the underlying devices with selected entities",
-                "data": {
-                    "sync_with_calibration": "Apply offset calibration",
-                    "sync_entity_ids": "Entities id used for synchronization"
-                },
-                "data_description": {
-                    "sync_with_calibration": "Check to apply the offset calibration when synchronizing the internal temperature. Uncheck to directly copy the temperature from the selected entities",
-                    "sync_entity_ids": "The list of the entities used to synchronize the internal temperature of the underlying devices. There should be one per underlying device. Should be a calibration entity if checkbox is selected or a temperature entity otherwise. Both are `number` entities."
-                }
-            },
             "humidity": {
                 "title": "Humidity - {name}",
                 "description": "Use an external humidity sensor. Detected sensor: {humidity_detected}",
@@ -861,8 +897,6 @@
                     "presence": "Presence detection",
                     "advanced": "Advanced parameters",
                     "central_boiler": "Central boiler",
-                    "valve_regulation": "Valve regulation configuration",
-                    "sync_device_internal_temp": "Synchronize device temperature",
                     "menu": "Back to menu"
                 },
                 "menu_option_descriptions": {
@@ -874,9 +908,105 @@
                     "motion": "Open this screen to fill in the missing settings",
                     "presence": "Open this screen to fill in the missing settings",
                     "advanced": "Open this screen to fill in the missing settings",
-                    "central_boiler": "Open this screen to fill in the missing settings",
-                    "valve_regulation": "Open this screen to fill in the missing settings",
-                    "sync_device_internal_temp": "Open this screen to fill in the missing settings"
+                    "central_boiler": "Open this screen to fill in the missing settings"
+                }
+            },
+            "underlying_common": {
+                "title": "Common settings - {name}",
+                "description": "{wizard_progress}Settings shared by all the devices of this VTherm.",
+                "data": {
+                    "heater_keep_alive": "Switch keep-alive interval in seconds",
+                    "proportional_function": "Algorithm",
+                    "ac_mode": "AC mode",
+                    "inverse_switch_command": "Inverse switch command",
+                    "auto_regulation_dtemp": "Regulation threshold",
+                    "auto_regulation_periode_min": "Regulation minimum period",
+                    "opening_threshold_degree": "Opening threshold degree",
+                    "max_closing_degree": "Max closing degree",
+                    "sync_device_internal_temp": "Synchronize device temperature",
+                    "auto_regulation_mode": "Self-regulation",
+                    "auto_fan_mode": "Auto fan mode",
+                    "auto_regulation_use_device_temp": "Use internal temperature of the underlying"
+                },
+                "data_description": {
+                    "heater_keep_alive": "Optional heater switch state refresh interval. Leave empty if not required.",
+                    "proportional_function": "Algorithm to use (other algorithms can be installed as {plugins_link})",
+                    "ac_mode": "Use the Air Conditioning (AC) mode",
+                    "inverse_switch_command": "For switch with pilot wire and diode you may need to inverse the command",
+                    "auto_regulation_dtemp": "The threshold in ° (or % for valve) under which the temperature change will not be sent",
+                    "auto_regulation_periode_min": "Duration in minutes between two regulation update",
+                    "opening_threshold_degree": "Valve opening value under which the valve should be considered as closed (and then 'max_closing_degree' will apply)",
+                    "max_closing_degree": "Closing degree maximum value. The valve will never be closed above this value. Set it to 100 to fully close the valve",
+                    "sync_device_internal_temp": "Check to synchronize the internal temperature of the underlying devices. Each device then needs its own synchronization entity, set in the settings of the device",
+                    "auto_regulation_mode": "Auto adjustment of the target temperature",
+                    "auto_fan_mode": "Automatically activate fan when huge heating/cooling is necessary",
+                    "auto_regulation_use_device_temp": "Use the eventual internal temperature sensor of the underlying to speedup the self-regulation (not needed in most cases)"
+                }
+            },
+            "underlying_common_extra": {
+                "title": "Valve regulation and synchronization - {name}",
+                "description": "{wizard_progress}Settings shared by all the devices for the direct control of the valves and for the synchronization of the internal temperature.",
+                "data": {
+                    "proportional_function": "Algorithm",
+                    "opening_threshold_degree": "Opening threshold degree",
+                    "max_closing_degree": "Max closing degree",
+                    "sync_with_calibration": "Apply offset calibration"
+                },
+                "data_description": {
+                    "proportional_function": "Algorithm to use (other algorithms can be installed as {plugins_link})",
+                    "opening_threshold_degree": "Valve opening value under which the valve should be considered as closed (and then 'max_closing_degree' will apply)",
+                    "max_closing_degree": "Closing degree maximum value. The valve will never be closed above this value. Set it to 100 to fully close the valve",
+                    "sync_with_calibration": "Check to apply the offset calibration when synchronizing the internal temperature. Uncheck to directly copy the temperature from the selected entities"
+                }
+            },
+            "underlying_add": {
+                "title": "Add a device - {name}",
+                "description": "{wizard_progress}Select the device to control. Its own settings are asked on the next screen.",
+                "data": {
+                    "underlying_entity_id": "Device"
+                },
+                "data_description": {
+                    "underlying_entity_id": "The entity to control"
+                }
+            },
+            "underlying": {
+                "title": "{underlying_name}",
+                "description": "{underlying_entity}\n\nSettings of this device. Only the fields that apply to the type of VTherm and to the common settings are displayed. Custom commands and closing entities must be set for all the devices or for none.",
+                "data": {
+                    "opening_degree_entity_id": "Valve opening entity",
+                    "closing_degree_entity_id": "Valve closing entity (optional)",
+                    "sync_entity_id": "Synchronization entity",
+                    "on_command": "Turn on command",
+                    "off_command": "Turn off command",
+                    "min_opening_degree": "Minimum opening (%)",
+                    "max_opening_degree": "Maximum opening (%)",
+                    "replace_entity_id": "Replace entity",
+                    "remove_underlying": "Remove this device"
+                },
+                "data_description": {
+                    "opening_degree_entity_id": "The number entity that sets the opening degree of the valve. Entities of the same device are suggested.",
+                    "closing_degree_entity_id": "Optional number entity that sets the closing degree of the valve. Set it for all the devices or for none.",
+                    "sync_entity_id": "The number entity used to synchronize the internal temperature of this device: the calibration entity if 'Apply offset calibration' is checked, the temperature entity otherwise.",
+                    "on_command": "Format: service_name[/attribute:value]. Required for select and climate entities. Set the commands for all the devices or for none.",
+                    "off_command": "Format: service_name[/attribute:value]. Required for select and climate entities. Set the commands for all the devices or for none.",
+                    "min_opening_degree": "Minimum opening degree of this device when the opening threshold is exceeded. Defaults to 0.",
+                    "max_opening_degree": "Maximum opening degree of this device: the valve will never open more than this value. It cannot exceed the maximum of the valve.",
+                    "replace_entity_id": "Select another entity to replace this device. If the type of entity changes, the settings of the device have to be filled in again.",
+                    "remove_underlying": "Check to remove this device from the VTherm"
+                },
+                "sections": {
+                    "commands": {
+                        "name": "Custom commands",
+                        "description": "Optional commands to turn this device on and off, formatted as service_name[/attribute:value]. Set them for all the devices or for none.",
+                        "data": {
+                            "on_command": "Turn on command",
+                            "off_command": "Turn off command"
+                        },
+                        "data_description": {
+                            "on_command": "Format: service_name[/attribute:value]. Required for select and climate entities. Set the commands for all the devices or for none.",
+                            "off_command": "Format: service_name[/attribute:value]. Required for select and climate entities. Set the commands for all the devices or for none."
+                        }
+                    }
                 }
             }
         },
@@ -886,14 +1016,12 @@
             "window_open_detection_method": "Only one window open detection method should be used. Use either window sensor or automatic detection through temperature threshold but not both",
             "no_central_config": "You cannot check 'use central configuration' because no central configuration was found. You need to create a Versatile Thermostat of type 'Central Configuration' to use it.",
             "service_configuration_format": "The format of the service configuration is wrong",
-            "valve_regulation_nb_entities_incorrect": "The number of valve entities for valve regulation should be equal to the number of underlyings",
-            "sync_device_internal_temp_nb_entities_incorrect": "The number of entities for synchronize device internal temperature should be equal to the number of underlyings",
-            "min_opening_degrees_format": "A comma separated list of positive integer is expected. Example: 20, 25, 30",
-            "max_opening_degrees_format": "A comma separated list of positive integer between 0 and the max value of the valve is expected. Example: 80, 85, 90",
             "min_max_opening_degrees_inconsistent": "For each underlying device, max_opening_degrees must be strictly greater than min_opening_degrees. Please check your configuration.",
-            "valve_control_parameters_cardinality_incorrect": "The minimum and maximum opening degree lists cannot contain more values than the configured valves",
             "vswitch_configuration_incorrect": "The command customization configuration is incorrect. It is required for underlying entities that are not switches, and the format must be service_name[/attribute:value]. More information is available in the README",
-            "missing_settings_summary": "{count} setting(s) to complete"
+            "missing_settings_summary": "{count} setting(s) to complete",
+            "underlying_already_added": "This entity is already used by a device of this VTherm",
+            "max_opening_degree_out_of_range": "The maximum opening must be greater than 0 and must not exceed the maximum of the valve",
+            "underlying_field_missing": "{field} is missing"
         },
         "abort": {
             "already_configured": "Device is already configured"

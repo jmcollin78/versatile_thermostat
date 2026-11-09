@@ -19,8 +19,9 @@ from homeassistant.config_entries import (
 )
 from homeassistant.const import UnitOfTemperature
 
-from homeassistant.data_entry_flow import FlowHandler, FlowResult
+from homeassistant.data_entry_flow import FlowHandler, FlowResult, section
 from homeassistant.exceptions import TemplateError
+from homeassistant.helpers import entity_registry as er
 from homeassistant.helpers.template import Template
 from homeassistant.helpers.translation import async_get_translations
 
@@ -79,6 +80,9 @@ class VersatileThermostatBaseConfigFlow(FlowHandler):
         _LOGGER.debug("CTOR BaseConfigFlow infos: %s", infos)
         self._infos: dict = infos
         self._learning_type_changed = False
+        # The device being edited (index in the underlyings) or added (entity) in the underlying steps
+        self._underlying_idx: int | None = None
+        self._underlying_entity: str | None = None
         self._placeholders = {
             CONF_NAME: "",
             PLUGINS_LINK_PLACEHOLDER: PLUGINS_LINK,
@@ -171,50 +175,6 @@ class VersatileThermostatBaseConfigFlow(FlowHandler):
         """True if the synchronize device internal temperature mode is selected"""
         return infos.get(CONF_SYNC_DEVICE_INTERNAL_TEMP, False) is True
 
-    def check_valve_regulation_nb_entities(self, data: dict, step_id=None) -> bool:
-        """Check the number of entities for Valve regulation"""
-        if step_id not in ["type", "valve_regulation", "check_complete"]:
-            return True
-
-        underlyings_to_check = data if step_id == "type" else self._infos
-        # underlyings_to_check = self._infos  # data if step_id == "type" else self._infos
-        regulation_infos_to_check = (
-            data if step_id == "valve_regulation" else self._infos
-        )
-
-        ret = True
-        if (
-            self.is_valve_regulation_selected(underlyings_to_check)
-            and step_id != "type"
-        ):
-            nb_unders = len(underlyings_to_check.get(CONF_UNDERLYING_LIST))
-            nb_opening = len(
-                regulation_infos_to_check.get(CONF_OPENING_DEGREE_LIST, [])
-            )
-            nb_closing = len(
-                regulation_infos_to_check.get(CONF_CLOSING_DEGREE_LIST, [])
-            )
-            if nb_unders != nb_opening or (nb_unders != nb_closing and nb_closing > 0):
-                ret = False
-        return ret
-
-    def check_sync_device_internal_temp_nb_entities(self, data: dict, step_id=None) -> bool:
-        """Check the number of entities for synchronize device internal temperature"""
-        if step_id not in ["type", "sync_device_internal_temp", "check_complete"]:
-            return True
-
-        underlyings_to_check = data if step_id == "type" else self._infos
-        # underlyings_to_check = self._infos  # data if step_id == "type" else self._infos
-        regulation_infos_to_check = data if step_id == "sync_device_internal_temp" else self._infos
-
-        ret = True
-        if self.is_sync_device_internal_temp_selected(underlyings_to_check) and step_id != "type":
-            nb_unders = len(underlyings_to_check.get(CONF_UNDERLYING_LIST))
-            nb_sync = len(regulation_infos_to_check.get(CONF_SYNC_ENTITY_LIST, []))
-            if nb_unders != nb_sync:
-                ret = False
-        return ret
-
     async def validate_input(self, data: dict, step_id) -> None:
         """Validate the user input allows us to connect.
 
@@ -295,134 +255,9 @@ class VersatileThermostatBaseConfigFlow(FlowHandler):
                 except (ServiceConfigurationError, TemplateError) as err:
                     raise ServiceConfigurationError(conf) from err
 
-        # Check that the number of offet_calibration and opening_degree and closing_degree are equals
-        # to the number of underlying entities
-        if not self.check_valve_regulation_nb_entities(data, step_id):
-            raise ValveRegulationNbEntitiesIncorrect()
-
-        if not self.check_sync_device_internal_temp_nb_entities(data, step_id):
-            raise SyncDeviceInternalTempNbEntitiesIncorrect()
-
-        # Validate the min/max opening degrees control parameters.
-        # This is shared between over_valve (step 'type': valves are the underlying
-        # entities) and over_climate with valve regulation (step 'valve_regulation':
-        # valves are the opening degree entities)
-        valve_entities = data.get(CONF_OPENING_DEGREE_LIST) or data.get(
-            CONF_UNDERLYING_LIST
-        )
-        self._validate_valve_control_parameters(data, valve_entities or [])
-
-        # These validations depend on the active configuration-flow step and
-        # do not belong to the shared valve parameter validation.
-        if (
-            self._infos.get(CONF_THERMOSTAT_TYPE) == CONF_THERMOSTAT_SWITCH
-            and step_id == "type"
-        ):
-            if not self.check_vswitch_configuration(data):
-                raise VirtualSwitchConfigurationIncorrect(CONF_VSWITCH_ON_CMD_LIST)
-
         if data.get(CONF_LOCK_CODE) is not None:
             if not re.match(r"^\d{4}$", str(data.get(CONF_LOCK_CODE))):
                 raise LockCodeIncorrect()
-
-    def _validate_valve_control_parameters(
-        self, data: dict, valve_entities: list
-    ) -> None:
-        """Validate the valve control parameters (min/max opening degrees, cardinality).
-
-        Shared between over_valve (step 'type') and over_climate valve regulation
-        (step 'valve_regulation'). Raises the ValveRegulation* exceptions.
-        """
-        # Check that the min_opening_degrees is correctly set
-        min_opening_degrees_list: list[int] = []
-        raw_list = data.get(CONF_MIN_OPENING_DEGREES, None)
-        if raw_list:
-            try:
-                min_opening_degrees_list = [int(x.strip()) for x in raw_list.split(",")]
-                if any(x < 0 for x in min_opening_degrees_list):
-                    raise ValueError
-            except ValueError as exc:
-                raise ValveRegulationMinOpeningDegreesIncorrect(
-                    CONF_MIN_OPENING_DEGREES
-                ) from exc
-
-        # Check that the max_opening_degrees is correctly set
-        max_opening_degrees_list: list[int] = []
-        raw_list = data.get(CONF_MAX_OPENING_DEGREES, None)
-        if raw_list:
-            try:
-                max_opening_degrees_list = [int(x.strip()) for x in raw_list.split(",")]
-                if len(max_opening_degrees_list) > len(valve_entities):
-                    raise ValveRegulationCardinalityIncorrect(
-                        CONF_MAX_OPENING_DEGREES
-                    )
-                # max opening degrees should be > 0 and <= the max of the underlying valve
-                for valve_idx, valve_max in enumerate(max_opening_degrees_list):
-                    valve_state = self.hass.states.get(valve_entities[valve_idx])
-                    if (
-                        valve_max <= 0
-                        or valve_state is None
-                        or valve_max > valve_state.attributes.get("max", 100)
-                    ):
-                        raise ValueError
-            except ValveRegulationCardinalityIncorrect:
-                raise
-            except ValueError as exc:
-                raise ValveRegulationMaxOpeningDegreesIncorrect(
-                    CONF_MAX_OPENING_DEGREES
-                ) from exc
-
-        # Check that the min/max lists don't contain more values than the number of valves
-        # (the rule is now also applied to over_climate valve regulation)
-        nb_valves = len(valve_entities or [])
-        for lst in (min_opening_degrees_list, max_opening_degrees_list):
-            if len(lst) > nb_valves:
-                raise ValveRegulationCardinalityIncorrect(
-                    CONF_MIN_OPENING_DEGREES
-                    if lst is min_opening_degrees_list
-                    else CONF_MAX_OPENING_DEGREES
-                )
-
-        # Check that max_opening_degrees > min_opening_degrees for each valve
-        # (default values are 0 and 100 for indexes beyond the lists)
-        for idx in range(nb_valves):
-            min_val = (
-                min_opening_degrees_list[idx]
-                if idx < len(min_opening_degrees_list)
-                else 0
-            )
-            max_val = (
-                max_opening_degrees_list[idx]
-                if idx < len(max_opening_degrees_list)
-                else self.hass.states.get(valve_entities[idx]).attributes.get("max", 100)
-            )
-            if max_val <= min_val:
-                raise ValveRegulationMinMaxOpeningDegreesIncorrect(
-                    CONF_MAX_OPENING_DEGREES
-                )
-
-    def check_vswitch_configuration(self, data) -> bool:
-        """Check the Virtual switch configuration and return True if the configuration is correct"""
-        nb_under = len(data.get(CONF_UNDERLYING_LIST, []))
-
-        # check format of each command_on
-        for command in data.get(CONF_VSWITCH_ON_CMD_LIST, []) + data.get(CONF_VSWITCH_OFF_CMD_LIST, []):
-            pattern = r"^(?P<command>[^\s/]+)(?:/(?P<argument>[^\s:]+)(?::(?P<value>[^\s]+))?)?$"
-            if not re.match(pattern, command):
-                return False
-
-        nb_command_on = len(data.get(CONF_VSWITCH_ON_CMD_LIST, []))
-        nb_command_off = len(data.get(CONF_VSWITCH_OFF_CMD_LIST, []))
-        if (nb_command_on == nb_under or nb_command_on == 0) and (nb_command_off == nb_under or nb_command_off == 0):
-            # There is enough command_on and off
-            # Check if one under is not a switch (which have default command).
-            if any(
-                not thermostat_type.startswith(SWITCH_DOMAIN) and not thermostat_type.startswith(INPUT_BOOLEAN_DOMAIN) for thermostat_type in data.get(CONF_UNDERLYING_LIST, [])
-            ):
-                if nb_command_on != nb_under or nb_command_off != nb_under:
-                    return False
-            return True
-        return False
 
     def get_missing_config(self, infos) -> list[MissingItem]:
         """Return the missing mandatory settings (an empty list means that the config is complete).
@@ -454,10 +289,8 @@ class VersatileThermostatBaseConfigFlow(FlowHandler):
             if main_fields:
                 missing.append(MissingItem("main", main_fields))
 
-            # checks that at least one underlying is set but not it central configuration
-            nb_unders = len(infos.get(CONF_UNDERLYING_LIST, []))
-            if nb_unders < 1:
-                missing.append(MissingItem("type", [CONF_UNDERLYING_LIST]))
+            # checks that at least one underlying is set and that each device has its mandatory settings
+            missing += self._get_underlying_missing_items(infos)
 
             if infos.get(CONF_USE_MOTION_FEATURE, False) is True and infos.get(CONF_MOTION_SENSOR, None) is None:
                 missing.append(MissingItem("motion", [CONF_MOTION_SENSOR]))
@@ -484,20 +317,6 @@ class VersatileThermostatBaseConfigFlow(FlowHandler):
 
             if infos.get(CONF_USE_PRESETS_CENTRAL_CONFIG, False) is True and self._central_config is None:
                 missing.append(MissingItem("presets", [CONF_USE_PRESETS_CENTRAL_CONFIG]))
-
-            if self.is_valve_regulation_selected(infos):
-                nb_opening = len(infos.get(CONF_OPENING_DEGREE_LIST, []))
-                nb_closing = len(infos.get(CONF_CLOSING_DEGREE_LIST, []))
-                valve_fields = []
-                if nb_unders != nb_opening:
-                    valve_fields.append(CONF_OPENING_DEGREE_LIST)
-                if nb_unders != nb_closing and nb_closing > 0:
-                    valve_fields.append(CONF_CLOSING_DEGREE_LIST)
-                if valve_fields:
-                    missing.append(MissingItem("valve_regulation", valve_fields))
-
-            if self.is_sync_device_internal_temp_selected(infos) and nb_unders != len(infos.get(CONF_SYNC_ENTITY_LIST, [])):
-                missing.append(MissingItem("sync_device_internal_temp", [CONF_SYNC_ENTITY_LIST]))
 
         return missing
 
@@ -558,6 +377,10 @@ class VersatileThermostatBaseConfigFlow(FlowHandler):
 
         _LOGGER.debug("merge_user_input: infos is now %s", self._infos)
 
+    async def _async_get_placeholders(self, step_id: str) -> dict:
+        """Return the description placeholders of a step"""
+        return self._placeholders | {"wizard_progress": ""}
+
     async def generic_step(self, step_id, data_schema, user_input, next_step_function):
         """A generic method step"""
         _LOGGER.debug(
@@ -581,20 +404,6 @@ class VersatileThermostatBaseConfigFlow(FlowHandler):
                 errors[str(err)] = "service_configuration_format"
             except ConfigurationNotCompleteError as err:
                 errors["base"] = "configuration_not_complete"
-            except ValveRegulationNbEntitiesIncorrect as err:
-                errors["base"] = "valve_regulation_nb_entities_incorrect"
-            except SyncDeviceInternalTempNbEntitiesIncorrect as err:
-                errors["base"] = "sync_device_internal_temp_nb_entities_incorrect"
-            except ValveRegulationMinOpeningDegreesIncorrect as err:
-                errors[str(err)] = "min_opening_degrees_format"
-            except ValveRegulationMaxOpeningDegreesIncorrect as err:
-                errors[str(err)] = "max_opening_degrees_format"
-            except ValveRegulationMinMaxOpeningDegreesIncorrect as err:
-                errors[str(err)] = "min_max_opening_degrees_inconsistent"
-            except ValveRegulationCardinalityIncorrect as err:
-                errors[str(err)] = "valve_control_parameters_cardinality_incorrect"
-            except VirtualSwitchConfigurationIncorrect as err:
-                errors["base"] = "vswitch_configuration_incorrect"
             except LockCodeIncorrect:
                 errors["base"] = "lock_code_incorrect"
             except Exception:  # pylint: disable=broad-except
@@ -616,7 +425,7 @@ class VersatileThermostatBaseConfigFlow(FlowHandler):
             step_id=step_id,
             data_schema=ds,
             errors=errors,
-            description_placeholders=self._placeholders,
+            description_placeholders=await self._async_get_placeholders(step_id),
         )
 
     async def async_step_user(self, user_input: dict | None = None) -> FlowResult:
@@ -716,12 +525,6 @@ class VersatileThermostatBaseConfigFlow(FlowHandler):
         ):
             menu_options.append("auto_start_stop")
 
-        if self.is_valve_regulation_selected(self._infos):
-            menu_options.append("valve_regulation")
-
-        if self._infos.get(CONF_SYNC_DEVICE_INTERNAL_TEMP, False) is True:
-            menu_options.append("sync_device_internal_temp")
-
         menu_options.append("advanced")
         menu_options.append("lock")
         if not is_central_config:
@@ -812,21 +615,365 @@ class VersatileThermostatBaseConfigFlow(FlowHandler):
 
         return await self.generic_step("central_boiler", schema, user_input, next_step)
 
+    # ------------------------------------------------------------------
+    # Underlyings: the devices controlled by the VTherm.
+    # The data are kept in the parallel lists of the configuration (underlying_entity_ids, opening_degree_entity_ids,
+    # ...). The device forms read and write the position of the device in each list.
+    # ------------------------------------------------------------------
+
+    def _get_entity_name(self, entity_id: str) -> str:
+        """Return the friendly name of an entity or its entity_id"""
+        state = self.hass.states.get(entity_id) if self.hass is not None else None
+        if state is not None and state.attributes.get("friendly_name"):
+            return state.attributes["friendly_name"]
+        return entity_id
+
+    def _get_underlying_form_fields(self, entity_id: str) -> list[str]:
+        """Return the fields of the form of a device. It depends on the type of VTherm, on the entity and on the common settings"""
+        thermostat_type = self._infos.get(CONF_THERMOSTAT_TYPE)
+        if thermostat_type == CONF_THERMOSTAT_SWITCH:
+            return [CONF_VSWITCH_ON_CMD, CONF_VSWITCH_OFF_CMD]
+        if thermostat_type == CONF_THERMOSTAT_VALVE:
+            return [CONF_MIN_OPENING_DEGREE, CONF_MAX_OPENING_DEGREE]
+        fields = []
+        if self.is_valve_regulation_selected(self._infos):
+            fields += [CONF_OPENING_DEGREE_ENTITY, CONF_CLOSING_DEGREE_ENTITY, CONF_MIN_OPENING_DEGREE, CONF_MAX_OPENING_DEGREE]
+        if self.is_sync_device_internal_temp_selected(self._infos):
+            fields.append(CONF_SYNC_ENTITY)
+        return fields
+
+    def _is_commands_required(self, entity_id: str) -> bool:
+        """True if the commands to turn on / off are required: it is the case if the entity is not a switch"""
+        return self._infos.get(CONF_THERMOSTAT_TYPE) == CONF_THERMOSTAT_SWITCH and entity_id.split(".")[0] not in (SWITCH_DOMAIN, INPUT_BOOLEAN_DOMAIN)
+
+    def _get_list_value(self, key: str, idx: int, infos: dict | None = None):
+        """Return the value at the position of a device in one of the lists of the configuration"""
+        values = (infos if infos is not None else self._infos).get(key) or []
+        return values[idx] if idx < len(values) else None
+
+    def _set_list_value(self, key: str, idx: int, value: str) -> None:
+        """Set the value at the position of a device in one of the lists of the configuration. The lists are copied
+        before the modification (they can be shared with the config entry)"""
+        values = list(self._infos.get(key) or [])
+        values += [""] * (idx + 1 - len(values))
+        values[idx] = value or ""
+        self._infos[key] = values
+
+    def _get_csv_list(self, key: str) -> list[int]:
+        """Return the content of a comma separated list of integers of the configuration. A malformed list is ignored"""
+        raw = self._infos.get(key)
+        if not raw:
+            return []
+        try:
+            return [int(x.strip()) for x in str(raw).split(",")]
+        except ValueError:
+            return []
+
+    def _get_valve_entity(self, idx: int | None, values: dict | None = None) -> str | None:
+        """Return the entity of the valve of a device: the device itself for an over_valve, the opening entity for an over_climate"""
+        if self._infos.get(CONF_THERMOSTAT_TYPE) == CONF_THERMOSTAT_VALVE:
+            return self._get_list_value(CONF_UNDERLYING_LIST, idx) if idx is not None else self._underlying_entity
+        if values and values.get(CONF_OPENING_DEGREE_ENTITY):
+            return values[CONF_OPENING_DEGREE_ENTITY]
+        return self._get_list_value(CONF_OPENING_DEGREE_LIST, idx) if idx is not None else None
+
+    def _get_valve_max(self, valve_entity: str | None) -> int:
+        """Return the maximum opening of a valve"""
+        state = self.hass.states.get(valve_entity) if valve_entity else None
+        try:
+            return int(state.attributes.get("max", 100)) if state is not None else 100
+        except (TypeError, ValueError):
+            return 100
+
+    def _get_underlying_values(self, idx: int) -> dict:
+        """Return the values of the form fields of the device at idx (None when the value is not set)"""
+        values = {
+            CONF_OPENING_DEGREE_ENTITY: self._get_list_value(CONF_OPENING_DEGREE_LIST, idx),
+            CONF_CLOSING_DEGREE_ENTITY: self._get_list_value(CONF_CLOSING_DEGREE_LIST, idx),
+            CONF_SYNC_ENTITY: self._get_list_value(CONF_SYNC_ENTITY_LIST, idx),
+            CONF_VSWITCH_ON_CMD: self._get_list_value(CONF_VSWITCH_ON_CMD_LIST, idx),
+            CONF_VSWITCH_OFF_CMD: self._get_list_value(CONF_VSWITCH_OFF_CMD_LIST, idx),
+        }
+        min_list = self._get_csv_list(CONF_MIN_OPENING_DEGREES)
+        max_list = self._get_csv_list(CONF_MAX_OPENING_DEGREES)
+        values[CONF_MIN_OPENING_DEGREE] = min_list[idx] if idx < len(min_list) else 0
+        values[CONF_MAX_OPENING_DEGREE] = max_list[idx] if idx < len(max_list) else self._get_valve_max(self._get_valve_entity(idx, values))
+        return values
+
+    def _get_underlying_missing_fields(self, infos: dict, idx: int) -> list[str]:
+        """Return the fields which are still mandatory for the device at idx"""
+        entity_id = infos[CONF_UNDERLYING_LIST][idx]
+        thermostat_type = infos.get(CONF_THERMOSTAT_TYPE)
+        missing = []
+        if thermostat_type == CONF_THERMOSTAT_SWITCH:
+            # The commands are given for all the devices or for none. They are always mandatory for the entities which are not switches
+            required = entity_id.split(".")[0] not in (SWITCH_DOMAIN, INPUT_BOOLEAN_DOMAIN)
+            for conf, key in ((CONF_VSWITCH_ON_CMD, CONF_VSWITCH_ON_CMD_LIST), (CONF_VSWITCH_OFF_CMD, CONF_VSWITCH_OFF_CMD_LIST)):
+                if (required or any(infos.get(key) or [])) and not self._get_list_value(key, idx, infos):
+                    missing.append(conf)
+        elif thermostat_type == CONF_THERMOSTAT_CLIMATE:
+            if self.is_valve_regulation_selected(infos):
+                if not self._get_list_value(CONF_OPENING_DEGREE_LIST, idx, infos):
+                    missing.append(CONF_OPENING_DEGREE_ENTITY)
+                # The closing entities are given for all the devices or for none
+                if any(infos.get(CONF_CLOSING_DEGREE_LIST) or []) and not self._get_list_value(CONF_CLOSING_DEGREE_LIST, idx, infos):
+                    missing.append(CONF_CLOSING_DEGREE_ENTITY)
+            if self.is_sync_device_internal_temp_selected(infos) and not self._get_list_value(CONF_SYNC_ENTITY_LIST, idx, infos):
+                missing.append(CONF_SYNC_ENTITY)
+        return missing
+
+    def _get_underlying_missing_items(self, infos: dict) -> list[MissingItem]:
+        """Return the missing items of the underlyings (no device or a device with mandatory fields not filled)"""
+        underlyings = infos.get(CONF_UNDERLYING_LIST, [])
+        if len(underlyings) < 1:
+            return [MissingItem("type", [CONF_UNDERLYING_ENTITY])]
+        items = []
+        for idx, entity_id in enumerate(underlyings):
+            fields = self._get_underlying_missing_fields(infos, idx)
+            if fields:
+                items.append(MissingItem("type", fields, device=self._get_entity_name(entity_id)))
+        return items
+
+    def _store_csv_value(self, key: str, idx: int, value: int, get_default) -> None:
+        """Store the value of a device in a comma separated list. The list is removed if all the values are the default ones"""
+        values = self._get_csv_list(key)
+        nb_values = max(len(self._infos.get(CONF_UNDERLYING_LIST, [])), idx + 1)
+        values += [get_default(i) for i in range(len(values), nb_values)]
+        values[idx] = value
+        if all(val == get_default(i) for i, val in enumerate(values)):
+            self._infos.pop(key, None)
+        else:
+            self._infos[key] = ", ".join(str(val) for val in values)
+
+    def _set_underlying_values(self, idx: int, values: dict) -> None:
+        """Write the values of the form of the device at idx in the lists of the configuration"""
+        if CONF_OPENING_DEGREE_ENTITY in values or CONF_CLOSING_DEGREE_ENTITY in values:
+            self._set_list_value(CONF_OPENING_DEGREE_LIST, idx, values.get(CONF_OPENING_DEGREE_ENTITY))
+            self._set_list_value(CONF_CLOSING_DEGREE_LIST, idx, values.get(CONF_CLOSING_DEGREE_ENTITY))
+            if not any(self._infos[CONF_CLOSING_DEGREE_LIST]):
+                self._infos[CONF_CLOSING_DEGREE_LIST] = []
+        if CONF_SYNC_ENTITY in values:
+            self._set_list_value(CONF_SYNC_ENTITY_LIST, idx, values[CONF_SYNC_ENTITY])
+        if CONF_VSWITCH_ON_CMD in values or CONF_VSWITCH_OFF_CMD in values:
+            for conf, key in ((CONF_VSWITCH_ON_CMD, CONF_VSWITCH_ON_CMD_LIST), (CONF_VSWITCH_OFF_CMD, CONF_VSWITCH_OFF_CMD_LIST)):
+                self._set_list_value(key, idx, (values.get(conf) or "").strip())
+                if not any(self._infos[key]):
+                    self._infos.pop(key)
+        if CONF_MIN_OPENING_DEGREE in values:
+            self._store_csv_value(CONF_MIN_OPENING_DEGREES, idx, int(values[CONF_MIN_OPENING_DEGREE]), lambda i: 0)
+        if CONF_MAX_OPENING_DEGREE in values:
+            self._store_csv_value(
+                CONF_MAX_OPENING_DEGREES,
+                idx,
+                int(values[CONF_MAX_OPENING_DEGREE]),
+                lambda i: self._get_valve_max(self._get_valve_entity(i, None)),
+            )
+
+    def _remove_underlying(self, idx: int) -> None:
+        """Remove the device at idx from all the lists of the configuration"""
+        for key in (
+            CONF_UNDERLYING_LIST,
+            CONF_OPENING_DEGREE_LIST,
+            CONF_CLOSING_DEGREE_LIST,
+            CONF_SYNC_ENTITY_LIST,
+            CONF_VSWITCH_ON_CMD_LIST,
+            CONF_VSWITCH_OFF_CMD_LIST,
+        ):
+            values = list(self._infos.get(key) or [])
+            if idx < len(values):
+                values.pop(idx)
+                self._infos[key] = values
+        for key in (CONF_VSWITCH_ON_CMD_LIST, CONF_VSWITCH_OFF_CMD_LIST):
+            if key in self._infos and not any(self._infos[key]):
+                self._infos.pop(key)
+        for key in (CONF_MIN_OPENING_DEGREES, CONF_MAX_OPENING_DEGREES):
+            values = self._get_csv_list(key)
+            if idx < len(values):
+                values.pop(idx)
+                if values:
+                    self._infos[key] = ", ".join(str(val) for val in values)
+                else:
+                    self._infos.pop(key, None)
+
+    def _suggest_same_device_entity(self, entity_id: str, keyword: str) -> str | None:
+        """Return a number entity of the same device than entity_id with keyword in its entity_id, if any"""
+        try:
+            registry = er.async_get(self.hass)
+            entry = registry.async_get(entity_id)
+            if entry is None or entry.device_id is None:
+                return None
+            for candidate in er.async_entries_for_device(registry, entry.device_id):
+                if candidate.domain in (NUMBER_DOMAIN, INPUT_NUMBER_DOMAIN) and keyword in candidate.entity_id:
+                    return candidate.entity_id
+        except Exception:  # pylint: disable=broad-except
+            _LOGGER.debug("Unable to search the entities of the device of %s", entity_id, exc_info=True)
+        return None
+
+    def _build_underlying_schema(self, entity_id: str, idx: int | None) -> vol.Schema:
+        """Build the form of a device: only the fields which apply are included. A new device (idx is None) has no replace nor remove field"""
+        fields = self._get_underlying_form_fields(entity_id)
+        values = self._get_underlying_values(idx) if idx is not None else {}
+        suggested = {key: value for key, value in values.items() if value not in (None, "")}
+        number_domains = [NUMBER_DOMAIN, INPUT_NUMBER_DOMAIN]
+        # The mandatory entities are required for a new device. For an existing one they are not, so that an incomplete device can still be removed
+        marker = vol.Required if idx is None else vol.Optional
+
+        schema = {}
+        if CONF_OPENING_DEGREE_ENTITY in fields:
+            schema[marker(CONF_OPENING_DEGREE_ENTITY)] = selector.EntitySelector(selector.EntitySelectorConfig(domain=number_domains))
+            schema[vol.Optional(CONF_CLOSING_DEGREE_ENTITY)] = selector.EntitySelector(selector.EntitySelectorConfig(domain=number_domains))
+            for conf, keyword in ((CONF_OPENING_DEGREE_ENTITY, "opening"), (CONF_CLOSING_DEGREE_ENTITY, "closing")):
+                if conf not in suggested and (candidate := self._suggest_same_device_entity(entity_id, keyword)):
+                    suggested[conf] = candidate
+        if CONF_SYNC_ENTITY in fields:
+            schema[marker(CONF_SYNC_ENTITY)] = selector.EntitySelector(selector.EntitySelectorConfig(domain=number_domains))
+            keyword = "calibration" if self._infos.get(CONF_SYNC_WITH_CALIBRATION, True) else "temperature"
+            if CONF_SYNC_ENTITY not in suggested and (candidate := self._suggest_same_device_entity(entity_id, keyword)):
+                suggested[CONF_SYNC_ENTITY] = candidate
+        if CONF_MIN_OPENING_DEGREE in fields:
+            valve_max = self._get_valve_max(self._get_valve_entity(idx, suggested))
+            schema[vol.Optional(CONF_MIN_OPENING_DEGREE, default=0)] = selector.NumberSelector(
+                selector.NumberSelectorConfig(min=0, max=valve_max, step=1, mode=selector.NumberSelectorMode.BOX)
+            )
+            schema[vol.Optional(CONF_MAX_OPENING_DEGREE, default=valve_max)] = selector.NumberSelector(
+                selector.NumberSelectorConfig(min=1, max=valve_max, step=1, mode=selector.NumberSelectorMode.BOX)
+            )
+        if CONF_VSWITCH_ON_CMD in fields:
+            on_off_schema = vol.Schema(
+                {
+                    vol.Required(CONF_VSWITCH_ON_CMD) if self._is_commands_required(entity_id) else vol.Optional(CONF_VSWITCH_ON_CMD): selector.TextSelector(),
+                    vol.Required(CONF_VSWITCH_OFF_CMD) if self._is_commands_required(entity_id) else vol.Optional(CONF_VSWITCH_OFF_CMD): selector.TextSelector(),
+                }
+            )
+            if self._is_commands_required(entity_id):
+                schema.update(on_off_schema.schema)
+            else:
+                # the custom commands of a switch are optional: they are in a collapsed section
+                on_off_schema = add_suggested_values_to_schema(on_off_schema, suggested)
+                schema[vol.Optional(CONF_VSWITCH_COMMANDS_SECTION)] = section(on_off_schema, {"collapsed": not (suggested.get(CONF_VSWITCH_ON_CMD) or suggested.get(CONF_VSWITCH_OFF_CMD))})
+        if idx is not None:
+            schema[vol.Optional(CONF_REPLACE_ENTITY)] = build_underlying_entity_selector(self._infos.get(CONF_THERMOSTAT_TYPE))
+            schema[vol.Optional(CONF_REMOVE_UNDERLYING, default=False)] = cv.boolean
+            suggested[CONF_REPLACE_ENTITY] = entity_id
+
+        return add_suggested_values_to_schema(vol.Schema(schema), suggested)
+
+    def _validate_underlying_input(self, entity_id: str, idx: int | None, user_input: dict) -> dict:
+        """Validate the input of the form of a device. Returns the errors"""
+        errors = {}
+        for conf in (CONF_OPENING_DEGREE_ENTITY, CONF_CLOSING_DEGREE_ENTITY, CONF_SYNC_ENTITY, CONF_REPLACE_ENTITY):
+            value = user_input.get(conf)
+            if value and self.hass.states.get(value) is None:
+                _LOGGER.error("Entity id %s doesn't have any state. We cannot use it in the Versatile Thermostat configuration", value)
+                errors[conf] = "unknown_entity"
+
+        replace = user_input.get(CONF_REPLACE_ENTITY)
+        if replace and replace != entity_id and replace in self._infos.get(CONF_UNDERLYING_LIST, []):
+            errors[CONF_REPLACE_ENTITY] = "underlying_already_added"
+
+        # check format of the commands
+        pattern = r"^(?P<command>[^\s/]+)(?:/(?P<argument>[^\s:]+)(?::(?P<value>[^\s]+))?)?$"
+        commands = [(user_input.get(conf) or "").strip() for conf in (CONF_VSWITCH_ON_CMD, CONF_VSWITCH_OFF_CMD)]
+        if any(command and not re.match(pattern, command) for command in commands):
+            errors["base"] = "vswitch_configuration_incorrect"
+        if self._is_commands_required(entity_id) and not all(commands):
+            errors["base"] = "vswitch_configuration_incorrect"
+
+        if CONF_MAX_OPENING_DEGREE in user_input:
+            min_opening = int(user_input.get(CONF_MIN_OPENING_DEGREE, 0))
+            max_opening = int(user_input[CONF_MAX_OPENING_DEGREE])
+            valve_max = self._get_valve_max(self._get_valve_entity(idx, user_input))
+            if max_opening <= 0 or max_opening > valve_max:
+                errors[CONF_MAX_OPENING_DEGREE] = "max_opening_degree_out_of_range"
+            elif max_opening <= min_opening:
+                errors[CONF_MAX_OPENING_DEGREE] = "min_max_opening_degrees_inconsistent"
+        return errors
+
+    async def _async_get_underlying_placeholders(self, step_id: str, entity_id: str | None = None) -> dict:
+        """Return the description placeholders of the underlying steps"""
+        placeholders = await self._async_get_placeholders(step_id)
+        if entity_id is not None:
+            placeholders["underlying_name"] = self._get_entity_name(entity_id)
+            placeholders["underlying_entity"] = entity_id
+        return placeholders
+
+    def _format_value(self, translations: dict[str, str], conf: str, value: Any) -> str:
+        """Format a value of the common settings for the details displayed in the underlyings menu"""
+        if isinstance(value, bool):
+            return "✓" if value else "✗"
+        selector_key = {CONF_AUTO_REGULATION_MODE: "auto_regulation_mode", CONF_AUTO_FAN_MODE: "auto_fan_mode"}.get(conf)
+        if selector_key is not None:
+            return translations.get(f"component.{DOMAIN}.selector.{selector_key}.options.{value}", str(value))
+        return str(value)
+
+    def _get_underlying_common_details(self, translations: dict[str, str]) -> str:
+        """Summary of the common settings, displayed under the 'Common settings' entry of the underlyings menu"""
+        thermostat_type = self._infos.get(CONF_THERMOSTAT_TYPE)
+        if thermostat_type == CONF_THERMOSTAT_SWITCH:
+            schema = build_step_thermostat_switch_schema()
+        elif thermostat_type == CONF_THERMOSTAT_VALVE:
+            schema = build_step_thermostat_valve_schema()
+        else:
+            schema = STEP_THERMOSTAT_CLIMATE
+        confs = [str(key) for key in schema.schema]
+        if thermostat_type == CONF_THERMOSTAT_CLIMATE:
+            confs += [str(key) for key in build_step_underlying_extra_schema(self.is_valve_regulation_selected(self._infos), self.is_sync_device_internal_temp_selected(self._infos)).schema]
+        parts = []
+        for conf in dict.fromkeys(confs):
+            value = self._infos.get(conf)
+            if value is not None and value != "":
+                parts.append(f"{self._get_field_label(translations, 'underlying_common', conf)}: {self._format_value(translations, conf, value)}")
+        return " · ".join(parts)
+
+    def _get_underlying_details(self, translations: dict[str, str], idx: int) -> str:
+        """Summary of a device, displayed under its entry of the underlyings menu"""
+        entity_id = self._infos[CONF_UNDERLYING_LIST][idx]
+        missing_fields = self._get_underlying_missing_fields(self._infos, idx)
+        if missing_fields:
+            template = translations.get(f"component.{DOMAIN}.{self.TRANSLATION_CATEGORY}.error.underlying_field_missing", "{field} is missing")
+            labels = (template.replace("{field}", self._get_field_label(translations, "underlying", conf)) for conf in missing_fields)
+            return f"⚠ {entity_id} · " + ", ".join(labels)
+        parts = [entity_id]
+        for conf, value in self._get_underlying_values(idx).items():
+            if conf in self._get_underlying_form_fields(entity_id) and value not in (None, ""):
+                parts.append(f"{self._get_field_label(translations, 'underlying', conf)}: {value}")
+        return " · ".join(parts)
+
     async def async_step_type(self, user_input: dict | None = None) -> FlowResult:
-        """Handle the Type flow steps"""
+        """Handle the list of the underlyings: the common settings, one entry per device and the add of a device"""
         _LOGGER.debug("Into ConfigFlow.async_step_type user_input=%s", user_input)
 
-        if self._infos[CONF_THERMOSTAT_TYPE] == CONF_THERMOSTAT_VALVE:
+        underlyings = self._infos.get(CONF_UNDERLYING_LIST, [])
+        if len(underlyings) > MAX_UNDERLYINGS:
+            _LOGGER.warning("%s has more than %d underlyings. Only the first ones can be edited in the configuration", self._infos.get(CONF_NAME), MAX_UNDERLYINGS)
+
+        translations = await self._async_get_translations()
+        placeholders = await self._async_get_placeholders("type")
+        placeholders["underlying_common_details"] = self._get_underlying_common_details(translations)
+
+        menu_options = ["underlying_common"]
+        for idx in range(min(len(underlyings), MAX_UNDERLYINGS)):
+            menu_options.append(f"underlying_{idx + 1}")
+            placeholders[f"underlying_{idx + 1}"] = self._get_entity_name(underlyings[idx])
+            placeholders[f"underlying_{idx + 1}_details"] = self._get_underlying_details(translations, idx)
+        if len(underlyings) < MAX_UNDERLYINGS:
+            menu_options.append("underlying_add")
+        menu_options.append("menu")
+
+        return self.async_show_menu(step_id="type", menu_options=menu_options, description_placeholders=placeholders)
+
+    async def async_step_underlying_common(self, user_input: dict | None = None) -> FlowResult:
+        """Handle the settings which are common to all the devices"""
+        _LOGGER.debug("Into ConfigFlow.async_step_underlying_common user_input=%s", user_input)
+
+        thermostat_type = self._infos[CONF_THERMOSTAT_TYPE]
+        if thermostat_type == CONF_THERMOSTAT_VALVE:
             values = user_input if user_input is not None else self._infos
             if CONF_OPENING_THRESHOLD_DEGREE in values:
                 regulation_threshold = values.get(CONF_AUTO_REGULATION_DTEMP, 0)
                 values[CONF_OPENING_THRESHOLD_DEGREE] = max(values[CONF_OPENING_THRESHOLD_DEGREE], regulation_threshold)
 
-        if (
-            self._infos[CONF_THERMOSTAT_TYPE] == CONF_THERMOSTAT_CLIMATE
-            and user_input is not None
-            and not self.is_valve_regulation_selected(user_input)
-        ):
+        if thermostat_type == CONF_THERMOSTAT_CLIMATE and user_input is not None and not self.is_valve_regulation_selected(user_input):
             # Remove TPI info
             for key in [
                 CONF_PROP_FUNCTION,
@@ -839,21 +986,130 @@ class VersatileThermostatBaseConfigFlow(FlowHandler):
                 if self._infos.get(key):
                     del self._infos[key]
 
-        if self._infos[CONF_THERMOSTAT_TYPE] == CONF_THERMOSTAT_SWITCH:
-            return await self.generic_step(
-                "type", build_step_thermostat_switch_schema(), user_input, self.async_step_menu
-            )
-        elif self._infos[CONF_THERMOSTAT_TYPE] == CONF_THERMOSTAT_VALVE:
-            return await self.generic_step(
-                "type", build_step_thermostat_valve_schema(), user_input, self.async_step_menu
-            )
+        if thermostat_type == CONF_THERMOSTAT_SWITCH:
+            schema = build_step_thermostat_switch_schema()
+        elif thermostat_type == CONF_THERMOSTAT_VALVE:
+            schema = build_step_thermostat_valve_schema()
         else:
-            return await self.generic_step(
-                "type",
-                STEP_THERMOSTAT_CLIMATE,
-                user_input,
-                self.async_step_menu,
-            )
+            schema = STEP_THERMOSTAT_CLIMATE
+
+        return await self.generic_step("underlying_common", schema, user_input, self._after_underlying_common)
+
+    async def _after_underlying_common(self) -> FlowResult:
+        """After the common settings of an over_climate, the valve regulation and synchronization settings are asked if needed"""
+        if self._infos[CONF_THERMOSTAT_TYPE] == CONF_THERMOSTAT_CLIMATE and (
+            self.is_valve_regulation_selected(self._infos) or self.is_sync_device_internal_temp_selected(self._infos)
+        ):
+            return await self.async_step_underlying_common_extra()
+        return await self.async_step_type()
+
+    async def async_step_underlying_common_extra(self, user_input: dict | None = None) -> FlowResult:
+        """Handle the common settings of the valve regulation and of the synchronization of the internal temperature"""
+        _LOGGER.debug("Into ConfigFlow.async_step_underlying_common_extra user_input=%s", user_input)
+
+        valve_regulation = self.is_valve_regulation_selected(self._infos)
+        schema = build_step_underlying_extra_schema(valve_regulation, self.is_sync_device_internal_temp_selected(self._infos))
+        if not schema.schema:
+            return await self.async_step_type()
+
+        values = user_input if user_input is not None else self._infos
+        if CONF_OPENING_THRESHOLD_DEGREE in values:
+            regulation_threshold = self._infos.get(CONF_AUTO_REGULATION_DTEMP, 0)
+            values[CONF_OPENING_THRESHOLD_DEGREE] = max(values[CONF_OPENING_THRESHOLD_DEGREE], regulation_threshold)
+
+        return await self.generic_step("underlying_common_extra", schema, user_input, self.async_step_type)
+
+    async def async_step_underlying_add(self, user_input: dict | None = None) -> FlowResult:
+        """Handle the first screen of the add of a device: the choice of the entity"""
+        _LOGGER.debug("Into ConfigFlow.async_step_underlying_add user_input=%s", user_input)
+
+        errors = {}
+        if user_input is not None:
+            entity_id = user_input[CONF_UNDERLYING_ENTITY]
+            if self.hass.states.get(entity_id) is None:
+                _LOGGER.error("Entity id %s doesn't have any state. We cannot use it in the Versatile Thermostat configuration", entity_id)
+                errors[CONF_UNDERLYING_ENTITY] = "unknown_entity"
+            elif entity_id in self._infos.get(CONF_UNDERLYING_LIST, []):
+                errors[CONF_UNDERLYING_ENTITY] = "underlying_already_added"
+            else:
+                self._underlying_idx = None
+                self._underlying_entity = entity_id
+                if self._get_underlying_form_fields(entity_id):
+                    return await self.async_step_underlying()
+                # nothing else to ask for this device
+                self._infos[CONF_UNDERLYING_LIST] = list(self._infos.get(CONF_UNDERLYING_LIST, [])) + [entity_id]
+                self._underlying_entity = None
+                return await self.async_step_type()
+
+        return self.async_show_form(
+            step_id="underlying_add",
+            data_schema=add_suggested_values_to_schema(build_step_underlying_add_schema(self._infos[CONF_THERMOSTAT_TYPE]), user_input or {}),
+            errors=errors,
+            description_placeholders=await self._async_get_placeholders("type"),
+        )
+
+    async def async_step_underlying(self, user_input: dict | None = None) -> FlowResult:
+        """Handle the settings of one device (a new one or the one at self._underlying_idx)"""
+        _LOGGER.debug("Into ConfigFlow.async_step_underlying idx=%s user_input=%s", self._underlying_idx, user_input)
+
+        underlyings = self._infos.get(CONF_UNDERLYING_LIST, [])
+        idx = self._underlying_idx
+        if idx is not None and idx < len(underlyings):
+            entity_id = underlyings[idx]
+        elif idx is None and self._underlying_entity is not None:
+            entity_id = self._underlying_entity
+        else:
+            return await self.async_step_type()
+
+        errors = {}
+        if user_input is not None:
+            # flatten the section of the custom commands
+            user_input = {key: value for key, value in user_input.items() if key != CONF_VSWITCH_COMMANDS_SECTION} | (user_input.get(CONF_VSWITCH_COMMANDS_SECTION) or {})
+            if idx is not None and user_input.get(CONF_REMOVE_UNDERLYING):
+                self._remove_underlying(idx)
+                self._underlying_idx = None
+                return await self.async_step_type()
+
+            errors = self._validate_underlying_input(entity_id, idx, user_input)
+            if not errors:
+                new_entity_id = user_input.get(CONF_REPLACE_ENTITY)
+                if idx is None:
+                    underlyings = list(underlyings) + [entity_id]
+                    self._infos[CONF_UNDERLYING_LIST] = underlyings
+                    idx = len(underlyings) - 1
+                elif new_entity_id and new_entity_id != entity_id:
+                    # the entity is replaced
+                    underlyings = list(underlyings)
+                    underlyings[idx] = new_entity_id
+                    self._infos[CONF_UNDERLYING_LIST] = underlyings
+                    if self._is_commands_required(new_entity_id) != self._is_commands_required(entity_id):
+                        # the fields of the form are not the same for this kind of entity: ask again
+                        return await self.async_step_underlying()
+                    entity_id = new_entity_id
+                self._set_underlying_values(idx, user_input)
+                self._underlying_idx = None
+                self._underlying_entity = None
+                return await self.async_step_type()
+
+        schema = self._build_underlying_schema(entity_id, idx)
+        if user_input is not None:
+            # keep what the user entered
+            schema = add_suggested_values_to_schema(schema, user_input)
+
+        return self.async_show_form(
+            step_id="underlying",
+            data_schema=schema,
+            errors=errors,
+            description_placeholders=await self._async_get_underlying_placeholders("type", entity_id),
+        )
+
+    async def _async_open_underlying(self, idx: int) -> FlowResult:
+        """Open the settings of the device at idx. Called by the generated steps async_step_underlying_<n>"""
+        if idx >= len(self._infos.get(CONF_UNDERLYING_LIST, [])):
+            return await self.async_step_type()
+        self._underlying_idx = idx
+        self._underlying_entity = None
+        return await self.async_step_underlying()
 
     async def async_step_features(self, user_input: dict | None = None) -> FlowResult:
         """Handle the Type flow steps"""
@@ -883,37 +1139,6 @@ class VersatileThermostatBaseConfigFlow(FlowHandler):
         next_step = self.async_step_menu
 
         return await self.generic_step("auto_start_stop", schema, user_input, next_step)
-
-    async def async_step_valve_regulation(
-        self, user_input: dict | None = None
-    ) -> FlowResult:
-        """Handle the valve regulation configuration step"""
-        _LOGGER.debug(
-            "Into ConfigFlow.async_step_valve_regulation user_input=%s", user_input
-        )
-
-        values = user_input if user_input is not None else self._infos
-        if CONF_OPENING_THRESHOLD_DEGREE in values:
-            regulation_threshold = self._infos.get(CONF_AUTO_REGULATION_DTEMP, 0)
-            values[CONF_OPENING_THRESHOLD_DEGREE] = max(values[CONF_OPENING_THRESHOLD_DEGREE], regulation_threshold)
-
-        schema = build_step_valve_regulation_schema()
-        self._infos[COMES_FROM] = None
-        next_step = self.async_step_menu
-
-        return await self.generic_step(
-            "valve_regulation", schema, user_input, next_step
-        )
-
-    async def async_step_sync_device_internal_temp(self, user_input: dict | None = None) -> FlowResult:
-        """Handle the synchronize device internal temperature configuration step"""
-        _LOGGER.debug("Into ConfigFlow.async_step_sync_device_internal_temp user_input=%s", user_input)
-
-        schema = STEP_SYNC_DEVICE_INTERNAL_TEMP
-        self._infos[COMES_FROM] = None
-        next_step = self.async_step_menu
-
-        return await self.generic_step("sync_device_internal_temp", schema, user_input, next_step)
 
     async def async_step_humidity(self, user_input: dict | None = None) -> FlowResult:
         """Handle the optional external humidity sensor configuration."""
@@ -1383,6 +1608,21 @@ class VersatileThermostatBaseConfigFlow(FlowHandler):
         # Removes temporary value
         if COMES_FROM in self._infos:
             del self._infos[COMES_FROM]
+
+
+def _make_underlying_step(slot: int):
+    """Build the step which opens the settings of the device at the position slot of the underlyings menu"""
+
+    async def _step(self, user_input: dict | None = None) -> FlowResult:  # pylint: disable=unused-argument
+        return await self._async_open_underlying(slot - 1)  # pylint: disable=protected-access
+
+    _step.__name__ = f"async_step_underlying_{slot}"
+    return _step
+
+
+# Each option of a menu needs a step: one step is generated for each device which can be displayed
+for _slot in range(1, MAX_UNDERLYINGS + 1):
+    setattr(VersatileThermostatBaseConfigFlow, f"async_step_underlying_{_slot}", _make_underlying_step(_slot))
 
 
 class VersatileThermostatConfigFlow(  # pylint: disable=abstract-method

@@ -29,8 +29,6 @@
           "presence": "Anwesenheitserkennung",
           "advanced": "Erweiterte Einstellungen",
           "auto_start_stop": "Auto Start und Stop",
-          "valve_regulation": "Konfiguration Ventilsteuerung",
-          "sync_device_internal_temp": "Synchronisierung der Gerätetemperatur",
           "humidity": "Luftfeuchtigkeit",
           "lock": "Sperrenverwaltung",
           "heating_failure_detection": "Heizungsausfallerkennung",
@@ -101,45 +99,55 @@
       },
       "type": {
         "title": "Verknüpfte Entities",
-        "description": "Verknüpfte Entitie-Attribute",
-        "data": {
-          "underlying_entity_ids": "Zu steuernde Geräte",
-          "heater_keep_alive": "Schaltintervall in Sekunden",
-          "proportional_function": "Algorithmus",
-          "ac_mode": "AC-Modus",
-          "sync_device_internal_temp": "Synchronisierung der internen Gerätetemperatur",
-          "auto_regulation_mode": "Selbstregelung",
-          "auto_regulation_dtemp": "Regelungsschwelle",
-          "auto_regulation_periode_min": "Mindestzeitraum Regelung",
-          "opening_threshold_degree": "Öffnungsschwelle",
-          "min_opening_degrees": "Minimaler Öffnungsweite",
-          "max_opening_degrees": "Maximale Öffnungsweite",
-          "max_closing_degree": "Maximale Schließweite",
-          "auto_regulation_use_device_temp": "Interne Bezugstemperatur ausgleichen",
-          "inverse_switch_command": "Umgekehrter Schalterbefehl",
-          "auto_fan_mode": "Automatischer Lüftermodus",
-          "on_command_text": "Anpassung Einschaltbefehl",
-          "vswitch_on_command": "Einschaltbefehl (optional)",
-          "off_command_text": "Anpassung Ausschaltbefehl",
-          "vswitch_off_command": "Ausschaltbefehl (optional)"
+        "description": "{wizard_progress}Von diesem VTherm gesteuerte Geräte. Öffnen Sie die gemeinsamen Einstellungen, ein Gerät, um alle seine Einstellungen zu sehen und zu ändern, oder fügen Sie ein Gerät hinzu.",
+        "menu_options": {
+          "underlying_common": "Gemeinsame Einstellungen",
+          "underlying_1": "{underlying_1}",
+          "underlying_2": "{underlying_2}",
+          "underlying_3": "{underlying_3}",
+          "underlying_4": "{underlying_4}",
+          "underlying_5": "{underlying_5}",
+          "underlying_6": "{underlying_6}",
+          "underlying_7": "{underlying_7}",
+          "underlying_8": "{underlying_8}",
+          "underlying_9": "{underlying_9}",
+          "underlying_10": "{underlying_10}",
+          "underlying_11": "{underlying_11}",
+          "underlying_12": "{underlying_12}",
+          "underlying_13": "{underlying_13}",
+          "underlying_14": "{underlying_14}",
+          "underlying_15": "{underlying_15}",
+          "underlying_16": "{underlying_16}",
+          "underlying_17": "{underlying_17}",
+          "underlying_18": "{underlying_18}",
+          "underlying_19": "{underlying_19}",
+          "underlying_20": "{underlying_20}",
+          "underlying_add": "Gerät hinzufügen",
+          "menu": "Zurück zum Menü"
         },
-        "data_description": {
-          "underlying_entity_ids": "Liste der von diesem VTherm gesteuerten Geräte",
-          "heater_keep_alive": "Aktualisierungsintervall des Schalters in Sekunden. Leer lassen zum Deaktivieren. Nur für Schalter verwenden, wenn erforderlich",
-          "proportional_function": "Zu verwendender Algorithmus (andere Algorithmen können als {plugins_link} installiert werden)",
-          "ac_mode": "Klimaanlage-Modus (AC)",
-          "sync_device_internal_temp": "Die Innentemperatur der verknüpften Geräte mit der von VTherm gemessenen Temperatur synchronisieren",
-          "auto_regulation_mode": "Selbstregulierung durch VTherm verwenden",
-          "auto_regulation_dtemp": "Schwellenwert in ° (oder % bei Ventilen), unterhalb dessen die Regelung nicht aktiviert wird",
-          "auto_regulation_periode_min": "Dauer in Minuten zwischen zwei Regelungsaktualisierungen",
-          "opening_threshold_degree": "Öffnungsschwelle des Ventils, unterhalb derer das Ventil als geschlossen gilt (und dann 'max_closing_degree' gilt)",
-          "min_opening_degrees": "Eine kommaseparierte Liste der Mindestöffnung. Standardwert ist 0. Beispiel: 20, 25, 30",
-          "max_opening_degrees": "Maximaler Öffnungsgrad für jedes zugeordnete Gerät, durch Kommas getrennt. Standardwert 100. Das Ventil öffnet sich niemals über diesen Wert hinaus. Beispiel: 80, 85, 90",
-          "max_closing_degree": "Maximale Schließung. Das Ventil wird niemals über diesen Wert hinaus geschlossen. Zum vollständigen Schliessen auf 100 einstellen.",
-          "auto_regulation_use_device_temp": "Geräteinnentemperatur ausgleichen, zur Selbstregulierungsbeschleunigung (in den meisten Fällen nicht erforderlich)",
-          "inverse_switch_command": "Schaltersteuerung umkehren für Installationen mit Pilotdraht und Diode.",
-          "auto_fan_mode": "Automatisch Belüftung bei großen Abweichungen",
-          "on_command_text": "Für verknüpfte Geräte des Typs `select` oder `climate` müssen die Befehle angepasst werden."
+        "menu_option_descriptions": {
+          "underlying_common": "{underlying_common_details}",
+          "underlying_1": "{underlying_1_details}",
+          "underlying_2": "{underlying_2_details}",
+          "underlying_3": "{underlying_3_details}",
+          "underlying_4": "{underlying_4_details}",
+          "underlying_5": "{underlying_5_details}",
+          "underlying_6": "{underlying_6_details}",
+          "underlying_7": "{underlying_7_details}",
+          "underlying_8": "{underlying_8_details}",
+          "underlying_9": "{underlying_9_details}",
+          "underlying_10": "{underlying_10_details}",
+          "underlying_11": "{underlying_11_details}",
+          "underlying_12": "{underlying_12_details}",
+          "underlying_13": "{underlying_13_details}",
+          "underlying_14": "{underlying_14_details}",
+          "underlying_15": "{underlying_15_details}",
+          "underlying_16": "{underlying_16_details}",
+          "underlying_17": "{underlying_17_details}",
+          "underlying_18": "{underlying_18_details}",
+          "underlying_19": "{underlying_19_details}",
+          "underlying_20": "{underlying_20_details}",
+          "underlying_add": "Ein weiteres zu steuerndes Gerät auswählen"
         }
       },
       "tpi": {
@@ -282,30 +290,6 @@
           "keep_alive_boiler_delay_sec": "Verzögerung in Sekunden zum Weiterleiten des Kesselbefehls, wenn Keep-Alive aktiviert ist. Setzen Sie auf 0, um Keep-Alive zu deaktivieren."
         }
       },
-      "valve_regulation": {
-        "title": "Selbstregulierung durch Ventil",
-        "description": "Konfiguration der Selbstregelung durch direkte Ventilsteuerung",
-        "data": {
-          "offset_calibration_entity_ids": "Offset Kalibrierung Entity-IDs",
-          "opening_degree_entity_ids": "Öffnungsweite Entity-IDs",
-          "closing_degree_entity_ids": "Schließweite Entity-IDs",
-          "proportional_function": "Algorithmus",
-          "opening_threshold_degree": "Öffnungsschwelle",
-          "min_opening_degrees": "Minimaler Öffnungsweite",
-          "max_opening_degrees": "Maximale Öffnungsweite",
-          "max_closing_degree": "Maximale Schließweite"
-        },
-        "data_description": {
-          "offset_calibration_entity_ids": "Liste der 'Offset-Kalibrierungs'-Entities (offset calibration). Für eine bessere Regelung konfigurieren, wenn das TRV diese Entity besitzt. Es sollte eine pro Klima-Entity geben",
-          "opening_degree_entity_ids": "Liste der 'Ventil öffnen'-Entities. Es muss eine pro Klima-Entity geben",
-          "closing_degree_entity_ids": "Liste der 'Ventil schließen'-Entities. Für eine bessere Regelung konfigurieren, wenn das TRV über dies Funktion verfügt. Es muss eine pro Klima-Entity geben",
-          "proportional_function": "Zu verwendender Algorithmus (andere Algorithmen können als {plugins_link} installiert werden)",
-          "opening_threshold_degree": "Öffnungsschwelle des Ventils, unterhalb derer das Ventil als geschlossen gilt (und dann 'max_closing_degree' gilt)",
-          "min_opening_degrees": "Eine kommaseparierte Liste der Mindestöffnung. Standardwert ist 0. Beispiel: 20, 25, 30",
-          "max_opening_degrees": "Maximaler Öffnungsgrad für jedes zugeordnete Gerät, durch Kommas getrennt. Standardwert 100. Das Ventil öffnet sich niemals über diesen Wert hinaus. Beispiel: 80, 85, 90",
-          "max_closing_degree": "Maximale Schließung. Das Ventil wird niemals über diesen Wert hinaus geschlossen. Zum vollständigen Schliessen auf 100 einstellen."
-        }
-      },
       "auto_tpi_configuration": {
         "title": "Auto TPI - Konfiguration",
         "description": "Allgemeine Parameter für das Auto-TPI-Lernen.",
@@ -352,18 +336,6 @@
           "auto_tpi_ema_alpha": "Glättungsfaktor (0-1). Höher = schnellere Anpassung",
           "auto_tpi_ema_decay_rate": "Rate, mit der Alpha im Laufe der Zeit abnimmt (Stabilisierung)",
           "auto_tpi_continuous_kext_alpha": "Smoothing factor for continuous Kext learning (Alpha). Default 0.04 (approx 3-5 days adaptation)."
-        }
-      },
-      "sync_device_internal_temp": {
-        "title": "Geräte-Innentemperatur synchronisieren",
-        "description": "Konfiguration zur Synchronisierung der Innentemperatur der zugeordneten Geräte mit ausgewählten Entitäten",
-        "data": {
-          "sync_with_calibration": "Offset-Kalibrierung anwenden",
-          "sync_entity_ids": "Für die Synchronisierung verwendete Entity-IDs"
-        },
-        "data_description": {
-          "sync_with_calibration": "Aktiviert, wird die Offset-Kalibrierung bei der Synchronisierung der Innentemperatur angewenden. Deaktiviert, wird die Temperatur direkt aus den ausgewählten Entities kopiert.",
-          "sync_entity_ids": "Entitie-Liste, die zur Synchronisierung der internen Temperatur der zugeordneten Geräte verwendet werden. Es muss eine pro zugeordnetem Gerät vorhanden sein. Wenn es aktiviert ist, muss eine Kalibrierungsentität vorhanden sein, ansonsten eine Temperaturentity. Beides sind Entities vom Typ `number`."
         }
       },
       "humidity": {
@@ -413,8 +385,6 @@
           "presence": "Anwesenheitserkennung",
           "advanced": "Erweiterte Einstellungen",
           "central_boiler": "Zentralheizung",
-          "valve_regulation": "Konfiguration Ventilsteuerung",
-          "sync_device_internal_temp": "Synchronisierung der Gerätetemperatur",
           "menu": "Zurück zum Menü"
         },
         "menu_option_descriptions": {
@@ -426,9 +396,105 @@
           "motion": "Diesen Bildschirm öffnen, um die fehlenden Einstellungen auszufüllen",
           "presence": "Diesen Bildschirm öffnen, um die fehlenden Einstellungen auszufüllen",
           "advanced": "Diesen Bildschirm öffnen, um die fehlenden Einstellungen auszufüllen",
-          "central_boiler": "Diesen Bildschirm öffnen, um die fehlenden Einstellungen auszufüllen",
-          "valve_regulation": "Diesen Bildschirm öffnen, um die fehlenden Einstellungen auszufüllen",
-          "sync_device_internal_temp": "Diesen Bildschirm öffnen, um die fehlenden Einstellungen auszufüllen"
+          "central_boiler": "Diesen Bildschirm öffnen, um die fehlenden Einstellungen auszufüllen"
+        }
+      },
+      "underlying_common": {
+        "title": "Gemeinsame Einstellungen",
+        "description": "{wizard_progress}Einstellungen, die für alle Geräte dieses VTherm gelten.",
+        "data": {
+          "heater_keep_alive": "Schaltintervall in Sekunden",
+          "proportional_function": "Algorithmus",
+          "ac_mode": "AC-Modus",
+          "inverse_switch_command": "Umgekehrter Schalterbefehl",
+          "auto_regulation_dtemp": "Regelungsschwelle",
+          "auto_regulation_periode_min": "Mindestzeitraum Regelung",
+          "opening_threshold_degree": "Öffnungsschwelle",
+          "max_closing_degree": "Maximale Schließweite",
+          "sync_device_internal_temp": "Synchronisierung der internen Gerätetemperatur",
+          "auto_regulation_mode": "Selbstregelung",
+          "auto_fan_mode": "Automatischer Lüftermodus",
+          "auto_regulation_use_device_temp": "Interne Bezugstemperatur ausgleichen"
+        },
+        "data_description": {
+          "heater_keep_alive": "Aktualisierungsintervall des Schalters in Sekunden. Leer lassen zum Deaktivieren. Nur für Schalter verwenden, wenn erforderlich",
+          "proportional_function": "Zu verwendender Algorithmus (andere Algorithmen können als {plugins_link} installiert werden)",
+          "ac_mode": "Klimaanlage-Modus (AC)",
+          "inverse_switch_command": "Schaltersteuerung umkehren für Installationen mit Pilotdraht und Diode.",
+          "auto_regulation_dtemp": "Schwellenwert in ° (oder % bei Ventilen), unterhalb dessen die Regelung nicht aktiviert wird",
+          "auto_regulation_periode_min": "Dauer in Minuten zwischen zwei Regelungsaktualisierungen",
+          "opening_threshold_degree": "Öffnungsschwelle des Ventils, unterhalb derer das Ventil als geschlossen gilt (und dann 'max_closing_degree' gilt)",
+          "max_closing_degree": "Maximale Schließung. Das Ventil wird niemals über diesen Wert hinaus geschlossen. Zum vollständigen Schliessen auf 100 einstellen.",
+          "sync_device_internal_temp": "Aktivieren, um die interne Temperatur der zugrunde liegenden Geräte zu synchronisieren. Jedes Gerät benötigt dann eine eigene Synchronisierungs-Entität, die in den Geräteeinstellungen angegeben wird",
+          "auto_regulation_mode": "Selbstregulierung durch VTherm verwenden",
+          "auto_fan_mode": "Automatisch Belüftung bei großen Abweichungen",
+          "auto_regulation_use_device_temp": "Geräteinnentemperatur ausgleichen, zur Selbstregulierungsbeschleunigung (in den meisten Fällen nicht erforderlich)"
+        }
+      },
+      "underlying_common_extra": {
+        "title": "Ventilregelung und Synchronisierung",
+        "description": "{wizard_progress}Einstellungen, die für alle Geräte gelten, für die direkte Ventilsteuerung und die Synchronisierung der internen Temperatur.",
+        "data": {
+          "proportional_function": "Algorithmus",
+          "opening_threshold_degree": "Öffnungsschwelle",
+          "max_closing_degree": "Maximale Schließweite",
+          "sync_with_calibration": "Offset-Kalibrierung anwenden"
+        },
+        "data_description": {
+          "proportional_function": "Zu verwendender Algorithmus (andere Algorithmen können als {plugins_link} installiert werden)",
+          "opening_threshold_degree": "Öffnungsschwelle des Ventils, unterhalb derer das Ventil als geschlossen gilt (und dann 'max_closing_degree' gilt)",
+          "max_closing_degree": "Maximale Schließung. Das Ventil wird niemals über diesen Wert hinaus geschlossen. Zum vollständigen Schliessen auf 100 einstellen.",
+          "sync_with_calibration": "Aktiviert, wird die Offset-Kalibrierung bei der Synchronisierung der Innentemperatur angewenden. Deaktiviert, wird die Temperatur direkt aus den ausgewählten Entities kopiert."
+        }
+      },
+      "underlying_add": {
+        "title": "Gerät hinzufügen",
+        "description": "{wizard_progress}Wählen Sie das zu steuernde Gerät. Seine eigenen Einstellungen werden auf dem nächsten Bildschirm abgefragt.",
+        "data": {
+          "underlying_entity_id": "Gerät"
+        },
+        "data_description": {
+          "underlying_entity_id": "Die zu steuernde Entität"
+        }
+      },
+      "underlying": {
+        "title": "{underlying_name}",
+        "description": "{underlying_entity}\n\nEinstellungen dieses Geräts. Es werden nur die Felder angezeigt, die für den VTherm-Typ und die gemeinsamen Einstellungen gelten. Benutzerdefinierte Befehle und Schließ-Entitäten müssen für alle Geräte oder für kein Gerät angegeben werden.",
+        "data": {
+          "opening_degree_entity_id": "Ventilöffnungs-Entität",
+          "closing_degree_entity_id": "Ventilschließ-Entität (optional)",
+          "sync_entity_id": "Synchronisierungs-Entität",
+          "on_command": "Einschaltbefehl",
+          "off_command": "Ausschaltbefehl",
+          "min_opening_degree": "Minimale Öffnung (%)",
+          "max_opening_degree": "Maximale Öffnung (%)",
+          "replace_entity_id": "Entität ersetzen",
+          "remove_underlying": "Dieses Gerät entfernen"
+        },
+        "data_description": {
+          "opening_degree_entity_id": "Die Number-Entität, die den Öffnungsgrad des Ventils festlegt. Entitäten desselben Geräts werden vorgeschlagen.",
+          "closing_degree_entity_id": "Optionale Number-Entität, die den Schließgrad des Ventils festlegt. Für alle Geräte oder für kein Gerät angeben.",
+          "sync_entity_id": "Die Number-Entität zur Synchronisierung der internen Temperatur dieses Geräts: die Kalibrierungs-Entität, wenn 'Offset-Kalibrierung anwenden' aktiviert ist, sonst die Temperatur-Entität.",
+          "on_command": "Format: Dienstname[/Attribut:Wert]. Für Select- und Climate-Entitäten erforderlich. Für alle Geräte oder für kein Gerät angeben.",
+          "off_command": "Format: Dienstname[/Attribut:Wert]. Für Select- und Climate-Entitäten erforderlich. Für alle Geräte oder für kein Gerät angeben.",
+          "min_opening_degree": "Minimaler Öffnungsgrad dieses Geräts, wenn der Öffnungsschwellenwert überschritten ist. Standard: 0.",
+          "max_opening_degree": "Maximaler Öffnungsgrad dieses Geräts: Das Ventil öffnet nie weiter als dieser Wert. Er darf das Maximum des Ventils nicht überschreiten.",
+          "replace_entity_id": "Wählen Sie eine andere Entität, um dieses Gerät zu ersetzen. Ändert sich der Entitätstyp, müssen die Geräteeinstellungen erneut ausgefüllt werden.",
+          "remove_underlying": "Aktivieren, um dieses Gerät aus dem VTherm zu entfernen"
+        },
+        "sections": {
+          "commands": {
+            "name": "Benutzerdefinierte Befehle",
+            "description": "Optionale Befehle zum Ein- und Ausschalten dieses Geräts im Format Dienstname[/Attribut:Wert]. Für alle Geräte oder für kein Gerät angeben.",
+            "data": {
+              "on_command": "Einschaltbefehl",
+              "off_command": "Ausschaltbefehl"
+            },
+            "data_description": {
+              "on_command": "Format: Dienstname[/Attribut:Wert]. Für Select- und Climate-Entitäten erforderlich. Für alle Geräte oder für kein Gerät angeben.",
+              "off_command": "Format: Dienstname[/Attribut:Wert]. Für Select- und Climate-Entitäten erforderlich. Für alle Geräte oder für kein Gerät angeben."
+            }
+          }
         }
       }
     },
@@ -438,14 +504,12 @@
       "window_open_detection_method": "Es darf nur eine Methode zur Erkennung von offenen Fenstern verwendet werden. Verwenden Sie entweder den Fenstersensor oder die Temperaturschwelle, aber nicht beides.",
       "no_central_config": "'Zentrale Konfiguration verwenden' kann nicht aktiviert werden, da keine zentrale Konfiguration gefunden wurde. Es muss erst ein Versatile Thermostat des Typs 'Zentrale Konfiguration' erstellt werden, um ihn verwenden zu können.",
       "service_configuration_format": "Falsches Format der Servicekonfiguration",
-      "valve_regulation_nb_entities_incorrect": "Die Anzahl der Entities für die Ventilregelung muss gleich der Anzahl der zugeordneten Entities sein",
-      "sync_device_internal_temp_nb_entities_incorrect": "Die Anzahl der Entities zur Synchronisierung der internen Gerätetemperatur muss der Anzahl der zugeordneten Geräte entsprechen",
-      "min_opening_degrees_format": "Es wird eine Liste positiver Ganzzahlen erwartet, die durch Komma getrennte sind. Beispiel: 20, 25, 30",
-      "max_opening_degrees_format": "Es wird eine Liste positiver Ganzzahlen zwischen 0 und der maximalen Ventilöffnung erwartet, die durch Kommas getrennt sind. Beispiel: 80, 85, 90",
       "min_max_opening_degrees_inconsistent": "Für jedes zugeordnete Gerät muss max_opening_degrees absolut größer als min_opening_degrees sein. Bitte die Konfiguration überprüfen.",
-      "valve_control_parameters_cardinality_incorrect": "Die Listen der minimalen und maximalen Öffnungsgrade dürfen nicht mehr Werte enthalten als Ventile konfiguriert sind",
       "vswitch_configuration_incorrect": "Die Konfiguration der Befehlsanpassung ist falsch. Sie ist für nicht umschaltbare Basiswerte erforderlich und muss das Format 'service_name[/attribut:wert]' haben. Weitere Informationen in der README-Datei.",
-      "missing_settings_summary": "{count} Einstellung(en) zu vervollständigen"
+      "missing_settings_summary": "{count} Einstellung(en) zu vervollständigen",
+      "underlying_already_added": "Diese Entität wird bereits von einem Gerät dieses VTherm verwendet",
+      "max_opening_degree_out_of_range": "Die maximale Öffnung muss größer als 0 sein und darf das Maximum des Ventils nicht überschreiten",
+      "underlying_field_missing": "{field} fehlt"
     },
     "abort": {
       "already_configured": "Gerät ist bereits konfiguriert"
@@ -480,8 +544,6 @@
           "presence": "Anwesenheitserkennung",
           "advanced": "Erweiterte Einstellungen",
           "auto_start_stop": "Auto Start/Stopp",
-          "valve_regulation": "Ventilsteuerung",
-          "sync_device_internal_temp": "Synchronisierung der Gerätetemperatur",
           "humidity": "Luftfeuchtigkeit",
           "lock": "Sperrenverwaltung",
           "heating_failure_detection": "Heizungsausfallerkennung",
@@ -547,45 +609,55 @@
       },
       "type": {
         "title": "Zugehörige Entities - {name}",
-        "description": "Attribute der zugeordneten Entities",
-        "data": {
-          "underlying_entity_ids": "Die zu steuernden Geräte",
-          "heater_keep_alive": "Keep-alive Schaltinterval in Sekunden",
-          "proportional_function": "Algorithmus",
-          "ac_mode": "AC-Modus (Klimaanlage)?",
-          "sync_device_internal_temp": "Synchronisierung der internen Gerätetemperatur",
-          "auto_regulation_mode": "Selbstregelnd",
-          "auto_regulation_dtemp": "Regelschwelle",
-          "auto_regulation_periode_min": "Minimale Regelzeit",
-          "opening_threshold_degree": "Öffnungsschwelle",
-          "min_opening_degrees": "Minimaler Öffnungsweite",
-          "max_opening_degrees": "Maximale Öffnungsweite",
-          "max_closing_degree": "Maximale Schließweite",
-          "auto_regulation_use_device_temp": "Ausgleich der Innentemperatur vom Gerät",
-          "inverse_switch_command": "Umgekehrter Schaltbefehl",
-          "auto_fan_mode": "Automatischer Lüfterbetrieb",
-          "on_command_text": "Anpassung der Einschaltsteuerung",
-          "vswitch_on_command": "Einschaltbefehl (optional)",
-          "off_command_text": "Anpassung der Abschaltsteuerung",
-          "vswitch_off_command": "Abschaltbefehl (optional)"
+        "description": "{wizard_progress}Von diesem VTherm gesteuerte Geräte. Öffnen Sie die gemeinsamen Einstellungen, ein Gerät, um alle seine Einstellungen zu sehen und zu ändern, oder fügen Sie ein Gerät hinzu.",
+        "menu_options": {
+          "underlying_common": "Gemeinsame Einstellungen",
+          "underlying_1": "{underlying_1}",
+          "underlying_2": "{underlying_2}",
+          "underlying_3": "{underlying_3}",
+          "underlying_4": "{underlying_4}",
+          "underlying_5": "{underlying_5}",
+          "underlying_6": "{underlying_6}",
+          "underlying_7": "{underlying_7}",
+          "underlying_8": "{underlying_8}",
+          "underlying_9": "{underlying_9}",
+          "underlying_10": "{underlying_10}",
+          "underlying_11": "{underlying_11}",
+          "underlying_12": "{underlying_12}",
+          "underlying_13": "{underlying_13}",
+          "underlying_14": "{underlying_14}",
+          "underlying_15": "{underlying_15}",
+          "underlying_16": "{underlying_16}",
+          "underlying_17": "{underlying_17}",
+          "underlying_18": "{underlying_18}",
+          "underlying_19": "{underlying_19}",
+          "underlying_20": "{underlying_20}",
+          "underlying_add": "Gerät hinzufügen",
+          "menu": "Zurück zum Menü"
         },
-        "data_description": {
-          "underlying_entity_ids": "Liste der Geräte, die von diesem VTherm kontrolliert werden",
-          "heater_keep_alive": "Aktualisierungsintervall des Heizungsschalters in Sekunden. Nur für Schalter verwenden, die dies erfordern",
-          "proportional_function": "Zu verwendender Algorithmus (andere Algorithmen können als {plugins_link} installiert werden)",
-          "ac_mode": "Benutze Klimaanlagenmodus (AC)",
-          "sync_device_internal_temp": "Die Innentemperatur des zugeordneten Geräts mit der vom VTherm gemessenen Temperatur synchronisieren",
-          "auto_regulation_mode": "Verwendung der Selbstregulierung durch VTherm",
-          "auto_regulation_dtemp": "Der Schwellenwert in ° (oder % bei Ventilen), unter dem die Regelung nicht aktiviert wird",
-          "auto_regulation_periode_min": "Dauer in Minuten zwischen zwei Regelungsaktualisierungen",
-          "opening_threshold_degree": "Öffnungsschwelle des Ventils, unterhalb derer das Ventil als geschlossen gilt (und dann 'max_closing_degree' gilt)",
-          "min_opening_degrees": "Eine kommaseparierte Liste der Mindestöffnung. Standardwert ist 0. Beispiel: 20, 25, 30",
-          "max_opening_degrees": "Maximaler Öffnungsgrad für jedes zugeordnete Gerät, durch Kommas getrennt. Standardwert 100. Das Ventil öffnet sich niemals über diesen Wert hinaus. Beispiel: 80, 85, 90",
-          "max_closing_degree": "Maximale Schließung. Das Ventil wird niemals über diesen Wert hinaus geschlossen. Zum vollständigen Schliessen auf 100 einstellen.",
-          "auto_regulation_use_device_temp": "Ausgleich der eventuell vorhandenen Innentemperatur vom zugeordneten Gerät benutzen, zur Beschleunigung der Selbstregulierung (ist in den meisten Fällen nicht erforderlich)",
-          "inverse_switch_command": "Kehrt die Schaltersteuerung bei Installationen mit Pilotdraht und Diode um.",
-          "auto_fan_mode": "Aktiviert die Belüftung automatisch bei großen Abweichugnen.",
-          "on_command_text": "Für zugeordnete Geräte des Typs `select` oder `climate`."
+        "menu_option_descriptions": {
+          "underlying_common": "{underlying_common_details}",
+          "underlying_1": "{underlying_1_details}",
+          "underlying_2": "{underlying_2_details}",
+          "underlying_3": "{underlying_3_details}",
+          "underlying_4": "{underlying_4_details}",
+          "underlying_5": "{underlying_5_details}",
+          "underlying_6": "{underlying_6_details}",
+          "underlying_7": "{underlying_7_details}",
+          "underlying_8": "{underlying_8_details}",
+          "underlying_9": "{underlying_9_details}",
+          "underlying_10": "{underlying_10_details}",
+          "underlying_11": "{underlying_11_details}",
+          "underlying_12": "{underlying_12_details}",
+          "underlying_13": "{underlying_13_details}",
+          "underlying_14": "{underlying_14_details}",
+          "underlying_15": "{underlying_15_details}",
+          "underlying_16": "{underlying_16_details}",
+          "underlying_17": "{underlying_17_details}",
+          "underlying_18": "{underlying_18_details}",
+          "underlying_19": "{underlying_19_details}",
+          "underlying_20": "{underlying_20_details}",
+          "underlying_add": "Ein weiteres zu steuerndes Gerät auswählen"
         }
       },
       "tpi": {
@@ -730,42 +802,6 @@
           "keep_alive_boiler_delay_sec": "Verzögerung in Sekunden zum Weiterleiten des Kesselbefehls, wenn Keep-Alive aktiviert ist. Setzen Sie auf 0, um Keep-Alive zu deaktivieren."
         }
       },
-      "valve_regulation": {
-        "title": "Selbstregulierung mit Ventil - {name}",
-        "description": "Konfiguration für Selbstregulierung durch direkte Ventilsteuerung",
-        "data": {
-          "offset_calibration_entity_ids": "Entities zur 'Offset-Kalibrierung'",
-          "opening_degree_entity_ids": "Entities 'Ventil öffnen'",
-          "closing_degree_entity_ids": "Entities 'Ventil schliessen'",
-          "proportional_function": "Algorithmus",
-          "opening_threshold_degree": "Öffnungsschwelle",
-          "min_opening_degrees": "Minimaler Öffnungsweite",
-          "max_opening_degrees": "Maximale Öffnungsweite",
-          "max_closing_degree": "Maximale Schließweite"
-        },
-        "data_description": {
-          "offset_calibration_entity_ids": "Liste der 'Offset-Kalibrierung'-Entities. Wenn das TRV über diese Funktion verfügen, bitte dieses für eine bessere Regelung konfigurieren. Es muss eine pro zugeordneter Klima-Entity vorhanden sein",
-          "opening_degree_entity_ids": "Liste der 'Ventilöffnung'-Entities. Es muss eine pro zugeordneter Klima-Entity geben",
-          "closing_degree_entity_ids": "Liste der 'Ventil schliessen'-Entities. Wenn das TRV über diese Funktion verfügen, bitte dieses für eine bessere Regelung konfigurieren. Es muss eine pro zugeordneter Klima-Entity vorhanden sein",
-          "proportional_function": "Zu verwendender Algorithmus (andere Algorithmen können als {plugins_link} installiert werden)",
-          "opening_threshold_degree": "Öffnungsschwelle des Ventils, unterhalb derer das Ventil als geschlossen gilt (und dann 'max_closing_degree' gilt)",
-          "min_opening_degrees": "Eine kommaseparierte Liste der Mindestöffnung. Standardwert ist 0. Beispiel: 20, 25, 30",
-          "max_opening_degrees": "Maximaler Öffnungsgrad für jedes zugeordnete Gerät, durch Kommas getrennt. Standardwert 100. Das Ventil öffnet sich niemals über diesen Wert hinaus. Beispiel: 80, 85, 90",
-          "max_closing_degree": "Maximale Schließung. Das Ventil wird niemals über diesen Wert hinaus geschlossen. Bei einem Wert von 100, schliesst das Ventil vollständig."
-        }
-      },
-      "sync_device_internal_temp": {
-        "title": "Synchronisierung der internen Temperatur der zugeordneten Geräte",
-        "description": "Konfiguration der Synchronisierung der internen Temperaturen der zugeordneten Geräte",
-        "data": {
-          "sync_with_calibration": "Anwendung einer Kalibrierung",
-          "sync_entity_ids": "Für die Synchronisierung verwendete Entity-IDs"
-        },
-        "data_description": {
-          "sync_with_calibration": "Ist die Option aktiviert, wird die Offset-Kalibrierung bei der Synchronisierung der Innentemperatur angewendet. Deaktivieren, um die Temperatur direkt in die ausgewählten Elemente zu kopieren.",
-          "sync_entity_ids": "Entitie-Liste, die zur Synchronisierung der internen Temperatur der zugeordneten Geräte verwendet werden. Es muss eine pro zugeordnetem Gerät vorhanden sein. Wenn es aktiviert ist, muss eine Kalibrierungsentität vorhanden sein, ansonsten eine Temperaturentity. Beides sind Entities vom Typ `number`."
-        }
-      },
       "humidity": {
         "title": "Luftfeuchtigkeit - {name}",
         "description": "Externen Luftfeuchtigkeitssensor verwenden. Erkannter Sensor: {humidity_detected}",
@@ -861,8 +897,6 @@
           "presence": "Anwesenheitserkennung",
           "advanced": "Erweiterte Einstellungen",
           "central_boiler": "Zentralheizung",
-          "valve_regulation": "Ventilsteuerung",
-          "sync_device_internal_temp": "Synchronisierung der Gerätetemperatur",
           "menu": "Zurück zum Menü"
         },
         "menu_option_descriptions": {
@@ -874,9 +908,105 @@
           "motion": "Diesen Bildschirm öffnen, um die fehlenden Einstellungen auszufüllen",
           "presence": "Diesen Bildschirm öffnen, um die fehlenden Einstellungen auszufüllen",
           "advanced": "Diesen Bildschirm öffnen, um die fehlenden Einstellungen auszufüllen",
-          "central_boiler": "Diesen Bildschirm öffnen, um die fehlenden Einstellungen auszufüllen",
-          "valve_regulation": "Diesen Bildschirm öffnen, um die fehlenden Einstellungen auszufüllen",
-          "sync_device_internal_temp": "Diesen Bildschirm öffnen, um die fehlenden Einstellungen auszufüllen"
+          "central_boiler": "Diesen Bildschirm öffnen, um die fehlenden Einstellungen auszufüllen"
+        }
+      },
+      "underlying_common": {
+        "title": "Gemeinsame Einstellungen - {name}",
+        "description": "{wizard_progress}Einstellungen, die für alle Geräte dieses VTherm gelten.",
+        "data": {
+          "heater_keep_alive": "Keep-alive Schaltinterval in Sekunden",
+          "proportional_function": "Algorithmus",
+          "ac_mode": "AC-Modus (Klimaanlage)?",
+          "inverse_switch_command": "Umgekehrter Schaltbefehl",
+          "auto_regulation_dtemp": "Regelschwelle",
+          "auto_regulation_periode_min": "Minimale Regelzeit",
+          "opening_threshold_degree": "Öffnungsschwelle",
+          "max_closing_degree": "Maximale Schließweite",
+          "sync_device_internal_temp": "Synchronisierung der internen Gerätetemperatur",
+          "auto_regulation_mode": "Selbstregelnd",
+          "auto_fan_mode": "Automatischer Lüfterbetrieb",
+          "auto_regulation_use_device_temp": "Ausgleich der Innentemperatur vom Gerät"
+        },
+        "data_description": {
+          "heater_keep_alive": "Aktualisierungsintervall des Heizungsschalters in Sekunden. Nur für Schalter verwenden, die dies erfordern",
+          "proportional_function": "Zu verwendender Algorithmus (andere Algorithmen können als {plugins_link} installiert werden)",
+          "ac_mode": "Benutze Klimaanlagenmodus (AC)",
+          "inverse_switch_command": "Kehrt die Schaltersteuerung bei Installationen mit Pilotdraht und Diode um.",
+          "auto_regulation_dtemp": "Der Schwellenwert in ° (oder % bei Ventilen), unter dem die Regelung nicht aktiviert wird",
+          "auto_regulation_periode_min": "Dauer in Minuten zwischen zwei Regelungsaktualisierungen",
+          "opening_threshold_degree": "Öffnungsschwelle des Ventils, unterhalb derer das Ventil als geschlossen gilt (und dann 'max_closing_degree' gilt)",
+          "max_closing_degree": "Maximale Schließung. Das Ventil wird niemals über diesen Wert hinaus geschlossen. Zum vollständigen Schliessen auf 100 einstellen.",
+          "sync_device_internal_temp": "Aktivieren, um die interne Temperatur der zugrunde liegenden Geräte zu synchronisieren. Jedes Gerät benötigt dann eine eigene Synchronisierungs-Entität, die in den Geräteeinstellungen angegeben wird",
+          "auto_regulation_mode": "Verwendung der Selbstregulierung durch VTherm",
+          "auto_fan_mode": "Aktiviert die Belüftung automatisch bei großen Abweichugnen.",
+          "auto_regulation_use_device_temp": "Ausgleich der eventuell vorhandenen Innentemperatur vom zugeordneten Gerät benutzen, zur Beschleunigung der Selbstregulierung (ist in den meisten Fällen nicht erforderlich)"
+        }
+      },
+      "underlying_common_extra": {
+        "title": "Ventilregelung und Synchronisierung - {name}",
+        "description": "{wizard_progress}Einstellungen, die für alle Geräte gelten, für die direkte Ventilsteuerung und die Synchronisierung der internen Temperatur.",
+        "data": {
+          "proportional_function": "Algorithmus",
+          "opening_threshold_degree": "Öffnungsschwelle",
+          "max_closing_degree": "Maximale Schließweite",
+          "sync_with_calibration": "Anwendung einer Kalibrierung"
+        },
+        "data_description": {
+          "proportional_function": "Zu verwendender Algorithmus (andere Algorithmen können als {plugins_link} installiert werden)",
+          "opening_threshold_degree": "Öffnungsschwelle des Ventils, unterhalb derer das Ventil als geschlossen gilt (und dann 'max_closing_degree' gilt)",
+          "max_closing_degree": "Maximale Schließung. Das Ventil wird niemals über diesen Wert hinaus geschlossen. Bei einem Wert von 100, schliesst das Ventil vollständig.",
+          "sync_with_calibration": "Ist die Option aktiviert, wird die Offset-Kalibrierung bei der Synchronisierung der Innentemperatur angewendet. Deaktivieren, um die Temperatur direkt in die ausgewählten Elemente zu kopieren."
+        }
+      },
+      "underlying_add": {
+        "title": "Gerät hinzufügen - {name}",
+        "description": "{wizard_progress}Wählen Sie das zu steuernde Gerät. Seine eigenen Einstellungen werden auf dem nächsten Bildschirm abgefragt.",
+        "data": {
+          "underlying_entity_id": "Gerät"
+        },
+        "data_description": {
+          "underlying_entity_id": "Die zu steuernde Entität"
+        }
+      },
+      "underlying": {
+        "title": "{underlying_name}",
+        "description": "{underlying_entity}\n\nEinstellungen dieses Geräts. Es werden nur die Felder angezeigt, die für den VTherm-Typ und die gemeinsamen Einstellungen gelten. Benutzerdefinierte Befehle und Schließ-Entitäten müssen für alle Geräte oder für kein Gerät angegeben werden.",
+        "data": {
+          "opening_degree_entity_id": "Ventilöffnungs-Entität",
+          "closing_degree_entity_id": "Ventilschließ-Entität (optional)",
+          "sync_entity_id": "Synchronisierungs-Entität",
+          "on_command": "Einschaltbefehl",
+          "off_command": "Ausschaltbefehl",
+          "min_opening_degree": "Minimale Öffnung (%)",
+          "max_opening_degree": "Maximale Öffnung (%)",
+          "replace_entity_id": "Entität ersetzen",
+          "remove_underlying": "Dieses Gerät entfernen"
+        },
+        "data_description": {
+          "opening_degree_entity_id": "Die Number-Entität, die den Öffnungsgrad des Ventils festlegt. Entitäten desselben Geräts werden vorgeschlagen.",
+          "closing_degree_entity_id": "Optionale Number-Entität, die den Schließgrad des Ventils festlegt. Für alle Geräte oder für kein Gerät angeben.",
+          "sync_entity_id": "Die Number-Entität zur Synchronisierung der internen Temperatur dieses Geräts: die Kalibrierungs-Entität, wenn 'Offset-Kalibrierung anwenden' aktiviert ist, sonst die Temperatur-Entität.",
+          "on_command": "Format: Dienstname[/Attribut:Wert]. Für Select- und Climate-Entitäten erforderlich. Für alle Geräte oder für kein Gerät angeben.",
+          "off_command": "Format: Dienstname[/Attribut:Wert]. Für Select- und Climate-Entitäten erforderlich. Für alle Geräte oder für kein Gerät angeben.",
+          "min_opening_degree": "Minimaler Öffnungsgrad dieses Geräts, wenn der Öffnungsschwellenwert überschritten ist. Standard: 0.",
+          "max_opening_degree": "Maximaler Öffnungsgrad dieses Geräts: Das Ventil öffnet nie weiter als dieser Wert. Er darf das Maximum des Ventils nicht überschreiten.",
+          "replace_entity_id": "Wählen Sie eine andere Entität, um dieses Gerät zu ersetzen. Ändert sich der Entitätstyp, müssen die Geräteeinstellungen erneut ausgefüllt werden.",
+          "remove_underlying": "Aktivieren, um dieses Gerät aus dem VTherm zu entfernen"
+        },
+        "sections": {
+          "commands": {
+            "name": "Benutzerdefinierte Befehle",
+            "description": "Optionale Befehle zum Ein- und Ausschalten dieses Geräts im Format Dienstname[/Attribut:Wert]. Für alle Geräte oder für kein Gerät angeben.",
+            "data": {
+              "on_command": "Einschaltbefehl",
+              "off_command": "Ausschaltbefehl"
+            },
+            "data_description": {
+              "on_command": "Format: Dienstname[/Attribut:Wert]. Für Select- und Climate-Entitäten erforderlich. Für alle Geräte oder für kein Gerät angeben.",
+              "off_command": "Format: Dienstname[/Attribut:Wert]. Für Select- und Climate-Entitäten erforderlich. Für alle Geräte oder für kein Gerät angeben."
+            }
+          }
         }
       }
     },
@@ -886,14 +1016,12 @@
       "window_open_detection_method": "Es darf nur eine Methode zur Erkennung von offenen Fenstern verwendet werden. Verwenden Sie entweder den Fenstersensor oder die Temperaturschwelle, aber nicht beides.",
       "no_central_config": "'Zentrale Konfiguration verwenden' kann nicht aktiviert werden, da keine zentrale Konfiguration gefunden wurde. Es muss erst ein Versatile Thermostat des Typs 'Zentrale Konfiguration' erstellt werden, um ihn verwenden zu können.",
       "service_configuration_format": "Falsches Format der Servicekonfiguration",
-      "valve_regulation_nb_entities_incorrect": "Die Anzahl der Entities für die Ventilregelung muss gleich der Anzahl der zugeordneten Entities sein",
-      "sync_device_internal_temp_nb_entities_incorrect": "Die Anzahl der Entities zur Synchronisierung der internen Gerätetemperatur muss der Anzahl der zugrunde liegenden Geräte entsprechen",
-      "min_opening_degrees_format": "Es wird eine Liste positiver Ganzzahlen erwartet, die durch Komma getrennte sind. Beispiel: 20, 25, 30",
-      "max_opening_degrees_format": "Es wird eine Liste positiver Ganzzahlen zwischen 0 und der maximalen Ventilöffnung erwartet, die durch Kommas getrennt sind. Beispiel: 80, 85, 90",
       "min_max_opening_degrees_inconsistent": "Für jedes zugeordnete Gerät muss max_opening_degrees absolut größer als min_opening_degrees sein. Bitte die Konfiguration überprüfen.",
-      "valve_control_parameters_cardinality_incorrect": "Die Listen der minimalen und maximalen Öffnungsgrade dürfen nicht mehr Werte enthalten als Ventile konfiguriert sind",
       "vswitch_configuration_incorrect": "Die Konfiguration der Befehlsanpassung ist falsch. Sie ist für nicht umschaltbare Basiswerte erforderlich und muss das Format 'service_name[/attribut:wert]' haben. Weitere Informationen dazu in der README-Datei.",
-      "missing_settings_summary": "{count} Einstellung(en) zu vervollständigen"
+      "missing_settings_summary": "{count} Einstellung(en) zu vervollständigen",
+      "underlying_already_added": "Diese Entität wird bereits von einem Gerät dieses VTherm verwendet",
+      "max_opening_degree_out_of_range": "Die maximale Öffnung muss größer als 0 sein und darf das Maximum des Ventils nicht überschreiten",
+      "underlying_field_missing": "{field} fehlt"
     },
     "abort": {
       "already_configured": "Das Gerät ist bereits konfiguriert"

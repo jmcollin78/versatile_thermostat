@@ -28,8 +28,6 @@
           "presence": "Обнаружение присутствия",
           "advanced": "Расширенные параметры",
           "auto_start_stop": "Авто старт и стоп",
-          "valve_regulation": "Конфигурация регулировки клапана",
-          "sync_device_internal_temp": "Синхронизация температуры устройства",
           "lock": "Управление блокировкой",
           "finalize": "Все готово",
           "configuration_not_complete": "Конфигурация не завершена ({missing_count})",
@@ -94,45 +92,55 @@
       },
       "type": {
         "title": "Связанные сущности",
-        "description": "Атрибуты связанных сущностей",
-        "data": {
-          "underlying_entity_ids": "Устройство(а) для управления",
-          "heater_keep_alive": "Интервал поддержания переключателя (секунды)",
-          "proportional_function": "Алгоритм",
-          "ac_mode": "Режим кондиционера",
-          "sync_device_internal_temp": "Синхронизация внутренней температуры устройства",
-          "auto_regulation_mode": "Саморегулирование",
-          "auto_regulation_dtemp": "Порог регулирования",
-          "auto_regulation_periode_min": "Минимальный период регулирования",
-          "opening_threshold_degree": "Пороговое значение открытия",
-          "min_opening_degrees": "Минимальные степени открытия",
-          "max_opening_degrees": "Максимальная степень открытия",
-          "max_closing_degree": "Максимальная степень закрытия",
-          "auto_regulation_use_device_temp": "Использовать внутреннюю температуру устройства",
-          "inverse_switch_command": "Инвертировать команду переключателя",
-          "auto_fan_mode": "Авто режим вентилятора",
-          "on_command_text": "Настройка команды включения",
-          "vswitch_on_command": "Опциональные команды включения",
-          "off_command_text": "Настройка команды выключения",
-          "vswitch_off_command": "Опциональные команды выключения"
+        "description": "{wizard_progress}Устройства, управляемые этим VTherm. Откройте общие настройки, устройство, чтобы увидеть и изменить все его настройки, или добавьте устройство.",
+        "menu_options": {
+          "underlying_common": "Общие настройки",
+          "underlying_1": "{underlying_1}",
+          "underlying_2": "{underlying_2}",
+          "underlying_3": "{underlying_3}",
+          "underlying_4": "{underlying_4}",
+          "underlying_5": "{underlying_5}",
+          "underlying_6": "{underlying_6}",
+          "underlying_7": "{underlying_7}",
+          "underlying_8": "{underlying_8}",
+          "underlying_9": "{underlying_9}",
+          "underlying_10": "{underlying_10}",
+          "underlying_11": "{underlying_11}",
+          "underlying_12": "{underlying_12}",
+          "underlying_13": "{underlying_13}",
+          "underlying_14": "{underlying_14}",
+          "underlying_15": "{underlying_15}",
+          "underlying_16": "{underlying_16}",
+          "underlying_17": "{underlying_17}",
+          "underlying_18": "{underlying_18}",
+          "underlying_19": "{underlying_19}",
+          "underlying_20": "{underlying_20}",
+          "underlying_add": "Добавить устройство",
+          "menu": "Назад в меню"
         },
-        "data_description": {
-          "underlying_entity_ids": "Устройство(а) для управления - требуется 1",
-          "heater_keep_alive": "Опциональный интервал обновления состояния переключателя. Оставьте пустым, если не требуется.",
-          "proportional_function": "Алгоритм для использования (другие алгоритмы можно установить как {plugins_link})",
-          "ac_mode": "Использовать режим кондиционера (AC)",
-          "sync_device_internal_temp": "Конфигурация для синхронизации внутренней температуры подчиненных устройств с выбранными сущностями",
-          "auto_regulation_mode": "Автоматическая корректировка целевой температуры",
-          "auto_regulation_dtemp": "Порог в ° (или % для клапана), ниже которого изменение температуры не будет отправлено",
-          "auto_regulation_periode_min": "Время в минутах между двумя обновлениями регулирования",
-          "opening_threshold_degree": "Значение открытия клапана, ниже которого клапан должен считаться закрытым (и тогда будет применено 'max_closing_degree')",
-          "min_opening_degrees": "Минимальное значение степени открытия для каждого управляющего устройства, через запятую. По умолчанию 0. Пример: 20, 25, 30",
-          "max_opening_degrees": "Максимальное значение степени открытия для каждого базового устройства, через запятую. По умолчанию 100. Клапан никогда не откроется больше этого значения. Пример: 80, 85, 90",
-          "max_closing_degree": "Максимальное значение степени закрытия. Клапан никогда не закроется больше этого значения. Установите на 100, чтобы полностью закрыть клапан",
-          "auto_regulation_use_device_temp": "Использовать внутренний датчик температуры устройства для ускорения саморегулирования (в большинстве случаев не требуется)",
-          "inverse_switch_command": "Для переключателей с пилотным проводом и диодом может потребоваться инвертировать команду",
-          "auto_fan_mode": "Автоматически активировать вентилятор при необходимости сильного обогрева/охлаждения",
-          "on_command_text": "Для устройств типа `select` или `climate` необходимо настроить команды."
+        "menu_option_descriptions": {
+          "underlying_common": "{underlying_common_details}",
+          "underlying_1": "{underlying_1_details}",
+          "underlying_2": "{underlying_2_details}",
+          "underlying_3": "{underlying_3_details}",
+          "underlying_4": "{underlying_4_details}",
+          "underlying_5": "{underlying_5_details}",
+          "underlying_6": "{underlying_6_details}",
+          "underlying_7": "{underlying_7_details}",
+          "underlying_8": "{underlying_8_details}",
+          "underlying_9": "{underlying_9_details}",
+          "underlying_10": "{underlying_10_details}",
+          "underlying_11": "{underlying_11_details}",
+          "underlying_12": "{underlying_12_details}",
+          "underlying_13": "{underlying_13_details}",
+          "underlying_14": "{underlying_14_details}",
+          "underlying_15": "{underlying_15_details}",
+          "underlying_16": "{underlying_16_details}",
+          "underlying_17": "{underlying_17_details}",
+          "underlying_18": "{underlying_18_details}",
+          "underlying_19": "{underlying_19_details}",
+          "underlying_20": "{underlying_20_details}",
+          "underlying_add": "Выбрать ещё одно устройство для управления"
         }
       },
       "tpi": {
@@ -273,42 +281,6 @@
           "keep_alive_boiler_delay_sec": "Задержка в секундах для периодической повторной отправки команды котла, если keep-alive включен. Установите 0, чтобы отключить keep-alive."
         }
       },
-      "valve_regulation": {
-        "title": "Саморегулирование с клапаном",
-        "description": "Конфигурация для саморегулирования с прямым управлением клапаном",
-        "data": {
-          "offset_calibration_entity_ids": "Сущности калибровки смещения",
-          "opening_degree_entity_ids": "Сущности степени открытия",
-          "closing_degree_entity_ids": "Сущности степени закрытия",
-          "proportional_function": "Алгоритм",
-          "opening_threshold_degree": "Пороговое значение открытия",
-          "min_opening_degrees": "Минимальные степени открытия",
-          "max_opening_degrees": "Максимальная степень открытия",
-          "max_closing_degree": "Максимальная степень закрытия"
-        },
-        "data_description": {
-          "offset_calibration_entity_ids": "Список сущностей 'калибровки смещения'. Установите, если ваш TRV имеет такую сущность для лучшего регулирования. Должна быть одна для каждой управляющей климатической сущности",
-          "opening_degree_entity_ids": "Список сущностей 'степени открытия'. Должна быть одна для каждой управляющей климатической сущности",
-          "closing_degree_entity_ids": "Список сущностей 'степени закрытия'. Установите, если ваш TRV имеет такую сущность для лучшего регулирования. Должна быть одна для каждой управляющей климатической сущности",
-          "proportional_function": "Алгоритм для использования (другие алгоритмы можно установить как {plugins_link})",
-          "opening_threshold_degree": "Значение открытия клапана, ниже которого клапан должен считаться закрытым (и тогда будет применено 'max_closing_degree')",
-          "min_opening_degrees": "Минимальное значение степени открытия для каждого управляющего устройства, через запятую. По умолчанию 0. Пример: 20, 25, 30",
-          "max_opening_degrees": "Максимальное значение степени открытия для каждого базового устройства, через запятую. По умолчанию 100. Клапан никогда не откроется больше этого значения. Пример: 80, 85, 90",
-          "max_closing_degree": "Максимальное значение степени закрытия. Клапан никогда не закроется больше этого значения. Установите на 100, чтобы полностью закрыть клапан"
-        }
-      },
-      "sync_device_internal_temp": {
-        "title": "Synchronize device internal temperature",
-        "description": "Configuration to synchronize the internal temperature of the underlying devices with selected entities",
-        "data": {
-          "sync_with_calibration": "Apply offset calibration",
-          "sync_entity_ids": "Entities id used for synchronization"
-        },
-        "data_description": {
-          "sync_with_calibration": "Check to apply the offset calibration when synchronizing the internal temperature. Uncheck to directly copy the temperature from the selected entities",
-          "sync_entity_ids": "The list of the entities used to synchronize the internal temperature of the underlying devices. There should be one per underlying device. Should be a calibration entity if checkbox is selected or a temperature entity otherwise. Both are `number` entities."
-        }
-      },
       "auto_tpi_configuration": {
         "data": {
           "auto_tpi_cooling_rate": "Скорость охлаждения ({unit}/ч)"
@@ -352,8 +324,6 @@
           "presence": "Обнаружение присутствия",
           "advanced": "Расширенные параметры",
           "central_boiler": "Центральный котел",
-          "valve_regulation": "Конфигурация регулировки клапана",
-          "sync_device_internal_temp": "Синхронизация температуры устройства",
           "menu": "Назад в меню"
         },
         "menu_option_descriptions": {
@@ -365,9 +335,105 @@
           "motion": "Открыть этот экран, чтобы заполнить недостающие параметры",
           "presence": "Открыть этот экран, чтобы заполнить недостающие параметры",
           "advanced": "Открыть этот экран, чтобы заполнить недостающие параметры",
-          "central_boiler": "Открыть этот экран, чтобы заполнить недостающие параметры",
-          "valve_regulation": "Открыть этот экран, чтобы заполнить недостающие параметры",
-          "sync_device_internal_temp": "Открыть этот экран, чтобы заполнить недостающие параметры"
+          "central_boiler": "Открыть этот экран, чтобы заполнить недостающие параметры"
+        }
+      },
+      "underlying_common": {
+        "title": "Общие настройки",
+        "description": "{wizard_progress}Настройки, общие для всех устройств этого VTherm.",
+        "data": {
+          "heater_keep_alive": "Интервал поддержания переключателя (секунды)",
+          "proportional_function": "Алгоритм",
+          "ac_mode": "Режим кондиционера",
+          "inverse_switch_command": "Инвертировать команду переключателя",
+          "auto_regulation_dtemp": "Порог регулирования",
+          "auto_regulation_periode_min": "Минимальный период регулирования",
+          "opening_threshold_degree": "Пороговое значение открытия",
+          "max_closing_degree": "Максимальная степень закрытия",
+          "sync_device_internal_temp": "Синхронизация внутренней температуры устройства",
+          "auto_regulation_mode": "Саморегулирование",
+          "auto_fan_mode": "Авто режим вентилятора",
+          "auto_regulation_use_device_temp": "Использовать внутреннюю температуру устройства"
+        },
+        "data_description": {
+          "heater_keep_alive": "Опциональный интервал обновления состояния переключателя. Оставьте пустым, если не требуется.",
+          "proportional_function": "Алгоритм для использования (другие алгоритмы можно установить как {plugins_link})",
+          "ac_mode": "Использовать режим кондиционера (AC)",
+          "inverse_switch_command": "Для переключателей с пилотным проводом и диодом может потребоваться инвертировать команду",
+          "auto_regulation_dtemp": "Порог в ° (или % для клапана), ниже которого изменение температуры не будет отправлено",
+          "auto_regulation_periode_min": "Время в минутах между двумя обновлениями регулирования",
+          "opening_threshold_degree": "Значение открытия клапана, ниже которого клапан должен считаться закрытым (и тогда будет применено 'max_closing_degree')",
+          "max_closing_degree": "Максимальное значение степени закрытия. Клапан никогда не закроется больше этого значения. Установите на 100, чтобы полностью закрыть клапан",
+          "sync_device_internal_temp": "Отметьте, чтобы синхронизировать внутреннюю температуру подчинённых устройств. Тогда каждому устройству нужна собственная сущность синхронизации, указываемая в настройках устройства",
+          "auto_regulation_mode": "Автоматическая корректировка целевой температуры",
+          "auto_fan_mode": "Автоматически активировать вентилятор при необходимости сильного обогрева/охлаждения",
+          "auto_regulation_use_device_temp": "Использовать внутренний датчик температуры устройства для ускорения саморегулирования (в большинстве случаев не требуется)"
+        }
+      },
+      "underlying_common_extra": {
+        "title": "Регулирование клапаном и синхронизация",
+        "description": "{wizard_progress}Настройки, общие для всех устройств, для прямого управления клапанами и синхронизации внутренней температуры.",
+        "data": {
+          "proportional_function": "Алгоритм",
+          "opening_threshold_degree": "Пороговое значение открытия",
+          "max_closing_degree": "Максимальная степень закрытия",
+          "sync_with_calibration": "Apply offset calibration"
+        },
+        "data_description": {
+          "proportional_function": "Алгоритм для использования (другие алгоритмы можно установить как {plugins_link})",
+          "opening_threshold_degree": "Значение открытия клапана, ниже которого клапан должен считаться закрытым (и тогда будет применено 'max_closing_degree')",
+          "max_closing_degree": "Максимальное значение степени закрытия. Клапан никогда не закроется больше этого значения. Установите на 100, чтобы полностью закрыть клапан",
+          "sync_with_calibration": "Check to apply the offset calibration when synchronizing the internal temperature. Uncheck to directly copy the temperature from the selected entities"
+        }
+      },
+      "underlying_add": {
+        "title": "Добавить устройство",
+        "description": "{wizard_progress}Выберите устройство для управления. Его собственные настройки запрашиваются на следующем экране.",
+        "data": {
+          "underlying_entity_id": "Устройство"
+        },
+        "data_description": {
+          "underlying_entity_id": "Сущность для управления"
+        }
+      },
+      "underlying": {
+        "title": "{underlying_name}",
+        "description": "{underlying_entity}\n\nНастройки этого устройства. Отображаются только поля, относящиеся к типу VTherm и общим настройкам. Пользовательские команды и сущности закрытия должны быть заданы для всех устройств или ни для одного.",
+        "data": {
+          "opening_degree_entity_id": "Сущность открытия клапана",
+          "closing_degree_entity_id": "Сущность закрытия клапана (необязательно)",
+          "sync_entity_id": "Сущность синхронизации",
+          "on_command": "Команда включения",
+          "off_command": "Команда выключения",
+          "min_opening_degree": "Минимальное открытие (%)",
+          "max_opening_degree": "Максимальное открытие (%)",
+          "replace_entity_id": "Заменить сущность",
+          "remove_underlying": "Удалить это устройство"
+        },
+        "data_description": {
+          "opening_degree_entity_id": "Сущность number, задающая степень открытия клапана. Предлагаются сущности того же устройства.",
+          "closing_degree_entity_id": "Необязательная сущность number, задающая степень закрытия клапана. Задайте её для всех устройств или ни для одного.",
+          "sync_entity_id": "Сущность number для синхронизации внутренней температуры этого устройства: сущность калибровки, если отмечено «Применить калибровку смещения», иначе сущность температуры.",
+          "on_command": "Формат: имя_службы[/атрибут:значение]. Обязательно для сущностей select и climate. Задайте для всех устройств или ни для одного.",
+          "off_command": "Формат: имя_службы[/атрибут:значение]. Обязательно для сущностей select и climate. Задайте для всех устройств или ни для одного.",
+          "min_opening_degree": "Минимальная степень открытия этого устройства при превышении порога открытия. По умолчанию 0.",
+          "max_opening_degree": "Максимальная степень открытия этого устройства: клапан никогда не откроется больше этого значения. Не может превышать максимум клапана.",
+          "replace_entity_id": "Выберите другую сущность, чтобы заменить это устройство. Если тип сущности меняется, настройки устройства нужно заполнить заново.",
+          "remove_underlying": "Отметьте, чтобы удалить это устройство из VTherm"
+        },
+        "sections": {
+          "commands": {
+            "name": "Пользовательские команды",
+            "description": "Необязательные команды включения и выключения этого устройства в формате имя_службы[/атрибут:значение]. Задайте их для всех устройств или ни для одного.",
+            "data": {
+              "on_command": "Команда включения",
+              "off_command": "Команда выключения"
+            },
+            "data_description": {
+              "on_command": "Формат: имя_службы[/атрибут:значение]. Обязательно для сущностей select и climate. Задайте для всех устройств или ни для одного.",
+              "off_command": "Формат: имя_службы[/атрибут:значение]. Обязательно для сущностей select и climate. Задайте для всех устройств или ни для одного."
+            }
+          }
         }
       }
     },
@@ -377,14 +443,12 @@
       "window_open_detection_method": "Должен использоваться только один метод обнаружения открытых окон. Используйте либо датчик окна, либо автоматическое обнаружение через температурный порог, но не оба одновременно",
       "no_central_config": "Вы не можете выбрать 'использовать центральную конфигурацию', потому что центральная конфигурация не найдена. Вам нужно создать универсальный термостат типа 'Центральная конфигурация' для его использования.",
       "service_configuration_format": "Неверный формат конфигурации сервиса",
-      "valve_regulation_nb_entities_incorrect": "Количество сущностей клапана для регулирования клапана должно быть равно количеству управляющих устройств",
-      "sync_device_internal_temp_nb_entities_incorrect": "Количество сущностей для синхронизации внутренней температуры устройства должно быть равно количеству управляющих устройств",
-      "min_opening_degrees_format": "Ожидается список положительных целых чисел, разделенных запятыми. Пример: 20, 25, 30",
-      "max_opening_degrees_format": "Ожидается список положительных целых чисел от 0 до 100, разделенных запятыми. Пример: 80, 85, 90",
       "min_max_opening_degrees_inconsistent": "Для каждого базового устройства max_opening_degrees должен быть строго больше min_opening_degrees. Проверьте вашу конфигурацию.",
-      "valve_control_parameters_cardinality_incorrect": "Списки минимальной и максимальной степени открытия не могут содержать больше значений, чем настроенных клапанов",
       "vswitch_configuration_incorrect": "Неверная конфигурация настройки команды. Она обязательна для базовых объектов, которые не являются переключателями, и формат должен быть service_name[/attribute:value]. Дополнительная информация доступна в README",
-      "missing_settings_summary": "Параметров для заполнения: {count}"
+      "missing_settings_summary": "Параметров для заполнения: {count}",
+      "underlying_already_added": "Эта сущность уже используется устройством этого VTherm",
+      "max_opening_degree_out_of_range": "Максимальное открытие должно быть больше 0 и не должно превышать максимум клапана",
+      "underlying_field_missing": "Не задано: {field}"
     },
     "abort": {
       "already_configured": "Устройство уже настроено"
@@ -418,8 +482,6 @@
           "presence": "Обнаружение присутствия",
           "advanced": "Расширенные параметры",
           "auto_start_stop": "Авто старт и стоп",
-          "valve_regulation": "Конфигурация регулировки клапана",
-          "sync_device_internal_temp": "Синхронизация температуры устройства",
           "lock": "Управление блокировкой",
           "finalize": "Все готово",
           "configuration_not_complete": "Конфигурация не завершена ({missing_count})",
@@ -482,45 +544,55 @@
       },
       "type": {
         "title": "Сущности - {name}",
-        "description": "Атрибуты связанных сущностей",
-        "data": {
-          "underlying_entity_ids": "Устройство(а) для управления",
-          "heater_keep_alive": "Интервал поддержания переключателя (секунды)",
-          "proportional_function": "Алгоритм",
-          "ac_mode": "Режим кондиционера",
-          "sync_device_internal_temp": "Синхронизация внутренней температуры устройства",
-          "auto_regulation_mode": "Саморегулирование",
-          "auto_regulation_dtemp": "Порог регулирования",
-          "auto_regulation_periode_min": "Минимальный период регулирования",
-          "auto_regulation_use_device_temp": "Использовать внутреннюю температуру устройства",
-          "inverse_switch_command": "Инвертировать команду переключателя",
-          "auto_fan_mode": "Авто режим вентилятора",
-          "on_command_text": "Настройка команды включения",
-          "vswitch_on_command": "Опциональные команды включения",
-          "off_command_text": "Настройка команды выключения",
-          "vswitch_off_command": "Опциональные команды выключения",
-          "opening_threshold_degree": "Пороговое значение открытия",
-          "min_opening_degrees": "Минимальные степени открытия",
-          "max_opening_degrees": "Максимальная степень открытия",
-          "max_closing_degree": "Максимальная степень закрытия"
+        "description": "{wizard_progress}Устройства, управляемые этим VTherm. Откройте общие настройки, устройство, чтобы увидеть и изменить все его настройки, или добавьте устройство.",
+        "menu_options": {
+          "underlying_common": "Общие настройки",
+          "underlying_1": "{underlying_1}",
+          "underlying_2": "{underlying_2}",
+          "underlying_3": "{underlying_3}",
+          "underlying_4": "{underlying_4}",
+          "underlying_5": "{underlying_5}",
+          "underlying_6": "{underlying_6}",
+          "underlying_7": "{underlying_7}",
+          "underlying_8": "{underlying_8}",
+          "underlying_9": "{underlying_9}",
+          "underlying_10": "{underlying_10}",
+          "underlying_11": "{underlying_11}",
+          "underlying_12": "{underlying_12}",
+          "underlying_13": "{underlying_13}",
+          "underlying_14": "{underlying_14}",
+          "underlying_15": "{underlying_15}",
+          "underlying_16": "{underlying_16}",
+          "underlying_17": "{underlying_17}",
+          "underlying_18": "{underlying_18}",
+          "underlying_19": "{underlying_19}",
+          "underlying_20": "{underlying_20}",
+          "underlying_add": "Добавить устройство",
+          "menu": "Назад в меню"
         },
-        "data_description": {
-          "underlying_entity_ids": "Устройство(а) для управления - требуется 1",
-          "heater_keep_alive": "Опциональный интервал обновления состояния переключателя. Оставьте пустым, если не требуется.",
-          "proportional_function": "Алгоритм для использования (другие алгоритмы можно установить как {plugins_link})",
-          "ac_mode": "Использовать режим кондиционера (AC)",
-          "sync_device_internal_temp": "Конфигурация для синхронизации внутренней температуры подчиненных устройств с выбранными сущностями",
-          "auto_regulation_mode": "Автоматическая корректировка целевой температуры",
-          "auto_regulation_dtemp": "Порог в ° (или % для клапана), ниже которого изменение температуры не будет отправлено",
-          "auto_regulation_periode_min": "Время в минутах между двумя обновлениями регулирования",
-          "auto_regulation_use_device_temp": "Использовать внутренний датчик температуры устройства для ускорения саморегулирования (в большинстве случаев не требуется)",
-          "inverse_switch_command": "Для переключателей с пилотным проводом и диодом может потребоваться инвертировать команду",
-          "auto_fan_mode": "Автоматически активировать вентилятор при необходимости сильного обогрева/охлаждения",
-          "on_command_text": "Для устройств типа `select` или `climate` необходимо настроить команды.",
-          "opening_threshold_degree": "Значение открытия клапана, ниже которого клапан должен считаться закрытым (и тогда будет применено 'max_closing_degree')",
-          "min_opening_degrees": "Минимальное значение степени открытия для каждого управляющего устройства, через запятую. По умолчанию 0. Пример: 20, 25, 30",
-          "max_opening_degrees": "Максимальное значение степени открытия для каждого базового устройства, через запятую. По умолчанию 100. Клапан никогда не откроется больше этого значения. Пример: 80, 85, 90",
-          "max_closing_degree": "Максимальное значение степени закрытия. Клапан никогда не закроется больше этого значения. Установите на 100, чтобы полностью закрыть клапан"
+        "menu_option_descriptions": {
+          "underlying_common": "{underlying_common_details}",
+          "underlying_1": "{underlying_1_details}",
+          "underlying_2": "{underlying_2_details}",
+          "underlying_3": "{underlying_3_details}",
+          "underlying_4": "{underlying_4_details}",
+          "underlying_5": "{underlying_5_details}",
+          "underlying_6": "{underlying_6_details}",
+          "underlying_7": "{underlying_7_details}",
+          "underlying_8": "{underlying_8_details}",
+          "underlying_9": "{underlying_9_details}",
+          "underlying_10": "{underlying_10_details}",
+          "underlying_11": "{underlying_11_details}",
+          "underlying_12": "{underlying_12_details}",
+          "underlying_13": "{underlying_13_details}",
+          "underlying_14": "{underlying_14_details}",
+          "underlying_15": "{underlying_15_details}",
+          "underlying_16": "{underlying_16_details}",
+          "underlying_17": "{underlying_17_details}",
+          "underlying_18": "{underlying_18_details}",
+          "underlying_19": "{underlying_19_details}",
+          "underlying_20": "{underlying_20_details}",
+          "underlying_add": "Выбрать ещё одно устройство для управления"
         }
       },
       "tpi": {
@@ -662,42 +734,6 @@
           "keep_alive_boiler_delay_sec": "Задержка в секундах для периодической повторной отправки команды котла, если keep-alive включен. Установите 0, чтобы отключить keep-alive."
         }
       },
-      "valve_regulation": {
-        "title": "Саморегулирование с клапаном - {name}",
-        "description": "Конфигурация для саморегулирования с прямым управлением клапаном",
-        "data": {
-          "offset_calibration_entity_ids": "Сущности калибровки смещения",
-          "opening_degree_entity_ids": "Сущности степени открытия",
-          "closing_degree_entity_ids": "Сущности степени закрытия",
-          "proportional_function": "Алгоритм",
-          "opening_threshold_degree": "Пороговое значение открытия",
-          "min_opening_degrees": "Минимальные степени открытия",
-          "max_opening_degrees": "Максимальная степень открытия",
-          "max_closing_degree": "Максимальная степень закрытия"
-        },
-        "data_description": {
-          "offset_calibration_entity_ids": "Список сущностей 'калибровки смещения'. Установите, если ваш TRV имеет такую сущность для лучшего регулирования. Должна быть одна для каждой управляющей климатической сущности",
-          "opening_degree_entity_ids": "Список сущностей 'степени открытия'. Должна быть одна для каждой управляющей климатической сущности",
-          "closing_degree_entity_ids": "Список сущностей 'степени закрытия'. Установите, если ваш TRV имеет такую сущность для лучшего регулирования. Должна быть одна для каждой управляющей климатической сущности",
-          "proportional_function": "Алгоритм для использования (другие алгоритмы можно установить как {plugins_link})",
-          "opening_threshold_degree": "Значение открытия клапана, ниже которого клапан должен считаться закрытым (и тогда будет применено 'max_closing_degree')",
-          "min_opening_degrees": "Минимальное значение степени открытия для каждого управляющего устройства, через запятую. По умолчанию 0. Пример: 20, 25, 30",
-          "max_opening_degrees": "Максимальное значение степени открытия для каждого базового устройства, через запятую. По умолчанию 100. Клапан никогда не откроется больше этого значения. Пример: 80, 85, 90",
-          "max_closing_degree": "Максимальное значение степени закрытия. Клапан никогда не закроется больше этого значения. Установите на 100, чтобы полностью закрыть клапан"
-        }
-      },
-      "sync_device_internal_temp": {
-        "title": "Synchronize device internal temperature",
-        "description": "Configuration to synchronize the internal temperature of the underlying devices with selected entities",
-        "data": {
-          "sync_with_calibration": "Apply offset calibration",
-          "sync_entity_ids": "Entities id used for synchronization"
-        },
-        "data_description": {
-          "sync_with_calibration": "Check to apply the offset calibration when synchronizing the internal temperature. Uncheck to directly copy the temperature from the selected entities",
-          "sync_entity_ids": "The list of the entities used to synchronize the internal temperature of the underlying devices. There should be one per underlying device. Should be a calibration entity if checkbox is selected or a temperature entity otherwise. Both are `number` entities."
-        }
-      },
       "auto_tpi_configuration": {
         "data": {
           "auto_tpi_cooling_rate": "Скорость охлаждения ({unit}/ч)"
@@ -741,8 +777,6 @@
           "presence": "Обнаружение присутствия",
           "advanced": "Расширенные параметры",
           "central_boiler": "Центральный котел",
-          "valve_regulation": "Конфигурация регулировки клапана",
-          "sync_device_internal_temp": "Синхронизация температуры устройства",
           "menu": "Назад в меню"
         },
         "menu_option_descriptions": {
@@ -754,9 +788,105 @@
           "motion": "Открыть этот экран, чтобы заполнить недостающие параметры",
           "presence": "Открыть этот экран, чтобы заполнить недостающие параметры",
           "advanced": "Открыть этот экран, чтобы заполнить недостающие параметры",
-          "central_boiler": "Открыть этот экран, чтобы заполнить недостающие параметры",
-          "valve_regulation": "Открыть этот экран, чтобы заполнить недостающие параметры",
-          "sync_device_internal_temp": "Открыть этот экран, чтобы заполнить недостающие параметры"
+          "central_boiler": "Открыть этот экран, чтобы заполнить недостающие параметры"
+        }
+      },
+      "underlying_common": {
+        "title": "Общие настройки - {name}",
+        "description": "{wizard_progress}Настройки, общие для всех устройств этого VTherm.",
+        "data": {
+          "heater_keep_alive": "Интервал поддержания переключателя (секунды)",
+          "proportional_function": "Алгоритм",
+          "ac_mode": "Режим кондиционера",
+          "inverse_switch_command": "Инвертировать команду переключателя",
+          "auto_regulation_dtemp": "Порог регулирования",
+          "auto_regulation_periode_min": "Минимальный период регулирования",
+          "opening_threshold_degree": "Пороговое значение открытия",
+          "max_closing_degree": "Максимальная степень закрытия",
+          "sync_device_internal_temp": "Синхронизация внутренней температуры устройства",
+          "auto_regulation_mode": "Саморегулирование",
+          "auto_fan_mode": "Авто режим вентилятора",
+          "auto_regulation_use_device_temp": "Использовать внутреннюю температуру устройства"
+        },
+        "data_description": {
+          "heater_keep_alive": "Опциональный интервал обновления состояния переключателя. Оставьте пустым, если не требуется.",
+          "proportional_function": "Алгоритм для использования (другие алгоритмы можно установить как {plugins_link})",
+          "ac_mode": "Использовать режим кондиционера (AC)",
+          "inverse_switch_command": "Для переключателей с пилотным проводом и диодом может потребоваться инвертировать команду",
+          "auto_regulation_dtemp": "Порог в ° (или % для клапана), ниже которого изменение температуры не будет отправлено",
+          "auto_regulation_periode_min": "Время в минутах между двумя обновлениями регулирования",
+          "opening_threshold_degree": "Значение открытия клапана, ниже которого клапан должен считаться закрытым (и тогда будет применено 'max_closing_degree')",
+          "max_closing_degree": "Максимальное значение степени закрытия. Клапан никогда не закроется больше этого значения. Установите на 100, чтобы полностью закрыть клапан",
+          "sync_device_internal_temp": "Отметьте, чтобы синхронизировать внутреннюю температуру подчинённых устройств. Тогда каждому устройству нужна собственная сущность синхронизации, указываемая в настройках устройства",
+          "auto_regulation_mode": "Автоматическая корректировка целевой температуры",
+          "auto_fan_mode": "Автоматически активировать вентилятор при необходимости сильного обогрева/охлаждения",
+          "auto_regulation_use_device_temp": "Использовать внутренний датчик температуры устройства для ускорения саморегулирования (в большинстве случаев не требуется)"
+        }
+      },
+      "underlying_common_extra": {
+        "title": "Регулирование клапаном и синхронизация - {name}",
+        "description": "{wizard_progress}Настройки, общие для всех устройств, для прямого управления клапанами и синхронизации внутренней температуры.",
+        "data": {
+          "proportional_function": "Алгоритм",
+          "opening_threshold_degree": "Пороговое значение открытия",
+          "max_closing_degree": "Максимальная степень закрытия",
+          "sync_with_calibration": "Apply offset calibration"
+        },
+        "data_description": {
+          "proportional_function": "Алгоритм для использования (другие алгоритмы можно установить как {plugins_link})",
+          "opening_threshold_degree": "Значение открытия клапана, ниже которого клапан должен считаться закрытым (и тогда будет применено 'max_closing_degree')",
+          "max_closing_degree": "Максимальное значение степени закрытия. Клапан никогда не закроется больше этого значения. Установите на 100, чтобы полностью закрыть клапан",
+          "sync_with_calibration": "Check to apply the offset calibration when synchronizing the internal temperature. Uncheck to directly copy the temperature from the selected entities"
+        }
+      },
+      "underlying_add": {
+        "title": "Добавить устройство - {name}",
+        "description": "{wizard_progress}Выберите устройство для управления. Его собственные настройки запрашиваются на следующем экране.",
+        "data": {
+          "underlying_entity_id": "Устройство"
+        },
+        "data_description": {
+          "underlying_entity_id": "Сущность для управления"
+        }
+      },
+      "underlying": {
+        "title": "{underlying_name}",
+        "description": "{underlying_entity}\n\nНастройки этого устройства. Отображаются только поля, относящиеся к типу VTherm и общим настройкам. Пользовательские команды и сущности закрытия должны быть заданы для всех устройств или ни для одного.",
+        "data": {
+          "opening_degree_entity_id": "Сущность открытия клапана",
+          "closing_degree_entity_id": "Сущность закрытия клапана (необязательно)",
+          "sync_entity_id": "Сущность синхронизации",
+          "on_command": "Команда включения",
+          "off_command": "Команда выключения",
+          "min_opening_degree": "Минимальное открытие (%)",
+          "max_opening_degree": "Максимальное открытие (%)",
+          "replace_entity_id": "Заменить сущность",
+          "remove_underlying": "Удалить это устройство"
+        },
+        "data_description": {
+          "opening_degree_entity_id": "Сущность number, задающая степень открытия клапана. Предлагаются сущности того же устройства.",
+          "closing_degree_entity_id": "Необязательная сущность number, задающая степень закрытия клапана. Задайте её для всех устройств или ни для одного.",
+          "sync_entity_id": "Сущность number для синхронизации внутренней температуры этого устройства: сущность калибровки, если отмечено «Применить калибровку смещения», иначе сущность температуры.",
+          "on_command": "Формат: имя_службы[/атрибут:значение]. Обязательно для сущностей select и climate. Задайте для всех устройств или ни для одного.",
+          "off_command": "Формат: имя_службы[/атрибут:значение]. Обязательно для сущностей select и climate. Задайте для всех устройств или ни для одного.",
+          "min_opening_degree": "Минимальная степень открытия этого устройства при превышении порога открытия. По умолчанию 0.",
+          "max_opening_degree": "Максимальная степень открытия этого устройства: клапан никогда не откроется больше этого значения. Не может превышать максимум клапана.",
+          "replace_entity_id": "Выберите другую сущность, чтобы заменить это устройство. Если тип сущности меняется, настройки устройства нужно заполнить заново.",
+          "remove_underlying": "Отметьте, чтобы удалить это устройство из VTherm"
+        },
+        "sections": {
+          "commands": {
+            "name": "Пользовательские команды",
+            "description": "Необязательные команды включения и выключения этого устройства в формате имя_службы[/атрибут:значение]. Задайте их для всех устройств или ни для одного.",
+            "data": {
+              "on_command": "Команда включения",
+              "off_command": "Команда выключения"
+            },
+            "data_description": {
+              "on_command": "Формат: имя_службы[/атрибут:значение]. Обязательно для сущностей select и climate. Задайте для всех устройств или ни для одного.",
+              "off_command": "Формат: имя_службы[/атрибут:значение]. Обязательно для сущностей select и climate. Задайте для всех устройств или ни для одного."
+            }
+          }
         }
       }
     },
@@ -766,14 +896,12 @@
       "window_open_detection_method": "Должен использоваться только один метод обнаружения открытых окон. Используйте либо датчик окна, либо автоматическое обнаружение через температурный порог, но не оба одновременно",
       "no_central_config": "Вы не можете выбрать 'использовать центральную конфигурацию', потому что центральная конфигурация не найдена. Вам нужно создать универсальный термостат типа 'Центральная конфигурация' для его использования.",
       "service_configuration_format": "Неверный формат конфигурации сервиса",
-      "valve_regulation_nb_entities_incorrect": "Количество сущностей клапана для регулирования клапана должно быть равно количеству управляющих устройств",
-      "sync_device_internal_temp_nb_entities_incorrect": "Количество сущностей для синхронизации внутренней температуры устройства должно быть равно количеству управляющих устройств",
-      "min_opening_degrees_format": "Ожидается список положительных целых чисел, разделенных запятыми. Пример: 20, 25, 30",
-      "max_opening_degrees_format": "Ожидается список положительных целых чисел от 0 до 100, разделенных запятыми. Пример: 80, 85, 90",
       "min_max_opening_degrees_inconsistent": "Для каждого базового устройства max_opening_degrees должен быть строго больше min_opening_degrees. Проверьте вашу конфигурацию.",
-      "valve_control_parameters_cardinality_incorrect": "Списки минимальной и максимальной степени открытия не могут содержать больше значений, чем настроенных клапанов",
       "vswitch_configuration_incorrect": "Неверная конфигурация настройки команды. Она обязательна для базовых объектов, которые не являются переключателями, и формат должен быть service_name[/attribute:value]. Дополнительная информация доступна в README",
-      "missing_settings_summary": "Параметров для заполнения: {count}"
+      "missing_settings_summary": "Параметров для заполнения: {count}",
+      "underlying_already_added": "Эта сущность уже используется устройством этого VTherm",
+      "max_opening_degree_out_of_range": "Максимальное открытие должно быть больше 0 и не должно превышать максимум клапана",
+      "underlying_field_missing": "Не задано: {field}"
     },
     "abort": {
       "already_configured": "Устройство уже настроено"
