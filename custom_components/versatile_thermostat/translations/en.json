@@ -15,7 +15,7 @@
             },
             "menu": {
                 "title": "Menu",
-                "description": "Configure your thermostat. You will be able to finalize the configuration when all required parameters are entered.",
+                "description": "Configure your thermostat. You will be able to finalize the configuration when all required parameters are entered.\n\n{missing_summary}",
                 "menu_options": {
                     "main": "Main attributes",
                     "central_boiler": "Central boiler",
@@ -38,7 +38,7 @@
                     "auto_tpi_avg_settings": "Auto TPI - Weighted Average",
                     "auto_tpi_ema_settings": "Auto TPI - EWMA",
                     "finalize": "All done",
-                    "configuration_not_complete": "Configuration not complete"
+                    "configuration_not_complete": "Configuration not complete ({missing_count})"
                 }
             },
             "lock": {
@@ -399,6 +399,37 @@
                     "temperature_change_tolerance": "Minimum temperature change in degrees to consider significant. Smaller changes are ignored to filter sensor noise (default: 0.5°C)",
                     "failure_detection_enable_template": "An optional Jinja2 template that must return True to enable detection. Useful to temporarily disable detection when an external heat source is active (e.g., `is_state('binary_sensor.wood_stove', 'off')` in double curly braces). If empty, detection is always enabled."
                 }
+            },
+            "configuration_not_complete": {
+                "title": "Configuration not complete",
+                "description": "The following settings are still missing:\n{missing_items}\n\nPick an item to open the screen that fixes it.",
+                "menu_options": {
+                    "main": "Main attributes",
+                    "type": "Underlyings",
+                    "tpi": "TPI parameters",
+                    "presets": "Presets",
+                    "power": "Power management",
+                    "motion": "Motion detection",
+                    "presence": "Presence detection",
+                    "advanced": "Advanced parameters",
+                    "central_boiler": "Central boiler",
+                    "valve_regulation": "Valve regulation configuration",
+                    "sync_device_internal_temp": "Synchronize device temperature",
+                    "menu": "Back to menu"
+                },
+                "menu_option_descriptions": {
+                    "main": "Open this screen to fill in the missing settings",
+                    "type": "Open this screen to fill in the missing settings",
+                    "tpi": "Open this screen to fill in the missing settings",
+                    "presets": "Open this screen to fill in the missing settings",
+                    "power": "Open this screen to fill in the missing settings",
+                    "motion": "Open this screen to fill in the missing settings",
+                    "presence": "Open this screen to fill in the missing settings",
+                    "advanced": "Open this screen to fill in the missing settings",
+                    "central_boiler": "Open this screen to fill in the missing settings",
+                    "valve_regulation": "Open this screen to fill in the missing settings",
+                    "sync_device_internal_temp": "Open this screen to fill in the missing settings"
+                }
             }
         },
         "error": {
@@ -413,7 +444,8 @@
             "max_opening_degrees_format": "A comma separated list of positive integer between 0 and the max valve opening is expected. Example: 80, 85, 90",
             "min_max_opening_degrees_inconsistent": "For each underlying device, max_opening_degrees must be strictly greater than min_opening_degrees. Please check your configuration.",
             "valve_control_parameters_cardinality_incorrect": "The minimum and maximum opening degree lists cannot contain more values than the configured valves",
-            "vswitch_configuration_incorrect": "The command customization configuration is incorrect. It is required for underlying entities that are not switches, and the format must be service_name[/attribute:value]. More information is available in the README"
+            "vswitch_configuration_incorrect": "The command customization configuration is incorrect. It is required for underlying entities that are not switches, and the format must be service_name[/attribute:value]. More information is available in the README",
+            "missing_settings_summary": "{count} setting(s) to complete"
         },
         "abort": {
             "already_configured": "Device is already configured"
@@ -434,7 +466,7 @@
             },
             "menu": {
                 "title": "Menu",
-                "description": "Configure your thermostat. You will be able to finalize the configuration when all required parameters are entered.",
+                "description": "Configure your thermostat. You will be able to finalize the configuration when all required parameters are entered.\n\n{missing_summary}",
                 "menu_options": {
                     "main": "Main attributes",
                     "central_boiler": "Central boiler",
@@ -454,7 +486,7 @@
                     "lock": "Lock",
                     "heating_failure_detection": "Heating failure detection",
                     "finalize": "All done",
-                    "configuration_not_complete": "Configuration not complete"
+                    "configuration_not_complete": "Configuration not complete ({missing_count})"
                 }
             },
             "lock": {
@@ -815,6 +847,37 @@
                     "temperature_change_tolerance": "Minimum temperature change in degrees to consider significant. Smaller changes are ignored to filter sensor noise (default: 0.5°C)",
                     "failure_detection_enable_template": "An optional Jinja2 template that must return True to enable detection. Useful to temporarily disable detection when an external heat source is active (e.g., `is_state('binary_sensor.wood_stove', 'off')` in double curly braces). If empty, detection is always enabled."
                 }
+            },
+            "configuration_not_complete": {
+                "title": "Configuration not complete - {name}",
+                "description": "The following settings are still missing:\n{missing_items}\n\nPick an item to open the screen that fixes it.",
+                "menu_options": {
+                    "main": "Main attributes",
+                    "type": "Underlyings",
+                    "tpi": "TPI parameters",
+                    "presets": "Presets",
+                    "power": "Power management",
+                    "motion": "Motion detection",
+                    "presence": "Presence detection",
+                    "advanced": "Advanced parameters",
+                    "central_boiler": "Central boiler",
+                    "valve_regulation": "Valve regulation configuration",
+                    "sync_device_internal_temp": "Synchronize device temperature",
+                    "menu": "Back to menu"
+                },
+                "menu_option_descriptions": {
+                    "main": "Open this screen to fill in the missing settings",
+                    "type": "Open this screen to fill in the missing settings",
+                    "tpi": "Open this screen to fill in the missing settings",
+                    "presets": "Open this screen to fill in the missing settings",
+                    "power": "Open this screen to fill in the missing settings",
+                    "motion": "Open this screen to fill in the missing settings",
+                    "presence": "Open this screen to fill in the missing settings",
+                    "advanced": "Open this screen to fill in the missing settings",
+                    "central_boiler": "Open this screen to fill in the missing settings",
+                    "valve_regulation": "Open this screen to fill in the missing settings",
+                    "sync_device_internal_temp": "Open this screen to fill in the missing settings"
+                }
             }
         },
         "error": {
@@ -829,7 +892,8 @@
             "max_opening_degrees_format": "A comma separated list of positive integer between 0 and the max value of the valve is expected. Example: 80, 85, 90",
             "min_max_opening_degrees_inconsistent": "For each underlying device, max_opening_degrees must be strictly greater than min_opening_degrees. Please check your configuration.",
             "valve_control_parameters_cardinality_incorrect": "The minimum and maximum opening degree lists cannot contain more values than the configured valves",
-            "vswitch_configuration_incorrect": "The command customization configuration is incorrect. It is required for underlying entities that are not switches, and the format must be service_name[/attribute:value]. More information is available in the README"
+            "vswitch_configuration_incorrect": "The command customization configuration is incorrect. It is required for underlying entities that are not switches, and the format must be service_name[/attribute:value]. More information is available in the README",
+            "missing_settings_summary": "{count} setting(s) to complete"
         },
         "abort": {
             "already_configured": "Device is already configured"

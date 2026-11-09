@@ -15,7 +15,7 @@
             },
             "menu": {
                 "title": "Nabídka",
-                "description": "Nakonfigurujte váš termostat. Konfiguraci budete moci dokončit až po zadání všech požadovaných parametrů.",
+                "description": "Nakonfigurujte váš termostat. Konfiguraci budete moci dokončit až po zadání všech požadovaných parametrů.\n\n{missing_summary}",
                 "menu_options": {
                     "main": "Hlavní atributy",
                     "central_boiler": "Centrální kotel",
@@ -35,7 +35,7 @@
                     "heating_failure_detection": "Detekce poruchy vytápění",
                     "lock": "Správa zámku",
                     "finalize": "Vše hotovo",
-                    "configuration_not_complete": "Konfigurace není kompletní",
+                    "configuration_not_complete": "Konfigurace není kompletní ({missing_count})",
                     "auto_tpi_configuration": "Auto TPI - Konfigurace",
                     "auto_tpi_avg_settings": "Auto TPI - Vážený průměr",
                     "auto_tpi_ema_settings": "Auto TPI - EWMA nastavení"
@@ -399,6 +399,37 @@
                     "auto_tpi_ema_decay_rate": "Rychlost, se kterou alfa klesá v průběhu času (stabilizace)",
                     "auto_tpi_continuous_kext_alpha": "Vyhlazující faktor pro nepřetržité učení Kext (Alpha). Výchozí 0,04 (přibližně 3-5 dní adaptace)."
                 }
+            },
+            "configuration_not_complete": {
+                "title": "Konfigurace není úplná",
+                "description": "Stále chybí následující nastavení:\n{missing_items}\n\nVyberte položku a otevřete obrazovku, kde ji můžete opravit.",
+                "menu_options": {
+                    "main": "Hlavní atributy",
+                    "type": "Podřízená zařízení",
+                    "tpi": "TPI parametry",
+                    "presets": "Předvolby",
+                    "power": "Správa výkonu",
+                    "motion": "Detekce pohybu",
+                    "presence": "Detekce přítomnosti",
+                    "advanced": "Pokročilé parametry",
+                    "central_boiler": "Centrální kotel",
+                    "valve_regulation": "Konfigurace regulace ventilu",
+                    "sync_device_internal_temp": "Synchronizace teploty zařízení",
+                    "menu": "Zpět do nabídky"
+                },
+                "menu_option_descriptions": {
+                    "main": "Otevřít tuto obrazovku a doplnit chybějící nastavení",
+                    "type": "Otevřít tuto obrazovku a doplnit chybějící nastavení",
+                    "tpi": "Otevřít tuto obrazovku a doplnit chybějící nastavení",
+                    "presets": "Otevřít tuto obrazovku a doplnit chybějící nastavení",
+                    "power": "Otevřít tuto obrazovku a doplnit chybějící nastavení",
+                    "motion": "Otevřít tuto obrazovku a doplnit chybějící nastavení",
+                    "presence": "Otevřít tuto obrazovku a doplnit chybějící nastavení",
+                    "advanced": "Otevřít tuto obrazovku a doplnit chybějící nastavení",
+                    "central_boiler": "Otevřít tuto obrazovku a doplnit chybějící nastavení",
+                    "valve_regulation": "Otevřít tuto obrazovku a doplnit chybějící nastavení",
+                    "sync_device_internal_temp": "Otevřít tuto obrazovku a doplnit chybějící nastavení"
+                }
             }
         },
         "error": {
@@ -413,7 +444,8 @@
             "service_configuration_format": "Formát konfigurace služby je nesprávný",
             "valve_regulation_nb_entities_incorrect": "Počet entit ventilů pro regulaci ventilů by měl být roven počtu podřízených zařízení",
             "sync_device_internal_temp_nb_entities_incorrect": "Počet entit pro synchronizaci vnitřní teploty zařízení by se měl rovnat počtu podřízených zařízení",
-            "min_opening_degrees_format": "Očekává se seznam kladných celých čísel oddělených čárkami. Příklad: 20, 25, 30"
+            "min_opening_degrees_format": "Očekává se seznam kladných celých čísel oddělených čárkami. Příklad: 20, 25, 30",
+            "missing_settings_summary": "K doplnění: {count}"
         },
         "abort": {
             "already_configured": "Zařízení je již nakonfigurováno"
@@ -434,7 +466,7 @@
             },
             "menu": {
                 "title": "Nabídka",
-                "description": "Nakonfigurujte váš termostat. Konfiguraci budete moci dokončit až po zadání všech požadovaných parametrů.",
+                "description": "Nakonfigurujte váš termostat. Konfiguraci budete moci dokončit až po zadání všech požadovaných parametrů.\n\n{missing_summary}",
                 "menu_options": {
                     "main": "Hlavní atributy",
                     "central_boiler": "Centrální kotel",
@@ -454,7 +486,7 @@
                     "heating_failure_detection": "Detekce poruchy vytápění",
                     "lock": "Zámek",
                     "finalize": "Vše hotovo",
-                    "configuration_not_complete": "Konfigurace není kompletní"
+                    "configuration_not_complete": "Konfigurace není kompletní ({missing_count})"
                 }
             },
             "lock": {
@@ -815,6 +847,37 @@
                     "auto_tpi_ema_decay_rate": "Rychlost, se kterou alfa klesá v průběhu času (stabilizace)",
                     "auto_tpi_continuous_kext_alpha": "Vyhlazující faktor pro nepřetržité učení Kext (Alpha). Výchozí 0,04 (přibližně 3-5 dní adaptace)."
                 }
+            },
+            "configuration_not_complete": {
+                "title": "Konfigurace není úplná - {name}",
+                "description": "Stále chybí následující nastavení:\n{missing_items}\n\nVyberte položku a otevřete obrazovku, kde ji můžete opravit.",
+                "menu_options": {
+                    "main": "Hlavní atributy",
+                    "type": "Podřízená zařízení",
+                    "tpi": "TPI parametry",
+                    "presets": "Předvolby",
+                    "power": "Správa výkonu",
+                    "motion": "Detekce pohybu",
+                    "presence": "Detekce přítomnosti",
+                    "advanced": "Pokročilé parametry",
+                    "central_boiler": "Centrální kotel",
+                    "valve_regulation": "Konfigurace regulace ventilu",
+                    "sync_device_internal_temp": "Synchronizace teploty zařízení",
+                    "menu": "Zpět do nabídky"
+                },
+                "menu_option_descriptions": {
+                    "main": "Otevřít tuto obrazovku a doplnit chybějící nastavení",
+                    "type": "Otevřít tuto obrazovku a doplnit chybějící nastavení",
+                    "tpi": "Otevřít tuto obrazovku a doplnit chybějící nastavení",
+                    "presets": "Otevřít tuto obrazovku a doplnit chybějící nastavení",
+                    "power": "Otevřít tuto obrazovku a doplnit chybějící nastavení",
+                    "motion": "Otevřít tuto obrazovku a doplnit chybějící nastavení",
+                    "presence": "Otevřít tuto obrazovku a doplnit chybějící nastavení",
+                    "advanced": "Otevřít tuto obrazovku a doplnit chybějící nastavení",
+                    "central_boiler": "Otevřít tuto obrazovku a doplnit chybějící nastavení",
+                    "valve_regulation": "Otevřít tuto obrazovku a doplnit chybějící nastavení",
+                    "sync_device_internal_temp": "Otevřít tuto obrazovku a doplnit chybějící nastavení"
+                }
             }
         },
         "error": {
@@ -829,7 +892,8 @@
             "service_configuration_format": "Formát konfigurace služby je nesprávný",
             "valve_regulation_nb_entities_incorrect": "Počet entit ventilů pro regulaci ventilů by měl být roven počtu podřízených zařízení",
             "sync_device_internal_temp_nb_entities_incorrect": "Počet entit pro synchronizaci vnitřní teploty zařízení by se měl rovnat počtu podřízených zařízení",
-            "min_opening_degrees_format": "Očekává se seznam kladných celých čísel oddělených čárkami. Příklad: 20, 25, 30"
+            "min_opening_degrees_format": "Očekává se seznam kladných celých čísel oddělených čárkami. Příklad: 20, 25, 30",
+            "missing_settings_summary": "K doplnění: {count}"
         },
         "abort": {
             "already_configured": "Zařízení je již nakonfigurováno"

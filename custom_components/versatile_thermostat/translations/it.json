@@ -15,7 +15,7 @@
             },
             "menu": {
                 "title": "Menu",
-                "description": "Configurare il termostato. Una volta inseriti tutti i parametri richiesti, sarà possibile completare la configurazione.",
+                "description": "Configurare il termostato. Una volta inseriti tutti i parametri richiesti, sarà possibile completare la configurazione.\n\n{missing_summary}",
                 "menu_options": {
                     "main": "Attributi principali",
                     "central_boiler": "Caldaia centralizzata",
@@ -37,7 +37,7 @@
                     "auto_tpi_avg_settings": "Auto TPI - Media ponderata",
                     "auto_tpi_ema_settings": "Auto TPI - EWMA",
                     "finalize": "Fatto",
-                    "configuration_not_complete": "Configurazione non completata"
+                    "configuration_not_complete": "Configurazione non completata ({missing_count})"
                 }
             },
             "lock": {
@@ -387,6 +387,37 @@
                     "temperature_change_tolerance": "Variazione minima di temperatura in gradi da considerare significativa. Variazioni minori vengono ignorate per filtrare il rumore del sensore (predefinito: 0.5°C)",
                     "failure_detection_enable_template": "Un template Jinja2 opzionale che deve restituire True per abilitare il rilevamento. Utile per disabilitare temporaneamente il rilevamento quando una fonte di calore esterna è attiva (es., `is_state('binary_sensor.stufa_legna', 'off')` tra doppie parentesi graffe). Se vuoto, il rilevamento è sempre abilitato."
                 }
+            },
+            "configuration_not_complete": {
+                "title": "Configurazione incompleta",
+                "description": "Mancano ancora le seguenti impostazioni:\n{missing_items}\n\nScegli una voce per aprire la schermata che permette di correggerla.",
+                "menu_options": {
+                    "main": "Attributi principali",
+                    "type": "Sottostanti",
+                    "tpi": "Parametri TPI",
+                    "presets": "Preimpostazioni",
+                    "power": "Gestione energetica",
+                    "motion": "Rilevamento movimento",
+                    "presence": "Rilevata Presenza",
+                    "advanced": "Parametri avanzati",
+                    "central_boiler": "Caldaia centralizzata",
+                    "valve_regulation": "Configurazione della regolazione della valvola",
+                    "sync_device_internal_temp": "Sincronizza la temperatura del dispositivo",
+                    "menu": "Torna al menu"
+                },
+                "menu_option_descriptions": {
+                    "main": "Apri questa schermata per compilare le impostazioni mancanti",
+                    "type": "Apri questa schermata per compilare le impostazioni mancanti",
+                    "tpi": "Apri questa schermata per compilare le impostazioni mancanti",
+                    "presets": "Apri questa schermata per compilare le impostazioni mancanti",
+                    "power": "Apri questa schermata per compilare le impostazioni mancanti",
+                    "motion": "Apri questa schermata per compilare le impostazioni mancanti",
+                    "presence": "Apri questa schermata per compilare le impostazioni mancanti",
+                    "advanced": "Apri questa schermata per compilare le impostazioni mancanti",
+                    "central_boiler": "Apri questa schermata per compilare le impostazioni mancanti",
+                    "valve_regulation": "Apri questa schermata per compilare le impostazioni mancanti",
+                    "sync_device_internal_temp": "Apri questa schermata per compilare le impostazioni mancanti"
+                }
             }
         },
         "error": {
@@ -401,7 +432,8 @@
             "max_opening_degrees_format": "È previsto un elenco di numeri interi positivi tra 0 e 100 separati da virgola. Esempio: 80, 85, 90",
             "min_max_opening_degrees_inconsistent": "Per ogni dispositivo sottostante, max_opening_degrees deve essere strettamente maggiore di min_opening_degrees. Verificare la configurazione.",
             "valve_control_parameters_cardinality_incorrect": "Gli elenchi dei gradi di apertura minimi e massimi non possono contenere più valori delle valvole configurate",
-            "vswitch_configuration_incorrect": "La configurazione della personalizzazione dei comandi non è corretta. È obbligatoria per i sottostanti non switch e il formato deve essere ‘nome_servizio[/attributo:valore]’. Maggiori informazioni nel README."
+            "vswitch_configuration_incorrect": "La configurazione della personalizzazione dei comandi non è corretta. È obbligatoria per i sottostanti non switch e il formato deve essere ‘nome_servizio[/attributo:valore]’. Maggiori informazioni nel README.",
+            "missing_settings_summary": "{count} impostazione/i da completare"
         },
         "abort": {
             "already_configured": "Il dispositivo è gia configurato"
@@ -422,7 +454,7 @@
             },
             "menu": {
                 "title": "Menu",
-                "description": "Configurare il termostato. Una volta inseriti tutti i parametri richiesti, sarà possibile completare la configurazione.",
+                "description": "Configurare il termostato. Una volta inseriti tutti i parametri richiesti, sarà possibile completare la configurazione.\n\n{missing_summary}",
                 "menu_options": {
                     "main": "Attributi principali",
                     "central_boiler": "Caldaia centralizzata",
@@ -441,7 +473,7 @@
                     "lock": "Gestione del blocco",
                     "heating_failure_detection": "Rilevamento guasti al riscaldamento",
                     "finalize": "Finalizza le modifiche",
-                    "configuration_not_complete": "Configurazione non completata"
+                    "configuration_not_complete": "Configurazione non completata ({missing_count})"
                 }
             },
             "lock": {
@@ -791,6 +823,37 @@
                     "temperature_change_tolerance": "Variazione minima di temperatura in gradi da considerare significativa. Variazioni minori vengono ignorate per filtrare il rumore del sensore (predefinito: 0.5°C)",
                     "failure_detection_enable_template": "Un template Jinja2 opzionale che deve restituire True per abilitare il rilevamento. Utile per disabilitare temporaneamente il rilevamento quando una fonte di calore esterna è attiva (es., `is_state('binary_sensor.stufa_legna', 'off')` tra doppie parentesi graffe). Se vuoto, il rilevamento è sempre abilitato."
                 }
+            },
+            "configuration_not_complete": {
+                "title": "Configurazione incompleta - {name}",
+                "description": "Mancano ancora le seguenti impostazioni:\n{missing_items}\n\nScegli una voce per aprire la schermata che permette di correggerla.",
+                "menu_options": {
+                    "main": "Attributi principali",
+                    "type": "Sottostanti",
+                    "tpi": "Parametri TPI",
+                    "presets": "Preimpostazioni",
+                    "power": "Gestione energetica",
+                    "motion": "Rilevamento movimento",
+                    "presence": "Rilevamento della presenza",
+                    "advanced": "Parametri avanzati",
+                    "central_boiler": "Caldaia centralizzata",
+                    "valve_regulation": "Configurazione della regolazione della valvola",
+                    "sync_device_internal_temp": "Sincronizza la temperatura del dispositivo",
+                    "menu": "Torna al menu"
+                },
+                "menu_option_descriptions": {
+                    "main": "Apri questa schermata per compilare le impostazioni mancanti",
+                    "type": "Apri questa schermata per compilare le impostazioni mancanti",
+                    "tpi": "Apri questa schermata per compilare le impostazioni mancanti",
+                    "presets": "Apri questa schermata per compilare le impostazioni mancanti",
+                    "power": "Apri questa schermata per compilare le impostazioni mancanti",
+                    "motion": "Apri questa schermata per compilare le impostazioni mancanti",
+                    "presence": "Apri questa schermata per compilare le impostazioni mancanti",
+                    "advanced": "Apri questa schermata per compilare le impostazioni mancanti",
+                    "central_boiler": "Apri questa schermata per compilare le impostazioni mancanti",
+                    "valve_regulation": "Apri questa schermata per compilare le impostazioni mancanti",
+                    "sync_device_internal_temp": "Apri questa schermata per compilare le impostazioni mancanti"
+                }
             }
         },
         "error": {
@@ -805,7 +868,8 @@
             "max_opening_degrees_format": "È previsto un elenco di numeri interi positivi tra 0 e 100 separati da virgola. Esempio: 80, 85, 90",
             "min_max_opening_degrees_inconsistent": "Per ogni dispositivo sottostante, max_opening_degrees deve essere strettamente maggiore di min_opening_degrees. Verificare la configurazione.",
             "valve_control_parameters_cardinality_incorrect": "Gli elenchi dei gradi di apertura minimi e massimi non possono contenere più valori delle valvole configurate",
-            "vswitch_configuration_incorrect": "La configurazione della personalizzazione dei comandi non è corretta. È obbligatoria per i sottostanti non switch e il formato deve essere ‘nome_servizio[/attributo:valore]’. Maggiori informazioni nel file README."
+            "vswitch_configuration_incorrect": "La configurazione della personalizzazione dei comandi non è corretta. È obbligatoria per i sottostanti non switch e il formato deve essere ‘nome_servizio[/attributo:valore]’. Maggiori informazioni nel file README.",
+            "missing_settings_summary": "{count} impostazione/i da completare"
         },
         "abort": {
             "already_configured": "Device is already configured"

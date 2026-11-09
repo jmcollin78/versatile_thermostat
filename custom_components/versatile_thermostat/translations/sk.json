@@ -14,7 +14,7 @@
       },
       "menu": {
         "title": "Menu",
-        "description": "Nakonfigurujte si termostat. Po zadaní všetkých požadovaných parametrov budete môcť dokončiť konfiguráciu.",
+        "description": "Nakonfigurujte si termostat. Po zadaní všetkých požadovaných parametrov budete môcť dokončiť konfiguráciu.\n\n{missing_summary}",
         "menu_options": {
           "main": "Hlavné atribúty",
           "central_boiler": "Centrálny kotol",
@@ -32,7 +32,7 @@
           "sync_device_internal_temp": "Synchronizácia teploty zariadenia",
           "lock": "Správa zámku",
           "finalize": "Všetko hotové",
-          "configuration_not_complete": "Konfigurácia nie je dokončená",
+          "configuration_not_complete": "Konfigurácia nie je dokončená ({missing_count})",
           "heating_failure_detection": "Detekcia porúch vykurovania"
         }
       },
@@ -331,6 +331,37 @@
           "temperature_change_tolerance": "Minimálna zmena teploty v stupňoch považovaná za významnú. Menšie zmeny sú ignorované na filtrovanie šumu snímača (predvolené: 0.5°C)",
           "failure_detection_enable_template": "Voliteľná šablóna Jinja2, ktorá musí vrátiť True na povolenie detekcie. Užitočné na dočasné vypnutie detekcie, keď je aktívny externý zdroj tepla (napr. `is_state('binary_sensor.pec_na_drevo', 'off')` v dvojitých zložených zátvorkách). Ak je prázdne, detekcia je vždy povolená."
         }
+      },
+      "configuration_not_complete": {
+        "title": "Konfigurácia nie je úplná",
+        "description": "Stále chýbajú nasledujúce nastavenia:\n{missing_items}\n\nVyberte položku a otvorte obrazovku, kde ju môžete opraviť.",
+        "menu_options": {
+          "main": "Hlavné atribúty",
+          "type": "Podklady",
+          "tpi": "TPI parametre",
+          "presets": "Predvoľby",
+          "power": "Správa napájania",
+          "motion": "Detekcia pohybu",
+          "presence": "Detekcia prítomnosti",
+          "advanced": "Pokročilé parametre",
+          "central_boiler": "Centrálny kotol",
+          "valve_regulation": "Konfigurácia regulácie ventilu",
+          "sync_device_internal_temp": "Synchronizácia teploty zariadenia",
+          "menu": "Späť do ponuky"
+        },
+        "menu_option_descriptions": {
+          "main": "Otvoriť túto obrazovku a doplniť chýbajúce nastavenia",
+          "type": "Otvoriť túto obrazovku a doplniť chýbajúce nastavenia",
+          "tpi": "Otvoriť túto obrazovku a doplniť chýbajúce nastavenia",
+          "presets": "Otvoriť túto obrazovku a doplniť chýbajúce nastavenia",
+          "power": "Otvoriť túto obrazovku a doplniť chýbajúce nastavenia",
+          "motion": "Otvoriť túto obrazovku a doplniť chýbajúce nastavenia",
+          "presence": "Otvoriť túto obrazovku a doplniť chýbajúce nastavenia",
+          "advanced": "Otvoriť túto obrazovku a doplniť chýbajúce nastavenia",
+          "central_boiler": "Otvoriť túto obrazovku a doplniť chýbajúce nastavenia",
+          "valve_regulation": "Otvoriť túto obrazovku a doplniť chýbajúce nastavenia",
+          "sync_device_internal_temp": "Otvoriť túto obrazovku a doplniť chýbajúce nastavenia"
+        }
       }
     },
     "error": {
@@ -345,7 +376,8 @@
       "max_opening_degrees_format": "Očakáva sa zoznam kladných celých čísel medzi 0 a 100 oddelených čiarkou. Príklad: 80, 85, 90",
       "min_max_opening_degrees_inconsistent": "Pre každé základné zariadenie musí byť max_opening_degrees striktne väčší ako min_opening_degrees. Skontrolujte prosím svoju konfiguráciu.",
       "valve_control_parameters_cardinality_incorrect": "Zoznamy minimálnych a maximálnych stupňov otvorenia nemôžu obsahovať viac hodnôt než nakonfigurované ventily",
-      "vswitch_configuration_incorrect": "The command customization configuration is incorrect. It is required for underlying entities that are not switches, and the format must be service_name[/attribute:value]. More information is available in the README"
+      "vswitch_configuration_incorrect": "The command customization configuration is incorrect. It is required for underlying entities that are not switches, and the format must be service_name[/attribute:value]. More information is available in the README",
+      "missing_settings_summary": "Na doplnenie: {count}"
     },
     "abort": {
       "already_configured": "Zariadenie je už nakonfigurované"
@@ -365,7 +397,7 @@
       },
       "menu": {
         "title": "Menu",
-        "description": "Nakonfigurujte si termostat. Po zadaní všetkých požadovaných parametrov budete môcť dokončiť konfiguráciu.",
+        "description": "Nakonfigurujte si termostat. Po zadaní všetkých požadovaných parametrov budete môcť dokončiť konfiguráciu.\n\n{missing_summary}",
         "menu_options": {
           "main": "Hlavné atribúty",
           "central_boiler": "Centrálny kotol",
@@ -383,7 +415,7 @@
           "sync_device_internal_temp": "Synchronizácia teploty zariadenia",
           "lock": "Správa zámku",
           "finalize": "Všetko hotové",
-          "configuration_not_complete": "Konfigurácia nie je dokončená",
+          "configuration_not_complete": "Konfigurácia nie je dokončená ({missing_count})",
           "heating_failure_detection": "Detekcia porúch vykurovania"
         }
       },
@@ -678,6 +710,37 @@
           "temperature_change_tolerance": "Minimálna zmena teploty v stupňoch považovaná za významnú. Menšie zmeny sú ignorované na filtrovanie šumu snímača (predvolené: 0.5°C)",
           "failure_detection_enable_template": "Voliteľná šablóna Jinja2, ktorá musí vrátiť True na povolenie detekcie. Užitočné na dočasné vypnutie detekcie, keď je aktívny externý zdroj tepla (napr. `is_state('binary_sensor.pec_na_drevo', 'off')` v dvojitých zložených zátvorkách). Ak je prázdne, detekcia je vždy povolená."
         }
+      },
+      "configuration_not_complete": {
+        "title": "Konfigurácia nie je úplná - {name}",
+        "description": "Stále chýbajú nasledujúce nastavenia:\n{missing_items}\n\nVyberte položku a otvorte obrazovku, kde ju môžete opraviť.",
+        "menu_options": {
+          "main": "Hlavné atribúty",
+          "type": "Podklady",
+          "tpi": "TPI parametre",
+          "presets": "Predvoľby",
+          "power": "Správa napájania",
+          "motion": "Detekcia pohybu",
+          "presence": "Detekcia prítomnosti",
+          "advanced": "Pokročilé parametre",
+          "central_boiler": "Centrálny kotol",
+          "valve_regulation": "Konfigurácia regulácie ventilu",
+          "sync_device_internal_temp": "Synchronizácia teploty zariadenia",
+          "menu": "Späť do ponuky"
+        },
+        "menu_option_descriptions": {
+          "main": "Otvoriť túto obrazovku a doplniť chýbajúce nastavenia",
+          "type": "Otvoriť túto obrazovku a doplniť chýbajúce nastavenia",
+          "tpi": "Otvoriť túto obrazovku a doplniť chýbajúce nastavenia",
+          "presets": "Otvoriť túto obrazovku a doplniť chýbajúce nastavenia",
+          "power": "Otvoriť túto obrazovku a doplniť chýbajúce nastavenia",
+          "motion": "Otvoriť túto obrazovku a doplniť chýbajúce nastavenia",
+          "presence": "Otvoriť túto obrazovku a doplniť chýbajúce nastavenia",
+          "advanced": "Otvoriť túto obrazovku a doplniť chýbajúce nastavenia",
+          "central_boiler": "Otvoriť túto obrazovku a doplniť chýbajúce nastavenia",
+          "valve_regulation": "Otvoriť túto obrazovku a doplniť chýbajúce nastavenia",
+          "sync_device_internal_temp": "Otvoriť túto obrazovku a doplniť chýbajúce nastavenia"
+        }
       }
     },
     "error": {
@@ -692,7 +755,8 @@
       "max_opening_degrees_format": "Očakáva sa zoznam kladných celých čísel medzi 0 a 100 oddelených čiarkou. Príklad: 80, 85, 90",
       "min_max_opening_degrees_inconsistent": "Pre každé základné zariadenie musí byť max_opening_degrees striktne väčší ako min_opening_degrees. Skontrolujte prosím svoju konfiguráciu.",
       "valve_control_parameters_cardinality_incorrect": "Zoznamy minimálnych a maximálnych stupňov otvorenia nemôžu obsahovať viac hodnôt než nakonfigurované ventily",
-      "vswitch_configuration_incorrect": "The command customization configuration is incorrect. It is required for underlying entities that are not switches, and the format must be service_name[/attribute:value]. More information is available in the README"
+      "vswitch_configuration_incorrect": "The command customization configuration is incorrect. It is required for underlying entities that are not switches, and the format must be service_name[/attribute:value]. More information is available in the README",
+      "missing_settings_summary": "Na doplnenie: {count}"
     },
     "abort": {
       "already_configured": "Zariadenie je už nakonfigurované"

@@ -15,7 +15,7 @@
       },
       "menu": {
         "title": "Menu",
-        "description": "Paramétrez votre thermostat. Vous pourrez finaliser la configuration quand tous les paramètres auront été saisis.",
+        "description": "Paramétrez votre thermostat. Vous pourrez finaliser la configuration quand tous les paramètres auront été saisis.\n\n{missing_summary}",
         "menu_options": {
           "main": "Principaux Attributs",
           "central_boiler": "Chauffage central",
@@ -38,7 +38,7 @@
           "auto_tpi_avg_settings": "Auto TPI - Moyenne pondérée",
           "auto_tpi_ema_settings": "Auto TPI - EWMA",
           "finalize": "Finaliser la création",
-          "configuration_not_complete": "Configuration incomplète"
+          "configuration_not_complete": "Configuration incomplète ({missing_count})"
         }
       },
       "lock": {
@@ -400,6 +400,37 @@
           "temperature_change_tolerance": "Variation minimale de température en degrés pour être considérée comme significative. Les variations plus petites sont ignorées pour filtrer le bruit des capteurs (défaut: 0.5°C)",
           "failure_detection_enable_template": "Un template Jinja2 optionnel qui doit retourner True pour activer la détection. Utile pour désactiver temporairement la détection lorsqu'une source de chaleur externe est active (ex: `is_state('binary_sensor.poele_a_bois', 'off')` entre double accolades). Si vide, la détection est toujours active."
         }
+      },
+      "configuration_not_complete": {
+        "title": "Configuration incomplète",
+        "description": "Les paramètres suivants sont encore manquants :\n{missing_items}\n\nChoisissez un élément pour ouvrir l'écran qui permet de le corriger.",
+        "menu_options": {
+          "main": "Principaux Attributs",
+          "type": "Sous-jacents",
+          "tpi": "Paramètres TPI",
+          "presets": "Pre-réglages",
+          "power": "Gestion de la puissance",
+          "motion": "Détection de mouvement",
+          "presence": "Détection de présence",
+          "advanced": "Paramètres avancés",
+          "central_boiler": "Chauffage central",
+          "valve_regulation": "Configuration de la regulation par vanne",
+          "sync_device_internal_temp": "Synchronisation de la température de l'appareil",
+          "menu": "Retour au menu"
+        },
+        "menu_option_descriptions": {
+          "main": "Ouvrir cet écran pour renseigner les paramètres manquants",
+          "type": "Ouvrir cet écran pour renseigner les paramètres manquants",
+          "tpi": "Ouvrir cet écran pour renseigner les paramètres manquants",
+          "presets": "Ouvrir cet écran pour renseigner les paramètres manquants",
+          "power": "Ouvrir cet écran pour renseigner les paramètres manquants",
+          "motion": "Ouvrir cet écran pour renseigner les paramètres manquants",
+          "presence": "Ouvrir cet écran pour renseigner les paramètres manquants",
+          "advanced": "Ouvrir cet écran pour renseigner les paramètres manquants",
+          "central_boiler": "Ouvrir cet écran pour renseigner les paramètres manquants",
+          "valve_regulation": "Ouvrir cet écran pour renseigner les paramètres manquants",
+          "sync_device_internal_temp": "Ouvrir cet écran pour renseigner les paramètres manquants"
+        }
       }
     },
     "error": {
@@ -414,7 +445,8 @@
       "max_opening_degrees_format": "Une liste d'entiers positifs entre 0 et l'ouverture maximale de la vanne séparés par des ',' est attendu. Exemple : 80, 85, 90",
       "min_max_opening_degrees_inconsistent": "Pour chaque équipement sous-jacent, max_opening_degrees doit être strictement supérieur à min_opening_degrees. Veuillez vérifier votre configuration.",
       "valve_control_parameters_cardinality_incorrect": "Les listes des degrés d'ouverture minimum et maximum ne peuvent pas contenir plus de valeurs que les vannes configurées",
-      "vswitch_configuration_incorrect": "La configuration de la personnalisation des commandes est incorrecte. Elle est obligatoire pour les sous-jacents non switch et le format doit être 'service_name[/attribut:valeur]'. Plus d'informations dans le README."
+      "vswitch_configuration_incorrect": "La configuration de la personnalisation des commandes est incorrecte. Elle est obligatoire pour les sous-jacents non switch et le format doit être 'service_name[/attribut:valeur]'. Plus d'informations dans le README.",
+      "missing_settings_summary": "{count} paramètre(s) à compléter"
     },
     "abort": {
       "already_configured": "L'appareil est déjà configuré"
@@ -435,7 +467,7 @@
       },
       "menu": {
         "title": "Menu",
-        "description": "Paramétrez votre thermostat. Vous pourrez finaliser la configuration quand tous les paramètres auront été saisis.",
+        "description": "Paramétrez votre thermostat. Vous pourrez finaliser la configuration quand tous les paramètres auront été saisis.\n\n{missing_summary}",
         "menu_options": {
           "main": "Principaux Attributs",
           "central_boiler": "Chauffage central",
@@ -455,7 +487,7 @@
           "lock": "Verrouillage",
           "heating_failure_detection": "Détection de panne de chauffage",
           "finalize": "Finaliser les modifications",
-          "configuration_not_complete": "Configuration incomplète"
+          "configuration_not_complete": "Configuration incomplète ({missing_count})"
         }
       },
       "lock": {
@@ -817,6 +849,37 @@
           "temperature_change_tolerance": "Variation minimale de température en degrés pour être considérée comme significative. Les variations plus petites sont ignorées pour filtrer le bruit des capteurs (défaut: 0.5°C)",
           "failure_detection_enable_template": "Un template Jinja2 optionnel qui doit retourner True pour activer la détection. Utile pour désactiver temporairement la détection lorsqu'une source de chaleur externe est active (ex: `is_state('binary_sensor.poele_a_bois', 'off')` entre double accolades). Si vide, la détection est toujours active."
         }
+      },
+      "configuration_not_complete": {
+        "title": "Configuration incomplète - {name}",
+        "description": "Les paramètres suivants sont encore manquants :\n{missing_items}\n\nChoisissez un élément pour ouvrir l'écran qui permet de le corriger.",
+        "menu_options": {
+          "main": "Principaux Attributs",
+          "type": "Sous-jacents",
+          "tpi": "Paramètres TPI",
+          "presets": "Pre-réglages",
+          "power": "Gestion de la puissance",
+          "motion": "Détection de mouvement",
+          "presence": "Détection de présence",
+          "advanced": "Paramètres avancés",
+          "central_boiler": "Chauffage central",
+          "valve_regulation": "Configuration de la regulation par vanne",
+          "sync_device_internal_temp": "Synchronisation de la température de l'appareil",
+          "menu": "Retour au menu"
+        },
+        "menu_option_descriptions": {
+          "main": "Ouvrir cet écran pour renseigner les paramètres manquants",
+          "type": "Ouvrir cet écran pour renseigner les paramètres manquants",
+          "tpi": "Ouvrir cet écran pour renseigner les paramètres manquants",
+          "presets": "Ouvrir cet écran pour renseigner les paramètres manquants",
+          "power": "Ouvrir cet écran pour renseigner les paramètres manquants",
+          "motion": "Ouvrir cet écran pour renseigner les paramètres manquants",
+          "presence": "Ouvrir cet écran pour renseigner les paramètres manquants",
+          "advanced": "Ouvrir cet écran pour renseigner les paramètres manquants",
+          "central_boiler": "Ouvrir cet écran pour renseigner les paramètres manquants",
+          "valve_regulation": "Ouvrir cet écran pour renseigner les paramètres manquants",
+          "sync_device_internal_temp": "Ouvrir cet écran pour renseigner les paramètres manquants"
+        }
       }
     },
     "error": {
@@ -831,7 +894,8 @@
       "max_opening_degrees_format": "Une liste d'entiers positifs entre 0 et l'ouverture maximale de la vanne séparés par des ',' est attendu. Exemple : 80, 85, 90",
       "min_max_opening_degrees_inconsistent": "Pour chaque équipement sous-jacent, max_opening_degrees doit être strictement supérieur à min_opening_degrees. Veuillez vérifier votre configuration.",
       "valve_control_parameters_cardinality_incorrect": "Les listes des degrés d'ouverture minimum et maximum ne peuvent pas contenir plus de valeurs que les vannes configurées",
-      "vswitch_configuration_incorrect": "La configuration de la personnalisation des commandes est incorrecte. Elle est obligatoire pour les sous-jacents non switch et le format doit être 'service_name[/attribut:valeur]'. Plus d'informations dans le README."
+      "vswitch_configuration_incorrect": "La configuration de la personnalisation des commandes est incorrecte. Elle est obligatoire pour les sous-jacents non switch et le format doit être 'service_name[/attribut:valeur]'. Plus d'informations dans le README.",
+      "missing_settings_summary": "{count} paramètre(s) à compléter"
     },
     "abort": {
       "already_configured": "L'appareil est déjà configuré"

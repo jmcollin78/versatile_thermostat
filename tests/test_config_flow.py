@@ -8,6 +8,7 @@ from homeassistant.core import HomeAssistant
 from homeassistant.config_entries import SOURCE_USER, ConfigEntry
 
 from custom_components.versatile_thermostat.const import DOMAIN
+from custom_components.versatile_thermostat.config_flow import VersatileThermostatConfigFlow
 
 from .commons import *  # pylint: disable=wildcard-import, unused-wildcard-import
 from .const import *  # pylint: disable=wildcard-import, unused-wildcard-import
@@ -1946,3 +1947,181 @@ async def test_config_flow_central_boiler_template_validation(hass: HomeAssistan
             "central_boiler",
         )
     assert str(err.value) == CONF_CENTRAL_BOILER_ACTIVATION_SRV
+
+
+def _complete_switch_infos() -> dict:
+    """A complete over_switch configuration (no central configuration)"""
+    return {
+        CONF_THERMOSTAT_TYPE: CONF_THERMOSTAT_SWITCH,
+        CONF_NAME: "TheOverSwitchMockName",
+        CONF_TEMP_SENSOR: "sensor.mock_temp_sensor",
+        CONF_EXTERNAL_TEMP_SENSOR: "sensor.mock_ext_temp_sensor",
+        CONF_CYCLE_MIN: 5,
+        CONF_UNDERLYING_LIST: ["switch.mock_switch"],
+        CONF_PROP_FUNCTION: PROPORTIONAL_FUNCTION_TPI,
+        CONF_USE_MAIN_CENTRAL_CONFIG: False,
+        CONF_USE_TPI_CENTRAL_CONFIG: False,
+        CONF_USE_ADVANCED_CENTRAL_CONFIG: False,
+        CONF_USE_PRESETS_CENTRAL_CONFIG: False,
+        CONF_USE_POWER_CENTRAL_CONFIG: False,
+        CONF_USE_PRESENCE_CENTRAL_CONFIG: False,
+        CONF_TPI_COEF_INT: 0.3,
+        CONF_TPI_COEF_EXT: 0.1,
+        CONF_SAFETY_DELAY_MIN: 5,
+        CONF_SAFETY_MIN_ON_PERCENT: 0.4,
+        CONF_SAFETY_DEFAULT_ON_PERCENT: 0.3,
+    }
+
+
+def _complete_climate_valve_infos() -> dict:
+    """A complete over_climate configuration with valve regulation and 2 underlyings"""
+    return _complete_switch_infos() | {
+        CONF_THERMOSTAT_TYPE: CONF_THERMOSTAT_CLIMATE,
+        CONF_UNDERLYING_LIST: ["climate.mock_climate1", "climate.mock_climate2"],
+        CONF_AUTO_REGULATION_MODE: CONF_AUTO_REGULATION_VALVE,
+        CONF_OPENING_DEGREE_LIST: ["number.opening1", "number.opening2"],
+        CONF_CLOSING_DEGREE_LIST: [],
+    }
+
+
+def _complete_central_infos() -> dict:
+    """A complete central configuration"""
+    return {
+        CONF_THERMOSTAT_TYPE: CONF_THERMOSTAT_CENTRAL_CONFIG,
+        CONF_NAME: CENTRAL_CONFIG_NAME,
+        CONF_EXTERNAL_TEMP_SENSOR: "sensor.mock_ext_temp_sensor",
+    }
+
+
+@pytest.mark.parametrize(
+    "infos, mutation, expected",
+    [
+        # Rules of a VTherm which is not a central configuration
+        (_complete_switch_infos(), {CONF_NAME: None}, [("main", [CONF_NAME])]),
+        (_complete_switch_infos(), {CONF_TEMP_SENSOR: None}, [("main", [CONF_TEMP_SENSOR])]),
+        (_complete_switch_infos(), {CONF_CYCLE_MIN: None}, [("main", [CONF_CYCLE_MIN])]),
+        (_complete_switch_infos(), {CONF_EXTERNAL_TEMP_SENSOR: None}, [("main", [CONF_EXTERNAL_TEMP_SENSOR])]),
+        (_complete_switch_infos(), {CONF_UNDERLYING_LIST: []}, [("type", [CONF_UNDERLYING_LIST])]),
+        (_complete_switch_infos(), {CONF_USE_MOTION_FEATURE: True}, [("motion", [CONF_MOTION_SENSOR])]),
+        (_complete_switch_infos(), {CONF_USE_POWER_FEATURE: True}, [("power", [CONF_PRESET_POWER])]),
+        (_complete_switch_infos(), {CONF_USE_PRESENCE_FEATURE: True}, [("presence", [CONF_PRESENCE_SENSOR])]),
+        (
+            _complete_switch_infos(),
+            {CONF_SAFETY_DELAY_MIN: None, CONF_SAFETY_MIN_ON_PERCENT: None, CONF_SAFETY_DEFAULT_ON_PERCENT: None},
+            [("advanced", [CONF_SAFETY_DELAY_MIN, CONF_SAFETY_MIN_ON_PERCENT, CONF_SAFETY_DEFAULT_ON_PERCENT])],
+        ),
+        (_complete_switch_infos(), {CONF_TPI_COEF_INT: None}, [("tpi", [CONF_TPI_COEF_INT])]),
+        (_complete_switch_infos(), {CONF_TPI_COEF_EXT: None}, [("tpi", [CONF_TPI_COEF_EXT])]),
+        # presets central config selected but no central configuration exists
+        (_complete_switch_infos(), {CONF_USE_PRESETS_CENTRAL_CONFIG: True}, [("presets", [CONF_USE_PRESETS_CENTRAL_CONFIG])]),
+        # valve regulation: one opening entity for 2 underlyings
+        (_complete_climate_valve_infos(), {CONF_OPENING_DEGREE_LIST: ["number.opening1"]}, [("valve_regulation", [CONF_OPENING_DEGREE_LIST])]),
+        # valve regulation: closing entities should be none or one per underlying
+        (_complete_climate_valve_infos(), {CONF_CLOSING_DEGREE_LIST: ["number.closing1"]}, [("valve_regulation", [CONF_CLOSING_DEGREE_LIST])]),
+        # synchronize internal temperature: one entity for 2 underlyings
+        (
+            _complete_climate_valve_infos(),
+            {CONF_SYNC_DEVICE_INTERNAL_TEMP: True, CONF_SYNC_ENTITY_LIST: ["number.sync1"]},
+            [("sync_device_internal_temp", [CONF_SYNC_ENTITY_LIST])],
+        ),
+        # Rules of a central configuration
+        (_complete_central_infos(), {CONF_NAME: None}, [("main", [CONF_NAME])]),
+        (_complete_central_infos(), {CONF_EXTERNAL_TEMP_SENSOR: None}, [("main", [CONF_EXTERNAL_TEMP_SENSOR])]),
+        (_complete_central_infos(), {CONF_USE_POWER_FEATURE: True}, [("power", [CONF_POWER_SENSOR, CONF_MAX_POWER_SENSOR])]),
+        (_complete_central_infos(), {CONF_USE_PRESENCE_FEATURE: True}, [("presence", [CONF_PRESENCE_SENSOR])]),
+        (
+            _complete_central_infos(),
+            {CONF_USE_CENTRAL_BOILER_FEATURE: True},
+            [("central_boiler", [CONF_CENTRAL_BOILER_ACTIVATION_SRV, CONF_CENTRAL_BOILER_DEACTIVATION_SRV])],
+        ),
+        (
+            _complete_central_infos(),
+            {CONF_USE_CENTRAL_BOILER_FEATURE: True, CONF_CENTRAL_BOILER_ACTIVATION_SRV: "switch.boiler/switch.turn_on", CONF_CENTRAL_BOILER_DEACTIVATION_SRV: ""},
+            [("central_boiler", [CONF_CENTRAL_BOILER_DEACTIVATION_SRV])],
+        ),
+    ],
+)
+async def test_get_missing_config(hass: HomeAssistant, init_vtherm_api, infos, mutation, expected) -> None:
+    """Each rule of get_missing_config gives the step to open and the fields involved"""
+    flow = VersatileThermostatConfigFlow()
+    flow.hass = hass
+
+    # The initial configuration is complete
+    assert flow.get_missing_config(infos) == []
+    assert flow.check_config_complete(infos) is True
+
+    infos = {**infos, **mutation}
+    missing = flow.get_missing_config(infos)
+    assert [(item.step_id, item.fields) for item in missing] == expected
+    assert flow.check_config_complete(infos) is False
+
+
+async def test_get_missing_config_several_items(hass: HomeAssistant, init_vtherm_api) -> None:
+    """All the missing items are reported, one per step"""
+    flow = VersatileThermostatConfigFlow()
+    flow.hass = hass
+
+    infos = _complete_switch_infos() | {CONF_NAME: None, CONF_UNDERLYING_LIST: [], CONF_USE_MOTION_FEATURE: True}
+    missing = flow.get_missing_config(infos)
+    assert [item.step_id for item in missing] == ["main", "type", "motion"]
+
+
+async def test_configuration_not_complete_menu(hass: HomeAssistant, init_vtherm_api, skip_hass_states_get) -> None:
+    """The 'configuration not complete' menu lists the missing items and opens the steps to fix them"""
+    flow = VersatileThermostatConfigFlow()
+    flow.hass = hass
+    flow._infos.update(_complete_switch_infos() | {CONF_USE_MOTION_FEATURE: True, CONF_NAME: None})
+
+    # The main menu shows the summary and the 'configuration_not_complete' option
+    result = await flow.async_step_menu()
+    assert result["type"] == FlowResultType.MENU
+    assert result["step_id"] == "menu"
+    assert result["menu_options"][-1] == "configuration_not_complete"
+    assert "finalize" not in result["menu_options"]
+    assert result["description_placeholders"]["missing_count"] == "2"
+    assert "2" in result["description_placeholders"]["missing_summary"]
+
+    # The detail menu lists the steps to fix, and a way back
+    result = await flow.async_step_configuration_not_complete()
+    assert result["type"] == FlowResultType.MENU
+    assert result["step_id"] == "configuration_not_complete"
+    assert result["menu_options"] == ["main", "motion", "menu"]
+    items = result["description_placeholders"]["missing_items"]
+    assert len(items.splitlines()) == 2
+    assert items.splitlines()[0].startswith("- **")
+
+    # Once everything is fixed, the user is sent back to the main menu with 'finalize'
+    flow._infos.update({CONF_NAME: "TheOverSwitchMockName", CONF_MOTION_SENSOR: "binary_sensor.motion"})
+    result = await flow.async_step_configuration_not_complete()
+    assert result["step_id"] == "menu"
+    assert result["menu_options"][-1] == "finalize"
+    assert result["description_placeholders"]["missing_count"] == "0"
+    assert result["description_placeholders"]["missing_summary"] == ""
+
+
+async def test_configuration_not_complete_flow(hass: HomeAssistant, init_vtherm_api, skip_hass_states_get) -> None:
+    """From a real flow, the 'configuration not complete' menu opens the step to fix"""
+    result = await hass.config_entries.flow.async_init(DOMAIN, context={"source": SOURCE_USER})
+    result = await hass.config_entries.flow.async_configure(result["flow_id"], user_input={CONF_THERMOSTAT_TYPE: CONF_THERMOSTAT_SWITCH})
+    assert result["type"] == FlowResultType.MENU
+    assert result["menu_options"][-1] == "configuration_not_complete"
+
+    result = await hass.config_entries.flow.async_configure(result["flow_id"], user_input={"next_step_id": "configuration_not_complete"})
+    assert result["type"] == FlowResultType.MENU
+    assert result["step_id"] == "configuration_not_complete"
+    assert "main" in result["menu_options"]
+    assert "type" in result["menu_options"]
+    assert result["menu_options"][-1] == "menu"
+
+    # Back to the menu
+    result = await hass.config_entries.flow.async_configure(result["flow_id"], user_input={"next_step_id": "menu"})
+    assert result["type"] == FlowResultType.MENU
+    assert result["step_id"] == "menu"
+
+    # Open the step to fix
+    result = await hass.config_entries.flow.async_configure(result["flow_id"], user_input={"next_step_id": "configuration_not_complete"})
+    result = await hass.config_entries.flow.async_configure(result["flow_id"], user_input={"next_step_id": "main"})
+    assert result["type"] == FlowResultType.FORM
+    assert result["step_id"] == "main"
+
+    hass.config_entries.flow.async_abort(result["flow_id"])

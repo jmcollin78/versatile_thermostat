@@ -279,6 +279,37 @@
           "temperature_change_tolerance": "Minimum temperature change in degrees to consider significant. Smaller changes are ignored to filter sensor noise (default: 0.5°C)",
           "failure_detection_enable_template": "An optional Jinja2 template that must return True to enable detection. Useful to temporarily disable detection when an external heat source is active (e.g., `is_state('binary_sensor.wood_stove', 'off')` in double curly braces). If empty, detection is always enabled."
         }
+      },
+      "configuration_not_complete": {
+        "title": "Η διαμόρφωση δεν είναι πλήρης",
+        "description": "Λείπουν ακόμη οι ακόλουθες ρυθμίσεις:\n{missing_items}\n\nΕπιλέξτε ένα στοιχείο για να ανοίξετε την οθόνη που το διορθώνει.",
+        "menu_options": {
+          "main": "Main attributes",
+          "type": "Underlyings",
+          "tpi": "TPI parameters",
+          "presets": "Presets",
+          "power": "Power management",
+          "motion": "Motion detection",
+          "presence": "Presence detection",
+          "advanced": "Advanced parameters",
+          "central_boiler": "Central boiler",
+          "valve_regulation": "Valve regulation configuration",
+          "sync_device_internal_temp": "Synchronize device temperature",
+          "menu": "Πίσω στο μενού"
+        },
+        "menu_option_descriptions": {
+          "main": "Ανοίξτε αυτή την οθόνη για να συμπληρώσετε τις ρυθμίσεις που λείπουν",
+          "type": "Ανοίξτε αυτή την οθόνη για να συμπληρώσετε τις ρυθμίσεις που λείπουν",
+          "tpi": "Ανοίξτε αυτή την οθόνη για να συμπληρώσετε τις ρυθμίσεις που λείπουν",
+          "presets": "Ανοίξτε αυτή την οθόνη για να συμπληρώσετε τις ρυθμίσεις που λείπουν",
+          "power": "Ανοίξτε αυτή την οθόνη για να συμπληρώσετε τις ρυθμίσεις που λείπουν",
+          "motion": "Ανοίξτε αυτή την οθόνη για να συμπληρώσετε τις ρυθμίσεις που λείπουν",
+          "presence": "Ανοίξτε αυτή την οθόνη για να συμπληρώσετε τις ρυθμίσεις που λείπουν",
+          "advanced": "Ανοίξτε αυτή την οθόνη για να συμπληρώσετε τις ρυθμίσεις που λείπουν",
+          "central_boiler": "Ανοίξτε αυτή την οθόνη για να συμπληρώσετε τις ρυθμίσεις που λείπουν",
+          "valve_regulation": "Ανοίξτε αυτή την οθόνη για να συμπληρώσετε τις ρυθμίσεις που λείπουν",
+          "sync_device_internal_temp": "Ανοίξτε αυτή την οθόνη για να συμπληρώσετε τις ρυθμίσεις που λείπουν"
+        }
       }
     },
     "error": {
@@ -293,7 +324,8 @@
       "max_opening_degrees_format": "Αναμένεται μια λίστα θετικών ακεραίων μεταξύ 0 και 100 χωρισμένη με κόμματα. Παράδειγμα: 80, 85, 90",
       "min_max_opening_degrees_inconsistent": "Για κάθε υποκείμενη συσκευή, το max_opening_degrees πρέπει να είναι αυστηρά μεγαλύτερο από το min_opening_degrees. Ελέγξτε τη διαμόρφωσή σας.",
       "valve_control_parameters_cardinality_incorrect": "Οι λίστες ελάχιστου και μέγιστου βαθμού ανοίγματος δεν μπορούν να περιέχουν περισσότερες τιμές από τις διαμορφωμένες βαλβίδες",
-      "vswitch_configuration_incorrect": "The command customization configuration is incorrect. It is required for underlying entities that are not switches, and the format must be service_name[/attribute:value]. More information is available in the README"
+      "vswitch_configuration_incorrect": "The command customization configuration is incorrect. It is required for underlying entities that are not switches, and the format must be service_name[/attribute:value]. More information is available in the README",
+      "missing_settings_summary": "Ρυθμίσεις προς συμπλήρωση: {count}"
     },
     "abort": {
       "already_configured": "Η συσκευή έχει ήδη ρυθμιστεί"
@@ -566,6 +598,37 @@
           "temperature_change_tolerance": "Minimum temperature change in degrees to consider significant. Smaller changes are ignored to filter sensor noise (default: 0.5°C)",
           "failure_detection_enable_template": "An optional Jinja2 template that must return True to enable detection. Useful to temporarily disable detection when an external heat source is active (e.g., `is_state('binary_sensor.wood_stove', 'off')` in double curly braces). If empty, detection is always enabled."
         }
+      },
+      "configuration_not_complete": {
+        "title": "Η διαμόρφωση δεν είναι πλήρης - {name}",
+        "description": "Λείπουν ακόμη οι ακόλουθες ρυθμίσεις:\n{missing_items}\n\nΕπιλέξτε ένα στοιχείο για να ανοίξετε την οθόνη που το διορθώνει.",
+        "menu_options": {
+          "main": "Main attributes",
+          "type": "Underlyings",
+          "tpi": "TPI parameters",
+          "presets": "Presets",
+          "power": "Power management",
+          "motion": "Motion detection",
+          "presence": "Presence detection",
+          "advanced": "Advanced parameters",
+          "central_boiler": "Central boiler",
+          "valve_regulation": "Valve regulation configuration",
+          "sync_device_internal_temp": "Synchronize device temperature",
+          "menu": "Πίσω στο μενού"
+        },
+        "menu_option_descriptions": {
+          "main": "Ανοίξτε αυτή την οθόνη για να συμπληρώσετε τις ρυθμίσεις που λείπουν",
+          "type": "Ανοίξτε αυτή την οθόνη για να συμπληρώσετε τις ρυθμίσεις που λείπουν",
+          "tpi": "Ανοίξτε αυτή την οθόνη για να συμπληρώσετε τις ρυθμίσεις που λείπουν",
+          "presets": "Ανοίξτε αυτή την οθόνη για να συμπληρώσετε τις ρυθμίσεις που λείπουν",
+          "power": "Ανοίξτε αυτή την οθόνη για να συμπληρώσετε τις ρυθμίσεις που λείπουν",
+          "motion": "Ανοίξτε αυτή την οθόνη για να συμπληρώσετε τις ρυθμίσεις που λείπουν",
+          "presence": "Ανοίξτε αυτή την οθόνη για να συμπληρώσετε τις ρυθμίσεις που λείπουν",
+          "advanced": "Ανοίξτε αυτή την οθόνη για να συμπληρώσετε τις ρυθμίσεις που λείπουν",
+          "central_boiler": "Ανοίξτε αυτή την οθόνη για να συμπληρώσετε τις ρυθμίσεις που λείπουν",
+          "valve_regulation": "Ανοίξτε αυτή την οθόνη για να συμπληρώσετε τις ρυθμίσεις που λείπουν",
+          "sync_device_internal_temp": "Ανοίξτε αυτή την οθόνη για να συμπληρώσετε τις ρυθμίσεις που λείπουν"
+        }
       }
     },
     "error": {
@@ -580,7 +643,8 @@
       "max_opening_degrees_format": "Αναμένεται μια λίστα θετικών ακεραίων μεταξύ 0 και 100 χωρισμένη με κόμματα. Παράδειγμα: 80, 85, 90",
       "min_max_opening_degrees_inconsistent": "Για κάθε υποκείμενη συσκευή, το max_opening_degrees πρέπει να είναι αυστηρά μεγαλύτερο από το min_opening_degrees. Ελέγξτε τη διαμόρφωσή σας.",
       "valve_control_parameters_cardinality_incorrect": "Οι λίστες ελάχιστου και μέγιστου βαθμού ανοίγματος δεν μπορούν να περιέχουν περισσότερες τιμές από τις διαμορφωμένες βαλβίδες",
-      "vswitch_configuration_incorrect": "The command customization configuration is incorrect. It is required for underlying entities that are not switches, and the format must be service_name[/attribute:value]. More information is available in the README"
+      "vswitch_configuration_incorrect": "The command customization configuration is incorrect. It is required for underlying entities that are not switches, and the format must be service_name[/attribute:value]. More information is available in the README",
+      "missing_settings_summary": "Ρυθμίσεις προς συμπλήρωση: {count}"
     },
     "abort": {
       "already_configured": "Η συσκευή έχει ήδη ρυθμιστεί"

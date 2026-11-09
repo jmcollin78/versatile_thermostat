@@ -15,7 +15,7 @@
             },
             "menu": {
                 "title": "菜单",
-                "description": "配置你的恒温器。输入所有必填参数后即可完成配置。",
+                "description": "配置你的恒温器。输入所有必填参数后即可完成配置。\n\n{missing_summary}",
                 "menu_options": {
                     "main": "主要属性",
                     "central_boiler": "中央锅炉",
@@ -37,7 +37,7 @@
                     "auto_tpi_avg_settings": "Auto TPI - 加权平均",
                     "auto_tpi_ema_settings": "Auto TPI - EWMA",
                     "finalize": "全部完成",
-                    "configuration_not_complete": "配置未完成"
+                    "configuration_not_complete": "配置未完成 ({missing_count})"
                 }
             },
             "lock": {
@@ -386,6 +386,37 @@
                     "temperature_change_tolerance": "考虑显著的最小温度变化度。忽略较小的变化以过滤传感器噪声（默认值：0.5°C）",
                     "failure_detection_enable_template": "可选的 Jinja2 模板，必须返回 True 才能启用检测。当外部热源处于活动状态时（例如，双花括号中的 `is_state('binary_sensor.wood_stove', 'off')`），可用于暂时禁用检测。如果为空，则始终启用检测。"
                 }
+            },
+            "configuration_not_complete": {
+                "title": "配置不完整",
+                "description": "以下设置仍然缺失：\n{missing_items}\n\n选择一项以打开可修复它的界面。",
+                "menu_options": {
+                    "main": "主要属性",
+                    "type": "底层设备",
+                    "tpi": "TPI 参数",
+                    "presets": "预设",
+                    "power": "功率管理",
+                    "motion": "运动检测",
+                    "presence": "在家状态检测",
+                    "advanced": "高级参数",
+                    "central_boiler": "中央锅炉",
+                    "valve_regulation": "阀门调节配置",
+                    "sync_device_internal_temp": "同步设备温度",
+                    "menu": "返回菜单"
+                },
+                "menu_option_descriptions": {
+                    "main": "打开此界面以填写缺失的设置",
+                    "type": "打开此界面以填写缺失的设置",
+                    "tpi": "打开此界面以填写缺失的设置",
+                    "presets": "打开此界面以填写缺失的设置",
+                    "power": "打开此界面以填写缺失的设置",
+                    "motion": "打开此界面以填写缺失的设置",
+                    "presence": "打开此界面以填写缺失的设置",
+                    "advanced": "打开此界面以填写缺失的设置",
+                    "central_boiler": "打开此界面以填写缺失的设置",
+                    "valve_regulation": "打开此界面以填写缺失的设置",
+                    "sync_device_internal_temp": "打开此界面以填写缺失的设置"
+                }
             }
         },
         "error": {
@@ -400,7 +431,8 @@
             "max_opening_degrees_format": "需要一个介于 0 和最大阀门开度之间的逗号分隔的正整数列表。示例：80,85,90",
             "min_max_opening_degrees_inconsistent": "对于每个底层设备，max_opening_degrees 必须严格大于 min_opening_degrees。请检查你的配置。",
             "valve_control_parameters_cardinality_incorrect": "最小和最大开度列表中的值不能多于已配置的阀门数量",
-            "vswitch_configuration_incorrect": "命令自定义配置不正确。对于不是 switch 的底层实体，这是必需的，格式必须为 service_name[/attribute:value]。更多信息请参阅 README。"
+            "vswitch_configuration_incorrect": "命令自定义配置不正确。对于不是 switch 的底层实体，这是必需的，格式必须为 service_name[/attribute:value]。更多信息请参阅 README。",
+            "missing_settings_summary": "还有 {count} 项设置待完成"
         },
         "abort": {
             "already_configured": "设备已配置"
@@ -421,7 +453,7 @@
             },
             "menu": {
                 "title": "菜单",
-                "description": "配置你的恒温器。输入所有必填参数后即可完成配置。",
+                "description": "配置你的恒温器。输入所有必填参数后即可完成配置。\n\n{missing_summary}",
                 "menu_options": {
                     "main": "主要属性",
                     "central_boiler": "中央锅炉",
@@ -440,7 +472,7 @@
                     "lock": "锁定",
                     "heating_failure_detection": "加热故障检测",
                     "finalize": "全部完成",
-                    "configuration_not_complete": "配置未完成"
+                    "configuration_not_complete": "配置未完成 ({missing_count})"
                 }
             },
             "lock": {
@@ -791,6 +823,37 @@
                     "temperature_change_tolerance": "考虑显著的最小温度变化度。忽略较小的变化以过滤传感器噪声（默认值：0.5°C）",
                     "failure_detection_enable_template": "可选的 Jinja2 模板，必须返回 True 才能启用检测。当外部热源处于活动状态时（例如，双花括号中的 `is_state('binary_sensor.wood_stove', 'off')`），可用于暂时禁用检测。如果为空，则始终启用检测。"
                 }
+            },
+            "configuration_not_complete": {
+                "title": "配置不完整 - {name}",
+                "description": "以下设置仍然缺失：\n{missing_items}\n\n选择一项以打开可修复它的界面。",
+                "menu_options": {
+                    "main": "主要属性",
+                    "type": "底层设备",
+                    "tpi": "TPI 参数",
+                    "presets": "预设",
+                    "power": "功率管理",
+                    "motion": "运动检测",
+                    "presence": "在家状态检测",
+                    "advanced": "高级参数",
+                    "central_boiler": "中央锅炉",
+                    "valve_regulation": "阀门调节配置",
+                    "sync_device_internal_temp": "同步设备温度",
+                    "menu": "返回菜单"
+                },
+                "menu_option_descriptions": {
+                    "main": "打开此界面以填写缺失的设置",
+                    "type": "打开此界面以填写缺失的设置",
+                    "tpi": "打开此界面以填写缺失的设置",
+                    "presets": "打开此界面以填写缺失的设置",
+                    "power": "打开此界面以填写缺失的设置",
+                    "motion": "打开此界面以填写缺失的设置",
+                    "presence": "打开此界面以填写缺失的设置",
+                    "advanced": "打开此界面以填写缺失的设置",
+                    "central_boiler": "打开此界面以填写缺失的设置",
+                    "valve_regulation": "打开此界面以填写缺失的设置",
+                    "sync_device_internal_temp": "打开此界面以填写缺失的设置"
+                }
             }
         },
         "error": {
@@ -805,7 +868,8 @@
             "max_opening_degrees_format": "需要一个介于 0 和阀门最大值之间的逗号分隔的正整数列表。示例：80,85,90",
             "min_max_opening_degrees_inconsistent": "对于每个底层设备，max_opening_degrees 必须严格大于 min_opening_degrees。请检查你的配置。",
             "valve_control_parameters_cardinality_incorrect": "最小和最大开度列表中的值不能多于已配置的阀门数量",
-            "vswitch_configuration_incorrect": "命令自定义配置不正确。对于不是 switch 的底层实体，这是必需的，格式必须为 service_name[/attribute:value]。更多信息请参阅 README。"
+            "vswitch_configuration_incorrect": "命令自定义配置不正确。对于不是 switch 的底层实体，这是必需的，格式必须为 service_name[/attribute:value]。更多信息请参阅 README。",
+            "missing_settings_summary": "还有 {count} 项设置待完成"
         },
         "abort": {
             "already_configured": "设备已配置"

@@ -15,7 +15,7 @@
       },
       "menu": {
         "title": "Menü",
-        "description": "Konfigurieren Sie Ihr Thermostat. Sobald alle erforderlichen Parameter eingegeben sind, kann die Konfiguration abgeschlossen werden.",
+        "description": "Konfigurieren Sie Ihr Thermostat. Sobald alle erforderlichen Parameter eingegeben sind, kann die Konfiguration abgeschlossen werden.\n\n{missing_summary}",
         "menu_options": {
           "main": "Wichtigste Eigenschaften",
           "central_boiler": "Zentralheizung",
@@ -38,7 +38,7 @@
           "auto_tpi_avg_settings": "Auto TPI - Durchschnitt",
           "auto_tpi_ema_settings": "Auto TPI - EMA",
           "finalize": "Alles erledigt",
-          "configuration_not_complete": "Konfiguration unvollständig"
+          "configuration_not_complete": "Konfiguration unvollständig ({missing_count})"
         }
       },
       "lock": {
@@ -399,6 +399,37 @@
           "temperature_change_tolerance": "Minimale Temperaturänderung in Grad, die als aussagekräftig angesehen wird. Kleinere Änderungen werden ignoriert, um Störsignale der Sensoren herauszufiltern (Standardwert: 0,5 °C).",
           "failure_detection_enable_template": "Ein optionales Jinja2-Template, das 'True' zurückgeben muss, um die Erkennung zu aktivieren. Nützlich, um die Erkennung vorübergehend zu deaktivieren, wenn eine externe Wärmequelle aktiv ist (z. B. `is_state('binary_sensor.holzofen', 'off')` zwischen doppelten geschweiften Klammern). Wenn leer, ist die Erkennung immer aktiv."
         }
+      },
+      "configuration_not_complete": {
+        "title": "Konfiguration unvollständig",
+        "description": "Die folgenden Einstellungen fehlen noch:\n{missing_items}\n\nWählen Sie einen Eintrag, um den Bildschirm zur Korrektur zu öffnen.",
+        "menu_options": {
+          "main": "Wichtigste Eigenschaften",
+          "type": "Basiswerte",
+          "tpi": "TPI-Parameter (Time Proportional Integral)",
+          "presets": "Temperaturvoreinstellungen",
+          "power": "Powermanagement",
+          "motion": "Bewegungserkennung",
+          "presence": "Anwesenheitserkennung",
+          "advanced": "Erweiterte Einstellungen",
+          "central_boiler": "Zentralheizung",
+          "valve_regulation": "Konfiguration Ventilsteuerung",
+          "sync_device_internal_temp": "Synchronisierung der Gerätetemperatur",
+          "menu": "Zurück zum Menü"
+        },
+        "menu_option_descriptions": {
+          "main": "Diesen Bildschirm öffnen, um die fehlenden Einstellungen auszufüllen",
+          "type": "Diesen Bildschirm öffnen, um die fehlenden Einstellungen auszufüllen",
+          "tpi": "Diesen Bildschirm öffnen, um die fehlenden Einstellungen auszufüllen",
+          "presets": "Diesen Bildschirm öffnen, um die fehlenden Einstellungen auszufüllen",
+          "power": "Diesen Bildschirm öffnen, um die fehlenden Einstellungen auszufüllen",
+          "motion": "Diesen Bildschirm öffnen, um die fehlenden Einstellungen auszufüllen",
+          "presence": "Diesen Bildschirm öffnen, um die fehlenden Einstellungen auszufüllen",
+          "advanced": "Diesen Bildschirm öffnen, um die fehlenden Einstellungen auszufüllen",
+          "central_boiler": "Diesen Bildschirm öffnen, um die fehlenden Einstellungen auszufüllen",
+          "valve_regulation": "Diesen Bildschirm öffnen, um die fehlenden Einstellungen auszufüllen",
+          "sync_device_internal_temp": "Diesen Bildschirm öffnen, um die fehlenden Einstellungen auszufüllen"
+        }
       }
     },
     "error": {
@@ -413,7 +444,8 @@
       "max_opening_degrees_format": "Es wird eine Liste positiver Ganzzahlen zwischen 0 und der maximalen Ventilöffnung erwartet, die durch Kommas getrennt sind. Beispiel: 80, 85, 90",
       "min_max_opening_degrees_inconsistent": "Für jedes zugeordnete Gerät muss max_opening_degrees absolut größer als min_opening_degrees sein. Bitte die Konfiguration überprüfen.",
       "valve_control_parameters_cardinality_incorrect": "Die Listen der minimalen und maximalen Öffnungsgrade dürfen nicht mehr Werte enthalten als Ventile konfiguriert sind",
-      "vswitch_configuration_incorrect": "Die Konfiguration der Befehlsanpassung ist falsch. Sie ist für nicht umschaltbare Basiswerte erforderlich und muss das Format 'service_name[/attribut:wert]' haben. Weitere Informationen in der README-Datei."
+      "vswitch_configuration_incorrect": "Die Konfiguration der Befehlsanpassung ist falsch. Sie ist für nicht umschaltbare Basiswerte erforderlich und muss das Format 'service_name[/attribut:wert]' haben. Weitere Informationen in der README-Datei.",
+      "missing_settings_summary": "{count} Einstellung(en) zu vervollständigen"
     },
     "abort": {
       "already_configured": "Gerät ist bereits konfiguriert"
@@ -434,7 +466,7 @@
       },
       "menu": {
         "title": "Menü",
-        "description": "Konfiguration des Thermostats. Wenn alle erforderlichen Parameter eingegeben sind, kann die Konfiguration abgeschlossen werden.",
+        "description": "Konfiguration des Thermostats. Wenn alle erforderlichen Parameter eingegeben sind, kann die Konfiguration abgeschlossen werden.\n\n{missing_summary}",
         "menu_options": {
           "main": "Grundlegendes (Name, Temperatursensor...)",
           "central_boiler": "Zentralheizung",
@@ -454,7 +486,7 @@
           "lock": "Sperrenverwaltung",
           "heating_failure_detection": "Heizungsausfallerkennung",
           "finalize": "Abschliessen",
-          "configuration_not_complete": "Konfiguration unvollständig"
+          "configuration_not_complete": "Konfiguration unvollständig ({missing_count})"
         }
       },
       "lock": {
@@ -815,6 +847,37 @@
           "temperature_change_tolerance": "Minimale Temperaturänderung in Grad, die als aussagekräftig angesehen wird. Kleinere Änderungen werden ignoriert, um Störsignale der Sensoren herauszufiltern (Standardwert: 0,5 °C).",
           "failure_detection_enable_template": "Ein optionales Jinja2-Template, das 'True' zurückgeben muss, um die Erkennung zu aktivieren. Nützlich, um die Erkennung vorübergehend zu deaktivieren, wenn eine externe Wärmequelle aktiv ist (z. B. `is_state('binary_sensor.holzofen', 'off')` zwischen doppelten geschweiften Klammern). Wenn leer, ist die Erkennung immer aktiv."
         }
+      },
+      "configuration_not_complete": {
+        "title": "Konfiguration unvollständig - {name}",
+        "description": "Die folgenden Einstellungen fehlen noch:\n{missing_items}\n\nWählen Sie einen Eintrag, um den Bildschirm zur Korrektur zu öffnen.",
+        "menu_options": {
+          "main": "Grundlegendes (Name, Temperatursensor...)",
+          "type": "Gerätezuordnung",
+          "tpi": "TPI-Parameter",
+          "presets": "Temperaturvoreinstellungen",
+          "power": "Powermanagement",
+          "motion": "Bewegungserkennung",
+          "presence": "Anwesenheitserkennung",
+          "advanced": "Erweiterte Einstellungen",
+          "central_boiler": "Zentralheizung",
+          "valve_regulation": "Ventilsteuerung",
+          "sync_device_internal_temp": "Synchronisierung der Gerätetemperatur",
+          "menu": "Zurück zum Menü"
+        },
+        "menu_option_descriptions": {
+          "main": "Diesen Bildschirm öffnen, um die fehlenden Einstellungen auszufüllen",
+          "type": "Diesen Bildschirm öffnen, um die fehlenden Einstellungen auszufüllen",
+          "tpi": "Diesen Bildschirm öffnen, um die fehlenden Einstellungen auszufüllen",
+          "presets": "Diesen Bildschirm öffnen, um die fehlenden Einstellungen auszufüllen",
+          "power": "Diesen Bildschirm öffnen, um die fehlenden Einstellungen auszufüllen",
+          "motion": "Diesen Bildschirm öffnen, um die fehlenden Einstellungen auszufüllen",
+          "presence": "Diesen Bildschirm öffnen, um die fehlenden Einstellungen auszufüllen",
+          "advanced": "Diesen Bildschirm öffnen, um die fehlenden Einstellungen auszufüllen",
+          "central_boiler": "Diesen Bildschirm öffnen, um die fehlenden Einstellungen auszufüllen",
+          "valve_regulation": "Diesen Bildschirm öffnen, um die fehlenden Einstellungen auszufüllen",
+          "sync_device_internal_temp": "Diesen Bildschirm öffnen, um die fehlenden Einstellungen auszufüllen"
+        }
       }
     },
     "error": {
@@ -829,7 +892,8 @@
       "max_opening_degrees_format": "Es wird eine Liste positiver Ganzzahlen zwischen 0 und der maximalen Ventilöffnung erwartet, die durch Kommas getrennt sind. Beispiel: 80, 85, 90",
       "min_max_opening_degrees_inconsistent": "Für jedes zugeordnete Gerät muss max_opening_degrees absolut größer als min_opening_degrees sein. Bitte die Konfiguration überprüfen.",
       "valve_control_parameters_cardinality_incorrect": "Die Listen der minimalen und maximalen Öffnungsgrade dürfen nicht mehr Werte enthalten als Ventile konfiguriert sind",
-      "vswitch_configuration_incorrect": "Die Konfiguration der Befehlsanpassung ist falsch. Sie ist für nicht umschaltbare Basiswerte erforderlich und muss das Format 'service_name[/attribut:wert]' haben. Weitere Informationen dazu in der README-Datei."
+      "vswitch_configuration_incorrect": "Die Konfiguration der Befehlsanpassung ist falsch. Sie ist für nicht umschaltbare Basiswerte erforderlich und muss das Format 'service_name[/attribut:wert]' haben. Weitere Informationen dazu in der README-Datei.",
+      "missing_settings_summary": "{count} Einstellung(en) zu vervollständigen"
     },
     "abort": {
       "already_configured": "Das Gerät ist bereits konfiguriert"

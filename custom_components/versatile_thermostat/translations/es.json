@@ -15,7 +15,7 @@
       },
       "menu": {
         "title": "Menú",
-        "description": "Configura tu termostato. Podrás finalizar la configuración cuando hayas introducido todos los parámetros obligatorios.",
+        "description": "Configura tu termostato. Podrás finalizar la configuración cuando hayas introducido todos los parámetros obligatorios.\n\n{missing_summary}",
         "menu_options": {
           "main": "Atributos principales",
           "central_boiler": "Caldera central",
@@ -38,7 +38,7 @@
           "auto_tpi_avg_settings": "Auto TPI - Media ponderada",
           "auto_tpi_ema_settings": "Auto TPI - Media móvil exponencial (EWMA)",
           "finalize": "Todo listo",
-          "configuration_not_complete": "Configuración incompleta"
+          "configuration_not_complete": "Configuración incompleta ({missing_count})"
         }
       },
       "lock": {
@@ -399,6 +399,37 @@
           "temperature_change_tolerance": "Variación mínima de temperatura, en grados, que se considera significativa. Se ignoran los cambios menores para filtrar el ruido del sensor (valor predeterminado: 0,5 °C).",
           "failure_detection_enable_template": "Plantilla Jinja2 opcional que debe devolver `True` para habilitar la detección. Permite desactivarla temporalmente cuando hay una fuente de calor externa activa (p. ej., `is_state('binary_sensor.wood_stove', 'off')` entre dos pares de llaves). Si se deja vacía, la detección siempre está habilitada."
         }
+      },
+      "configuration_not_complete": {
+        "title": "Configuración incompleta",
+        "description": "Aún faltan los siguientes ajustes:\n{missing_items}\n\nElija un elemento para abrir la pantalla que permite corregirlo.",
+        "menu_options": {
+          "main": "Atributos principales",
+          "type": "Dispositivos controlados",
+          "tpi": "Parámetros TPI",
+          "presets": "Preajustes",
+          "power": "Gestión de potencia",
+          "motion": "Detección de movimiento",
+          "presence": "Detección de presencia",
+          "advanced": "Parámetros avanzados",
+          "central_boiler": "Caldera central",
+          "valve_regulation": "Configuración de la regulación de válvulas",
+          "sync_device_internal_temp": "Sincronizar la temperatura del dispositivo",
+          "menu": "Volver al menú"
+        },
+        "menu_option_descriptions": {
+          "main": "Abrir esta pantalla para completar los ajustes que faltan",
+          "type": "Abrir esta pantalla para completar los ajustes que faltan",
+          "tpi": "Abrir esta pantalla para completar los ajustes que faltan",
+          "presets": "Abrir esta pantalla para completar los ajustes que faltan",
+          "power": "Abrir esta pantalla para completar los ajustes que faltan",
+          "motion": "Abrir esta pantalla para completar los ajustes que faltan",
+          "presence": "Abrir esta pantalla para completar los ajustes que faltan",
+          "advanced": "Abrir esta pantalla para completar los ajustes que faltan",
+          "central_boiler": "Abrir esta pantalla para completar los ajustes que faltan",
+          "valve_regulation": "Abrir esta pantalla para completar los ajustes que faltan",
+          "sync_device_internal_temp": "Abrir esta pantalla para completar los ajustes que faltan"
+        }
       }
     },
     "error": {
@@ -413,7 +444,8 @@
       "max_opening_degrees_format": "Se espera una lista de números enteros positivos entre 0 y la apertura máxima de la válvula, separados por comas. Ejemplo: 80, 85, 90.",
       "min_max_opening_degrees_inconsistent": "Para cada dispositivo controlado, `max_opening_degrees` debe ser estrictamente mayor que `min_opening_degrees`. Revisa la configuración.",
       "valve_control_parameters_cardinality_incorrect": "Las listas de grados mínimos y máximos de apertura no pueden contener más valores que el número de válvulas configuradas",
-      "vswitch_configuration_incorrect": "La personalización de órdenes es incorrecta. Es obligatoria para entidades controladas que no sean interruptores, y debe seguir el formato `service_name[/attribute:value]`. Encontrarás más información en el README."
+      "vswitch_configuration_incorrect": "La personalización de órdenes es incorrecta. Es obligatoria para entidades controladas que no sean interruptores, y debe seguir el formato `service_name[/attribute:value]`. Encontrarás más información en el README.",
+      "missing_settings_summary": "{count} ajuste(s) por completar"
     },
     "abort": {
       "already_configured": "El dispositivo ya está configurado"
@@ -434,7 +466,7 @@
       },
       "menu": {
         "title": "Menú",
-        "description": "Configura tu termostato. Podrás finalizar la configuración cuando hayas introducido todos los parámetros obligatorios.",
+        "description": "Configura tu termostato. Podrás finalizar la configuración cuando hayas introducido todos los parámetros obligatorios.\n\n{missing_summary}",
         "menu_options": {
           "main": "Atributos principales",
           "central_boiler": "Caldera central",
@@ -454,7 +486,7 @@
           "lock": "Bloqueo",
           "heating_failure_detection": "Detección de fallos de calefacción",
           "finalize": "Todo listo",
-          "configuration_not_complete": "Configuración incompleta"
+          "configuration_not_complete": "Configuración incompleta ({missing_count})"
         }
       },
       "lock": {
@@ -815,6 +847,37 @@
           "temperature_change_tolerance": "Variación mínima de temperatura, en grados, que se considera significativa. Se ignoran los cambios menores para filtrar el ruido del sensor (valor predeterminado: 0,5 °C).",
           "failure_detection_enable_template": "Plantilla Jinja2 opcional que debe devolver `True` para habilitar la detección. Permite desactivarla temporalmente cuando hay una fuente de calor externa activa (p. ej., `is_state('binary_sensor.wood_stove', 'off')` entre dos pares de llaves). Si se deja vacía, la detección siempre está habilitada."
         }
+      },
+      "configuration_not_complete": {
+        "title": "Configuración incompleta - {name}",
+        "description": "Aún faltan los siguientes ajustes:\n{missing_items}\n\nElija un elemento para abrir la pantalla que permite corregirlo.",
+        "menu_options": {
+          "main": "Atributos principales",
+          "type": "Dispositivos controlados",
+          "tpi": "Parámetros TPI",
+          "presets": "Preajustes",
+          "power": "Gestión de potencia",
+          "motion": "Detección de movimiento",
+          "presence": "Detección de presencia",
+          "advanced": "Parámetros avanzados",
+          "central_boiler": "Caldera central",
+          "valve_regulation": "Configuración de la regulación de válvulas",
+          "sync_device_internal_temp": "Sincronizar la temperatura del dispositivo",
+          "menu": "Volver al menú"
+        },
+        "menu_option_descriptions": {
+          "main": "Abrir esta pantalla para completar los ajustes que faltan",
+          "type": "Abrir esta pantalla para completar los ajustes que faltan",
+          "tpi": "Abrir esta pantalla para completar los ajustes que faltan",
+          "presets": "Abrir esta pantalla para completar los ajustes que faltan",
+          "power": "Abrir esta pantalla para completar los ajustes que faltan",
+          "motion": "Abrir esta pantalla para completar los ajustes que faltan",
+          "presence": "Abrir esta pantalla para completar los ajustes que faltan",
+          "advanced": "Abrir esta pantalla para completar los ajustes que faltan",
+          "central_boiler": "Abrir esta pantalla para completar los ajustes que faltan",
+          "valve_regulation": "Abrir esta pantalla para completar los ajustes que faltan",
+          "sync_device_internal_temp": "Abrir esta pantalla para completar los ajustes que faltan"
+        }
       }
     },
     "error": {
@@ -829,7 +892,8 @@
       "max_opening_degrees_format": "Se espera una lista de números enteros positivos entre 0 y el valor máximo de la válvula, separados por comas. Ejemplo: 80, 85, 90.",
       "min_max_opening_degrees_inconsistent": "Para cada dispositivo controlado, `max_opening_degrees` debe ser estrictamente mayor que `min_opening_degrees`. Revisa la configuración.",
       "valve_control_parameters_cardinality_incorrect": "Las listas de grados mínimos y máximos de apertura no pueden contener más valores que el número de válvulas configuradas",
-      "vswitch_configuration_incorrect": "La personalización de órdenes es incorrecta. Es obligatoria para entidades controladas que no sean interruptores, y debe seguir el formato `service_name[/attribute:value]`. Encontrarás más información en el README."
+      "vswitch_configuration_incorrect": "La personalización de órdenes es incorrecta. Es obligatoria para entidades controladas que no sean interruptores, y debe seguir el formato `service_name[/attribute:value]`. Encontrarás más información en el README.",
+      "missing_settings_summary": "{count} ajuste(s) por completar"
     },
     "abort": {
       "already_configured": "El dispositivo ya está configurado"

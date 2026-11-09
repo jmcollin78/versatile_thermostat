@@ -3,6 +3,7 @@
 """Config flow for Versatile Thermostat integration."""
 from __future__ import annotations
 
+from dataclasses import dataclass, field
 from typing import Any
 import re
 from vtherm_api.log_collector import get_vtherm_logger
@@ -21,6 +22,7 @@ from homeassistant.const import UnitOfTemperature
 from homeassistant.data_entry_flow import FlowHandler, FlowResult
 from homeassistant.exceptions import TemplateError
 from homeassistant.helpers.template import Template
+from homeassistant.helpers.translation import async_get_translations
 
 from .const import *  # pylint: disable=wildcard-import, unused-wildcard-import
 from .config_schema import *  # pylint: disable=wildcard-import, unused-wildcard-import
@@ -33,6 +35,16 @@ PLUGINS_LINK_PLACEHOLDER = "plugins_link"
 PLUGINS_LINK = "[plugins](https://www.versatile-thermostat.org/en/plugins/)"
 
 _LOGGER = get_vtherm_logger(__name__)
+
+
+@dataclass
+class MissingItem:
+    """A missing mandatory setting: the step to open to fix it and the fields involved"""
+
+    step_id: str
+    fields: list[str] = field(default_factory=list)
+    device: str | None = None
+
 
 def add_suggested_values_to_schema(
     data_schema: vol.Schema, suggested_values: Mapping[str, Any]
@@ -60,6 +72,7 @@ class VersatileThermostatBaseConfigFlow(FlowHandler):
 
     VERSION = CONFIG_VERSION
     MINOR_VERSION = CONFIG_MINOR_VERSION
+    TRANSLATION_CATEGORY = "config"
 
     def __init__(self, infos) -> None:
         super().__init__()
@@ -411,99 +424,124 @@ class VersatileThermostatBaseConfigFlow(FlowHandler):
             return True
         return False
 
-    def check_config_complete(self, infos) -> bool:
-        """True if the config is now complete (ie all mandatory attributes are set)"""
-        is_central_config = (
-            infos.get(CONF_THERMOSTAT_TYPE) == CONF_THERMOSTAT_CENTRAL_CONFIG
-        )
+    def get_missing_config(self, infos) -> list[MissingItem]:
+        """Return the missing mandatory settings (an empty list means that the config is complete).
+        Each item gives the step to open to fix it and the fields involved"""
+        missing: list[MissingItem] = []
+
+        is_central_config = infos.get(CONF_THERMOSTAT_TYPE) == CONF_THERMOSTAT_CENTRAL_CONFIG
         if is_central_config:
-            if (
-                infos.get(CONF_NAME) is None
-                or infos.get(CONF_EXTERNAL_TEMP_SENSOR) is None
-            ):
-                return False
+            main_fields = [conf for conf in (CONF_NAME, CONF_EXTERNAL_TEMP_SENSOR) if infos.get(conf) is None]
+            if main_fields:
+                missing.append(MissingItem("main", main_fields))
 
-            if infos.get(CONF_USE_POWER_FEATURE, False) is True and (
-                infos.get(CONF_POWER_SENSOR, None) is None
-                or infos.get(CONF_MAX_POWER_SENSOR, None) is None
-            ):
-                return False
+            if infos.get(CONF_USE_POWER_FEATURE, False) is True:
+                power_fields = [conf for conf in (CONF_POWER_SENSOR, CONF_MAX_POWER_SENSOR) if infos.get(conf, None) is None]
+                if power_fields:
+                    missing.append(MissingItem("power", power_fields))
 
-            if (
-                infos.get(CONF_USE_PRESENCE_FEATURE, False) is True
-                and infos.get(CONF_PRESENCE_SENSOR, None) is None
-            ):
-                return False
+            if infos.get(CONF_USE_PRESENCE_FEATURE, False) is True and infos.get(CONF_PRESENCE_SENSOR, None) is None:
+                missing.append(MissingItem("presence", [CONF_PRESENCE_SENSOR]))
 
-            if self._infos[CONF_USE_CENTRAL_BOILER_FEATURE] and (
-                not self._infos.get(CONF_CENTRAL_BOILER_ACTIVATION_SRV, False)
-                or len(self._infos.get(CONF_CENTRAL_BOILER_ACTIVATION_SRV)) <= 0
-                or not self._infos.get(CONF_CENTRAL_BOILER_DEACTIVATION_SRV, False)
-                or len(self._infos.get(CONF_CENTRAL_BOILER_DEACTIVATION_SRV)) <= 0
-            ):
-                return False
+            if infos.get(CONF_USE_CENTRAL_BOILER_FEATURE, False):
+                boiler_fields = [conf for conf in (CONF_CENTRAL_BOILER_ACTIVATION_SRV, CONF_CENTRAL_BOILER_DEACTIVATION_SRV) if not infos.get(conf)]
+                if boiler_fields:
+                    missing.append(MissingItem("central_boiler", boiler_fields))
         else:
-            if (
-                infos.get(CONF_NAME) is None
-                or infos.get(CONF_TEMP_SENSOR) is None
-                or infos.get(CONF_CYCLE_MIN) is None
-            ):
-                return False
-
-            if (
-                infos.get(CONF_USE_MAIN_CENTRAL_CONFIG, False) is False
-                and infos.get(CONF_EXTERNAL_TEMP_SENSOR) is None
-            ):
-                return False
+            main_fields = [conf for conf in (CONF_NAME, CONF_TEMP_SENSOR, CONF_CYCLE_MIN) if infos.get(conf) is None]
+            if infos.get(CONF_USE_MAIN_CENTRAL_CONFIG, False) is False and infos.get(CONF_EXTERNAL_TEMP_SENSOR) is None:
+                main_fields.append(CONF_EXTERNAL_TEMP_SENSOR)
+            if main_fields:
+                missing.append(MissingItem("main", main_fields))
 
             # checks that at least one underlying is set but not it central configuration
-            if len(infos.get(CONF_UNDERLYING_LIST, [])) < 1:
-                return False
+            nb_unders = len(infos.get(CONF_UNDERLYING_LIST, []))
+            if nb_unders < 1:
+                missing.append(MissingItem("type", [CONF_UNDERLYING_LIST]))
 
-            if (
-                infos.get(CONF_USE_MOTION_FEATURE, False) is True
-                and infos.get(CONF_MOTION_SENSOR, None) is None
-            ):
-                return False
+            if infos.get(CONF_USE_MOTION_FEATURE, False) is True and infos.get(CONF_MOTION_SENSOR, None) is None:
+                missing.append(MissingItem("motion", [CONF_MOTION_SENSOR]))
 
             if infos.get(CONF_USE_POWER_FEATURE, False) is True and infos.get(CONF_USE_POWER_CENTRAL_CONFIG, False) is False and infos.get(CONF_PRESET_POWER, None) is None:
-                return False
+                missing.append(MissingItem("power", [CONF_PRESET_POWER]))
 
             if (
                 infos.get(CONF_USE_PRESENCE_FEATURE, False) is True
                 and infos.get(CONF_USE_PRESENCE_CENTRAL_CONFIG, False) is False
                 and infos.get(CONF_PRESENCE_SENSOR, None) is None
             ):
-                return False
+                missing.append(MissingItem("presence", [CONF_PRESENCE_SENSOR]))
 
-            if infos.get(CONF_USE_ADVANCED_CENTRAL_CONFIG, False) is False and (
-                infos.get(CONF_SAFETY_DELAY_MIN, -1) == -1 or infos.get(CONF_SAFETY_MIN_ON_PERCENT, -1) == -1 or infos.get(CONF_SAFETY_DEFAULT_ON_PERCENT, -1) == -1
-            ):
-                return False
+            if infos.get(CONF_USE_ADVANCED_CENTRAL_CONFIG, False) is False:
+                advanced_fields = [conf for conf in (CONF_SAFETY_DELAY_MIN, CONF_SAFETY_MIN_ON_PERCENT, CONF_SAFETY_DEFAULT_ON_PERCENT) if infos.get(conf, -1) in (-1, None)]
+                if advanced_fields:
+                    missing.append(MissingItem("advanced", advanced_fields))
 
-            if (
-                infos.get(CONF_PROP_FUNCTION, None) == PROPORTIONAL_FUNCTION_TPI
-                and infos.get(CONF_USE_TPI_CENTRAL_CONFIG, False) is False
-                and (
-                    infos.get(CONF_TPI_COEF_INT, None) is None
-                    or infos.get(CONF_TPI_COEF_EXT) is None
-                )
-            ):
-                return False
+            if infos.get(CONF_PROP_FUNCTION, None) == PROPORTIONAL_FUNCTION_TPI and infos.get(CONF_USE_TPI_CENTRAL_CONFIG, False) is False:
+                tpi_fields = [conf for conf in (CONF_TPI_COEF_INT, CONF_TPI_COEF_EXT) if infos.get(conf, None) is None]
+                if tpi_fields:
+                    missing.append(MissingItem("tpi", tpi_fields))
 
-            if (
-                infos.get(CONF_USE_PRESETS_CENTRAL_CONFIG, False) is True
-                and self._central_config is None
-            ):
-                return False
+            if infos.get(CONF_USE_PRESETS_CENTRAL_CONFIG, False) is True and self._central_config is None:
+                missing.append(MissingItem("presets", [CONF_USE_PRESETS_CENTRAL_CONFIG]))
 
-            if not self.check_valve_regulation_nb_entities(infos, "check_complete"):
-                return False
+            if self.is_valve_regulation_selected(infos):
+                nb_opening = len(infos.get(CONF_OPENING_DEGREE_LIST, []))
+                nb_closing = len(infos.get(CONF_CLOSING_DEGREE_LIST, []))
+                valve_fields = []
+                if nb_unders != nb_opening:
+                    valve_fields.append(CONF_OPENING_DEGREE_LIST)
+                if nb_unders != nb_closing and nb_closing > 0:
+                    valve_fields.append(CONF_CLOSING_DEGREE_LIST)
+                if valve_fields:
+                    missing.append(MissingItem("valve_regulation", valve_fields))
 
-            if not self.check_sync_device_internal_temp_nb_entities(infos, "check_complete"):
-                return False
+            if self.is_sync_device_internal_temp_selected(infos) and nb_unders != len(infos.get(CONF_SYNC_ENTITY_LIST, [])):
+                missing.append(MissingItem("sync_device_internal_temp", [CONF_SYNC_ENTITY_LIST]))
 
-        return True
+        return missing
+
+    def check_config_complete(self, infos) -> bool:
+        """True if the config is now complete (ie all mandatory attributes are set)"""
+        return not self.get_missing_config(infos)
+
+    async def _async_get_translations(self) -> dict[str, str]:
+        """Return the translations of this flow (config or options category) in the language of the server"""
+        try:
+            return await async_get_translations(self.hass, self.hass.config.language, self.TRANSLATION_CATEGORY, [DOMAIN])
+        except Exception:  # pylint: disable=broad-except
+            _LOGGER.debug("Unable to load the translations of the flow", exc_info=True)
+            return {}
+
+    def _get_field_label(self, translations: dict[str, str], step_id: str, conf: str) -> str:
+        """Return the translated label of a field. Falls back on the label of the same field in another step then on the field name"""
+        prefix = f"component.{DOMAIN}.{self.TRANSLATION_CATEGORY}.step."
+        label = translations.get(f"{prefix}{step_id}.data.{conf}")
+        if label is None:
+            suffix = f".data.{conf}"
+            label = next((value for key, value in translations.items() if key.startswith(prefix) and key.endswith(suffix)), conf)
+        return label
+
+    async def _async_missing_config_to_text(self, missing: list[MissingItem]) -> str:
+        """Build the bulleted list (markdown) of the missing items from the translated labels"""
+        translations = await self._async_get_translations()
+        prefix = f"component.{DOMAIN}.{self.TRANSLATION_CATEGORY}.step."
+        lines = []
+        for item in missing:
+            step_label = translations.get(f"{prefix}menu.menu_options.{item.step_id}", item.step_id)
+            labels = ", ".join(self._get_field_label(translations, item.step_id, conf) for conf in item.fields)
+            if item.device:
+                labels = f"{item.device} - {labels}"
+            lines.append(f"- **{step_label}**: {labels}")
+        return "\n".join(lines)
+
+    async def _async_missing_config_summary(self, missing: list[MissingItem]) -> str:
+        """Build the sentence summarizing the number of settings to complete. Empty if the configuration is complete"""
+        if not missing:
+            return ""
+        translations = await self._async_get_translations()
+        template = translations.get(f"component.{DOMAIN}.{self.TRANSLATION_CATEGORY}.error.missing_settings_summary", "{count} setting(s) to complete")
+        return template.replace("{count}", str(len(missing)))
 
     def merge_user_input(self, data_schema: vol.Schema, user_input: dict):
         """For each schema entry not in user_input, set or remove values in infos"""
@@ -611,8 +649,23 @@ class VersatileThermostatBaseConfigFlow(FlowHandler):
     async def async_step_configuration_not_complete(
         self, user_input: dict | None = None
     ) -> FlowResult:
-        """A fake step to handle the incomplete configuration flow"""
-        return await self.async_step_menu(user_input)
+        """List the missing settings and propose the steps to fix them"""
+        _LOGGER.debug("Into ConfigFlow.async_step_configuration_not_complete user_input=%s", user_input)
+
+        missing = self.get_missing_config(self._infos)
+        if not missing:
+            return await self.async_step_menu()
+
+        # one menu option per step to fix (without duplicates)
+        menu_options = list(dict.fromkeys(item.step_id for item in missing))
+        menu_options.append("menu")
+
+        placeholders = self._placeholders | {"missing_items": await self._async_missing_config_to_text(missing)}
+        return self.async_show_menu(
+            step_id="configuration_not_complete",
+            menu_options=menu_options,
+            description_placeholders=placeholders,
+        )
 
     async def async_step_menu(self, user_input: dict | None = None) -> FlowResult:
         """Handle the flow steps"""
@@ -678,16 +731,21 @@ class VersatileThermostatBaseConfigFlow(FlowHandler):
         if self._infos.get(CONF_USE_HEATING_FAILURE_DETECTION_FEATURE, False) is True:
             menu_options.append("heating_failure_detection")
 
-        if self.check_config_complete(self._infos):
+        missing = self.get_missing_config(self._infos)
+        if not missing:
             menu_options.append("finalize")
         else:
-            _LOGGER.info("The configuration is not terminated")
+            _LOGGER.info("The configuration is not terminated. Missing: %s", missing)
             menu_options.append("configuration_not_complete")
 
+        placeholders = self._placeholders | {
+            "missing_count": str(len(missing)),
+            "missing_summary": await self._async_missing_config_summary(missing),
+        }
         return self.async_show_menu(
             step_id="menu",
             menu_options=menu_options,
-            description_placeholders=self._placeholders,
+            description_placeholders=placeholders,
         )
 
     async def async_step_main(self, user_input: dict | None = None) -> FlowResult:
@@ -1357,6 +1415,8 @@ class VersatileThermostatOptionsFlowHandler(
     VersatileThermostatBaseConfigFlow, OptionsFlow
 ):
     """Handle options flow for Versatile Thermostat integration."""
+
+    TRANSLATION_CATEGORY = "options"
 
     def __init__(self, config_entry: ConfigEntry) -> None:
         """Initialize options flow."""

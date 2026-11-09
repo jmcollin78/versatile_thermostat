@@ -15,7 +15,7 @@
       },
       "menu": {
         "title": "Menu",
-        "description": "Skonfiguruj termostat. Konfiguracja zostanie zakończona po wprowadzeniu wszystkich wymaganych parametrów.",
+        "description": "Skonfiguruj termostat. Konfiguracja zostanie zakończona po wprowadzeniu wszystkich wymaganych parametrów.\n\n{missing_summary}",
         "menu_options": {
           "main": "Arybuty podstawowe",
           "central_boiler": "Kocioł centralny",
@@ -34,7 +34,7 @@
           "humidity": "Wilgotność",
           "lock": "Zarządzanie blokadą",
           "finalize": "Wszystko zrobione",
-          "configuration_not_complete": "Konfiguracja niekompletna",
+          "configuration_not_complete": "Konfiguracja niekompletna ({missing_count})",
           "heating_failure_detection": "Wykrywanie awarii ogrzewania"
         }
       },
@@ -356,6 +356,37 @@
           "temperature_change_tolerance": "Minimalna zmiana temperatury w stopniach uznawana za znaczącą. Mniejsze zmiany są ignorowane w celu filtrowania szumu czujnika (domyślnie: 0.5°C)",
           "failure_detection_enable_template": "Opcjonalny szablon Jinja2, który musi zwrócić True, aby włączyć wykrywanie. Przydatne do tymczasowego wyłączenia wykrywania, gdy zewnętrzne źródło ciepła jest aktywne (np. `is_state('binary_sensor.piec_na_drewno', 'off')` w podwójnych nawiasach klamrowych). Jeśli pusty, wykrywanie jest zawsze włączone."
         }
+      },
+      "configuration_not_complete": {
+        "title": "Konfiguracja niekompletna",
+        "description": "Nadal brakuje następujących ustawień:\n{missing_items}\n\nWybierz pozycję, aby otworzyć ekran, na którym można ją poprawić.",
+        "menu_options": {
+          "main": "Arybuty podstawowe",
+          "type": "Urządzenia",
+          "tpi": "Parametry TPI",
+          "presets": "Preset",
+          "power": "Zarządzanie energią",
+          "motion": "Detekcja ruchu",
+          "presence": "Detekcja obecności",
+          "advanced": "Parametry zaawansowane",
+          "central_boiler": "Kocioł centralny",
+          "valve_regulation": "Konfiguracja regulacji zaworu",
+          "sync_device_internal_temp": "Synchronizacja temperatury urządzenia",
+          "menu": "Powrót do menu"
+        },
+        "menu_option_descriptions": {
+          "main": "Otwórz ten ekran, aby uzupełnić brakujące ustawienia",
+          "type": "Otwórz ten ekran, aby uzupełnić brakujące ustawienia",
+          "tpi": "Otwórz ten ekran, aby uzupełnić brakujące ustawienia",
+          "presets": "Otwórz ten ekran, aby uzupełnić brakujące ustawienia",
+          "power": "Otwórz ten ekran, aby uzupełnić brakujące ustawienia",
+          "motion": "Otwórz ten ekran, aby uzupełnić brakujące ustawienia",
+          "presence": "Otwórz ten ekran, aby uzupełnić brakujące ustawienia",
+          "advanced": "Otwórz ten ekran, aby uzupełnić brakujące ustawienia",
+          "central_boiler": "Otwórz ten ekran, aby uzupełnić brakujące ustawienia",
+          "valve_regulation": "Otwórz ten ekran, aby uzupełnić brakujące ustawienia",
+          "sync_device_internal_temp": "Otwórz ten ekran, aby uzupełnić brakujące ustawienia"
+        }
       }
     },
     "error": {
@@ -370,7 +401,8 @@
       "max_opening_degrees_format": "Oczekiwana jest lista dodatnich liczb całkowitych między 0 a 100 oddzielonych przecinkami. Przykład: 80, 85, 90",
       "min_max_opening_degrees_inconsistent": "Dla każdego urządzenia bazowego max_opening_degrees musi być ściśle większy niż min_opening_degrees. Sprawdź swoją konfigurację.",
       "valve_control_parameters_cardinality_incorrect": "Listy minimalnych i maksymalnych stopni otwarcia nie mogą zawierać więcej wartości niż skonfigurowane zawory",
-      "vswitch_configuration_incorrect": "Błąd konfiguracji poleceń własnych. Wymagane są one dla urządzeń nie będących przełącznikami. Ich format musi być następujący: `service_name[/attribute:value]`. Więcej informacji znajdziesz w dokumentacji"
+      "vswitch_configuration_incorrect": "Błąd konfiguracji poleceń własnych. Wymagane są one dla urządzeń nie będących przełącznikami. Ich format musi być następujący: `service_name[/attribute:value]`. Więcej informacji znajdziesz w dokumentacji",
+      "missing_settings_summary": "Ustawienia do uzupełnienia: {count}"
     },
     "abort": {
       "already_configured": "Urządzenie jest już skonfigurowane"
@@ -391,7 +423,7 @@
       },
       "menu": {
         "title": "Menu",
-        "description": "Skonfiguruj termostat. Dokończysz konfigurację, gdy wszystkie wymagane parametry zostaną wprowadzone.",
+        "description": "Skonfiguruj termostat. Dokończysz konfigurację, gdy wszystkie wymagane parametry zostaną wprowadzone.\n\n{missing_summary}",
         "menu_options": {
           "main": "Arybuty podstawowe",
           "central_boiler": "Kocioł centralny",
@@ -413,7 +445,7 @@
           "auto_tpi_avg_settings": "Auto TPI - Średnia",
           "auto_tpi_ema_settings": "Auto TPI - EMA",
           "finalize": "Wszystko zrobione",
-          "configuration_not_complete": "Konfiguracja niekompletna",
+          "configuration_not_complete": "Konfiguracja niekompletna ({missing_count})",
           "heating_failure_detection": "Wykrywanie awarii ogrzewania"
         }
       },
@@ -762,6 +794,37 @@
           "temperature_change_tolerance": "Minimalna zmiana temperatury w stopniach uznawana za znaczącą. Mniejsze zmiany są ignorowane w celu filtrowania szumu czujnika (domyślnie: 0.5°C)",
           "failure_detection_enable_template": "Opcjonalny szablon Jinja2, który musi zwrócić True, aby włączyć wykrywanie. Przydatne do tymczasowego wyłączenia wykrywania, gdy zewnętrzne źródło ciepła jest aktywne (np. `is_state('binary_sensor.piec_na_drewno', 'off')` w podwójnych nawiasach klamrowych). Jeśli pusty, wykrywanie jest zawsze włączone."
         }
+      },
+      "configuration_not_complete": {
+        "title": "Konfiguracja niekompletna - {name}",
+        "description": "Nadal brakuje następujących ustawień:\n{missing_items}\n\nWybierz pozycję, aby otworzyć ekran, na którym można ją poprawić.",
+        "menu_options": {
+          "main": "Arybuty podstawowe",
+          "type": "Urządzenia",
+          "tpi": "Parametry TPI",
+          "presets": "Presety",
+          "power": "Zarządzanie energią",
+          "motion": "Detekcja ruchu",
+          "presence": "Detekcja obecności",
+          "advanced": "Parametry zaawansowane",
+          "central_boiler": "Kocioł centralny",
+          "valve_regulation": "Konfiguracja regulacji zaworu",
+          "sync_device_internal_temp": "Synchronizacja temperatury urządzenia",
+          "menu": "Powrót do menu"
+        },
+        "menu_option_descriptions": {
+          "main": "Otwórz ten ekran, aby uzupełnić brakujące ustawienia",
+          "type": "Otwórz ten ekran, aby uzupełnić brakujące ustawienia",
+          "tpi": "Otwórz ten ekran, aby uzupełnić brakujące ustawienia",
+          "presets": "Otwórz ten ekran, aby uzupełnić brakujące ustawienia",
+          "power": "Otwórz ten ekran, aby uzupełnić brakujące ustawienia",
+          "motion": "Otwórz ten ekran, aby uzupełnić brakujące ustawienia",
+          "presence": "Otwórz ten ekran, aby uzupełnić brakujące ustawienia",
+          "advanced": "Otwórz ten ekran, aby uzupełnić brakujące ustawienia",
+          "central_boiler": "Otwórz ten ekran, aby uzupełnić brakujące ustawienia",
+          "valve_regulation": "Otwórz ten ekran, aby uzupełnić brakujące ustawienia",
+          "sync_device_internal_temp": "Otwórz ten ekran, aby uzupełnić brakujące ustawienia"
+        }
       }
     },
     "error": {
@@ -775,7 +838,8 @@
       "max_opening_degrees_format": "Oczekiwana jest lista dodatnich liczb całkowitych między 0 a 100 oddzielonych przecinkami. Przykład: 80, 85, 90",
       "min_max_opening_degrees_inconsistent": "Dla każdego urządzenia bazowego max_opening_degrees musi być ściśle większy niż min_opening_degrees. Sprawdź swoją konfigurację.",
       "valve_control_parameters_cardinality_incorrect": "Listy minimalnych i maksymalnych stopni otwarcia nie mogą zawierać więcej wartości niż skonfigurowane zawory",
-      "vswitch_configuration_incorrect": "Błąd konfiguracji poleceń własnych. Wymagane są one dla urządzeń nie będących przełącznikami. Ich format musi być następujący: `service_name[/attribute:value]`. Więcej informacji znajdziesz w dokumentacji"
+      "vswitch_configuration_incorrect": "Błąd konfiguracji poleceń własnych. Wymagane są one dla urządzeń nie będących przełącznikami. Ich format musi być następujący: `service_name[/attribute:value]`. Więcej informacji znajdziesz w dokumentacji",
+      "missing_settings_summary": "Ustawienia do uzupełnienia: {count}"
     },
     "abort": {
       "already_configured": "Urządzenie jest już skonfigurowane"
