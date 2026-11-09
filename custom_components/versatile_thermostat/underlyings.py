@@ -1172,14 +1172,16 @@ class UnderlyingClimate(UnderlyingEntity):
         return self.get_underlying_attribute(ATTR_TARGET_TEMP_STEP)
 
     @property
-    def target_temperature_high(self) -> float:
+    def target_temperature_high(self) -> float | None:
         """Get the target_temperature_high"""
-        return self.get_underlying_attribute(ATTR_TARGET_TEMP_HIGH)
+        # Not implemented in VTherm, always returns None
+        return None
 
     @property
-    def target_temperature_low(self) -> float:
+    def target_temperature_low(self) -> float | None:
         """Get the target_temperature_low"""
-        return self.get_underlying_attribute(ATTR_TARGET_TEMP_LOW)
+        # Not implemented in VTherm, always returns None
+        return None
 
     @property
     def underlying_target_temperature(self) -> float:
