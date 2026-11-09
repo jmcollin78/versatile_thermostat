@@ -961,6 +961,8 @@ class CycleScheduler:
         """Issue #2181 - notify the external feature managers of the power of each underlying.
 
         offsets maps an underlying to its start offset in the cycle (switch only).
+        The command carries the monotonic time of the cycle start (like the receipts) because the
+        notification can reach a manager late: the managers are awaited one after the other.
         """
         # Cheap exit without any external manager (the common case)
         if not getattr(self._thermostat, "_external_managers", True):
@@ -998,6 +1000,10 @@ class CycleScheduler:
                 cycle_duration_sec=float(self._cycle_duration_sec),
                 start_offset_sec=offset,
                 is_repeat=is_repeat,
+                # Same time origin as the applied-command receipts: None outside a running cycle
+                # (always the case for STOP, the cycle start being cleared before the notification)
+                cycle_start_monotonic=self._cycle_start_monotonic,
+                monotonic=time.monotonic(),
             )
             await hook(command)
 

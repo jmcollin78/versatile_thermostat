@@ -15,7 +15,7 @@ import pytest
 
 from homeassistant.core import HomeAssistant, ServiceRegistry
 
-from vtherm_api import PowerCommandKind, UnderlyingPowerCommand, ValveCommand, ValveCommandCause
+from vtherm_api import CommandReceiptKind, PowerCommandKind, UnderlyingPowerCommand, ValveCommand, ValveCommandCause
 
 from custom_components.versatile_thermostat.base_manager import BaseFeatureManager
 from custom_components.versatile_thermostat.underlyings import UnderlyingClimate
@@ -437,6 +437,12 @@ async def test_power_hook_two_switches(hass: HomeAssistant, fake_temp_sensor, fa
     events = register(hass)
     vtherm = await two_switches_vtherm(hass, fake_temp_sensor, fake_ext_temp_sensor)
     scheduler = vtherm.cycle_scheduler
+    receipts = []
+
+    async def _on_receipt(receipt):
+        receipts.append(receipt)
+
+    scheduler.register_command_receipt_callback(_on_receipt)
 
     await vtherm.async_set_hvac_mode(VThermHvacMode_HEAT)
     await vtherm.async_set_preset_mode(VThermPreset.COMFORT)
@@ -457,6 +463,13 @@ async def test_power_hook_two_switches(hass: HomeAssistant, fake_temp_sensor, fa
         assert command.applied_on_percent == pytest.approx(command.on_time_sec / command.cycle_duration_sec)
         assert command.requested_on_percent > 0
 
+    # Same time origin for the two underlyings and as the receipt of the cycle start
+    start_receipt = [r for r in receipts if r.kind == CommandReceiptKind.CYCLE_START][-1]
+    assert first[0].cycle_start_monotonic is not None
+    assert first[0].cycle_start_monotonic == first[1].cycle_start_monotonic == start_receipt.cycle_start_monotonic
+    for command in first:
+        assert command.monotonic >= command.cycle_start_monotonic
+
     nb = len(commands(events, "power"))
     scheduler._cycle_start_time -= 300
     await scheduler._on_master_cycle_end(None)
@@ -464,6 +477,9 @@ async def test_power_hook_two_switches(hass: HomeAssistant, fake_temp_sensor, fa
     repeats = commands(events, "power")[nb:]
     assert [c.kind for c in repeats] == [PowerCommandKind.CYCLE_START] * 2
     assert all(c.is_repeat for c in repeats)
+    # the second cycle has a later time origin, shared by the two underlyings
+    assert repeats[0].cycle_start_monotonic == repeats[1].cycle_start_monotonic
+    assert repeats[0].cycle_start_monotonic > first[0].cycle_start_monotonic
     # an internal restart is not a STOP
     assert PowerCommandKind.STOP not in [c.kind for c in repeats]
 
@@ -483,6 +499,8 @@ async def test_power_hook_stop_at_turn_off(hass: HomeAssistant, fake_temp_sensor
     stops = [c for c in commands(events, "power") if c.kind == PowerCommandKind.STOP]
     assert [c.underlying_entity_id for c in stops] == [SWITCH, SWITCH2]
     assert all(c.applied_on_percent == 0 and c.hvac_mode == "off" for c in stops)
+    # the cycle is over: there is no time origin
+    assert all(c.cycle_start_monotonic is None and c.monotonic > 0 for c in stops)
 
 
 async def test_power_hook_over_valve(hass: HomeAssistant, fake_temp_sensor, fake_ext_temp_sensor, fake_underlying_valve):
@@ -502,6 +520,8 @@ async def test_power_hook_over_valve(hass: HomeAssistant, fake_temp_sensor, fake
     assert powers[0].underlying_entity_id == VALVE
     assert powers[0].climate_entity_id is None
     assert powers[0].start_offset_sec is None
+    assert powers[0].cycle_start_monotonic is not None
+    assert powers[0].monotonic >= powers[0].cycle_start_monotonic
     # no valve command hook for over_valve
     assert names(events, "after_valve") == []
 
@@ -511,6 +531,10 @@ async def test_power_hook_over_valve(hass: HomeAssistant, fake_temp_sensor, fake
     updates = commands(events, "power")
     assert [c.kind for c in updates] == [PowerCommandKind.UPDATE]
     assert updates[0].requested_on_percent == pytest.approx(0.8)
+    # an UPDATE inside the running cycle keeps the origin of that cycle
+    assert updates[0].cycle_start_monotonic is not None
+    assert updates[0].cycle_start_monotonic == vtherm.cycle_scheduler._cycle_start_monotonic
+    assert updates[0].monotonic >= updates[0].cycle_start_monotonic
 
     events.clear()
     await vtherm.async_set_hvac_mode(VThermHvacMode_OFF)
