@@ -5,6 +5,7 @@
 aiodiscover
 ulid_transform
 pytest
+pytest-timeout
 coverage
 scipy
 pytest-asyncio
