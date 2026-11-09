@@ -347,7 +347,7 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
                 async with asyncio.timeout(UNDERLYING_HOOK_TIMEOUT_SEC):
                     await hook(*args)
             except TimeoutError:
-                _LOGGER.error(
+                _LOGGER.warning(
                     "%s - External feature manager '%s' timed out in %s",
                     self,
                     manager.name,

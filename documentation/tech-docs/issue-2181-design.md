@@ -13,7 +13,7 @@ Appeler, depuis le cœur, les trois hooks optionnels que `vtherm_api` 0.9.0 déf
 
 ## 2. Répartition dans `BaseThermostat`
 
-`_async_call_external_hook(method_name, *args)` parcourt les managers externes, ignore ceux qui n'ont pas la méthode (`getattr`) ou qui ne sont pas configurés (`is_configured`), et attend chaque appel sous `asyncio.timeout(UNDERLYING_HOOK_TIMEOUT_SEC)`. Un `TimeoutError` ou une exception est journalisé en erreur sans être propagé. Le délai couvre chaque appel : un plugin lent ne retarde pas les autres de plus de 10 s chacun.
+`_async_call_external_hook(method_name, *args)` parcourt les managers externes, ignore ceux qui n'ont pas la méthode (`getattr`) ou qui ne sont pas configurés (`is_configured`), et attend chaque appel sous `asyncio.timeout(UNDERLYING_HOOK_TIMEOUT_SEC)`. Un `TimeoutError` est journalisé en avertissement et une exception en erreur, sans être propagés. Le délai couvre chaque appel : un plugin lent ne retarde pas les autres de plus de 10 s chacun.
 
 Trois méthodes publiques s'appuient sur ce helper : `async_before_underlying_hvac_mode`, `async_after_valve_command` et `async_on_underlying_power`. Elles sortent immédiatement si `_external_managers` est vide, sans construire d'objet. Les modes sont convertis en `str` avant l'appel.
 
@@ -70,7 +70,7 @@ Cet ordre est conservé volontairement. L'inverser demanderait de fermer les van
 
 ## 7. Sécurité, observabilité et exploitation
 
-Les erreurs et délais dépassés sont journalisés au niveau erreur avec le nom du manager et du hook. Le coût sans plugin est un test de liste vide par point d'appel ; seule la commande de vanne construit sa donnée avant de constater l'absence de manager.
+Un délai dépassé est journalisé en avertissement et une exception en erreur, avec le nom du manager et du hook. Le coût sans plugin est un test de liste vide par point d'appel ; seule la commande de vanne construit sa donnée avant de constater l'absence de manager.
 
 ## 8. Tests
 
