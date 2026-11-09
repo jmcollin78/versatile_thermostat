@@ -139,16 +139,18 @@ async def reload_all_vtherm(hass):
         hass.config_entries.async_reload(entry.entry_id) for entry in current_entries
     ]
 
-    api: VersatileThermostatAPI = VersatileThermostatAPI.get_vtherm_api(hass)
     # While the entries are reloaded, the central boiler sensors only see a part of the VTherms.
     # init_vtherm_links notifies that the VTherms have started; the finally covers a failed reload.
-    api.central_boiler_manager.notify_vtherms_starting()
+    # The API is read again after the reload: it is replaced if all the entries have been unloaded.
+    VersatileThermostatAPI.get_vtherm_api(hass).central_boiler_manager.notify_vtherms_starting()
     try:
         await asyncio.gather(*reload_tasks)
-        await api.central_boiler_manager.reload_central_boiler_entities_list()
-        await api.init_vtherm_links()
+        api: VersatileThermostatAPI = VersatileThermostatAPI.get_vtherm_api(hass)
+        if api:
+            await api.central_boiler_manager.reload_central_boiler_entities_list()
+            await api.init_vtherm_links()
     finally:
-        await api.central_boiler_manager.notify_vtherms_started()
+        await VersatileThermostatAPI.get_vtherm_api(hass).central_boiler_manager.notify_vtherms_started()
 
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
