@@ -1751,6 +1751,44 @@ async def test_multi_climate(
 
 
 @pytest.mark.parametrize(
+    "attributes",
+    [
+        pytest.param(
+            {"target_temperature_high": 26.0, "target_temperature_low": 18.0},
+            id="legacy-keys",
+        ),
+        pytest.param(
+            {
+                "target_temperature_high": 26.0,
+                "target_temperature_low": 18.0,
+                "target_temp_high": 29.0,
+                "target_temp_low": 16.0,
+            },
+            id="both-key-formats",
+        ),
+        pytest.param(
+            {"target_temp_high": 29.0, "target_temp_low": 16.0},
+            id="current-keys-only",
+        ),
+        pytest.param(
+            {"target_temperature_high": 26.0, "target_temp_low": 16.0},
+            id="mixed-keys",
+        ),
+        pytest.param({}, id="no-bounds"),
+    ],
+)
+async def test_underlying_climate_target_temperature_bounds_are_not_exposed(hass: HomeAssistant, attributes):
+    """The underlying climate wrapper does not expose target temperature bounds."""
+    thermostat = MagicMock(spec=ThermostatOverClimate)
+    under = UnderlyingClimate(hass, thermostat, "climate.mock_climate")
+    under._is_initialized = True
+    under._state_manager.get_state = MagicMock(return_value=State("climate.mock_climate", HVACMode.OFF, attributes=attributes))
+
+    assert under.target_temperature_high is None
+    assert under.target_temperature_low is None
+
+
+@pytest.mark.parametrize(
     "last_sent_temperature, regulated_target_temperature, target_temperature, expected_temperature",
     [
         (23.0, 24.0, 28.0, 23.0),
@@ -2019,4 +2057,3 @@ async def test_repeated_turn_off_preserves_last_mode(
     assert entity.hvac_mode == VThermHvacMode_HEAT
 
     entity.remove_thermostat()
-
