@@ -149,6 +149,7 @@ class VersatileThermostatAPI(VThermAPI):
         if not entry_id:
             await self.central_power_manager.start_listening()
             await self.central_boiler_manager.start_listening()
+            await self.central_boiler_manager.notify_vtherms_started()
 
     async def init_vtherm_preset_with_central(self):
         """Init all VTherm presets when the VTherm uses central temperature"""
