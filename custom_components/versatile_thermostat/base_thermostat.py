@@ -314,7 +314,6 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
             self.register_manager(manager)
             self._external_manager_names.add(name)
             self._external_managers.append(manager)
-            _LOGGER.debug("%s - external feature manager '%s' created", self, name)
             _LOGGER.info("%s - Registered external feature manager '%s'", self, name)
 
     def _is_external_manager_configured(self, manager) -> bool:
