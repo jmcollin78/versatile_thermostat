@@ -10,6 +10,8 @@ You should check that a discussion relative to the same issue have not been alre
 
 Please also check in the [closed issues](https://github.com/jmcollin78/versatile_thermostat/issues) for a similar case.
 
+If you are considering contributing a pull request, please read [the contribution guidelines, especially the section on how pull requests are reviewed](../../CONTRIBUTING.md#how-prs-are-reviewed).
+
 **Is your feature request related to a problem? Please describe.**
 A clear and concise description of what the problem is. Ex. I'm always frustrated when [...]
 

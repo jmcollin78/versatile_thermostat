@@ -196,12 +196,16 @@
                 {
                   "type": "custom:versatile-thermostat-ui-card",
                   "entity": "climate.thermostat_switch_1",
+                  "inhibitionBypassEntity": "switch.thermostat_switch_1_contournement_de_l_inhibition",
+                  "theme": "vtherm",
                   "set_current_as_main": true,
                   "allow_lock_toggle": true,
                   "disable_menu": true,
+                  "disable_buttons": true,
                   "disable_target_icon": false,
-                  "inhibitionBypassEntity": "switch.thermostat_switch_1_contournement_de_l_inhibition",
-                  "theme": "classic"
+                  "grid_options": {
+                    "rows": "auto"
+                  }
                 },
                 {
                   "type": "history-graph",
@@ -397,9 +401,10 @@
                 {
                   "type": "custom:versatile-thermostat-ui-card",
                   "entity": "climate.thermostat_valve",
-                  "set_current_as_main": true,
                   "inhibitionBypassEntity": "switch.salon_thermostat_valve_contournement_de_l_inhibition",
-                  "theme": "classic"
+                  "theme": "vtherm",
+                  "set_current_as_main": true,
+                  "disable_buttons": true
                 },
                 {
                   "type": "entities",

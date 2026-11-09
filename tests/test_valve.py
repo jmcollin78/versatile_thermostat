@@ -8,7 +8,7 @@ from homeassistant.core import HomeAssistant, State
 from homeassistant.components.climate import HVACAction
 from homeassistant.components.number import SERVICE_SET_VALUE
 
-from pytest_homeassistant_custom_component.common import MockConfigEntry
+from pytest_homeassistant.common import MockConfigEntry
 from vtherm_api.command_receipt import AppliedCommandReceipt, CommandAlteration, CommandReceiptKind
 
 from custom_components.versatile_thermostat.thermostat_valve import ThermostatOverValve

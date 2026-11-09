@@ -20,7 +20,7 @@ from homeassistant.components.climate import ATTR_PRESET_MODE
 from homeassistant.exceptions import ServiceNotFound
 from homeassistant.util import dt as dt_util
 from homeassistant.helpers.event import async_call_later
-from pytest_homeassistant_custom_component.common import async_fire_time_changed, mock_restore_cache
+from pytest_homeassistant.common import async_fire_time_changed, mock_restore_cache
 
 from custom_components.versatile_thermostat.base_thermostat import BaseThermostat
 from custom_components.versatile_thermostat.inhibition_manager import (

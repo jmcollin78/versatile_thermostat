@@ -19,7 +19,7 @@ from homeassistant.components.switch import DOMAIN as SWITCH_DOMAIN
 from homeassistant.components.number import DOMAIN as NUMBER_DOMAIN
 from homeassistant.components.climate import DOMAIN as CLIMATE_DOMAIN
 
-from pytest_homeassistant_custom_component.common import MockConfigEntry
+from pytest_homeassistant.common import MockConfigEntry
 
 from custom_components.versatile_thermostat.thermostat_switch import (
     ThermostatOverSwitch,

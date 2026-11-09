@@ -9,7 +9,7 @@ from homeassistant.core import HomeAssistant
 from homeassistant.components.binary_sensor import BinarySensorDeviceClass
 from homeassistant.components.switch import SwitchEntity
 
-from pytest_homeassistant_custom_component.common import MockConfigEntry
+from pytest_homeassistant.common import MockConfigEntry
 
 from custom_components.versatile_thermostat.vtherm_hvac_mode import VThermHvacMode
 from custom_components.versatile_thermostat.base_thermostat import BaseThermostat

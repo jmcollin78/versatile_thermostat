@@ -210,7 +210,7 @@ def mock_recorder_before_hass(recorder_db_url):
 @pytest.mark.freeze_time("2026-10-01 00:00:00")
 async def test_native_recorder_roundtrip(recorder_mock, hass, freezer):
     """Read real Recorder State objects through the public history API."""
-    from pytest_homeassistant_custom_component.components.recorder.common import (
+    from pytest_homeassistant.components.recorder.common import (
         async_wait_recording_done,
     )
     from custom_components.versatile_thermostat.tpi_history import TPIHistory
