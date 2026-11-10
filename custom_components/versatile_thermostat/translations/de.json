@@ -27,6 +27,7 @@
           "motion": "Bewegungserkennung",
           "power": "Powermanagement",
           "presence": "Anwesenheitserkennung",
+          "calendar": "Kalendersteuerung",
           "advanced": "Erweiterte Einstellungen",
           "auto_start_stop": "Auto Start und Stop",
           "valve_regulation": "Konfiguration Ventilsteuerung",
@@ -94,6 +95,7 @@
           "use_motion_feature": "Bewegungserkennung",
           "use_power_feature": "Powermanagement",
           "use_presence_feature": "Anwesenheitserkennung",
+          "use_calendar_feature": "Kalendersteuerung",
           "use_central_boiler_feature": "Zentralheizung hinzufügen. Aktivieren Sie diese Option, um eine Steuerung für eine Zentralheizung hinzuzufügen. Anschließend müssen die VTerms konfiguriert werden, die die Zentralheizung steuern. Sonst ist diese Option unwirksam. Sobald mindestens einer der VTherms heizen muss, wird die Zentralheizung aktiviert. Sollte keiner der VTherms heizen müssen, wird sie ausgeschaltet. Die Befehle zum Ein- und Ausschalten der Zentralheizung befinden sich auf der folgenden Konfigurationsseite",
           "use_auto_start_stop_feature": "Mit automatischer Start- und Stoppfunktion",
           "use_heating_failure_detection_feature": "Heizungsausfallerkennung"
@@ -244,6 +246,22 @@
         },
         "data_description": {
           "presence_sensor_entity_id": "Entity-ID vom Anwesenheitssensor"
+        }
+      },
+      "calendar": {
+        "title": "Kalendersteuerung",
+        "description": "Wendet während der Termine eines Kalenders eine Voreinstellung an und eine andere nach deren Ende. Mit einem Vorheizgradienten wird die Voreinstellung des Termins so früh angewendet, dass der Raum zu Terminbeginn warm ist.",
+        "data": {
+          "calendar_entity_id": "Kalender",
+          "calendar_event_preset": "Voreinstellung während eines Termins",
+          "calendar_end_preset": "Voreinstellung nach einem Termin",
+          "calendar_preheat_gradient": "Vorheizgradient",
+          "calendar_max_preheat_min": "Maximale Vorheizdauer"
+        },
+        "data_description": {
+          "calendar_end_preset": "„Vorherige Voreinstellung“ stellt die vor dem Termin aktive Voreinstellung wieder her.",
+          "calendar_preheat_gradient": "Temperaturanstieg des Raums pro Heizstunde. Beispiel: Bei 3°/h wird ein Raum mit 15° zwei Stunden vor einem Termin mit 21° beheizt. 0 deaktiviert das Vorheizen.",
+          "calendar_max_preheat_min": "Das Vorheizen beginnt nie früher als diese Dauer vor einem Termin."
         }
       },
       "advanced": {
@@ -446,6 +464,7 @@
           "motion": "Bewegungserkennung",
           "power": "Powermanagement",
           "presence": "Anwesenheitserkennung",
+          "calendar": "Kalendersteuerung",
           "advanced": "Erweiterte Einstellungen",
           "auto_start_stop": "Auto Start/Stopp",
           "valve_regulation": "Ventilsteuerung",
@@ -508,6 +527,7 @@
           "use_motion_feature": "Mit Bewegungserkennung",
           "use_power_feature": "Mit Powermanagement",
           "use_presence_feature": "Mit Anwesenheitserkennung",
+          "use_calendar_feature": "Kalendersteuerung",
           "use_central_boiler_feature": "Benutze Zentralheizung. Aktivieren, um eine Steuerung für eine Zentralheizung hinzuzufügen. Anschließend muss VTerm für die Steuerung der Zentralheizung konfiguriert werden, um wirksam zu werden. Wenn mindestens einer der VTerms heizen muss, wird der Heizkessel angeschalten. Wenn kein VTherm heizen muss, wird sie abgeschalten. Die Befehle zum Ein- und Ausschalten der Zentralheizung finden sie auf der folgenden Konfigurationsseite.",
           "use_auto_start_stop_feature": "Mit automatischer Start- und Stopfunktion.",
           "use_heating_failure_detection_feature": "Mit Heizungsausfallerkennung"
@@ -656,6 +676,22 @@
         },
         "data_description": {
           "presence_sensor_entity_id": "Anwesenheitssensor Entity-ID"
+        }
+      },
+      "calendar": {
+        "title": "Kalendersteuerung - {name}",
+        "description": "Wendet während der Termine eines Kalenders eine Voreinstellung an und eine andere nach deren Ende. Mit einem Vorheizgradienten wird die Voreinstellung des Termins so früh angewendet, dass der Raum zu Terminbeginn warm ist.",
+        "data": {
+          "calendar_entity_id": "Kalender",
+          "calendar_event_preset": "Voreinstellung während eines Termins",
+          "calendar_end_preset": "Voreinstellung nach einem Termin",
+          "calendar_preheat_gradient": "Vorheizgradient",
+          "calendar_max_preheat_min": "Maximale Vorheizdauer"
+        },
+        "data_description": {
+          "calendar_end_preset": "„Vorherige Voreinstellung“ stellt die vor dem Termin aktive Voreinstellung wieder her.",
+          "calendar_preheat_gradient": "Temperaturanstieg des Raums pro Heizstunde. Beispiel: Bei 3°/h wird ein Raum mit 15° zwei Stunden vor einem Termin mit 21° beheizt. 0 deaktiviert das Vorheizen.",
+          "calendar_max_preheat_min": "Das Vorheizen beginnt nie früher als diese Dauer vor einem Termin."
         }
       },
       "advanced": {
@@ -878,6 +914,15 @@
         "eco": "Eco",
         "comfort": "Komfort",
         "boost": "Boost"
+      }
+    },
+    "calendar_end_preset": {
+      "options": {
+        "frost": "Frostschutz",
+        "eco": "Eco",
+        "comfort": "Komfort",
+        "boost": "Boost",
+        "previous": "Vorherige Voreinstellung"
       }
     },
     "auto_start_stop": {

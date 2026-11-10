@@ -27,6 +27,7 @@
                     "motion": "Motion detection",
                     "power": "Power management",
                     "presence": "Presence detection",
+                    "calendar": "Calendar scheduling",
                     "advanced": "Advanced parameters",
                     "auto_start_stop": "Auto start and stop",
                     "valve_regulation": "Valve regulation configuration",
@@ -94,6 +95,7 @@
                     "use_motion_feature": "Use motion detection",
                     "use_power_feature": "Use power management",
                     "use_presence_feature": "Use presence detection",
+                    "use_calendar_feature": "Use calendar scheduling",
                     "use_central_boiler_feature": "Use a central boiler. Check to add a control to your central boiler. You will have to configure the VTherm which will have a control of the central boiler after selecting this checkbox to take effect. If one VTherm requires heating, the boiler will be turned on. If no VTherm requires heating, the boiler will be turned off. Commands for turning on/off the central boiler are given in the related configuration page",
                     "use_auto_start_stop_feature": "Use the auto start and stop feature",
                     "use_heating_failure_detection_feature": "Use heating failure detection"
@@ -244,6 +246,22 @@
                 },
                 "data_description": {
                     "presence_sensor_entity_id": "Presence sensor entity id"
+                }
+            },
+            "calendar": {
+                "title": "Calendar scheduling",
+                "description": "Apply a preset during the events of a calendar and another one when they end. With a preheat gradient, the event preset is applied early enough for the room to be warm when the event starts.",
+                "data": {
+                    "calendar_entity_id": "Calendar",
+                    "calendar_event_preset": "Preset during an event",
+                    "calendar_end_preset": "Preset after an event",
+                    "calendar_preheat_gradient": "Preheat gradient",
+                    "calendar_max_preheat_min": "Maximum preheat duration"
+                },
+                "data_description": {
+                    "calendar_end_preset": "'Previous preset' restores the preset which was active before the event.",
+                    "calendar_preheat_gradient": "Temperature gained by the room per hour of heating. Example: at 3°/h, a room at 15° is heated 2 hours before an event at 21°. Set to 0 to disable the preheat.",
+                    "calendar_max_preheat_min": "The preheat never starts earlier than this duration before an event."
                 }
             },
             "advanced": {
@@ -446,6 +464,7 @@
                     "motion": "Motion detection",
                     "power": "Power management",
                     "presence": "Presence detection",
+                    "calendar": "Calendar scheduling",
                     "advanced": "Advanced parameters",
                     "auto_start_stop": "Auto start and stop",
                     "valve_regulation": "Valve regulation configuration",
@@ -508,6 +527,7 @@
                     "use_motion_feature": "Use motion detection",
                     "use_power_feature": "Use power management",
                     "use_presence_feature": "Use presence detection",
+                    "use_calendar_feature": "Use calendar scheduling",
                     "use_central_boiler_feature": "Use a central boiler. Check to add a control to your central boiler. You will have to configure the VTherm which will have a control of the central boiler after selecting this checkbox to take effect. If one VTherm requires heating, the boiler will be turned on. If no VTherm requires heating, the boiler will be turned off. Commands for turning on/off the central boiler are given in the related configuration page",
                     "use_auto_start_stop_feature": "Use the auto start and stop feature",
                     "use_heating_failure_detection_feature": "Use heating failure detection"
@@ -656,6 +676,22 @@
                 },
                 "data_description": {
                     "presence_sensor_entity_id": "Presence sensor entity id"
+                }
+            },
+            "calendar": {
+                "title": "Calendar scheduling - {name}",
+                "description": "Apply a preset during the events of a calendar and another one when they end. With a preheat gradient, the event preset is applied early enough for the room to be warm when the event starts.",
+                "data": {
+                    "calendar_entity_id": "Calendar",
+                    "calendar_event_preset": "Preset during an event",
+                    "calendar_end_preset": "Preset after an event",
+                    "calendar_preheat_gradient": "Preheat gradient",
+                    "calendar_max_preheat_min": "Maximum preheat duration"
+                },
+                "data_description": {
+                    "calendar_end_preset": "'Previous preset' restores the preset which was active before the event.",
+                    "calendar_preheat_gradient": "Temperature gained by the room per hour of heating. Example: at 3°/h, a room at 15° is heated 2 hours before an event at 21°. Set to 0 to disable the preheat.",
+                    "calendar_max_preheat_min": "The preheat never starts earlier than this duration before an event."
                 }
             },
             "advanced": {
@@ -878,6 +914,15 @@
                 "eco": "Eco",
                 "comfort": "Comfort",
                 "boost": "Boost"
+            }
+        },
+        "calendar_end_preset": {
+            "options": {
+                "frost": "Frost protect",
+                "eco": "Eco",
+                "comfort": "Comfort",
+                "boost": "Boost",
+                "previous": "Previous preset"
             }
         },
         "auto_start_stop": {

@@ -487,6 +487,16 @@ class FeatureTimedPresetManager(BaseFeatureManager):
         return self._timed_preset if self._is_timed_preset_active else None
 
     @property
+    def original_preset(self) -> VThermPreset | None:
+        """Return the preset restored when the timed preset ends, or None if not active."""
+        return self._original_preset if self._is_timed_preset_active else None
+
+    def set_original_preset(self, preset: VThermPreset):
+        """Change the preset restored when the active timed preset ends."""
+        if self._is_timed_preset_active:
+            self._original_preset = preset
+
+    @property
     def timed_preset_end_time(self) -> datetime | None:
         """Return the end time of the timed preset, or None if not active."""
         return self._timed_preset_end_time if self._is_timed_preset_active else None

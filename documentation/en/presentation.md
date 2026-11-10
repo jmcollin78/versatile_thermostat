@@ -73,6 +73,7 @@ This catalog is not exhaustive: a device that is not listed is not necessarily i
 - **Comfort and savings**
   - [Presets](feature-presets.md): preset temperatures (Comfort, Eco, Frost protection...).
   - [Timed Preset](feature-timed-preset.md): apply a preset for a given duration.
+  - [Calendar Scheduling](feature-calendar.md): follow the events of a calendar and preheat the room before they start.
   - [Presence Management](feature-presence.md): lower the setpoint when nobody is home.
   - [Motion Detection](feature-motion.md): change the preset depending on the activity in the room.
   - [Door/Window Open Detection](feature-window.md): react when a door or a window is opened.

@@ -167,6 +167,7 @@ STEP_FEATURES_DATA_SCHEMA = vol.Schema(  # pylint: disable=invalid-name
         vol.Optional(CONF_USE_POWER_FEATURE, default=False): cv.boolean,
         vol.Optional(CONF_USE_PRESENCE_FEATURE, default=False): cv.boolean,
         vol.Optional(CONF_USE_HEATING_FAILURE_DETECTION_FEATURE, default=False): cv.boolean,
+        vol.Optional(CONF_USE_CALENDAR_FEATURE, default=False): cv.boolean,
     }
 )
 
@@ -177,6 +178,7 @@ STEP_CLIMATE_FEATURES_DATA_SCHEMA = vol.Schema(  # pylint: disable=invalid-name
         vol.Optional(CONF_USE_POWER_FEATURE, default=False): cv.boolean,
         vol.Optional(CONF_USE_PRESENCE_FEATURE, default=False): cv.boolean,
         vol.Optional(CONF_USE_AUTO_START_STOP_FEATURE, default=False): cv.boolean,
+        vol.Optional(CONF_USE_CALENDAR_FEATURE, default=False): cv.boolean,
     }
 )
 
@@ -187,6 +189,7 @@ STEP_CLIMATE_VALVE_FEATURES_DATA_SCHEMA = vol.Schema(  # pylint: disable=invalid
         vol.Optional(CONF_USE_POWER_FEATURE, default=False): cv.boolean,
         vol.Optional(CONF_USE_PRESENCE_FEATURE, default=False): cv.boolean,
         vol.Optional(CONF_USE_HEATING_FAILURE_DETECTION_FEATURE, default=False): cv.boolean,
+        vol.Optional(CONF_USE_CALENDAR_FEATURE, default=False): cv.boolean,
     }
 )
 
@@ -299,6 +302,34 @@ STEP_HUMIDITY_DATA_SCHEMA = vol.Schema(  # pylint: disable=invalid-name
         vol.Required(CONF_USE_HUMIDITY_FEATURE, default=False): cv.boolean,
         vol.Optional(CONF_HUMIDITY_SENSOR): selector.EntitySelector(
             selector.EntitySelectorConfig(domain=[SENSOR_DOMAIN, INPUT_NUMBER_DOMAIN, NUMBER_DOMAIN]),
+        ),
+    }
+)
+
+STEP_CALENDAR_DATA_SCHEMA = vol.Schema(  # pylint: disable=invalid-name
+    {
+        vol.Required(CONF_CALENDAR_ENTITY): selector.EntitySelector(
+            selector.EntitySelectorConfig(domain=Platform.CALENDAR),
+        ),
+        vol.Optional(CONF_CALENDAR_EVENT_PRESET, default=VThermPreset.COMFORT): selector.SelectSelector(
+            selector.SelectSelectorConfig(
+                options=CONF_PRESETS_SELECTIONABLE,
+                translation_key="presets",
+                mode="dropdown",
+            )
+        ),
+        vol.Optional(CONF_CALENDAR_END_PRESET, default=VThermPreset.ECO): selector.SelectSelector(
+            selector.SelectSelectorConfig(
+                options=[*CONF_PRESETS_SELECTIONABLE, CALENDAR_END_PRESET_PREVIOUS],
+                translation_key="calendar_end_preset",
+                mode="dropdown",
+            )
+        ),
+        vol.Optional(CONF_CALENDAR_PREHEAT_GRADIENT, default=0): selector.NumberSelector(
+            selector.NumberSelectorConfig(min=0, max=20, step="any", mode=selector.NumberSelectorMode.BOX, unit_of_measurement="°/h")
+        ),
+        vol.Optional(CONF_CALENDAR_MAX_PREHEAT_MIN, default=DEFAULT_CALENDAR_MAX_PREHEAT_MIN): selector.NumberSelector(
+            selector.NumberSelectorConfig(min=0, max=1440, step=1, mode=selector.NumberSelectorMode.BOX, unit_of_measurement="min")
         ),
     }
 )

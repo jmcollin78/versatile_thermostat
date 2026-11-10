@@ -77,6 +77,7 @@ from .feature_timed_preset_manager import FeatureTimedPresetManager
 from .feature_heating_failure_detection_manager import FeatureHeatingFailureDetectionManager
 from .feature_repair_incorrect_state_manager import FeatureRepairIncorrectStateManager
 from .feature_humidity_manager import FeatureHumidityManager
+from .feature_calendar_manager import FeatureCalendarManager
 from .inhibition_manager import InhibitionManager, ATTR_INHIBITION
 from .state_manager import StateManager
 from .vtherm_state import VThermState
@@ -105,6 +106,7 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
         .union(FeatureHeatingFailureDetectionManager.unrecorded_attributes)
         .union(FeatureRepairIncorrectStateManager.unrecorded_attributes)
         .union(FeatureHumidityManager.unrecorded_attributes)
+        .union(FeatureCalendarManager.unrecorded_attributes)
     )
 
     ##
@@ -240,6 +242,7 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
         self._heating_failure_detection_manager: FeatureHeatingFailureDetectionManager = FeatureHeatingFailureDetectionManager(self, hass)
         self._repair_incorrect_state_manager: FeatureRepairIncorrectStateManager = FeatureRepairIncorrectStateManager(self, hass)
         self._humidity_manager: FeatureHumidityManager = FeatureHumidityManager(self, hass)
+        self._calendar_manager: FeatureCalendarManager = FeatureCalendarManager(self, hass)
 
         self.register_manager(self._presence_manager)
         self.register_manager(self._power_manager)
@@ -251,6 +254,7 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
         self.register_manager(self._heating_failure_detection_manager)
         self.register_manager(self._repair_incorrect_state_manager)
         self.register_manager(self._humidity_manager)
+        self.register_manager(self._calendar_manager)
 
         self._cancel_recalculate_later: Callable[[], None] | None = None
 
@@ -1294,6 +1298,11 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
     def timed_preset_manager(self) -> FeatureTimedPresetManager:
         """Get the timed preset manager"""
         return self._timed_preset_manager
+
+    @property
+    def calendar_manager(self) -> FeatureCalendarManager:
+        """Get the calendar manager"""
+        return self._calendar_manager
 
     @property
     def heating_failure_detection_manager(self) -> FeatureHeatingFailureDetectionManager:
@@ -2365,6 +2374,8 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
             return
 
         dearm_window_auto = await self._async_update_temp(new_state)
+        # The preheat start depends on the room temperature
+        await self._calendar_manager.refresh_state()
         self.recalculate()
 
         # Potentially it generates a safety event

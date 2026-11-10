@@ -141,10 +141,11 @@ The documentation is now divided into several pages for easier reading and searc
 22. [Lock / Unlock](documentation/en/feature-lock.md)
 23. [Temperature synchronisation](documentation/en/feature-sync_device_temp.md)
 24. [Timed preset](documentation/en/feature-timed-preset.md)
-25. [Reference documentation](documentation/en/reference.md)
-26. [Tuning examples](documentation/en/tuning-examples.md)
-27. [Troubleshooting](documentation/en/troubleshooting.md)
-28. [Release notes](documentation/en/releases.md)
+25. [Calendar scheduling](documentation/en/feature-calendar.md)
+26. [Reference documentation](documentation/en/reference.md)
+27. [Tuning examples](documentation/en/tuning-examples.md)
+28. [Troubleshooting](documentation/en/troubleshooting.md)
+29. [Release notes](documentation/en/releases.md)
 
 # Some results
 

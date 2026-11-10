@@ -27,6 +27,7 @@
           "motion": "Détection de mouvement",
           "power": "Gestion de la puissance",
           "presence": "Détection de présence",
+          "calendar": "Planification par calendrier",
           "advanced": "Paramètres avancés",
           "auto_start_stop": "Allumage/extinction automatique",
           "valve_regulation": "Configuration de la regulation par vanne",
@@ -95,6 +96,7 @@
           "use_motion_feature": "Avec détection de mouvement",
           "use_power_feature": "Avec gestion de la puissance",
           "use_presence_feature": "Avec détection de présence",
+          "use_calendar_feature": "Avec planification par calendrier",
           "use_central_boiler_feature": "Ajouter une chaudière centrale. Cochez pour ajouter un contrôle sur une chaudière centrale. Vous devrez ensuite configurer les VTherms qui commandent la chaudière centrale pour que cette option prenne effet. Si au moins un des VTherm a besoin de chauffer, la chaudière centrale sera activée. Si aucun VTherm n'a besoin de chauffer, elle sera éteinte. Les commandes pour allumer/éteindre la chaudière centrale sont données dans la page de configuration suivante.",
           "use_auto_start_stop_feature": "Avec démarrage et extinction automatique",
           "use_heating_failure_detection_feature": "Avec détection de panne de chauffage"
@@ -245,6 +247,22 @@
         },
         "data_description": {
           "presence_sensor_entity_id": "Id d'entité du capteur de présence"
+        }
+      },
+      "calendar": {
+        "title": "Planification par calendrier",
+        "description": "Applique un preset pendant les événements d'un calendrier et un autre à leur fin. Avec un gradient de préchauffage, le preset de l'événement est appliqué suffisamment tôt pour que la pièce soit à température au début de l'événement.",
+        "data": {
+          "calendar_entity_id": "Calendrier",
+          "calendar_event_preset": "Preset pendant un événement",
+          "calendar_end_preset": "Preset après un événement",
+          "calendar_preheat_gradient": "Gradient de préchauffage",
+          "calendar_max_preheat_min": "Durée maximale de préchauffage"
+        },
+        "data_description": {
+          "calendar_end_preset": "« Preset précédent » rétablit le preset actif avant l'événement.",
+          "calendar_preheat_gradient": "Température gagnée par la pièce par heure de chauffe. Exemple : à 3°/h, une pièce à 15° est chauffée 2 heures avant un événement à 21°. Mettre 0 pour désactiver le préchauffage.",
+          "calendar_max_preheat_min": "Le préchauffage ne démarre jamais plus tôt que cette durée avant un événement."
         }
       },
       "advanced": {
@@ -447,6 +465,7 @@
           "motion": "Détection de mouvement",
           "power": "Gestion de la puissance",
           "presence": "Détection de présence",
+          "calendar": "Planification par calendrier",
           "advanced": "Paramètres avancés",
           "auto_start_stop": "Allumage/extinction automatique",
           "valve_regulation": "Configuration de la regulation par vanne",
@@ -510,6 +529,7 @@
           "use_motion_feature": "Avec détection de mouvement",
           "use_power_feature": "Avec gestion de la puissance",
           "use_presence_feature": "Avec détection de présence",
+          "use_calendar_feature": "Avec planification par calendrier",
           "use_central_boiler_feature": "Ajouter une chaudière centrale. Cochez pour ajouter un contrôle sur une chaudière centrale. Vous devrez ensuite configurer les VTherms qui commandent la chaudière centrale pour que cette option prenne effet. Si au moins un des VTherm a besoin de chauffer, la chaudière centrale sera activée. Si aucun VTherm n'a besoin de chauffer, elle sera éteinte. Les commandes pour allumer/éteindre la chaudière centrale sont données dans la page de configuration suivante.",
           "use_auto_start_stop_feature": "Avec démarrage et extinction automatique",
           "use_heating_failure_detection_feature": "Avec détection de panne de chauffage"
@@ -658,6 +678,22 @@
         },
         "data_description": {
           "presence_sensor_entity_id": "Id d'entité du capteur de présence"
+        }
+      },
+      "calendar": {
+        "title": "Planification par calendrier - {name}",
+        "description": "Applique un preset pendant les événements d'un calendrier et un autre à leur fin. Avec un gradient de préchauffage, le preset de l'événement est appliqué suffisamment tôt pour que la pièce soit à température au début de l'événement.",
+        "data": {
+          "calendar_entity_id": "Calendrier",
+          "calendar_event_preset": "Preset pendant un événement",
+          "calendar_end_preset": "Preset après un événement",
+          "calendar_preheat_gradient": "Gradient de préchauffage",
+          "calendar_max_preheat_min": "Durée maximale de préchauffage"
+        },
+        "data_description": {
+          "calendar_end_preset": "« Preset précédent » rétablit le preset actif avant l'événement.",
+          "calendar_preheat_gradient": "Température gagnée par la pièce par heure de chauffe. Exemple : à 3°/h, une pièce à 15° est chauffée 2 heures avant un événement à 21°. Mettre 0 pour désactiver le préchauffage.",
+          "calendar_max_preheat_min": "Le préchauffage ne démarre jamais plus tôt que cette durée avant un événement."
         }
       },
       "advanced": {
@@ -880,6 +916,15 @@
         "eco": "Eco",
         "comfort": "Confort",
         "boost": "Renforcé (boost)"
+      }
+    },
+    "calendar_end_preset": {
+      "options": {
+        "frost": "Hors-gel",
+        "eco": "Eco",
+        "comfort": "Confort",
+        "boost": "Renforcé (boost)",
+        "previous": "Preset précédent"
       }
     },
     "auto_start_stop": {

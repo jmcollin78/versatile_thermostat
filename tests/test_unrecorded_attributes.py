@@ -20,6 +20,7 @@ COMMON_EXCLUDED_SECTIONS = {
     "timed_preset_manager",
     "heating_failure_detection_manager",
     "repair_incorrect_state_manager",
+    "calendar_manager",
 }
 
 

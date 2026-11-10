@@ -35,6 +35,7 @@ Select the "Features" menu.
 | **With presence detection** | Changes target temperature based on presence/absence. Differs from motion detection (home vs room level). (see [presence management](feature-presence.md)) | `is_presence_configured` |
 | **With automatic start/stop** | For `over_climate` only, without direct valve control: stops/restarts device based on temperature curve prediction. (see [automatic start/stop management](feature-auto-start-stop.md)) | `is_auto_start_stop_configured` |
 | **With heating failure detection** | For `over_switch`, `over_valve` and `over_climate` with direct valve control: detects when the temperature does not follow the heating command. (see [heating failure detection](feature-heating-failure-detection.md)) | `is_heating_failure_detection_configured` |
+| **With calendar scheduling** | Applies a preset during the events of a calendar, with an optional preheat. (see [calendar scheduling](feature-calendar.md)) | `is_calendar_configured` |
 
 > ![Tip](images/tips.png) _*Notes*_
 > 1. The list of available functions adapts to your VTherm type.

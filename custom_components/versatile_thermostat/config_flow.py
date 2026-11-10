@@ -219,6 +219,7 @@ class VersatileThermostatBaseConfigFlow(FlowHandler):
             CONF_POWER_SENSOR,
             CONF_MAX_POWER_SENSOR,
             CONF_PRESENCE_SENSOR,
+            CONF_CALENDAR_ENTITY,
             CONF_OFFSET_CALIBRATION_LIST,
             CONF_OPENING_DEGREE_LIST,
             CONF_CLOSING_DEGREE_LIST,
@@ -476,6 +477,9 @@ class VersatileThermostatBaseConfigFlow(FlowHandler):
             ):
                 return False
 
+            if infos.get(CONF_USE_CALENDAR_FEATURE, False) is True and infos.get(CONF_CALENDAR_ENTITY, None) is None:
+                return False
+
             if infos.get(CONF_USE_ADVANCED_CENTRAL_CONFIG, False) is False and (
                 infos.get(CONF_SAFETY_DELAY_MIN, -1) == -1 or infos.get(CONF_SAFETY_MIN_ON_PERCENT, -1) == -1 or infos.get(CONF_SAFETY_DEFAULT_ON_PERCENT, -1) == -1
             ):
@@ -652,6 +656,9 @@ class VersatileThermostatBaseConfigFlow(FlowHandler):
 
         if self._infos.get(CONF_USE_PRESENCE_FEATURE, False) is True:
             menu_options.append("presence")
+
+        if self._infos.get(CONF_USE_CALENDAR_FEATURE, False) is True:
+            menu_options.append("calendar")
 
         if (
             self._infos.get(CONF_USE_AUTO_START_STOP_FEATURE, False) is True
@@ -873,6 +880,12 @@ class VersatileThermostatBaseConfigFlow(FlowHandler):
             schema = add_suggested_values_to_schema(schema, {CONF_HUMIDITY_SENSOR: detected_sensor})
 
         return await self.generic_step("humidity", schema, user_input, self.async_step_menu)
+
+    async def async_step_calendar(self, user_input: dict | None = None) -> FlowResult:
+        """Handle the calendar scheduling flow steps"""
+        _LOGGER.debug("Into ConfigFlow.async_step_calendar user_input=%s", user_input)
+
+        return await self.generic_step("calendar", STEP_CALENDAR_DATA_SCHEMA, user_input, self.async_step_menu)
 
     async def async_step_tpi(self, user_input: dict | None = None) -> FlowResult:
         """Handle the TPI flow steps"""
@@ -1321,6 +1334,9 @@ class VersatileThermostatBaseConfigFlow(FlowHandler):
                 del self._infos[CONF_CENTRAL_BOILER_DEACTIVATION_SRV]
         if not self._infos[CONF_USE_AUTO_START_STOP_FEATURE]:
             self._infos[CONF_AUTO_START_STOP_LEVEL] = AUTO_START_STOP_LEVEL_NONE
+        if not self._infos.get(CONF_USE_CALENDAR_FEATURE):
+            for key in (CONF_USE_CALENDAR_FEATURE, *STEP_CALENDAR_DATA_SCHEMA.schema):
+                self._infos.pop(key, None)
 
         # Removes temporary value
         if COMES_FROM in self._infos:

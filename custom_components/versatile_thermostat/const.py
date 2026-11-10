@@ -119,6 +119,7 @@ CONF_USE_PRESENCE_FEATURE = "use_presence_feature"
 CONF_USE_POWER_FEATURE = "use_power_feature"
 CONF_USE_CENTRAL_BOILER_FEATURE = "use_central_boiler_feature"
 CONF_USE_AUTO_START_STOP_FEATURE = "use_auto_start_stop_feature"
+CONF_USE_CALENDAR_FEATURE = "use_calendar_feature"
 CONF_AC_MODE = "ac_mode"
 CONF_WINDOW_AUTO_OPEN_THRESHOLD = "window_auto_open_threshold"
 CONF_WINDOW_AUTO_CLOSE_THRESHOLD = "window_auto_close_threshold"
@@ -169,6 +170,14 @@ CONF_AUTO_RELOCK_SEC = "auto_relock_sec"
 
 CONF_REPAIR_INCORRECT_STATE = "repair_incorrect_state"
 CONF_MANUAL_OVERRIDE_DURATION_MIN = "manual_override_duration_min"
+
+CONF_CALENDAR_ENTITY = "calendar_entity_id"
+CONF_CALENDAR_EVENT_PRESET = "calendar_event_preset"
+CONF_CALENDAR_END_PRESET = "calendar_end_preset"
+CONF_CALENDAR_PREHEAT_GRADIENT = "calendar_preheat_gradient"
+CONF_CALENDAR_MAX_PREHEAT_MIN = "calendar_max_preheat_min"
+CALENDAR_END_PRESET_PREVIOUS = "previous"
+DEFAULT_CALENDAR_MAX_PREHEAT_MIN = 240
 
 CONF_VSWITCH_ON_CMD_LIST = "vswitch_on_command"
 CONF_VSWITCH_OFF_CMD_LIST = "vswitch_off_command"
