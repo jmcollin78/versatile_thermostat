@@ -13,6 +13,7 @@ from collections.abc import Callable
 from vtherm_api import (
     UNDERLYING_HOOK_TIMEOUT_SEC,
     UNSUPPORTED_HVAC_MODE,
+    CalibrationOffsetRequest,
     UnderlyingPowerCommand,
     ValveCommand,
     ValveDiagnosticState,
@@ -60,7 +61,7 @@ from homeassistant.const import (
 )
 
 from .const import *  # pylint: disable=wildcard-import, unused-wildcard-import
-from .commons import write_event_log
+from .commons import round_to_nearest, write_event_log
 from .commons_type import ConfigData
 
 from .config_schema import *  # pylint: disable=wildcard-import, unused-wildcard-import
@@ -529,6 +530,34 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
         if translated is None:
             return str(underlying_hvac_mode)
         return None if translated == UNSUPPORTED_HVAC_MODE else translated
+
+    def adjust_calibration_offset(self, request: CalibrationOffsetRequest) -> float:
+        """Let the external feature managers adjust the calibration offset. Each one receives the value left by the previous one.
+        When a manager changed it, the result is rounded to the step and clamped to min..max. A manager which fails or returns an
+        invalid value is logged and ignored."""
+        if not self._external_managers:
+            return request.offset
+
+        offset = request.offset
+        for manager in self._configured_external_managers("adjust_calibration_offset"):
+            try:
+                adjusted = manager.adjust_calibration_offset(dataclasses.replace(request, offset=offset))
+            except Exception as exc:  # pylint: disable=broad-except
+                _LOGGER.error("%s - Error while adjusting the calibration offset with external feature manager '%s': %s", self, manager.name, exc)
+                continue
+            if adjusted is None:
+                continue
+            if inspect.iscoroutine(adjusted):
+                # The method must not be a coroutine: close it to avoid a "never awaited" warning
+                adjusted.close()
+            if not self._is_finite_number(adjusted):
+                _LOGGER.warning("%s - External feature manager '%s' returned an invalid calibration offset (%s). It is ignored", self, manager.name, adjusted)
+                continue
+            offset = adjusted
+
+        if offset != request.offset:
+            offset = min(request.max_offset, max(request.min_offset, round_to_nearest(offset, request.step)))
+        return offset
 
     async def async_after_valve_command(self, command: ValveCommand) -> None:
         """Notify external managers that a valve command was sent to a valve-regulation underlying."""
