@@ -827,7 +827,7 @@ def hvac_action() -> HVACAction
 
 ## Plugin Hooks (issue #2181)
 
-The underlyings notify the optional hooks of the external feature managers (plugins) through `BaseThermostat`. The hooks of the table below are defined by `vtherm_api` 0.9.0 and are notifications only: they never modify or cancel the core command. The contracts described after the table (valve write, HVAC mode mapper, calibration offset) are defined by `vtherm_api` 0.10.0 and can change the command. A hook is called only for a manager whose `is_configured` is true, is awaited under `UNDERLYING_HOOK_TIMEOUT_SEC` (10 s) and an exception or a timeout is logged without blocking the command. Without any external manager the call returns immediately. See [issue-2181-design.md](issue-2181-design.md) (in French) for the full design.
+The underlyings notify the optional hooks of the external feature managers (plugins) through `BaseThermostat`. The hooks of the table below are defined by `vtherm_api` 0.9.0 and are notifications only: they never modify or cancel the core command. The contracts described after the table (valve write, calibration offset) are defined by `vtherm_api` 0.10.0 and can change the command. A hook is called only for a manager whose `is_configured` is true, is awaited under `UNDERLYING_HOOK_TIMEOUT_SEC` (10 s) and an exception or a timeout is logged without blocking the command. Without any external manager the call returns immediately. See [issue-2181-design.md](issue-2181-design.md) (in French) for the full design.
 
 | Hook                                | Called from                                                  | When                                                                                                                                                                  |
 | ----------------------------------- | ------------------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -860,29 +860,6 @@ The valve recalibration and `_seed_unknown_degrees_once` write the number entiti
 - In both cases the final value becomes `_last_sent_opening_value`, and `_settle_sec` holds the `settle_sec` of the decision (the largest one if several managers give one, `None` for the default). When a plugin handles the write, or announces a `settle_sec`, `_last_command_sent_datetime` is set to the time of the decision. `check_and_repair` waits `settle_sec` (default `resend_delay_sec`, 2 s) after it. A repair goes through the hook again, with the cause `REPAIR`.
 - `async_inhibition_resync` expects the valve at the final value of the plugin when the core value has not changed since the last command, and no longer checks the closing degree if a plugin wrote the valve.
 - `async_after_valve_command` is called in all cases. `ValveCommand.requested_opening_degree` holds the value of the core when a manager changed it, `ValveCommand.written_by_plugin` is true when a plugin wrote the valve.
-
-### HVAC mode mapper (`to_underlying_hvac_mode`, `from_underlying_hvac_mode`)
-
-A plugin can translate the HVAC mode sent to an underlying climate and the one read from it, for a device which names its modes differently or needs another mode to behave as expected. The contract is `InterfaceUnderlyingHvacModeMapper` in `vtherm_api` 0.10.0. The methods are synchronous and do no input or output.
-
-`BaseThermostat` offers `map_hvac_mode_to_underlying` and `map_hvac_mode_from_underlying`, and `vtherm_hvac_mode_of_underlying` which gives the VTherm mode of a device mode (the translated mode, else the mode itself, `None` when there is no equivalent). They return immediately when there is no external manager.
-
-- The managers are consulted in the order of registration and the first result which is not `None` wins. When two managers translate differently, a warning is logged once and the first one is kept. An exception or a result which is not a string is logged and ignored.
-- `off` is never translated, from or to the device. A translation from or to `off` is ignored. The states `unavailable` and `unknown` are not translated either.
-- `UNSUPPORTED_HVAC_MODE` (an empty string) returned by `from_underlying_hvac_mode` marks a device mode with no VTherm equivalent. It is not valid when sending a mode.
-
-| Place                                              | Behaviour                                                                                                                                  |
-| -------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------ |
-| `UnderlyingClimate.set_hvac_mode`                  | The short-circuit compares the state of the device with the translated mode. The service and `async_before_underlying_hvac_mode` receive the translated mode. `_hvac_mode` keeps the VTherm mode. |
-| `UnderlyingClimate.hvac_mode`                      | The mode of the device translated to the VTherm space. An unsupported mode is returned as `UNSUPPORTED_HVAC_MODE`, so it differs from any expected mode. |
-| `UnderlyingClimate.check_and_repair`               | No change: it compares the expected mode with `hvac_mode`, both in the VTherm space. An unsupported mode is a drift.                      |
-| `UnderlyingClimate.check_initial_state`            | `_hvac_mode` is the translated mode, `None` for an unsupported one.                                                                        |
-| `UnderlyingClimate._underlying_changed`            | The new and old modes are translated. An unsupported mode gives `None`, which is no change.                                                |
-| `ThermostatOverClimate.underlying_changed`         | A valid transition and the reported mode use the translated modes.                                                                         |
-| `UnderlyingClimate.hvac_modes`                     | Each mode is translated, without the unsupported modes and without duplicates. `build_hvac_list` uses it unchanged.                        |
-| `UnderlyingClimate.async_inhibition_resync`        | `_hvac_mode` follows the translated mode of the device.                                                                                    |
-
-The list of modes is built after the external managers are loaded. A plugin loaded after the VTherm reloads it, which builds the list again. Without a mapper all these places behave as before.
 
 ### Calibration offset (`adjust_calibration_offset`)
 

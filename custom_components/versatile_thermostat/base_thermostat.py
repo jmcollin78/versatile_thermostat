@@ -12,7 +12,6 @@ from collections.abc import Callable
 
 from vtherm_api import (
     UNDERLYING_HOOK_TIMEOUT_SEC,
-    UNSUPPORTED_HVAC_MODE,
     CalibrationOffsetRequest,
     UnderlyingPowerCommand,
     ValveCommand,
@@ -231,7 +230,6 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
         # separately so they can be refreshed on every control cycle (internal
         # managers have their own dedicated per-cycle mechanisms).
         self._external_managers: list[BaseFeatureManager] = []
-        self._hvac_mode_mapper_warned: set[tuple] = set()
 
         self._presence_manager: FeaturePresenceManager = FeaturePresenceManager(
             self, hass
@@ -451,85 +449,6 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
                 break
 
         return opening_degree, handled, settle_sec
-
-    def _call_hvac_mode_mapper(self, method_name: str, entity_id: str, mode: str) -> str | None:
-        """Ask each configured external mapper to translate a mode. The first valid result wins.
-
-        None means no translation. A failing manager, or a result which is not a string, is logged and ignored.
-        """
-        result: str | None = None
-        result_manager = None
-        for manager in self._configured_external_managers(method_name):
-            try:
-                translated = getattr(manager, method_name)(entity_id, mode)
-            except Exception as exc:  # pylint: disable=broad-except
-                _LOGGER.error("%s - Error in %s of external feature manager '%s': %s", self, method_name, manager.name, exc)
-                continue
-            if translated is None:
-                continue
-            if inspect.iscoroutine(translated):
-                # The method must not be a coroutine: close it to avoid a "never awaited" warning
-                translated.close()
-            if not isinstance(translated, str):
-                _LOGGER.warning("%s - External feature manager '%s' returned an invalid HVAC mode (%s) in %s. It is ignored", self, manager.name, translated, method_name)
-                continue
-            if result is None:
-                result = translated
-                result_manager = manager
-            elif translated != result:
-                warn_key = (method_name, entity_id, mode, result, translated)
-                if warn_key not in self._hvac_mode_mapper_warned:
-                    self._hvac_mode_mapper_warned.add(warn_key)
-                    _LOGGER.warning(
-                        "%s - External feature managers '%s' and '%s' translate the mode '%s' of %s differently in %s ('%s' vs '%s'). The first one is kept",
-                        self,
-                        result_manager.name,
-                        manager.name,
-                        mode,
-                        entity_id,
-                        method_name,
-                        result,
-                        translated,
-                    )
-        return result
-
-    def map_hvac_mode_to_underlying(self, entity_id: str, hvac_mode: VThermHvacMode | str) -> str | None:
-        """The mode to send to an underlying climate for a VTherm mode, None when no external manager translates it.
-        The off mode is never translated."""
-        if not self._external_managers:
-            return None
-        mode = str(hvac_mode)
-        if mode == HVACMode.OFF:
-            return None
-        translated = self._call_hvac_mode_mapper("to_underlying_hvac_mode", entity_id, mode)
-        if translated is None:
-            return None
-        if translated in (UNSUPPORTED_HVAC_MODE, HVACMode.OFF):
-            _LOGGER.warning("%s - The translation of HVAC mode '%s' to '%s' for %s is not allowed. It is ignored", self, mode, translated, entity_id)
-            return None
-        return translated
-
-    def map_hvac_mode_from_underlying(self, entity_id: str, underlying_hvac_mode: VThermHvacMode | str) -> str | None:
-        """The VTherm mode of a mode of an underlying climate. None when no external manager translates it,
-        UNSUPPORTED_HVAC_MODE when the mode has no VTherm equivalent. The off mode is never translated."""
-        if not self._external_managers:
-            return None
-        mode = str(underlying_hvac_mode)
-        if mode in (HVACMode.OFF, STATE_UNAVAILABLE, STATE_UNKNOWN):
-            return None
-        translated = self._call_hvac_mode_mapper("from_underlying_hvac_mode", entity_id, mode)
-        if translated == HVACMode.OFF:
-            _LOGGER.warning("%s - The translation of HVAC mode '%s' of %s to 'off' is not allowed. It is ignored", self, mode, entity_id)
-            return None
-        return translated
-
-    def vtherm_hvac_mode_of_underlying(self, entity_id: str, underlying_hvac_mode: VThermHvacMode | str) -> str | None:
-        """The VTherm mode which stands for a mode of an underlying climate: the translated mode, else the mode itself.
-        None when the mode has no VTherm equivalent."""
-        translated = self.map_hvac_mode_from_underlying(entity_id, underlying_hvac_mode)
-        if translated is None:
-            return str(underlying_hvac_mode)
-        return None if translated == UNSUPPORTED_HVAC_MODE else translated
 
     def adjust_calibration_offset(self, request: CalibrationOffsetRequest) -> float:
         """Let the external feature managers adjust the calibration offset. Each one receives the value left by the previous one.

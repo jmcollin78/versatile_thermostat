@@ -8,7 +8,7 @@
 > 5. **Přesnější řízení výkonu**: práh aktivace kotle (`power_activation_threshold`) nově přijímá desetinné hodnoty (0.1, 0.5, ...), což umožňuje jemnější řízení spotřeby. Více informací [zde](documentation/cs/feature-power.md),
 > 6. **Zlepšení dostupnosti senzorů**: lepší určování dostupnosti teplotních senzorů přes metadata `last_updated` v Home Assistant.
 > 7. **Háky pro podřízená zařízení (pluginy)**: správci funkcí z pluginů nyní mohou sledovat příkazy odeslané podřízeným zařízením (změna režimu HVAC, příkazy ventilu, výkon požadovaný a použitý plánovačem cyklů) pomocí volitelných háků `vtherm_api` 0.9.0. Ve VTherm není nic k nastavení. Další informace [zde](https://github.com/jmcollin78/versatile_thermostat/issues/2181).
-> 8. **Pluginy mohou měnit některé příkazy**: s `vtherm_api` 0.10.0 mohou správci funkcí z pluginů změnit stupeň otevření zapisovaný do ventilu (nebo ventil zapsat sami), přeložit režim HVAC odesílaný do zařízení a čtený z něj a upravit kalibrační offset. Ve VTherm není nic k nastavení.
+> 8. **Pluginy mohou měnit některé příkazy**: s `vtherm_api` 0.10.0 mohou správci funkcí z pluginů změnit stupeň otevření zapisovaný do ventilu (nebo ventil zapsat sami), a upravit kalibrační offset. Ve VTherm není nic k nastavení.
 
 ## Verze 9.2
 > 1. Nový způsob řízení cyklů topení/zastavení pro VTherm `over_switch`. Současný algoritmus má časový drift a první cykly nejsou optimální. To narušuje TPI a zejména auto-TPI. Nový `Cycle Scheduler` řeší tyto potíže. Tato změna je pro vás zcela transparentní,

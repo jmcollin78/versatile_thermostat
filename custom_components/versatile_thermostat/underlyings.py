@@ -51,7 +51,7 @@ from homeassistant.components.number import SERVICE_SET_VALUE
 from homeassistant.helpers.event import async_call_later
 from homeassistant.util import dt as dt_util
 
-from vtherm_api import UNSUPPORTED_HVAC_MODE, ValveCommand, ValveCommandCause, ValveWriteRequest
+from vtherm_api import ValveCommand, ValveCommandCause, ValveWriteRequest
 from vtherm_api.log_collector import get_vtherm_logger
 from .opening_degree_algorithm import OpeningClosingDegreeCalculation
 
@@ -74,12 +74,6 @@ def _thermostat_hook(thermostat: Any, name: str):
     """Issue #2181 - the coroutine hook of the thermostat, None if it does not implement it (test doubles)"""
     hook = getattr(thermostat, name, None)
     return hook if inspect.iscoroutinefunction(hook) else None
-
-
-def _thermostat_method(thermostat: Any, name: str):
-    """The plain method of the thermostat, None if it does not implement it (test doubles)"""
-    method = getattr(thermostat, name, None)
-    return method if inspect.ismethod(method) or inspect.isfunction(method) else None
 
 
 class UnderlyingEntityType(StrEnum):
@@ -247,19 +241,6 @@ class UnderlyingEntity:
 
     def on_inhibition_gate_opened(self):
         """Issue #2087 - the gate opened after commands were dropped during the exit"""
-
-    def _to_device_hvac_mode(self, hvac_mode: VThermHvacMode) -> str | None:
-        """The mode to send to the device for a VTherm mode when a plugin translates it, else None"""
-        mapper = _thermostat_method(self._thermostat, "map_hvac_mode_to_underlying")
-        return mapper(self._entity_id, hvac_mode) if mapper is not None else None
-
-    def _from_device_hvac_mode(self, device_mode: str | None) -> str | None:
-        """The VTherm mode which stands for a mode of the device: the translated mode, else the mode itself.
-        None when the mode has no VTherm equivalent (or when there is no mode)."""
-        if device_mode is None:
-            return None
-        mapper = _thermostat_method(self._thermostat, "vtherm_hvac_mode_of_underlying")
-        return mapper(self._entity_id, device_mode) if mapper is not None else str(device_mode)
 
     # override to be able to mock the call
     def call_later(
@@ -718,10 +699,7 @@ class UnderlyingClimate(UnderlyingEntity):
         if state is None:
             return False
 
-        # A plugin may translate the mode for the device: the mode really sent. self._hvac_mode keeps the VTherm mode.
-        device_mode = self._to_device_hvac_mode(hvac_mode)
-
-        if state.state == (device_mode if device_mode is not None else to_ha_hvac_mode(hvac_mode)) and self._hvac_mode == hvac_mode:
+        if state.state == to_ha_hvac_mode(hvac_mode) and self._hvac_mode == hvac_mode:
             _LOGGER.debug(
                 "%s - hvac_mode is already is requested state %s. Do not send any command",
                 self,
@@ -748,7 +726,7 @@ class UnderlyingClimate(UnderlyingEntity):
 
         await super().set_hvac_mode(hvac_mode)
 
-        data = {ATTR_ENTITY_ID: self._entity_id, "hvac_mode": device_mode if device_mode is not None else to_legacy_ha_hvac_mode(hvac_mode)}
+        data = {ATTR_ENTITY_ID: self._entity_id, "hvac_mode": to_legacy_ha_hvac_mode(hvac_mode)}
         if command_cause == COMMAND_CAUSE_UNDERLYING_TRACKING:
             self._thermostat._record_underlying_tracking_command(self.entity_id, hvac_mode)
         # Set before sending: the device may report its new setpoint before the call returns
@@ -758,9 +736,8 @@ class UnderlyingClimate(UnderlyingEntity):
         if not self.is_command_blocked(CLIMATE_DOMAIN, SERVICE_SET_HVAC_MODE):
             hook = _thermostat_hook(self._thermostat, "async_before_underlying_hvac_mode")
             if hook is not None:
-                sent_mode = device_mode if device_mode is not None else hvac_mode
-                _LOGGER.debug("%s - calling the before-hvac-mode hook: hvac_mode=%s current=%s cause=%s", self, sent_mode, state.state, command_cause)
-                await hook(self._entity_id, sent_mode, state.state, command_cause)
+                _LOGGER.debug("%s - calling the before-hvac-mode hook: hvac_mode=%s current=%s cause=%s", self, hvac_mode, state.state, command_cause)
+                await hook(self._entity_id, hvac_mode, state.state, command_cause)
             else:
                 _LOGGER.debug("%s - before-hvac-mode hook not called: the thermostat has no such hook", self)
         else:
@@ -802,8 +779,7 @@ class UnderlyingClimate(UnderlyingEntity):
         """Follow the real hvac_mode and target temperature of the underlying"""
         self._cancel_delayed_commands()
         state = self._state_manager.get_state(self._entity_id)
-        vtherm_mode = None if self._is_unavailable(state) else self._from_device_hvac_mode(state.state)
-        self._hvac_mode = None if vtherm_mode is None else VThermHvacMode(vtherm_mode)
+        self._hvac_mode = None if self._is_unavailable(state) else VThermHvacMode(state.state)
         self._last_sent_temperature = self.underlying_target_temperature
 
     def _cancel_delayed_commands(self):
@@ -858,12 +834,6 @@ class UnderlyingClimate(UnderlyingEntity):
         """Prevent the underlying to be on but thermostat is off"""
         underlying_state = self._state_manager.get_state(self._entity_id)
         underlying_hvac_mode = from_ha_hvac_mode(underlying_state.state) if underlying_state else None
-        if underlying_state is not None:
-            # A plugin may translate the mode of the device (None: no translation, "": no VTherm equivalent)
-            mapper = _thermostat_method(self._thermostat, "map_hvac_mode_from_underlying")
-            translated = mapper(self._entity_id, underlying_state.state) if mapper is not None else None
-            if translated is not None:
-                underlying_hvac_mode = VThermHvacMode(translated) if translated != UNSUPPORTED_HVAC_MODE else None
         self._hvac_mode = underlying_hvac_mode
 
         is_device_active = underlying_state.state not in [HVACMode.OFF, STATE_UNAVAILABLE, STATE_UNKNOWN]
@@ -901,11 +871,8 @@ class UnderlyingClimate(UnderlyingEntity):
             return
 
         # Check if one attributes has changed that could impact the thermostat
-        # The modes are in the VTherm space: a mode of the device which a plugin cannot translate is no change
-        new_vtherm_mode = self._from_device_hvac_mode(new_state.state)
-        old_vtherm_mode = self._from_device_hvac_mode(old_state.state) if old_state else None
-        new_hvac_mode = VThermHvacMode(new_vtherm_mode) if new_vtherm_mode is not None else None
-        old_hvac_mode = VThermHvacMode(old_vtherm_mode) if old_vtherm_mode is not None else None
+        new_hvac_mode = VThermHvacMode(new_state.state)
+        old_hvac_mode = VThermHvacMode(old_state.state) if old_state else None
         new_hvac_action = new_state.attributes.get(ATTR_HVAC_ACTION) if new_state.attributes else None
         old_hvac_action = old_state.attributes.get(ATTR_HVAC_ACTION) if old_state and old_state.attributes else None
         new_fan_mode = new_state.attributes.get(ATTR_FAN_MODE) if new_state.attributes else None
@@ -1149,12 +1116,7 @@ class UnderlyingClimate(UnderlyingEntity):
         if not self.is_initialized:
             return None
         state = self._state_manager.get_state(self._entity_id)
-        if state is None:
-            return None
-        mapper = _thermostat_method(self._thermostat, "map_hvac_mode_from_underlying")
-        translated = mapper(self._entity_id, state.state) if mapper is not None else None
-        # None: no translation. UNSUPPORTED_HVAC_MODE is returned as it is: it differs from any expected mode.
-        return state.state if translated is None else translated
+        return state.state if state is not None else None
 
     @property
     def fan_mode(self) -> str | None:
@@ -1185,23 +1147,7 @@ class UnderlyingClimate(UnderlyingEntity):
         """Get the hvac_modes"""
         if not self.is_initialized:
             return []
-        modes = self.get_underlying_attribute(ATTR_HVAC_MODES)
-        mapper = _thermostat_method(self._thermostat, "map_hvac_mode_from_underlying")
-        if mapper is None or not modes:
-            return modes
-        # Modes in the VTherm space, without the modes which have no equivalent, nor duplicates
-        translated_modes = []
-        changed = False
-        for mode in modes:
-            translated = mapper(self._entity_id, mode)
-            if translated is not None:
-                changed = True
-                if translated == UNSUPPORTED_HVAC_MODE:
-                    continue
-                mode = translated
-            if not any(str(mode) == str(other) for other in translated_modes):
-                translated_modes.append(mode)
-        return translated_modes if changed else modes
+        return self.get_underlying_attribute(ATTR_HVAC_MODES)
 
     @property
     def current_humidity(self) -> float | None:
