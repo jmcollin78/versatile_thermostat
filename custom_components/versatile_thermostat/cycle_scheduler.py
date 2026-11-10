@@ -29,6 +29,7 @@ from .cycle_tick_logic import (
     compute_target_state,
     evaluate_need_on,
     evaluate_need_off,
+    keep_on_duration_when_postponed,
     compute_e_eff,
 )
 _LOGGER = get_vtherm_logger(__name__)
@@ -685,6 +686,12 @@ class CycleScheduler:
                         except Exception as err:
                             _LOGGER.error("%s - tick turn_on failed: %s", under, err)
                     elif action == 'skip' and new_on_t is not None:
+                        if under_dt < self.min_deactivation_delay and state_duration > self.min_activation_delay:
+                            # Only the minimal deactivation delay holds this ON phase back:
+                            # start it later, but do not shorten it.
+                            state.off_t, pen_delta = keep_on_duration_when_postponed(
+                                state.on_t, state.off_t, new_on_t, self._cycle_duration_sec, pen_delta
+                            )
                         _LOGGER.debug(
                             "%s - tick skip turn_on (racollage), on_t shifted %.1f -> %.1f, penalty=%.1f",
                             under, state.on_t, new_on_t, pen_delta

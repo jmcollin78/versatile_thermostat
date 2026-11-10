@@ -306,6 +306,8 @@ If activation cannot occur (conditions not met), a **reattachment** is performed
 
 3. The unrealized heating time is added to `penalty` (positive value = lost heating time).
 
+When only the minimum deactivation delays the activation (`under_dt < minimal_deactivation_delay` and `state_duration > minimal_activation_delay`) and the window does not wrap, `off_t` is shifted by the same amount as `on_t`. The planned activation duration is kept, and only the part that no longer fits in the cycle is added to `penalty`. Whether the last state change is a re-stamp at Home Assistant startup or a real stop, the minimum deactivation is honoured without losing the ON phase.
+
 A new tick is scheduled at the time of the new `on_t`.
 
 ---

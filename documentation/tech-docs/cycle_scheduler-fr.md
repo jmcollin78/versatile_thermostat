@@ -306,6 +306,8 @@ Si l'activation ne peut pas avoir lieu (conditions non remplies), on procède à
 
 3. Le temps de chauffe non réalisé est ajouté à `penalty` (valeur positive = temps de chauffe perdu).
 
+Lorsque seule la désactivation minimale retarde l'activation (`under_dt < minimal_deactivation_delay` et `state_duration > minimal_activation_delay`) et que la fenêtre ne boucle pas, `off_t` est décalé de la même durée que `on_t`. La durée d'activation prévue est conservée, et seule la partie qui ne tient plus dans le cycle est ajoutée à `penalty`. Que le dernier changement d'état soit un ré-horodatage au démarrage de Home Assistant ou un arrêt réel, la désactivation minimale est respectée sans perdre la phase ON.
+
 Un nouveau tick est planifié au moment du nouveau `on_t`.
 
 ---
