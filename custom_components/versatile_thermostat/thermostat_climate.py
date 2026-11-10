@@ -872,19 +872,16 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
                 changes = True
 
         # The delivered states, not the filtered HVAC parameter, identify a transition.
-        # The modes are in the VTherm space: a plugin may translate the modes of the device, or declare them unsupported (None).
         valid_modes = {"off", "heat", "cool", "auto", "dry", "fan_only", "heat_cool", "sleep"}
-        old_mode = self.vtherm_hvac_mode_of_underlying(under.entity_id, old_state.state) if old_state is not None else None
-        new_mode = self.vtherm_hvac_mode_of_underlying(under.entity_id, new_state.state)
         valid_transition = (
             old_state is not None
             and old_state.entity_id == under.entity_id == new_state.entity_id
-            and old_mode in valid_modes
-            and new_mode in valid_modes
-            and old_mode != new_mode
+            and old_state.state in valid_modes
+            and new_state.state in valid_modes
+            and old_state.state != new_state.state
         )
         if valid_transition and self._follow_underlying_temp_change:
-            reported_mode = VThermHvacMode(new_mode)
+            reported_mode = VThermHvacMode(new_state.state)
             # Issue #334 - if all underlyings are not aligned with the same hvac_mode don't change the underlying and wait they are aligned
             can_follow_hvac_mode = True
             if self.is_over_climate:
