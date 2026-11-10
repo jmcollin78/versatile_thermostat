@@ -87,6 +87,27 @@ def evaluate_need_on(
     return 'skip', new_on_t, penalty_delta
 
 
+def keep_on_duration_when_postponed(
+    on_t: float, off_t: float, new_on_t: float,
+    cycle_duration: float, penalty_delta: float,
+) -> tuple[float, float]:
+    """Move the end of an ON phase postponed by the minimal deactivation delay.
+
+    The end of a confined ON window follows its start, so the planned ON
+    duration is kept. Only the part that no longer fits in the cycle is lost.
+    A wrapped window is returned unchanged.
+
+    Returns:
+        (off_t, penalty_delta)
+    """
+    if off_t <= on_t or new_on_t <= on_t or new_on_t >= cycle_duration:
+        return off_t, penalty_delta
+
+    shifted_off_t = off_t + (new_on_t - on_t)
+    new_off_t = min(shifted_off_t, cycle_duration)
+    return new_off_t, shifted_off_t - new_off_t
+
+
 def evaluate_need_off(
     under_dt: float, state_duration: float,
     min_activation: float, min_deactivation: float,
