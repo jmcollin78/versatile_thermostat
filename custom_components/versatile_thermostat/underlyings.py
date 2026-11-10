@@ -629,6 +629,10 @@ class UnderlyingSwitch(UnderlyingEntity):
         if should_be_on is None or is_on is None:
             return False
 
+        if should_be_on and not self._thermostat.is_on:
+            # A stale on-part must never switch the device on while the VTherm is off (#2219)
+            should_be_on = False
+
         if should_be_on == is_on:
             return False
 

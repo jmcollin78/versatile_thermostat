@@ -67,3 +67,35 @@ async def test_repair_manager_pause_and_retry_logs(hass: HomeAssistant, caplog):
     records = [r for r in caplog.records if r.name == MANAGER_LOGGER]
     assert not [r for r in records if r.levelno == logging.ERROR]
     assert any("retrying repairs" in r.getMessage() for r in records)
+
+
+async def test_switch_repair_does_not_turn_on_when_vtherm_off():
+    """Issue 2219: a stale on-part must not switch the device on while the VTherm is off"""
+    thermostat = MagicMock()
+    switch = MagicMock(spec=UnderlyingSwitch)
+    switch._thermostat = thermostat
+    switch._is_on_part_running = True
+    switch.turn_on = AsyncMock()
+    switch.turn_off = AsyncMock()
+    is_device_active = PropertyMock(return_value=False)
+    type(switch).is_device_active = is_device_active
+
+    try:
+        # VTherm off, device off: nothing to do
+        thermostat.is_on = False
+        assert await UnderlyingSwitch.check_and_repair(switch) is False
+        switch.turn_on.assert_not_called()
+
+        # VTherm off, device on: repair turns it off
+        is_device_active.return_value = True
+        assert await UnderlyingSwitch.check_and_repair(switch) is True
+        switch.turn_on.assert_not_called()
+        switch.turn_off.assert_called_once()
+
+        # VTherm on: the on-part is still repaired as before
+        thermostat.is_on = True
+        is_device_active.return_value = False
+        assert await UnderlyingSwitch.check_and_repair(switch) is True
+        switch.turn_on.assert_called_once()
+    finally:
+        del type(switch).is_device_active
