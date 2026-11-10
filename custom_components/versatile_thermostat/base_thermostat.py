@@ -3,6 +3,7 @@
 # pylint: disable=invalid-name
 """ Implements the VersatileThermostat climate component """
 import asyncio
+import dataclasses
 import math
 from typing import Optional, Any, Generic
 from datetime import datetime
@@ -13,6 +14,8 @@ from vtherm_api import (
     UnderlyingPowerCommand,
     ValveCommand,
     ValveDiagnosticState,
+    ValveWriteDecision,
+    ValveWriteRequest,
 )
 from vtherm_api.log_collector import get_vtherm_logger
 from homeassistant.util import dt as dt_util
@@ -379,6 +382,71 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
             None if current_hvac_mode is None else str(current_hvac_mode),
             command_cause,
         )
+
+    def _configured_external_managers(self, method_name: str) -> list:
+        """The configured external feature managers which implement a method, in the order they were registered"""
+        managers = []
+        for manager in self._external_managers:
+            if not hasattr(manager, method_name):
+                continue
+            if self._is_external_manager_configured(manager):
+                managers.append(manager)
+        return managers
+
+    @staticmethod
+    def _is_finite_number(value: Any) -> bool:
+        """True for a finite int or float (a bool is not a number here)"""
+        return isinstance(value, (int, float)) and not isinstance(value, bool) and math.isfinite(value)
+
+    async def async_before_valve_write(self, request: ValveWriteRequest) -> tuple[int, bool, float | None]:
+        """Let the external feature managers change the opening degree before it is written, or write the valve themselves.
+
+        Returns the final opening degree, True when a plugin writes the valve itself (the core writes nothing) and the time
+        the core must wait before repairing the valve (None for the default one). Each manager receives the value left by
+        the previous one. A manager which fails, times out or returns an invalid value is logged and ignored.
+        """
+        opening_degree = request.opening_degree
+        if not self._external_managers:
+            return opening_degree, False, None
+
+        handled = False
+        settle_sec: float | None = None
+        for manager in self._configured_external_managers("async_before_valve_write"):
+            _LOGGER.debug("%s - calling external hook async_before_valve_write of '%s' with opening_degree=%s", self, manager.name, opening_degree)
+            try:
+                async with asyncio.timeout(UNDERLYING_HOOK_TIMEOUT_SEC):
+                    decision = await manager.async_before_valve_write(dataclasses.replace(request, opening_degree=opening_degree))
+            except TimeoutError:
+                _LOGGER.warning("%s - External feature manager '%s' timed out in async_before_valve_write", self, manager.name)
+                continue
+            except Exception as exc:  # pylint: disable=broad-except
+                _LOGGER.error("%s - Error in async_before_valve_write of external feature manager '%s': %s", self, manager.name, exc)
+                continue
+
+            if decision is None:
+                continue
+            if not isinstance(decision, ValveWriteDecision):
+                _LOGGER.warning("%s - External feature manager '%s' returned an invalid valve write decision (%s). It is ignored", self, manager.name, decision)
+                continue
+
+            if decision.opening_degree is not None:
+                if self._is_finite_number(decision.opening_degree):
+                    opening_degree = int(min(max(round(decision.opening_degree), 0), request.max_opening_degree))
+                else:
+                    _LOGGER.warning("%s - External feature manager '%s' returned an invalid opening degree (%s). It is ignored", self, manager.name, decision.opening_degree)
+
+            if decision.settle_sec is not None:
+                if self._is_finite_number(decision.settle_sec) and decision.settle_sec >= 0:
+                    settle_sec = decision.settle_sec if settle_sec is None else max(settle_sec, decision.settle_sec)
+                else:
+                    _LOGGER.warning("%s - External feature manager '%s' returned an invalid settle_sec (%s). It is ignored", self, manager.name, decision.settle_sec)
+
+            if decision.handled:
+                _LOGGER.debug("%s - external feature manager '%s' writes the valve itself", self, manager.name)
+                handled = True
+                break
+
+        return opening_degree, handled, settle_sec
 
     async def async_after_valve_command(self, command: ValveCommand) -> None:
         """Notify external managers that a valve command was sent to a valve-regulation underlying."""

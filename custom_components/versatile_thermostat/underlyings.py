@@ -51,7 +51,7 @@ from homeassistant.components.number import SERVICE_SET_VALUE
 from homeassistant.helpers.event import async_call_later
 from homeassistant.util import dt as dt_util
 
-from vtherm_api import ValveCommand, ValveCommandCause
+from vtherm_api import ValveCommand, ValveCommandCause, ValveWriteRequest
 from vtherm_api.log_collector import get_vtherm_logger
 from .opening_degree_algorithm import OpeningClosingDegreeCalculation
 
@@ -1337,6 +1337,9 @@ class UnderlyingClimate(UnderlyingEntity):
 class UnderlyingValve(UnderlyingEntity):
     """Represent a underlying switch"""
 
+    # Time to wait after a command before a repair. None: resend_delay_sec. A plugin may ask for more.
+    _settle_sec: float | None = None
+
     def __init__(
         self,
         hass: HomeAssistant,
@@ -1596,7 +1599,9 @@ class UnderlyingValve(UnderlyingEntity):
         if abs(current - expected_opening) <= 0.5:
             return False
 
-        if self._thermostat.now < self._last_command_sent_datetime + timedelta(seconds=resend_delay_sec):
+        # A plugin may ask for a longer wait (also tolerate test doubles which have no such attribute)
+        settle_sec = self._settle_sec if isinstance(self._settle_sec, (int, float)) else resend_delay_sec
+        if self._thermostat.now < self._last_command_sent_datetime + timedelta(seconds=settle_sec):
             _LOGGER.debug(
                 "%s - Skipping valve state repair while waiting for the last command to be applied",
                 self,
@@ -1650,6 +1655,10 @@ class UnderlyingValveRegulation(UnderlyingValve):
         self._opening_threshold: int = opening_threshold
         self._seed_attempted_targets: set[str] = set()
         self._seed_diagnostics: dict[str, str] = {}
+        # What the last command was: the degree computed by the core, the one finally sent, and whether a plugin wrote the valve
+        self._last_core_opening: int | None = None
+        self._last_final_opening: int | None = None
+        self._last_write_handled: bool = False
 
         if self._min_opening_degree >= self._max_opening_degree:
             self._min_opening_degree = self._opening_threshold
@@ -1860,8 +1869,16 @@ class UnderlyingValveRegulation(UnderlyingValve):
                 max_opening_degree=self._max_opening_degree,
                 opening_threshold=self._opening_threshold,
             )
+            # A plugin may have changed the degree the core computed for this percent: the final value is the expected one
+            check_closing = True
+            if self._last_final_opening is not None and self._last_core_opening == opening_degree:
+                if self._last_final_opening != opening_degree:
+                    opening_degree = self._last_final_opening
+                    closing_degree = 100 - opening_degree
+                # a plugin which wrote the valve itself is also responsible for the closing degree
+                check_closing = not self._last_write_handled
             closing_state = self._state_manager.get_state(self._closing_degree_entity_id) if self.has_closing_degree_entity else None
-            if current != opening_degree or (self.has_closing_degree_entity and get_safe_float_value(closing_state.state if closing_state else None) != closing_degree):
+            if current != opening_degree or (check_closing and self.has_closing_degree_entity and get_safe_float_value(closing_state.state if closing_state else None) != closing_degree):
                 self._percent_open = None
 
     @property
@@ -1899,26 +1916,88 @@ class UnderlyingValveRegulation(UnderlyingValve):
             max_opening_degree=self._max_opening_degree,
             opening_threshold=self._opening_threshold,
         )
+        requested_opening_degree = opening_degree
+        handled = False
+        settle_sec: float | None = None
 
-        # Send opening_degree in UnderlyingValve
-        await super().send_percent_open(opening_degree)
+        # A plugin may change the opening degree, or write the valve itself. Nothing is asked when the gate blocks the write.
+        if not self._is_write_blocked():
+            hook = _thermostat_hook(self._thermostat, "async_before_valve_write")
+            if hook is not None:
+                opening_degree, handled, settle_sec = await hook(
+                    ValveWriteRequest(
+                        climate_entity_id=self._climate_underlying.entity_id,
+                        opening_degree_entity_id=self._opening_degree_entity_id,
+                        closing_degree_entity_id=self._closing_degree_entity_id if self.has_closing_degree_entity else None,
+                        percent_open=int(value or 0),
+                        opening_degree=opening_degree,
+                        requested_opening_degree=requested_opening_degree,
+                        max_opening_degree=self._max_opening_degree,
+                        hvac_mode=str(self._thermostat.vtherm_hvac_mode),
+                        cause=cause,
+                    )
+                )
+                if opening_degree != requested_opening_degree:
+                    closing_degree = 100 - opening_degree
+            else:
+                _LOGGER.debug("%s - before-valve-write hook not called: the thermostat has no such hook", self)
 
-        if self.has_closing_degree_entity:
-            await self.send_value_to_number(self._closing_degree_entity_id, closing_degree)
+            self._last_core_opening = requested_opening_degree
+            self._last_final_opening = opening_degree
+            self._last_write_handled = handled
+        else:
+            self._last_core_opening = None
+            self._last_final_opening = None
+            self._last_write_handled = False
+
+        if handled:
+            # The plugin writes the valve: the core only remembers the value the valve will end at
+            self._last_sent_opening_value = opening_degree
+        else:
+            # Send opening_degree in UnderlyingValve
+            await super().send_percent_open(opening_degree)
+
+            if self.has_closing_degree_entity:
+                await self.send_value_to_number(self._closing_degree_entity_id, closing_degree)
+
+        # The repair waits for the end of the command, as a plugin announced it
+        self._settle_sec = settle_sec
+        if handled or settle_sec is not None:
+            self._last_command_sent_datetime = self._thermostat.now
 
         _LOGGER.debug(
-            "%s - valve regulation - I have sent opening_degree=%s closing_degree=%s",
+            "%s - valve regulation - I have sent opening_degree=%s closing_degree=%s (handled by a plugin: %s)",
             self,
             opening_degree,
             closing_degree,
+            handled,
         )
 
-        await self._notify_valve_command(value, opening_degree, closing_degree if self.has_closing_degree_entity else None, cause)
+        await self._notify_valve_command(
+            value,
+            opening_degree,
+            closing_degree if self.has_closing_degree_entity else None,
+            cause,
+            requested_opening_degree=requested_opening_degree if opening_degree != requested_opening_degree else None,
+            written_by_plugin=handled,
+        )
 
-    async def _notify_valve_command(self, percent_open: int, opening_degree: int, closing_degree: int | None, cause: ValveCommandCause) -> None:
+    def _is_write_blocked(self) -> bool:
+        """True when the inhibition gate drops the commands to the opening degree entity"""
+        return self.is_command_blocked(self._opening_degree_entity_id.split(".")[0], SERVICE_SET_VALUE)
+
+    async def _notify_valve_command(
+        self,
+        percent_open: int,
+        opening_degree: int,
+        closing_degree: int | None,
+        cause: ValveCommandCause,
+        requested_opening_degree: int | None = None,
+        written_by_plugin: bool = False,
+    ) -> None:
         """Issue #2181 - notify external managers that a valve command was sent"""
         # The inhibition gate drops the number.set_value commands: nothing was sent, nothing to notify
-        if self.is_command_blocked(self._opening_degree_entity_id.split(".")[0], SERVICE_SET_VALUE):
+        if self._is_write_blocked():
             _LOGGER.debug("%s - after-valve-command hook not called: %s.%s is blocked", self, self._opening_degree_entity_id.split(".")[0], SERVICE_SET_VALUE)
             return
         hook = _thermostat_hook(self._thermostat, "async_after_valve_command")
@@ -1944,6 +2023,8 @@ class UnderlyingValveRegulation(UnderlyingValve):
                 closing_degree=closing_degree,
                 hvac_mode=str(self._thermostat.vtherm_hvac_mode),
                 cause=cause,
+                requested_opening_degree=requested_opening_degree,
+                written_by_plugin=written_by_plugin,
             )
         )
 
