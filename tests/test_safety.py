@@ -97,6 +97,32 @@ async def test_safety_feature_manager_post_init(
         assert custom_attributes["safety_manager"].get("safety_default_on_percent", None) == safety_default_on_percent or DEFAULT_SAFETY_DEFAULT_ON_PERCENT
 
 
+async def test_safety_manager_clears_proportional_override_when_requested_off(
+    hass: HomeAssistant,
+):
+    """Clear the proportional safety override when OFF forces safety inactive."""
+    fake_vtherm = MagicMock(spec=BaseThermostat)
+    type(fake_vtherm).name = PropertyMock(return_value="the name")
+    fake_vtherm.has_prop = True
+    fake_vtherm.unset_safety = MagicMock()
+    fake_vtherm.requested_state.hvac_mode = VThermHvacMode_OFF
+
+    safety_manager = FeatureSafetyManager(fake_vtherm, hass)
+    safety_manager.post_init(
+        {
+            CONF_SAFETY_DELAY_MIN: 10,
+            CONF_SAFETY_MIN_ON_PERCENT: 0.5,
+            CONF_SAFETY_DEFAULT_ON_PERCENT: 0.1,
+        }
+    )
+    safety_manager._safety_state = STATE_ON
+
+    await safety_manager.refresh_state()
+
+    assert safety_manager.safety_state is STATE_OFF
+    fake_vtherm.unset_safety.assert_called_once_with()
+
+
 @pytest.mark.parametrize("expected_lingering_tasks", [True])
 @pytest.mark.parametrize("expected_lingering_timers", [True])
 async def test_service_set_safety_with_delay_only(
