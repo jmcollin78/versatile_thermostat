@@ -1464,8 +1464,12 @@ class UnderlyingValve(UnderlyingEntity):
     async def set_hvac_mode(self, hvac_mode: VThermHvacMode, command_cause: str | None = None) -> bool:
         """Set the HVACmode. Returns true if something have change"""
 
-        if hvac_mode == VThermHvacMode_OFF and self.is_device_active:
-            await self.turn_off()
+        if hvac_mode == VThermHvacMode_OFF:
+            self._raw_percent_open = 0
+            if self.is_device_active:
+                await self.turn_off()
+            elif self.is_initialized:
+                self._percent_open = self._get_controlled_percent(0)
 
         if hvac_mode != VThermHvacMode_OFF and not self.is_device_active:
             await self.turn_on()
@@ -1576,17 +1580,20 @@ class UnderlyingValve(UnderlyingEntity):
 
     @overrides
     async def check_and_repair(self) -> bool:
-        """Check if the valve opening matches the last sent value and repair if needed.
+        """Check if the valve opening matches the expected value and repair if needed.
         Returns True if a repair was performed."""
-        last_sent = self._last_sent_opening_value
-        current = self.current_valve_opening
-
-        if last_sent is None or current is None:
+        if self._hvac_mode == VThermHvacMode_OFF and not self.is_device_active:
             return False
 
-        _LOGGER.debug("%s - Checking if underlying valve state needs repair. last_sent=%s, current=%s", self, last_sent, current)
+        expected_opening = self._percent_open if self._hvac_mode == VThermHvacMode_OFF else self._last_sent_opening_value
+        current = self.current_valve_opening
 
-        if abs(current - last_sent) <= 0.5:
+        if expected_opening is None or current is None:
+            return False
+
+        _LOGGER.debug("%s - Checking if underlying valve state needs repair. expected=%s, current=%s", self, expected_opening, current)
+
+        if abs(current - expected_opening) <= 0.5:
             return False
 
         if self._thermostat.now < self._last_command_sent_datetime + timedelta(seconds=resend_delay_sec):
