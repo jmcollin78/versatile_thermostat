@@ -1318,6 +1318,132 @@ async def test_over_climate_valve_bug_1798(hass: HomeAssistant, fake_temp_sensor
     vtherm.remove_thermostat()
 
 
+@pytest.mark.parametrize("observed_active", [False, None, True])
+@pytest.mark.parametrize("closed_target", [0, 12])
+async def test_valve_off_discards_previous_opening_target(observed_active, closed_target):
+    """OFF clears stale opening targets and repair maintains the configured closure."""
+    now = datetime.now()
+    valve = MagicMock(spec=UnderlyingValve)
+    valve._thermostat = MagicMock(now=now)
+    valve._entity_id = "number.mock_opening_degree"
+    valve.is_initialized = True
+    valve._hvac_mode = VThermHvacMode_HEAT
+    valve._percent_open = 60
+    valve._raw_percent_open = 60
+    valve._last_sent_opening_value = 60
+    valve._last_command_sent_datetime = now - timedelta(seconds=2)
+    valve._get_controlled_percent.return_value = closed_target
+    valve.send_value_to_number = AsyncMock()
+    valve.turn_off = lambda: UnderlyingValve.turn_off(valve)
+    valve.send_percent_open = lambda **kwargs: UnderlyingValve.send_percent_open(valve, **kwargs)
+    active_state = PropertyMock(return_value=observed_active)
+    type(valve).is_device_active = active_state
+    current_opening = PropertyMock(return_value=closed_target)
+    type(valve).current_valve_opening = current_opening
+
+    try:
+        assert await UnderlyingValve.set_hvac_mode(valve, VThermHvacMode_OFF) is True
+        assert valve._percent_open == closed_target
+        assert valve._raw_percent_open == 0
+        valve._get_controlled_percent.assert_called_once_with(0)
+        if observed_active:
+            valve.send_value_to_number.assert_awaited_once_with(valve._entity_id, closed_target)
+        else:
+            valve.send_value_to_number.assert_not_awaited()
+            assert valve._last_sent_opening_value == 60
+
+        valve.send_value_to_number.reset_mock()
+        active_state.return_value = False
+        assert await UnderlyingValve.set_hvac_mode(valve, VThermHvacMode_OFF) is False
+        assert await UnderlyingValve.check_and_repair(valve) is False
+        valve.send_value_to_number.assert_not_awaited()
+
+        current_opening.return_value = 60
+        active_state.return_value = True
+        assert await UnderlyingValve.check_and_repair(valve) is True
+        valve.send_value_to_number.assert_awaited_once_with(valve._entity_id, closed_target)
+        assert valve._last_sent_opening_value == closed_target
+    finally:
+        del type(valve).is_device_active
+        del type(valve).current_valve_opening
+
+
+@pytest.mark.parametrize("max_closing_degree", [100, 88])
+@pytest.mark.parametrize("observed_active", [False, True])
+async def test_valve_regulation_off_does_not_repeat_closed_commands(hass: HomeAssistant, max_closing_degree, observed_active):
+    """Repeated OFF and repair leave a closed regulated valve and its climate alone."""
+    now = datetime.now()
+    thermostat = MagicMock(now=now)
+    climate = MagicMock()
+    climate.set_hvac_mode = AsyncMock()
+    valve = UnderlyingValveRegulation(
+        hass,
+        thermostat,
+        "number.mock_opening_degree",
+        "number.mock_closing_degree",
+        climate,
+        max_closing_degree=max_closing_degree,
+    )
+    valve._is_initialized = True
+    valve._hvac_mode = VThermHvacMode_HEAT
+    valve._percent_open = 60
+    valve._raw_percent_open = 60
+    valve._last_sent_opening_value = 60
+    valve._last_command_sent_datetime = now - timedelta(seconds=3)
+    valve.send_value_to_number = AsyncMock()
+    valve._notify_valve_command = AsyncMock()
+    closed_opening = 100 - max_closing_degree
+    valve._state_manager.get_state = MagicMock(return_value=State(valve.entity_id, str(60 if observed_active else closed_opening)))
+
+    assert await valve.set_hvac_mode(VThermHvacMode_OFF) is True
+    assert valve._percent_open == 0
+    assert valve._raw_percent_open == 0
+    if observed_active:
+        assert valve.send_value_to_number.await_args_list == [
+            call("number.mock_opening_degree", closed_opening),
+            call("number.mock_closing_degree", max_closing_degree),
+        ]
+        climate.set_hvac_mode.assert_awaited_once_with(VThermHvacMode_OFF)
+    else:
+        valve.send_value_to_number.assert_not_awaited()
+        climate.set_hvac_mode.assert_not_awaited()
+        assert valve._last_sent_opening_value == 60
+
+    valve.send_value_to_number.reset_mock()
+    climate.set_hvac_mode.reset_mock()
+    valve._state_manager.get_state.return_value = State(valve.entity_id, str(closed_opening))
+    for _ in range(3):
+        assert await valve.set_hvac_mode(VThermHvacMode_OFF) is False
+        assert await valve.check_and_repair() is False
+    valve.send_value_to_number.assert_not_awaited()
+    climate.set_hvac_mode.assert_not_awaited()
+
+    valve._state_manager.get_state.return_value = State(valve.entity_id, "60")
+    assert await valve.check_and_repair() is True
+    assert valve.send_value_to_number.await_args_list == [
+        call("number.mock_opening_degree", closed_opening),
+        call("number.mock_closing_degree", max_closing_degree),
+    ]
+    climate.set_hvac_mode.assert_not_awaited()
+
+
+@pytest.mark.parametrize("observed_active", [False, None])
+async def test_valve_off_before_initialization(observed_active):
+    """OFF does not calculate a closure before the valve bounds are initialized."""
+    valve = MagicMock(spec=UnderlyingValve)
+    valve.is_initialized = False
+    valve._hvac_mode = None
+    valve.turn_off = AsyncMock()
+    type(valve).is_device_active = PropertyMock(return_value=observed_active)
+
+    try:
+        assert await UnderlyingValve.set_hvac_mode(valve, VThermHvacMode_OFF) is True
+        valve.turn_off.assert_not_awaited()
+        valve._get_controlled_percent.assert_not_called()
+    finally:
+        del type(valve).is_device_active
+
+
 async def test_valve_repair_waits_for_last_command():
     """Issue 2110: do not resend the valve opening right after it was sent, repair after the delay."""
     now = datetime.now()
@@ -1325,6 +1451,7 @@ async def test_valve_repair_waits_for_last_command():
     thermostat.now = now
     valve = MagicMock(spec=UnderlyingValve)
     valve._thermostat = thermostat
+    valve._hvac_mode = VThermHvacMode_HEAT
     valve._last_sent_opening_value = 40
     valve._last_command_sent_datetime = now
     valve.send_percent_open = AsyncMock()
