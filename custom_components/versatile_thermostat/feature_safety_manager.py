@@ -95,6 +95,8 @@ class FeatureSafetyManager(BaseFeatureManager):
 
         if self._vtherm.requested_state.hvac_mode == VThermHvacMode_OFF:
             self._safety_state = STATE_OFF
+            if self._vtherm.has_prop:
+                self._vtherm.unset_safety()
             _LOGGER.debug("%s - safety is OFF because requested_state is OFF", self)
             return False
 
