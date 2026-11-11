@@ -449,7 +449,7 @@ async def test_switch_exit_off_turns_off_manual_device(hass: HomeAssistant, fake
         assert ("switch", "turn_on") not in spy.services()
 
 
-async def test_switch_repair_does_not_turn_on_when_thermostat_is_off(hass: HomeAssistant, fake_temp_sensor, fake_underlying_switch):
+async def test_switch_repair_does_not_turn_on_when_thermostat_is_off(hass: HomeAssistant, fake_temp_sensor, fake_underlying_switch, caplog):
     vtherm = await heating_switch_vtherm(hass, fake_temp_sensor)
     under: UnderlyingSwitch = vtherm.underlying_entity(0)
 
@@ -462,6 +462,7 @@ async def test_switch_repair_does_not_turn_on_when_thermostat_is_off(hass: HomeA
 
         assert await under.check_and_repair() is False
         assert ("switch", "turn_on") not in spy.services()
+        assert "Skipping switch ON repair because thermostat HVAC mode is OFF" in caplog.text
 
 
 async def test_switch_repair_can_turn_on_when_thermostat_is_heating(hass: HomeAssistant, fake_temp_sensor, fake_underlying_switch):

@@ -651,6 +651,12 @@ class UnderlyingSwitch(UnderlyingEntity):
 
         if should_be_on:
             if self._thermostat.hvac_mode == HVACMode.OFF:
+                _LOGGER.debug(
+                    "%s - Skipping switch ON repair because thermostat HVAC mode is OFF (expected=%s, observed=%s)",
+                    self,
+                    should_be_on,
+                    is_on,
+                )
                 return False
             await self.turn_on()
         else:
