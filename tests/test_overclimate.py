@@ -8,7 +8,7 @@ import logging
 import pytest
 
 from homeassistant.core import HomeAssistant, State
-from homeassistant.components.climate import ClimateEntityFeature, SERVICE_SET_TEMPERATURE, HVACMode, HVACAction
+from homeassistant.components.climate import ClimateEntityFeature, SERVICE_SET_TEMPERATURE, SERVICE_SET_HVAC_MODE, HVACMode, HVACAction
 
 from homeassistant.components.switch import DOMAIN as SWITCH_DOMAIN
 
@@ -142,6 +142,59 @@ async def test_over_climate_repair_waits_for_previous_command(
         entity._set_now(now + timedelta(seconds=2))
         assert await underlying.check_and_repair() is True
         mock_set_hvac_mode.assert_called_once_with(VThermHvacMode_HEAT)
+
+    entity.remove_thermostat()
+
+
+@pytest.mark.parametrize("cached_mode", [VThermHvacMode_HEAT, VThermHvacMode_COOL])
+@pytest.mark.parametrize("under_mode", [VThermHvacMode_OFF, VThermHvacMode_HEAT, VThermHvacMode_COOL])
+@pytest.mark.parametrize("command_age_sec", [0, 2])
+async def test_over_climate_repair_never_turns_on_when_thermostat_is_off(
+    hass: HomeAssistant,
+    skip_hass_states_is_state,
+    skip_turn_on_off_heater,
+    skip_send_event,
+    cached_mode,
+    under_mode,
+    command_age_sec,
+):
+    """An OFF VTherm must never repair a climate back to a stale HEAT/COOL command."""
+    now = datetime.now(tz=get_tz(hass))
+    entry = MockConfigEntry(
+        domain=DOMAIN,
+        title="TheOverClimateMockName",
+        unique_id="uniqueId",
+        data=PARTIAL_CLIMATE_NOT_REGULATED_CONFIG,
+    )
+    await create_and_register_mock_climate(
+        hass, "mock_climate", "MockClimateName", {}, hvac_mode=VThermHvacMode_OFF, hvac_action=HVACAction.OFF
+    )
+    entity = await create_thermostat(hass, entry, "climate.theoverclimatemockname")
+    underlying = entity.underlying_entity(0)
+    entity.current_state.set_hvac_mode(VThermHvacMode_OFF)
+    entity._set_now(now)
+    underlying._hvac_mode = cached_mode
+    underlying._last_command_sent_datetime = now - timedelta(seconds=command_age_sec)
+    observed_state = State(underlying.entity_id, str(under_mode))
+    expect_repair = under_mode != VThermHvacMode_OFF and command_age_sec == 2
+
+    with (
+        patch.object(underlying.state_manager, "get_state", return_value=observed_state),
+        patch.object(underlying, "hass_services_async_call", new_callable=AsyncMock) as mock_service_call,
+        patch("custom_components.versatile_thermostat.underlyings.async_call_later") as mock_call_later,
+    ):
+        assert entity.vtherm_hvac_mode == VThermHvacMode_OFF
+        for _ in range(3):
+            assert await underlying.check_and_repair() is expect_repair
+
+        if expect_repair:
+            assert mock_service_call.await_args_list == [
+                call("climate", SERVICE_SET_HVAC_MODE, {"entity_id": underlying.entity_id, "hvac_mode": HVACMode.OFF})
+            ] * 3
+            assert underlying._hvac_mode == VThermHvacMode_OFF
+        else:
+            mock_service_call.assert_not_awaited()
+        mock_call_later.assert_not_called()
 
     entity.remove_thermostat()
 
