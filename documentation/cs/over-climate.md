@@ -103,11 +103,17 @@ Pokud jste v tomto případě, byla do zařízení _VTherm_ přidána entita naz
 
 ![Sledování změn teploty](images/entity-follow-under-temp-change.png)
 
-Když je tato entita 'On', všechny změny teploty nebo stavu provedené přímo na podkladovém zařízení se odrazí ve _VTherm_.
+Když je tato entita zapnutá, změny režimu HVAC se nadále sledují. Sledování požadované teploty je aktivní již od spuštění, i když _VTherm_ ještě neposlal příkaz do TRV. Nově nahlášená požadovaná teplota se uloží jako kandidát a převezme se, pokud zůstane stabilní po dobu pěti sekund; každá nová odlišná hodnota čekání spustí znovu. Duplicitní hodnoty dobu neprodlužují. Pokud _VTherm_ již požadovanou teplotu odeslal, stejné nebo blízké hodnoty jsou nejednoznačné a automaticky se nepřebírají. Bez reference na odeslanou požadovanou teplotu může být stará odlišná odezva chybně považována za ruční změnu.
 
-Změna setpointu provedená přímo na zařízení se zpracuje jako ruční změna cílové teploty: pokud je nastavena [doba ručního přepsání](feature-timed-preset.md#ruční-přepsání-s-automatickým-návratem), spustí ruční přepsání a po jeho skončení se obnoví předchozí preset.
+Přípustná změna na TRV se zpracuje jako ruční změna cílové teploty: _VTherm_ přejde na ruční požadovanou teplotu (`NONE`). Pokud je nastavena [doba ručního přepsání](feature-timed-preset.md#ruční-přepsání-s-automatickým-návratem), spustí se ruční přepsání a po jeho skončení se obnoví předchozí preset. Bez této doby se zruší běžící časovaný preset, aniž by se obnovil předchozí požadavek. Priority oken a ochrany zůstávají beze změny. Ve stavu OFF se požadavek uloží, aniž by se termostat zapnul nebo zrušil vynucený stav OFF.
+
+Rozpočet sledování je jeden společný čítač pro každý _VTherm_. Započítává každou skutečně převzatou změnu požadovaného režimu nebo teploty ze základního zařízení a také každý odchozí pokus o příkaz `climate` vyvolaný sledováním. Převzetí změny a následný odchozí příkaz tak mohou spotřebovat dvě jednotky. Pouhé pozorování kandidáta ani čekání na jeho ustálení se nezapočítává. Volání služeb `number` pro přímou regulaci ventilu nejsou zahrnuta.
+
+Při dosažení tří jednotek se sledování pozastaví. Pokud je třetí jednotkou odchozí pokus, příkaz se ještě odešle a další pokus se zablokuje. Pokud čítač dosáhne tří při převzetí změny, změna zůstane přijata, ale následné příkazy vyvolané sledováním se zablokují. Přímé ovládání z _VTherm_ zůstává dostupné. Čítač se znovu aktivuje po přijetí nového příkazu přes rozhraní _VTherm_ nebo službu Home Assistant. Fyzické změny na základním zařízení ani běžné regulační cykly jej neresetují; časovaný reset neexistuje. Automatizace, která při každé změně odešle nový příkaz do _VTherm_, může čítač resetovat při každém průchodu, takže limit platí mezi přijatými příkazy, nikoli pro celou smyčku. Po restartu Home Assistant nebo opětovném načtení integrace začíná čítač od nuly a sledování je znovu aktivní.
 
 Buďte opatrní, pokud používáte tuto funkci, vaše zařízení je nyní ovládáno dvěma způsoby: _VTherm_ a přímo vámi. Příkazy mohou být protichůdné, což by mohlo vést ke zmatku ohledně stavu zařízení. _VTherm_ je vybaven mechanismem zpoždění, který zabraňuje smyčkám: uživatel dá setpoint, který je zachycen _VTherm_ a změní setpoint, ... Toto zpoždění může způsobit, že změna provedená přímo na zařízení bude ignorována, pokud jsou tyto změny příliš blízko v čase.
 
 Některá zařízení (jako například Daikin) mění stav sama od sebe. Pokud je zaškrtnuté políčko, může to vypnout _VTherm_, když to není to, co jste chtěli.
 Proto je lepší to nepoužívat. Generuje to hodně zmatku a mnoho žádostí o podporu.
+
+Tyto limity jsou záměrným kompromisem mezi bezpečností a použitelností. Jsou záměrně přísné a z konstrukčních důvodů je nelze konfigurovat. Nebudou se měnit; s těmito omezeními bude nutné počítat.

@@ -7,6 +7,7 @@
     - [Le mode AC](#le-mode-ac)
     - [La synchronisation de la température interne des sous-jacents](#la-synchronisation-de-la-température-interne-des-sous-jacents)
     - [L'auto-régulation](#lauto-régulation)
+    - [Démarrage de la régulation par vanne avec des degrés sans retour](#démarrage-de-la-régulation-par-vanne-avec-des-degrés-sans-retour)
     - [L'auto-ventilation (auto-fan)](#lauto-ventilation-auto-fan)
     - [Compenser la température interne du sous-jacent](#compenser-la-température-interne-du-sous-jacent)
   - [Fonctions spécifiques](#fonctions-spécifiques)
@@ -131,7 +132,9 @@ Lorsque cette entité est 'On', les changements de mode HVAC continuent d'être 
 
 Attention, si vous utilisez cette fonction, votre équipement est contrôlé par deux moyens : _VTherm_ et vous-même directement. Les ordres peuvent être contradictoires. Une consigne TRV admissible est traitée comme un changement manuel de la température cible : _VTherm_ passe en consigne manuelle (`NONE`) et, si une [durée de dérogation manuelle](feature-timed-preset.md#dérogation-manuelle-avec-retour-automatique) est configurée, démarre une dérogation manuelle qui revient au preset précédent à son expiration. Sans durée de dérogation manuelle, il annule le preset temporisé en cours sans restaurer l'ancienne demande. Cela ne modifie pas les priorités des fenêtres ou protections. Sous OFF, la consigne demandée est mémorisée sans rallumer le thermostat ni lever un OFF forcé.
 
-Le suivi suspend les nouvelles commandes de température induites après trois tentatives physiques au total pour ce _VTherm_ ; la troisième est envoyée et la quatrième est bloquée. Les commandes directes depuis _VTherm_ restent possibles. Une nouvelle commande reçue par _VTherm_ depuis l'interface ou un service Home Assistant réarme le compteur, même si une automatisation réagit au TRV. Une automatisation qui renvoie une commande à chaque changement peut donc le réarmer à chaque tour : la limite de trois s'applique entre commandes reçues, pas à toute cette boucle. Après un redémarrage de Home Assistant ou un rechargement de l'intégration, le compteur repart à zéro et le suivi est réarmé. Une valeur TRV restaurée sans nouveau changement observé n'est pas adoptée ; dès qu'une nouvelle consigne est rapportée, elle peut être suivie sans attendre un ordre de _VTherm_. Sans référence d'envoi, un ancien écho distinct peut être pris à tort pour un geste.
+Le budget de suivi est un compteur unique par _VTherm_. Il compte chaque changement de mode ou de consigne effectivement adopté depuis un sous-jacent, ainsi que chaque tentative de commande `climate` sortante induite par le suivi. Une adoption suivie d'une commande peut donc consommer deux unités ; observer une candidate ou attendre qu'elle se stabilise n'en consomme pas. Les appels aux entités `number` de la régulation directe par vanne ne sont pas inclus.
+
+Le suivi est suspendu lorsque le compteur atteint trois. Si la troisième unité correspond à une tentative sortante, cette commande est envoyée et la suivante est bloquée. Si une adoption porte le compteur à trois, elle est conservée, mais les commandes de suivi suivantes sont bloquées. Les commandes directes depuis _VTherm_ restent possibles. Une nouvelle commande reçue par l'interface de _VTherm_ ou par un service Home Assistant réarme le compteur. Les gestes physiques sur le sous-jacent et les cycles normaux de régulation ne le réinitialisent pas : il n'y a pas de remise à zéro temporisée. Une automatisation qui envoie une nouvelle commande à _VTherm_ peut réarmer le compteur à chaque tour ; la limite s'applique donc entre commandes reçues, pas à toute la boucle. Après un redémarrage de Home Assistant ou un rechargement de l'intégration, le compteur repart à zéro et le suivi est réarmé. Une valeur TRV restaurée sans nouveau changement observé n'est pas adoptée ; dès qu'une nouvelle consigne est rapportée, elle peut être suivie sans attendre un ordre de _VTherm_. Sans référence d'envoi, un ancien écho distinct peut être pris à tort pour un geste.
 
 Un retour ancien, différent de la dernière commande, peut encore être pris à tort pour un geste manuel ; un retour ambigu peut au contraire être écarté. Le délai de 5 secondes n'établit pas l'origine d'un changement et ne garantit ni la capture de tous les gestes ni l'absence de toute boucle entretenue par une automatisation externe.
 
@@ -139,6 +142,8 @@ Certaines vannes (par exemple la Sonoff TRVZB) changent leur propre consigne qua
 
 Certains équipements (Daikin par exemple), changent d'état tout seul. Si la case est cochée, cela peut éteindre le _VTherm_ alors que ce n'est pas ce que vous souhaitiez.
 C'est pour ça qu'il est préférable de ne pas l'utiliser. Cela génère beaucoup d'incompréhensions et de nombreuses demandes de support.
+
+Ces limites résultent d'un compromis délibéré entre sécurité et facilité d'utilisation. Elles sont volontairement restrictives et non paramétrables par conception. Elles ne seront pas modifiées ; il faudra faire avec ces limites.
 
 > ![Astuce](images/tips.png) _*Télécommande physique*_
 > Si vous souhaitez utiliser un thermostat physique distinct (un thermostat mural par exemple) comme télécommande d'un _VTherm_, consultez le plugin [VTherm climate replication](https://www.versatile-thermostat.org/fr/plugins/#jmcollin78/vtherm_climate_replication).

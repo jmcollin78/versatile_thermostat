@@ -10,7 +10,7 @@
     - [Auto-Fan (Automatische Belüftung)](#auto-fan-automatische-belüftung)
     - [Kompensation der Innentemperatur des zugehörigen Geräts](#kompensation-der-innentemperatur-des-zugehörigen-geräts)
   - [Besondere Funktionen](#besondere-funktionen)
-  - [Verfolgung grundlegender Temperaturänderungen](#verfolgung-grundlegender-temperaturänderungen)
+  - [Verfolgung verknüpfter Temperaturänderungen](#verfolgung-verknüpfter-temperaturänderungen)
   - [Nächster Schritt](#nächster-schritt)
 
 ## Voraussetzungen
@@ -110,14 +110,20 @@ In diesem Fall wurde dem Gerät _VTherm_ eine Entität mit der Bezeichnung `foll
 
 ![Temperaturänderungen folgen](images/entity-follow-under-temp-change.png)
 
-Steht diese Entity auf 'Ein', werden alle Temperatur- oder Zustandsänderungen, die direkt am zugehörigen Gerät vorgenommen werden, in _VTherm_ wiedergegeben.
+Steht diese Entity auf 'Ein', werden Änderungen des HVAC-Modus weiterhin verfolgt. Die Sollwertverfolgung ist bereits beim Start aktiv, auch wenn _VTherm_ noch keinen Befehl an das TRV gesendet hat. Ein neu gemeldeter Sollwert wird als Kandidat gespeichert und übernommen, wenn er fünf Sekunden lang stabil bleibt; jeder neue, abweichende Wert startet die Wartezeit erneut. Duplikate verlängern sie nicht. Wenn _VTherm_ bereits einen Sollwert gesendet hat, werden gleiche oder ähnliche Werte als mehrdeutig behandelt und nicht automatisch übernommen. Ohne Referenz eines zuvor gesendeten Sollwerts kann ein alter, abweichender Echo-Wert fälschlich als manuelle Änderung gelten.
 
-Eine direkt am Gerät vorgenommene Sollwertänderung wird wie eine manuelle Änderung der Zieltemperatur behandelt: Ist eine [Dauer der manuellen Übersteuerung](feature-timed-preset.md#manuelle-übersteuerung-mit-automatischer-rückkehr) konfiguriert, startet sie eine manuelle Übersteuerung, nach deren Ablauf die vorherige Voreinstellung wiederhergestellt wird.
+Eine zulässige Änderung am TRV wird wie eine manuelle Änderung der Zieltemperatur behandelt: _VTherm_ wechselt zur manuellen Sollwerteinstellung (`NONE`). Ist eine [Dauer der manuellen Übersteuerung](feature-timed-preset.md#manuelle-übersteuerung-mit-automatischer-rückkehr) konfiguriert, startet sie eine manuelle Übersteuerung, nach deren Ablauf die vorherige Voreinstellung wiederhergestellt wird. Ohne eine solche Dauer wird ein laufendes zeitgesteuertes Preset beendet, ohne die vorherige Anforderung wiederherzustellen. Fenster- und Schutzprioritäten bleiben unverändert. Im Zustand OFF wird die Anforderung gespeichert, ohne den Thermostat einzuschalten oder ein erzwungenes OFF aufzuheben.
+
+Das Verfolgungsbudget ist ein gemeinsamer Zähler pro _VTherm_. Er zählt jede tatsächlich übernommene Änderung des angeforderten Modus oder Sollwerts sowie jeden durch die Verfolgung ausgelösten ausgehenden `climate`-Versuch. Eine Übernahme und ein daraus folgender Befehl können daher zwei Einheiten verbrauchen. Das bloße Beobachten oder Warten auf einen Kandidaten zählt nicht. `number`-Dienste für die direkte Ventilregelung sind nicht enthalten.
+
+Bei drei Einheiten wird die Verfolgung ausgesetzt. Ist die dritte Einheit ein ausgehender Versuch, wird dieser noch gesendet; der nächste wird blockiert. Erreicht eine Übernahme den Wert drei, bleibt sie erhalten, aber nachfolgende Verfolgungsbefehle werden blockiert. Die direkte Steuerung über _VTherm_ bleibt möglich. Ein neuer über die _VTherm_-Schnittstelle oder einen HA-Dienst empfangener Befehl setzt den Zähler zurück. Physische Bedienung am zugrunde liegenden Gerät und normale Regelungszyklen setzen ihn nicht zurück; es gibt keine zeitgesteuerte Rücksetzung. Eine Automation, die bei jeder Änderung einen neuen Befehl an _VTherm_ sendet, kann den Zähler bei jedem Durchlauf erneut zurücksetzen; die Grenze gilt daher zwischen empfangenen Befehlen, nicht für die gesamte Schleife. Nach einem Neustart von Home Assistant oder einem Neuladen der Integration beginnt der Zähler bei null und die Verfolgung ist wieder aktiviert.
 
 Seien Sie vorsichtig, beim verwenden dieser Funktion, wird Ihr Gerät jetzt auf zwei Arten gesteuert: _VTherm_ und direkt von Ihnen. Die Befehle können widersprüchlich sein, was zu Verwirrung über den Zustand des Geräts führen kann. _VTherm_ ist mit einem Verzögerungsmechanismus ausgestattet, der Schleifen verhindert: der Benutzer gibt einen Sollwert vor, der von _VTherm_ erfasst wird und den Sollwert ändert, ... Diese Verzögerung kann dazu führen, dass die direkt am Gerät vorgenommene Änderung ignoriert wird, wenn diese Änderungen zeitlich zu dicht beieinander liegen.
 
 Einige Geräte (wie z. B. Daikin) ändern ihren Zustand von selbst. Wenn das Kontrollkästchen aktiviert ist, kann es sein, dass _VTherm_ ausgeschaltet wird, obwohl Sie das nicht beabsichtigt haben.
 Deshalb ist es besser, sie nicht zu verwenden. Es führt zu viel Verwirrung und vielen Supportanfragen.
+
+Diese Grenzen sind ein bewusster Kompromiss zwischen Sicherheit und Benutzerfreundlichkeit. Sie sind absichtlich restriktiv und konstruktionsbedingt nicht konfigurierbar. Sie werden nicht geändert; mit diesen Einschränkungen müssen Sie leben.
 
 > ![Tipp](images/tips.png) _*Physische Fernbedienung*_
 > Wenn Sie einen separaten physischen Thermostat (z. B. einen Wandthermostat) als Fernbedienung für ein _VTherm_ verwenden möchten, sehen Sie sich das Plugin [VTherm climate replication](https://www.versatile-thermostat.org/de/plugins/#jmcollin78/vtherm_climate_replication) an.
