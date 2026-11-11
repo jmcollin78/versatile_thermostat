@@ -650,6 +650,8 @@ class UnderlyingSwitch(UnderlyingEntity):
             return False
 
         if should_be_on:
+            if self._thermostat.hvac_mode == HVACMode.OFF:
+                return False
             await self.turn_on()
         else:
             await self.turn_off()

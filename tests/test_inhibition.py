@@ -449,6 +449,37 @@ async def test_switch_exit_off_turns_off_manual_device(hass: HomeAssistant, fake
         assert ("switch", "turn_on") not in spy.services()
 
 
+async def test_switch_repair_does_not_turn_on_when_thermostat_is_off(hass: HomeAssistant, fake_temp_sensor, fake_underlying_switch):
+    vtherm = await heating_switch_vtherm(hass, fake_temp_sensor)
+    under: UnderlyingSwitch = vtherm.underlying_entity(0)
+
+    with spy_services([SWITCH]) as spy:
+        await vtherm.async_set_hvac_mode(VThermHvacMode_OFF)
+        assert vtherm.hvac_mode == HVACMode.OFF
+        under._is_on_part_running = True
+        assert under.is_device_active is False
+        spy.reset()
+
+        assert await under.check_and_repair() is False
+        assert ("switch", "turn_on") not in spy.services()
+
+
+async def test_switch_repair_can_turn_on_when_thermostat_is_heating(hass: HomeAssistant, fake_temp_sensor, fake_underlying_switch):
+    vtherm = await heating_switch_vtherm(hass, fake_temp_sensor)
+    under: UnderlyingSwitch = vtherm.underlying_entity(0)
+
+    with spy_services([SWITCH]) as spy:
+        await under.turn_off()
+        await hass.async_block_till_done()
+        under._is_on_part_running = True
+        assert vtherm.hvac_mode == HVACMode.HEAT
+        assert under.is_device_active is False
+        spy.reset()
+
+        assert await under.check_and_repair() is True
+        assert spy.services() == [("switch", "turn_on")]
+
+
 async def test_switch_exit_heat_with_device_turned_on_by_hand(hass: HomeAssistant, fake_temp_sensor, fake_ext_temp_sensor, fake_underlying_switch):
     """Exit with HEAT while the switch was turned on by hand: the switch caches follow the
     real state, so the repair does not turn it off and the keep-alive works again"""
