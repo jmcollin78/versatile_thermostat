@@ -514,7 +514,6 @@ async def test_state_manager_calculate_hvac_mode(
 
     fake_vtherm.auto_start_stop_manager = MagicMock()
     type(fake_vtherm.auto_start_stop_manager).is_auto_stop_detected = PropertyMock(return_value=is_auto_stop_detected)
-
     ret = await state_manager.calculate_current_hvac_mode(fake_vtherm)
     assert ret is expected_result
 

@@ -38,7 +38,7 @@ def make_underlying(name="R1", active=False, entity_type=UnderlyingEntityType.SW
     under.min_activation_delay_sec = 0
     under.min_deactivation_delay_sec = 0
     under.entity_type = entity_type
-    
+
     # Mock last_change to return a large elapsed time (e.g. 1000 seconds)
     import datetime
     delta_mock = MagicMock()

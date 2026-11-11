@@ -406,7 +406,41 @@ class UnderlyingSwitch(UnderlyingEntity):
         self._should_be_on = False
 
         # true if the on part of the cycle is running. Off if the off part is running
-        self._is_on_part_running = False
+        self._is_on_part_running: bool | None = None
+
+    def _get_observed_state(self) -> bool | None:
+        """Decode the cached state using the configured logical command values."""
+        state = self._state_manager.get_state(self._entity_id)
+        if state is None or state.state in (STATE_UNKNOWN, STATE_UNAVAILABLE):
+            return None
+
+        on_state = self._on_command.get("state")
+        off_state = self._off_command.get("state")
+        if on_state == off_state:
+            return None
+        if state.state == on_state:
+            return True
+        if state.state == off_state:
+            return False
+        return None
+
+    def _adopt_observed_state_if_unset(self) -> bool:
+        """Adopt the current logical observation once, without issuing a command."""
+        if self._is_on_part_running is not None:
+            return False
+
+        observed_state = self._get_observed_state()
+        if observed_state is None:
+            return False
+
+        self._is_on_part_running = observed_state
+        return True
+
+    @overrides
+    async def _underlying_changed(self, entity_id: str, new_state: Optional[State], old_state: Optional[State] = None):
+        """Adopt the first known logical state without sending a command."""
+        self._adopt_observed_state_if_unset()
+        await super()._underlying_changed(entity_id, new_state, old_state)
 
     @overrides
     @property
@@ -455,12 +489,7 @@ class UnderlyingSwitch(UnderlyingEntity):
         """If the toggleable device is currently active."""
         if not self.is_initialized:
             return None
-        state = self._state_manager.get_state(self._entity_id)
-        if state is None:
-            return None
-
-        is_on = state.state == self._on_command.get("state")
-        return is_on
+        return self._get_observed_state()
 
     async def check_initial_state(self):
         """Prevent the underlying to be on but thermostat is off"""
@@ -479,11 +508,11 @@ class UnderlyingSwitch(UnderlyingEntity):
     async def _keep_alive_callback(self):
         """Keep alive: Turn on if already turned on, turn off if already turned off."""
         timer = self._keep_alive.backoff_timer
+        if self._is_on_part_running is None:
+            return
+
         state: State | None = self._hass.states.get(self._entity_id)
-        # Normal, expected state.state values are "on" and "off". An absent
-        # underlying MQTT switch was observed to produce either state == None
-        # or state.state == STATE_UNAVAILABLE ("unavailable").
-        if state is None or state.state == STATE_UNAVAILABLE:
+        if state is None or state.state in (STATE_UNAVAILABLE, STATE_UNKNOWN):
             if timer.is_ready():
                 _LOGGER.warning(
                     "%s - Entity %s is not available (state: %s). Will keep trying " "keep alive calls, but won't log this condition every time.",
@@ -491,16 +520,12 @@ class UnderlyingSwitch(UnderlyingEntity):
                     self._entity_id,
                     state.state if state else "None",
                 )
-        else:
-            if timer.in_progress:
-                timer.reset()
-                _LOGGER.warning(
-                    "%s - Entity %s has recovered (state: %s).",
-                    self,
-                    self._entity_id,
-                    state.state,
-                )
-            await (self.turn_on() if self._is_on_part_running else self.turn_off())
+            return
+
+        if timer.in_progress:
+            timer.reset()
+            _LOGGER.warning("%s - Entity %s has recovered (state: %s).", self, self._entity_id, state.state)
+        await (self.turn_on() if self._is_on_part_running else self.turn_off())
 
     def build_command(self, use_on: bool) -> Tuple[str, Dict[str, str]]:
         """Build a command and returns a command and a dict as data"""
@@ -535,8 +560,6 @@ class UnderlyingSwitch(UnderlyingEntity):
         """Turn heater toggleable device off."""
         self._keep_alive.cancel()  # Cancel early to avoid a turn_on/turn_off race condition
         if self.is_command_blocked(self._domain, self._off_command.get("command")):
-            # Inhibited (gate closed), the VTherm is off: release its central power reservation.
-            # Not while EXIT_RECONCILING: the reconciliation may have reserved it.
             if self._thermostat.inhibition_manager.command_gate is CommandGate.CLOSED:
                 self._thermostat.power_manager.sub_power_consumption_to_central_power_manager(self.power_reservation_key)
             return
@@ -544,13 +567,9 @@ class UnderlyingSwitch(UnderlyingEntity):
 
         command = self._off_command.get("command")
         data = self._off_command.get("data")
-
-        # This may fails if called after shutdown
         try:
             try:
-                self._thermostat.power_manager.sub_power_consumption_to_central_power_manager(
-                    self.power_reservation_key
-                )
+                self._thermostat.power_manager.sub_power_consumption_to_central_power_manager(self.power_reservation_key)
                 _LOGGER.debug("%s - Sending command %s with data=%s", self, command, data)
                 await self._hass.services.async_call(self._domain, command, data)
                 self._is_on_part_running = False
@@ -571,16 +590,13 @@ class UnderlyingSwitch(UnderlyingEntity):
         if not await self.check_overpowering():
             self._thermostat.requested_state.force_changed()
             await self._thermostat.update_states(force=True)
-
             return False
 
         command = self._on_command.get("command")
         data = self._on_command.get("data")
         try:
             try:
-                self._thermostat.power_manager.add_power_consumption_to_central_power_manager(
-                    self.power_reservation_key
-                )
+                self._thermostat.power_manager.add_power_consumption_to_central_power_manager(self.power_reservation_key)
                 _LOGGER.debug("%s - Sending command %s with data=%s", self, command, data)
                 await self._hass.services.async_call(self._domain, command, data)
                 self._is_on_part_running = True
@@ -602,7 +618,9 @@ class UnderlyingSwitch(UnderlyingEntity):
     @overrides
     async def async_inhibition_resync(self):
         """The dropped commands left the keep-alive cancelled. Follow the real state"""
-        self._is_on_part_running = self.is_device_active is True
+        observed_state = self.is_device_active
+        if observed_state is not None:
+            self._is_on_part_running = observed_state
         self.on_inhibition_gate_opened()
 
     @overrides
@@ -621,10 +639,9 @@ class UnderlyingSwitch(UnderlyingEntity):
     async def check_and_repair(self) -> bool:
         """Check if the underlying device state matches the desired state and repair if needed.
         Returns True if a repair was performed."""
+
         should_be_on = self._is_on_part_running
         is_on = self.is_device_active
-
-        _LOGGER.debug("%s - Checking if underlying switch state needs repair. should_be_on=%s, is_on=%s", self, should_be_on, is_on)
 
         if should_be_on is None or is_on is None:
             return False
@@ -634,10 +651,9 @@ class UnderlyingSwitch(UnderlyingEntity):
 
         if should_be_on:
             await self.turn_on()
-            return True
         else:
             await self.turn_off()
-            return True
+        return True
 
 
 # ----------------------------------------------------------------
