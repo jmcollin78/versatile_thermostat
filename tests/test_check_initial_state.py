@@ -7,6 +7,7 @@ import pytest
 from vtherm_api import ValveCommandCause
 
 from homeassistant.const import STATE_ON, STATE_OFF, STATE_UNAVAILABLE, STATE_UNKNOWN
+from homeassistant.core import State
 
 from custom_components.versatile_thermostat.underlyings import UnderlyingSwitch, UnderlyingClimate, UnderlyingValve, UnderlyingValveRegulation
 from custom_components.versatile_thermostat.vtherm_hvac_mode import VThermHvacMode_OFF, VThermHvacMode_HEAT, VThermHvacMode_FAN_ONLY, VThermHvacMode_COOL, VThermHvacMode_AUTO
@@ -221,6 +222,7 @@ async def test_check_initial_state_underlying_switch(hass, request, hvac_mode, l
     # Instantiate the UnderlyingSwitch
     u = UnderlyingSwitch(hass=hass, thermostat=thermostat, switch_entity_id="switch.test", keep_alive_sec=0.1)
     request.addfinalizer(u.remove_entity)
+    assert u._is_on_part_running is None
 
     # Replace set_hvac_mode with a mock to assert it is invoked by check_initial_state
     u.turn_off = AsyncMock()
@@ -250,6 +252,7 @@ async def test_check_initial_state_underlying_switch(hass, request, hvac_mode, l
         # no state provided -> no initial check should be done
         assert u._last_known_underlying_state is None
         assert u.turn_off.await_count == 0
+        assert u._is_on_part_running is None
     else:
         # state provided -> check_initial_state should try to set HVAC mode
         assert u._last_known_underlying_state is not None
@@ -257,6 +260,45 @@ async def test_check_initial_state_underlying_switch(hass, request, hvac_mode, l
         assert u._last_known_underlying_state.state == last_state
         if expect_off_call:
             assert u.turn_off.await_count == 1
+        expected_logical_state = True if last_state == STATE_ON else False if last_state == STATE_OFF else None
+        assert u._is_on_part_running is expected_logical_state
+
+
+@pytest.mark.asyncio
+async def test_switch_check_and_repair_waits_for_first_observation(hass):
+    """Repair must not infer OFF from an unset expectation."""
+    thermostat = MagicMock()
+    thermostat.is_inversed = False
+    underlying = UnderlyingSwitch(hass, thermostat, "switch.unknown", 0)
+    underlying._is_initialized = True
+    underlying._state_manager.get_state = MagicMock(return_value=State("switch.unknown", STATE_ON))
+    underlying.turn_on = AsyncMock()
+    underlying.turn_off = AsyncMock()
+
+    assert underlying._is_on_part_running is None
+    assert await underlying.check_and_repair() is False
+    underlying.turn_on.assert_not_awaited()
+    underlying.turn_off.assert_not_awaited()
+    underlying.remove_entity()
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("expected_state", [None, True, False])
+async def test_switch_inhibition_resync_preserves_unknown_state(hass, expected_state):
+    """An unknown observation must not change the cached expected switch state."""
+    thermostat = MagicMock()
+    thermostat.is_inversed = False
+    underlying = UnderlyingSwitch(hass, thermostat, "switch.unknown", 0)
+    underlying._is_initialized = True
+    underlying._is_on_part_running = expected_state
+    underlying._state_manager.get_state = MagicMock(return_value=None)
+    underlying.on_inhibition_gate_opened = MagicMock()
+
+    await underlying.async_inhibition_resync()
+
+    assert underlying._is_on_part_running is expected_state
+    underlying.on_inhibition_gate_opened.assert_called_once()
+    underlying.remove_entity()
 
 
 @pytest.mark.asyncio
