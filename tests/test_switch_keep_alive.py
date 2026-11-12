@@ -239,10 +239,7 @@ class TestKeepAlive:
 
         await send_temperature_change_event(thermostat, 20, event_timestamp)
 
-        # Simulate the end of the TPI heating cycle
-        await thermostat._underlyings[0].turn_off()  # pylint: disable=protected-access
-
-        # turn_off() should have triggered a call to `async_track_time_interval()`
+        # The zero-percent cycle turns the underlying switch off and rearms keep-alive.
         self._assert_async_mock_track_time_interval(common_mocks, 1)
 
         # turn_off() should have triggered a call to the SERVICE_TURN_OFF service.
