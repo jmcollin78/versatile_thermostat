@@ -35,6 +35,7 @@ def make_underlying(name="R1", active=False, entity_type=UnderlyingEntityType.SW
     under.turn_off = AsyncMock()
     under.set_valve_open_percent = AsyncMock()
     under.is_device_active = active
+    under.is_on_part_running = None
     under.min_activation_delay_sec = 0
     under.min_deactivation_delay_sec = 0
     under.entity_type = entity_type
@@ -166,6 +167,27 @@ class TestCycleSchedulerLifecycle:
 
         r1.turn_off.assert_called_once()
         assert r1._should_be_on is False
+
+    @pytest.mark.asyncio
+    @patch("custom_components.versatile_thermostat.cycle_scheduler.async_call_later")
+    async def test_zero_on_time_turns_off_unobserved_on_command(self, mock_call_later):
+        """A zero-percent cycle turns off a switch before its ON state is observed."""
+        mock_call_later.return_value = MagicMock()
+
+        hass = make_hass()
+        thermostat = make_thermostat()
+        r1 = make_underlying()
+        r1.is_on_part_running = False
+        r1.turn_on.side_effect = lambda: setattr(r1, "is_on_part_running", True)
+        scheduler = CycleScheduler(hass, thermostat, [r1], 600)
+
+        await scheduler.start_cycle(VThermHvacMode_HEAT, 0.5, force=True)
+        assert r1.is_device_active is False
+        assert r1.is_on_part_running is True
+
+        await scheduler.start_cycle(VThermHvacMode_HEAT, 0.0, force=True)
+
+        r1.turn_off.assert_awaited_once()
 
     @pytest.mark.asyncio
     @patch("custom_components.versatile_thermostat.cycle_scheduler.async_call_later")

@@ -618,7 +618,7 @@ class CycleScheduler:
         if hvac_mode == VThermHvacMode_OFF or on_time_sec <= 0:
             # Turn off all underlyings
             for under in self._underlyings:
-                if under.is_device_active:
+                if under.is_device_active is True or under.is_on_part_running is True:
                     await under.turn_off()
                 under._should_be_on = False
             # Keep a real master-cycle start time so the next automatic restart

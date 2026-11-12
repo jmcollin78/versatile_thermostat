@@ -3,6 +3,7 @@
 line-length = 180
 
 [tool.pytest.ini_options]
+addopts = ["-p", "no:respx"]
 asyncio_mode = "auto"
 asyncio_default_fixture_loop_scope = "function"
 markers = [

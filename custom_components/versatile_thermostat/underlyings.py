@@ -311,6 +311,11 @@ class UnderlyingEntity:
         return self._hvac_mode
 
     @property
+    def is_on_part_running(self) -> bool | None:
+        """Whether the underlying is in its commanded ON cycle part, if known."""
+        return None
+
+    @property
     def should_device_be_active(self) -> bool | None:
         """If the underlying device should currently be active.
         Need to be overriden"""
@@ -483,6 +488,11 @@ class UnderlyingSwitch(UnderlyingEntity):
     def should_device_be_active(self) -> bool:
         """If the toggleable device is currently active."""
         return self._calculate_should_be_on()
+
+    @property
+    def is_on_part_running(self) -> bool | None:
+        """Whether the switch is in its commanded ON cycle part, if known."""
+        return self._is_on_part_running
 
     @property
     def is_device_active(self) -> bool | None:
