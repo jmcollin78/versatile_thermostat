@@ -22,6 +22,8 @@ Diese benutzerdefinierte Komponente für Home Assistant ist ein Upgrade und eine
 
 VTherm nutzt die native LLM-Plattform von Home Assistant und stellt seine Werkzeuge über den offiziellen Home-Assistant-MCP-Server bereit. Assistenten können die für Assist freigegebenen VTherms auflisten, ihren Zustand lesen und strukturierte Diagnosen anhand der von VTherm gelieferten Meldungen und Gründe abrufen.
 
+MCP-Lesezugriffe zeigen die zentrale Konfiguration und die Vererbung jedes VTherms; Diagnosen unterscheiden zentrale Einstellungen, effektive Werte, zentralen Modus und Heizkesselteilnahme gemäß den Leseberechtigungen.
+
 Auf ausdrücklichen Wunsch können drei Werkzeuge die Solltemperatur, das Preset oder den HVAC-Modus über die standardmäßigen Dienste `climate.*` ändern. Dabei werden Benutzerberechtigungen und Werte geprüft. Diagnoseanfragen bleiben schreibgeschützt; die Option **Read only** des MCP-Servers blendet die Aktionswerkzeuge aus.
 
 Klassische TPI-Koeffizienten lassen sich auch aus 7–14 nutzbaren Tagen Recorder-Verlauf analysieren, mit expliziter Anwendung und zusätzlicher Bestätigung großer Änderungen.

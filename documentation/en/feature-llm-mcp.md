@@ -2,7 +2,7 @@
 
 This documentation describes how to add LLM/MCP tools to **Versatile Thermostat (VTherm)** through Home Assistant's official MCP server.
 
-The provided `llm.py` file exposes:
+The provided `llm/` package exposes:
 
 - 6 read/diagnostic, log and history tools;
 - 3 simple action tools: temperature, preset and HVAC mode;
@@ -19,15 +19,16 @@ The provided `llm.py` file exposes:
 The following modules must be present together in the integration directory:
 
 ```text
-/config/custom_components/versatile_thermostat/llm.py
-/config/custom_components/versatile_thermostat/llm_diagnostics.py
-/config/custom_components/versatile_thermostat/llm_diagnostic_time.py
+/config/custom_components/versatile_thermostat/llm/__init__.py
+/config/custom_components/versatile_thermostat/llm/diagnostics.py
+/config/custom_components/versatile_thermostat/llm/diagnostic_time.py
+/config/custom_components/versatile_thermostat/llm/central_configuration.py
 /config/custom_components/versatile_thermostat/recorder_export.py
 /config/custom_components/versatile_thermostat/tpi_history.py
 /config/custom_components/versatile_thermostat/tpi_identification.py
 ```
 
-Install these modules from the same revision. `TPIHistory` owns one thermostat's Home Assistant context and sources, while `TPIIdentification` owns its grid and analysis parameters; the two `llm_diagnostic*` modules provide log and plugin reads.
+Install these modules from the same revision. `TPIHistory` owns one thermostat's Home Assistant context and sources, while `TPIIdentification` owns its grid and analysis parameters; the two `llm/diagnostic*` modules provide log and plugin reads.
 
 Directory structure:
 
@@ -38,9 +39,11 @@ Directory structure:
 ├── const.py
 ├── manifest.json
 ├── ...
-├── llm.py
-├── llm_diagnostics.py
-├── llm_diagnostic_time.py
+├── llm/
+│   ├── __init__.py
+│   ├── diagnostics.py
+│   ├── diagnostic_time.py
+│   └── central_configuration.py
 ├── recorder_export.py
 ├── tpi_history.py
 └── tpi_identification.py
@@ -48,11 +51,11 @@ Directory structure:
 
 There is no need to modify `manifest.json` to declare the `llm` platform.
 
-Home Assistant discovers integration platforms dynamically and loads `llm.py` on demand when an LLM API needs the integration's tools.
+Home Assistant discovers integration platforms dynamically and loads `llm/__init__.py` on demand when an LLM API needs the integration's tools.
 
 After copying the file, perform a **full restart of Home Assistant**.
 
-> Warning: if `llm.py` was added manually to a VTherm installation managed by HACS, a future HACS update may replace the integration directory. Keep a copy of the file until it is integrated into the VTherm project itself.
+> Warning: if `llm/__init__.py` was added manually to a VTherm installation managed by HACS, a future HACS update may replace the integration directory. Keep a copy of the file until it is integrated into the VTherm project itself.
 
 ---
 
@@ -252,6 +255,16 @@ A section that is absent from the entity is simply not returned.
 
 ---
 
+### Central configuration and inheritance
+
+`list_vtherms`, `get_status` and `diagnose` add a `central_configuration` object. The list reports its presence and includes each thermostat's inheritance groups, central-mode participation and boiler participation. Status and diagnosis also include relevant central settings and the loaded thermostat's effective values.
+
+`configured` reports whether a central entry exists; `active` follows VTherm's selection criteria. A disabled or failed entry must not be treated as active. Multiple eligible entries return `status: ambiguous` without choosing arbitrarily. Groups are `main`, `tpi`, `window`, `motion`, `power`, `presence`, `presets`, `advanced` and `lock`. The `inheritance` flags describe the loaded thermostat's choices; `uses_central_configuration` also requires an active central configuration. Central mode and boiler participation remain separate functions.
+
+These additional data require a loaded VTherm target still exposed to Assist and an authenticated user with `READ` permission. Administrators can read the reviewed central groups; other users see only groups inherited by their authorized targets. If access or reading fails, `configured: null` and `status: unavailable` preserve uncertainty without discarding the ordinary diagnosis.
+
+`settings` is a deliberate projection of reviewed central-entry fields, never raw configuration, lock codes, boiler command strings or templates. `thermostat.effective_settings` comes from loaded `entry_infos`. Effective presets come from `preset_temperatures`, since their temperatures are held by Number entities; central-entry values are insufficient. Central power units may be `auto` while a thermostat uses W or kW. Configured and effective settings can differ during reload. These reads never change configuration.
+
 ## 6. VTherm documentation and troubleshooting
 
 The `diagnose` result also contains `support_resources` with both French **and** English resources:
@@ -288,7 +301,7 @@ For complex debugging, the prompt supplied to the LLM asks it to:
 
 ### Important
 
-`llm.py` **does not download Web pages itself**.
+`llm/__init__.py` **does not download Web pages itself**.
 
 It provides URLs and instructions to the LLM client. If the client being used (Codex, Gemini, Claude, etc.) has Web access, it can consult the documentation. Otherwise, it can at least provide the links to the user.
 
@@ -304,7 +317,7 @@ VTherm provides the action:
 versatile_thermostat.download_logs
 ```
 
-The `llm.py` file does not execute this action automatically; it reports it as a troubleshooting resource.
+The `llm/__init__.py` file does not execute this action automatically; it reports it as a troubleshooting resource.
 
 Home Assistant example:
 
@@ -505,7 +518,7 @@ are filtered out of the MCP catalog because they are declared `read_only=False`.
 
 The diagnostic tools remain available.
 
-This is useful when you temporarily want to return to level 1 operation without modifying `llm.py`.
+This is useful when you temporarily want to return to level 1 operation without modifying `llm/__init__.py`.
 
 ---
 
@@ -677,7 +690,7 @@ Check:
 1. that the file exists here:
 
    ```text
-   /config/custom_components/versatile_thermostat/llm.py
+   /config/custom_components/versatile_thermostat/llm/__init__.py
 /config/custom_components/versatile_thermostat/recorder_export.py
 /config/custom_components/versatile_thermostat/tpi_history.py
 /config/custom_components/versatile_thermostat/tpi_identification.py
@@ -689,7 +702,7 @@ Check:
 5. the Assist/Device control API is exposed by the MCP server;
 6. the MCP client has reconnected after the restart.
 
-The `llm.py` platform is loaded on demand: the absence of a startup message in Home Assistant does not necessarily mean that it was not detected.
+The `llm/__init__.py` platform is loaded on demand: the absence of a startup message in Home Assistant does not necessarily mean that it was not detected.
 
 ---
 

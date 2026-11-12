@@ -55,6 +55,7 @@ from homeassistant.helpers import llm
 
 from ..const import DOMAIN, SERVICE_SET_TPI_PARAMETERS
 from .diagnostics import GetVThermLogsTool, GetVThermPluginsTool, _target
+from .central_configuration import CentralConfigurationSnapshot
 from ..recorder_export import async_export_history
 from ..tpi_history import TPIHistory
 from ..tpi_identification import IdentificationError, TPIIdentification
@@ -384,9 +385,10 @@ class ListVThermsTool(llm.Tool):
     title = "List VTherms / Lister les VTherm"
     description = (
         "EN: List Versatile Thermostat climate entities available to the assistant "
-        "with a compact state summary. "
+        "with a compact state summary and central configuration usage. "
         "FR: Liste les entités climate Versatile Thermostat disponibles pour "
-        "l'assistant avec un résumé de leur état. Read-only / lecture seule."
+        "l'assistant avec un résumé de leur état et leur utilisation de la "
+        "configuration centrale. Read-only / lecture seule."
     )
     integration = DOMAIN
     annotations = READ_ONLY_ANNOTATIONS
@@ -398,14 +400,28 @@ class ListVThermsTool(llm.Tool):
         llm_context: llm.LLMContext,
     ) -> llm.ToolResult:
         """List available VTherms."""
+        entity_ids = _get_vtherm_entity_ids(hass, llm_context)
+        central = await CentralConfigurationSnapshot.async_create(
+            hass, llm_context, entity_ids
+        )
         thermostats = [
-            _compact_state(state)
-            for entity_id in _get_vtherm_entity_ids(hass, llm_context)
+            {
+                **_compact_state(state),
+                "central_configuration": (
+                    central.thermostat(entity_id)
+                    if central else CentralConfigurationSnapshot.unavailable()
+                ),
+            }
+            for entity_id in entity_ids
             if (state := hass.states.get(entity_id)) is not None
         ]
 
         return llm.ToolResult(
             data={
+                "central_configuration": (
+                    central.as_dict()
+                    if central else CentralConfigurationSnapshot.unavailable()
+                ),
                 "count": len(thermostats),
                 "thermostats": thermostats,
             }
@@ -419,9 +435,10 @@ class GetVThermStatusTool(llm.Tool):
     title = "Get VTherm status / État VTherm"
     description = (
         "EN: Return the complete current Home Assistant state and all attributes "
-        "of one Versatile Thermostat. "
+        "of one Versatile Thermostat, including central configuration and inheritance. "
         "FR: Retourne l'état Home Assistant courant complet et tous les attributs "
-        "d'un Versatile Thermostat. Read-only / lecture seule."
+        "d'un Versatile Thermostat, avec la configuration centrale et l'héritage. "
+        "Read-only / lecture seule."
     )
     integration = DOMAIN
     annotations = READ_ONLY_ANNOTATIONS
@@ -454,9 +471,16 @@ class GetVThermStatusTool(llm.Tool):
             return error
 
         assert state is not None
+        central = await CentralConfigurationSnapshot.async_create(
+            hass, llm_context, [entity_id]
+        )
 
         return llm.ToolResult(
             data={
+                "central_configuration": (
+                    central.as_dict(entity_id)
+                    if central else CentralConfigurationSnapshot.unavailable()
+                ),
                 "entity_id": entity_id,
                 "state": state.state,
                 "last_changed": state.last_changed.isoformat(),
@@ -475,10 +499,11 @@ class DiagnoseVThermTool(llm.Tool):
         "EN: Debug, diagnose or troubleshoot a Versatile Thermostat. Return a "
         "structured read-only snapshot explaining heating/idle/off decisions, "
         "power shedding, safety, windows, presence, motion, auto-start/stop and "
-        "underlying entities. "
+        "underlying entities, including central configuration and inherited settings. "
         "FR: Déboguer, diagnostiquer ou dépanner un Versatile Thermostat. Retourne "
         "un état structuré en lecture seule expliquant chauffe/idle/off, délestage, "
-        "sécurité, fenêtres, présence, mouvement, auto-start/stop et sous-jacents. "
+        "sécurité, fenêtres, présence, mouvement, auto-start/stop et sous-jacents, "
+        "avec la configuration centrale et les réglages hérités. "
         "Prefer specific_states.messages and reason fields over guessing."
     )
     integration = DOMAIN
@@ -514,6 +539,9 @@ class DiagnoseVThermTool(llm.Tool):
         assert state is not None
         attributes = state.attributes
         specific_states = _section(attributes, "specific_states")
+        central = await CentralConfigurationSnapshot.async_create(
+            hass, llm_context, [entity_id]
+        )
 
         sections = {
             section_name: section
@@ -525,6 +553,10 @@ class DiagnoseVThermTool(llm.Tool):
             data={
                 "entity_id": entity_id,
                 "name": _json_safe(attributes.get("friendly_name")),
+                "central_configuration": (
+                    central.as_dict(entity_id)
+                    if central else CentralConfigurationSnapshot.unavailable()
+                ),
                 "availability": state.state
                 not in (STATE_UNAVAILABLE, STATE_UNKNOWN),
                 "current": _compact_state(state),
@@ -1377,6 +1409,11 @@ def async_get_tools(
         ],
         prompt=_assistant_prompt(llm_context.language)
         + (
+            " Report central_configuration.configured and active, the thermostat's inheritance, "
+            "central-mode and boiler participation in configuration reviews and diagnostics. "
+            "Include relevant central and effective settings when inherited. Unknown visibility "
+            "does not mean absence; central-mode participation alone does not prove inheritance "
+            "or explain a fault. These reads never authorize configuration changes. "
             " For natural requests such as 'fais-moi un graphe pro du thermostat cuisine "
             "annoté sur 48h', 'trace température et consigne' or 'plot my thermostat', "
             "resolve the room if needed and call get_history for the requested period. "

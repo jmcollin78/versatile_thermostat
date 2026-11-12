@@ -22,6 +22,8 @@ This custom component for Home Assistant is an upgrade and a complete rewrite of
 
 VTherm integrates with Home Assistant's native LLM platform and exposes its tools through the official Home Assistant MCP Server. Assistants can list VTherms exposed to Assist, read their state and obtain structured diagnostics based on VTherm's own messages and reasons.
 
+MCP reads include central-configuration presence and each VTherm's inheritance; diagnostics distinguish central settings, effective values, central mode and boiler participation, subject to read permissions.
+
 For explicit control requests, three tools can change the target temperature, preset or HVAC mode through standard `climate.*` services, with user permission and value checks. Diagnostic requests remain read-only; the MCP Server's **Read only** option hides action tools.
 
 Classic TPI coefficients can also be analyzed from 7–14 usable days of Recorder history, with explicit application and additional confirmation for large changes.

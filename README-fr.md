@@ -24,6 +24,8 @@ L'ensemble de la documentation est disponible sur le [Versatile Thermostat Web s
 
 VTherm utilise la plateforme LLM native de Home Assistant et expose ses outils via le serveur MCP officiel Home Assistant. Les assistants peuvent lister les VTherm exposés à Assist, lire leur état et obtenir un diagnostic structuré fondé sur les messages et raisons fournis par VTherm.
 
+Les lectures MCP incluent la présence de la configuration centrale et l'héritage de chaque VTherm ; les diagnostics distinguent réglages centraux, valeurs effectives, mode central et chaudière, selon les permissions de lecture.
+
 Sur demande explicite, trois outils permettent de modifier la consigne, le preset ou le mode HVAC via les services standards `climate.*`, avec vérification des permissions utilisateur et des valeurs. Les demandes de diagnostic restent en lecture seule ; l'option **Read only** du serveur MCP masque les outils d'action.
 
 Les coefficients TPI classiques peuvent aussi être analysés à partir de 7 à 14 jours exploitables d’historique Recorder, avec application explicite et confirmation supplémentaire pour les gros changements.
