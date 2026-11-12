@@ -24,7 +24,7 @@ VTherm nutzt die native LLM-Plattform von Home Assistant und stellt seine Werkze
 
 Auf ausdrücklichen Wunsch können drei Werkzeuge die Solltemperatur, das Preset oder den HVAC-Modus über die standardmäßigen Dienste `climate.*` ändern. Dabei werden Benutzerberechtigungen und Werte geprüft. Diagnoseanfragen bleiben schreibgeschützt; die Option **Read only** des MCP-Servers blendet die Aktionswerkzeuge aus.
 
-Klassische TPI-Koeffizienten lassen sich auch aus 7–14 nutzbaren Tagen Recorder-Verlauf analysieren, mit expliziter Anwendung und zusätzlicher Bestätigung großer Änderungen.
+Klassische TPI-Koeffizienten lassen sich auch aus 7–14 nutzbaren Tagen Recorder-Verlauf analysieren, mit expliziter Anwendung und zusätzlicher Bestätigung großer Änderungen. Die Analyse unterstützt `over_switch` und experimentell `over_climate_valve` anhand aufgezeichneter Ventilbefehle als Proxy, nicht als gemessene Wärme. Bei beiden Typen sind Schätzungen experimentell und vor Anwendung zu überprüfen; sie sind keine validierten optimalen Einstellungen.
 
 Einrichtung, Schutzmechanismen und Beispiele stehen in der [LLM/MCP-Dokumentation](documentation/de/feature-llm-mcp.md).
 

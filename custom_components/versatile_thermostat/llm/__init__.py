@@ -1006,6 +1006,48 @@ def _tpi_result(entity_id: str, stage: int, **data: Any) -> llm.ToolResult:
         "status": "error" if failed else "success",
         **data,
     }
+    if stage in (1, 2):
+        payload.update(
+            {
+                "experimental": True,
+                "verification_required_before_application": True,
+                "recommendation_reliable": False,
+                "experimental_notice": {
+                    "fr": (
+                        "Calcul expérimental : vérifier les hypothèses, les données et le "
+                        "comportement du chauffage avant toute application. Ce couple "
+                        "n'est pas un réglage optimal validé."
+                    ),
+                    "en": (
+                        "Experimental calculation: verify assumptions, data and heating "
+                        "behavior before any application. This pair is not a validated "
+                        "optimal setting."
+                    ),
+                },
+            }
+        )
+        warnings = list(payload.get("warnings", []))
+        warnings.append("experimental_coefficients_verify_before_application")
+        if (
+            payload.get("sources", {}).get("heating_source_kind")
+            == "valve_open_percent_command_proxy"
+        ):
+            warnings.append("valve_command_is_not_measured_heat")
+            payload["heating_proxy_note"] = {
+                "fr": (
+                    "La commande d'ouverture enregistrée est un proxy, pas une mesure "
+                    "du débit ni de la puissance thermique. Non-linéarité des vannes, "
+                    "seuils d'ouverture, température d'eau, disponibilité chaudière, "
+                    "équilibrage et délais peuvent biaiser les coefficients."
+                ),
+                "en": (
+                    "The recorded opening command is a proxy, not measured flow or "
+                    "thermal power. Valve nonlinearity, opening thresholds, water "
+                    "temperature, boiler availability, balancing and delays can "
+                    "bias coefficients."
+                ),
+            }
+        payload["warnings"] = list(dict.fromkeys(warnings))
     if failed and payload["state_changed"] is False:
         payload["message"] = (
             "No coefficient was changed. Aucun coefficient n'a été modifié."
@@ -1020,7 +1062,8 @@ def _tpi_result(entity_id: str, stage: int, **data: Any) -> llm.ToolResult:
             payload["supported"] = False
             payload["message"] = (
                 "L'analyse des coefficients TPI n'est pas encore disponible pour ce type "
-                "de thermostat (climate ou valve). TPI history analysis is not yet supported "
+                "de thermostat. Seuls over_switch et over_climate_valve sont pris en charge. "
+                "TPI history analysis is not yet supported "
                 "for this thermostat type. Aucun coefficient n'a été modifié."
             )
     return llm.ToolResult(data=_json_safe(payload), error=failed)
@@ -1074,8 +1117,10 @@ class CheckTPIOptimizationTool(llm.Tool):
         "optimaux ?', 'mes coef sont-ils bien réglés ?' ou 'peux-tu vérifier le réglage TPI ?'. "
         "EN: Start here when asked whether thermostat/TPI coefficients are optimal, "
         "well tuned or need adjustment. Resolve the room with list_vtherms if needed. "
-        "Read-only stage 1/3: announce verification, then check classic TPI, physical "
-        "heating sources and 7 to 14 usable days of Recorder history. If eligible, call "
+        "Read-only stage 1/3: announce verification, then check classic TPI over_switch "
+        "or over_climate_valve and 7 to 14 usable days of Recorder history. "
+        "Experimental: verify before applying, including for switches. "
+        "Valve opening commands are proxies, not measured heat. If eligible, call "
         "analyze_tpi_coefficients to calculate estimates; current values alone do not "
         "answer this question. Browser/dashboard access is not required. Report a refusal "
         "without bypassing it. Never change settings."
@@ -1097,6 +1142,22 @@ class CheckTPIOptimizationTool(llm.Tool):
                 entity_id,
                 self.stage_number,
                 reason="entity_not_exposed",
+                eligible=False,
+            )
+        context = llm_context.context
+        user = (
+            await hass.auth.async_get_user(context.user_id)
+            if context and context.user_id
+            else None
+        )
+        if user is None or (
+            not user.is_admin
+            and not user.permissions.check_entity(entity_id, POLICY_READ)
+        ):
+            return _tpi_result(
+                entity_id,
+                self.stage_number,
+                reason="read_permission_denied",
                 eligible=False,
             )
         details = {}
@@ -1154,7 +1215,11 @@ class AnalyzeTPICoefficientsTool(CheckTPIOptimizationTool):
         "thermostat coefficients after a successful check_tpi_optimization. "
         "Read-only stage 2/3: announce analysis. Identify classic TPI coefficients from "
         "7 to 14 usable Recorder days, chronological validation, multiple resolutions "
-        "and 24-hour block bootstrap. Report exploratory estimates and uncalibrated intervals. "
+        "and 24-hour block bootstrap. Supports over_switch and over_climate_valve. "
+        "FR: Calcul expérimental, à vérifier avant application pour les deux types. "
+        "EN: Experimental calculation, verify before applying for both types. "
+        "Valve commands are proxies, not measured flow or heat. "
+        "Report exploratory estimates and uncalibrated intervals. "
         "Kalman is disabled pending validation. Use this MCP calculation rather than "
         "reading a dashboard or guessing from current coefficient values. "
         "Six hours is a nominal design preference, not an identified optimum. "
@@ -1400,7 +1465,11 @@ def async_get_tools(
             "TPI workflow: announce Étape/Stage 1/3 verification before check_tpi_optimization, "
             "2/3 analysis before analyze_tpi_coefficients, 3/3 optional application only on an "
             "explicit user decision. No automatic application after analysis. Explain warnings; "
-            "always describe estimates as exploratory and intervals as uncalibrated. Explain that "
+            "always describe estimates as experimental, requiring verification before application "
+            "for over_switch as well as over_climate_valve, and intervals as uncalibrated. "
+            "Include experimental_notice and heating_proxy_note in the user language. "
+            "Valve commands do not measure flow or heat; water temperature, boiler availability, "
+            "nonlinear response and delays may bias the pair. Explain that "
             "six hours is a nominal time constant (about 18 hours to 95%), not an optimum. "
             "Distinguish current/proposed nominal response and the experimental estimator. "
             "Direct explicit coefficient values "

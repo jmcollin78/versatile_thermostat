@@ -341,3 +341,110 @@ async def test_recorder_missing_explicit_refusal():
     hass = SimpleNamespace(config=SimpleNamespace(components=set()))
     with pytest.raises(IdentificationError, match="recorder_unavailable"):
         await TPIHistory(hass, {}).async_load()
+
+
+@pytest.mark.parametrize(
+    "kind", ["physical_switches", "valve_open_percent_command_proxy"]
+)
+@pytest.mark.parametrize(
+    "tool_class", [module.CheckTPIOptimizationTool, module.AnalyzeTPICoefficientsTool]
+)
+async def test_experimental_warning_required_before_application(
+    setup_tools, kind, tool_class
+):
+    hass, _, context = setup_tools
+    hass.async_add_executor_job = AsyncMock(
+        return_value={
+            "status": "success",
+            "proposed": {"coef_int": 0.35, "coef_ext": 0.025},
+            "warnings": [],
+        }
+    )
+    with patch.object(
+        TPIHistory,
+        "resolve_sources",
+        return_value={
+            "primary_resolution": 10,
+            "heating_source_kind": kind,
+        },
+    ), patch.object(
+        TPIHistory,
+        "async_load",
+        new=AsyncMock(
+            return_value=(
+                object(),
+                {"history_available_days": 10, "history_usable_days": 9},
+            )
+        ),
+    ):
+        result = await tool_class([ENTITY]).async_call(
+            hass, SimpleNamespace(tool_args={"entity_id": ENTITY}), context
+        )
+    assert result.data["experimental"] is True
+    assert result.data["verification_required_before_application"] is True
+    assert result.data["recommendation_reliable"] is False
+    assert "expérimental" in result.data["experimental_notice"]["fr"]
+    assert "before" in result.data["experimental_notice"]["en"]
+    if kind == "valve_open_percent_command_proxy":
+        assert "valve_command_is_not_measured_heat" in result.data["warnings"]
+    assert (
+        "experimental_coefficients_verify_before_application" in result.data["warnings"]
+    )
+    assert result.data["state_changed"] is False
+    hass.services.async_call.assert_not_awaited()
+
+
+@pytest.mark.parametrize(
+    "tool_class", [module.CheckTPIOptimizationTool, module.AnalyzeTPICoefficientsTool]
+)
+@pytest.mark.parametrize("access", ["anonymous", "missing_user", "denied"])
+async def test_tpi_read_permission_before_history(setup_tools, tool_class, access):
+    hass, _, context = setup_tools
+    if access == "anonymous":
+        context.context = Context()
+    elif access == "missing_user":
+        hass.auth.async_get_user.return_value = None
+    else:
+        hass.auth.async_get_user.return_value.permissions.check_entity.return_value = (
+            False
+        )
+    with patch.object(TPIHistory, "from_thermostat") as history:
+        result = await tool_class([ENTITY]).async_call(
+            hass, SimpleNamespace(tool_args={"entity_id": ENTITY}), context
+        )
+    assert result.data["reason"] == "read_permission_denied"
+    assert result.data["state_changed"] is False
+    history.assert_not_called()
+    hass.services.async_call.assert_not_awaited()
+
+
+async def test_failed_valve_fit_preserves_warning_and_returns_no_pair(setup_tools):
+    hass, _, context = setup_tools
+    hass.async_add_executor_job = AsyncMock(
+        return_value={"reason": "ill_conditioned_model"}
+    )
+    with patch.object(
+        TPIHistory,
+        "resolve_sources",
+        return_value={
+            "primary_resolution": 10,
+            "heating_source_kind": "valve_open_percent_command_proxy",
+        },
+    ), patch.object(
+        TPIHistory,
+        "async_load",
+        new=AsyncMock(
+            return_value=(
+                object(),
+                {"history_available_days": 10, "history_usable_days": 9},
+            )
+        ),
+    ):
+        result = await module.AnalyzeTPICoefficientsTool([ENTITY]).async_call(
+            hass, SimpleNamespace(tool_args={"entity_id": ENTITY}), context
+        )
+    assert result.error
+    assert "proposed" not in result.data
+    assert result.data["experimental"] is True
+    assert "valve_command_is_not_measured_heat" in result.data["warnings"]
+    hass.services.async_call.assert_not_awaited()
