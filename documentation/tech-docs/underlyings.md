@@ -832,7 +832,7 @@ The underlyings notify the optional hooks of the external feature managers (plug
 | Hook                                | Called from                                                  | When                                                                                                                                                                  |
 | ----------------------------------- | ------------------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `async_before_underlying_hvac_mode` | `UnderlyingClimate.set_hvac_mode`                            | Just before `climate.set_hvac_mode`, with the real state of the climate as `current_hvac_mode`. Not called if the mode is already set, if the inhibition gate blocks the command or if the overpowering refuses to turn on. `command_cause` is `"underlying_tracking"` when the VTherm follows a change made on the device. |
-| `async_after_valve_command`         | `UnderlyingValveRegulation.send_percent_open`                | After the opening degree and, if any, the closing degree have been sent. Not called if the inhibition gate blocks `set_value` on the opening entity.                  |
+| `async_after_valve_command`         | `UnderlyingValveRegulation.send_percent_open` and the valve recalibration | After the opening degree and, if any, the closing degree have been sent. Not called if the inhibition gate blocks `set_value` on the opening entity.                  |
 
 `send_percent_open` takes a `cause` (`ValveCommandCause`), ignored by `UnderlyingValve` which keeps the same signature:
 
@@ -843,16 +843,17 @@ The underlyings notify the optional hooks of the external feature managers (plug
 | `async_inhibition_stop`                                         | `TURN_OFF`   |
 | `check_initial_state`                                           | `STARTUP`    |
 | `check_and_repair`                                              | `REPAIR`     |
+| `service_recalibrate_valves` (`async_notify_recalibration_write`) | `RECALIBRATION` |
 
 When a VTherm goes OFF, the climates receive the OFF mode first (so `async_before_underlying_hvac_mode` runs first). The valve is closed afterwards by the regulation, with the cause `REGULATION` and `hvac_mode="off"`. This order is kept on purpose. The `TURN_OFF` cause is used only when `turn_off` is called on the underlying itself or when an inhibition stops.
 
-The valve recalibration and `_seed_unknown_degrees_once` write the number entities with `send_value_to_number` and do not call the hook. `UnderlyingValveRegulation.climate_entity_id` exposes the climate it drives. The power hook (`async_on_underlying_power`) is called by the `CycleScheduler`, see [cycle_scheduler.md](cycle_scheduler.md).
+`_seed_unknown_degrees_once` writes the number entities with `send_value_to_number` and does not call the hook. The valve recalibration does the same, then calls `UnderlyingValveRegulation.async_notify_recalibration_write`: the hook receives, for each valve, one `RECALIBRATION` command after the full opening (`percent_open=100`, opening and closing degrees as forced, `closing_degree=None` without closing entity) and one after the full closing (`percent_open=0`), with `written_by_plugin=False` and `requested_opening_degree=None`. A plugin that owns a companion entity, for example the closing degree of a device the VTherm does not drive, aligns it there. Nothing is notified when the inhibition gate drops the write. `UnderlyingValveRegulation.climate_entity_id` exposes the climate it drives. The power hook (`async_on_underlying_power`) is called by the `CycleScheduler`, see [cycle_scheduler.md](cycle_scheduler.md).
 
 ### Valve write (`async_before_valve_write`)
 
 `UnderlyingValveRegulation.send_percent_open` calls `BaseThermostat.async_before_valve_write` after the opening and closing degrees have been computed and before they are written. A plugin can change the opening degree, or write the valve itself (for example to run a closing sequence specific to a device). The contract is `InterfaceValveWriteHook` in `vtherm_api` 0.10.0.
 
-- The call is made for every cause. It is not made for the valve recalibration, for `_seed_unknown_degrees_once`, nor when the inhibition gate blocks `set_value` on the opening entity (nothing is written and nothing is notified, as before).
+- The call is made for every cause. It is not made for the valve recalibration (which only notifies `async_after_valve_command`), for `_seed_unknown_degrees_once`, nor when the inhibition gate blocks `set_value` on the opening entity (nothing is written and nothing is notified, as before).
 - The managers are called in the order of registration, each one under `UNDERLYING_HOOK_TIMEOUT_SEC`. Each one receives in `opening_degree` the value left by the previous one. `requested_opening_degree` is always the value of the core.
 - `None` or an empty `ValveWriteDecision` leaves the value unchanged. A value is rounded to an integer and clamped to `0..max_opening_degree`. A value which is not a finite number, an answer which is not a `ValveWriteDecision`, an exception and a timeout are logged and ignored.
 - When the value is changed and the core writes, the closing degree is `100 - opening degree`, like the closing degree computed by the core.

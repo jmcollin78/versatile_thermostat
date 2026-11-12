@@ -525,6 +525,23 @@ async def test_not_called_for_seed_nor_recalibration(hass: HomeAssistant, fake_t
     assert commands(events, "after_valve") == []
 
 
+async def test_recalibration_notifies_without_the_write_hook(hass: HomeAssistant, fake_temp_sensor, fake_ext_temp_sensor):
+    """The recalibration notifies the after-valve hook, but the plugin can neither change nor take over its writes"""
+    events = register_plugin(hass, PlusTen, "plus")
+    vtherm, _, _, _ = await start(hass, fake_temp_sensor, events)
+    events.clear()
+
+    with patch("custom_components.versatile_thermostat.thermostat_climate_valve.asyncio.sleep"):
+        await vtherm.service_recalibrate_valves(1)
+        await hass.async_block_till_done()
+
+    assert all(request.cause == ValveCommandCause.REGULATION for request in requests(events))
+    assert [(c.percent_open, c.opening_degree, c.closing_degree) for c in commands(events, "after_valve") if c.cause == ValveCommandCause.RECALIBRATION] == [
+        (100, 100, 0),
+        (0, 0, 100),
+    ]
+
+
 async def test_inhibition_resync_compares_with_the_final_value(hass: HomeAssistant, fake_temp_sensor, fake_ext_temp_sensor):
     """After an inhibition the valve is expected at the final value of the plugin, not at the one of the core"""
     events = register_plugin(hass, PlusTen, "plus")

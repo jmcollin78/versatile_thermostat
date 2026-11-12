@@ -589,6 +589,7 @@ class ThermostatOverClimateValve(ValveCommandMixin, ThermostatProp[UnderlyingCli
                         await under.send_value_to_number(opening, open_val)
                         if closing:
                             await under.send_value_to_number(closing, close_val)
+                        await under.async_notify_recalibration_write(100, open_val, close_val if closing else None)
 
                     await asyncio.sleep(delay_seconds)
 
@@ -605,6 +606,7 @@ class ThermostatOverClimateValve(ValveCommandMixin, ThermostatProp[UnderlyingCli
                         await under.send_value_to_number(opening, open_val2)
                         if closing:
                             await under.send_value_to_number(closing, close_val2)
+                        await under.async_notify_recalibration_write(0, open_val2, close_val2 if closing else None)
                     await asyncio.sleep(delay_seconds)
 
                 except Exception as exc:  # pylint: disable=broad-except

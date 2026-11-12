@@ -2028,6 +2028,10 @@ class UnderlyingValveRegulation(UnderlyingValve):
             )
         )
 
+    async def async_notify_recalibration_write(self, percent_open: int, opening_degree: int, closing_degree: int | None) -> None:
+        """Notify external managers of a forced write of the valve recalibration (100 for the full opening, 0 for the full closing)"""
+        await self._notify_valve_command(percent_open, opening_degree, closing_degree, ValveCommandCause.RECALIBRATION)
+
     @property
     def climate_entity_id(self) -> str:
         """The entity id of the climate driven by this valve regulation"""
