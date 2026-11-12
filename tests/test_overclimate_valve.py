@@ -92,6 +92,16 @@ async def test_over_climate_valve_mono(hass: HomeAssistant, fake_temp_sensor, fa
         assert vtherm.is_over_climate is True
         assert vtherm.have_valve_regulation is True
 
+        # The experimental history source must resolve on a loaded VTherm,
+        # not just on a synthetic namespace, and use the recorded command.
+        from custom_components.versatile_thermostat.tpi_history import TPIHistory
+
+        sources = TPIHistory.from_thermostat(hass, vtherm).sources
+        assert sources["heating_source"] == vtherm.entity_id
+        assert sources["heating_source_kind"] == "valve_open_percent_command_proxy"
+        assert sources["safety_source"] is not None
+        assert "valve_open_percent" not in vtherm._entity_component_unrecorded_attributes
+
         assert vtherm.vtherm_hvac_modes == [VThermHvacMode_HEAT, VThermHvacMode_SLEEP, VThermHvacMode_OFF]
 
         await wait_for_local_condition(lambda: vtherm.hvac_action is HVACAction.OFF)

@@ -28,7 +28,7 @@ Les lectures MCP incluent la présence de la configuration centrale et l'hérita
 
 Sur demande explicite, trois outils permettent de modifier la consigne, le preset ou le mode HVAC via les services standards `climate.*`, avec vérification des permissions utilisateur et des valeurs. Les demandes de diagnostic restent en lecture seule ; l'option **Read only** du serveur MCP masque les outils d'action.
 
-Les coefficients TPI classiques peuvent aussi être analysés à partir de 7 à 14 jours exploitables d’historique Recorder, avec application explicite et confirmation supplémentaire pour les gros changements.
+Les coefficients TPI classiques peuvent aussi être analysés à partir de 7 à 14 jours exploitables d’historique Recorder, avec application explicite et confirmation supplémentaire pour les gros changements. L’analyse accepte `over_switch` et, expérimentalement, `over_climate_valve` à partir des commandes de vanne enregistrées, utilisées comme proxy et non comme chaleur mesurée. Pour les deux types, les estimations sont expérimentales, à vérifier avant application ; elles ne constituent pas des réglages optimaux validés.
 
 Consultez la [documentation LLM/MCP](documentation/fr/feature-llm-mcp.md) pour la configuration, les garde-fous et les exemples.
 
