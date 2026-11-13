@@ -103,6 +103,11 @@ async def test_over_climate_valve_mono(hass: HomeAssistant, fake_temp_sensor, fa
         assert "valve_open_percent" not in vtherm._entity_component_unrecorded_attributes
 
         assert vtherm.vtherm_hvac_modes == [VThermHvacMode_HEAT, VThermHvacMode_SLEEP, VThermHvacMode_OFF]
+        # issue #2230: sleep is not a Home Assistant HVACMode, so the standard climate card must not offer it.
+        # It stays available for the VTherm UI card through the vtherm_hvac_modes attribute
+        assert vtherm.hvac_modes == [HVACMode.HEAT, HVACMode.OFF]
+        vtherm.update_custom_attributes()
+        assert vtherm._attr_extra_state_attributes["vtherm_hvac_modes"] == ["heat", "sleep", "off"]
 
         await wait_for_local_condition(lambda: vtherm.hvac_action is HVACAction.OFF)
         assert vtherm.vtherm_hvac_mode is VThermHvacMode_OFF

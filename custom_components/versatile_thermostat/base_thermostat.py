@@ -94,7 +94,7 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
     _attr_swing_horizontal_mode = ""
 
     _entity_component_unrecorded_attributes = (
-        ClimateEntity._entity_component_unrecorded_attributes.union(frozenset({"configuration", "preset_temperatures", "specific_states"}))
+        ClimateEntity._entity_component_unrecorded_attributes.union(frozenset({"configuration", "preset_temperatures", "specific_states", "vtherm_hvac_modes"}))
         .union(FeaturePresenceManager.unrecorded_attributes)
         .union(FeaturePowerManager.unrecorded_attributes)
         .union(FeatureMotionManager.unrecorded_attributes)
@@ -926,7 +926,9 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
     def set_hvac_list(self):
         """Set the hvac list depending on ac_mode"""
         self._hvac_list = self.build_hvac_list()
-        self._str_hvac_list = [to_ha_hvac_mode(mode) for mode in self._hvac_list if to_ha_hvac_mode(mode) is not None]
+        # Home Assistant only accepts HVACMode values in climate.set_hvac_mode, so VTherm specific modes (sleep)
+        # are not advertised in hvac_modes. They are published in the vtherm_hvac_modes attribute instead (issue #2230)
+        self._str_hvac_list = [ha_mode for ha_mode in (to_ha_hvac_mode(mode) for mode in self._hvac_list) if isinstance(ha_mode, HVACMode)]
 
     @callback
     def async_registry_entry_updated(self):
@@ -2239,6 +2241,7 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
         self._attr_extra_state_attributes: dict[str, Any] = {
             "hvac_action": self.hvac_action,
             "hvac_mode": self.hvac_mode,
+            "vtherm_hvac_modes": [str(mode) for mode in self.vtherm_hvac_modes],
             "preset_mode": self.preset_mode,
             "ema_temp": self._ema_temp,
             "is_ready": self.is_ready,

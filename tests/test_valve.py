@@ -87,6 +87,8 @@ async def test_over_valve_full_start(hass: HomeAssistant, skip_hass_states_is_st
         assert entity.vtherm_hvac_mode is VThermHvacMode_OFF
         assert entity.hvac_action is HVACAction.OFF
         assert entity.vtherm_hvac_modes == [VThermHvacMode_HEAT, VThermHvacMode_SLEEP, VThermHvacMode_OFF]
+        # issue #2230: sleep is not a Home Assistant HVACMode, so the standard climate card must not offer it
+        assert entity.hvac_modes == [HVACMode.HEAT, HVACMode.OFF]
         assert entity.target_temperature == entity.min_temp
         assert entity.preset_modes == [
             VThermPreset.NONE,
