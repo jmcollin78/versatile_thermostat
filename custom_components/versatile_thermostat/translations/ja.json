@@ -1,0 +1,1182 @@
+{
+    "title": "Versatile Thermostat",
+    "config": {
+        "flow_title": "Versatile Thermostat の設定",
+        "step": {
+            "user": {
+                "title": "Versatile Thermostat のタイプ",
+                "description": "作成するサーモスタットのタイプを選択してください",
+                "data": {
+                    "thermostat_type": "サーモスタットのタイプ"
+                },
+                "data_description": {
+                    "thermostat_type": "一括設定タイプのサーモスタットは 1 つだけ作成できます"
+                }
+            },
+            "menu": {
+                "title": "メニュー",
+                "description": "サーモスタットを設定します。必須のパラメーターをすべて入力すると、設定を完了できます。",
+                "menu_options": {
+                    "main": "主な属性",
+                    "central_boiler": "セントラルボイラー",
+                    "type": "配下の機器",
+                    "tpi": "TPI パラメーター",
+                    "features": "機能",
+                    "presets": "プリセット",
+                    "window": "窓の開放検知",
+                    "motion": "動き検知",
+                    "power": "電力管理",
+                    "presence": "在室検知",
+                    "advanced": "詳細パラメーター",
+                    "auto_start_stop": "自動起動/停止",
+                    "valve_regulation": "バルブ調整の設定",
+                    "sync_device_internal_temp": "デバイス温度の同期",
+                    "humidity": "湿度",
+                    "lock": "ロック",
+                    "heating_failure_detection": "暖房の異常検知",
+                    "auto_tpi_configuration": "Auto TPI - 設定",
+                    "auto_tpi_avg_settings": "Auto TPI - 加重平均",
+                    "auto_tpi_ema_settings": "Auto TPI - EWMA",
+                    "finalize": "すべて完了",
+                    "configuration_not_complete": "設定が完了していません"
+                }
+            },
+            "lock": {
+                "title": "ロック管理",
+                "description": "ロック機能は、サーモスタットの動作を保ったまま、UI やオートメーションからのサーモスタット設定の変更を防ぎます。",
+                "data": {
+                    "use_lock_central_config": "一括ロック設定を使用",
+                    "lock_code": "暗証番号（任意・4 桁）",
+                    "lock_users": "ロックでユーザーからのコマンドを拒否",
+                    "lock_automations": "ロックでオートメーションとインテグレーション（例：scheduler）からのコマンドを拒否",
+                    "auto_relock_sec": "自動再ロックの遅延"
+                },
+                "data_description": {
+                    "use_lock_central_config": "一括ロック設定を使用する場合はチェックを入れてください。この VTherm 専用のロック設定を使用する場合はチェックを外してください",
+                    "auto_relock_sec": "ロック解除後に自動で再ロックするまでの遅延（秒）です。0 に設定すると自動再ロックを無効にします。デフォルトは 30 秒です。"
+                }
+            },
+            "main": {
+                "title": "新しい Versatile Thermostat を追加",
+                "description": "必須の主な属性",
+                "data": {
+                    "name": "名前",
+                    "thermostat_type": "サーモスタットのタイプ",
+                    "temperature_sensor_entity_id": "室温",
+                    "last_seen_temperature_sensor_entity_id": "室温を最後に確認した日時",
+                    "external_temperature_sensor_entity_id": "屋外温度センサーのエンティティ ID",
+                    "cycle_min": "サイクル時間（分）",
+                    "temp_min": "許可する最低温度",
+                    "temp_max": "許可する最高温度",
+                    "step_temperature": "温度のステップ",
+                    "device_power": "デバイスの電力",
+                    "power_unit": "電力の単位（デバイスの電力用）",
+                    "use_central_mode": "一括モードのエンティティによる制御を有効にします（一括設定が必要）。central_mode の select エンティティで VTherm を制御する場合はチェックを入れてください。",
+                    "use_main_central_config": "主な属性の一括設定も使用します。主な属性の一括設定（屋外温度、最低温度、最高温度、ステップなど）を使用する場合はチェックを入れてください。",
+                    "used_by_controls_central_boiler": "セントラルボイラーに使用します。この VTherm にセントラルボイラーを制御させる場合はチェックを入れてください"
+                },
+                "data_description": {
+                    "cycle_min": "頻繁な切り替えを避けるための、暖房/冷房 1 サイクルの最短時間（分）です",
+                    "temp_min": "サーモスタットで許可する最低温度です",
+                    "temp_max": "サーモスタットで許可する最高温度です",
+                    "step_temperature": "目標温度を設定するときの温度のステップです",
+                    "temperature_sensor_entity_id": "室温センサーのエンティティ ID です",
+                    "last_seen_temperature_sensor_entity_id": "室温を最後に確認した日時を示すセンサーのエンティティ ID です。日時センサーを指定してください",
+                    "external_temperature_sensor_entity_id": "屋外温度センサーのエンティティ ID です。一括設定を選択している場合は使用されません",
+                    "power_unit": "デバイスの消費電力の単位です"
+                }
+            },
+            "features": {
+                "title": "機能",
+                "description": "サーモスタットの機能",
+                "data": {
+                    "use_window_feature": "窓の開放検知を使用",
+                    "use_motion_feature": "動き検知を使用",
+                    "use_power_feature": "電力管理を使用",
+                    "use_presence_feature": "在室検知を使用",
+                    "use_central_boiler_feature": "セントラルボイラーを使用します。セントラルボイラーを制御する場合はチェックを入れてください。この設定を有効にするには、チェックを入れたあとで、セントラルボイラーを制御する VTherm を設定する必要があります。いずれかの VTherm が暖房を必要とするとボイラーをオンにし、どの VTherm も暖房を必要としない場合はオフにします。ボイラーをオン/オフにするコマンドは、関連する設定ページで指定します",
+                    "use_auto_start_stop_feature": "自動起動/停止機能を使用",
+                    "use_heating_failure_detection_feature": "暖房の異常検知を使用"
+                }
+            },
+            "type": {
+                "title": "リンクされたエンティティ",
+                "description": "リンクされたエンティティの属性",
+                "data": {
+                    "underlying_entity_ids": "制御するデバイス",
+                    "heater_keep_alive": "スイッチのキープアライブ間隔（秒）",
+                    "proportional_function": "アルゴリズム",
+                    "ac_mode": "AC モード",
+                    "sync_device_internal_temp": "デバイス内部温度の同期",
+                    "auto_regulation_mode": "自己調整",
+                    "auto_regulation_dtemp": "調整のしきい値",
+                    "auto_regulation_periode_min": "調整の最短周期",
+                    "opening_threshold_degree": "開度のしきい値",
+                    "min_opening_degrees": "最小開度",
+                    "max_opening_degrees": "最大開度",
+                    "max_closing_degree": "最大閉度",
+                    "auto_regulation_use_device_temp": "配下の機器の内部温度を使用",
+                    "inverse_switch_command": "スイッチのコマンドを反転",
+                    "auto_fan_mode": "自動ファンモード",
+                    "on_command_text": "オンにするコマンドのカスタマイズ",
+                    "vswitch_on_command": "オンにするコマンド（任意）",
+                    "off_command_text": "オフにするコマンドのカスタマイズ",
+                    "vswitch_off_command": "オフにするコマンド（任意）"
+                },
+                "data_description": {
+                    "underlying_entity_ids": "制御するデバイスです。1 つ以上必要です",
+                    "heater_keep_alive": "ヒーター用スイッチの状態を更新する間隔（任意）です。不要な場合は空欄にしてください。",
+                    "proportional_function": "使用するアルゴリズムです（他のアルゴリズムは {plugins_link} としてインストールできます）",
+                    "ac_mode": "エアコン（AC）モードを使用します",
+                    "sync_device_internal_temp": "配下のデバイスの内部温度を同期する場合はチェックを入れてください（設定は新しいメニュー項目「デバイス温度の同期」で行います）",
+                    "auto_regulation_mode": "目標温度を自動で調整します",
+                    "auto_regulation_dtemp": "温度の変化がこのしきい値（°、バルブの場合は %）を下回るときは送信しません",
+                    "auto_regulation_periode_min": "調整を更新する間隔（分）です",
+                    "opening_threshold_degree": "バルブが閉じていると見なす開度の値です。この値を下回ると「max_closing_degree」が適用されます",
+                    "min_opening_degrees": "上記のしきい値を超えたときの、配下の各デバイスの開度の最小値です。カンマ区切りで指定します。デフォルトは 0 です。例：20, 25, 30",
+                    "max_opening_degrees": "開度の最大値です。バルブはこの値を超えて開きません",
+                    "max_closing_degree": "閉度の最大値です。バルブはこの値を超えて閉じることはありません。バルブを完全に閉じるには 100 に設定します",
+                    "auto_regulation_use_device_temp": "調整を速めるため、配下の機器に内部温度センサーがあれば使用します（ほとんどの場合は不要です）",
+                    "inverse_switch_command": "パイロットワイヤーとダイオードを使うスイッチでは、コマンドを反転する必要がある場合があります",
+                    "auto_fan_mode": "大きな暖房/冷房が必要なときにファンを自動で有効にします",
+                    "on_command_text": "`select` または `climate` タイプの配下の機器では、コマンドをカスタマイズする必要があります。"
+                }
+            },
+            "tpi": {
+                "title": "TPI",
+                "description": "Time Proportional Integral の属性",
+                "data": {
+                    "tpi_coef_int": "coef_int",
+                    "tpi_coef_ext": "coef_ext",
+                    "tpi_threshold_low": "TPI の下限しきい値",
+                    "tpi_threshold_high": "TPI の上限しきい値",
+                    "use_tpi_central_config": "一括 TPI 設定を使用",
+                    "minimal_activation_delay": "最小作動遅延",
+                    "minimal_deactivation_delay": "最小停止遅延",
+                    "auto_tpi_mode": "Auto TPI 学習を有効にする"
+                },
+                "data_description": {
+                    "tpi_coef_int": "内部温度の差に使う係数です",
+                    "tpi_coef_ext": "外部温度の差に使う係数です",
+                    "tpi_threshold_low": "この値（°）より下では TPI アルゴリズムがオンになります。0 はしきい値なしを意味します",
+                    "tpi_threshold_high": "この値（°）より上では TPI アルゴリズムがオフになります。0 はしきい値なしを意味します",
+                    "use_tpi_central_config": "一括 TPI 設定を使用する場合はチェックを入れてください。この VTherm 専用の TPI 設定を使用する場合はチェックを外してください",
+                    "minimal_activation_delay": "秒単位の遅延です。この値を下回る場合、機器は作動しません",
+                    "minimal_deactivation_delay": "秒単位の遅延です。この値を下回る場合、機器は作動したままになります",
+                    "auto_tpi_mode": "TPI の学習セッションは手動で開始します。まずドキュメントをお読みください。"
+                }
+            },
+            "presets": {
+                "title": "プリセット",
+                "description": "このサーモスタットで一括プリセットを使用する場合はチェックを入れてください。サーモスタット専用のプリセットを使用する場合はチェックを外してください",
+                "data": {
+                    "use_presets_central_config": "一括プリセット設定を使用"
+                }
+            },
+            "window": {
+                "title": "窓の管理",
+                "description": "窓の開放の管理です。\n温度の低下に基づく窓の自動開放検知も設定できます",
+                "data": {
+                    "window_sensor_entity_id": "窓センサーのエンティティ ID",
+                    "window_delay": "窓センサーの「on」遅延（秒）",
+                    "window_off_delay": "窓センサーの「off」遅延（秒）",
+                    "window_auto_open_threshold": "窓の自動開放検知の温度低下しきい値（°/時間）",
+                    "window_auto_close_threshold": "自動検知を終了する温度上昇しきい値（°/時間）",
+                    "window_auto_max_duration": "窓の自動開放検知の最大継続時間（分）",
+                    "use_window_central_config": "一括窓設定を使用",
+                    "window_action": "アクション"
+                },
+                "data_description": {
+                    "window_sensor_entity_id": "窓センサーを使用せず自動検知を使用する場合は、空欄にしてください",
+                    "window_delay": "センサーの「on」検知を反映するまでの遅延（秒）です",
+                    "window_off_delay": "センサーの「off」検知を反映するまでの遅延（秒）です。空欄にすると「on」の遅延と同じ値を使用します",
+                    "window_auto_open_threshold": "推奨値：3 ～ 10。窓の自動開放検知を使用しない場合は空欄にしてください",
+                    "window_auto_close_threshold": "推奨値：0。窓の自動開放検知を使用しない場合は空欄にしてください",
+                    "window_auto_max_duration": "推奨値：60（1 時間）。窓の自動開放検知を使用しない場合は空欄にしてください",
+                    "use_window_central_config": "一括窓設定を使用する場合は選択してください。この VTherm 専用の窓設定を使用する場合は選択を外してください",
+                    "window_action": "窓が開放されたと検知したときに実行するアクションです"
+                }
+            },
+            "motion": {
+                "title": "動きの管理",
+                "description": "動きセンサーの管理です。動き検知に応じてプリセットを自動で切り替えられます\nmotion_preset と no_motion_preset は、対応するプリセット名に設定してください",
+                "data": {
+                    "motion_sensor_entity_id": "動きセンサーのエンティティ ID",
+                    "motion_delay": "作動遅延",
+                    "motion_off_delay": "停止遅延",
+                    "motion_preset": "動きありプリセット",
+                    "no_motion_preset": "動きなしプリセット",
+                    "use_motion_central_config": "一括動き設定を使用"
+                },
+                "data_description": {
+                    "motion_sensor_entity_id": "動きセンサーのエンティティ ID です",
+                    "motion_delay": "動きの作動遅延（秒）です",
+                    "motion_off_delay": "動きの停止遅延（秒）です",
+                    "motion_preset": "動きを検知したときに使用するプリセットです",
+                    "no_motion_preset": "動きを検知していないときに使用するプリセットです",
+                    "use_motion_central_config": "一括動き設定を使用する場合はチェックを入れてください。この VTherm 専用の動き設定を使用する場合はチェックを外してください"
+                }
+            },
+            "power": {
+                "title": "電力管理",
+                "description": "電力管理の属性です。\nVTherm の各デバイスの電力は W か kW、一括設定は W、kW、または自動から選択してください。\n値は内部で正規化されるため、W と kW を混在させても問題ありません。",
+                "data": {
+                    "power_sensor_entity_id": "電力",
+                    "max_power_sensor_entity_id": "最大電力",
+                    "power_unit": "一括設定の電力単位",
+                    "power_temp": "負荷制限時の温度",
+                    "use_power_central_config": "一括電力設定を使用"
+                },
+                "data_description": {
+                    "power_sensor_entity_id": "電力センサーのエンティティ ID です",
+                    "max_power_sensor_entity_id": "最大電力センサーのエンティティ ID です",
+                    "power_unit": "電力の単位を選択します。自動を選択すると、センサーから自動検出します",
+                    "power_temp": "電力超過による負荷制限時の温度です",
+                    "use_power_central_config": "一括電力設定を使用する場合はチェックを入れてください。この VTherm 専用の電力設定を使用する場合はチェックを外してください"
+                }
+            },
+            "presence": {
+                "title": "在室の管理",
+                "description": "在室管理の属性です。\n自宅の在室センサー（誰かが在室していれば true）を指定し、対応する温度のプリセット設定を指定します",
+                "data": {
+                    "presence_sensor_entity_id": "在室センサー",
+                    "use_presence_central_config": "一括在室温度設定を使用します。専用の温度エンティティを使用する場合は選択を外してください"
+                },
+                "data_description": {
+                    "presence_sensor_entity_id": "在室センサーのエンティティ ID です"
+                }
+            },
+            "advanced": {
+                "title": "詳細パラメーター",
+                "description": "詳細パラメーターの設定です。内容がわからない場合は、デフォルト値のままにしてください。\nこれらのパラメーターにより、温度制御が非常に不安定になったり、電力の調整が適切に行われなくなったりする場合があります",
+                "data": {
+                    "safety_delay_min": "安全遅延（分）",
+                    "safety_min_on_percent": "安全モードを有効にする電力の最小割合",
+                    "safety_default_on_percent": "安全モードで使用する電力の割合",
+                    "repair_incorrect_state": "誤った状態の修復",
+                    "manual_override_duration_min": "手動オーバーライドの継続時間（分）",
+                    "use_advanced_central_config": "一括詳細設定を使用"
+                },
+                "data_description": {
+                    "safety_delay_min": "2 回の温度測定の間に許容される最大遅延（分）です。この遅延を超えると、サーモスタットは安全オフ状態になります",
+                    "safety_min_on_percent": "安全プリセットを有効にする暖房割合の最小値です。電力の割合がこの値を下回る場合、サーモスタットは安全プリセットに移行しません",
+                    "safety_default_on_percent": "安全プリセットでのデフォルトの暖房電力の割合です。0 に設定すると、安全プリセットではヒーターをオフにします",
+                    "repair_incorrect_state": "配下のエンティティの誤った状態を検知すると、自動で修復します。配下のデバイスの状態が想定する状態と一致しない場合、この機能が目的のコマンドを再送します。",
+                    "manual_override_duration_min": "手動で温度を変更したあと、この時間（分）が経過すると、VTherm は以前のプリセットに戻ります。0 にするとこの機能を無効にします。",
+                    "use_advanced_central_config": "一括詳細設定を使用する場合はチェックを入れてください。この VTherm 専用の詳細設定を使用する場合はチェックを外してください"
+                }
+            },
+            "central_boiler": {
+                "title": "セントラルボイラーの制御",
+                "description": "セントラルボイラーをオン/オフするために呼び出すサービスを入力します。呼び出すサービスは次の形式で指定してください：`entity_id/service_name[/attribute:value]`（/attribute:value は省略可能です）\n例：\n- スイッチをオンにする：`switch.controle_chaudiere/switch.turn_on`\n- スイッチをオフにする：`switch.controle_chaudiere/switch.turn_off`\n- ボイラーを 25° に設定して点火を強制する：`climate.thermostat_chaudiere/climate.set_temperature/temperature:25`\n- ボイラーに 10° を送って停止を強制する：`climate.thermostat_chaudiere/climate.set_temperature/temperature:10`",
+                "data": {
+                    "central_boiler_activation_service": "オンにするコマンド",
+                    "central_boiler_deactivation_service": "オフにするコマンド",
+                    "central_boiler_activation_delay_sec": "作動遅延（秒）",
+                    "keep_alive_boiler_delay_sec": "キープアライブ遅延（秒）"
+                },
+                "data_description": {
+                    "central_boiler_activation_service": "entity_id/service_name[/attribut:valeur] の形式で指定する、セントラルボイラーをオンにするコマンドです",
+                    "central_boiler_deactivation_service": "entity_id/service_name[/attribut:valeur] の形式で指定する、セントラルボイラーをオフにするコマンドです",
+                    "central_boiler_activation_delay_sec": "セントラルボイラーをオンにする必要があるとき、作動させるまでの遅延（秒）です",
+                    "keep_alive_boiler_delay_sec": "キープアライブが有効な場合に、ボイラーのコマンドを定期的に再送する間隔（秒）です。0 に設定するとキープアライブを無効にします。"
+                }
+            },
+            "valve_regulation": {
+                "title": "バルブによる自己調整",
+                "description": "バルブを直接制御する自己調整の設定です",
+                "data": {
+                    "offset_calibration_entity_ids": "オフセットキャリブレーションのエンティティ",
+                    "opening_degree_entity_ids": "開度のエンティティ",
+                    "closing_degree_entity_ids": "閉度のエンティティ",
+                    "proportional_function": "アルゴリズム",
+                    "opening_threshold_degree": "開度のしきい値",
+                    "min_opening_degrees": "最小開度",
+                    "max_opening_degrees": "最大開度",
+                    "max_closing_degree": "最大閉度"
+                },
+                "data_description": {
+                    "offset_calibration_entity_ids": "「オフセットキャリブレーション」エンティティのリストです。TRV にこのエンティティがある場合は、より良い調整のために設定してください。配下の climate エンティティごとに 1 つ必要です",
+                    "opening_degree_entity_ids": "「開度」エンティティのリストです。配下の climate エンティティごとに 1 つ必要です",
+                    "closing_degree_entity_ids": "「閉度」エンティティのリストです。TRV にこのエンティティがある場合は、より良い調整のために設定してください。配下の climate エンティティごとに 1 つ必要です",
+                    "proportional_function": "使用するアルゴリズムです（他のアルゴリズムは {plugins_link} としてインストールできます）",
+                    "opening_threshold_degree": "バルブが閉じていると見なす開度の値です。この値を下回ると「max_closing_degree」が適用されます",
+                    "min_opening_degrees": "上記のしきい値を超えたときの、配下の各デバイスの開度の最小値です。カンマ区切りで指定します。デフォルトは 0 です。例：20, 25, 30",
+                    "max_opening_degrees": "開度の最大値です。バルブはこの値を超えて開きません",
+                    "max_closing_degree": "閉度の最大値です。バルブはこの値を超えて閉じることはありません。バルブを完全に閉じるには 100 に設定します"
+                }
+            },
+            "auto_tpi_configuration": {
+                "title": "Auto TPI - 設定",
+                "description": "Auto TPI 学習の全般設定です。",
+                "data": {
+                    "auto_tpi_learning_type": "学習タイプ",
+                    "heater_heating_time": "暖房時間（分）",
+                    "heater_cooling_time": "冷却時間（分）",
+                    "auto_tpi_heating_rate": "昇温速度（{unit}/h）",
+                    "auto_tpi_cooling_rate": "降温速度（{unit}/h）",
+                    "auto_tpi_aggressiveness": "積極度",
+                    "auto_tpi_enable_advanced_settings": "詳細パラメーターを有効にする",
+                    "auto_tpi_continuous_kext": "Kext の継続学習"
+                },
+                "data_description": {
+                    "auto_tpi_learning_type": "初回起動には「探索」（加重平均、重み 1）、継続的な調整には「微調整」（EWMA、Alpha 0.08）を選択します。",
+                    "heater_heating_time": "最大電力に到達するまでの時間（分）です",
+                    "heater_cooling_time": "停止後に冷めるまでの時間（分）です\n\n| タイプ | 暖房時間 | 冷却時間 |\n| :--- | :--- | :--- |\n| 電気ラジエーター | 5 分 | 7 分 |\n| 温水ラジエーター | 15 分 | 20 分 |\n| 床暖房 | 30 分 | 45 分 |",
+                    "auto_tpi_heating_rate": "ラジエーターの昇温能力（1 時間あたり {unit}）です。0 のままにすると自動学習（ブートストラップ）を行います。",
+                    "auto_tpi_cooling_rate": "ラジエーターの降温能力（1 時間あたり {unit}）です。0 のままにすると自動学習（ブートストラップ）を行います。",
+                    "auto_tpi_aggressiveness": "学習した係数の縮小率（50 ～ 100%）です。値を小さくすると係数がより保守的になり、オーバーシュートのリスクが下がります。",
+                    "auto_tpi_enable_advanced_settings": "パラメーターの微調整（Alpha、減衰率、重み）を行う場合はチェックを入れてください。",
+                    "auto_tpi_continuous_kext": "AutoTPI のセッション外でも外部係数（Kext）の継続学習を有効にする場合はチェックを入れてください。"
+                }
+            },
+            "auto_tpi_avg_settings": {
+                "title": "Auto TPI - 加重平均",
+                "description": "加重平均方式のパラメーターです。",
+                "data": {
+                    "auto_tpi_avg_initial_weight": "初期の重み"
+                },
+                "data_description": {
+                    "auto_tpi_avg_initial_weight": "平均値の計算における初期値/前回値の重みです"
+                }
+            },
+            "auto_tpi_ema_settings": {
+                "title": "Auto TPI - EWMA",
+                "description": "EWMA 方式のパラメーターです。\n\n推奨値：\n| 状況 | Alpha (ema_alpha) | 減衰率 (ema_decay_rate) |\n| :--- | :--- | :--- |\n| 初期学習 | 0.15 | 0.08 |\n| 微調整学習 | 0.08 | 0.12 |\n| 継続学習 | 0.05 | 0.02 |",
+                "data": {
+                    "auto_tpi_ema_alpha": "Alpha",
+                    "auto_tpi_ema_decay_rate": "減衰率",
+                    "auto_tpi_continuous_kext_alpha": "Kext の継続学習の Alpha"
+                },
+                "data_description": {
+                    "auto_tpi_ema_alpha": "平滑化係数（0 ～ 1）です。大きいほど適応が速くなります",
+                    "auto_tpi_ema_decay_rate": "Alpha が時間とともに減少する割合（安定化）です",
+                    "auto_tpi_continuous_kext_alpha": "Kext の継続学習の平滑化係数（Alpha）です。デフォルトは 0.04（約 3 ～ 5 日で適応）です。"
+                }
+            },
+            "sync_device_internal_temp": {
+                "title": "デバイス内部温度の同期",
+                "description": "配下のデバイスの内部温度を、選択したエンティティと同期するための設定です",
+                "data": {
+                    "sync_with_calibration": "オフセットキャリブレーションを適用",
+                    "sync_entity_ids": "同期に使用するエンティティ ID"
+                },
+                "data_description": {
+                    "sync_with_calibration": "内部温度の同期時にオフセットキャリブレーションを適用する場合はチェックを入れてください。選択したエンティティの温度を直接コピーする場合はチェックを外してください",
+                    "sync_entity_ids": "配下のデバイスの内部温度を同期するために使用するエンティティのリストです。配下のデバイスごとに 1 つ必要です。チェックボックスを選択している場合はキャリブレーションのエンティティ、選択していない場合は温度のエンティティを指定してください。どちらも `number` エンティティです。"
+                }
+            },
+            "humidity": {
+                "title": "湿度",
+                "description": "外部の湿度センサーを使用します。検出されたセンサー：{humidity_detected}",
+                "data": {
+                    "use_humidity_feature": "湿度センサーを使用",
+                    "humidity_sensor_entity_id": "湿度センサー"
+                },
+                "data_description": {
+                    "use_humidity_feature": "配下の climate の湿度のみを使用する場合は、このオプションを無効にしてください。",
+                    "humidity_sensor_entity_id": "空欄にすると、検出されたセンサーを自動で使用します。"
+                }
+            },
+            "heating_failure_detection": {
+                "title": "暖房の異常検知",
+                "description": "暖房の異常検知機能の設定です。暖房が見込まれるのに温度が上昇しない場合や、暖房がオフなのに温度が上昇し続ける場合の異常を検知します。",
+                "data": {
+                    "use_heating_failure_detection_feature": "暖房の異常検知を有効にする",
+                    "use_heating_failure_detection_central_config": "暖房の異常検知の一括設定を使用",
+                    "heating_failure_threshold": "暖房の異常のしきい値",
+                    "cooling_failure_threshold": "冷却の異常のしきい値",
+                    "heating_failure_detection_delay": "検知の遅延（分）",
+                    "temperature_change_tolerance": "温度変化の許容値（°C）",
+                    "failure_detection_enable_template": "検知を有効にするテンプレート"
+                },
+                "data_description": {
+                    "use_heating_failure_detection_feature": "TPI を使用する VTherm で、暖房の異常の検知を有効にします",
+                    "use_heating_failure_detection_central_config": "暖房の異常検知の一括設定を使用する場合はチェックを入れてください。この VTherm 専用のパラメーターを使用する場合はチェックを外してください",
+                    "heating_failure_threshold": "オン割合のしきい値です。この値を上回るときは、暖房によって温度が上昇するはずです（0.9 = 90%）",
+                    "cooling_failure_threshold": "オン割合のしきい値です。この値を下回るときは、温度が上昇してはいけません（0.0 = 0%）",
+                    "heating_failure_detection_delay": "温度が想定どおりに変化したかを確認するまでの待機時間（分）です",
+                    "temperature_change_tolerance": "有意な変化と見なす温度変化の最小値（度）です。これより小さい変化は、センサーのノイズを除くため無視されます（デフォルト：0.5°C）",
+                    "failure_detection_enable_template": "検知を有効にするために True を返す必要がある、任意の Jinja2 テンプレートです。外部の熱源が動作中のときなど、検知を一時的に無効にしたい場合に便利です（例：二重波括弧で囲んだ `is_state('binary_sensor.wood_stove', 'off')`）。空欄の場合、検知は常に有効です。"
+                }
+            }
+        },
+        "error": {
+            "unknown": "予期しないエラー",
+            "unknown_entity": "不明なエンティティ ID",
+            "window_open_detection_method": "窓の開放検知の方法は 1 つだけ使用してください。窓センサーか、温度しきい値による自動検知のどちらか一方を使用し、両方は使用しないでください",
+            "no_central_config": "一括設定が見つからないため、「一括設定を使用」はチェックできません。使用するには、タイプが「一括設定」の Versatile Thermostat を作成する必要があります。",
+            "service_configuration_format": "サービス設定の形式が正しくありません",
+            "valve_regulation_nb_entities_incorrect": "バルブ調整のバルブエンティティの数は、配下の機器の数と同じにする必要があります",
+            "sync_device_internal_temp_nb_entities_incorrect": "デバイス内部温度の同期のエンティティの数は、配下の機器の数と同じにする必要があります",
+            "min_opening_degrees_format": "正の整数をカンマ区切りで指定してください。例：20, 25, 30",
+            "max_opening_degrees_format": "0 からバルブの最大開度までの正の整数をカンマ区切りで指定してください。例：80, 85, 90",
+            "min_max_opening_degrees_inconsistent": "配下の各デバイスで、max_opening_degrees は min_opening_degrees より大きい値（同じ値は不可）にする必要があります。設定を確認してください。",
+            "valve_control_parameters_cardinality_incorrect": "最小開度と最大開度のリストには、設定したバルブの数より多い値を含められません",
+            "vswitch_configuration_incorrect": "コマンドのカスタマイズ設定が正しくありません。スイッチ以外の配下のエンティティでは必須で、形式は service_name[/attribute:value] にする必要があります。詳しくは README を参照してください"
+        },
+        "abort": {
+            "already_configured": "デバイスはすでに設定されています"
+        }
+    },
+    "options": {
+        "flow_title": "Versatile Thermostat の設定",
+        "step": {
+            "user": {
+                "title": "タイプ - {name}",
+                "description": "作成するサーモスタットのタイプを選択してください",
+                "data": {
+                    "thermostat_type": "サーモスタットのタイプ"
+                },
+                "data_description": {
+                    "thermostat_type": "一括設定タイプのサーモスタットは 1 つだけ作成できます"
+                }
+            },
+            "menu": {
+                "title": "メニュー",
+                "description": "サーモスタットを設定します。必須のパラメーターをすべて入力すると、設定を完了できます。",
+                "menu_options": {
+                    "main": "主な属性",
+                    "central_boiler": "セントラルボイラー",
+                    "type": "配下の機器",
+                    "tpi": "TPI パラメーター",
+                    "features": "機能",
+                    "presets": "プリセット",
+                    "window": "窓の開放検知",
+                    "motion": "動き検知",
+                    "power": "電力管理",
+                    "presence": "在室検知",
+                    "advanced": "詳細パラメーター",
+                    "auto_start_stop": "自動起動/停止",
+                    "valve_regulation": "バルブ調整の設定",
+                    "sync_device_internal_temp": "デバイス温度の同期",
+                    "humidity": "湿度",
+                    "lock": "ロック",
+                    "heating_failure_detection": "暖房の異常検知",
+                    "finalize": "すべて完了",
+                    "configuration_not_complete": "設定が完了していません"
+                }
+            },
+            "lock": {
+                "title": "ロック管理 - {name}",
+                "description": "ロック機能は、サーモスタットの動作を保ったまま、UI やオートメーションからのサーモスタット設定の変更を防ぎます。",
+                "data": {
+                    "use_lock_central_config": "一括ロック設定を使用",
+                    "lock_code": "暗証番号（任意・4 桁）",
+                    "lock_users": "ロックでユーザーからのコマンドを拒否",
+                    "lock_automations": "ロックでオートメーションとインテグレーション（例：scheduler）からのコマンドを拒否",
+                    "auto_relock_sec": "自動再ロックの遅延"
+                },
+                "data_description": {
+                    "use_lock_central_config": "一括ロック設定を使用する場合はチェックを入れてください。この VTherm 専用のロック設定を使用する場合はチェックを外してください",
+                    "auto_relock_sec": "ロック解除後に自動で再ロックするまでの遅延（秒）です。0 に設定すると自動再ロックを無効にします。デフォルトは 30 秒です。"
+                }
+            },
+            "main": {
+                "title": "メイン - {name}",
+                "description": "必須の主な属性",
+                "data": {
+                    "name": "名前",
+                    "thermostat_type": "サーモスタットのタイプ",
+                    "temperature_sensor_entity_id": "室温",
+                    "last_seen_temperature_sensor_entity_id": "室温を最後に確認した日時",
+                    "external_temperature_sensor_entity_id": "屋外温度センサーのエンティティ ID",
+                    "cycle_min": "サイクル時間（分）",
+                    "temp_min": "許可する最低温度",
+                    "temp_max": "許可する最高温度",
+                    "step_temperature": "温度のステップ",
+                    "device_power": "デバイスの電力",
+                    "use_central_mode": "一括モードのエンティティによる制御を有効にします（一括設定が必要）。central_mode の select エンティティで VTherm を制御する場合はチェックを入れてください。",
+                    "use_main_central_config": "主な属性の一括設定も使用します。主な属性の一括設定（屋外温度、最低温度、最高温度、ステップなど）を使用する場合はチェックを入れてください。",
+                    "used_by_controls_central_boiler": "セントラルボイラーに使用します。この VTherm にセントラルボイラーを制御させる場合はチェックを入れてください"
+                },
+                "data_description": {
+                    "cycle_min": "頻繁な切り替えを避けるための、暖房/冷房 1 サイクルの最短時間（分）です",
+                    "temp_min": "サーモスタットで許可する最低温度です",
+                    "temp_max": "サーモスタットで許可する最高温度です",
+                    "step_temperature": "目標温度を設定するときの温度のステップです",
+                    "temperature_sensor_entity_id": "室温センサーのエンティティ ID です",
+                    "last_seen_temperature_sensor_entity_id": "室温を最後に確認した日時を示すセンサーのエンティティ ID です。日時センサーを指定してください",
+                    "external_temperature_sensor_entity_id": "屋外温度センサーのエンティティ ID です。一括設定を選択している場合は使用されません"
+                }
+            },
+            "features": {
+                "title": "機能 - {name}",
+                "description": "サーモスタットの機能",
+                "data": {
+                    "use_window_feature": "窓の開放検知を使用",
+                    "use_motion_feature": "動き検知を使用",
+                    "use_power_feature": "電力管理を使用",
+                    "use_presence_feature": "在室検知を使用",
+                    "use_central_boiler_feature": "セントラルボイラーを使用します。セントラルボイラーを制御する場合はチェックを入れてください。この設定を有効にするには、チェックを入れたあとで、セントラルボイラーを制御する VTherm を設定する必要があります。いずれかの VTherm が暖房を必要とするとボイラーをオンにし、どの VTherm も暖房を必要としない場合はオフにします。ボイラーをオン/オフにするコマンドは、関連する設定ページで指定します",
+                    "use_auto_start_stop_feature": "自動起動/停止機能を使用",
+                    "use_heating_failure_detection_feature": "暖房の異常検知を使用"
+                }
+            },
+            "type": {
+                "title": "エンティティ - {name}",
+                "description": "リンクされたエンティティの属性",
+                "data": {
+                    "underlying_entity_ids": "制御するデバイス",
+                    "heater_keep_alive": "スイッチのキープアライブ間隔（秒）",
+                    "proportional_function": "アルゴリズム",
+                    "ac_mode": "AC モード",
+                    "sync_device_internal_temp": "デバイス温度の同期",
+                    "auto_regulation_mode": "自己調整",
+                    "auto_regulation_dtemp": "調整のしきい値",
+                    "auto_regulation_periode_min": "調整の最短周期",
+                    "opening_threshold_degree": "開度のしきい値",
+                    "min_opening_degrees": "最小開度",
+                    "max_opening_degrees": "最大開度",
+                    "max_closing_degree": "最大閉度",
+                    "auto_regulation_use_device_temp": "配下の機器の内部温度を使用",
+                    "inverse_switch_command": "スイッチのコマンドを反転",
+                    "auto_fan_mode": "自動ファンモード",
+                    "on_command_text": "オンにするコマンドのカスタマイズ",
+                    "vswitch_on_command": "オンにするコマンド（任意）",
+                    "off_command_text": "オフにするコマンドのカスタマイズ",
+                    "vswitch_off_command": "オフにするコマンド（任意）"
+                },
+                "data_description": {
+                    "underlying_entity_ids": "制御するデバイスです。1 つ以上必要です",
+                    "heater_keep_alive": "ヒーター用スイッチの状態を更新する間隔（任意）です。不要な場合は空欄にしてください。",
+                    "proportional_function": "使用するアルゴリズムです（他のアルゴリズムは {plugins_link} としてインストールできます）",
+                    "ac_mode": "エアコン（AC）モードを使用します",
+                    "sync_device_internal_temp": "配下のデバイスの内部温度を同期する場合はチェックを入れてください（設定は新しいメニュー項目「デバイス温度の同期」で行います）",
+                    "auto_regulation_mode": "目標温度を自動で調整します",
+                    "auto_regulation_dtemp": "温度の変化がこのしきい値（°、バルブの場合は %）を下回るときは送信しません",
+                    "auto_regulation_periode_min": "調整を更新する間隔（分）です",
+                    "opening_threshold_degree": "バルブが閉じていると見なす開度の値です。この値を下回ると「max_closing_degree」が適用されます",
+                    "min_opening_degrees": "上記のしきい値を超えたときの、配下の各デバイスの開度の最小値です。カンマ区切りで指定します。デフォルトは 0 です。例：20, 25, 30",
+                    "max_opening_degrees": "開度の最大値です。バルブはこの値を超えて開きません",
+                    "max_closing_degree": "閉度の最大値です。バルブはこの値を超えて閉じることはありません。バルブを完全に閉じるには 100 に設定します",
+                    "auto_regulation_use_device_temp": "調整を速めるため、配下の機器に内部温度センサーがあれば使用します（ほとんどの場合は不要です）",
+                    "inverse_switch_command": "パイロットワイヤーとダイオードを使うスイッチでは、コマンドを反転する必要がある場合があります",
+                    "auto_fan_mode": "大きな暖房/冷房が必要なときにファンを自動で有効にします",
+                    "on_command_text": "`select` または `climate` タイプの配下の機器では、コマンドをカスタマイズする必要があります。"
+                }
+            },
+            "tpi": {
+                "title": "TPI - {name}",
+                "description": "Time Proportional Integral の属性",
+                "data": {
+                    "tpi_coef_int": "coef_int",
+                    "tpi_coef_ext": "coef_ext",
+                    "tpi_threshold_low": "TPI の下限しきい値",
+                    "tpi_threshold_high": "TPI の上限しきい値",
+                    "use_tpi_central_config": "一括 TPI 設定を使用",
+                    "minimal_activation_delay": "最小作動遅延",
+                    "minimal_deactivation_delay": "最小停止遅延",
+                    "auto_tpi_mode": "Auto TPI 学習を有効にする"
+                },
+                "data_description": {
+                    "tpi_coef_int": "内部温度の差に使う係数です",
+                    "tpi_coef_ext": "外部温度の差に使う係数です",
+                    "tpi_threshold_low": "この値（°）より下では TPI アルゴリズムがオンになります。0 はしきい値なしを意味します",
+                    "tpi_threshold_high": "この値（°）より上では TPI アルゴリズムがオフになります。0 はしきい値なしを意味します",
+                    "use_tpi_central_config": "一括 TPI 設定を使用する場合はチェックを入れてください。この VTherm 専用の TPI 設定を使用する場合はチェックを外してください",
+                    "minimal_activation_delay": "秒単位の遅延です。この値を下回る場合、機器は作動しません",
+                    "minimal_deactivation_delay": "秒単位の遅延です。この値を下回る場合、機器は作動したままになります",
+                    "auto_tpi_mode": "TPI の学習セッションは手動で開始します。まずドキュメントをお読みください。"
+                }
+            },
+            "presets": {
+                "title": "プリセット - {name}",
+                "description": "サーモスタットで一括プリセットを使用する場合はチェックを入れてください。サーモスタット専用のプリセットエンティティを使用する場合はチェックを外してください",
+                "data": {
+                    "use_presets_central_config": "一括プリセット設定を使用"
+                }
+            },
+            "window": {
+                "title": "窓 - {name}",
+                "description": "窓の開放の管理です。\n温度の低下に基づく窓の自動開放検知も設定できます",
+                "data": {
+                    "window_sensor_entity_id": "窓センサーのエンティティ ID",
+                    "window_delay": "窓センサーの「on」遅延（秒）",
+                    "window_off_delay": "窓センサーの「off」遅延（秒）",
+                    "window_auto_open_threshold": "窓の自動開放検知の温度低下しきい値（°/時間）",
+                    "window_auto_close_threshold": "自動検知を終了する温度上昇しきい値（°/時間）",
+                    "window_auto_max_duration": "窓の自動開放検知の最大継続時間（分）",
+                    "use_window_central_config": "一括窓設定を使用",
+                    "window_action": "アクション"
+                },
+                "data_description": {
+                    "window_sensor_entity_id": "窓センサーを使用せず自動検知を使用する場合は、空欄にしてください",
+                    "window_delay": "センサーの「on」検知を反映するまでの遅延（秒）です",
+                    "window_off_delay": "センサーの「off」検知を反映するまでの遅延（秒）です。空欄にすると「on」の遅延と同じ値を使用します",
+                    "window_auto_open_threshold": "推奨値：3 ～ 10。窓の自動開放検知を使用しない場合は空欄にしてください",
+                    "window_auto_close_threshold": "推奨値：0。窓の自動開放検知を使用しない場合は空欄にしてください",
+                    "window_auto_max_duration": "推奨値：60（1 時間）。窓の自動開放検知を使用しない場合は空欄にしてください",
+                    "use_window_central_config": "一括窓設定を使用する場合はチェックを入れてください。この VTherm 専用の窓設定を使用する場合はチェックを外してください",
+                    "window_action": "窓が開放されたと検知したときに実行するアクションです"
+                }
+            },
+            "motion": {
+                "title": "動き - {name}",
+                "description": "動きの管理です。動き検知に応じてプリセットを自動で切り替えられます\nmotion_preset と no_motion_preset は、対応するプリセット名に設定してください",
+                "data": {
+                    "motion_sensor_entity_id": "動きセンサーのエンティティ ID",
+                    "motion_delay": "作動遅延",
+                    "motion_off_delay": "停止遅延",
+                    "motion_preset": "動きありプリセット",
+                    "no_motion_preset": "動きなしプリセット",
+                    "use_motion_central_config": "一括動き設定を使用"
+                },
+                "data_description": {
+                    "motion_sensor_entity_id": "動きセンサーのエンティティ ID です",
+                    "motion_delay": "動きの作動遅延（秒）です",
+                    "motion_off_delay": "動きの停止遅延（秒）です",
+                    "motion_preset": "動きを検知したときに使用するプリセットです",
+                    "no_motion_preset": "動きを検知していないときに使用するプリセットです",
+                    "use_motion_central_config": "一括動き設定を使用する場合はチェックを入れてください。この VTherm 専用の動き設定を使用する場合はチェックを外してください"
+                }
+            },
+            "power": {
+                "title": "電力 - {name}",
+                "description": "電力管理の属性です。\nご自宅の電力センサーと最大電力センサーを指定します。\nヒーターがオンのときの消費電力を指定します。\nすべてのセンサーとデバイスの電力は同じ単位（kW または W）にしてください",
+                "data": {
+                    "power_sensor_entity_id": "電力",
+                    "max_power_sensor_entity_id": "最大電力",
+                    "power_temp": "負荷制限時の温度",
+                    "use_power_central_config": "一括電力設定を使用"
+                },
+                "data_description": {
+                    "power_sensor_entity_id": "電力センサーのエンティティ ID です",
+                    "max_power_sensor_entity_id": "最大電力センサーのエンティティ ID です",
+                    "power_temp": "電力超過による負荷制限時の温度です",
+                    "use_power_central_config": "一括電力設定を使用する場合はチェックを入れてください。この VTherm 専用の電力設定を使用する場合はチェックを外してください"
+                }
+            },
+            "presence": {
+                "title": "在室 - {name}",
+                "description": "在室管理の属性です。\n自宅の在室センサー（誰かが在室していれば true）を指定し、対応する温度のプリセット設定を指定します",
+                "data": {
+                    "presence_sensor_entity_id": "在室センサー",
+                    "use_presence_central_config": "一括在室温度設定を使用します。専用の温度エンティティを使用する場合はチェックを外してください"
+                },
+                "data_description": {
+                    "presence_sensor_entity_id": "在室センサーのエンティティ ID です"
+                }
+            },
+            "advanced": {
+                "title": "詳細 - {name}",
+                "description": "詳細パラメーターの設定です。内容がわからない場合は、デフォルト値のままにしてください。\nこれらのパラメーターにより、温度制御が非常に不安定になったり、電力の調整が適切に行われなくなったりする場合があります",
+                "data": {
+                    "minimal_activation_delay": "最小作動遅延",
+                    "minimal_deactivation_delay": "最小停止遅延",
+                    "safety_delay_min": "安全遅延（分）",
+                    "safety_min_on_percent": "安全モードを有効にする電力の最小割合",
+                    "safety_default_on_percent": "安全モードで使用する電力の割合",
+                    "repair_incorrect_state": "誤った状態の修復",
+                    "manual_override_duration_min": "手動オーバーライドの継続時間（分）",
+                    "use_advanced_central_config": "一括詳細設定を使用"
+                },
+                "data_description": {
+                    "minimal_activation_delay": "秒単位の遅延です。この値を下回る場合、機器は作動しません",
+                    "minimal_deactivation_delay": "秒単位の遅延です。この値を下回る場合、機器は作動したままになります",
+                    "safety_delay_min": "2 回の温度測定の間に許容される最大遅延（分）です。この遅延を超えると、サーモスタットは安全オフ状態になります",
+                    "safety_min_on_percent": "安全プリセットを有効にする暖房割合の最小値です。電力の割合がこの値を下回る場合、サーモスタットは安全プリセットに移行しません",
+                    "safety_default_on_percent": "安全プリセットでのデフォルトの暖房電力の割合です。0 に設定すると、安全プリセットではヒーターをオフにします",
+                    "repair_incorrect_state": "配下のエンティティの誤った状態を検知すると、自動で修復します。配下のデバイスの状態が想定する状態と一致しない場合、この機能が目的のコマンドを再送します。",
+                    "manual_override_duration_min": "手動で温度を変更したあと、この時間（分）が経過すると、VTherm は以前のプリセットに戻ります。0 にするとこの機能を無効にします。",
+                    "use_advanced_central_config": "一括詳細設定を使用する場合はチェックを入れてください。この VTherm 専用の詳細設定を使用する場合はチェックを外してください"
+                }
+            },
+            "central_boiler": {
+                "title": "セントラルボイラーの制御 - {name}",
+                "description": "セントラルボイラーをオン/オフするために呼び出すサービスを入力します。呼び出すサービスは次の形式で指定してください：`entity_id/service_name[/attribute:value]`（/attribute:value は省略可能です）\n例：\n- スイッチをオンにする：`switch.controle_chaudiere/switch.turn_on`\n- スイッチをオフにする：`switch.controle_chaudiere/switch.turn_off`\n- ボイラーを 25° に設定して点火を強制する：`climate.thermostat_chaudiere/climate.set_temperature/temperature:25`\n- ボイラーに 10° を送って停止を強制する：`climate.thermostat_chaudiere/climate.set_temperature/temperature:10`",
+                "data": {
+                    "central_boiler_activation_service": "オンにするコマンド",
+                    "central_boiler_deactivation_service": "オフにするコマンド",
+                    "central_boiler_activation_delay_sec": "作動遅延（秒）",
+                    "keep_alive_boiler_delay_sec": "キープアライブ遅延（秒）"
+                },
+                "data_description": {
+                    "central_boiler_activation_service": "entity_id/service_name[/attribut:valeur] の形式で指定する、セントラルボイラーをオンにするコマンドです",
+                    "central_boiler_deactivation_service": "entity_id/service_name[/attribut:valeur] の形式で指定する、セントラルボイラーをオフにするコマンドです",
+                    "central_boiler_activation_delay_sec": "セントラルボイラーをオンにする必要があるとき、作動させるまでの遅延（秒）です",
+                    "keep_alive_boiler_delay_sec": "キープアライブが有効な場合に、ボイラーのコマンドを定期的に再送する間隔（秒）です。0 に設定するとキープアライブを無効にします。"
+                }
+            },
+            "valve_regulation": {
+                "title": "バルブによる自己調整 - {name}",
+                "description": "バルブを直接制御する自己調整の設定です",
+                "data": {
+                    "offset_calibration_entity_ids": "オフセットキャリブレーションのエンティティ",
+                    "opening_degree_entity_ids": "開度のエンティティ",
+                    "closing_degree_entity_ids": "閉度のエンティティ",
+                    "proportional_function": "アルゴリズム",
+                    "opening_threshold_degree": "開度のしきい値",
+                    "min_opening_degrees": "最小開度",
+                    "max_opening_degrees": "最大開度",
+                    "max_closing_degree": "最大閉度"
+                },
+                "data_description": {
+                    "offset_calibration_entity_ids": "「オフセットキャリブレーション」エンティティのリストです。TRV にこのエンティティがある場合は、より良い調整のために設定してください。配下の climate エンティティごとに 1 つ必要です",
+                    "opening_degree_entity_ids": "「開度」エンティティのリストです。配下の climate エンティティごとに 1 つ必要です",
+                    "closing_degree_entity_ids": "「閉度」エンティティのリストです。TRV にこのエンティティがある場合は、より良い調整のために設定してください。配下の climate エンティティごとに 1 つ必要です",
+                    "proportional_function": "使用するアルゴリズムです（他のアルゴリズムは {plugins_link} としてインストールできます）",
+                    "opening_threshold_degree": "バルブが閉じていると見なす開度の値です。この値を下回ると「max_closing_degree」が適用されます",
+                    "min_opening_degrees": "上記のしきい値を超えたときの、配下の各デバイスの開度の最小値です。カンマ区切りで指定します。デフォルトは 0 です。例：20, 25, 30",
+                    "max_opening_degrees": "開度の最大値です。バルブはこの値を超えて開きません",
+                    "max_closing_degree": "閉度の最大値です。バルブはこの値を超えて閉じることはありません。バルブを完全に閉じるには 100 に設定します"
+                }
+            },
+            "sync_device_internal_temp": {
+                "title": "デバイス内部温度の同期",
+                "description": "配下のデバイスの内部温度を、選択したエンティティと同期するための設定です",
+                "data": {
+                    "sync_with_calibration": "オフセットキャリブレーションを適用",
+                    "sync_entity_ids": "同期に使用するエンティティ ID"
+                },
+                "data_description": {
+                    "sync_with_calibration": "内部温度の同期時にオフセットキャリブレーションを適用する場合はチェックを入れてください。選択したエンティティの温度を直接コピーする場合はチェックを外してください",
+                    "sync_entity_ids": "配下のデバイスの内部温度を同期するために使用するエンティティのリストです。配下のデバイスごとに 1 つ必要です。チェックボックスを選択している場合はキャリブレーションのエンティティ、選択していない場合は温度のエンティティを指定してください。どちらも `number` エンティティです。"
+                }
+            },
+            "humidity": {
+                "title": "湿度 - {name}",
+                "description": "外部の湿度センサーを使用します。検出されたセンサー：{humidity_detected}",
+                "data": {
+                    "use_humidity_feature": "湿度センサーを使用",
+                    "humidity_sensor_entity_id": "湿度センサー"
+                },
+                "data_description": {
+                    "use_humidity_feature": "配下の climate の湿度のみを使用する場合は、このオプションを無効にしてください。",
+                    "humidity_sensor_entity_id": "空欄にすると、検出されたセンサーを自動で使用します。"
+                }
+            },
+            "auto_tpi_configuration": {
+                "title": "Auto TPI - 設定 - {name}",
+                "description": "Auto TPI 学習の全般設定です。",
+                "data": {
+                    "auto_tpi_learning_type": "学習タイプ",
+                    "auto_tpi_heating_rate": "昇温速度（{unit}/h）",
+                    "auto_tpi_cooling_rate": "降温速度（{unit}/h）",
+                    "heater_heating_time": "暖房時間（分）",
+                    "heater_cooling_time": "冷却時間（分）",
+                    "auto_tpi_aggressiveness": "積極度",
+                    "auto_tpi_enable_advanced_settings": "詳細パラメーターを有効にする",
+                    "auto_tpi_continuous_kext": "Kext の継続学習"
+                },
+                "data_description": {
+                    "auto_tpi_learning_type": "初回起動には「探索」（加重平均、重み 1）、継続的な調整には「微調整」（EWMA、Alpha 0.08）を選択します。",
+                    "auto_tpi_heating_rate": "ラジエーターの昇温能力（1 時間あたり {unit}）です。0 のままにすると自動学習（ブートストラップ）を行います。",
+                    "auto_tpi_cooling_rate": "ラジエーターの降温能力（1 時間あたり {unit}）です。0 のままにすると自動学習（ブートストラップ）を行います。",
+                    "heater_heating_time": "最大電力に到達するまでの時間（分）です",
+                    "heater_cooling_time": "停止後に冷めるまでの時間（分）です\n\n| タイプ | 暖房時間 | 冷却時間 |\n| :--- | :--- | :--- |\n| 電気ラジエーター | 5 分 | 7 分 |\n| 温水ラジエーター | 15 分 | 20 分 |\n| 床暖房 | 30 分 | 45 分 |",
+                    "auto_tpi_aggressiveness": "学習した係数の縮小率（50 ～ 100%）です。値を小さくすると係数がより保守的になり、オーバーシュートのリスクが下がります。",
+                    "auto_tpi_enable_advanced_settings": "選択したアルゴリズムのパラメーターを変更する場合はチェックを入れてください。",
+                    "auto_tpi_continuous_kext": "AutoTPI のセッション外でも外部係数（Kext）の継続学習を有効にする場合はチェックを入れてください。"
+                }
+            },
+            "auto_tpi_avg_settings": {
+                "title": "Auto TPI - 加重平均 - {name}",
+                "description": "加重平均方式のパラメーターです。",
+                "data": {
+                    "auto_tpi_avg_initial_weight": "初期の重み"
+                },
+                "data_description": {
+                    "auto_tpi_avg_initial_weight": "平均値の計算における既存の係数の初期の重みです（通常は 1 ～ 50）。重みが大きいほど、学習は遅く安定します。"
+                }
+            },
+            "auto_tpi_ema_settings": {
+                "title": "Auto TPI - EWMA - {name}",
+                "description": "EWMA 方式のパラメーターです。\n\n推奨値：\n| 状況 | Alpha (ema_alpha) | 減衰率 (ema_decay_rate) |\n| :--- | :--- | :--- |\n| 大きな調整 | 0.15 | 0.08 |\n| 微調整 | 0.08 | 0.12 |",
+                "data": {
+                    "auto_tpi_ema_alpha": "Alpha",
+                    "auto_tpi_ema_decay_rate": "減衰率",
+                    "auto_tpi_continuous_kext_alpha": "Kext の継続学習の Alpha"
+                },
+                "data_description": {
+                    "auto_tpi_ema_alpha": "平滑化係数（0 ～ 1）です。大きいほど適応が速くなります",
+                    "auto_tpi_ema_decay_rate": "Alpha が時間とともに減少する割合（安定化）です",
+                    "auto_tpi_continuous_kext_alpha": "Kext の継続学習の平滑化係数（Alpha）です。デフォルトは 0.04（約 3 ～ 5 日で適応）です。"
+                }
+            },
+            "heating_failure_detection": {
+                "title": "暖房の異常検知 - {name}",
+                "description": "暖房の異常検知機能の設定です。暖房が見込まれるのに温度が上昇しない場合や、暖房がオフなのに温度が上昇し続ける場合の異常を検知します。",
+                "data": {
+                    "use_heating_failure_detection_feature": "暖房の異常検知を有効にする",
+                    "use_heating_failure_detection_central_config": "暖房の異常検知の一括設定を使用",
+                    "heating_failure_threshold": "暖房の異常のしきい値",
+                    "cooling_failure_threshold": "冷却の異常のしきい値",
+                    "heating_failure_detection_delay": "検知の遅延（分）",
+                    "temperature_change_tolerance": "温度変化の許容値（°C）",
+                    "failure_detection_enable_template": "検知を有効にするテンプレート"
+                },
+                "data_description": {
+                    "use_heating_failure_detection_feature": "TPI を使用する VTherm で、暖房の異常の検知を有効にします",
+                    "use_heating_failure_detection_central_config": "暖房の異常検知の一括設定を使用する場合はチェックを入れてください。この VTherm 専用のパラメーターを使用する場合はチェックを外してください",
+                    "heating_failure_threshold": "オン割合のしきい値です。この値を上回るときは、暖房によって温度が上昇するはずです（0.9 = 90%）",
+                    "cooling_failure_threshold": "オン割合のしきい値です。この値を下回るときは、温度が上昇してはいけません（0.0 = 0%）",
+                    "heating_failure_detection_delay": "温度が想定どおりに変化したかを確認するまでの待機時間（分）です",
+                    "temperature_change_tolerance": "有意な変化と見なす温度変化の最小値（度）です。これより小さい変化は、センサーのノイズを除くため無視されます（デフォルト：0.5°C）",
+                    "failure_detection_enable_template": "検知を有効にするために True を返す必要がある、任意の Jinja2 テンプレートです。外部の熱源が動作中のときなど、検知を一時的に無効にしたい場合に便利です（例：二重波括弧で囲んだ `is_state('binary_sensor.wood_stove', 'off')`）。空欄の場合、検知は常に有効です。"
+                }
+            }
+        },
+        "error": {
+            "unknown": "予期しないエラー",
+            "unknown_entity": "不明なエンティティ ID",
+            "window_open_detection_method": "窓の開放検知の方法は 1 つだけ使用してください。窓センサーか、温度しきい値による自動検知のどちらか一方を使用し、両方は使用しないでください",
+            "no_central_config": "一括設定が見つからないため、「一括設定を使用」はチェックできません。使用するには、タイプが「一括設定」の Versatile Thermostat を作成する必要があります。",
+            "service_configuration_format": "サービス設定の形式が正しくありません",
+            "valve_regulation_nb_entities_incorrect": "バルブ調整のバルブエンティティの数は、配下の機器の数と同じにする必要があります",
+            "sync_device_internal_temp_nb_entities_incorrect": "デバイス内部温度の同期のエンティティの数は、配下の機器の数と同じにする必要があります",
+            "min_opening_degrees_format": "正の整数をカンマ区切りで指定してください。例：20, 25, 30",
+            "max_opening_degrees_format": "0 からバルブの最大値までの正の整数をカンマ区切りで指定してください。例：80, 85, 90",
+            "min_max_opening_degrees_inconsistent": "配下の各デバイスで、max_opening_degrees は min_opening_degrees より大きい値（同じ値は不可）にする必要があります。設定を確認してください。",
+            "valve_control_parameters_cardinality_incorrect": "最小開度と最大開度のリストには、設定したバルブの数より多い値を含められません",
+            "vswitch_configuration_incorrect": "コマンドのカスタマイズ設定が正しくありません。スイッチ以外の配下のエンティティでは必須で、形式は service_name[/attribute:value] にする必要があります。詳しくは README を参照してください"
+        },
+        "abort": {
+            "already_configured": "デバイスはすでに設定されています"
+        }
+    },
+    "selector": {
+        "thermostat_type": {
+            "options": {
+                "thermostat_central_config": "一括設定",
+                "thermostat_over_switch": "スイッチを制御するサーモスタット",
+                "thermostat_over_climate": "climate を制御するサーモスタット",
+                "thermostat_over_valve": "バルブを制御するサーモスタット"
+            }
+        },
+        "auto_regulation_mode": {
+            "options": {
+                "auto_regulation_slow": "低速",
+                "auto_regulation_strong": "強",
+                "auto_regulation_medium": "中",
+                "auto_regulation_light": "弱",
+                "auto_regulation_expert": "エキスパート",
+                "auto_regulation_none": "自己調整なし",
+                "auto_regulation_valve": "バルブの直接制御"
+            }
+        },
+        "auto_fan_mode": {
+            "options": {
+                "auto_fan_none": "自動ファンなし",
+                "auto_fan_low": "低",
+                "auto_fan_medium": "中",
+                "auto_fan_high": "高",
+                "auto_fan_turbo": "ターボ"
+            }
+        },
+        "window_action": {
+            "options": {
+                "window_turn_off": "オフにする",
+                "window_fan_only": "送風",
+                "window_frost_temp": "凍結防止",
+                "window_eco_temp": "エコ"
+            }
+        },
+        "presets": {
+            "options": {
+                "frost": "凍結防止",
+                "eco": "エコ",
+                "comfort": "快適",
+                "boost": "ブースト"
+            }
+        },
+        "auto_start_stop": {
+            "options": {
+                "auto_start_stop_none": "自動起動/停止なし",
+                "auto_start_stop_very_slow": "非常に遅い検知",
+                "auto_start_stop_slow": "遅い検知",
+                "auto_start_stop_medium": "中程度の検知",
+                "auto_start_stop_fast": "速い検知"
+            }
+        },
+        "auto_tpi_calculation_method": {
+            "options": {
+                "average": "平均",
+                "ema": "指数移動平均（EMA）"
+            }
+        },
+        "auto_tpi_learning_type": {
+            "options": {
+                "discovery": "探索",
+                "fine_tuning": "微調整"
+            }
+        },
+        "power_unit": {
+            "options": {
+                "w": "ワット（W）",
+                "kw": "キロワット（kW）"
+            }
+        },
+        "central_power_unit": {
+            "options": {
+                "w": "ワット（W）",
+                "kw": "キロワット（kW）",
+                "auto": "自動（センサーから自動検出）"
+            }
+        }
+    },
+    "entity": {
+        "climate": {
+            "versatile_thermostat": {
+                "state_attributes": {
+                    "preset_mode": {
+                        "state": {
+                            "power": "負荷制限",
+                            "safety": "安全",
+                            "none": "手動",
+                            "frost": "凍結防止"
+                        }
+                    }
+                }
+            }
+        },
+        "binary_sensor": {
+            "safety_state": {
+                "name": "安全の状態"
+            },
+            "heating_failure_state": {
+                "name": "暖房の異常の状態"
+            },
+            "overpowering_state": {
+                "name": "電力超過の状態"
+            },
+            "window_state": {
+                "name": "窓の状態"
+            },
+            "motion_state": {
+                "name": "動きの状態"
+            },
+            "presence_state": {
+                "name": "在室の状態"
+            },
+            "window_bypass_state": {
+                "name": "窓の開放検知のバイパス"
+            },
+            "central_boiler_state": {
+                "name": "セントラルボイラー"
+            }
+        },
+        "sensor": {
+            "energy": {
+                "name": "エネルギー"
+            },
+            "mean_power_cycle": {
+                "name": "サイクルの平均電力"
+            },
+            "power_percent": {
+                "name": "電力の割合"
+            },
+            "auto_tpi_learning": {
+                "name": "Auto TPI 学習状態",
+                "state": {
+                    "disabled": "無効",
+                    "bootstrap": "ブートストラップ",
+                    "active": "アクティブ",
+                    "off": "オフ"
+                }
+            },
+            "valve_open_percent": {
+                "name": "バルブ開度の割合"
+            },
+            "on_time": {
+                "name": "オン時間"
+            },
+            "off_time": {
+                "name": "オフ時間"
+            },
+            "last_temperature_date": {
+                "name": "温度の最終取得日時"
+            },
+            "last_external_temperature_date": {
+                "name": "外部温度の最終取得日時"
+            },
+            "temperature_slope": {
+                "name": "温度の傾き"
+            },
+            "regulated_temperature": {
+                "name": "調整後の温度"
+            },
+            "ema_temperature": {
+                "name": "EMA 温度"
+            },
+            "nb_device_active_boiler": {
+                "name": "ボイラー用の稼働中デバイス数"
+            },
+            "total_power_active_boiler": {
+                "name": "ボイラー用の稼働中の合計電力"
+            }
+        },
+        "number": {
+            "frost_temp": {
+                "name": "凍結防止"
+            },
+            "eco_temp": {
+                "name": "エコ"
+            },
+            "comfort_temp": {
+                "name": "快適"
+            },
+            "boost_temp": {
+                "name": "ブースト"
+            },
+            "frost_ac_temp": {
+                "name": "凍結防止（AC）"
+            },
+            "eco_ac_temp": {
+                "name": "エコ（AC）"
+            },
+            "comfort_ac_temp": {
+                "name": "快適（AC）"
+            },
+            "boost_ac_temp": {
+                "name": "ブースト（AC）"
+            },
+            "frost_away_temp": {
+                "name": "凍結防止（外出）"
+            },
+            "eco_away_temp": {
+                "name": "エコ（外出）"
+            },
+            "comfort_away_temp": {
+                "name": "快適（外出）"
+            },
+            "boost_away_temp": {
+                "name": "ブースト（外出）"
+            },
+            "eco_ac_away_temp": {
+                "name": "エコ（AC・外出）"
+            },
+            "comfort_ac_away_temp": {
+                "name": "快適（AC・外出）"
+            },
+            "boost_ac_away_temp": {
+                "name": "ブースト（AC・外出）"
+            }
+        },
+        "select": {
+            "auto_start_stop_stop_mode": {
+                "name": "自動起動/停止の停止モード",
+                "state": {
+                    "off": "オフ",
+                    "fan_only": "送風",
+                    "dry": "除湿"
+                }
+            }
+        }
+    },
+    "services": {
+        "set_hvac_mode_sleep": {
+            "name": "HVAC モードをスリープに設定",
+            "description": "VTherm を季節スリープに設定します。オフとして表示され、バルブを直接調整する over_climate と over_valve では、100% のバルブ開度要求をそのまま送信します。実際の物理的な開度は、設定されたバルブ制御と number エンティティの制限に従います。"
+        },
+        "set_auto_tpi_mode": {
+            "name": "Auto TPI モードの設定",
+            "description": "Auto TPI 学習モードを有効または無効にします",
+            "fields": {
+                "auto_tpi_mode": {
+                    "name": "Auto TPI モード",
+                    "description": "Auto TPI 学習を有効（true）または無効（false）にします"
+                },
+                "reinitialise": {
+                    "name": "学習データのリセット",
+                    "description": "Auto TPI モードを有効にするときに、すべての学習データをリセットします（デフォルトは true）"
+                }
+            }
+        },
+        "reset_auto_tpi_capacities": {
+            "name": "Auto TPI の能力のリセット",
+            "description": "学習した最大の暖房能力と冷房能力を 1.0 °C/h にリセットします。学習した係数はリセットされません。"
+        },
+        "auto_tpi_calibrate_capacity": {
+            "name": "Auto TPI の能力のキャリブレーション",
+            "description": "エンティティの履歴データに対する線形回帰を使って、暖房/冷房の能力（°C/時間）をキャリブレーションします。学習した係数は更新されません。",
+            "fields": {
+                "start_date": {
+                    "name": "履歴の開始日",
+                    "description": "履歴を取得する開始日です（デフォルトは 30 日前）"
+                },
+                "end_date": {
+                    "name": "履歴の終了日",
+                    "description": "履歴を取得する終了日です（デフォルトは現在）"
+                },
+                "hvac_mode": {
+                    "name": "HVAC モード",
+                    "description": "キャリブレーションするモードです（暖房（heat）または冷房（cool））。"
+                },
+                "save_to_config": {
+                    "name": "設定に保存",
+                    "description": "計算した能力を Auto TPI の設定に反映します。"
+                },
+                "min_power_threshold": {
+                    "name": "最小電力のしきい値",
+                    "description": "サイクルを飽和していると見なす最小の電力割合です（デフォルトは 95%）。値を小さくするとより多くのサイクルが対象になりますが、精度が下がる可能性があります。"
+                }
+            }
+        },
+        "set_tpi_parameters": {
+            "name": "TPI パラメーターの設定",
+            "description": "TPI パラメーターを変更します",
+            "fields": {
+                "minimal_activation_delay": {
+                    "name": "最小作動遅延",
+                    "description": "秒単位の遅延です。この値を下回る場合、機器は作動しません"
+                },
+                "minimal_deactivation_delay": {
+                    "name": "最小停止遅延",
+                    "description": "秒単位の遅延です。この値を下回る場合、機器は作動したままになります"
+                },
+                "tpi_threshold_low": {
+                    "name": "TPI の下限しきい値",
+                    "description": "この値（°）より下では TPI アルゴリズムがオンになります。0 はしきい値なしを意味します"
+                },
+                "tpi_threshold_high": {
+                    "name": "TPI の上限しきい値",
+                    "description": "この値（°）より上では TPI アルゴリズムがオフになります。0 はしきい値なしを意味します"
+                }
+            }
+        },
+        "lock": {
+            "name": "ロック",
+            "description": "サーモスタットをロックし、UI やオートメーションからの設定変更を防ぎます。",
+            "fields": {
+                "code": {
+                    "name": "ロックコード",
+                    "description": "任意のロックコードです"
+                }
+            }
+        },
+        "unlock": {
+            "name": "ロック解除",
+            "description": "サーモスタットのロックを解除し、設定の変更を許可します。",
+            "fields": {
+                "code": {
+                    "name": "ロックコード",
+                    "description": "任意のロックコードです"
+                }
+            }
+        },
+        "download_logs": {
+            "name": "ログのダウンロード",
+            "description": "VTherm エンティティのフィルター済みログを収集してダウンロードします。",
+            "fields": {
+                "log_level": {
+                    "name": "ログレベル",
+                    "description": "含める最小のログレベルです"
+                },
+                "period_start": {
+                    "name": "期間の開始",
+                    "description": "抽出する期間の開始です"
+                },
+                "period_end": {
+                    "name": "期間の終了",
+                    "description": "抽出する期間の終了です"
+                }
+            }
+        }
+    },
+    "exceptions": {
+        "auto_tpi_learning_stopped": {
+            "message": "{name} の Auto TPI 学習は、3 回連続で失敗したため停止しました。理由：{reason}。設定を確認してください。"
+        }
+    }
+}
