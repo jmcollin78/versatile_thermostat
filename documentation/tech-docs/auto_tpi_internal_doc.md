@@ -38,7 +38,8 @@ Le système repose sur une intégration étroite entre le manager, le thermostat
     *   Instancie `AutoTpiManager` dans `post_init`.
     *   Charge les données persistantes au démarrage.
     *   Le thermostat délègue la gestion temporelle au `TPIHandler`, qui appelle `process_cycle` à chaque cycle de contrôle (`control_heating`).
-    *   Fournit les données temps réel (`_get_tpi_data`) via le Handler.
+    *   Dans `control_heating`, le Handler synchronise l'algorithme TPI avec les coefficients courants de l'AutoTpiManager. Si ces coefficients ont changé, la demande (`on_percent`) est recalculée avant d'être transmise au `CycleScheduler`.
+    *   Au chargement (`async_added_to_hass`), les coefficients appris restaurés sont appliqués à la fois au thermostat et à l'algorithme TPI, pour que le premier calcul de demande les utilise.
     *   **Rôle de Délégation** : Le thermostat délègue toutes les tâches de synchronisation de configuration et de notification de fin d'apprentissage à l'AutoTpiManager (via les hooks de cycle).
     *   **Démarrage** : Aucun timer n'est démarré au démarrage. Le premier appel à `control_heating` (déclenché par les capteurs ou le timer de sécurité) initialise le premier cycle dans le manager.
     
