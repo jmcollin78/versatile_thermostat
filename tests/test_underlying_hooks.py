@@ -429,6 +429,71 @@ async def test_valve_hook_not_called_for_seed_nor_recalibration(hass: HomeAssist
     assert commands(events, "after_valve") == []
 
 
+def recalibration_commands(events: list) -> list:
+    """The valve commands sent for the recalibration"""
+    return [c for c in commands(events, "after_valve") if c.cause == ValveCommandCause.RECALIBRATION]
+
+
+async def recalibrate(hass: HomeAssistant, vtherm) -> None:
+    """Run the valve recalibration to its end, without the real delays"""
+    with patch("custom_components.versatile_thermostat.thermostat_climate_valve.asyncio.sleep"):
+        await vtherm.service_recalibrate_valves(1)
+        await hass.async_block_till_done()
+
+
+async def test_valve_hook_called_for_recalibration(hass: HomeAssistant, fake_temp_sensor, fake_ext_temp_sensor):
+    """The recalibration notifies the full opening then the full closing, after each forced write"""
+    events = register(hass)
+    vtherm, _, _, _ = await heating_climate_valve_vtherm(hass, fake_temp_sensor)
+    events.clear()
+
+    with record_services(events):
+        await recalibrate(hass, vtherm)
+
+    valve_commands = recalibration_commands(events)
+    assert len(valve_commands) == 2
+    full_open, full_close = valve_commands
+    assert (full_open.percent_open, full_open.opening_degree, full_open.closing_degree) == (100, 100, 0)
+    assert (full_close.percent_open, full_close.opening_degree, full_close.closing_degree) == (0, 0, 100)
+    for command in valve_commands:
+        assert command.climate_entity_id == CLIMATE
+        assert command.opening_degree_entity_id == OPENING
+        assert command.closing_degree_entity_id == CLOSING
+        assert command.written_by_plugin is False
+        assert command.requested_opening_degree is None
+        assert command.hvac_mode == "off"
+    # each notification follows the forced writes it announces
+    assert position(events, lambda e: e[0] == "service" and e[3] == CLOSING and e[4]["value"] == 0) < position(
+        events, lambda e: e[0] == "after_valve" and e[1].cause == ValveCommandCause.RECALIBRATION
+    )
+
+
+async def test_valve_hook_recalibration_without_closing_entity(hass: HomeAssistant, fake_temp_sensor, fake_ext_temp_sensor):
+    """No closing degree entity: the recalibration notifies a closing_degree None"""
+    events = register(hass)
+    vtherm, _, _, _ = await heating_climate_valve_vtherm(hass, fake_temp_sensor)
+    under = vtherm._underlyings_valve_regulation[0]
+    under._closing_degree_entity_id = None
+    events.clear()
+
+    await recalibrate(hass, vtherm)
+
+    valve_commands = recalibration_commands(events)
+    assert [(c.percent_open, c.opening_degree, c.closing_degree, c.closing_degree_entity_id) for c in valve_commands] == [(100, 100, None, None), (0, 0, None, None)]
+
+
+async def test_valve_hook_recalibration_dropped_by_the_gate(hass: HomeAssistant, fake_temp_sensor, fake_ext_temp_sensor):
+    """The gate drops the forced writes of the recalibration: nothing is notified"""
+    events = register(hass)
+    vtherm, _, _, _ = await heating_climate_valve_vtherm(hass, fake_temp_sensor)
+    await inhibit(hass, vtherm, False)
+    events.clear()
+
+    await recalibrate(hass, vtherm)
+
+    assert recalibration_commands(events) == []
+
+
 ##
 ## Hook of the power
 ##

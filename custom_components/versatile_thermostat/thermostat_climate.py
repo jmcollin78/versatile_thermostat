@@ -4,6 +4,7 @@
 import inspect
 import math
 
+from vtherm_api import CalibrationOffsetRequest
 from vtherm_api.log_collector import get_vtherm_logger
 from typing import Any, Optional
 
@@ -1350,6 +1351,23 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
                 if local_temp is not None and room_temp is not None and current_offset is not None:
                     val = round_to_nearest(room_temp - (local_temp - current_offset), step_sync_entity)
                     offset = min(max_sync_entity, max(min_sync_entity, val))
+
+                    # A plugin may adjust the offset (e.g. a device which reads it with the opposite sign)
+                    if self._external_managers:
+                        offset = self.adjust_calibration_offset(
+                            CalibrationOffsetRequest(
+                                climate_entity_id=under.entity_id,
+                                calibration_entity_id=sync_entity_id,
+                                offset=offset,
+                                requested_offset=offset,
+                                current_offset=current_offset,
+                                local_temperature=local_temp,
+                                room_temperature=room_temp,
+                                min_offset=min_sync_entity,
+                                max_offset=max_sync_entity,
+                                step=step_sync_entity,
+                            )
+                        )
 
                     _LOGGER.debug(
                         "%s - Synchronize device temperature for entity %s: local_temp=%.2f, room_temp=%.2f, current_offset=%.2f -> new offset=%.2f",
