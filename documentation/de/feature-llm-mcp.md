@@ -25,10 +25,11 @@ Die folgenden Module in das Integrationsverzeichnis kopieren:
 /config/custom_components/versatile_thermostat/llm/central_configuration.py
 /config/custom_components/versatile_thermostat/recorder_export.py
 /config/custom_components/versatile_thermostat/tpi_history.py
+/config/custom_components/versatile_thermostat/tpi_regulation.py
 /config/custom_components/versatile_thermostat/tpi_identification.py
 ```
 
-Diese Module aus derselben Revision installieren. Bei einer manuellen Aktualisierung `llm/__init__.py`, `tpi_history.py` und `tpi_identification.py` gemeinsam ersetzen: `TPIHistory` enthält den Home-Assistant-Kontext und die Quellen eines Thermostats, `TPIIdentification` dessen Raster und Analyseparameter. Die interne Klassenstruktur erhält die bestehenden MCP-Werkzeuge und Berechnungen.
+Diese Module aus derselben Revision installieren. Bei einer manuellen Aktualisierung `llm/__init__.py`, `tpi_history.py`, `tpi_regulation.py` und `tpi_identification.py` gemeinsam ersetzen: `TPIHistory` enthält den Home-Assistant-Kontext und die Quellen eines Thermostats, `TPIIdentification` dessen Raster und Analyseparameter. Die interne Klassenstruktur erhält die bestehenden MCP-Werkzeuge und Berechnungen.
 
 Verzeichnisstruktur:
 
@@ -46,6 +47,7 @@ Verzeichnisstruktur:
 │   └── central_configuration.py
 ├── recorder_export.py
 ├── tpi_history.py
+├── tpi_regulation.py
 └── tpi_identification.py
 ```
 
@@ -679,6 +681,7 @@ Prüfen:
    /config/custom_components/versatile_thermostat/llm/__init__.py
 /config/custom_components/versatile_thermostat/recorder_export.py
 /config/custom_components/versatile_thermostat/tpi_history.py
+/config/custom_components/versatile_thermostat/tpi_regulation.py
 /config/custom_components/versatile_thermostat/tpi_identification.py
    ```
 
@@ -737,13 +740,17 @@ Drei Werkzeuge ergänzen die bisherigen Funktionen:
 
 Lesewerkzeuge benötigen nur `entity_id`. Der Client kündigt jeden Schritt vor dem Aufruf an; Hintergrundarbeit wird nicht simuliert. Jede Antwort enthält `stage`, `stage_number`, `stage_total` und `state_changed`.
 
-Die Analyse erfordert klassisches TPI (`proportional_function=tpi`), ohne konfiguriertes Auto-TPI, aktives Lernen oder kontinuierliche Außenkompensation. Diese Version unterstützt `over_switch` mit einem oder mehreren physischen Schaltern. Aufgezeichnete EIN-Zeiten werden integriert und gemäß VTherms gleichen Leistungsanteilen `device_power / N` gemittelt, einschließlich versetzter Phasen und Übergänge innerhalb einer Minute. Die absolute Heizleistung ist nicht erforderlich. Unterschiedliche individuelle Heizleistungen werden dadurch nicht gemessen.
+Die Erkennung verwendet geladene native Handler-, Algorithmus- und Managerobjekte statt gespeicherter Optionen oder alter Lerndaten. `regulation` meldet Regelungstyp, `compatible` (Annahme fester Koeffizienten), `analysis_mode`, `blocking_criterion` und `missing_information`. Sind Hauptlernen und continuous_kext zur Laufzeit deaktiviert, wird klassisches TPI auch bei verbliebenen Konfigurationsoptionen akzeptiert. Bei aktivem nativem Auto-TPI oder continuous_kext wird die Berechnung schreibgeschützt als `adaptive_exploratory` versucht, mit `adaptive_tpi_fixed_coefficient_assumption_not_met`. continuous_kext kann Kext unabhängig von `autolearn_enabled` lernen und speichern; ein vorübergehender Zyklusausschluss beweist keine Inaktivität. SmartPI, andere Algorithmen oder nicht überprüfbare native Zustände werden mit konkretem Grund abgelehnt. Schreibzugriffe benötigen weiterhin klassisches TPI. Der aktuelle Zustand belegt keine durchgehende Inaktivität im historischen Zeitraum.
 
-`over_climate_valve` (Climate mit direkter Ventilregelung) wird ebenfalls **experimentell** unterstützt. Eingang `u` ist der am VTherm aufgezeichnete gemeinsame Befehl `valve_open_percent`, geteilt durch 100 und über jede Minute integriert. `sources.heating_source_kind` lautet `valve_open_percent_command_proxy`. Dieser Proxy misst weder bestätigte physische Position noch Durchfluss oder Wärmeleistung. Ventilnichtlinearität, Öffnungsschwellen, Wassertemperatur, Kesselverfügbarkeit, hydraulischer Abgleich und Verzögerungen können die Koeffizienten verzerren. Eine gute statistische Anpassung bestätigt diese Annahmen nicht. Fehlende, nicht endliche oder außerhalb von 0–100 liegende Befehle bleiben unbekannt; kein Ersetzen durch null, Beschneiden oder Rekonstruieren aus `hvac_action`.
+`assessment` meldet Kohärenzgrenzen und bestätigt niemals ein Optimum. `comparison.percent_delta` zeigt die vorzeichenbehaftete Änderung (null bei Ausgangswert null). `large_proposed_coefficient_change` warnt bei absoluten Änderungen ≥0,15 innen / ≥0,01 außen oder relativen Änderungen ≥50 %, einschließlich jeder Änderung von null. Die Schwellen verlangen Prüfung und beweisen keinen Fehler. Wissenschaftliche Ablehnungen und fehlende Daten werden weiterhin berücksichtigt; fehlgeschlagene Fits werden nicht erzwungen.
 
-Für **beide Typen**, `over_switch` und `over_climate_valve`, enthält jede Prüf-/Analyseantwort `experimental: true`, `verification_required_before_application: true`, `recommendation_reliable: false` und `experimental_notice` (FR/EN). Der Assistent muss erklären: **„Experimentelle Berechnung: vor jeder Anwendung überprüfen; dieses Paar ist keine validierte optimale Einstellung.“** Bei Ventilen auch `heating_proxy_note` erläutern. Annahmen und Analysezeitraum prüfen, mit aktuellen Koeffizienten vergleichen und das Verhalten nach einer ausdrücklich beschlossenen Anwendung beobachten. Dies bestätigt keine Zuverlässigkeit.
+Diese Version unterstützt `over_switch` mit einem oder mehreren physischen Schaltern. Aufgezeichnete EIN-Zeiten werden integriert und gemäß VTherms gleichen Leistungsanteilen `device_power / N` gemittelt, einschließlich versetzter Phasen und Übergänge innerhalb einer Minute. Die absolute Heizleistung ist nicht erforderlich. Unterschiedliche individuelle Heizleistungen werden dadurch nicht gemessen.
 
-`over_climate` ohne direkte Ventilregelung und `over_valve` bleiben mit `eligible: false`, `supported: false`, `reason: unsupported_thermostat_type` abgelehnt. Mehrdeutige virtuelle Befehle werden ebenfalls abgelehnt. Vor Recorder-Zugriff sind Assist-Freigabe und authentifizierte `READ`-Berechtigung erforderlich.
+`over_valve` und `over_climate_valve` (Climate mit direkter Ventilregelung) werden ebenfalls **experimentell** unterstützt. Eingang `u` ist der am VTherm aufgezeichnete gemeinsame Befehl `valve_open_percent`, geteilt durch 100 und über jede Minute integriert. `sources.heating_source_kind` lautet `valve_open_percent_command_proxy`. Dieser Proxy misst weder bestätigte physische Position noch Durchfluss oder Wärmeleistung. Ventilnichtlinearität, Öffnungsschwellen, Wassertemperatur, Kesselverfügbarkeit, hydraulischer Abgleich und Verzögerungen können die Koeffizienten verzerren. Eine gute statistische Anpassung bestätigt diese Annahmen nicht. Fehlende, nicht endliche oder außerhalb von 0–100 liegende Befehle bleiben unbekannt; kein Ersetzen durch null, Beschneiden oder Rekonstruieren aus `hvac_action`.
+
+Für **alle unterstützten Typen**, `over_switch`, `over_valve` und `over_climate_valve`, enthält jede Prüf-/Analyseantwort `experimental: true`, `verification_required_before_application: true`, `recommendation_reliable: false` und `experimental_notice` (FR/EN). Der Assistent muss erklären: **„Experimentelle Berechnung: vor jeder Anwendung überprüfen; dieses Paar ist keine validierte optimale Einstellung.“** Bei Ventilen auch `heating_proxy_note` erläutern. Annahmen und Analysezeitraum prüfen, mit aktuellen Koeffizienten vergleichen und das Verhalten nach einer ausdrücklich beschlossenen Anwendung beobachten. Dies bestätigt keine Zuverlässigkeit.
+
+`over_climate` ohne direkte Ventilregelung bleibt mit `eligible: false`, `supported: false`, `reason: unsupported_thermostat_type` abgelehnt. Mehrdeutige virtuelle Befehle werden ebenfalls abgelehnt. Vor Recorder-Zugriff sind Assist-Freigabe und authentifizierte `READ`-Berechtigung erforderlich.
 
 Recorder liefert höchstens die **letzten 14 Tage**. Nach Ausschlüssen sind mindestens **7 Tage tatsächlich nutzbarer Minuten** erforderlich. Innen- und Außensensor stammen aus der effektiven VTherm-Konfiguration einschließlich zentraler Konfiguration. Ergebnisse enthalten `sources`, `history_requested_days`, `history_available_days`, `history_usable_days`, Ausschlüsse und aktuelle Einstellungen. Eine Recorder-Aufbewahrungsdauer wird nicht vorausgesetzt.
 

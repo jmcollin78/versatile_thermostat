@@ -26,7 +26,9 @@ MCP reads include central-configuration presence and each VTherm's inheritance; 
 
 For explicit control requests, three tools can change the target temperature, preset or HVAC mode through standard `climate.*` services, with user permission and value checks. Diagnostic requests remain read-only; the MCP Server's **Read only** option hides action tools.
 
-Classic TPI coefficients can also be analyzed from 7–14 usable days of Recorder history, with explicit application and additional confirmation for large changes. Analysis supports `over_switch` and experimental `over_climate_valve` using recorded valve commands as a proxy, not measured heat. For both types, estimates are experimental and must be verified before application; they are not validated optimal settings.
+Classic TPI coefficients can also be analyzed from 7–14 usable days of Recorder history, with explicit application and additional confirmation for large changes. Analysis supports `over_switch`, `over_valve` and experimental `over_climate_valve` using recorded valve commands as a proxy, not measured heat. For all supported types, estimates are experimental and must be verified before application; they are not validated optimal settings.
+
+Native adaptive TPI can be analyzed exploratorily with explicit assumption warnings, coherence checks and large percentage-change alerts; writes still require classic TPI.
 
 See the [LLM/MCP documentation](documentation/en/feature-llm-mcp.md) for setup, safeguards and examples.
 

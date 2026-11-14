@@ -1079,22 +1079,32 @@ def _tpi_result(entity_id: str, stage: int, **data: Any) -> llm.ToolResult:
                     "bias coefficients."
                 ),
             }
+        regulation = payload.get("regulation") or {}
+        if regulation.get("analysis_mode") == "adaptive_exploratory":
+            warnings.append("adaptive_tpi_fixed_coefficient_assumption_not_met")
+            payload["model_applicability"] = {
+                "fixed_coefficient_assumption_met": False,
+                "fr": "Auto-TPI ou continuous_kext est actif : calcul exploratoire tenté, mais l'hypothèse de coefficients fixes n'est pas respectée. Ne pas appliquer ce résultat sans validation indépendante.",
+                "en": "Auto-TPI or continuous_kext is enabled at runtime: exploratory calculation attempted, but the fixed-coefficient assumption is not met. Do not apply without independent validation.",
+            }
+            if stage == 2:
+                payload.setdefault("assessment", {})["coherence"] = "model_assumptions_not_met"
         payload["warnings"] = list(dict.fromkeys(warnings))
+    if stage == 2 and "assessment" not in payload:
+        payload["assessment"] = {"coherence": "not_computed", "validated_optimum": False, "reason": payload.get("reason")}
     if failed and payload["state_changed"] is False:
-        payload["message"] = (
-            "No coefficient was changed. Aucun coefficient n'a été modifié."
-        )
+        payload["message"] = "No coefficient was changed. Aucun coefficient n'a été modifié."
         if payload["reason"] == "not_classic_tpi":
             payload["message"] = (
-                "Le TPI classique est requis. SmartPI et Auto-TPI ne sont pas applicables. "
-                "Classic TPI required; SmartPI and Auto-TPI are not applicable. "
+                "Compatibilité TPI non établie : consulter regulation.blocking_criterion "
+                "et missing_information. TPI compatibility not established; see regulation. "
                 "Aucun coefficient n'a été modifié."
             )
         if payload["reason"] == "unsupported_thermostat_type":
             payload["supported"] = False
             payload["message"] = (
                 "L'analyse des coefficients TPI n'est pas encore disponible pour ce type "
-                "de thermostat. Seuls over_switch et over_climate_valve sont pris en charge. "
+                "de thermostat. Seuls over_switch, over_valve et over_climate_valve sont pris en charge. "
                 "TPI history analysis is not yet supported "
                 "for this thermostat type. Aucun coefficient n'a été modifié."
             )
@@ -1121,20 +1131,14 @@ def _tpi_comparison(previous: dict, requested: dict) -> dict:
         before = previous[name]
         absolute = abs(value - before)
         relative = absolute / abs(before) if before else (None if absolute else 0.0)
-        floor = (
-            LARGE_CHANGE_INT_ABSOLUTE
-            if name == "coef_int"
-            else LARGE_CHANGE_EXT_ABSOLUTE
-        )
+        floor = LARGE_CHANGE_INT_ABSOLUTE if name == "coef_int" else LARGE_CHANGE_EXT_ABSOLUTE
         result[name] = {
             "previous": before,
             "requested": value,
             "absolute_delta": absolute,
             "relative_delta": relative,
-            "large_change": absolute >= floor
-            or (
-                absolute > 0 and (relative is None or relative >= LARGE_CHANGE_RELATIVE)
-            ),
+            "percent_delta": ((value - before) / abs(before) * 100 if before else None),
+            "large_change": absolute >= floor or (absolute > 0 and (relative is None or relative >= LARGE_CHANGE_RELATIVE)),
         }
     return result
 
@@ -1149,8 +1153,9 @@ class CheckTPIOptimizationTool(llm.Tool):
         "optimaux ?', 'mes coef sont-ils bien réglés ?' ou 'peux-tu vérifier le réglage TPI ?'. "
         "EN: Start here when asked whether thermostat/TPI coefficients are optimal, "
         "well tuned or need adjustment. Resolve the room with list_vtherms if needed. "
-        "Read-only stage 1/3: announce verification, then check classic TPI over_switch "
-        "or over_climate_valve and 7 to 14 usable days of Recorder history. "
+        "Read-only stage 1/3: announce verification, identify effective TPI regulation over_switch "
+        "or over_valve or over_climate_valve and 7 to 14 usable days of Recorder history. "
+        "Adaptive native TPI can be analyzed exploratorily with explicit model-assumption warnings. "
         "Experimental: verify before applying, including for switches. "
         "Valve opening commands are proxies, not measured heat. If eligible, call "
         "analyze_tpi_coefficients to calculate estimates; current values alone do not "
@@ -1201,11 +1206,10 @@ class CheckTPIOptimizationTool(llm.Tool):
                     thermostat, "proportional_function", None
                 ),
             }
+            details["regulation"] = TPIHistory.check_classic_tpi(thermostat, allow_adaptive=True)
             history = TPIHistory.from_thermostat(hass, thermostat)
             sources = history.sources
-            details.update(
-                {"sources": sources, "current": _tpi_coefficients(thermostat)}
-            )
+            details.update({"sources": sources, "regulation": sources.get("regulation"), "current": _tpi_coefficients(thermostat)})
             grid, coverage = await history.async_load()
             details["history"] = coverage
             history.require_history(coverage)
@@ -1215,17 +1219,24 @@ class CheckTPIOptimizationTool(llm.Tool):
             result = await hass.async_add_executor_job(identification.analyze)
             if result.get("proposed"):
                 if result.get("model"):
-                    result["current_nominal_response"] = (
-                        TPIIdentification.nominal_response(
-                            result["model"], **details["current"]
-                        )
-                    )
+                    result["current_nominal_response"] = TPIIdentification.nominal_response(result["model"], **details["current"])
                 result["comparison"] = _tpi_comparison(
                     details["current"],
                     {key: result["proposed"][key] for key in ("coef_int", "coef_ext")},
                 )
+                large = [key for key, value in result["comparison"].items() if value["large_change"]]
+                result["assessment"] = {
+                    "coherence": "requires_verification" if large or result.get("warnings") else "no_inconsistency_detected_by_available_checks",
+                    "validated_optimum": False,
+                    "large_coefficient_changes": large,
+                    "note": "Large changes are review flags, not proof that the fit or current settings are wrong. Les fortes variations nécessitent une vérification, pas une application automatique.",
+                }
+                if large:
+                    result.setdefault("warnings", []).append("large_proposed_coefficient_change")
             return _tpi_result(entity_id, 2, **details, **result)
         except IdentificationError as err:
+            if hasattr(err, "regulation"):
+                details["regulation"] = err.regulation
             return _tpi_result(
                 entity_id,
                 self.stage_number,
@@ -1245,9 +1256,9 @@ class AnalyzeTPICoefficientsTool(CheckTPIOptimizationTool):
         "'adaptés' ou 'bien réglés', après check_tpi_optimization réussi. "
         "EN: Calculate estimates for natural questions about optimal or well-tuned "
         "thermostat coefficients after a successful check_tpi_optimization. "
-        "Read-only stage 2/3: announce analysis. Identify classic TPI coefficients from "
+        "Read-only stage 2/3: announce analysis. Estimate native TPI coefficients from "
         "7 to 14 usable Recorder days, chronological validation, multiple resolutions "
-        "and 24-hour block bootstrap. Supports over_switch and over_climate_valve. "
+        "and 24-hour block bootstrap. Supports over_switch, over_valve and over_climate_valve. "
         "FR: Calcul expérimental, à vérifier avant application pour les deux types. "
         "EN: Experimental calculation, verify before applying for both types. "
         "Valve commands are proxies, not measured flow or heat. "
@@ -1255,7 +1266,8 @@ class AnalyzeTPICoefficientsTool(CheckTPIOptimizationTool):
         "Kalman is disabled pending validation. Use this MCP calculation rather than "
         "reading a dashboard or guessing from current coefficient values. "
         "Six hours is a nominal design preference, not an identified optimum. "
-        "Present proposals to the user; NEVER apply them automatically."
+        "Attempt adaptive native TPI only as exploratory with explicit assumption warnings. "
+        "Report coherence and large percentage changes. NEVER apply automatically."
     )
     stage_number = 2
 
@@ -1315,7 +1327,7 @@ class SetTPICoefficientsTool(llm.Tool):
                 TPIHistory.check_classic_tpi(thermostat)
                 previous = _tpi_coefficients(thermostat)
             except IdentificationError as err:
-                return _tpi_result(entity_id, 3, reason=err.reason)
+                return _tpi_result(entity_id, 3, reason=err.reason, **({"regulation": err.regulation} if hasattr(err, "regulation") else {}))
             comparison = _tpi_comparison(previous, requested)
             large = any(value["large_change"] for value in comparison.values())
             details = {
