@@ -22,6 +22,10 @@ Ten niestandardowy komponent Home Assistanta jest ulepszoną i napisaną całkow
 # Dokumentacja
 Cała dokumentacja jest dostępna na [Versatile Thermostat Web site](https://www.versatile-thermostat.org/).
 
+# Asystent VTherm
+
+[VTherm Assistant](https://www.versatile-thermostat.org/en/plugins/#jmcollin78/vtherm_assistant) pomaga diagnozować i wyjaśniać sytuacje oraz przeszukiwać dokumentację.
+
 # Zrzuty ekranu
 Karta integracji VTherm UI (dostępna na [Github](https://github.com/jmcollin78/versatile-thermostat-ui-card)) :
 

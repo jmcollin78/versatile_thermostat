@@ -18,6 +18,10 @@ jazycích: [Angličtina](README.md) | [Francouzština](README-fr.md) | [Němčin
 
 Tato vlastní komponenta pro Home Assistant je vylepšením a kompletním přepsáním komponenty "Awesome thermostat" (viz [Github](https://github.com/dadge/awesome_thermostat)) s přidanými funkcemi.
 
+# Asistent VTherm
+
+S diagnostikou či vysvětlením situace nebo vyhledáváním v dokumentaci vám pomůže [VTherm Assistant](https://www.versatile-thermostat.org/en/plugins/#jmcollin78/vtherm_assistant).
+
 # Snímky obrazovky
 
 Versatile Thermostat UI Card (K dispozici na [Github](https://github.com/jmcollin78/versatile-thermostat-ui-card)) :

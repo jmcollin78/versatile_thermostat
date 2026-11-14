@@ -30,6 +30,8 @@ Klassische TPI-Koeffizienten lassen sich auch aus 7–14 nutzbaren Tagen Recorde
 
 Einrichtung, Schutzmechanismen und Beispiele stehen in der [LLM/MCP-Dokumentation](documentation/de/feature-llm-mcp.md).
 
+Für Hilfe bei der Diagnose oder Erklärung einer Situation sowie bei der Suche in der Dokumentation können Sie den [VTherm Assistant](https://www.versatile-thermostat.org/en/plugins/#jmcollin78/vtherm_assistant) ausprobieren.
+
 Recorder-Verlauf mit Lesezugriff für CSV-Exporte und Diagramme durch den LLM-Client.
 
 # Screenshots

@@ -30,6 +30,8 @@ Classic TPI coefficients can also be analyzed from 7–14 usable days of Recorde
 
 See the [LLM/MCP documentation](documentation/en/feature-llm-mcp.md) for setup, safeguards and examples.
 
+For help diagnosing or explaining a situation, or searching the documentation, try the [VTherm Assistant](https://www.versatile-thermostat.org/en/plugins/#jmcollin78/vtherm_assistant).
+
 Read-only Recorder history for CSV exports and charts created by the LLM client.
 
 # Screenshots

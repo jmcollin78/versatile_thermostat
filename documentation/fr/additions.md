@@ -1,13 +1,12 @@
 # Quelques compléments indispensables
 
-De nombreux compléments pour _VTherm_ (cartes pour les tableaux de bord, planificateurs, algorithmes, aides pour les équipements...) sont listés dans le [catalogue des plugins](https://www.versatile-thermostat.org/fr/plugins/) du site, avec leur niveau de certification. Cette page en présente quelques exemples d'utilisation.
+De nombreux compléments pour _VTherm_ (cartes pour les tableaux de bord, planificateurs, algorithmes, aides pour les équipements...) sont listés dans le [catalogue des plugins](https://www.versatile-thermostat.org/en/plugins/) du site, avec leur niveau de certification. Cette page en présente quelques exemples d'utilisation.
 
 - [Quelques compléments indispensables](#quelques-compléments-indispensables)
   - [Versatile Thermostat UI Card](#versatile-thermostat-ui-card)
+  - [Holm Climate Card](#holm-climate-card)
   - [Un planificateur graphique (recommandé)](#un-planificateur-graphique-recommandé)
-  - [Composant Scheduler !](#composant-scheduler-)
   - [Courbes de régulattion avec Plotly](#courbes-de-régulattion-avec-plotly)
-  - [Courbes de régulation avec Apex-charts (merci @gael1980)](#courbes-de-régulation-avec-apex-charts-merci-gael1980)
   - [Les notification avec l'AappDaemon NOTIFIER](#les-notification-avec-laappdaemon-notifier)
   - [Une très belle carte (merci @Jeffodilo)](#une-très-belle-carte-merci-jeffodilo)
   - [Température intérieure ressentie et effet "Froid humide" (merci à @nicola-spreafico)](#température-intérieure-ressentie-et-effet-froid-humide-merci-à-nicola-spreafico)
@@ -19,37 +18,17 @@ Une carte spéciale pour le Versatile Thermostat a été développée (sur la ba
 
 ![image](https://github.com/jmcollin78/versatile-thermostat-ui-card/blob/master/assets/1.png?raw=true)
 
-D'autres cartes compatibles avec _VTherm_, comme Equinox ou la Holm Climate Card, sont listées dans le [catalogue des plugins](https://www.versatile-thermostat.org/fr/plugins/?family=interface).
+D'autres cartes compatibles avec _VTherm_, comme Equinox, sont listées dans le [catalogue des plugins](https://www.versatile-thermostat.org/fr/plugins/?family=interface).
+
+## Holm Climate Card
+
+La [Holm Climate Card](https://www.versatile-thermostat.org/en/plugins/#kaaribou/climate-card-holm) est une carte de tableau de bord compatible avec _VTherm_.
+
+L'[intégration SmartPI](https://www.versatile-thermostat.org/en/plugins/#kipk/vtherm_smartpi) est également répertoriée dans le catalogue des plugins.
 
 ## Un planificateur graphique (recommandé)
 
-Pour programmer vos _VTherm_ sur la semaine, le complément recommandé est le [planificateur graphique](https://www.versatile-thermostat.org/fr/plugins/#armellarcier/ha-chauffage) (projet indépendant). Il permet de créer plusieurs programmations hebdomadaires (Normal, Télétravail, Vacances...) avec une carte Lovelace visuelle où l'on fait glisser les plages horaires. Une consigne modifiée à la main devient temporaire, puis le thermostat revient à sa programmation.
-
-## Composant Scheduler !
-
-Le [composant Scheduler](https://github.com/nielsfaber/scheduler-component) est aussi compatible avec le Versatile Thermostat.
-Le composant Scheduler propose une gestion de la base climatique sur les modes prédéfinis. Cette fonctionnalité a un intérêt limité avec le thermostat générique mais elle devient très puissante avec le Versatile Thermostat :
-
-À partir d'ici, je suppose que vous avez installé Versatile Thermostat et Scheduler Component.
-
-Dans Scheduler, ajoutez un planning :
-
-![image](https://user-images.githubusercontent.com/1717155/119146454-ee1a9d80-ba4a-11eb-80ae-3074c3511830.png)
-
-Choisissez le groupe "climat", choisissez une (ou plusieurs) entité(s), sélectionnez "MAKE SCHEME" et cliquez sur suivant :
-(il est possible de choisir "SET PRESET", mais je préfère utiliser "MAKE SCHEME")
-
-![image](https://user-images.githubusercontent.com/1717155/119147210-aa746380-ba4b-11eb-8def-479a741c0ba7.png)
-
-Définissez votre schéma de mode et enregistrez :
-
-
-![image](https://user-images.githubusercontent.com/1717155/119147784-2f5f7d00-ba4c-11eb-9de4-5e62ff5e71a8.png)
-
-Dans cet exemple, j'ai réglé le mode ECO pendant la nuit et le jour lorsqu'il n'y a personne à la maison, BOOST le matin et CONFORT le soir.
-
-
-J'espère que cet exemple vous aidera, n'hésitez pas à me faire part de vos retours !
+Pour programmer vos _VTherm_ sur la semaine, le complément recommandé est le [planificateur graphique](https://www.versatile-thermostat.org/en/plugins/#armellarcier/ha-chauffage) (projet indépendant). Il permet de créer plusieurs programmations hebdomadaires (Normal, Télétravail, Vacances...) avec une carte Lovelace visuelle où l'on fait glisser les plages horaires. Une consigne modifiée à la main devient temporaire, puis le thermostat revient à sa programmation.
 
 ## Courbes de régulattion avec Plotly
 Vous pouvez obtenir des courbes comme celles de l'exemple présenté à la fin de cette section avec une sorte de configuration de graphique Plotly uniquement en utilisant les attributs personnalisés du thermostat décrits [ici](reference.md#attributs-personnalisés) :
@@ -139,11 +118,6 @@ Exemple de courbes obtenues avec Plotly :
 Pour explorer l'historique de n'importe quelle entité et de ses attributs sans configurer de carte, vous pouvez aussi utiliser [HA Entity Explorer](https://www.versatile-thermostat.org/fr/plugins/#KipK/ha_entity_explorer).
 
 L'[analyseur de logs](https://www.versatile-thermostat.org/fr/debugger/) du site trace aussi les températures, modes et presets d'un _VTherm_ à partir d'un fichier de log, sans aucune configuration dans Home Assistant (cf. [collecteur de logs](feature-logs-collector.md)).
-
-## Courbes de régulation avec Apex-charts (merci @gael1980)
-Apex chart permet l'affiche de courbes de régulation. @Gael1980 nous donne un bel exemple [ici](https://github.com/jmcollin78/versatile_thermostat/discussions/1239).
-
-![Apex chart by Gael1980](../../images/apex-chart-by-gael1980.png)
 
 ## Les notification avec l'AappDaemon NOTIFIER
 Cette automatisation utilise l'excellente App Daemon nommée NOTIFIER développée par Horizon Domotique que vous trouverez en démonstration [ici](https://www.youtube.com/watch?v=chJylIK0ASo&ab_channel=HorizonDomotique) et le code est [ici](https://github.com/jlpouffier/home-assistant-config/blob/master/appdaemon/apps/notifier.py). Elle permet de notifier les utilisateurs du logement lorsqu'un des évènements touchant à la sécurité survient sur un des Versatile Thermostats.

@@ -1,36 +1,30 @@
 # Parę istotnych dodatków
 
+Dodatki do _VTherm_ znajdziesz w [katalogu wtyczek](https://www.versatile-thermostat.org/en/plugins/).
+
 - [Parę istotnych dodatków](#parę-istotnych-dodatków)
   - [Karta _*Versatile Thermostat UI Card*_](#karta-versatile-thermostat-ui-card)
-  - [Harmonogram](#harmonogram)
-  - [Krzywe regulacji na wykresie _*Plotly*_ do precyzyjnego dostrajania termostatu](#krzywe-regulacji-z-plotly-do-precyzyjnego-dostrajania-termostatu)
-  - [Krzywe regulacji na wykresie _*Apex*_](#regulation-curves-with-apex-charts-thanks-to-gael1980)
+  - [Holm Climate Card](#holm-climate-card)
+  - [Graficzny harmonogram](#graficzny-harmonogram)
+  - [Krzywe regulacji na wykresie _*Plotly*_ do precyzyjnego dostrajania termostatu](#krzywe-regulacji-na-wykresie-plotly-do-precyzyjnego-dostrajania-termostatu)
   - [Powiadamianie o zdarzeniach za pomocą _*AppDaemon NOTIFIER*_](#powiadamianie-o-zdarzeniach-za-pomocą-appdaemon-notifier)
-  - [Odczuwalna temperatura w pomieszczeniu i efekt „wilgotnego zimna”](#indoor-feels-like-temperature-and-the-damp-cold-effect-thanks-to-nicola-spreafico)
-  - [Integracja uzupełniająca IHP, przewidująca zmiany ustawień parametrów](#a-complementary-integration-to-anticipate-setpoint-changes-thanks-to-rastachaum)
+  - [Odczuwalna temperatura w pomieszczeniu i efekt „wilgotnego zimna”](#odczuwalna-temperatura-w-pomieszczeniu-i-efekt-wilgotnego-zimna)
+  - [Integracja uzupełniająca IHP, przewidująca zmiany ustawień parametrów](#integracja-uzupełniająca-ihp-przewidująca-zmiany-ustawień-parametrów)
 
 ## Karta _*Versatile Thermostat UI Card*_
 Opracowano dedykowaną kartę dla termostatu _*VTherm*_ (bazującą na *Better Thermostat*). Jest ona dostępna tutaj: [karta Versatile Thermostat UI Card](https://github.com/jmcollin78/versatile-thermostat-ui-card) i oferuje nowoczesny widok wszystkich statusów termostatu _*VTherm*_:
 
 ![image](https://github.com/jmcollin78/versatile-thermostat-ui-card/blob/master/assets/1.png?raw=true)
 
-## Harmonogram
+## Holm Climate Card
 
-Aby w pełni wykorzystać możliwości VTherm, zalecane jest używanie go w połączeniu z [Harmonogramem](https://github.com/nielsfaber/scheduler-component). Komponent ten umożliwia tworzenie harmonogramu pracy klimatyzacji w oparciu o predefiniowane tryby. Chociaż ta funkcja jest nieco ograniczona w przypadku termostatu uniwersalnego, staje się bardzo wydajna w połączeniu z *VTherm*.
+[Holm Climate Card](https://www.versatile-thermostat.org/en/plugins/#kaaribou/climate-card-holm) to karta pulpitu kompatybilna z _VTherm_.
 
-Oto przykład. Zakładając, że zainstalowałeś zarówno *VTherm*, jak i komponent *Harmonogram*, dodaj w harmonogramie:
+Integracja [SmartPI](https://www.versatile-thermostat.org/en/plugins/#kipk/vtherm_smartpi) jest również dostępna w katalogu wtyczek.
 
-![image](https://user-images.githubusercontent.com/1717155/119146454-ee1a9d80-ba4a-11eb-80ae-3074c3511830.png)
+## Graficzny harmonogram
 
-Wybierz grupę "klimat", wskaż jedną encję (lub więcej), wybierz "MAKE SCHEME," i klinkij click NEXT. (Możesz także wybrać "SET PRESET," ale lepszym wyborem będzie "MAKE SCHEME"):
-
-![image](https://user-images.githubusercontent.com/1717155/119147210-aa746380-ba4b-11eb-8def-479a741c0ba7.png)
-
-Zdefiniuj schemat trybu i zapisz go:
-
-![image](https://user-images.githubusercontent.com/1717155/119147784-2f5f7d00-ba4c-11eb-9de4-5e62ff5e71a8.png)
-
-W tym przykładzie ustawiony został tryb `Eko` na noc oraz na okres dzienny, gdy nikogo nie ma w domu, `Boost` rano i `Komfort` wieczorem.
+[Graficzny harmonogram ha-chauffage](https://www.versatile-thermostat.org/en/plugins/#armellarcier/ha-chauffage) umożliwia tworzenie tygodniowych planów dla _VTherm_ za pomocą wizualnej karty Lovelace.
 
 
 ## Krzywe regulacji na wykresie _*Plotly*_ do precyzyjnego dostrajania termostatu
@@ -119,12 +113,6 @@ Wstaw między nawiasy kwadratowe `[[ ]]` swoje własne wartości.
 Przykład krzywych uzyskanych z _*Plotly*_:
 
 ![image](images/plotly-curves.png)
-
-## Krzywe regulacji na wykresie _*Apex*_
-Wykres Apex pozwala wyświetlać krzywe regulacji. Jeden z doskonałych przykładów jego zastosowania znajduje się [tutaj](https://github.com/jmcollin78/versatile_thermostat/discussions/1239).
-
-![Apex chart by Gael1980](../../images/apex-chart-by-gael1980.png)
-
 
 ## Powiadamianie o zdarzeniach za pomocą _*AppDaemon NOTIFIER*_
 Ta automatyzacja wykorzystuje doskonałą aplikację *AppDaemon NOTIFIER*, opracowaną przez *Horizon Domotique*, prezentowaną [tutaj](https://www.youtube.com/watch?v=chJylIK0ASo&ab_channel=HorizonDomotique), a której kod dostępny jest [tutaj](https://github.com/jlpouffier/home-assistant-config/blob/master/appdaemon/apps/notifier.py). Umożliwia ona Użytkownikowi otrzymywanie powiadomień o zdarzeniach związanych z bezpieczeństwem dowolnego termostatu *VTherm*.

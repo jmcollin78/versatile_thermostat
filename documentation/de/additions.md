@@ -1,16 +1,15 @@
 # Einige unverzichtbare Ergänzungen
 
-Viele Ergänzungen für _VTherm_ (Dashboard-Karten, Zeitplaner, Algorithmen, Gerätehilfen...) sind im [Plugin-Katalog](https://www.versatile-thermostat.org/de/plugins/) der Website mit ihrer Zertifizierungsstufe aufgeführt. Diese Seite zeigt einige Anwendungsbeispiele.
+Viele Ergänzungen für _VTherm_ (Dashboard-Karten, Zeitplaner, Algorithmen, Gerätehilfen...) sind im [Plugin-Katalog](https://www.versatile-thermostat.org/en/plugins/) der Website mit ihrer Zertifizierungsstufe aufgeführt. Diese Seite zeigt einige Anwendungsbeispiele.
 
 - [Einige unverzichtbare Ergänzungen](#einige-unverzichtbare-ergänzungen)
   - [Die Versatile Thermostat UI Card](#die-versatile-thermostat-ui-card)
+  - [Holm Climate Card](#holm-climate-card)
   - [Ein grafischer Zeitplaner (empfohlen)](#ein-grafischer-zeitplaner-empfohlen)
-  - [Die Scheduler Komponente!](#die-scheduler-komponente)
   - [Regelungskurven mit Plotly](#regelungskurven-mit-plotly)
-  - [Regulation curves with Apex-charts (thanks to @gael1980)](#regulation-curves-with-apex-charts-thanks-to-gael1980)
   - [Benachrichtigung mit dem AppDaemon NOTIFIER](#benachrichtigung-mit-dem-appdaemon-notifier)
   - [Eine sehr schöne Karte (Danke @Jeffodilo)](#eine-sehr-schöne-karte-danke-jeffodilo)
-  - [Gefühlte Innentemperatur und "feuchte Kälte"-Effekt (Danke @nicola-spreafico)](#gefühlte-innentemperatur-und-feuchte-kälte-Effekt-danke-nicola-spreafico)
+  - [Gefühlte Innentemperatur und "feuchte Kälte"-Effekt (Danke @nicola-spreafico)](#gefühlte-innentemperatur-und-feuchte-kälte-effekt-danke-nicola-spreafico)
   - [Eine zusätzliche Integration, um Vorgabeänderungen vorauszusehen (Danke @RastaChaum)](#eine-zusätzliche-integration-um-vorgabeänderungen-vorauszusehen-danke-rastachaum)
 
 
@@ -19,37 +18,17 @@ Es wurde eine spezielle Karte für das Versatile Thermostat entwickelt (basieren
 
 ![image](https://github.com/jmcollin78/versatile-thermostat-ui-card/blob/master/assets/1.png?raw=true)
 
-Weitere mit _VTherm_ kompatible Dashboard-Karten wie Equinox oder die Holm Climate Card sind im [Plugin-Katalog](https://www.versatile-thermostat.org/de/plugins/?family=interface) aufgeführt.
+Weitere mit _VTherm_ kompatible Dashboard-Karten wie Equinox sind im [Plugin-Katalog](https://www.versatile-thermostat.org/de/plugins/?family=interface) aufgeführt.
+
+## Holm Climate Card
+
+Die [Holm Climate Card](https://www.versatile-thermostat.org/en/plugins/#kaaribou/climate-card-holm) ist eine mit _VTherm_ kompatible Dashboard-Karte.
+
+Die [SmartPI-Integration](https://www.versatile-thermostat.org/en/plugins/#kipk/vtherm_smartpi) ist ebenfalls im Plugin-Katalog aufgeführt.
 
 ## Ein grafischer Zeitplaner (empfohlen)
 
-Um Ihre _VTherm_ über die Woche zu programmieren, ist die empfohlene Ergänzung der [grafische Zeitplaner](https://www.versatile-thermostat.org/de/plugins/#armellarcier/ha-chauffage) (ein unabhängiges Projekt). Damit erstellen Sie mehrere Wochenpläne (Normal, Homeoffice, Urlaub...) mit einer visuellen Lovelace-Karte, auf der Sie die Zeitfenster verschieben. Ein manuell geänderter Sollwert wird temporär, danach kehrt der Thermostat zu seinem Plan zurück.
-
-## Die Scheduler Komponente!
-
-Die [Scheduler Komponente](https://github.com/nielsfaber/scheduler-component) ist ebenfalls mit Versatile Thermostat kompatibel.
-Die Scheduler-Komponente ermöglicht die Klimasteuerung anhand vordefinierter Modi. Diese Funktion ist bei einem herkömmlichen Thermostat nur von begrenztem Nutzen, wird jedoch mit dem Versatile Thermostat zu einem leistungsstarken Werkzeug:
-
-Angenommen, es ist sowohl Versatile Thermostat als auch die Scheduler-Komponente installiert.
-
-Fügen Sie im Scheduler einen Zeitplan hinzu:
-
-![image](https://user-images.githubusercontent.com/1717155/119146454-ee1a9d80-ba4a-11eb-80ae-3074c3511830.png)
-
-Zuerst die Gruppe "Klima" auswählen, dann eine (oder mehrere) Entität(en) wählen, "MAKE SCHEME" anwählen und auf "Weiter" klicken:
-(Man kann auch "SET PRESET" wählen, aber ich bevorzuge "MAKE SCHEME".)
-
-![image](https://user-images.githubusercontent.com/1717155/119147210-aa746380-ba4b-11eb-8def-479a741c0ba7.png)
-
-Nun Modusschema definieren und speichern:
-
-
-![image](https://user-images.githubusercontent.com/1717155/119147784-2f5f7d00-ba4c-11eb-9de4-5e62ff5e71a8.png)
-
-In diesem Beispiel habe ich den ECO-Modus für die Nacht und für den Tag eingestellt, wenn niemand zu Hause ist, den BOOST-Modus für den Morgen und den KOMFORT-Modus für den Abend.
-
-
-Ich hoffe, dieses Beispiel hilft weiter. Über Feedback freuen wir uns!
+Um Ihre _VTherm_ über die Woche zu programmieren, ist die empfohlene Ergänzung der [grafische Zeitplaner](https://www.versatile-thermostat.org/en/plugins/#armellarcier/ha-chauffage) (ein unabhängiges Projekt). Damit erstellen Sie mehrere Wochenpläne (Normal, Homeoffice, Urlaub...) mit einer visuellen Lovelace-Karte, auf der Sie die Zeitfenster verschieben. Ein manuell geänderter Sollwert wird temporär, danach kehrt der Thermostat zu seinem Plan zurück.
 
 ## Regelungskurven mit Plotly
 Man kann Kurven wie die im Beispiel am Ende dieses Abschnitts gezeigten erhalten, indem ausschließlich die [hier](reference.md#benutzerdefinierte-attribute) beschriebenen benutzerdefinierten Attribute des Thermostats verwendet werden:
@@ -139,11 +118,6 @@ Beispiel für mit Plotly erstellte Kurven:
 Um den Verlauf einer beliebigen Entity und ihrer Attribute ohne Kartenkonfiguration zu untersuchen, können Sie auch [HA Entity Explorer](https://www.versatile-thermostat.org/de/plugins/#KipK/ha_entity_explorer) verwenden.
 
 Der [Log-Analyser](https://www.versatile-thermostat.org/de/debugger/) der Website stellt ebenfalls Temperaturen, Modi und Presets eines _VTherm_ aus einer Log-Datei dar, ohne Konfiguration in Home Assistant (siehe [Log-Collector](feature-logs-collector.md)).
-
-## Regulation curves with Apex-charts (thanks to @gael1980)
-Apex chart allows to display some great reguation curves. @Gael1980 gives us a very good example [here](https://github.com/jmcollin78/versatile_thermostat/discussions/1239).
-
-![Apex chart by Gael1980](../../images/apex-chart-by-gael1980.png)
 
 ## Benachrichtigung mit dem AppDaemon NOTIFIER
 Diese Automatisierung nutzt die hervorragende AppDaemon-App namens NOTIFIER, die von Horizon Domotique entwickelt wurde und [hier](https://www.youtube.com/watch?v=chJylIK0ASo&ab_channel=HorizonDomotique) vorgestellt wird. Der Code ist [hier](https://github.com/jlpouffier/home-assistant-config/blob/master/appdaemon/apps/notifier.py) verfügbar. Damit können Benutzer über sicherheitsrelevante Ereignisse benachrichtigt werden, die an einem beliebigen Versatile Thermostat auftreten.

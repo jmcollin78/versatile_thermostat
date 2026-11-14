@@ -1,6 +1,8 @@
 
 # Dépannages
 
+Pour vous aider à diagnostiquer ou expliquer une situation, ou à rechercher dans la documentation, essayez le [VTherm Assistant](https://www.versatile-thermostat.org/en/plugins/#jmcollin78/vtherm_assistant).
+
 - [Dépannages](#dépannages)
   - [Utilisation d'un Heatzy](#utilisation-dun-heatzy)
   - [Utilisation d'un radiateur avec un fil pilote (Nodon SIN-4-FP-21)](#utilisation-dun-radiateur-avec-un-fil-pilote-nodon-sin-4-fp-21)

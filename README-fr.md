@@ -32,6 +32,8 @@ Les coefficients TPI classiques peuvent aussi être analysés à partir de 7 à 
 
 Consultez la [documentation LLM/MCP](documentation/fr/feature-llm-mcp.md) pour la configuration, les garde-fous et les exemples.
 
+Pour vous aider à diagnostiquer ou expliquer une situation, ou à rechercher dans la documentation, essayez le [VTherm Assistant](https://www.versatile-thermostat.org/en/plugins/#jmcollin78/vtherm_assistant).
+
 Historique Recorder en lecture seule pour exports CSV et graphiques réalisés par le client LLM.
 
 # Captures d'écran

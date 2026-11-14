@@ -1,6 +1,8 @@
 
 # Störungsbeseitigung
 
+Für Hilfe bei der Diagnose oder Erklärung einer Situation sowie bei der Suche in der Dokumentation können Sie den [VTherm Assistant](https://www.versatile-thermostat.org/en/plugins/#jmcollin78/vtherm_assistant) ausprobieren.
+
 - [Störungsbeseitigung](#störungsbeseitigung)
   - [Verwendung eines Heatzy](#verwendung-eines-heatzy)
   - [Verwendung eines Heizkörpers mit Steuerleitung (Nodon SIN-4-FP-21)](#verwendung-eines-heizkörpers-mit-steuerleitung-nodon-sin-4-fp-21)
@@ -24,7 +26,7 @@
   - [VTherm schaltet automatisch in den Modus 'Kühlen' oder 'Heizen' um](#vtherm-schaltet-automatisch-in-den-modus-kühlen-oder-heizen-um)
   - [Erkennung von offenen Fenstern verhindert keine Änderungen der Voreinstellungen](#erkennung-von-offenen-fenstern-verhindert-keine-änderungen-der-voreinstellungen)
     - [Beispiel:](#beispiel)
-  - [Fehler Stabilisierung\_Schwellwert ist eine ungültige Option](#fehler-stabilisierung_schwellwert-ist-eine-ungültige-option)
+  - [Fehler Stabilisierung/\_Schwellwert ist eine ungültige Option](#fehler-stabilisierung_schwellwert-ist-eine-ungültige-option)
 
 ## Verwendung eines Heatzy
 

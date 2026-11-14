@@ -8,6 +8,8 @@ about: Suggest an idea for this project
 Discussions forum is [here](https://github.com/jmcollin78/versatile_thermostat/discussions).
 You should check that a discussion relative to the same issue have not been already answered in the forum.
 
+You can also use the [VTherm Assistant](https://www.versatile-thermostat.org/en/plugins/#jmcollin78/vtherm_assistant) to explain a situation or search the documentation.
+
 Please also check in the [closed issues](https://github.com/jmcollin78/versatile_thermostat/issues) for a similar case.
 
 If you are considering contributing a pull request, please read [the contribution guidelines, especially the section on how pull requests are reviewed](../../CONTRIBUTING.md#how-prs-are-reviewed).

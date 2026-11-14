@@ -4,10 +4,9 @@ Many add-ons for _VTherm_ (dashboard cards, schedulers, algorithms, device helpe
 
 - [Some Essential Add-Ons](#some-essential-add-ons)
   - [the Versatile Thermostat UI Card](#the-versatile-thermostat-ui-card)
+  - [Holm Climate Card](#holm-climate-card)
   - [A Graphical Scheduler (recommended)](#a-graphical-scheduler-recommended)
-  - [the Scheduler Component!](#the-scheduler-component)
   - [Regulation curves with Plotly to Fine-Tune Your Thermostat](#regulation-curves-with-plotly-to-fine-tune-your-thermostat)
-  - [Rgulation curves with Apex-charts (thanks to @gael1980)](#rgulation-curves-with-apex-charts-thanks-to-gael1980)
   - [Event notification with the AppDaemon NOTIFIER](#event-notification-with-the-appdaemon-notifier)
   - [Indoor "Feels Like" Temperature and the "Damp Cold" Effect (thanks to @nicola-spreafico)](#indoor-feels-like-temperature-and-the-damp-cold-effect-thanks-to-nicola-spreafico)
   - [A complementary integration to anticipate setpoint changes (thanks to @RastaChaum)](#a-complementary-integration-to-anticipate-setpoint-changes-thanks-to-rastachaum)
@@ -17,34 +16,17 @@ A dedicated card for the Versatile Thermostat has been developed (based on Bette
 
 ![image](https://github.com/jmcollin78/versatile-thermostat-ui-card/blob/master/assets/1.png?raw=true)
 
-Other dashboard cards compatible with _VTherm_, such as Equinox or the Holm Climate Card, are listed in the [plugins catalog](https://www.versatile-thermostat.org/en/plugins/?family=interface).
+Other dashboard cards compatible with _VTherm_, such as Equinox, are listed in the [plugins catalog](https://www.versatile-thermostat.org/en/plugins/?family=interface).
+
+## Holm Climate Card
+
+The [Holm Climate Card](https://www.versatile-thermostat.org/en/plugins/#kaaribou/climate-card-holm) is a dashboard card compatible with _VTherm_.
+
+The [SmartPI integration](https://www.versatile-thermostat.org/en/plugins/#kipk/vtherm_smartpi) is also listed in the plugins catalog.
 
 ## A Graphical Scheduler (recommended)
 
 To program your _VTherm_ over the week, the recommended add-on is the [graphical scheduler](https://www.versatile-thermostat.org/en/plugins/#armellarcier/ha-chauffage) (an independent project). It lets you create several weekly schedules (Normal, Remote work, Holidays...) with a visual Lovelace card where you drag the time slots. A setpoint changed by hand becomes temporary, then the thermostat goes back to its schedule.
-
-## the Scheduler Component!
-
-The [Scheduler Component](https://github.com/nielsfaber/scheduler-component) is also compatible with the Versatile Thermostat. The scheduler component provides climate scheduling based on predefined modes. While this feature is somewhat limited with the generic thermostat, it becomes very powerful when paired with the Versatile Thermostat.
-
-Assuming you have installed both the Versatile Thermostat and the Scheduler Component, here’s an example:
-
-In Scheduler, add a schedule:
-
-![image](https://user-images.githubusercontent.com/1717155/119146454-ee1a9d80-ba4a-11eb-80ae-3074c3511830.png)
-
-Choose the "Climate" group, select one (or more) entity, pick "MAKE SCHEME," and click next:
-(You can also choose "SET PRESET," but I prefer "MAKE SCHEME.")
-
-![image](https://user-images.githubusercontent.com/1717155/119147210-aa746380-ba4b-11eb-8def-479a741c0ba7.png)
-
-Define your mode scheme and save:
-
-![image](https://user-images.githubusercontent.com/1717155/119147784-2f5f7d00-ba4c-11eb-9de4-5e62ff5e71a8.png)
-
-In this example, I set ECO mode during the night and when no one is home during the day, BOOST in the morning, and COMFORT in the evening.
-
-I hope this example helps; feel free to share your feedback!
 
 ## Regulation curves with Plotly to Fine-Tune Your Thermostat
 You can obtain curves like the ones shown in the example at the end of this section using a Plotly graph configuration by leveraging the thermostat's custom attributes described [here](reference.md#custom-attributes):
@@ -134,11 +116,6 @@ Example of curves obtained with Plotly:
 To explore the history of any entity and its attributes without configuring a card, you can also use [HA Entity Explorer](https://www.versatile-thermostat.org/en/plugins/#KipK/ha_entity_explorer).
 
 The [log analyzer](https://www.versatile-thermostat.org/en/debugger/) of the website also plots the temperatures, modes and presets of a _VTherm_ from a log file, without any configuration in Home Assistant (see [log collector](feature-logs-collector.md)).
-
-## Regulation curves with Apex-charts (thanks to @gael1980)
-Apex chart allows to display some great reguation curves. @Gael1980 gives us a very good example [here](https://github.com/jmcollin78/versatile_thermostat/discussions/1239).
-
-![Apex chart by Gael1980](../../images/apex-chart-by-gael1980.png)
 
 ## Event notification with the AppDaemon NOTIFIER
 This automation leverages the excellent AppDaemon app named NOTIFIER, developed by Horizon Domotique, demonstrated [here](https://www.youtube.com/watch?v=chJylIK0ASo&ab_channel=HorizonDomotique), and the code is available [here](https://github.com/jlpouffier/home-assistant-config/blob/master/appdaemon/apps/notifier.py). It allows users to be notified of security-related events occurring on any Versatile Thermostat.

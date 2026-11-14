@@ -1,6 +1,8 @@
 
 # Usuwanie problemów
 
+[VTherm Assistant](https://www.versatile-thermostat.org/en/plugins/#jmcollin78/vtherm_assistant) pomaga diagnozować i wyjaśniać sytuacje oraz przeszukiwać dokumentację.
+
 - [Usuwanie problemów](#usuwanie-problemów)
   - [System Heatzy](#system-heatzy)
   - [Grzejnik z przewodem sterującym (Nodon SIN-4-FP-21)](#grzejnik-z-przewodem-sterującym-nodon-sin-4-fp-21)
@@ -17,7 +19,9 @@
     - [Jak wysłać powiadomienie o wystąpieniu takiej sytuacji?](#jak-wysłać-powiadomienie-o-wystąpieniu-takiej-sytuacji)
     - [Jak to naprawić?](#jak-to-naprawić)
   - [Grupa osób jako sensor obecności](#grupa-osób-jako-sensor-obecności)
-  - [Aktywacja logów dla _*Versatile Thermostat*_](#aktywacja-logów-dla-versatile-thermostat)
+  - [Włączenie dzienników Versatile Thermostat](#włączenie-dzienników-versatile-thermostat)
+    - [Użyj log-collector (zalecana metoda)](#użyj-log-collector-zalecana-metoda)
+    - [Włącz dzienniki w Home Assistant (stara metoda)](#włącz-dzienniki-w-home-assistant-stara-metoda)
   - [_VTherm_ nie śledzi zmian wartości zadanych wprowadzanych bezpośrednio na urządzeniu bazowym (`termostat na klimacie`)](#vtherm-nie-śledzi-zmian-wartości-zadanych-wprowadzanych-bezpośrednio-na-urządzeniu-bazowym-termostat-na-klimacie)
   - [_VTherm_ automatycznie przełącza się na tryb `Chłodzenie` lub `Grzanie`](#vtherm-automatycznie-przełącza-się-na-tryb-chłodzenie-lub-grzanie)
   - [Detekcja otwarcia okien nie zapobiega zmianom presetów](#detekcja-otwarcia-okien-nie-zapobiega-zmianom-presetów)

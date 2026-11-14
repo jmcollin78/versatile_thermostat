@@ -1,8 +1,11 @@
 # Některé důležité doplňky
 
+Další doplňky pro _VTherm_ najdete v [katalogu pluginů](https://www.versatile-thermostat.org/en/plugins/).
+
 - [Některé důležité doplňky](#některé-důležité-doplňky)
   - [Karta Versatile Thermostat UI](#karta-versatile-thermostat-ui)
-  - [Komponenta Scheduler!](#komponenta-scheduler)
+  - [Holm Climate Card](#holm-climate-card)
+  - [Grafický plánovač](#grafický-plánovač)
   - [Regulační křivky s Plotly pro doladění vašeho termostatu](#regulační-křivky-s-plotly-pro-doladění-vašeho-termostatu)
   - [Oznámení událostí s AppDaemon NOTIFIER](#oznámení-událostí-s-appdaemon-notifier)
 
@@ -11,28 +14,15 @@ Vyhrazená karta pro Versatile Thermostat byla vyvinuta (založená na Better Th
 
 ![image](https://github.com/jmcollin78/versatile-thermostat-ui-card/blob/master/assets/1.png?raw=true)
 
-## Komponenta Scheduler!
+## Holm Climate Card
 
-Pro co nejlepší využití Versatile Thermostatu doporučuji jej používat s [Scheduler Component](https://github.com/nielsfaber/scheduler-component). Komponenta scheduler poskytuje plánování klimatizace založené na předdefinovaných režimech. Zatímco tato funkce je u generického termostatu poněkud omezená, stává se velmi výkonnou ve spojení s Versatile Thermostatem.
+[Holm Climate Card](https://www.versatile-thermostat.org/en/plugins/#kaaribou/climate-card-holm) je karta dashboardu kompatibilní s _VTherm_.
 
-Za předpokladu, že máte nainstalované jak Versatile Thermostat, tak Scheduler Component, zde je příklad:
+Integrace [SmartPI](https://www.versatile-thermostat.org/en/plugins/#kipk/vtherm_smartpi) je také uvedena v katalogu pluginů.
 
-V Scheduleru přidejte plán:
+## Grafický plánovač
 
-![image](https://user-images.githubusercontent.com/1717155/119146454-ee1a9d80-ba4a-11eb-80ae-3074c3511830.png)
-
-Vyberte skupinu "Climate", vyberte jednu (nebo více) entit, zvolte "MAKE SCHEME" a klikněte na další:
-(Můžete také zvolit "SET PRESET", ale preferuji "MAKE SCHEME".)
-
-![image](https://user-images.githubusercontent.com/1717155/119147210-aa746380-ba4b-11eb-8def-479a741c0ba7.png)
-
-Definujte své schéma režimu a uložte:
-
-![image](https://user-images.githubusercontent.com/1717155/119147784-2f5f7d00-ba4c-11eb-9de4-5e62ff5e71a8.png)
-
-V tomto příkladu nastavuji ECO režim během noci a když nikdo není doma během dne, BOOST ráno a COMFORT večer.
-
-Doufám, že tento příklad pomůže; neváhejte se podělit o svou zpětnou vazbu!
+[Grafický plánovač ha-chauffage](https://www.versatile-thermostat.org/en/plugins/#armellarcier/ha-chauffage) umožňuje vytvářet týdenní plány pro _VTherm_ pomocí vizuální karty Lovelace.
 
 ## Regulační křivky s Plotly pro doladění vašeho termostatu
 Můžete získat křivku podobnou té ukázané v [některé výsledky](#some-results) pomocí konfigurace grafu Plotly využitím vlastních atributů termostatu popsaných [zde](#custom-attributes):
