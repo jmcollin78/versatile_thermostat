@@ -31,17 +31,18 @@ The installation should look like this:
 ## Configuration
 
 First, configure the main settings common to all _VTherms_ (see [main settings](base-attributes.md)).
-Then, click on the "Underlyings" option from the menu, and you will see this configuration page:
-
-![image](images/config-linked-entity.png)
+Then configure the underlyings. When the _VTherm_ is created, the wizard shows them after the main attributes. Afterwards, select "Underlyings" in the menu. This menu lists:
+- "Common settings": the settings shared by all the devices (algorithm, keep-alive, AC mode, command inversion),
+- one entry for each controlled device, with its entity and its commands,
+- "Add a device".
 
 ### The underlying devices
 
-In the "list of devices to control," you add the switches that will be controlled by VTherm. Only entities of type `switch`, `input_boolean`, `select`, `input_select`, or `climate` are accepted.
+"Add a device" first asks for the entity to control. Only entities of type `switch`, `input_boolean`, `select`, `input_select`, or `climate` are accepted. The next screen shows the settings of this device: its [custom commands](#command-customization).
 
-If one of the underlying devices is not a `switch`, then command customization is mandatory. By default, for `switch` entities, the commands are the standard switch on/off commands (`turn_on`, `turn_off`).
+Opening a device in the list shows the same settings, with two more fields: "Replace entity", to control another entity instead, and "Remove this device".
 
-The "Algorithm" field selects the regulation algorithm: the built-in TPI, or an algorithm installed as a plugin. See [algorithms](algorithms.md).
+The "Algorithm" field of the common settings selects the regulation algorithm: the built-in TPI, or an algorithm installed as a plugin. See [algorithms](algorithms.md).
 If multiple entities are configured, the thermostat staggers the activations to minimize the number of switches on at any given time. This allows for better power distribution, as each radiator will turn on in turn.
 
 VTherm will smooth the consumed power as much as possible by alternating activations. Example of staggered activations:
@@ -64,14 +65,11 @@ If your equipment is controlled by a pilot wire with a diode, you may need to ch
 
 ### Command Customization
 
-This configuration section allows you to customize the on and off commands sent to the underlying device.
-These commands are mandatory if one of the underlying devices is not a `switch` (for `switch` entities, standard on/off commands are used).
+The on and off commands sent to a device are set in the settings of this device:
+- for a `switch` or an `input_boolean`, they are optional and grouped in the collapsed "Custom commands" section. Without them, the standard `turn_on` and `turn_off` commands are used,
+- for a `select`, an `input_select` or a `climate`, the "Turn on command" and "Turn off command" fields are required.
 
-To customize the commands, click on `Add` at the bottom of the page for both the on and off commands:
-
-![virtual switch](images/config-vswitch1.png)
-
-Then, specify the on and off commands using the format `command[/attribute[:value]]`.
+Specify the commands using the format `command[/attribute[:value]]`.
 The available commands depend on the type of underlying device:
 
 | Underlying Device Type      | Possible On Commands                  | Possible Off Commands                          | Applies To                        |
@@ -85,19 +83,11 @@ The available commands depend on the type of underlying device:
 
 Of course, these examples can be adapted to your specific case.
 
-Example for a Nodon SIN-4-FP-21:
-![virtual switch Nodon](images/config-vswitch2.png)
+Example for a Nodon SIN-4-FP-21 (`select` entity): the turn on command is `select_option/option:comfort` and the turn off command is `select_option/option:frost_protection`.
 
-Click "Validate" to confirm the modifications.
-
-If the following error occurs:
-
-> The command customization configuration is incorrect. It is required for non-switch underlying devices, and the format must be 'service_name[/attribute:value]'. More details in the README.
-
-This means that one of the entered commands is invalid. The following rules must be followed:
-1. Each command must follow the format `command[/attribute[:value]]` (e.g., `select_option/option:comfort` or `turn_on`) without spaces or special characters except `_`.
-2. There must be as many commands as there are declared underlying devices, except when all underlying devices are `switch` entities, in which case command customization is not required.
-3. If multiple underlying devices are configured, the commands must be in the same order. The number of on commands must equal the number of off commands and the number of underlying devices (in the correct order). It is possible to mix different types of underlying devices. As soon as one underlying device is not a `switch`, all commands for all underlying devices, including `switch` entities, must be configured.
+The following rules apply:
+1. Each command must follow the format `command[/attribute[:value]]` (e.g., `select_option/option:comfort` or `turn_on`) without spaces or special characters except `_`. Otherwise, the settings of the device show the error "The command customization configuration is incorrect".
+2. The commands are set for all the devices or for none. It is possible to mix different types of underlying devices, but as soon as one device is not a `switch`, or one device has custom commands, every device needs its commands, including the `switch` entities. A device without its commands is marked with ⚠ in the list of the underlyings, and "Configuration not complete" leads to it.
 
 ## Next Step
 

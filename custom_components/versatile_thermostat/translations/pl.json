@@ -5,7 +5,7 @@
     "step": {
       "user": {
         "title": "Typ termostatu VTherm",
-        "description": "Wybierz typ termostatu, który chcesz utworzyć",
+        "description": "Wybierz typ termostatu, który chcesz utworzyć\n\nKolejne ekrany przeprowadzą Cię przez wymagane ustawienia. Wszystko możesz później zmienić z menu.",
         "data": {
           "thermostat_type": "Typ termostatu"
         },
@@ -29,12 +29,10 @@
           "presence": "Detekcja obecności",
           "advanced": "Parametry zaawansowane",
           "auto_start_stop": "AutoSTART i autoSTOP",
-          "valve_regulation": "Konfiguracja regulacji zaworu",
-          "sync_device_internal_temp": "Synchronizacja temperatury urządzenia",
           "humidity": "Wilgotność",
           "lock": "Zarządzanie blokadą",
           "finalize": "Wszystko zrobione",
-          "configuration_not_complete": "Konfiguracja niekompletna",
+          "configuration_not_complete": "Konfiguracja niekompletna ({missing_count})",
           "heating_failure_detection": "Wykrywanie awarii ogrzewania"
         }
       },
@@ -55,7 +53,7 @@
       },
       "main": {
         "title": "Dodaj nowy termostat VTherm",
-        "description": "Wymagane atrybuty podstawowe",
+        "description": "{wizard_progress}Wymagane atrybuty podstawowe",
         "data": {
           "name": "Nazwa",
           "thermostat_type": "Typ termostatu",
@@ -85,7 +83,7 @@
       },
       "features": {
         "title": "Funkcje",
-        "description": "Funkcje termostatu",
+        "description": "{wizard_progress}Funkcje termostatu",
         "data": {
           "use_window_feature": "Użyj detekcji okna",
           "use_motion_feature": "Użyj detekcji ruchu",
@@ -98,50 +96,62 @@
       },
       "type": {
         "title": "Encje powiązane",
-        "description": "Atrybuty encji powiązanych",
-        "data": {
-          "underlying_entity_ids": "Sterowane urządzenia",
-          "heater_keep_alive": "Czas podtrzymania (w sek.)",
-          "proportional_function": "Algorytm",
-          "ac_mode": "Tryb AC",
-          "sync_device_internal_temp": "Synchronizacja wewnętrznej temperatury urządzenia",
-          "auto_regulation_mode": "Autoregulacja",
-          "auto_regulation_dtemp": "Próg regulacji",
-          "auto_regulation_periode_min": "Minimalny okres regulacji",
-          "opening_threshold_degree": "Próg otwarcia zaworu",
-          "min_opening_degrees": "Minimalny stopień otwarcia",
-          "max_opening_degrees": "Maksymalny stopień otwarcia",
-          "max_closing_degree": "Maksymalny stopień zamknięcia",
-          "auto_regulation_use_device_temp": "Użyj temperatury wewnętrznej urządzenia",
-          "inverse_switch_command": "Polecenie odwrócenia przełącznika",
-          "auto_fan_mode": "Tryb autowentylacji",
-          "on_command_text": "Dostosowanie polecenia załączenia",
-          "vswitch_on_command": "Opcjonalne polecenia załączenia",
-          "off_command_text": "Dostosowanie polecenia wyłączenia",
-          "vswitch_off_command": "Opcjonalne polecenia wyłączenia"
+        "description": "{wizard_progress}Urządzenia sterowane przez ten VTherm. Otwórz ustawienia wspólne, urządzenie, aby zobaczyć i zmienić wszystkie jego ustawienia, lub dodaj urządzenie. Urządzeniom oznaczonym ⚠ brakuje ustawienia wymaganego przez ustawienia wspólne.",
+        "menu_options": {
+          "underlying_common": "Ustawienia wspólne",
+          "underlying_1": "{underlying_1}",
+          "underlying_2": "{underlying_2}",
+          "underlying_3": "{underlying_3}",
+          "underlying_4": "{underlying_4}",
+          "underlying_5": "{underlying_5}",
+          "underlying_6": "{underlying_6}",
+          "underlying_7": "{underlying_7}",
+          "underlying_8": "{underlying_8}",
+          "underlying_9": "{underlying_9}",
+          "underlying_10": "{underlying_10}",
+          "underlying_11": "{underlying_11}",
+          "underlying_12": "{underlying_12}",
+          "underlying_13": "{underlying_13}",
+          "underlying_14": "{underlying_14}",
+          "underlying_15": "{underlying_15}",
+          "underlying_16": "{underlying_16}",
+          "underlying_17": "{underlying_17}",
+          "underlying_18": "{underlying_18}",
+          "underlying_19": "{underlying_19}",
+          "underlying_20": "{underlying_20}",
+          "underlying_add": "Dodaj urządzenie",
+          "underlying_continue": "Dalej",
+          "menu": "Powrót do menu"
         },
-        "data_description": {
-          "underlying_entity_ids": "Sterowane urządzenia. Wybierz co najmniej jedno urządzenie",
-          "heater_keep_alive": "Opcjonalna zwłoka odświeżania stanu przełącznika ogrzewania. Jeśli nie jest wymagana, pozostaw puste.",
-          "proportional_function": "Algorytm do użycia (inne algorytmy można zainstalować jako {plugins_link})",
-          "ac_mode": "Użyj trybu AC",
-          "sync_device_internal_temp": "Konfiguracja do synchronizacji wewnętrznej temperatury urządzeń bazowych z wybranymi encjami",
-          "auto_regulation_mode": "Automatyczna regulacja temperatury docelowej",
-          "auto_regulation_dtemp": "Próg otwarcia w ° (dla zaworu w %), poniżej którego zmiana temperatury nie będzie uwzględniana",
-          "auto_regulation_periode_min": "Czas (w min.) między dwiema aktualizacjami regulacji",
-          "opening_threshold_degree": "Próg otwarcia zaworu, poniżej którego zawór powinien być uważany za zamknięty (wówczas będzie obowiązywał parametr maksymalnego stopnia zamknięcia)",
-          "min_opening_degrees": "Minimalne wartości stopnia otwarcia zaworu dla każdego urządzenia, oddzielone przecinkiem. Domyślnie: 0. Przykład: 20, 25, 30",
-          "max_opening_degrees": "Maksymalna wartość stopnia otwarcia zaworu. Zawór nigdy się nie otworzy więcej niż ta wartość",
-          "max_closing_degree": "Maksymalna wartość stopnia zamknięcia zaworu. Powyżej tej wartości zawór nigdy nie zostanie zamknięty. Ustaw wartość tego parametru na `100`, aby całkowicie zamknąć zawór, jeśli ogrzewanie jest już niepotrzebne",
-          "auto_regulation_use_device_temp": "Użyj ewentualnego wewnętrznego czujnika temperatury urządzenia, aby przyspieszyć autoregulację (w większości przypadków nie jest to konieczne)",
-          "inverse_switch_command": "W przypadku przełącznika z przewodem sterującym może być konieczne odwrócenie kolejności poleceń",
-          "auto_fan_mode": "Automatycznie uruchom wentylator, gdy konieczne jest intensywne ogrzewanie/chłodzenie",
-          "on_command_text": "W przypadku typu `select` lub `climate` należy dostosować polecenia sterujące."
+        "menu_option_descriptions": {
+          "underlying_common": "Ustawienia wspólne dla wszystkich urządzeń",
+          "underlying_1": "{underlying_1_details}",
+          "underlying_2": "{underlying_2_details}",
+          "underlying_3": "{underlying_3_details}",
+          "underlying_4": "{underlying_4_details}",
+          "underlying_5": "{underlying_5_details}",
+          "underlying_6": "{underlying_6_details}",
+          "underlying_7": "{underlying_7_details}",
+          "underlying_8": "{underlying_8_details}",
+          "underlying_9": "{underlying_9_details}",
+          "underlying_10": "{underlying_10_details}",
+          "underlying_11": "{underlying_11_details}",
+          "underlying_12": "{underlying_12_details}",
+          "underlying_13": "{underlying_13_details}",
+          "underlying_14": "{underlying_14_details}",
+          "underlying_15": "{underlying_15_details}",
+          "underlying_16": "{underlying_16_details}",
+          "underlying_17": "{underlying_17_details}",
+          "underlying_18": "{underlying_18_details}",
+          "underlying_19": "{underlying_19_details}",
+          "underlying_20": "{underlying_20_details}",
+          "underlying_add": "Wybierz kolejne urządzenie do sterowania",
+          "underlying_continue": "Przejdź do następnego kroku"
         }
       },
       "tpi": {
         "title": "TPI",
-        "description": "Atrybuty TPI",
+        "description": "{wizard_progress}Atrybuty TPI",
         "data": {
           "tpi_coef_int": "Delta temperatury wewnętrznej",
           "tpi_coef_ext": "Delta temperatury zewnętrznej",
@@ -172,7 +182,7 @@
       },
       "window": {
         "title": "Okna",
-        "description": "Zarządzanie otwarciem okna.\nMożesz także skonfigurować automatyczną detekcję otwarcia okna w oparciu o spadek temperatury",
+        "description": "{wizard_progress}Zarządzanie otwarciem okna.\nMożesz także skonfigurować automatyczną detekcję otwarcia okna w oparciu o spadek temperatury",
         "data": {
           "window_sensor_entity_id": "Identyfikator encji sensora otwarcia okna",
           "window_delay": "Zwłoka otwarcia okna (w sek.)",
@@ -196,7 +206,7 @@
       },
       "motion": {
         "title": "Ruch",
-        "description": "Zarządzanie sensorem ruchu. Presety mogą przełączać się automatycznie w zależności od wykrycia ruchu. Parametry `Preset ruchu` i `Preset braku ruchu` powinny być ustawione jako odpowiednie presety. ",
+        "description": "{wizard_progress}Zarządzanie sensorem ruchu. Presety mogą przełączać się automatycznie w zależności od wykrycia ruchu. Parametry `Preset ruchu` i `Preset braku ruchu` powinny być ustawione jako odpowiednie presety. ",
         "data": {
           "motion_sensor_entity_id": "Identyfikator encji sensora ruchu",
           "motion_delay": "Zwłoka aktywacji",
@@ -216,7 +226,7 @@
       },
       "power": {
         "title": "Energia",
-        "description": "Atrybuty zarządzania mocą.\nDla mocy urządzenia każdego VTherm wybierz W lub kW, a dla konfiguracji centralnej W, kW lub Automatycznie.\nWartości są wewnętrznie normalizowane, dlatego można bezpiecznie łączyć W i kW.",
+        "description": "{wizard_progress}Atrybuty zarządzania mocą.\nDla mocy urządzenia każdego VTherm wybierz W lub kW, a dla konfiguracji centralnej W, kW lub Automatycznie.\nWartości są wewnętrznie normalizowane, dlatego można bezpiecznie łączyć W i kW.",
         "data": {
           "power_sensor_entity_id": "Moc",
           "max_power_sensor_entity_id": "Moc maksymalna",
@@ -234,7 +244,7 @@
       },
       "presence": {
         "title": "Obecność",
-        "description": "Atrybuty zarządzania obecnością.\nWskazują stan sensora obecności (PRAWDA, gdy wykrywana jest czyjaś obecność) oraz odpowiednie presety temperatury",
+        "description": "{wizard_progress}Atrybuty zarządzania obecnością.\nWskazują stan sensora obecności (PRAWDA, gdy wykrywana jest czyjaś obecność) oraz odpowiednie presety temperatury",
         "data": {
           "presence_sensor_entity_id": "Sensor obecności",
           "use_presence_central_config": "Wybierz, aby użyć centralnej konfiguracji temperatury dla wykrytej obecności. Wyłącz wybór, aby użyć wybranych encji temperatury"
@@ -245,7 +255,7 @@
       },
       "advanced": {
         "title": "Parametry zaawansowane",
-        "description": "Konfiguracja parametrów zaawansowanych. Pozostaw wartości domyślne, jeśli nie wiesz, co zrobić.\nNieprawidłowa zmiana tych parametrów może prowadzić do błędnej kontroli temperatur lub błędnej regulacji mocy",
+        "description": "{wizard_progress}Konfiguracja parametrów zaawansowanych. Pozostaw wartości domyślne, jeśli nie wiesz, co zrobić.\nNieprawidłowa zmiana tych parametrów może prowadzić do błędnej kontroli temperatur lub błędnej regulacji mocy",
         "data": {
           "safety_delay_min": "Zwłoka trybu bezpiecznego (w min.)",
           "safety_min_on_percent": "Minimalny procent mocy do przejścia w tryb bezpieczny",
@@ -265,7 +275,7 @@
       },
       "central_boiler": {
         "title": "Sterowanie kotłem centralnym",
-        "description": "Wprowadź polecenia załączające i wyłączające kocioł centralny. Polecenia muszą mieć następujący format: `id_encji/nazwa_polecenia[/atrybut:wartość]` (/atrybut:wartość jest opcjonalny)\nNa przykład:\n- aby załączyć przełącznik: `switch.sterownik_pieca/switch.turn_on`\n- aby wyłączyć przełącznik: `switch.sterownik_pieca/switch.turn_off`\n- aby zaprogramować temperaturę kotła na 25° i tym samym wymusić jego zapłon: `climate.termostat_pieca/climate.set_temperature/temperature:25`\n- aby ustawić temperaturę kotła na 10° i tym samym wymusić jego wygaszenie: `climate.termostat_pieca/climate.set_temperature/temperature:10`",
+        "description": "{wizard_progress}Wprowadź polecenia załączające i wyłączające kocioł centralny. Polecenia muszą mieć następujący format: `id_encji/nazwa_polecenia[/atrybut:wartość]` (/atrybut:wartość jest opcjonalny)\nNa przykład:\n- aby załączyć przełącznik: `switch.sterownik_pieca/switch.turn_on`\n- aby wyłączyć przełącznik: `switch.sterownik_pieca/switch.turn_off`\n- aby zaprogramować temperaturę kotła na 25° i tym samym wymusić jego zapłon: `climate.termostat_pieca/climate.set_temperature/temperature:25`\n- aby ustawić temperaturę kotła na 10° i tym samym wymusić jego wygaszenie: `climate.termostat_pieca/climate.set_temperature/temperature:10`",
         "data": {
           "central_boiler_activation_service": "Polecenie załączenia",
           "central_boiler_deactivation_service": "Polecenie wyłączenia",
@@ -277,42 +287,6 @@
           "central_boiler_deactivation_service": "Polecenie wyłączenia kotła centralnego w formacie: id_encji/nazwa_polecenia[/atrybut:wartość]",
           "central_boiler_activation_delay_sec": "Opóźnienie (w sekundach) przed załączeniem kotła centralnego po tym, jak VTherm zażądał włączenia",
           "keep_alive_boiler_delay_sec": "Opóźnienie w sekundach do okresowego ponownego wysłania polecenia kotła, jeśli keep-alive jest włączony. Ustaw na 0, aby wyłączyć keep-alive."
-        }
-      },
-      "valve_regulation": {
-        "title": "Autoregulacja zaworu",
-        "description": "Konfiguracja autoregulacji z bezpośrednim sterowaniem zaworem",
-        "data": {
-          "offset_calibration_entity_ids": "Encje kalibracji",
-          "opening_degree_entity_ids": "Encje stopnia otwarcia",
-          "closing_degree_entity_ids": "Encje stopnia zamknięcia",
-          "proportional_function": "Algorytm",
-          "opening_threshold_degree": "Próg otwarcia zaworu",
-          "min_opening_degrees": "Minimalny stopień otwarcia",
-          "max_opening_degrees": "Maksymalny stopień otwarcia",
-          "max_closing_degree": "Maksymalny stopień zamknięcia"
-        },
-        "data_description": {
-          "offset_calibration_entity_ids": "Lista encji kalibracji. Ustaw, jeśli zawór wyposażony jest w encję korekty regulacji. Dla każdego termostatu powinna istnieć maksymalnie jedna taka encja",
-          "opening_degree_entity_ids": "Lista encji 'stopnia otwarcia'. Powinna istnieć jedna dla każdego termostatu głównego.",
-          "closing_degree_entity_ids": "Lista encji 'stopnia zamknięcia'. Ustaw, jeśli zawór wyposażony jest w encję korekty regulacji. Dla każdego termostatu powinna istnieć co najwyżej jedna taka encja",
-          "proportional_function": "Algorytm do użycia (inne algorytmy można zainstalować jako {plugins_link})",
-          "opening_threshold_degree": "Próg otwarcia zaworu, poniżej którego zawór powinien być uważany za zamknięty (wówczas będzie obowiązywał parametr maksymalnego stopnia zamknięcia)",
-          "min_opening_degrees": "Minimalne wartości stopnia otwarcia zaworu dla każdego urządzenia, oddzielone przecinkiem. Domyślnie: 0. Przykład: 20, 25, 30",
-          "max_opening_degrees": "Maksymalna wartość stopnia otwarcia zaworu. Zawór nigdy się nie otworzy więcej niż ta wartość",
-          "max_closing_degree": "Maksymalna wartość stopnia zamknięcia zaworu. Powyżej tej wartości zawór nigdy nie zostanie zamknięty. Ustaw wartość tego parametru na `100`, aby całkowicie zamknąć zawór, jeśli ogrzewanie jest już niepotrzebne"
-        }
-      },
-      "sync_device_internal_temp": {
-        "title": "Synchronizuj wewnętrzną temperaturę urządzenia",
-        "description": "Konfiguracja umożliwiająca synchronizację temperatury wewnętrznej urządzeń bazowych z wybranymi encjami",
-        "data": {
-          "sync_with_calibration": "Zastosuj kalibrację offsetu",
-          "sync_entity_ids": "Identyfikatory encji używanych w synchronizacji"
-        },
-        "data_description": {
-          "sync_with_calibration": "Zaznacz, aby zastosować kalibrację offsetu podczas synchronizacji temperatury wewnętrznej. Odznacz, aby skopiować temperaturę bezpośrednio z wybranych encji.",
-          "sync_entity_ids": "Lista encji używanych do synchronizacji temperatury wewnętrznej urządzeń bazowych. Każde urządzenie bazowe musi mieć jedną taką encję. Jeśli pole wyboru jest zaznaczone, powinna to być encja kalibracji. W przeciwnym razie powinna to być encja temperatury. Obie encje mają typ numeryczny `number`."
         }
       },
       "humidity": {
@@ -337,7 +311,7 @@
       },
       "heating_failure_detection": {
         "title": "Wykrywanie awarii ogrzewania",
-        "description": "Konfiguracja funkcji wykrywania awarii ogrzewania. Wykrywa anomalie, gdy ogrzewanie jest oczekiwane, ale temperatura nie wzrasta, lub gdy ogrzewanie jest wyłączone, ale temperatura nadal rośnie.",
+        "description": "{wizard_progress}Konfiguracja funkcji wykrywania awarii ogrzewania. Wykrywa anomalie, gdy ogrzewanie jest oczekiwane, ale temperatura nie wzrasta, lub gdy ogrzewanie jest wyłączone, ale temperatura nadal rośnie.",
         "data": {
           "use_heating_failure_detection_feature": "Włącz wykrywanie awarii ogrzewania",
           "use_heating_failure_detection_central_config": "Użyj centralnej konfiguracji wykrywania awarii",
@@ -356,6 +330,138 @@
           "temperature_change_tolerance": "Minimalna zmiana temperatury w stopniach uznawana za znaczącą. Mniejsze zmiany są ignorowane w celu filtrowania szumu czujnika (domyślnie: 0.5°C)",
           "failure_detection_enable_template": "Opcjonalny szablon Jinja2, który musi zwrócić True, aby włączyć wykrywanie. Przydatne do tymczasowego wyłączenia wykrywania, gdy zewnętrzne źródło ciepła jest aktywne (np. `is_state('binary_sensor.piec_na_drewno', 'off')` w podwójnych nawiasach klamrowych). Jeśli pusty, wykrywanie jest zawsze włączone."
         }
+      },
+      "configuration_not_complete": {
+        "title": "Konfiguracja niekompletna",
+        "description": "Te ustawienia są wymagane do zakończenia konfiguracji. Wybierz pozycję, aby otworzyć ekran, na którym ją poprawisz.",
+        "menu_options": {
+          "main": "Arybuty podstawowe",
+          "type": "Urządzenia",
+          "tpi": "Parametry TPI",
+          "presets": "Preset",
+          "power": "Zarządzanie energią",
+          "motion": "Detekcja ruchu",
+          "presence": "Detekcja obecności",
+          "advanced": "Parametry zaawansowane",
+          "central_boiler": "Kocioł centralny",
+          "menu": "Powrót do menu"
+        },
+        "menu_option_descriptions": {
+          "main": "Brakuje nazwy, czujników temperatury lub długości cyklu",
+          "type": "Dodaj co najmniej jedno urządzenie i uzupełnij urządzenia oznaczone ⚠",
+          "tpi": "Współczynniki TPI są wymagane",
+          "presets": "Do używania presetów konfiguracji centralnej wymagana jest konfiguracja centralna",
+          "power": "Brakuje czujników mocy lub temperatury presetu odciążenia",
+          "motion": "Czujnik ruchu jest wymagany, gdy funkcja jest włączona",
+          "presence": "Czujnik obecności jest wymagany, gdy funkcja jest włączona",
+          "advanced": "Parametry bezpieczeństwa są wymagane",
+          "central_boiler": "Polecenia włączenia i wyłączenia są wymagane"
+        }
+      },
+      "underlying_common": {
+        "title": "Ustawienia wspólne",
+        "description": "{wizard_progress}Ustawienia wspólne dla wszystkich urządzeń tego VTherm.",
+        "data": {
+          "heater_keep_alive": "Czas podtrzymania (w sek.)",
+          "proportional_function": "Algorytm",
+          "ac_mode": "Tryb AC",
+          "inverse_switch_command": "Polecenie odwrócenia przełącznika",
+          "auto_regulation_dtemp": "Próg regulacji",
+          "auto_regulation_periode_min": "Minimalny okres regulacji",
+          "opening_threshold_degree": "Próg otwarcia zaworu",
+          "max_closing_degree": "Maksymalny stopień zamknięcia",
+          "sync_device_internal_temp": "Synchronizacja wewnętrznej temperatury urządzenia",
+          "auto_regulation_mode": "Autoregulacja",
+          "auto_fan_mode": "Tryb autowentylacji",
+          "auto_regulation_use_device_temp": "Użyj temperatury wewnętrznej urządzenia"
+        },
+        "data_description": {
+          "heater_keep_alive": "Opcjonalna zwłoka odświeżania stanu przełącznika ogrzewania. Jeśli nie jest wymagana, pozostaw puste.",
+          "proportional_function": "Algorytm do użycia (inne algorytmy można zainstalować jako {plugins_link})",
+          "ac_mode": "Użyj trybu AC",
+          "inverse_switch_command": "W przypadku przełącznika z przewodem sterującym może być konieczne odwrócenie kolejności poleceń",
+          "auto_regulation_dtemp": "Próg otwarcia w ° (dla zaworu w %), poniżej którego zmiana temperatury nie będzie uwzględniana",
+          "auto_regulation_periode_min": "Czas (w min.) między dwiema aktualizacjami regulacji",
+          "opening_threshold_degree": "Próg otwarcia zaworu, poniżej którego zawór powinien być uważany za zamknięty (wówczas będzie obowiązywał parametr maksymalnego stopnia zamknięcia)",
+          "max_closing_degree": "Maksymalna wartość stopnia zamknięcia zaworu. Powyżej tej wartości zawór nigdy nie zostanie zamknięty. Ustaw wartość tego parametru na `100`, aby całkowicie zamknąć zawór, jeśli ogrzewanie jest już niepotrzebne",
+          "sync_device_internal_temp": "Zaznacz, aby synchronizować temperaturę wewnętrzną urządzeń podrzędnych. Każde urządzenie wymaga wtedy własnej encji synchronizacji, podanej w ustawieniach urządzenia",
+          "auto_regulation_mode": "Automatyczna regulacja temperatury docelowej",
+          "auto_fan_mode": "Automatycznie uruchom wentylator, gdy konieczne jest intensywne ogrzewanie/chłodzenie",
+          "auto_regulation_use_device_temp": "Użyj ewentualnego wewnętrznego czujnika temperatury urządzenia, aby przyspieszyć autoregulację (w większości przypadków nie jest to konieczne)"
+        }
+      },
+      "underlying_common_extra": {
+        "title": "Regulacja zaworem i synchronizacja",
+        "description": "{wizard_progress}Ustawienia wspólne dla wszystkich urządzeń dotyczące bezpośredniego sterowania zaworami i synchronizacji temperatury wewnętrznej.",
+        "data": {
+          "proportional_function": "Algorytm",
+          "opening_threshold_degree": "Próg otwarcia zaworu",
+          "max_closing_degree": "Maksymalny stopień zamknięcia",
+          "sync_with_calibration": "Zastosuj kalibrację offsetu"
+        },
+        "data_description": {
+          "proportional_function": "Algorytm do użycia (inne algorytmy można zainstalować jako {plugins_link})",
+          "opening_threshold_degree": "Próg otwarcia zaworu, poniżej którego zawór powinien być uważany za zamknięty (wówczas będzie obowiązywał parametr maksymalnego stopnia zamknięcia)",
+          "max_closing_degree": "Maksymalna wartość stopnia zamknięcia zaworu. Powyżej tej wartości zawór nigdy nie zostanie zamknięty. Ustaw wartość tego parametru na `100`, aby całkowicie zamknąć zawór, jeśli ogrzewanie jest już niepotrzebne",
+          "sync_with_calibration": "Zaznacz, aby zastosować kalibrację offsetu podczas synchronizacji temperatury wewnętrznej. Odznacz, aby skopiować temperaturę bezpośrednio z wybranych encji."
+        }
+      },
+      "underlying_add": {
+        "title": "Dodaj urządzenie",
+        "description": "{wizard_progress}Wybierz urządzenie do sterowania. Jego własne ustawienia są wymagane na następnym ekranie.",
+        "data": {
+          "underlying_entity_id": "Urządzenie"
+        },
+        "data_description": {
+          "underlying_entity_id": "Encja do sterowania"
+        }
+      },
+      "underlying": {
+        "title": "{underlying_name}",
+        "description": "{underlying_entity}\n\nUstawienia tego urządzenia. Wyświetlane są tylko pola odpowiednie dla typu VTherm i ustawień wspólnych. Polecenia niestandardowe i encje zamykania muszą być podane dla wszystkich urządzeń lub dla żadnego.",
+        "data": {
+          "opening_degree_entity_id": "Encja otwarcia zaworu",
+          "closing_degree_entity_id": "Encja zamknięcia zaworu (opcjonalnie)",
+          "sync_entity_id": "Encja synchronizacji",
+          "on_command": "Polecenie włączenia",
+          "off_command": "Polecenie wyłączenia",
+          "min_opening_degree": "Minimalne otwarcie (%)",
+          "max_opening_degree": "Maksymalne otwarcie (%)",
+          "replace_entity_id": "Zamień encję",
+          "remove_underlying": "Usuń to urządzenie"
+        },
+        "data_description": {
+          "opening_degree_entity_id": "Encja number ustawiająca stopień otwarcia zaworu. Sugerowane są encje tego samego urządzenia.",
+          "closing_degree_entity_id": "Opcjonalna encja number ustawiająca stopień zamknięcia zaworu. Podaj ją dla wszystkich urządzeń lub dla żadnego.",
+          "sync_entity_id": "Encja number używana do synchronizacji temperatury wewnętrznej tego urządzenia: encja kalibracji, jeśli zaznaczono 'Zastosuj kalibrację offsetu', w przeciwnym razie encja temperatury.",
+          "on_command": "Format: nazwa_usługi[/atrybut:wartość]. Wymagane dla encji select i climate. Podaj dla wszystkich urządzeń lub dla żadnego.",
+          "off_command": "Format: nazwa_usługi[/atrybut:wartość]. Wymagane dla encji select i climate. Podaj dla wszystkich urządzeń lub dla żadnego.",
+          "min_opening_degree": "Minimalny stopień otwarcia tego urządzenia po przekroczeniu progu otwarcia. Domyślnie 0.",
+          "max_opening_degree": "Maksymalny stopień otwarcia tego urządzenia: zawór nigdy nie otworzy się bardziej niż ta wartość. Nie może przekraczać maksimum zaworu.",
+          "replace_entity_id": "Wybierz inną encję, aby zastąpić to urządzenie. Jeśli typ encji się zmieni, ustawienia urządzenia trzeba wypełnić ponownie.",
+          "remove_underlying": "Zaznacz, aby usunąć to urządzenie z VTherm"
+        },
+        "sections": {
+          "commands": {
+            "name": "Polecenia niestandardowe",
+            "description": "Opcjonalne polecenia włączania i wyłączania tego urządzenia w formacie nazwa_usługi[/atrybut:wartość]. Podaj je dla wszystkich urządzeń lub dla żadnego.",
+            "data": {
+              "on_command": "Polecenie włączenia",
+              "off_command": "Polecenie wyłączenia"
+            },
+            "data_description": {
+              "on_command": "Format: nazwa_usługi[/atrybut:wartość]. Wymagane dla encji select i climate. Podaj dla wszystkich urządzeń lub dla żadnego.",
+              "off_command": "Format: nazwa_usługi[/atrybut:wartość]. Wymagane dla encji select i climate. Podaj dla wszystkich urządzeń lub dla żadnego."
+            }
+          }
+        }
+      },
+      "auto_start_stop": {
+        "title": "AutoSTART i autoSTOP",
+        "description": "{wizard_progress}",
+        "data": {
+          "auto_start_stop_level": "AutoSTART i autoSTOP"
+        }
       }
     },
     "error": {
@@ -364,13 +470,10 @@
       "window_open_detection_method": "Może być używana tylko jedna metoda detekcji otwarcia okna. Użyj sensora okna lub automatycznej detekcji przekroczenia progu temperatury, ale nie używaj obu tych metod jednocześnie.",
       "no_central_config": "Nie możesz wybrać konfiguracji centralnej, ponieważ jej nie znaleziono. Aby jej użyć, najpierw musisz utworzyć Termostat VTherm typu `Konfiguracja Centralna`.",
       "service_configuration_format": "Błędny format konfiguracji polecenia lub usługi",
-      "valve_regulation_nb_entities_incorrect": "Liczba encji zaworu wymagana do jego regulacji powinna być równa ilości zaworów",
-      "sync_device_internal_temp_nb_entities_incorrect": "The number of entities for synchronize device internal temperature should be equal to the number of underlyings",
-      "min_opening_degrees_format": "Oczekiwany separator przecinkowy listy lub dodatnia liczba całkowita. Przykład: 20, 25, 30",
-      "max_opening_degrees_format": "Oczekiwana jest lista dodatnich liczb całkowitych między 0 a 100 oddzielonych przecinkami. Przykład: 80, 85, 90",
       "min_max_opening_degrees_inconsistent": "Dla każdego urządzenia bazowego max_opening_degrees musi być ściśle większy niż min_opening_degrees. Sprawdź swoją konfigurację.",
-      "valve_control_parameters_cardinality_incorrect": "Listy minimalnych i maksymalnych stopni otwarcia nie mogą zawierać więcej wartości niż skonfigurowane zawory",
-      "vswitch_configuration_incorrect": "Błąd konfiguracji poleceń własnych. Wymagane są one dla urządzeń nie będących przełącznikami. Ich format musi być następujący: `service_name[/attribute:value]`. Więcej informacji znajdziesz w dokumentacji"
+      "vswitch_configuration_incorrect": "Błąd konfiguracji poleceń własnych. Wymagane są one dla urządzeń nie będących przełącznikami. Ich format musi być następujący: `service_name[/attribute:value]`. Więcej informacji znajdziesz w dokumentacji",
+      "underlying_already_added": "Ta encja jest już używana przez urządzenie tego VTherm",
+      "max_opening_degree_out_of_range": "Maksymalne otwarcie musi być większe od 0 i nie może przekraczać maksimum zaworu"
     },
     "abort": {
       "already_configured": "Urządzenie jest już skonfigurowane"
@@ -405,15 +508,13 @@
           "presence": "Detekcja obecności",
           "advanced": "Parametry zaawansowane",
           "auto_start_stop": "AutoSTART i autoSTOP",
-          "valve_regulation": "Konfiguracja regulacji zaworu",
-          "sync_device_internal_temp": "Synchronizacja temperatury urządzenia",
           "humidity": "Wilgotność",
           "lock": "Blokada",
           "auto_tpi_configuration": "Auto TPI - Ogólne",
           "auto_tpi_avg_settings": "Auto TPI - Średnia",
           "auto_tpi_ema_settings": "Auto TPI - EMA",
           "finalize": "Wszystko zrobione",
-          "configuration_not_complete": "Konfiguracja niekompletna",
+          "configuration_not_complete": "Konfiguracja niekompletna ({missing_count})",
           "heating_failure_detection": "Wykrywanie awarii ogrzewania"
         }
       },
@@ -434,7 +535,7 @@
       },
       "main": {
         "title": "Główne - {name}",
-        "description": "Wymagane atrybuty podstawowe",
+        "description": "{wizard_progress}Wymagane atrybuty podstawowe",
         "data": {
           "name": "Nazwa",
           "thermostat_type": "Typ termostatu",
@@ -462,7 +563,7 @@
       },
       "features": {
         "title": "Funkcje - {name}",
-        "description": "Funkcje termostatu",
+        "description": "{wizard_progress}Funkcje termostatu",
         "data": {
           "use_window_feature": "Użyj detekcji okna",
           "use_motion_feature": "Użyj detekcji ruchu",
@@ -474,51 +575,63 @@
         }
       },
       "type": {
-        "title": "Encje - {name}",
-        "description": "Atrybuty encji powiązanych",
-        "data": {
-          "underlying_entity_ids": "Sterowane urządzenie(-a)",
-          "heater_keep_alive": "Czas podtrzymania (w sek.)",
-          "proportional_function": "Algorytm",
-          "ac_mode": "Tryb AC",
-          "sync_device_internal_temp": "Synchronizacja wewnętrznej temperatury urządzenia",
-          "auto_regulation_mode": "Autoregulacja",
-          "auto_regulation_dtemp": "Próg regulacji",
-          "auto_regulation_periode_min": "Minimalny okres regulacji",
-          "opening_threshold_degree": "Próg otwarcia zaworu",
-          "min_opening_degrees": "Minimalny stopień otwarcia",
-          "max_opening_degrees": "Maksymalny stopień otwarcia",
-          "max_closing_degree": "Maksymalny stopień zamknięcia",
-          "auto_regulation_use_device_temp": "Użyj temperatury wewnętrznej z urządzenia",
-          "inverse_switch_command": "Polecenie odwrócenia przełącznika",
-          "auto_fan_mode": "Tryb autowentylacji",
-          "on_command_text": "Dostosowanie polecenia załączenia",
-          "vswitch_on_command": "Opcjonalne polecenia załączenia",
-          "off_command_text": "Dostosowanie polecenia wyłączenia",
-          "vswitch_off_command": "Opcjonalne polecenia wyłączenia"
+        "title": "Encje",
+        "description": "{wizard_progress}Urządzenia sterowane przez ten VTherm. Otwórz ustawienia wspólne, urządzenie, aby zobaczyć i zmienić wszystkie jego ustawienia, lub dodaj urządzenie. Urządzeniom oznaczonym ⚠ brakuje ustawienia wymaganego przez ustawienia wspólne.",
+        "menu_options": {
+          "underlying_common": "Ustawienia wspólne",
+          "underlying_1": "{underlying_1}",
+          "underlying_2": "{underlying_2}",
+          "underlying_3": "{underlying_3}",
+          "underlying_4": "{underlying_4}",
+          "underlying_5": "{underlying_5}",
+          "underlying_6": "{underlying_6}",
+          "underlying_7": "{underlying_7}",
+          "underlying_8": "{underlying_8}",
+          "underlying_9": "{underlying_9}",
+          "underlying_10": "{underlying_10}",
+          "underlying_11": "{underlying_11}",
+          "underlying_12": "{underlying_12}",
+          "underlying_13": "{underlying_13}",
+          "underlying_14": "{underlying_14}",
+          "underlying_15": "{underlying_15}",
+          "underlying_16": "{underlying_16}",
+          "underlying_17": "{underlying_17}",
+          "underlying_18": "{underlying_18}",
+          "underlying_19": "{underlying_19}",
+          "underlying_20": "{underlying_20}",
+          "underlying_add": "Dodaj urządzenie",
+          "underlying_continue": "Dalej",
+          "menu": "Powrót do menu"
         },
-        "data_description": {
-          "underlying_entity_ids": "Sterowane urządzenia. Wybierz co najmniej jedno urządzenie",
-          "heater_keep_alive": "Opcjonalny interwał odświeżania stanu przełącznika ogrzewania. Jeśli nie jest wymagany, pozostał pusty.",
-          "proportional_function": "Algorytm do użycia (inne algorytmy można zainstalować jako {plugins_link})",
-          "ac_mode": "Użyj trybu AC",
-          "sync_device_internal_temp": "Konfiguracja do synchronizacji wewnętrznej temperatury urządzeń bazowych z wybranymi encjami",
-          "auto_regulation_mode": "Automatyczna regulacja temperatury docelowej",
-          "auto_regulation_dtemp": "Próg otwarcia w ° (dla zaworu w %), poniżej którego zmiana temperatury nie będzie uwzględniana",
-          "auto_regulation_periode_min": "Czas (w min.) między dwiema aktualizacjami regulacji",
-          "opening_threshold_degree": "Próg otwarcia zaworu, poniżej którego zawór powinien być uważany za zamknięty (wówczas będzie obowiązywał parametr maksymalnego stopnia zamknięcia)",
-          "min_opening_degrees": "Minimalne wartości stopnia otwarcia zaworu dla każdego urządzenia, oddzielone przecinkiem. Domyślnie: 0. Przykład: 20, 25, 30",
-          "max_opening_degrees": "Maksymalna wartość stopnia otwarcia zaworu. Zawór nigdy się nie otworzy więcej niż ta wartość",
-          "max_closing_degree": "Maksymalna wartość stopnia zamknięcia zaworu. Powyżej tej wartości zawór nigdy nie zostanie zamknięty. Ustaw wartość tego parametru na `100`, aby całkowicie zamknąć zawór, jeśli ogrzewanie jest już niepotrzebne",
-          "auto_regulation_use_device_temp": "Użyj ewentualnego wewnętrznego sensora temperatury urządzenia, aby przyspieszyć autoregulację (w większości przypadków nie jest to konieczne)",
-          "inverse_switch_command": "W przypadku przełącznika z przewodem sterującym może być konieczna odwrotna kolejność polecenia",
-          "auto_fan_mode": "Automatycznie aktywuj wentylator, gdy konieczne jest intensywne ogrzewanie/chłodzenie",
-          "on_command_text": "W przypadku typu `select` lub `climate` należy dostosować polecenia."
+        "menu_option_descriptions": {
+          "underlying_common": "Ustawienia wspólne dla wszystkich urządzeń",
+          "underlying_1": "{underlying_1_details}",
+          "underlying_2": "{underlying_2_details}",
+          "underlying_3": "{underlying_3_details}",
+          "underlying_4": "{underlying_4_details}",
+          "underlying_5": "{underlying_5_details}",
+          "underlying_6": "{underlying_6_details}",
+          "underlying_7": "{underlying_7_details}",
+          "underlying_8": "{underlying_8_details}",
+          "underlying_9": "{underlying_9_details}",
+          "underlying_10": "{underlying_10_details}",
+          "underlying_11": "{underlying_11_details}",
+          "underlying_12": "{underlying_12_details}",
+          "underlying_13": "{underlying_13_details}",
+          "underlying_14": "{underlying_14_details}",
+          "underlying_15": "{underlying_15_details}",
+          "underlying_16": "{underlying_16_details}",
+          "underlying_17": "{underlying_17_details}",
+          "underlying_18": "{underlying_18_details}",
+          "underlying_19": "{underlying_19_details}",
+          "underlying_20": "{underlying_20_details}",
+          "underlying_add": "Wybierz kolejne urządzenie do sterowania",
+          "underlying_continue": "Przejdź do następnego kroku"
         }
       },
       "tpi": {
         "title": "TPI - {name}",
-        "description": "Atrybuty TPI",
+        "description": "{wizard_progress}Atrybuty TPI",
         "data": {
           "tpi_coef_int": "Delta temperatury wewnętrznej",
           "tpi_coef_ext": "Delta temperatury zewnętrznej",
@@ -549,7 +662,7 @@
       },
       "window": {
         "title": "Okno - {name}",
-        "description": "Zarządzanie otwarciem okna.\nMożesz także skonfigurować automatyczną detekcję otwarcia okna w oparciu o spadek temperatury",
+        "description": "{wizard_progress}Zarządzanie otwarciem okna.\nMożesz także skonfigurować automatyczną detekcję otwarcia okna w oparciu o spadek temperatury",
         "data": {
           "window_sensor_entity_id": "Identyfikator encji sensora otwarcia okna",
           "window_delay": "Zwłoka otwarcia okna (w sek.)",
@@ -573,7 +686,7 @@
       },
       "motion": {
         "title": "Ruch - {name}",
-        "description": "Zarządzanie sensorem ruchu. Presety mogą przełączać się automatycznie w zależności od wykrycia ruchu. Parametry `preset ruchu` i `preset braku ruchu` powinny być ustawione jako odpowiednie presety. ",
+        "description": "{wizard_progress}Zarządzanie sensorem ruchu. Presety mogą przełączać się automatycznie w zależności od wykrycia ruchu. Parametry `preset ruchu` i `preset braku ruchu` powinny być ustawione jako odpowiednie presety. ",
         "data": {
           "motion_sensor_entity_id": "Identyfikator encji sensora ruchu",
           "motion_delay": "Zwłoka aktywacji",
@@ -593,7 +706,7 @@
       },
       "power": {
         "title": "Energia - {name}",
-        "description": "Atrybuty zarządzania energią.\nWskazują moc i maksymalną moc sensora.\nOkreślają pobór mocy grzejnika, gdy jest włączony.\nWszystkie sensory i urządzenia powinny mieć tę samą jednostkę mocy (kW lub W)",
+        "description": "{wizard_progress}Atrybuty zarządzania energią.\nWskazują moc i maksymalną moc sensora.\nOkreślają pobór mocy grzejnika, gdy jest włączony.\nWszystkie sensory i urządzenia powinny mieć tę samą jednostkę mocy (kW lub W)",
         "data": {
           "power_sensor_entity_id": "Moc",
           "max_power_sensor_entity_id": "Moc maksymalna",
@@ -609,7 +722,7 @@
       },
       "presence": {
         "title": "Obecność - {name}",
-        "description": "Atrybuty zarządzania obecnością.\nWskazują stan sensora obecności (PRAWDA, gdy wykrywana jest czyjaś obecność) oraz odpowiednie presety temperatury",
+        "description": "{wizard_progress}Atrybuty zarządzania obecnością.\nWskazują stan sensora obecności (PRAWDA, gdy wykrywana jest czyjaś obecność) oraz odpowiednie presety temperatury",
         "data": {
           "presence_sensor_entity_id": "Sensor obecności",
           "use_presence_central_config": "Wybierz, aby użyć centralnej konfiguracji temperatury dla wykrytej obecności. Wyłącz wybór, aby użyć wybranych encji temperatury"
@@ -620,7 +733,7 @@
       },
       "advanced": {
         "title": "Zaawansowane - {name}",
-        "description": "Konfiguracja parametrów zaawansowanych. Pozostaw wartości domyślne, jeśli nie wiesz, co zrobić.\nNieprawidłowa zmiana tych parametrów może prowadzić do błędnej kontroli temperatur lub błędnej regulacji mocy",
+        "description": "{wizard_progress}Konfiguracja parametrów zaawansowanych. Pozostaw wartości domyślne, jeśli nie wiesz, co zrobić.\nNieprawidłowa zmiana tych parametrów może prowadzić do błędnej kontroli temperatur lub błędnej regulacji mocy",
         "data": {
           "minimal_activation_delay": "Minimalna zwłoka aktywacji",
           "minimal_deactivation_delay": "Minimalna zwłoka deaktywacji",
@@ -644,7 +757,7 @@
       },
       "central_boiler": {
         "title": "Sterowanie kotłem centralnym - {name}",
-        "description": "Wprowadź polecenia załączające i wyłączające kocioł centralny. Polecenia muszą mieć następujacy format: `id_encji/nazwa_polecenia[/atrybut:wartość]` (/atrybut:wartość jest opcjonalny)\nNa przykład:\n- aby załączyć przełącznik: `switch.sterownik_pieca/switch.turn_on`\n- aby wyłączyć przełącznik: `switch.sterownik_pieca/switch.turn_off`\n- aby zaprogramować temperaturę kotła na 25° i w ten sposób wymusić jego zapłon: `climate.termostat_pieca/climate.set_temperature/temperature:25`\n- aby ustawić temperaturę kotła na 10° i w ten sposób wymusić jego wygaszenie: `climate.termostat_pieca/climate.set_temperature/temperature:10`",
+        "description": "{wizard_progress}Wprowadź polecenia załączające i wyłączające kocioł centralny. Polecenia muszą mieć następujacy format: `id_encji/nazwa_polecenia[/atrybut:wartość]` (/atrybut:wartość jest opcjonalny)\nNa przykład:\n- aby załączyć przełącznik: `switch.sterownik_pieca/switch.turn_on`\n- aby wyłączyć przełącznik: `switch.sterownik_pieca/switch.turn_off`\n- aby zaprogramować temperaturę kotła na 25° i w ten sposób wymusić jego zapłon: `climate.termostat_pieca/climate.set_temperature/temperature:25`\n- aby ustawić temperaturę kotła na 10° i w ten sposób wymusić jego wygaszenie: `climate.termostat_pieca/climate.set_temperature/temperature:10`",
         "data": {
           "central_boiler_activation_service": "Polecenie załączenia",
           "central_boiler_deactivation_service": "Polecenie wyłączenia",
@@ -656,30 +769,6 @@
           "central_boiler_deactivation_service": "Polecenie wyłączenia kotła centralnego w formacie: `id_encji/nazwa_polecenia[/atrybut:wartość]`",
           "central_boiler_activation_delay_sec": "Opóźnienie (w sekundach) przed załączeniem kotła centralnego po tym, jak VTherm zażądał włączenia",
           "keep_alive_boiler_delay_sec": "Opóźnienie w sekundach do okresowego ponownego wysłania polecenia kotła, jeśli keep-alive jest włączony. Ustaw na 0, aby wyłączyć keep-alive."
-        }
-      },
-      "valve_regulation": {
-        "title": "Autoregulacja zaworu - {name}",
-        "description": "Konfiguracja autoregulacji z bezpośrednim sterowaniem zaworem",
-        "data": {
-          "offset_calibration_entity_ids": "Encje kalibracji",
-          "opening_degree_entity_ids": "Encje stopnia otwarcia",
-          "closing_degree_entity_ids": "Encje stopnia zamknięcia",
-          "proportional_function": "Algorytm",
-          "opening_threshold_degree": "Próg otwarcia zaworu",
-          "min_opening_degrees": "Minimalny stopień otwarcia",
-          "max_opening_degrees": "Maksymalny stopień otwarcia",
-          "max_closing_degree": "Maksymalny stopień zamknięcia"
-        },
-        "data_description": {
-          "offset_calibration_entity_ids": "Lista encji kalibracji. Ustaw, jeśli zawór wyposażony jest w encję korekty regulacji. Dla każdego termostatu powinna istnieć maksymalnie jedna taka encja",
-          "opening_degree_entity_ids": "Lista encji 'stopnia otwarcia'. Powinna istnieć jedna dla każdego termostatu głównego.",
-          "closing_degree_entity_ids": "Lista encji 'stopnia zamknięcia'. Ustaw, jeśli zawór wyposażony jest w encję korekty regulacji. Dla każdego termostatu powinna istnieć maksymalnie jedna taka encja",
-          "proportional_function": "Algorytm do użycia (inne algorytmy można zainstalować jako {plugins_link})",
-          "opening_threshold_degree": "Próg otwarcia zaworu, poniżej którego zawór powinien być uważany za zamknięty (wówczas będzie obowiązywał parametr maksymalnego stopnia zamknięcia)",
-          "min_opening_degrees": "Minimalne wartości stopnia otwarcia zaworu dla każdego urządzenia, oddzielone przecinkiem. Domyślnie: 0. Przykład: 20, 25, 30",
-          "max_opening_degrees": "Maksymalna wartość stopnia otwarcia zaworu. Zawór nigdy się nie otworzy więcej niż ta wartość",
-          "max_closing_degree": "Maksymalna wartość stopnia zamknięcia zaworu. Powyżej tej wartości zawór nigdy nie zostanie zamknięty. Ustaw wartość tego parametru na `100`, aby całkowicie zamknąć zawór, jeśli ogrzewanie jest już niepotrzebne"
         }
       },
       "humidity": {
@@ -743,7 +832,7 @@
       },
       "heating_failure_detection": {
         "title": "Wykrywanie awarii ogrzewania - {name}",
-        "description": "Konfiguracja funkcji wykrywania awarii ogrzewania. Wykrywa anomalie, gdy ogrzewanie jest oczekiwane, ale temperatura nie wzrasta, lub gdy ogrzewanie jest wyłączone, ale temperatura nadal rośnie.",
+        "description": "{wizard_progress}Konfiguracja funkcji wykrywania awarii ogrzewania. Wykrywa anomalie, gdy ogrzewanie jest oczekiwane, ale temperatura nie wzrasta, lub gdy ogrzewanie jest wyłączone, ale temperatura nadal rośnie.",
         "data": {
           "use_heating_failure_detection_feature": "Włącz wykrywanie awarii ogrzewania",
           "use_heating_failure_detection_central_config": "Użyj centralnej konfiguracji wykrywania awarii",
@@ -762,6 +851,138 @@
           "temperature_change_tolerance": "Minimalna zmiana temperatury w stopniach uznawana za znaczącą. Mniejsze zmiany są ignorowane w celu filtrowania szumu czujnika (domyślnie: 0.5°C)",
           "failure_detection_enable_template": "Opcjonalny szablon Jinja2, który musi zwrócić True, aby włączyć wykrywanie. Przydatne do tymczasowego wyłączenia wykrywania, gdy zewnętrzne źródło ciepła jest aktywne (np. `is_state('binary_sensor.piec_na_drewno', 'off')` w podwójnych nawiasach klamrowych). Jeśli pusty, wykrywanie jest zawsze włączone."
         }
+      },
+      "configuration_not_complete": {
+        "title": "Konfiguracja niekompletna",
+        "description": "Te ustawienia są wymagane do zakończenia konfiguracji. Wybierz pozycję, aby otworzyć ekran, na którym ją poprawisz.",
+        "menu_options": {
+          "main": "Arybuty podstawowe",
+          "type": "Urządzenia",
+          "tpi": "Parametry TPI",
+          "presets": "Presety",
+          "power": "Zarządzanie energią",
+          "motion": "Detekcja ruchu",
+          "presence": "Detekcja obecności",
+          "advanced": "Parametry zaawansowane",
+          "central_boiler": "Kocioł centralny",
+          "menu": "Powrót do menu"
+        },
+        "menu_option_descriptions": {
+          "main": "Brakuje nazwy, czujników temperatury lub długości cyklu",
+          "type": "Dodaj co najmniej jedno urządzenie i uzupełnij urządzenia oznaczone ⚠",
+          "tpi": "Współczynniki TPI są wymagane",
+          "presets": "Do używania presetów konfiguracji centralnej wymagana jest konfiguracja centralna",
+          "power": "Brakuje czujników mocy lub temperatury presetu odciążenia",
+          "motion": "Czujnik ruchu jest wymagany, gdy funkcja jest włączona",
+          "presence": "Czujnik obecności jest wymagany, gdy funkcja jest włączona",
+          "advanced": "Parametry bezpieczeństwa są wymagane",
+          "central_boiler": "Polecenia włączenia i wyłączenia są wymagane"
+        }
+      },
+      "underlying_common": {
+        "title": "Ustawienia wspólne - {name}",
+        "description": "{wizard_progress}Ustawienia wspólne dla wszystkich urządzeń tego VTherm.",
+        "data": {
+          "heater_keep_alive": "Czas podtrzymania (w sek.)",
+          "proportional_function": "Algorytm",
+          "ac_mode": "Tryb AC",
+          "inverse_switch_command": "Polecenie odwrócenia przełącznika",
+          "auto_regulation_dtemp": "Próg regulacji",
+          "auto_regulation_periode_min": "Minimalny okres regulacji",
+          "opening_threshold_degree": "Próg otwarcia zaworu",
+          "max_closing_degree": "Maksymalny stopień zamknięcia",
+          "sync_device_internal_temp": "Synchronizacja wewnętrznej temperatury urządzenia",
+          "auto_regulation_mode": "Autoregulacja",
+          "auto_fan_mode": "Tryb autowentylacji",
+          "auto_regulation_use_device_temp": "Użyj temperatury wewnętrznej z urządzenia"
+        },
+        "data_description": {
+          "heater_keep_alive": "Opcjonalny interwał odświeżania stanu przełącznika ogrzewania. Jeśli nie jest wymagany, pozostał pusty.",
+          "proportional_function": "Algorytm do użycia (inne algorytmy można zainstalować jako {plugins_link})",
+          "ac_mode": "Użyj trybu AC",
+          "inverse_switch_command": "W przypadku przełącznika z przewodem sterującym może być konieczna odwrotna kolejność polecenia",
+          "auto_regulation_dtemp": "Próg otwarcia w ° (dla zaworu w %), poniżej którego zmiana temperatury nie będzie uwzględniana",
+          "auto_regulation_periode_min": "Czas (w min.) między dwiema aktualizacjami regulacji",
+          "opening_threshold_degree": "Próg otwarcia zaworu, poniżej którego zawór powinien być uważany za zamknięty (wówczas będzie obowiązywał parametr maksymalnego stopnia zamknięcia)",
+          "max_closing_degree": "Maksymalna wartość stopnia zamknięcia zaworu. Powyżej tej wartości zawór nigdy nie zostanie zamknięty. Ustaw wartość tego parametru na `100`, aby całkowicie zamknąć zawór, jeśli ogrzewanie jest już niepotrzebne",
+          "sync_device_internal_temp": "Zaznacz, aby synchronizować temperaturę wewnętrzną urządzeń podrzędnych. Każde urządzenie wymaga wtedy własnej encji synchronizacji, podanej w ustawieniach urządzenia",
+          "auto_regulation_mode": "Automatyczna regulacja temperatury docelowej",
+          "auto_fan_mode": "Automatycznie aktywuj wentylator, gdy konieczne jest intensywne ogrzewanie/chłodzenie",
+          "auto_regulation_use_device_temp": "Użyj ewentualnego wewnętrznego sensora temperatury urządzenia, aby przyspieszyć autoregulację (w większości przypadków nie jest to konieczne)"
+        }
+      },
+      "underlying_common_extra": {
+        "title": "Regulacja zaworem i synchronizacja - {name}",
+        "description": "{wizard_progress}Ustawienia wspólne dla wszystkich urządzeń dotyczące bezpośredniego sterowania zaworami i synchronizacji temperatury wewnętrznej.",
+        "data": {
+          "proportional_function": "Algorytm",
+          "opening_threshold_degree": "Próg otwarcia zaworu",
+          "max_closing_degree": "Maksymalny stopień zamknięcia",
+          "sync_with_calibration": "Zastosuj kalibrację offsetu"
+        },
+        "data_description": {
+          "proportional_function": "Algorytm do użycia (inne algorytmy można zainstalować jako {plugins_link})",
+          "opening_threshold_degree": "Próg otwarcia zaworu, poniżej którego zawór powinien być uważany za zamknięty (wówczas będzie obowiązywał parametr maksymalnego stopnia zamknięcia)",
+          "max_closing_degree": "Maksymalna wartość stopnia zamknięcia zaworu. Powyżej tej wartości zawór nigdy nie zostanie zamknięty. Ustaw wartość tego parametru na `100`, aby całkowicie zamknąć zawór, jeśli ogrzewanie jest już niepotrzebne",
+          "sync_with_calibration": "Zaznacz, aby zastosować kalibrację offsetu podczas synchronizacji temperatury wewnętrznej. Odznacz, aby skopiować temperaturę bezpośrednio z wybranych encji."
+        }
+      },
+      "underlying_add": {
+        "title": "Dodaj urządzenie - {name}",
+        "description": "{wizard_progress}Wybierz urządzenie do sterowania. Jego własne ustawienia są wymagane na następnym ekranie.",
+        "data": {
+          "underlying_entity_id": "Urządzenie"
+        },
+        "data_description": {
+          "underlying_entity_id": "Encja do sterowania"
+        }
+      },
+      "underlying": {
+        "title": "{underlying_name}",
+        "description": "{underlying_entity}\n\nUstawienia tego urządzenia. Wyświetlane są tylko pola odpowiednie dla typu VTherm i ustawień wspólnych. Polecenia niestandardowe i encje zamykania muszą być podane dla wszystkich urządzeń lub dla żadnego.",
+        "data": {
+          "opening_degree_entity_id": "Encja otwarcia zaworu",
+          "closing_degree_entity_id": "Encja zamknięcia zaworu (opcjonalnie)",
+          "sync_entity_id": "Encja synchronizacji",
+          "on_command": "Polecenie włączenia",
+          "off_command": "Polecenie wyłączenia",
+          "min_opening_degree": "Minimalne otwarcie (%)",
+          "max_opening_degree": "Maksymalne otwarcie (%)",
+          "replace_entity_id": "Zamień encję",
+          "remove_underlying": "Usuń to urządzenie"
+        },
+        "data_description": {
+          "opening_degree_entity_id": "Encja number ustawiająca stopień otwarcia zaworu. Sugerowane są encje tego samego urządzenia.",
+          "closing_degree_entity_id": "Opcjonalna encja number ustawiająca stopień zamknięcia zaworu. Podaj ją dla wszystkich urządzeń lub dla żadnego.",
+          "sync_entity_id": "Encja number używana do synchronizacji temperatury wewnętrznej tego urządzenia: encja kalibracji, jeśli zaznaczono 'Zastosuj kalibrację offsetu', w przeciwnym razie encja temperatury.",
+          "on_command": "Format: nazwa_usługi[/atrybut:wartość]. Wymagane dla encji select i climate. Podaj dla wszystkich urządzeń lub dla żadnego.",
+          "off_command": "Format: nazwa_usługi[/atrybut:wartość]. Wymagane dla encji select i climate. Podaj dla wszystkich urządzeń lub dla żadnego.",
+          "min_opening_degree": "Minimalny stopień otwarcia tego urządzenia po przekroczeniu progu otwarcia. Domyślnie 0.",
+          "max_opening_degree": "Maksymalny stopień otwarcia tego urządzenia: zawór nigdy nie otworzy się bardziej niż ta wartość. Nie może przekraczać maksimum zaworu.",
+          "replace_entity_id": "Wybierz inną encję, aby zastąpić to urządzenie. Jeśli typ encji się zmieni, ustawienia urządzenia trzeba wypełnić ponownie.",
+          "remove_underlying": "Zaznacz, aby usunąć to urządzenie z VTherm"
+        },
+        "sections": {
+          "commands": {
+            "name": "Polecenia niestandardowe",
+            "description": "Opcjonalne polecenia włączania i wyłączania tego urządzenia w formacie nazwa_usługi[/atrybut:wartość]. Podaj je dla wszystkich urządzeń lub dla żadnego.",
+            "data": {
+              "on_command": "Polecenie włączenia",
+              "off_command": "Polecenie wyłączenia"
+            },
+            "data_description": {
+              "on_command": "Format: nazwa_usługi[/atrybut:wartość]. Wymagane dla encji select i climate. Podaj dla wszystkich urządzeń lub dla żadnego.",
+              "off_command": "Format: nazwa_usługi[/atrybut:wartość]. Wymagane dla encji select i climate. Podaj dla wszystkich urządzeń lub dla żadnego."
+            }
+          }
+        }
+      },
+      "auto_start_stop": {
+        "title": "AutoSTART i autoSTOP - {name}",
+        "description": "{wizard_progress}",
+        "data": {
+          "auto_start_stop_level": "AutoSTART i autoSTOP"
+        }
       }
     },
     "error": {
@@ -770,12 +991,10 @@
       "window_open_detection_method": "Może być używana tylko jedna metoda detekcji otwarcia okna. Użyj sensora okna lub automatycznej detekcji przekroczenia progu temperatury, ale nie używaj obu tych metod jednocześnie.",
       "no_central_config": "Nie możesz wybrać konfiguracji centralnej z powodu jej braku. Aby jej użyć, najpierw musisz utworzyć termostat VTherm typu `Konfiguracja Centralna`.",
       "service_configuration_format": "Błędny format konfiguracji polecenia lub usługi",
-      "valve_regulation_nb_entities_incorrect": "Liczba encji zaworu wymagana do jego regulacji powinna być równa ilości zaworów",
-      "min_opening_degrees_format": "Oczekiwany separator przecinkowy listy lub dodatnia liczba całkowita. Przykład: 20, 25, 30",
-      "max_opening_degrees_format": "Oczekiwana jest lista dodatnich liczb całkowitych między 0 a 100 oddzielonych przecinkami. Przykład: 80, 85, 90",
       "min_max_opening_degrees_inconsistent": "Dla każdego urządzenia bazowego max_opening_degrees musi być ściśle większy niż min_opening_degrees. Sprawdź swoją konfigurację.",
-      "valve_control_parameters_cardinality_incorrect": "Listy minimalnych i maksymalnych stopni otwarcia nie mogą zawierać więcej wartości niż skonfigurowane zawory",
-      "vswitch_configuration_incorrect": "Błąd konfiguracji poleceń własnych. Wymagane są one dla urządzeń nie będących przełącznikami. Ich format musi być następujący: `service_name[/attribute:value]`. Więcej informacji znajdziesz w dokumentacji"
+      "vswitch_configuration_incorrect": "Błąd konfiguracji poleceń własnych. Wymagane są one dla urządzeń nie będących przełącznikami. Ich format musi być następujący: `service_name[/attribute:value]`. Więcej informacji znajdziesz w dokumentacji",
+      "underlying_already_added": "Ta encja jest już używana przez urządzenie tego VTherm",
+      "max_opening_degree_out_of_range": "Maksymalne otwarcie musi być większe od 0 i nie może przekraczać maksimum zaworu"
     },
     "abort": {
       "already_configured": "Urządzenie jest już skonfigurowane"

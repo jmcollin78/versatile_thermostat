@@ -31,9 +31,20 @@ a vyberte typ vašeho termostatu:
 
 ![image](images/config-main0.png)
 
-Konfiguraci lze změnit prostřednictvím stejného rozhraní. Jednoduše vyberte termostat k úpravě, stiskněte "Konfigurovat" a budete moci změnit některé parametry nebo nastavení.
+Průvodce pak postupně zobrazí obrazovky s povinnými nastaveními:
+1. Hlavní atributy,
+2. Podřízená zařízení: nejprve nastavení společná pro všechna zařízení, poté zařízení k ovládání (viz stránku zvoleného typu),
+3. TPI parametry, pokud je algoritmem TPI nebo pokud je ventil ovládán přímo,
+4. Funkce, poté jedna obrazovka pro každou zapnutou funkci,
+5. Pokročilé parametry.
 
-Postupujte podle konfiguračních kroků výběrem možnosti menu ke konfiguraci.
+U centralizované konfigurace průvodce zobrazí hlavní atributy, funkce a obrazovku každé zapnuté funkce (včetně centrálního kotle), TPI parametry a pokročilé parametry.
+
+Každá obrazovka ukazuje postup, například `▰▰▱▱▱ 2 / 5`. Seznam obrazovek závisí na vašich odpovědích: zapnutí funkce přidá její obrazovku. Na konci průvodce otevře konfigurační menu s možností "Vše hotovo", která _VTherm_ vytvoří. Předvolby, zámek a vlhkost nejsou součástí průvodce: ponechají si výchozí hodnoty a lze je změnit z tohoto menu.
+
+Pro úpravu existujícího _VTherm_ jej vyberte na stránce integrace a stiskněte "Konfigurovat": konfigurační menu se otevře přímo, bez průvodce.
+
+Když chybí povinné nastavení, menu místo "Vše hotovo" zobrazí "Konfigurace není kompletní (n)", kde n je počet nastavení k doplnění. Tato možnost vypíše obrazovky k opravě, u každé uvede, co vyžaduje, a přímo je otevře.
 
 # Výběr typu VTherm
 

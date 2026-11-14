@@ -31,17 +31,18 @@ Die Installation sollte in etwa so aussehen:
 ## Konfiguration
 
 Konfigurieren Sie zunächst die Haupteinstellungen, die für alle _VTherms_ gelten (siehe [Haupteinstellung](base-attributes.md)).
-Klicken Sie dann im Menü auf die Option „Basiswerte“, um diese Konfigurationsseite anzuzeigen:
-
-![image](images/config-linked-entity.png)
+Konfigurieren Sie dann die zugehörigen Geräte. Beim Erstellen des _VTherm_ zeigt der Assistent sie nach den wichtigsten Eigenschaften an. Später wählen Sie „Basiswerte“ im Menü. Dieses Menü enthält:
+- „Gemeinsame Einstellungen“: die Einstellungen, die für alle Geräte gelten (Algorithmus, Keep-Alive, AC-Modus, Befehlsumkehr),
+- einen Eintrag für jedes gesteuerte Gerät, mit seiner Entity und seinen Befehlen,
+- „Gerät hinzufügen“.
 
 ### Die zugehörigen Geräte
 
-In der "Liste der zu steuernden Geräte" fügen Sie die Schalter hinzu, die von VTherm gesteuert werden sollen. Es werden nur Geräte des Typs `switch`, `input_boolean`, `select`, `input_select` oder `climate` akzeptiert.
+„Gerät hinzufügen“ fragt zuerst nach der zu steuernden Entity. Es werden nur Entities des Typs `switch`, `input_boolean`, `select`, `input_select` oder `climate` akzeptiert. Der nächste Bildschirm zeigt die Einstellungen dieses Geräts: seine [angepassten Befehle](#befehlsanpassung).
 
-Handelt es sich bei einem der zugehörigen Geräte nicht um einen `switch`, so ist die Anpassung der Befehle obligatorisch. Standardmäßig sind die Befehle für `switch`-Entities die Standard-Ein-/Ausschaltbefehle (`turn_on`, `turn_off`).
+Wenn Sie ein Gerät in der Liste öffnen, sehen Sie dieselben Einstellungen mit zwei zusätzlichen Feldern: „Entität ersetzen“, um stattdessen eine andere Entity zu steuern, und „Dieses Gerät entfernen“.
 
-Im Feld „Algorithmus“ wählen Sie den Regelalgorithmus: den integrierten TPI oder einen als Plugin installierten Algorithmus. Siehe [Algorithmen](algorithms.md).
+Im Feld „Algorithmus“ der gemeinsamen Einstellungen wählen Sie den Regelalgorithmus: den integrierten TPI oder einen als Plugin installierten Algorithmus. Siehe [Algorithmen](algorithms.md).
 Wenn mehrere Einheiten konfiguriert sind, staffelt der Thermostat die Aktivierungen, um die Anzahl der eingeschalteten Schalter zu einem bestimmten Zeitpunkt zu minimieren. Dies ermöglicht eine bessere Energieverteilung, da sich jeder Heizkörper nacheinander einschaltet.
 
 VTherm glättet die verbrauchte Leistung so weit wie möglich durch abwechselnde Aktivierungen. Beispiel für gestaffelte Aktivierungen:
@@ -64,14 +65,11 @@ Wenn Ihr Gerät über einen Pilotdraht mit einer Diode gesteuert wird, müssen S
 
 ### Befehlsanpassung
 
-In diesem Konfigurationsabschnitt können Sie die Ein- und Ausschaltbefehle, die an das zugehörige Gerät gesendet werden, anpassen.
-Diese Befehle sind obligatorisch, wenn es sich bei einem der zugeordneten Geräte nicht um einen `switch` handelt (`switch`-Entities verwenden die Standard-Ein-/Aus-Befehle).
+Die Ein- und Ausschaltbefehle, die an ein Gerät gesendet werden, werden in den Einstellungen dieses Geräts festgelegt:
+- für einen `switch` oder einen `input_boolean` sind sie optional und im eingeklappten Abschnitt „Benutzerdefinierte Befehle“ zusammengefasst. Ohne sie werden die Standardbefehle `turn_on` und `turn_off` verwendet,
+- für einen `select`, einen `input_select` oder ein `climate` sind die Felder „Einschaltbefehl“ und „Ausschaltbefehl“ erforderlich.
 
-Um die Befehle anzupassen, klicken Sie unten auf der Seite auf `Hinzufügen`, sowohl für die Einschalt- als auch für die Ausschaltbefehle:
-
-![virtual switch](images/config-vswitch1.png)
-
-Geben Sie dann die Ein- und Ausschaltbefehle im Format `Befehl[/Attribut[:Wert]` an.
+Geben Sie die Befehle im Format `Befehl[/Attribut[:Wert]]` an.
 Die verfügbaren Befehle hängen von der Art des zugehörigen Geräts ab:
 
 | zugehöriger Gerätetyp        | Mögliche Einschaltbefehle             | Mögliche Ausschaltbefehle                      | Betrifft                          |
@@ -85,19 +83,11 @@ Die verfügbaren Befehle hängen von der Art des zugehörigen Geräts ab:
 
 Natürlich können diese Beispiele an Ihren speziellen Fall angepasst werden.
 
-beispiel für ein Nodon SIN-4-FP-21:
-![virtual switch Nodon](images/config-vswitch2.png)
+Beispiel für ein Nodon SIN-4-FP-21 (`select`-Entity): Der Einschaltbefehl ist `select_option/option:comfort` und der Ausschaltbefehl ist `select_option/option:frost_protection`.
 
-Klicken Sie auf "Validieren", um die Änderungen zu bestätigen.
-
-Falls der folgende Fehler auftritt:
-
-> Die Konfiguration der Befehlsanpassung ist falsch. Sie ist für Geräte erforderlich, die keinem Schalter zugeordnet sind und das Format muss 'service_name[/attribute:value]' sein. Weitere Einzelheiten finden Sie in der README.
-
-Dies bedeutet, dass einer der eingegebenen Befehle ungültig ist. Die folgenden Regeln müssen beachtet werden:
-1. Jeder Befehl muss dem Format `Befehl[/Attribut[:Wert]]` folgen (z.B. `select_option/option:comfort` oder `turn_on`) ohne Leer- oder Sonderzeichen außer `_`.
-2. Es müssen so viele Befehle vorhanden sein, wie zugeordnete Geräte vorhanden sind, es sei denn, alle zugeordneten Geräte sind „Switch“-Entities; in diesem Fall ist eine Anpassung der Befehle nicht erforderlich.
-3. Wenn mehrere zugeordnete Geräte konfiguriert sind, müssen die Befehle in der gleichen Reihenfolge erfolgen. Die Anzahl der Einschaltbefehle muss der Anzahl der Ausschaltbefehle und der Anzahl der zugeordneten Geräte (in der richtigen Reihenfolge) entsprechen. Es ist möglich, verschiedene Typen von Basisgeräten zu mischen. Sobald ein zugeordnetes Gerät kein `switch` ist, müssen alle Befehle für alle zugeordneten Geräte, einschließlich `switch`-Entities, konfiguriert werden.
+Es gelten die folgenden Regeln:
+1. Jeder Befehl muss dem Format `Befehl[/Attribut[:Wert]]` folgen (z.B. `select_option/option:comfort` oder `turn_on`) ohne Leer- oder Sonderzeichen außer `_`. Andernfalls zeigen die Einstellungen des Geräts den Fehler „Die Konfiguration der Befehlsanpassung ist falsch“ an.
+2. Die Befehle werden für alle Geräte oder für keines angegeben. Es ist möglich, verschiedene Typen von zugeordneten Geräten zu mischen, aber sobald ein Gerät kein `switch` ist oder ein Gerät angepasste Befehle hat, benötigt jedes Gerät seine Befehle, einschließlich der `switch`-Entities. Ein Gerät ohne seine Befehle wird in der Liste des Menüs „Basiswerte“ mit ⚠ markiert, und „Konfiguration unvollständig“ führt zu ihm.
 
 ## Nächster Schritt
 

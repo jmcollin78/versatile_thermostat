@@ -26,23 +26,18 @@ Diese Art der Selbstregulierung, `Direct Valve Control` genannt, benötigt:
 2. Eine Entität des Typs `number` zur Steuerung der Ventilöffnungsrate des _TRV_.
 3. Eine optionale Einheit des Typs `number` zur Steuerung des Ventilschließens.
 
-Wenn die gewählte Selbstregulierung `Direct Valve Control` auf einem _VTherm_ `over_climate` ist, erscheint eine neue Konfigurationsseite mit dem Namen `Valve Regulation Configuration`:
+Wenn `Direct Valve Control` in den gemeinsamen Einstellungen des Menüs „Basiswerte“ eines _VTherm_ `over_climate` gewählt wird, werden diese Einstellungen auf einer zweiten Seite namens `Ventilregelung und Synchronisierung` fortgesetzt. Sie enthält die Einstellungen, die für alle Ventile gelten:
+1. „Algorithmus“: der Algorithmus, der die Öffnungsrate berechnet: der integrierte _TPI_, derselbe wie für _VTherm_ `over_switch` und `over_valve`, oder ein als Plugin installierter Algorithmus. Siehe [Algorithmen](algorithms.md),
+2. `opening_threshold`: die minimale Ventilöffnung, unterhalb derer das Ventil als geschlossen gilt, und folglich gilt der Parameter 'max_closing_degree',
+3. `max_closing_degree`: der absolute maximale Schließgrad. Das Ventil wird niemals mehr schließen als dieser Wert. Wenn Sie ein vollständiges Schließen des Ventils zulassen möchten, lassen Sie diesen Parameter auf 100.
 
-![Konfiguration Menü](images/config-self-regulation-valve-1.png)
+Jedes Gerät hat dann seine eigenen Ventileinstellungen, die beim Hinzufügen des Geräts abgefragt und beim Öffnen des Geräts in der Liste des Menüs „Basiswerte“ angezeigt werden:
+1. „Ventilöffnungs-Entität“: die `number`-Entity, die die Öffnungsrate des Ventils steuert. Sie ist erforderlich,
+2. „Ventilschließ-Entität (optional)“: die `number`-Entity, die die Schließrate des Ventils steuert. Geben Sie sie für alle Geräte oder für keines an: Haben nur einige Geräte eine, werden die anderen in der Liste mit ⚠ markiert und die Erstellung kann nicht abgeschlossen werden,
+3. „Minimale Öffnung (%)“ (`minimum_opening_degrees`): der minimale Öffnungsgrad, wenn der `opening_threshold` überschritten wird und der VTherm heizen muss. Der Standardwert ist 0. Wenn das Heizen beginnt (d.h. die angeforderte Öffnung größer als `opening_threshold` ist), öffnet sich das Ventil mit einem Wert größer oder gleich diesem und wird bei Bedarf regelmäßig weiter erhöht,
+4. „Maximale Öffnung (%)“ (`max_opening_degrees`): der maximale Öffnungsgrad, den das Ventil erreichen kann. Der Standardwert ist das Maximum des Ventils (volle Öffnung). Das Ventil wird niemals über diesen Wert hinaus öffnen, wodurch Sie den Heißwasserdurchfluss begrenzen und den Energieverbrauch optimieren können. Dieser Wert muss streng größer als die minimale Öffnung sein und darf das Maximum des Ventils nicht überschreiten.
 
-Dies ermöglicht Ihnen die Konfiguration der Ventilsteuerungseinheiten:
-
-![Konfiguration Entities](images/config-self-regulation-valve-2.png)
-
-Sie müssen folgendes angeben:
-1. So viele Einheiten zur Steuerung der Ventilöffnung, wie es zugehörige Geräte gibt, in der gleichen Reihenfolge. Diese Parameter sind obligatorisch.
-2. So viele Einheiten zur Steuerung der Schließgeschwindigkeit des Ventils, wie es zugehörige Geräte gibt, in der gleichen Reihenfolge. Diese Parameter sind optional; entweder müssen alle angegeben werden oder keiner.
-3. `opening_threshold`: die minimale Ventilöffnung, unterhalb derer das Ventil als geschlossen gilt, und folglich gilt der Parameter 'max_closing_degree',
-4. `max_closing_degree`: der absolute maximale Schließgrad. Das Ventil wird niemals mehr schließen als dieser Wert. Wenn Sie ein vollständiges Schließen des Ventils zulassen möchten, lassen Sie diesen Parameter auf 100,
-5. `minimum_opening_degrees`: der minimale Öffnungsgrad, wenn der `opening_threshold` überschritten wird und der VTherm heizen muss. Dieses Feld ist pro Ventil anpassbar bei einem VTherm mit mehreren Ventilen. Sie geben die Liste der minimalen Öffnungen durch ',' getrennt an. Der Standardwert ist 0. Beispiel: '20, 25, 30'. Wenn das Heizen beginnt (d.h. die angeforderte Öffnung größer als `opening_threshold` ist), öffnet sich das Ventil mit einem Wert größer oder gleich diesem und wird bei Bedarf regelmäßig weiter erhöht.
-6. `max_opening_degrees`: der maximale Öffnungsgrad, den das Ventil erreichen kann. Dieses Feld ist pro Ventil anpassbar bei einem VTherm mit mehreren Ventilen. Sie geben die Liste der maximalen Öffnungen durch ',' getrennt an. Der Standardwert ist 100 (volle Öffnung). Beispiel: '80, 85, 90'. Das Ventil wird niemals über diesen Wert hinaus öffnen, wodurch Sie den Heißwasserdurchfluss begrenzen und den Energieverbrauch optimieren können. Dieser Wert muss für jedes Ventil streng größer als `minimum_opening_degrees` sein.
-
-Die Öffnungsrate wird von dem Algorithmus berechnet, der im Feld „Algorithmus“ dieser Seite gewählt ist: dem integrierten _TPI_, demselben wie für _VTherm_ `over_switch` und `over_valve`, oder einem als Plugin installierten Algorithmus. Siehe [Algorithmen](algorithms.md).
+Die Entities desselben physischen Geräts werden zuerst vorgeschlagen.
 
 Wenn eine Ventilschließrate konfiguriert ist, wird sie auf `100 - Öffnungsrate` gesetzt, um das Ventil in einen bestimmten Zustand zu zwingen, andernfalls wird sie auf 100 gesetzt.
 

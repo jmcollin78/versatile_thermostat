@@ -26,11 +26,14 @@ Ten schemat pokazuje, że VTherm działa w cyklu zamkniętym: od ustawienia temp
 
 ## Konfiguracja
 
-W pierwszej kolejności skonfiguruj ustawienia główne, wspólne dla wszystkich termostatów VTherm (patrz: [ustawienia główne](base-attributes.md)). Następnie wybierz z menu opcję "Encje podstawowe", a zobaczysz poniższy ekran konfiguracji, gdzie dodasz encje `number` sterowane przez termostat _VTherm_. Akceptowane są tu jedynie encje typu `number` i `input_number`.
+W pierwszej kolejności skonfiguruj ustawienia główne, wspólne dla wszystkich termostatów VTherm (patrz: [ustawienia główne](base-attributes.md)). Następnie skonfiguruj urządzenia. Podczas tworzenia termostatu _VTherm_ kreator wyświetla je po atrybutach podstawowych. Później wybierz z menu opcję "Urządzenia". To menu zawiera:
+- "Ustawienia wspólne": ustawienia wspólne dla wszystkich zaworów (algorytm, tryb AC, próg i okres regulacji, próg otwarcia, maksymalne zamknięcie),
+- po jednej pozycji dla każdego sterowanego zaworu, z jego encją i stopniami otwarcia,
+- "Dodaj urządzenie".
 
-![image](images/config-linked-entity3.png)
+"Dodaj urządzenie" najpierw pyta o encję `number` zaworu. Akceptowane są tu jedynie encje typu `number` i `input_number`. Następny ekran pokazuje ustawienia tego zaworu: jego minimalne i maksymalne otwarcie (patrz: [Sterowanie otwarciem zaworu](#sterowanie-otwarciem-zaworu)). Wybranie zaworu na liście pokazuje te same ustawienia oraz pola "Zamień encję" i "Usuń to urządzenie".
 
-Aktualnie dostępny algorytm to TPI. Zobacz: [algorytm](#algorithm).
+Pole "Algorytm" w ustawieniach wspólnych wybiera algorytm regulacji: wbudowany TPI lub algorytm zainstalowany jako wtyczka. Zobacz: [algorytmy](algorithms.md).
 
 ### Sterowanie otwarciem zaworu
 
@@ -39,7 +42,8 @@ każdego zaworu. Próg `opening_threshold_degree` jest oceniany na podstawie
 surowej wartości procentowej TPI. Poniżej progu wartość zadana wynosi
 `100 - max_closing_degree`. Następnie stosowany jest minimalny stopień
 otwarcia, a potem maksymalny stopień otwarcia. `opening_threshold_degree` i
-`max_closing_degree` dotyczą całego termostatu. Przy wartościach domyślnych
+`max_closing_degree` dotyczą całego termostatu i znajdują się w ustawieniach
+wspólnych. Przy wartościach domyślnych
 wysłane polecenie jest zgodne z surowym procentem TPI.
 
 Fizyczne polecenie nigdy nie spada poniżej `100 - max_closing_degree`, również
@@ -50,10 +54,17 @@ obserwowany zawór jest aktywny tylko powyżej skutecznego fizycznego minimum,
 ograniczonego także minimum encji. Przy uruchomieniu lub ponownym załadowaniu
 zawór bez zapotrzebowania wraca do tego minimum.
 
-`min_opening_degrees` oraz `max_opening_degrees` są listami CSV w kolejności
-zaworów podrzędnych. Niepełne listy są dozwolone: brakujące wartości używają
-ustawień domyślnych. Listy z większą liczbą wartości niż skonfigurowanych
-zaworów są odrzucane.
+Każdy zawór ma własne minimalne i maksymalne otwarcie, ustawiane w jego
+ustawieniach:
+1. "Minimalne otwarcie (%)" (`min_opening_degrees`): stosowane, gdy tylko
+	próg zostanie osiągnięty. Wartość domyślna to `0`.
+2. "Maksymalne otwarcie (%)" (`max_opening_degrees`): zawór nigdy nie otwiera
+	się bardziej niż ta wartość. Nie może ona przekraczać maksimum
+	obsługiwanego przez encję `number`, które jest wartością domyślną.
+
+Przy wartościach domyślnych (próg `0`, minimum `0`, maksimum zaworu,
+maksymalne zamknięcie `100`) polecenie wysyłane do zaworu jest zgodne z
+surowym procentem TPI.
 
 Możliwy jest wybór `termostatu na zaworze` do sterowania klimatyzatorem, jeśli dodatkowo wybierzesz opcję `Tryb AC`. W takm wypadku dostępny będzie jedynie tryb chłodzenia.
 

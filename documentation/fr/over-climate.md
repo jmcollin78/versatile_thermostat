@@ -32,12 +32,18 @@ L'installation doit ressembler à ça :
 ## Configuration
 
 Configurez d'abord les paramètres principaux et communs à tous les _VTherm_ (cf. [paramètres principaux](base-attributes.md)).
-Cliquez ensuite sur l'option de menu "Sous-jacents" et vous allez avoir cette page de configuration :
-
-![image](images/config-linked-entity2.png)
+Configurez ensuite les sous-jacents. À la création du _VTherm_, l'assistant les affiche après les principaux attributs. Ensuite, choisissez « Sous-jacents » dans le menu. Ce menu liste :
+- « Réglages communs » : les réglages partagés par tous les appareils (mode AC, synchronisation de la température interne, auto-régulation, auto-ventilation...). Avec le [contrôle direct de la vanne](self-regulation.md#auto-régulation-par-contrôle-direct-de-la-vanne) ou la [synchronisation de la température interne](feature-sync_device_temp.md), une deuxième page nommée « Régulation par vanne et synchronisation » suit, avec les réglages de ces fonctions partagés par tous les appareils,
+- une entrée par appareil piloté, avec son entité et ses propres réglages,
+- « Ajouter un appareil ».
 
 ### Les sous-jacents
-Dans la "liste des équipements à contrôler" vous mettez les entités `climate` qui vont être controllées par le VTherm. Seules les entités de type `climate` sont acceptées.
+« Ajouter un appareil » demande d'abord l'entité `climate` à piloter. Seules les entités de type `climate` sont acceptées. Ensuite :
+- avec le contrôle direct de la vanne, l'écran suivant demande les entités de la vanne et les ouvertures de cet appareil,
+- avec la synchronisation de la température interne, il demande l'entité de synchronisation de cet appareil,
+- sinon, l'appareil est ajouté directement.
+
+Les entités du même appareil physique sont proposées. Ouvrir un appareil dans la liste affiche ses réglages, avec « Remplacer l'entité » et « Supprimer cet appareil ».
 
 ### Le mode AC
 

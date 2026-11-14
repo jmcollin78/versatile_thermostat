@@ -34,22 +34,14 @@ Cette fonction nécessite :
 
 ## Configuration
 
-La configuration de cette fonction se fait en deux temps.
+Cette fonction se configure dans les sous-jacents du _VTherm_ :
+1. Dans les « Réglages communs », cochez « Synchronisation de la température interne de l'appareil » pour indiquer que vos équipements sont munis d'une des 2 fonctions de synchronisation de la température interne.
+2. La page suivante, « Régulation par vanne et synchronisation », a l'option « Application d'un calibrage ». Cochez-la pour choisir l'option 1. Sinon l'option 2 sera appliquée.
+3. Chaque appareil a ensuite besoin de son « Entité de synchronisation », demandée à l'ajout de l'appareil et affichée quand on l'ouvre dans la liste des sous-jacents :
+   1. l'entité `local_temperature_calibration` dans le cas 1,
+   2. l'entité `external_temperature_input` dans le cas 2.
 
-Dans la configuration des sous-jacents, vous indiquez que vos équipements sont munis d'une des 2 fonctions de synchronisation de la température interne en cochant l'option adaptée :
-
-![image](images/config-synchronize-device-temp.png)
-
-Cela ajoute un menu nommé `Synchronisation de la température de l'appareil` qu'il faudra configurer :
-
-![image](images/config-synchro.png)
-
-Vous devez cocher l'option `Application d'un calibrage` pour choisir l'option 1. Sinon l'option 2 sera appliquée.
-Ensuite vous donnez la liste des entités à piloter :
-1. soit la liste des entités de `local_temperature_calibration` si vous êtes dans le cas 1,
-2. soit la liste des entités de `external_temperature_input` si vous êtes dans le cas 2.
-
-Les entités doivent être dans l'ordre de déclaration des sous-jacents et il doit y en avoir le même nombre.
+Les entités du même appareil physique sont proposées. Un appareil sans entité de synchronisation est marqué ⚠ dans la liste, et la création ne peut pas être finalisée tant qu'elle n'est pas renseignée.
 
 > ![Astuce](images/tips.png) _*Notes*_
 > - Les deux modes sont mutuellement exclusifs. Vous ne pouvez en activer qu'un seul à la fois.

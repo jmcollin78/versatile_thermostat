@@ -4,7 +4,7 @@
 
 # Auswahl der grundlegenden Attribute
 
-Wählen Sie das Menü "Hauptmerkmale".
+Beim Erstellen eines _VTherm_ folgt dieser Bildschirm auf die Wahl des Typs. Später wählen Sie das Menü „Wichtigste Eigenschaften“.
 
 ![image](images/config-main.png)
 
@@ -23,7 +23,7 @@ Wählen Sie das Menü "Hauptmerkmale".
 
 ## Auswahl der zu verwendenden Eigenschaften
 
-Wählen Sie das Menü "Eigenschaften".
+Beim Erstellen eines _VTherm_ folgt dieser Bildschirm auf die Basiswerte und die TPI-Parameter. Später wählen Sie das Menü „Funktionen“.
 
 ![image](images/config-features.png)
 
@@ -38,12 +38,12 @@ Wählen Sie das Menü "Eigenschaften".
 
 > ![Tip](images/tips.png) _*Hinweise*_
 > 1. Die Liste der verfügbaren Eigenschaften passt sich an Ihren VTherm-Typ an.
-> 2. Wenn eine Eigenschaften aktiviert wurde, wird ein neuer Menüeintrag hinzugefügt, mit dem diese eigenschaft konfiguriert weird.
-> 3. Sie können die Erstellung eines VTherms nicht abschließen, wenn nicht alle Parameter für alle aktivierten Funktionen konfiguriert wurden.
+> 2. Wenn eine Eigenschaft aktiviert wurde, wird ein neuer Menüeintrag hinzugefügt, mit dem diese Eigenschaft konfiguriert wird. Beim Erstellen zeigt der Assistent ihren Bildschirm direkt nach dem Bildschirm „Funktionen“ an.
+> 3. Sie können die Erstellung eines VTherms nicht abschließen, wenn nicht alle Parameter für alle aktivierten Funktionen konfiguriert wurden. Die Menüoption „Konfiguration unvollständig“ listet dann auf, was fehlt.
 
 ## Nächster Schritt
 
-Konfigurieren Sie die gesteuerten Geräte (Menü „Basiswerte“) auf der Seite des gewählten Typs:
+Konfigurieren Sie die gesteuerten Geräte (Bildschirme „Basiswerte“ des Assistenten oder Menü „Basiswerte“) auf der Seite des gewählten Typs:
 
 - [`over_climate` Thermostattyp](over-climate.md): Thermostatventile, Wärmepumpen und Klimaanlagen mit `climate`-Entity
 - [`over_valve` Thermostattyp](over-valve.md): Ventile, die über eine `number`-Entity gesteuert werden
