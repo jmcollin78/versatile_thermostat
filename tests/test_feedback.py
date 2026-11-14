@@ -10,7 +10,7 @@ from homeassistant.const import STATE_ON, STATE_OFF
 from custom_components.versatile_thermostat.thermostat_prop import ThermostatProp
 from custom_components.versatile_thermostat.prop_algo_tpi import TpiAlgorithm
 from custom_components.versatile_thermostat.const import *
-from custom_components.versatile_thermostat.vtherm_hvac_mode import VThermHvacMode_OFF
+from custom_components.versatile_thermostat.vtherm_hvac_mode import VThermHvacMode_HEAT, VThermHvacMode_OFF
 
 from .commons import *
 
@@ -102,7 +102,7 @@ async def test_feedback_no_algo_method(hass: HomeAssistant, mock_prop_thermostat
     # Should not raise
     assert entity.on_percent == 0.1
 
-async def test_feedback_timing(hass: HomeAssistant, mock_prop_thermostat):
+async def test_feedback_timing(hass: HomeAssistant, mock_prop_thermostat, monkeypatch):
     """Test that update_realized_power is called when timing forces changes."""
     entity = mock_prop_thermostat
     
@@ -123,15 +123,15 @@ async def test_feedback_timing(hass: HomeAssistant, mock_prop_thermostat):
     # Ensure the mock HAS the method (MagicMock spec can sometimes be tricky with hasattr)
     entity._prop_algorithm.update_realized_power = MagicMock()
 
+    # The cycle scheduler receives the demand; heating mode keeps control_heating on the cycle path
+    entity._cycle_scheduler = MagicMock(start_cycle=AsyncMock())
+    monkeypatch.setattr(ThermostatProp, "vtherm_hvac_mode", property(lambda self: VThermHvacMode_HEAT))
+
     # CASE 1: on_percent too low -> forced to 0
     # 0.01 * 600 = 6 sec < 300 sec -> failure -> 0
     entity._prop_algorithm.on_percent = 0.01
     
-    # Call _get_tpi_data (where the logic resides)
-    data = await handler._get_tpi_data()
-    
-    assert data["on_time_sec"] == 0
-    assert data["off_time_sec"] == 600
+    await handler.control_heating()
     
     # Check if called at all
     assert entity._prop_algorithm.update_realized_power.called
@@ -146,10 +146,7 @@ async def test_feedback_timing(hass: HomeAssistant, mock_prop_thermostat):
     entity.minimal_deactivation_delay = 300
     entity._prop_algorithm.on_percent = 0.99
     
-    data = await handler._get_tpi_data()
-    
-    assert data["on_time_sec"] == 600
-    assert data["off_time_sec"] == 0
+    await handler.control_heating()
     
     # Verify feedback was sent with 1.0 (realized percent)
     entity._prop_algorithm.update_realized_power.assert_called_with(1.0)

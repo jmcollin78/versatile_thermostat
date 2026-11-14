@@ -1,5 +1,6 @@
 """Test the AutoTpiManager class."""
 import pytest
+from types import SimpleNamespace
 from unittest.mock import MagicMock, patch, AsyncMock
 from datetime import datetime, timedelta, timezone
 
@@ -39,6 +40,7 @@ from custom_components.versatile_thermostat.const import (
     DOMAIN,
 )
 from custom_components.versatile_thermostat.prop_handler_tpi import TPIHandler
+from custom_components.versatile_thermostat.prop_algo_tpi import TpiAlgorithm
 from custom_components.versatile_thermostat.thermostat_prop import ThermostatProp
 from custom_components.versatile_thermostat.vtherm_hvac_mode import VThermHvacMode_HEAT
 from homeassistant.components.climate.const import HVACMode, PRESET_NONE
@@ -755,3 +757,86 @@ async def test_auto_tpi_realized_power_integration(
     
     await manager.on_cycle_completed(0.5)
     assert manager.state.last_power == 0.5 # Realized matches clamped
+
+
+class _FakeTpiThermostat:
+    """Minimal thermostat double exposing what TPIHandler reads."""
+
+    def __init__(self, coef_int, coef_ext, room_temp, ext_temp, target_temp):
+        self.prop_algorithm = TpiAlgorithm(coef_int, coef_ext, "climate.fake_tpi")
+        self.tpi_coef_int = coef_int
+        self.tpi_coef_ext = coef_ext
+        self.current_temperature = room_temp
+        self.current_outdoor_temperature = ext_temp
+        self.target_temperature = target_temp
+        self.vtherm_hvac_mode = VThermHvacMode_HEAT
+        self.cycle_min = 30
+        self.minimal_activation_delay = 300
+        self.minimal_deactivation_delay = 300
+        self.is_used_by_central_boiler = False
+        self.entity_id = "climate.fake_tpi"
+        self.entry_infos = {CONF_AUTO_TPI_MODE: True}
+        self.power_manager = SimpleNamespace(is_overpowering_detected=False)
+        self.cycle_scheduler = SimpleNamespace(start_cycle=AsyncMock())
+
+    @property
+    def on_percent(self):
+        """Effective on_percent, as read by the handler."""
+        return self.prop_algorithm.on_percent
+
+    def recalculate(self, force=False):
+        """Recompute the algorithm demand from the current temperatures."""
+        self.prop_algorithm.calculate(
+            self.target_temperature,
+            self.current_temperature,
+            self.current_outdoor_temperature,
+            None,
+            self.vtherm_hvac_mode,
+        )
+
+
+async def test_control_heating_recalculates_demand_after_auto_tpi_coef_sync():
+    """The cycle must use a demand computed with the synchronized coefficients."""
+    thermostat = _FakeTpiThermostat(0.6, 0.01, room_temp=19.1, ext_temp=9.3, target_temp=21.5)
+    # Demand cached with the configured coefficients: saturated at 100%
+    thermostat.recalculate()
+    assert thermostat.on_percent == 1.0
+
+    auto_tpi_manager = MagicMock()
+    auto_tpi_manager.learning_active = True
+    auto_tpi_manager.update = AsyncMock()
+    auto_tpi_manager.calculate = AsyncMock(return_value={CONF_TPI_COEF_INT: 0.068, CONF_TPI_COEF_EXT: 0.0088})
+
+    handler = TPIHandler(thermostat)
+    handler._auto_tpi_manager = auto_tpi_manager
+
+    await handler.control_heating(force=True)
+
+    assert thermostat.prop_algorithm.tpi_coef_int == 0.068
+    assert thermostat.prop_algorithm.tpi_coef_ext == 0.0088
+    # 0.068 * 2.4 + 0.0088 * 12.2 = 0.27
+    thermostat.cycle_scheduler.start_cycle.assert_awaited_once_with(VThermHvacMode_HEAT, 0.27, True)
+
+
+async def test_added_to_hass_applies_learned_coefs_to_algorithm():
+    """Restored learned coefficients must reach the algorithm, not only the thermostat."""
+    thermostat = _FakeTpiThermostat(0.6, 0.01, room_temp=19.1, ext_temp=9.3, target_temp=21.5)
+
+    auto_tpi_manager = MagicMock()
+    auto_tpi_manager.learning_active = True
+    auto_tpi_manager.async_load_data = AsyncMock()
+    auto_tpi_manager.get_calculated_params.return_value = {CONF_TPI_COEF_INT: 0.068, CONF_TPI_COEF_EXT: 0.0088}
+
+    handler = TPIHandler(thermostat)
+    handler._auto_tpi_manager = auto_tpi_manager
+
+    await handler.async_added_to_hass()
+
+    assert thermostat.tpi_coef_int == 0.068
+    assert thermostat.tpi_coef_ext == 0.0088
+    assert thermostat.prop_algorithm.tpi_coef_int == 0.068
+    assert thermostat.prop_algorithm.tpi_coef_ext == 0.0088
+
+    # The first demand computation uses the learned coefficients
+    thermostat.recalculate()
+    assert thermostat.on_percent == 0.27
