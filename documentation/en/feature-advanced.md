@@ -83,11 +83,11 @@ The advanced configuration form is as follows:
 
 ## Safety Parameters
 
-| Parameter | Description | Default Value | Attribute Name |
-| --- | --- | --- | --- |
-| **Maximum delay before safety mode** | Maximum allowed delay between two temperature measurements before the _VTherm_ enters safety mode. If no new measurement is received after this delay, safety mode activates. | 60 minutes | `safety_delay_min` |
-| **Minimum `on_percent` threshold for safety** | Minimum percentage of `on_percent` below which safety mode does not activate. This avoids activating safety mode when the radiator is running very little (`on_percent` low), as there is no immediate risk of overheating. `0.00` always activates the mode, `1.00` completely disables it. | 0.5 (50%) | `safety_min_on_percent` |
-| **Default `on_percent` value in safety mode** | The heating power used when the thermostat is in safety mode. `0` completely stops heating (risk of freezing), `0.1` maintains minimum heating to prevent freezing in case of prolonged thermometer failure. | 0.1 (10%) | `safety_default_on_percent` |
+| Parameter                                     | Description                                                                                                                                                                                                                                                                                  | Default Value | Attribute Name              |
+| --------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------- | --------------------------- |
+| **Maximum delay before safety mode**          | Maximum allowed delay between two temperature measurements before the _VTherm_ enters safety mode. If no new measurement is received after this delay, safety mode activates.                                                                                                                | 60 minutes    | `safety_delay_min`          |
+| **Minimum `on_percent` threshold for safety** | Minimum percentage of `on_percent` below which safety mode does not activate. This avoids activating safety mode when the radiator is running very little (`on_percent` low), as there is no immediate risk of overheating. `0.00` always activates the mode, `1.00` completely disables it. | 0.5 (50%)     | `safety_min_on_percent`     |
+| **Default `on_percent` value in safety mode** | The heating power used when the thermostat is in safety mode. `0` completely stops heating (risk of freezing), `0.1` maintains minimum heating to prevent freezing in case of prolonged thermometer failure.                                                                                 | 0.1 (10%)     | `safety_default_on_percent` |
 
 ## Exposed Attributes
 
@@ -159,9 +159,9 @@ versatile_thermostat:
 
 The **Manual override duration** parameter (`manual_override_duration_min`, in minutes) makes _VTherm_ revert automatically to the previous preset some time after a manual change of the target temperature. It is defined in the central configuration and can be overridden per _VTherm_ in its own advanced configuration.
 
-| Parameter | Description | Default Value |
-| --- | --- | --- |
-| **Manual override duration** | Duration in minutes after which a manual temperature change is reverted to the previous preset. `0` disables the feature. | 0 |
+| Parameter                    | Description                                                                                                               | Default Value |
+| ---------------------------- | ------------------------------------------------------------------------------------------------------------------------- | ------------- |
+| **Manual override duration** | Duration in minutes after which a manual temperature change is reverted to the previous preset. `0` disables the feature. | 0             |
 
 See [manual override with automatic revert](feature-timed-preset.md#manual-override-with-automatic-revert) for the detailed behaviour.
 
@@ -198,6 +198,8 @@ On each thermostat control cycle, the feature:
 4. **Counts attempts**: the number of consecutive repairs is limited to avoid infinite loops
 5. **Controls activation delay**: the feature only activates after a minimum delay to let equipment finish initializing
 
+Each underlying is checked only after 10 seconds without a successful command to that object. The next existing control cycle performs the check; frequent commands, including keep-alive, can postpone it indefinitely.
+
 ### Configuration
 
 This feature is configured in the _VTherm_ configuration interface:
@@ -208,9 +210,9 @@ This feature is configured in the _VTherm_ configuration interface:
 
 ### Parameters
 
-| Parameter | Description | Default Value |
-| --- | --- | --- |
-| **Fix incorrect state** | Enables or disables automatic detection and repair of state discrepancies. When enabled, each detected discrepancy triggers a command resend. | Disabled |
+| Parameter               | Description                                                                         | Default Value |
+| ----------------------- | ----------------------------------------------------------------------------------- | ------------- |
+| **Fix incorrect state** | Enables or disables automatic detection and repair of eligible state discrepancies. | Disabled      |
 
 > ![Tip](images/tips.png) _*Internal System Parameters*_
 >

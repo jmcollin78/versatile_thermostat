@@ -5,6 +5,7 @@
     - [Minimální doba aktivace](#minimální-doba-aktivace)
     - [Bezpečnostní režim](#bezpečnostní-režim)
   - [Doba ručního přepsání](#doba-ručního-přepsání)
+  - [Oprava nesprávného stavu zařízení](#oprava-nesprávného-stavu-zařízení)
 
 Tato nastavení dolaďují provoz termostatu, zejména bezpečnostní mechanismus _VTherm_. Chybějící teplotní senzory (místnosti nebo venkovní) mohou představovat riziko pro váš domov. Pokud se například teplotní senzor zasekne na 10°C, _VTherm_ typu `over_climate` nebo `over_valve` bude nařizovat maximální vytápění podkladových zařízení, což by mohlo vést k přehřátí místnosti nebo dokonce k poškození majetku, v nejhorším případě k požáru.
 
@@ -61,9 +62,21 @@ Ve výchozím nastavení může venkovní teploměr spustit Bezpečnostní reži
 
 Parametr **Doba ručního přepsání** (`manual_override_duration_min`, v minutách) umožňuje, aby se _VTherm_ nějakou dobu po ruční změně cílové teploty automaticky vrátil k předchozímu presetu. Definuje se v centrální konfiguraci a lze ho přepsat ve vlastní pokročilé konfiguraci každého _VTherm_.
 
-| Parametr | Popis | Výchozí hodnota |
-| --- | --- | --- |
-| **Doba ručního přepsání** | Doba v minutách, po které se ruční změna teploty vrátí na předchozí preset. `0` funkci vypíná. | 0 |
+| Parametr                  | Popis                                                                                          | Výchozí hodnota |
+| ------------------------- | ---------------------------------------------------------------------------------------------- | --------------- |
+| **Doba ručního přepsání** | Doba v minutách, po které se ruční změna teploty vrátí na předchozí preset. `0` funkci vypíná. | 0               |
 
 Podrobné chování viz [ruční přepsání s automatickým návratem](feature-timed-preset.md#ruční-přepsání-s-automatickým-návratem).
+
+## Oprava nesprávného stavu zařízení
+
+Volba `repair_incorrect_state` v pokročilé konfiguraci _VTherm_ zapíná automatickou kontrolu a opravu nesprávného stavu ovládaných zařízení. Ve výchozím nastavení je vypnutá. Pokud používáte centrální pokročilou konfiguraci, nastavte volbu v ní nebo její použití pro daný termostat vypněte.
+
+Funkce porovnává skutečný stav s očekávaným stavem: zapnutí/vypnutí u spínačů, režim HVAC u zařízení `climate` a otevření u ventilů. Při zjištěném rozdílu znovu odešle odpovídající příkaz. Samotný rozdíl cílové teploty opravu nespouští.
+
+Každé ovládané zařízení se kontroluje až po uplynutí nejméně 10 sekund od posledního úspěšně odeslaného příkazu tomuto objektu. Kontrola proběhne v následujícím existujícím řídicím cyklu; časté příkazy včetně keep-alive ji mohou odkládat neomezeně. Nový časovač se nevytváří a není zaručena maximální doba do opravy.
+
+Funkce se aktivuje nejdříve 30 sekund po dokončení inicializace termostatu. Počet po sobě jdoucích oprav je omezen na 5, poté se opravy dočasně pozastaví. Stav funkce a počet pokusů jsou dostupné v atributech `is_repair_incorrect_state_configured` a `repair_incorrect_state_manager`.
+
+Opětovné odeslání cílové teploty 2 sekundy po příkazu HEAT/COOL zůstává samostatným mechanismem, a to i po opravě režimu HVAC. Desetisekundová prodleva opravy tento mechanismus nemění.
 

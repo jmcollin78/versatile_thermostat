@@ -159,9 +159,9 @@ versatile_thermostat:
 
 Le paramètre **Durée de dérogation manuelle** (`manual_override_duration_min`, en minutes) permet à _VTherm_ de revenir automatiquement au preset précédent quelque temps après un changement manuel de la température cible. Il est défini dans la configuration centrale et peut être surchargé dans la configuration avancée propre à chaque _VTherm_.
 
-| Paramètre | Description | Valeur par défaut |
-| --- | --- | --- |
-| **Durée de dérogation manuelle** | Durée en minutes au bout de laquelle un changement manuel de température est annulé au profit du preset précédent. `0` désactive la fonction. | 0 |
+| Paramètre                        | Description                                                                                                                                   | Valeur par défaut |
+| -------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------- | ----------------- |
+| **Durée de dérogation manuelle** | Durée en minutes au bout de laquelle un changement manuel de température est annulé au profit du preset précédent. `0` désactive la fonction. | 0                 |
 
 Voir [dérogation manuelle avec retour automatique](feature-timed-preset.md#dérogation-manuelle-avec-retour-automatique) pour le fonctionnement détaillé.
 
@@ -198,6 +198,8 @@ Cette fonctionnalité est particulièrement utile pour :
 4. **Compte les tentatives** : le nombre de réparations consécutives est limité pour éviter les boucles infinies
 5. **Contrôle le délai d'activation** : la fonctionnalité ne s'active qu'après un délai minimum pour laisser les équipements finir leur initialisation
 
+Chaque équipement sous-jacent est contrôlé après 10 secondes sans commande envoyée avec succès à cet objet. Le contrôle a lieu au prochain cycle existant ; des commandes fréquentes, notamment le keep-alive, peuvent le reporter indéfiniment.
+
 ### Configuration
 
 Cette fonctionnalité se configure dans l'interface de configuration du _VTherm_ :
@@ -208,9 +210,9 @@ Cette fonctionnalité se configure dans l'interface de configuration du _VTherm_
 
 ### Paramètres
 
-| Paramètre                    | Description                                                                                                                                                         | Valeur par défaut |
-| ---------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------- |
-| **Reparer l'état incorrect** | Active ou désactive la détection et réparation automatique des discordances d'état. Quand activée, chaque discordance détectée provoque un re-envoi de la commande. | Désactivé         |
+| Paramètre                    | Description                                                                                   | Valeur par défaut |
+| ---------------------------- | --------------------------------------------------------------------------------------------- | ----------------- |
+| **Reparer l'état incorrect** | Active ou désactive la détection et réparation automatique des discordances d'état éligibles. | Désactivé         |
 
 > ![Astuce](images/tips.png) _*Paramètres système internes*_
 >

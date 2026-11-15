@@ -80,11 +80,11 @@ Formularz konfiguracji zaawansowanej wygląda następująco:
 
 ## Parametry bezpieczeństwa
 
-| Parametr | Opis | Wartość domyślna | Nazwa atrybutu |
-| --- | --- | --- | --- |
-| **Maksymalne opóźnienie przed trybem bezpieczeństwa** | Maksymalne dopuszczalne opóźnienie między dwoma pomiarami temperatury zanim _VTherm_ wejdzie w tryb bezpieczeństwa. Jeśli po tym opóźnieniu nie będzie otrzymany nowy pomiar, tryb bezpieczeństwa się aktywuje. | 60 minut | `safety_delay_min` |
-| **Minimalna wartość progu `on_percent` dla bezpieczeństwa** | Minimalna wartość procentowa `on_percent` poniżej której tryb bezpieczeństwa się nie aktywuje. Unika aktywacji trybu bezpieczeństwa, gdy grzejnik pracuje bardzo mało (`on_percent` niski), ponieważ nie ma natychmiastowego ryzyka przegrzania. `0.00` zawsze aktywuje tryb, `1.00` go całkowicie wyłącza. | 0.5 (50%) | `safety_min_on_percent` |
-| **Domyślna wartość `on_percent` w trybie bezpieczeństwa** | Moc grzewcza używana, gdy termostat jest w trybie bezpieczeństwa. `0` całkowicie wyłącza grzanie (ryzyko zamarzania), `0.1` utrzymuje minimalne grzanie, aby zapobiec zamarzaniu w przypadku długotrwałego awarii termometru. | 0.1 (10%) | `safety_default_on_percent` |
+| Parametr                                                    | Opis                                                                                                                                                                                                                                                                                                        | Wartość domyślna | Nazwa atrybutu              |
+| ----------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------- | --------------------------- |
+| **Maksymalne opóźnienie przed trybem bezpieczeństwa**       | Maksymalne dopuszczalne opóźnienie między dwoma pomiarami temperatury zanim _VTherm_ wejdzie w tryb bezpieczeństwa. Jeśli po tym opóźnieniu nie będzie otrzymany nowy pomiar, tryb bezpieczeństwa się aktywuje.                                                                                             | 60 minut         | `safety_delay_min`          |
+| **Minimalna wartość progu `on_percent` dla bezpieczeństwa** | Minimalna wartość procentowa `on_percent` poniżej której tryb bezpieczeństwa się nie aktywuje. Unika aktywacji trybu bezpieczeństwa, gdy grzejnik pracuje bardzo mało (`on_percent` niski), ponieważ nie ma natychmiastowego ryzyka przegrzania. `0.00` zawsze aktywuje tryb, `1.00` go całkowicie wyłącza. | 0.5 (50%)        | `safety_min_on_percent`     |
+| **Domyślna wartość `on_percent` w trybie bezpieczeństwa**   | Moc grzewcza używana, gdy termostat jest w trybie bezpieczeństwa. `0` całkowicie wyłącza grzanie (ryzyko zamarzania), `0.1` utrzymuje minimalne grzanie, aby zapobiec zamarzaniu w przypadku długotrwałego awarii termometru.                                                                               | 0.1 (10%)        | `safety_default_on_percent` |
 
 ## Udostępniane atrybuty
 
@@ -156,9 +156,9 @@ versatile_thermostat:
 
 Parametr **Czas ręcznego nadpisania** (`manual_override_duration_min`, w minutach) sprawia, że _VTherm_ automatycznie wraca do poprzedniego presetu po pewnym czasie od ręcznej zmiany temperatury docelowej. Definiuje się go w konfiguracji centralnej i można go nadpisać we własnej konfiguracji zaawansowanej każdego _VTherm_.
 
-| Parametr | Opis | Wartość domyślna |
-| --- | --- | --- |
-| **Czas ręcznego nadpisania** | Czas w minutach, po którym ręczna zmiana temperatury jest cofana na rzecz poprzedniego presetu. `0` wyłącza funkcję. | 0 |
+| Parametr                     | Opis                                                                                                                 | Wartość domyślna |
+| ---------------------------- | -------------------------------------------------------------------------------------------------------------------- | ---------------- |
+| **Czas ręcznego nadpisania** | Czas w minutach, po którym ręczna zmiana temperatury jest cofana na rzecz poprzedniego presetu. `0` wyłącza funkcję. | 0                |
 
 Szczegółowe działanie opisano w sekcji [ręczne nadpisanie z automatycznym powrotem](feature-timed-preset.md#ręczne-nadpisanie-z-automatycznym-powrotem).
 
@@ -195,6 +195,8 @@ W każdym cyklu sterowania termostatem funkcja:
 4. **Liczy próby**: liczba kolejnych napraw jest ograniczona, aby uniknąć pętli nieskończonych
 5. **Steruje opóźnieniem aktywacji**: funkcja aktywuje się tylko po opóźnieniu minimalnym, aby urządzenia mogły zakończyć inicjalizację
 
+Każde urządzenie podrzędne jest sprawdzane dopiero po upływie co najmniej 10 sekund od ostatniego pomyślnego wysłania polecenia do tego obiektu. Sprawdzenie następuje w kolejnym istniejącym cyklu sterowania; częste polecenia, w tym keep-alive, mogą je odraczać bez końca.
+
 ### Konfiguracja
 
 Ta funkcja jest konfigurowana w interfejsie konfiguracji _VTherm_:
@@ -206,9 +208,9 @@ Ta funkcja jest konfigurowana w interfejsie konfiguracji _VTherm_:
 
 ### Parametry
 
-| Parametr | Opis | Wartość domyślna |
-| --- | --- | --- |
-| **Napraw nieprawidłowy stan** | Włącza lub wyłącza automatyczną detekcję i naprawę różnic stanu. Gdy włączone, każda wykryta różnica powoduje ponowne wysłanie polecenia. | Wyłączono |
+| Parametr                      | Opis                                                                                                  | Wartość domyślna |
+| ----------------------------- | ----------------------------------------------------------------------------------------------------- | ---------------- |
+| **Napraw nieprawidłowy stan** | Włącza lub wyłącza automatyczne wykrywanie i naprawę różnic stanu kwalifikujących się do sprawdzenia. | Wyłączono        |
 
 > ![Porada](images/tips.png) _*Wewnętrzne parametry systemu*_
 >

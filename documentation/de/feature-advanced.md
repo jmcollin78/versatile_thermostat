@@ -83,11 +83,11 @@ Das Formular für erweiterte Konfiguration sieht wie folgt aus:
 
 ## Sicherheitsparameter
 
-| Parameter | Beschreibung | Standardwert | Attributname |
-| --- | --- | --- | --- |
-| **Maximale Verzögerung vor Sicherheitsmodus** | Maximal zulässige Verzögerung zwischen zwei Temperaturmessungen, bevor _VTherm_ in den Sicherheitsmodus wechselt. Falls nach dieser Verzögerung keine neue Messung empfangen wird, wird der Sicherheitsmodus aktiviert. | 60 Minuten | `safety_delay_min` |
-| **Minimaler `on_percent`-Schwellenwert für Sicherheit** | Mindestprozentsatz von `on_percent`, unter dem der Sicherheitsmodus nicht aktiviert wird. Dies verhindert die Aktivierung des Sicherheitsmodus, wenn der Heizkörper sehr wenig läuft (`on_percent` niedrig), da kein unmittelbares Überhitzungsrisiko besteht. `0.00` aktiviert immer den Modus, `1.00` deaktiviert ihn vollständig. | 0.5 (50%) | `safety_min_on_percent` |
-| **Standard-`on_percent`-Wert im Sicherheitsmodus** | Die Heizleistung, die verwendet wird, wenn sich der Thermostat im Sicherheitsmodus befindet. `0` stoppt die Heizung vollständig (Gefrierrisiko), `0.1` behält minimale Heizung bei, um Gefrieren bei längerer Sensorausfallzeit zu verhindern. | 0.1 (10%) | `safety_default_on_percent` |
+| Parameter                                               | Beschreibung                                                                                                                                                                                                                                                                                                                         | Standardwert | Attributname                |
+| ------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------ | --------------------------- |
+| **Maximale Verzögerung vor Sicherheitsmodus**           | Maximal zulässige Verzögerung zwischen zwei Temperaturmessungen, bevor _VTherm_ in den Sicherheitsmodus wechselt. Falls nach dieser Verzögerung keine neue Messung empfangen wird, wird der Sicherheitsmodus aktiviert.                                                                                                              | 60 Minuten   | `safety_delay_min`          |
+| **Minimaler `on_percent`-Schwellenwert für Sicherheit** | Mindestprozentsatz von `on_percent`, unter dem der Sicherheitsmodus nicht aktiviert wird. Dies verhindert die Aktivierung des Sicherheitsmodus, wenn der Heizkörper sehr wenig läuft (`on_percent` niedrig), da kein unmittelbares Überhitzungsrisiko besteht. `0.00` aktiviert immer den Modus, `1.00` deaktiviert ihn vollständig. | 0.5 (50%)    | `safety_min_on_percent`     |
+| **Standard-`on_percent`-Wert im Sicherheitsmodus**      | Die Heizleistung, die verwendet wird, wenn sich der Thermostat im Sicherheitsmodus befindet. `0` stoppt die Heizung vollständig (Gefrierrisiko), `0.1` behält minimale Heizung bei, um Gefrieren bei längerer Sensorausfallzeit zu verhindern.                                                                                       | 0.1 (10%)    | `safety_default_on_percent` |
 
 ## Verfügbare Attribute
 
@@ -159,9 +159,9 @@ versatile_thermostat:
 
 Der Parameter **Dauer der manuellen Übersteuerung** (`manual_override_duration_min`, in Minuten) lässt _VTherm_ einige Zeit nach einer manuellen Änderung der Zieltemperatur automatisch zur vorherigen Voreinstellung zurückkehren. Er wird in der zentralen Konfiguration definiert und kann in der eigenen erweiterten Konfiguration jedes _VTherm_ überschrieben werden.
 
-| Parameter | Beschreibung | Standardwert |
-| --- | --- | --- |
-| **Dauer der manuellen Übersteuerung** | Dauer in Minuten, nach der eine manuelle Temperaturänderung zugunsten der vorherigen Voreinstellung zurückgenommen wird. `0` deaktiviert die Funktion. | 0 |
+| Parameter                             | Beschreibung                                                                                                                                           | Standardwert |
+| ------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------ |
+| **Dauer der manuellen Übersteuerung** | Dauer in Minuten, nach der eine manuelle Temperaturänderung zugunsten der vorherigen Voreinstellung zurückgenommen wird. `0` deaktiviert die Funktion. | 0            |
 
 Siehe [manuelle Übersteuerung mit automatischer Rückkehr](feature-timed-preset.md#manuelle-übersteuerung-mit-automatischer-rückkehr) für das genaue Verhalten.
 
@@ -198,6 +198,8 @@ Bei jedem Thermostat-Regelzyklus führt die Funktion folgende Schritte durch:
 4. **Zählt Versuche**: die Anzahl der Reparaturen wird begrenzt, um Endlosschleifen zu vermeiden
 5. **Steuert die Aktivierungsverzögerung**: die Funktion wird nur nach einer Mindestverzögerung aktiviert, damit die Geräte ihre Initialisierung abschließen können
 
+Jedes zugrunde liegende Gerät wird erst geprüft, wenn seit dem letzten erfolgreich an dieses Objekt gesendeten Befehl mindestens 10 Sekunden vergangen sind. Die Prüfung erfolgt im nächsten regulären Regelzyklus; häufige Befehle, einschließlich Keep-alive, können sie unbegrenzt verschieben.
+
 ### Konfiguration
 
 Diese Funktion wird in der _VTherm_-Konfigurationsoberfläche konfiguriert:
@@ -208,9 +210,9 @@ Diese Funktion wird in der _VTherm_-Konfigurationsoberfläche konfiguriert:
 
 ### Parameter
 
-| Parameter | Beschreibung | Standardwert |
-| --- | --- | --- |
-| **Falschen Status reparieren** | Aktiviert oder deaktiviert die automatische Erkennung und Reparatur von Zustandsabweichungen. Wenn aktiviert, wird bei jeder erkannten Abweichung der Befehl erneut gesendet. | Deaktiviert |
+| Parameter                      | Beschreibung                                                                                                                     | Standardwert |
+| ------------------------------ | -------------------------------------------------------------------------------------------------------------------------------- | ------------ |
+| **Falschen Status reparieren** | Aktiviert oder deaktiviert die automatische Erkennung und Reparatur von Zustandsabweichungen, für die eine Prüfung zulässig ist. | Deaktiviert  |
 
 > ![Tipp](images/tips.png) _*Interne Systemparameter*_
 >
