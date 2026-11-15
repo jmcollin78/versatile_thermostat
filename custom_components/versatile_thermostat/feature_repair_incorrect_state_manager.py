@@ -3,13 +3,14 @@
 """Implements the Repair Incorrect State feature as a Feature Manager"""
 
 from typing import Any
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 
 from homeassistant.core import HomeAssistant
 
 from .const import (
     CONF_REPAIR_INCORRECT_STATE,
     DEFAULT_REPAIR_INCORRECT_STATE,
+    REPAIR_COMMAND_GRACE_SEC,
     REPAIR_MAX_ATTEMPTS,
     REPAIR_MIN_DELAY_AFTER_INIT_SEC,
     overrides,
@@ -129,6 +130,13 @@ class FeatureRepairIncorrectStateManager(BaseFeatureManager):
         repaired = False
         # build a list of underlying to repair as the vtherm.underlyings concatened to the list of vtherm.underlyings_valve_regulation if it exists
         for underlying in self._vtherm.all_underlying_entities:
+            if self._vtherm.now < underlying.last_command_sent_datetime + timedelta(seconds=REPAIR_COMMAND_GRACE_SEC):
+                _LOGGER.debug(
+                    "%s - RepairIncorrectStateManager: skipping underlying %s due to grace period",
+                    self,
+                    underlying.entity_id,
+                )
+                continue
             _LOGGER.debug("%s - RepairIncorrectStateManager: checking underlying %s for state discrepancies", self, underlying.entity_id)
             repaired_this = await underlying.check_and_repair()
             if repaired_this:

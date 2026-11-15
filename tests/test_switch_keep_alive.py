@@ -1,11 +1,16 @@
 """Test the switch keep-alive feature."""
+# pylint: disable=redefined-outer-name, line-too-long, protected-access
 import logging
 from collections.abc import AsyncGenerator, Callable, Awaitable
 from dataclasses import dataclass
-from unittest.mock import ANY, _Call, call, patch
-from datetime import datetime, timedelta
+from unittest.mock import ANY, _Call, AsyncMock, MagicMock, call, patch
+from datetime import datetime, timedelta, timezone
 from typing import cast
 
+from homeassistant.exceptions import ServiceNotFound
+
+from custom_components.versatile_thermostat.feature_repair_incorrect_state_manager import FeatureRepairIncorrectStateManager
+from custom_components.versatile_thermostat.underlyings import UnderlyingSwitch
 from custom_components.versatile_thermostat.keep_alive import BackoffTimer
 from custom_components.versatile_thermostat.thermostat_switch import (
     ThermostatOverSwitch,
@@ -13,6 +18,81 @@ from custom_components.versatile_thermostat.thermostat_switch import (
 from .commons import *  # pylint: disable=wildcard-import, unused-wildcard-import
 
 logging.getLogger().setLevel(logging.DEBUG)
+
+
+@pytest.mark.parametrize("inverse, custom", [(False, False), (True, False), (False, True), (True, True)])
+@pytest.mark.parametrize("turn_on", [False, True])
+async def test_switch_command_timestamps_actual_service(hass: HomeAssistant, inverse, custom, turn_on):
+    """Successful normal, inverse and custom commands timestamp the direct service call."""
+    now = datetime.now(timezone.utc)
+    thermostat = MagicMock()
+    thermostat.now = now
+    thermostat.is_inversed = inverse
+    switch = UnderlyingSwitch(hass, thermostat, "switch.test", 0, "open/position:on" if custom else None, "close/position:off" if custom else None)
+    with patch.object(switch, "check_overpowering", new=AsyncMock(return_value=True)), patch("homeassistant.core.ServiceRegistry.async_call", new_callable=AsyncMock) as service:
+        await (switch.turn_on() if turn_on else switch.turn_off())
+    expected = switch._on_command if turn_on else switch._off_command
+    service.assert_awaited_once_with("switch", expected["command"], expected["data"])
+    assert switch.last_command_sent_datetime == now
+    assert switch._is_on_part_running is turn_on
+
+
+@pytest.mark.parametrize("turn_on, failure", [(turn_on, failure) for turn_on in (False, True) for failure in ("blocked", "missing", "error", "rearm")] + [(True, "power")])
+async def test_switch_command_timestamp_failures(hass: HomeAssistant, turn_on, failure):
+    """A failed or blocked send does not timestamp; a failure after success does."""
+    now = datetime.now(timezone.utc)
+    thermostat = MagicMock()
+    thermostat.now = now
+    thermostat.is_inversed = False
+    thermostat.update_states = AsyncMock()
+    switch = UnderlyingSwitch(hass, thermostat, "switch.test", 0)
+    original = switch.last_command_sent_datetime
+    error = ServiceNotFound("switch", "turn_on") if failure == "missing" else RuntimeError("service failure")
+    with (
+        patch.object(switch, "is_command_blocked", return_value=failure == "blocked"),
+        patch.object(switch, "check_overpowering", new=AsyncMock(return_value=failure != "power")),
+        patch.object(switch._keep_alive, "set_async_action", side_effect=error if failure == "rearm" else None),
+        patch("homeassistant.core.ServiceRegistry.async_call", new_callable=AsyncMock, side_effect=error if failure in ("missing", "error") else None) as service,
+    ):
+        if failure in ("error", "rearm"):
+            with pytest.raises(RuntimeError):
+                await (switch.turn_on() if turn_on else switch.turn_off())
+        else:
+            await (switch.turn_on() if turn_on else switch.turn_off())
+    assert switch.last_command_sent_datetime == (now if failure == "rearm" else original)
+    assert service.await_count == int(failure not in ("blocked", "power"))
+
+
+async def test_keep_alive_renews_manager_grace(hass: HomeAssistant):
+    """Repeated successful keep-alive sends postpone only this switch's check."""
+    now = datetime.now(timezone.utc)
+    thermostat = MagicMock()
+    thermostat.now = now
+    thermostat.name = "thermostat"
+    thermostat.is_ready = True
+    thermostat.is_inversed = False
+    switch = UnderlyingSwitch(hass, thermostat, "switch.test", 0)
+    switch._is_on_part_running = True
+    thermostat.all_underlying_entities = [switch]
+    manager = FeatureRepairIncorrectStateManager(thermostat, hass)
+    manager.post_init({CONF_REPAIR_INCORRECT_STATE: True})
+    manager._ready_start_time = now - timedelta(seconds=31)
+    with (
+        patch("homeassistant.core.StateMachine.get", return_value=State("switch.test", "on")),
+        patch("homeassistant.core.ServiceRegistry.async_call", new_callable=AsyncMock) as service,
+        patch.object(switch, "check_overpowering", new=AsyncMock(return_value=True)),
+        patch.object(switch, "check_and_repair", new=AsyncMock(return_value=True)) as check,
+    ):
+        for elapsed in (0, 9, 18):
+            thermostat.now = now + timedelta(seconds=elapsed)
+            await switch._keep_alive_callback()
+            assert switch.last_command_sent_datetime == thermostat.now
+            assert await manager.check_and_repair() is False
+        check.assert_not_awaited()
+        assert service.await_count == 3
+        thermostat.now = now + timedelta(seconds=28)
+        assert await manager.check_and_repair() is True
+        check.assert_awaited_once()
 
 
 @pytest.fixture
@@ -60,7 +140,6 @@ class CommonMocks:
     mock_send_event: MagicMock
 
 
-# pylint: disable=redefined-outer-name, line-too-long, protected-access
 @pytest.fixture
 async def common_mocks(
     config_entry: MockConfigEntry,
