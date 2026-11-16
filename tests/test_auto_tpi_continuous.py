@@ -165,3 +165,24 @@ async def test_on_cycle_completed_triggers_perform_learning(manager):
         await manager.on_cycle_completed()
 
         mock_perform.assert_called_once()
+
+
+async def test_continuous_kext_can_persist_without_main_learning(manager):
+    manager.state.autolearn_enabled = False
+    manager.state.coeff_outdoor_autolearn = 10
+    manager.state.coeff_outdoor_heat = 0.01
+    manager.state.last_state = "heat"
+    manager.state.previous_state = "heat"
+    manager.state.last_order = 20.0
+    manager.state.last_power = 0.5
+    manager.state.consecutive_failures = 0
+    manager._current_temp_out = 0.0
+    manager._current_target_temp = 20.0
+    manager._last_cycle_power_efficiency = 1.0
+    with patch.object(
+        manager, "async_update_learning_data", new=AsyncMock()
+    ) as persist:
+        await manager._learn_kext_continuous(19.0, 0.0)
+    persist.assert_awaited_once()
+    assert persist.call_args.kwargs["coef_ext"] != 0.01
+    assert manager.learning_active is False

@@ -25,6 +25,7 @@ Les modules suivants doivent être présents ensemble dans le répertoire de l�
 /config/custom_components/versatile_thermostat/llm/central_configuration.py
 /config/custom_components/versatile_thermostat/recorder_export.py
 /config/custom_components/versatile_thermostat/tpi_history.py
+/config/custom_components/versatile_thermostat/tpi_regulation.py
 /config/custom_components/versatile_thermostat/tpi_identification.py
 ```
 
@@ -46,6 +47,7 @@ Arborescence :
 │   └── central_configuration.py
 ├── recorder_export.py
 ├── tpi_history.py
+├── tpi_regulation.py
 └── tpi_identification.py
 ```
 
@@ -693,6 +695,7 @@ Vérifier :
    /config/custom_components/versatile_thermostat/llm/__init__.py
 /config/custom_components/versatile_thermostat/recorder_export.py
 /config/custom_components/versatile_thermostat/tpi_history.py
+/config/custom_components/versatile_thermostat/tpi_regulation.py
 /config/custom_components/versatile_thermostat/tpi_identification.py
    ```
 
@@ -751,13 +754,17 @@ Trois outils complètent les outils existants :
 
 Les outils de lecture prennent uniquement `entity_id`. Le client annonce chaque étape avant l'appel ; aucun traitement en arrière-plan n'est simulé. Chaque réponse contient `stage`, `stage_number`, `stage_total` et `state_changed`.
 
-L'analyse concerne uniquement le TPI classique (`proportional_function=tpi`), sans Auto-TPI configuré, apprentissage actif ou compensation extérieure continue. Cette première version accepte les VTherm `over_switch` utilisant un ou plusieurs switches physiques. Leurs fractions ON sont intégrées à partir des transitions Recorder, puis moyennées selon la convention VTherm de parts égales `device_power / N`. Les phases décalées et transitions inférieures à une minute sont prises en compte. La puissance absolue n'est pas obligatoire. Cette convention ne mesure pas des puissances individuelles différentes.
+La détection utilise les objets natifs chargés (handler, algorithme et gestionnaire), pas les options conservées en configuration ni les données d'apprentissage résiduelles. `regulation` expose le type détecté, `compatible` (hypothèse de coefficients fixes), `analysis_mode`, `blocking_criterion` et `missing_information`. Auto-TPI désactivé et option continuous_kext effectivement désactivée : TPI classique accepté, même si la configuration conserve ces options. Auto-TPI ou continuous_kext activé à l'exécution : calcul en lecture seule tenté en mode `adaptive_exploratory`, avec avertissement `adaptive_tpi_fixed_coefficient_assumption_not_met`. continuous_kext peut apprendre et persister Kext indépendamment de `autolearn_enabled` ; une exclusion de cycle momentanée ne prouve pas son inactivité. SmartPI, autre algorithme ou état natif non vérifiable : refus précis, sans attribuer une activité non prouvée. Les écritures restent réservées au TPI classique. L'instantané courant ne prouve pas l'absence d'apprentissage dans tout l'historique.
 
-Les `over_climate_valve` (climate avec régulation directe des vannes) sont également acceptés, à titre **expérimental**. L'entrée `u` est la commande commune `valve_open_percent` enregistrée sur le VTherm, divisée par 100 et intégrée sur chaque minute. `sources.heating_source_kind` vaut `valve_open_percent_command_proxy`. Ce proxy ne mesure ni la position physique confirmée, ni le débit, ni la puissance thermique ; non-linéarité des vannes, seuils d'ouverture, température d'eau, disponibilité chaudière, équilibrage et délais peuvent biaiser le couple. Un bon ajustement statistique ne valide pas ces hypothèses. Une commande absente, non finie ou hors 0–100 est inconnue, jamais remplacée par zéro, écrêtée ou reconstruite depuis `hvac_action`.
+Le bilan `assessment` indique les limites de cohérence ; il ne certifie jamais un optimum. `comparison.percent_delta` donne la variation signée (null depuis zéro). `large_proposed_coefficient_change` avertit dès un écart absolu ≥0,15 intérieur / ≥0,01 extérieur ou relatif ≥50 %, y compris tout changement depuis zéro. Ces seuils signalent une vérification nécessaire, pas une preuve d'erreur. Les refus scientifiques et données manquantes restent applicables ; aucun calcul refusé n'est forcé.
 
-Pour **les deux types**, `over_switch` et `over_climate_valve`, chaque réponse de vérification/analyse contient `experimental: true`, `verification_required_before_application: true`, `recommendation_reliable: false` et `experimental_notice` (FR/EN). L'assistant doit préciser : **« Calcul expérimental, à vérifier avant toute application ; ce couple n'est pas un réglage optimal validé. »** Pour les vannes, il doit aussi restituer `heating_proxy_note`. Vérifier les hypothèses et la période analysée, comparer aux coefficients actuels et surveiller le comportement après une éventuelle décision explicite d'application. Ce contrôle ne certifie pas la fiabilité.
+Cette première version accepte les VTherm `over_switch` utilisant un ou plusieurs switches physiques. Leurs fractions ON sont intégrées à partir des transitions Recorder, puis moyennées selon la convention VTherm de parts égales `device_power / N`. Les phases décalées et transitions inférieures à une minute sont prises en compte. La puissance absolue n'est pas obligatoire. Cette convention ne mesure pas des puissances individuelles différentes.
 
-Les `over_climate` sans régulation directe des vannes et les `over_valve` restent refusés avec `eligible: false`, `supported: false`, `reason: unsupported_thermostat_type`. Les commandes virtuelles ambiguës sont également refusées. Les lectures exigent une cible exposée et un utilisateur authentifié disposant de `READ`, avant tout accès Recorder.
+Les `over_valve` et `over_climate_valve` (climate avec régulation directe des vannes) sont également acceptés, à titre **expérimental**. L'entrée `u` est la commande commune `valve_open_percent` enregistrée sur le VTherm, divisée par 100 et intégrée sur chaque minute. `sources.heating_source_kind` vaut `valve_open_percent_command_proxy`. Ce proxy ne mesure ni la position physique confirmée, ni le débit, ni la puissance thermique ; non-linéarité des vannes, seuils d'ouverture, température d'eau, disponibilité chaudière, équilibrage et délais peuvent biaiser le couple. Un bon ajustement statistique ne valide pas ces hypothèses. Une commande absente, non finie ou hors 0–100 est inconnue, jamais remplacée par zéro, écrêtée ou reconstruite depuis `hvac_action`.
+
+Pour **tous les types pris en charge**, `over_switch`, `over_valve` et `over_climate_valve`, chaque réponse de vérification/analyse contient `experimental: true`, `verification_required_before_application: true`, `recommendation_reliable: false` et `experimental_notice` (FR/EN). L'assistant doit préciser : **« Calcul expérimental, à vérifier avant toute application ; ce couple n'est pas un réglage optimal validé. »** Pour les vannes, il doit aussi restituer `heating_proxy_note`. Vérifier les hypothèses et la période analysée, comparer aux coefficients actuels et surveiller le comportement après une éventuelle décision explicite d'application. Ce contrôle ne certifie pas la fiabilité.
+
+Les `over_climate` sans régulation directe des vannes restent refusés avec `eligible: false`, `supported: false`, `reason: unsupported_thermostat_type`. Les commandes virtuelles ambiguës sont également refusées. Les lectures exigent une cible exposée et un utilisateur authentifié disposant de `READ`, avant tout accès Recorder.
 
 Recorder fournit au maximum les **14 derniers jours**. Au moins **7 jours de minutes réellement exploitables** sont nécessaires après exclusions. Les capteurs intérieur et extérieur proviennent de la configuration effective VTherm, configuration centrale incluse. La réponse détaille `sources`, `history_requested_days`, `history_available_days`, `history_usable_days`, les exclusions et les réglages actuels. Aucune durée de conservation Recorder n'est supposée.
 

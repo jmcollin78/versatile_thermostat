@@ -1,5 +1,7 @@
 """Experimental valve-command history: source semantics and refusal boundaries."""
 
+from .tpi_runtime import native_runtime
+
 from datetime import timedelta
 from types import SimpleNamespace
 from unittest.mock import Mock, patch
@@ -31,11 +33,13 @@ def event(value, minute=0, state="heat"):
     )
 
 
-def test_resolve_valve_command_and_reject_plain_climate():
+@pytest.mark.parametrize("over_valve", [False, True])
+def test_resolve_valve_command_and_reject_plain_climate(over_valve):
     thermostat = SimpleNamespace(
         entity_id="climate.test",
         is_over_switch=False,
-        is_over_climate=True,
+        is_over_climate=not over_valve,
+        is_over_valve=over_valve,
         have_valve_regulation=True,
         is_initialized=True,
         temperature_unit="°C",
@@ -45,6 +49,7 @@ def test_resolve_valve_command_and_reject_plain_climate():
         ext_temp_sensor_entity_id="sensor.outside",
         entry_infos={"temperature_sensor_entity_id": "sensor.inside"},
     )
+    native_runtime(thermostat)
     entries = [
         SimpleNamespace(
             domain="binary_sensor",
@@ -66,9 +71,11 @@ def test_resolve_valve_command_and_reject_plain_climate():
         assert sources["heating_aggregation"] == "recorded_valve_command_divided_by_100"
         assert sources["inverse_switch"] is False
         thermostat.have_valve_regulation = False
+        thermostat.is_over_valve = False
         with pytest.raises(IdentificationError, match="unsupported_thermostat_type"):
             TPIHistory.resolve_sources(None, thermostat)
         thermostat.have_valve_regulation = True
+        thermostat.is_over_valve = over_valve
         thermostat.proportional_function = "smartpi"
         with pytest.raises(IdentificationError, match="not_classic_tpi"):
             TPIHistory.resolve_sources(None, thermostat)

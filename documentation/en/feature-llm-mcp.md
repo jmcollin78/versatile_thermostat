@@ -25,6 +25,7 @@ The following modules must be present together in the integration directory:
 /config/custom_components/versatile_thermostat/llm/central_configuration.py
 /config/custom_components/versatile_thermostat/recorder_export.py
 /config/custom_components/versatile_thermostat/tpi_history.py
+/config/custom_components/versatile_thermostat/tpi_regulation.py
 /config/custom_components/versatile_thermostat/tpi_identification.py
 ```
 
@@ -46,6 +47,7 @@ Directory structure:
 │   └── central_configuration.py
 ├── recorder_export.py
 ├── tpi_history.py
+├── tpi_regulation.py
 └── tpi_identification.py
 ```
 
@@ -693,6 +695,7 @@ Check:
    /config/custom_components/versatile_thermostat/llm/__init__.py
 /config/custom_components/versatile_thermostat/recorder_export.py
 /config/custom_components/versatile_thermostat/tpi_history.py
+/config/custom_components/versatile_thermostat/tpi_regulation.py
 /config/custom_components/versatile_thermostat/tpi_identification.py
    ```
 
@@ -751,13 +754,17 @@ Three tools complement the existing tools:
 
 Read tools take only `entity_id`. The client announces each stage before calling; no background work is simulated. Every response contains `stage`, `stage_number`, `stage_total` and `state_changed`.
 
-Analysis requires classic TPI (`proportional_function=tpi`), with no configured Auto-TPI, active learning or continuous external compensation. This version supports `over_switch` with one or more physical switches. Recorded ON durations are integrated and averaged using VTherm's equal power share convention `device_power / N`, including staggered phases and subminute transitions. Absolute heater power is unnecessary. This convention does not measure unequal individual heater powers.
+Detection uses loaded native handler, algorithm and manager objects, rather than retained configuration options or residual learning data. `regulation` reports the detected type, `compatible` (fixed-coefficient assumption), `analysis_mode`, `blocking_criterion` and `missing_information`. With main learning and runtime continuous_kext disabled, classic TPI is accepted even if configuration retains those options. With native Auto-TPI or continuous_kext enabled at runtime, read-only calculation is attempted as `adaptive_exploratory`, with `adaptive_tpi_fixed_coefficient_assumption_not_met`. continuous_kext can learn and persist Kext independently of `autolearn_enabled`; a temporary cycle exclusion does not prove inactivity. SmartPI, another algorithm or unverifiable native state causes a precise refusal, without claiming unproven activity. Writes still require classic TPI. A current snapshot does not establish the absence of learning throughout the historical period.
 
-`over_climate_valve` (climates with direct valve regulation) is also supported **experimentally**. Input `u` is the common `valve_open_percent` command recorded on the VTherm, divided by 100 and integrated over each minute. `sources.heating_source_kind` is `valve_open_percent_command_proxy`. This proxy is not confirmed physical position, measured flow or thermal power; valve nonlinearity, opening thresholds, water temperature, boiler availability, balancing and delays can bias the pair. A good statistical fit does not validate those assumptions. Missing, nonfinite or out-of-range commands (0–100) are unknown, never zero-filled, clipped or reconstructed from `hvac_action`.
+`assessment` reports coherence limits and never certifies an optimum. `comparison.percent_delta` is the signed percentage change (null from zero). `large_proposed_coefficient_change` flags absolute changes ≥0.15 internal / ≥0.01 external or relative changes ≥50 %, including every change from zero. These thresholds require review and do not prove an error. Scientific refusals and missing-data checks remain enforced; failed fits are never forced.
 
-For **both types**, `over_switch` and `over_climate_valve`, every check/analysis response includes `experimental: true`, `verification_required_before_application: true`, `recommendation_reliable: false` and `experimental_notice` (FR/EN). The assistant must state: **“Experimental calculation: verify before any application; this pair is not a validated optimal setting.”** For valves, also explain `heating_proxy_note`. Verify assumptions and the analyzed period, compare against current coefficients and monitor behavior after any explicit decision to apply. This check does not certify reliability.
+This version supports `over_switch` with one or more physical switches. Recorded ON durations are integrated and averaged using VTherm's equal power share convention `device_power / N`, including staggered phases and subminute transitions. Absolute heater power is unnecessary. This convention does not measure unequal individual heater powers.
 
-Plain `over_climate` without direct valve regulation and `over_valve` remain rejected with `eligible: false`, `supported: false`, `reason: unsupported_thermostat_type`. Ambiguous virtual commands are also rejected. Reads require an exposed target and authenticated `READ` permission before Recorder access.
+`over_valve` and `over_climate_valve` (climates with direct valve regulation) are also supported **experimentally**. Input `u` is the common `valve_open_percent` command recorded on the VTherm, divided by 100 and integrated over each minute. `sources.heating_source_kind` is `valve_open_percent_command_proxy`. This proxy is not confirmed physical position, measured flow or thermal power; valve nonlinearity, opening thresholds, water temperature, boiler availability, balancing and delays can bias the pair. A good statistical fit does not validate those assumptions. Missing, nonfinite or out-of-range commands (0–100) are unknown, never zero-filled, clipped or reconstructed from `hvac_action`.
+
+For **all supported types**, `over_switch`, `over_valve` and `over_climate_valve`, every check/analysis response includes `experimental: true`, `verification_required_before_application: true`, `recommendation_reliable: false` and `experimental_notice` (FR/EN). The assistant must state: **“Experimental calculation: verify before any application; this pair is not a validated optimal setting.”** For valves, also explain `heating_proxy_note`. Verify assumptions and the analyzed period, compare against current coefficients and monitor behavior after any explicit decision to apply. This check does not certify reliability.
+
+Plain `over_climate` without direct valve regulation remains rejected with `eligible: false`, `supported: false`, `reason: unsupported_thermostat_type`. Ambiguous virtual commands are also rejected. Reads require an exposed target and authenticated `READ` permission before Recorder access.
 
 Recorder supplies at most the **last 14 days**. At least **7 days of actually usable minutes** are required after exclusions. Inside/outside sensors come from effective VTherm configuration, including central configuration. Results detail `sources`, `history_requested_days`, `history_available_days`, `history_usable_days`, exclusions and current settings. No Recorder retention period is assumed.
 
