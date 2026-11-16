@@ -1,7 +1,7 @@
 """Effective regulation eligibility, independent of thermostat hardware type."""
 
 from types import SimpleNamespace
-from unittest.mock import AsyncMock, patch
+from unittest.mock import AsyncMock, Mock, patch
 
 import pytest
 
@@ -77,7 +77,8 @@ async def test_native_handler_does_not_apply_continuous_learning_when_disabled()
     t.vtherm_hvac_mode = "heat"
     t.power_manager = SimpleNamespace(is_overpowering_detected=False)
     t.tpi_coef_int, t.tpi_coef_ext = 0.3, 0.02
-    t.recalculate = lambda: None
+    t.recalculate = Mock()
+    t.cycle_scheduler = SimpleNamespace(start_cycle=AsyncMock())
     t.on_percent = 0.5
     t.safe_on_percent = 0.5
     t.cycle_min = 5
@@ -90,16 +91,22 @@ async def test_native_handler_does_not_apply_continuous_learning_when_disabled()
         "calculate",
         new=AsyncMock(return_value={"tpi_coef_int": 2, "tpi_coef_ext": 0.8}),
     ), patch.object(handler, "_is_central_boiler_off", return_value=False):
-        await handler._get_tpi_data()
+        await handler.control_heating()
     assert t.prop_algorithm.tpi_coef_ext == 0.02
+    assert t.tpi_coef_ext == 0.02
+    t.recalculate.assert_not_called()
+    t.cycle_scheduler.start_cycle.assert_awaited_once()
     manager.state.autolearn_enabled = True
     with patch.object(manager, "update", new=AsyncMock()), patch.object(
         manager,
         "calculate",
         new=AsyncMock(return_value={"tpi_coef_int": 2, "tpi_coef_ext": 0.8}),
     ), patch.object(handler, "_is_central_boiler_off", return_value=False):
-        await handler._get_tpi_data()
+        await handler.control_heating()
     assert t.prop_algorithm.tpi_coef_ext == 0.8
+    assert t.tpi_coef_ext == 0.8
+    t.recalculate.assert_called_once_with()
+    assert t.cycle_scheduler.start_cycle.await_count == 2
 
 
 @pytest.mark.parametrize(
