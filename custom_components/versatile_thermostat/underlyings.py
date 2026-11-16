@@ -675,6 +675,14 @@ class UnderlyingSwitch(UnderlyingEntity):
                     is_on,
                 )
                 return False
+            if self._thermostat.on_percent == 0:
+                _LOGGER.debug(
+                    "%s - Skipping switch ON repair because thermostat demand is zero (expected=%s, observed=%s)",
+                    self,
+                    should_be_on,
+                    is_on,
+                )
+                return False
             await self.turn_on()
         else:
             await self.turn_off()

@@ -24,6 +24,26 @@ logging.getLogger().setLevel(logging.DEBUG)
 MANAGER_LOGGER = "custom_components.versatile_thermostat.feature_repair_incorrect_state_manager"
 
 
+@pytest.mark.parametrize("hvac_mode", [HVACMode.OFF, HVACMode.HEAT])
+@pytest.mark.parametrize("on_percent", [0.0, 0.000001, 0.5])
+@pytest.mark.parametrize("commanded_on", [False, True])
+async def test_switch_repair_requires_current_demand_for_on(hass: HomeAssistant, hvac_mode, on_percent, commanded_on):
+    """A stale ON state cannot restart a heater without a current heating demand."""
+    thermostat = MagicMock(is_inversed=False)
+    thermostat.hvac_mode = hvac_mode
+    thermostat.on_percent = on_percent
+    underlying = UnderlyingSwitch(hass, thermostat, "climate.pellet_stove", 0, "set_hvac_mode/hvac_mode:heat", "set_hvac_mode/hvac_mode:off")
+    underlying._is_on_part_running = commanded_on
+    underlying._is_initialized = True
+    underlying._state_manager.get_state = MagicMock(return_value=State(underlying.entity_id, "off" if commanded_on else "heat"))
+    expected_repair = not commanded_on or (hvac_mode != HVACMode.OFF and on_percent > 0)
+
+    with patch.object(underlying, "turn_on", new_callable=AsyncMock) as turn_on, patch.object(underlying, "turn_off", new_callable=AsyncMock) as turn_off:
+        assert await underlying.check_and_repair() is expected_repair
+        assert turn_on.await_count == int(expected_repair and commanded_on)
+        assert turn_off.await_count == int(expected_repair and not commanded_on)
+
+
 @pytest.mark.parametrize("entity_type", ["switch", "climate", "valve", "valve_regulation"])
 @pytest.mark.parametrize("age, eligible", [(0, False), (9.999, False), (10, True), (10.001, True)])
 async def test_repair_manager_command_grace(hass: HomeAssistant, caplog, age, eligible, entity_type):
