@@ -107,8 +107,12 @@ Funkcje wymagające konfiguracji dla tego typu termostatu to:
 > 1. AutoSTART/autoSTOP: Automatyczne uruchamianie i zatrzymywanie termostatu na podstawie prognoz użytkowania. Opis znajduje się [tutaj](feature-auto-start-stop.md).
 > 2. Jeśli wybrano regulację zaworu, konfiguracja algorytmu TPI jest dostępna z poziomu menu (patrz: [Algorytmy](algorithms.md)).
 > 3. Jeśli wybrano regulację zaworu, możesz ustawić termostat w tryb uśpienia. Tryb uśpienia jest specyficzny dla tego typu termostatu i pozwala wyłączyć go, pozostawiając zawór całkowicie otwarty (100%). Istnieją dwa sposoby aktywacji trybu uśpienia:
->    1. za pomocą [karty VTherm UI Card](additions.md#versatile-thermostat-ui-card), naciskając przycisk trybu 'Zzz',
->    2. wywołując akcję o nazwie `service_set_hvac_mode_sleep`. Zobacz [Akcje](reference.md#actions-services)
+>
+>    > [!NOTE]
+>    > Tryb uśpienia (`sleep` / `Zzz`) wymaga karty kompatybilnej z Versatile Thermostat, takiej jak [Versatile Thermostat UI Card](additions.md#karta-versatile-thermostat-ui-card). Domyślna karta termostatu (climate) Home Assistant nie jest obsługiwana: wyświetla `sleep` w `hvac_modes`, ale nie pozwala go wybrać (`climate.set_hvac_mode` odrzuca `sleep`, który nie jest standardowym `HVACMode` HA).
+>
+>    1. za pomocą [karty VTherm UI Card](additions.md#karta-versatile-thermostat-ui-card), naciskając przycisk trybu 'Zzz',
+>    2. wywołując akcję o nazwie `service_set_hvac_mode_sleep`. Zobacz [Akcje](reference.md#akcje-usługi)
 
 ## Śledzenie zmian temperatury bazowej
 

@@ -102,6 +102,13 @@ Besondere Funktionen können über eine spezielle Option im Menü konfiguriert w
 Die besonderen Funktionen, die für diesen Typ von VTherm konfiguriert werden müssen, sind:
 1. Auto-Start/Stop: Automatischer Start und Stopp von VTherm auf der Grundlage von Nutzungsprognosen. Dies wird hier beschrieben: [Auto-Start/Stop-Funktion](feature-auto-start-stop.md).
 2. Wenn die Ventilregelung gewählt wird, ist die Konfiguration des TPI-Algorithmus über das Menü zugänglich. Siehe ([Algorithmen](algorithms.md)).
+3. Wenn die Ventilregelung gewählt wird, können Sie das _VTherm_ in den Ruhemodus (sleep) versetzen. Der Ruhemodus ist ein Modus, der diesem Thermostattyp vorbehalten ist und es ermöglicht, das _VTherm_ auszuschalten, während das Ventil zu 100 % geöffnet bleibt. Es gibt zwei Möglichkeiten, den Ruhemodus zu aktivieren:
+
+   > [!NOTE]
+   > Der Ruhemodus (`sleep` / `Zzz`) erfordert eine mit Versatile Thermostat kompatible Karte, etwa die [Versatile Thermostat UI Card](additions.md#die-versatile-thermostat-ui-card). Die Standard-Thermostatkarte (Climate) von Home Assistant wird nicht unterstützt: sie listet `sleep` in `hvac_modes` auf, kann ihn aber nicht auswählen (`climate.set_hvac_mode` lehnt `sleep` ab, da es kein Standard-`HVACMode` von HA ist).
+
+   1. entweder mit der [VTherm UI Card](additions.md#die-versatile-thermostat-ui-card) durch Drücken der Schaltfläche 'Zzz',
+   2. oder durch Aufrufen einer Aktion namens `service_set_hvac_mode_sleep`. Siehe [Aktionen](reference.md#aktionen-services)
 
 ## Verfolgung verknüpfter Temperaturänderungen
 

@@ -118,6 +118,10 @@ Les fonctions spécifiques qui nécessite un paramétrage à ce type de VTherm s
 1. l'auto-start/stop : arrêt et démarrage automatique du _VTherm selon la prévision d'usage. Elle est décrite ici fonction [auto-start/sop](feature-auto-start-stop.md),
 2. si la régulation par vanne est choisie, le paramétrage de l'algo TPI est accessible depuis le menu. cf ([algorithmes](algorithms.md))
 3. si la régulation par vanne est choisie, vous pouvez mettre le _VTherm_ en mode dormant (sleep). Le mode dormant est un mode réservé à ce type de thermostat qui permet de couper le _VTherm_ tout en maintenant la vanne totalement 100% ouverte. Pour appliquer le mode dormant vous avez 2 moyens :
+
+   > [!NOTE]
+   > Le mode dormant (`sleep` / `Zzz`) nécessite une carte compatible avec Versatile Thermostat, comme la [Versatile Thermostat UI Card](additions.md#versatile-thermostat-ui-card). La carte thermostat par défaut de Home Assistant n'est pas supportée : elle liste `sleep` dans `hvac_modes` mais ne peut pas le sélectionner (`climate.set_hvac_mode` rejette `sleep`, qui n'est pas un `HVACMode` standard de HA).
+
    1. soit avec la [VTherm UI Card](additions.md#versatile-thermostat-ui-card) en appuyant sur le bouton du mode 'Zzz',
    2. soit en appelant une action nommée `service_set_hvac_mode_sleep`. Cf. [Actions](reference.md#actions-services)
 
