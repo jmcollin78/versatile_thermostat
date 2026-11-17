@@ -3,10 +3,66 @@
 ## Reference et recommandation
 
 - Issue : [#2206 - Energy sensor: burst of identical cycle increments during overpowering](https://github.com/jmcollin78/versatile_thermostat/issues/2206).
-- Revue : 2026-11-16. Statut : analyse approuvee pour specification et conception ; convergence documentaire atteinte, perimetre final et developpement en attente de validation humaine. Aucun correctif implemente.
+- Revue initiale : 2026-11-16. Statut au 2026-11-17 : option A implementee et tests cibles executes ; validation finale du developpement par l'utilisateur en attente. Voir le jalon ci-dessous ; les sections historiques conservent leur contexte d'origine.
 - Recommandation : **retenir l'anomalie et reevaluer la priorite P2**. Le probleme ne se limite pas a l'affichage : la reentrance du controle de chauffe et les rafales de fins de cycle affectent aussi l'ordonnancement, les callbacks Auto TPI et les publications HA. Une chauffe physique incorrecte n'est toutefois pas demontree.
 
-## Resume du signalement
+## Reprise de session - 2026-11-17
+
+**Etat faisant foi :** developpement de l'option A autorise et implemente ; verification encore partielle, sans validation finale utilisateur ni revue postdeveloppement. Les mentions d'autorisation a venir et d'analyse statique seule dans les jalons historiques ne decrivent pas l'etat courant. Ne pas recommencer l'implementation ni elargir son perimetre.
+
+Dernier resultat consigne : **447 tests reussis**, dont **40 cas cibles inclus**, avec cinq avertissements. Commandes, environnement et preuve rouge/vert sont conserves dans le jalon developpement ci-dessous. Ces resultats n'ont pas ete relances pendant cette mise a jour documentaire ; ne pas les presenter comme une campagne executee apres reprise.
+
+### Travail restant, dans l'ordre
+
+1. Relire le diff courant et les consignes applicables, en preservant tous les changements utilisateur. Reprendre avec l'agent `Developpement d'integrations Home Assistant` en utilisant son nom declare exact : `Développement d’intégrations Home Assistant`. Les quatre fichiers de production et les deux fichiers de tests deja modifies sont listes au jalon developpement ; aucun commit/push/deploiement n'a ete effectue par ce traitement.
+2. Verifier la disponibilite effective des outils : l'utilisateur a annonce avoir ajoute les outils manquants et autorise la poursuite. **Aucune verification ni nouvelle execution n'a suivi cette annonce** avant la demande de changement de session. L'ancien blocage concernait notamment `ha_get_skill_guide` et la decouverte d'outils ; ne pas supposer qu'il persiste ou qu'il est resolu sans essayer les outils disponibles.
+3. Completer **AC-007** : apres stabilisation du refus, changement legitime de consigne/preset/mode, priorites fenetre/securite OFF puis levee et reprise serialisee. Ne pas ajouter de garantie sur un remplacement positif suspendu, exclu de l'option A.
+4. Completer **AC-010** : interruption ordinaire apres 30 s, annulation immediate a horloge figee, OFF puis passage de l'ancienne echeance sans relance ni credit indu. Verifier les callbacks eligibles, avec handles distincts et distribution des timers actifs ; pas de double annulation imbriquee ni d'invocation artificielle d'un callback annule hors perimetre.
+5. Completer **AC-012** : deux echeances normales a 2 % brut, 3 500 W, cycle 300 s, minimum ON 10 s, donc 0 % applique ; un credit au plus par echeance. Les quelque **5,833 Wh par cycle restent acceptes en P0** : ne pas corriger le montant reporte en P1 pour faire passer ce test.
+6. Documenter les preuves existantes ou manquantes pour les combinaisons multi-relais/observations retardees et virtuel/inverse. Ne pas convertir la campagne verte en certification exhaustive ; toute extension du code ou du perimetre exige un nouvel arbitrage.
+7. Ajouter les tests dans les fichiers existants, executer immediatement la verification ciblee apres chaque modification, puis relancer la campagne de 16 fichiers consignée ci-dessous. Tout shell doit etre prefixe par `rtk`. Comparer les diagnostics a une baseline lorsque possible, sans nettoyage hors sujet ni affirmation non prouvee qu'ils sont tous preexistants ; verifier aussi le diff. Actualiser les trois documents avec commandes, comptes et limites reels.
+8. Presenter le bilan a l'utilisateur et attendre son accord explicite sur les resultats du developpement avant de deleguer la revue a `Revue post-développement`. Aucune autorisation de revue, de cloture GitHub, de commit, de push ou de deploiement n'est acquise. Les validations de phase doivent etre obtenues dans le tour concerne selon les instructions actives de la prochaine session.
+
+### Contraintes a conserver
+
+Option A seulement : propagation du delestage sans rappel positif du controle, consommation de `turn_on() is False`, abandon avant ON suivant/timers/hook puissance, nettoyage OFF borne et reprise existante. Pas de refonte du scheduler, generations de timers, verrou ou tache differee globale. P1 energie, historiques/restauration/unites et courses generales exclues restent hors lot. Les guides indisponibles, diagnostics et scenarios non verifies sont des limites a tracer, pas des resultats positifs.
+
+La demande courante porte uniquement sur cette passation documentaire : aucun code ni test applicatif n'est modifie ou execute a ce jalon.
+
+## Jalon developpement du 2026-11-17
+
+L'utilisateur a autorise le developpement de l'option A, avec abandon propre deja deleste, exclusions de concurrence et report du montant energetique en P1. La reprise de ce tour demande de terminer les verifications et le rapport, sans nouvelle implementation ni revue postdeveloppement. Aucune validation finale du developpement n'est presumee.
+
+**Implementation presente :** quatre fichiers, six fonctions existantes et l'auxiliaire prive `_cleanup_refused_start` :
+
+- [underlyings.py](../../custom_components/versatile_thermostat/underlyings.py) : au refus TPI natif, propager les etats sans rappel positif de chauffe ; conserver le comportement des autres handlers.
+- [base_thermostat.py](../../custom_components/versatile_thermostat/base_thermostat.py) et [thermostat_prop.py](../../custom_components/versatile_thermostat/thermostat_prop.py) : transmettre une option interne, activee par defaut, tout en conservant le chemin OFF effectif.
+- [cycle_scheduler.py](../../custom_components/versatile_thermostat/cycle_scheduler.py) : propager uniquement le retour explicite `False` jusqu'a `start_cycle`, sans ON suivant, rearmement ni hook puissance de cette tentative. Nettoyer par OFF collectif le cycle encore courant si necessaire, sans reentrer une annulation ou nettoyer un remplacant identifie. `None` et les erreurs conservent leurs traitements existants.
+- [test_power.py](../../tests/test_power.py) et [test_cycle_scheduler.py](../../tests/test_cycle_scheduler.py) : scenarios du refus reel et tests cibles du scheduler. Aucun seuil, formule energetique, schema, dependance ou gestionnaire de puissance modifie.
+
+**Preuve rouge/vert retrouvee dans le journal local :** avant le patch des quatre fichiers, `rtk proxy .venv/bin/python -m pytest -p no:sugar tests/test_power.py::test_first_power_refusal_does_not_restart_cycle -q --tb=short` a produit **2 echecs, 5 avertissements, 0,60 s** : les cas 66 % et 100 % franchissaient le garde-fou borne `nested start limit exceeded`. Apres le patch, la meme reproduction, avec `--show-capture=no` ajoute, a produit **2 reussites, 5 avertissements, 0,47 s**. Ces resultats portent sur la version initiale du test, ensuite enrichie ; ils demontrent la reentrance bornee dans ce scenario, pas la presence effective de timers orphelins dans les exports du signalement. Des echecs intermediaires ulterieurs concernaient le garde-fou de test et un double de service, corriges avant la campagne finale.
+
+**Campagne finale sequentielle, apres les derniers changements de tests :** Python 3.14.10, Home Assistant 2026.11.0, pytest 9.0.3 ; services et horloges simules, aucun HA reel modifie.
+
+```sh
+rtk proxy .venv/bin/python -m pytest -p no:sugar tests/test_power.py tests/test_cycle_scheduler.py tests/test_cycle_tick_logic.py tests/test_central_power_manager.py tests/test_state_manager.py tests/test_inhibition.py tests/test_central_mode.py tests/test_virtual_switch.py tests/test_inverted_switch.py tests/test_multiple_switch.py tests/test_valve.py tests/test_overclimate_valve.py tests/test_auto_tpi.py tests/test_auto_tpi_continuous.py tests/test_external_feature_manager.py tests/test_tpi.py -q --tb=short --show-capture=no
+```
+
+Resultat : **447 reussites, 0 echec, 5 avertissements, 23,81 s**. Les avertissements proviennent de dependances Home Assistant/backoff. La campagne precedente a 445 reussites precedait la derniere modification de test ; elle ne remplace pas ce resultat final.
+
+```sh
+rtk proxy .venv/bin/python -m pytest -p no:sugar tests/test_power.py::test_first_power_refusal_does_not_restart_cycle tests/test_power.py::test_already_shedding_refusal_stops_real_multi_relay_cycle tests/test_power.py::test_issue_2206_strict_startup_budget tests/test_power.py::test_scheduler_abandons_real_command_gate_refusal tests/test_power.py::test_power_refusal_and_recovery_with_virtual_or_inverted_commands tests/test_power.py::test_refusal_propagation_is_restricted_to_native_tpi tests/test_cycle_scheduler.py::TestCycleSchedulerLifecycle -q --tb=short --show-capture=no
+```
+
+Resultat : **40 reussites, 0 echec, 5 avertissements, 1,96 s**. Ces cas sont inclus dans la campagne de 447 et ne doivent pas etre additionnes. `rtk proxy git diff --check` a reussi avant la mise a jour du present rapport.
+
+**Portee de la preuve :** le premier refus reel partiel/100 %, avec indicateurs modifies, se termine sans handle scheduler actif, credit immediat ou hook puissance post-refus ; les refus successifs et le controle periodique sont testes. Deux cycles apres reprise periodique distribuent aussi les ticks intermediaires et creditent une fois par fin ; la vraie sortie centrale restaure l'intention. OFF manuel, central et inhibition pendant le refus sont testes sur un sous-jacent ; le multi-relais reel deja deleste est teste a 100 %, et le refus avec relais suivant est aussi teste au niveau scheduler partiel/100 %. Budget strict, gates, `None`, erreurs, nettoyage, commandes virtuelles/inversees et comportement des autres handlers ont des tests cibles.
+
+La couverture ne constitue pas une certification complete des 13 criteres : le scenario complet AC-012 avec deux echeances a 2 % brut / 0 % applique n'a pas ete execute comme tel ; AC-010 n'est pas demontre integralement pour l'interruption a 30 s, l'annulation a temps fige et l'ancienne echeance ; AC-007 et l'ensemble des combinaisons multi-relais/observations retardees ne sont pas verifies comme sequences completes. Les commandes virtuelles/inversees sont exercees sur le sous-jacent avec refus/reprise, pas dans le scenario complet de deux cycles apres sortie centrale. Les suites existantes donnent des non-regressions complementaires, pas une preuve exhaustive des priorites ou des plugins externes.
+
+**Diagnostics :** `get_errors` ne renvoie pas zero actuellement sur les quatre fichiers d'integration : 39 messages affiches, dont des avertissements Pylint tels que les acces proteges et imports inutilises, ainsi que `cancel_candidates is not callable` dans la base. L'outil ne fournit pas ici de classification exploitable par severite ; aucune conclusion de zero erreur ne peut etre revendiquee. Pour les deux fichiers de tests, il indique 98 diagnostics et n'en affiche que les 50 premiers, notamment acces proteges et `State` numeriques preexistants. Aucun nettoyage hors perimetre n'a ete effectue.
+
+**Limites restantes :** le montant energetique P1 demeure inchange, y compris les quelque 5,833 Wh possibles par echeance normale a 2 % brut / 0 % applique. Les courses de remplacement suspendu, hooks reentrants, doubles annulations, callbacks deja distribues, retrait suspendu et ON reussi concurrent ne sont pas durcies ; les timers deja orphelins, statistiques historiques et saut a la restauration ne sont pas repares. Un OFF simule ne garantit pas l'arret physique ; une erreur ou gate peut l'empecher. Le guide de bonnes pratiques HA via MCP n'etait pas accessible dans cette reprise. Suite complete du depot, tests scientifiques, controles HA reels, hassfest, deploiement et redemarrage non executes. Aucun commit ni push. La validation finale du developpement reste a demander a l'utilisateur par le principal.
 
 ## Jalon specification et conception du 2026-11-16
 

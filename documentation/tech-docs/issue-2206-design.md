@@ -1,5 +1,21 @@
 # Issue #2206 - Conception detaillee / Detailed Design
 
+## Point de reprise / Session Handoff - 2026-11-17
+
+**FR - Etat courant faisant foi :** option A autorisee puis implementee, six fonctions existantes et `_cleanup_refused_start` dans quatre fichiers de production. La conception 0.2 et ses exclusions restent inchangees ; les mentions de developpement encore interdit et d'analyse seulement statique ci-dessous sont historiques. Le [rapport](issue-2206-review.md) consigne les fichiers modifies, commandes, preuve rouge/vert, 447 tests verts dont 40 cibles inclus, diagnostics et limites. Pas de validation finale ni de revue postdeveloppement.
+
+**Prochaine intervention : tests et preuves manquants, pas nouvelle conception.** Reprendre les vrais chemins existants et aides de timers dans les deux fichiers de tests deja modifies. Completer AC-007 (priorites/reprise stabilisees), AC-010 (interruption 30 s, annulation temps fige, OFF et ancienne echeance), AC-012 (deux cycles 2 % brut / 0 applique, montant actuel accepte). Chaque timer doit avoir son handle distinct ; ne pas masquer les chemins reels par des mocks complets de `turn_on` ou `update_states`. Aucun correctif de formule energetique P1 ni garantie generale de concurrence a ajouter.
+
+Verifier egalement la couverture multi-relais/observations retardees et virtuel/inverse, puis relancer la campagne de 16 fichiers du rapport apres les derniers edits. Conserver le traitement distinct de `False`, `None` et des erreurs, les gates, OFF collectif et reprise periodique/centrale. Un echec qui exige une extension de production hors option A impose un arbitrage, pas un durcissement automatique. Comparer les diagnostics sans nettoyage gratuit et consigner exactement les nouveaux resultats.
+
+L'utilisateur a annonce les outils manquants ajoutes, mais aucun controle de disponibilite ni test complementaire n'a suivi : cette verification est la premiere etape technique de la prochaine session. Ne pas repeter comme actuel l'ancien blocage MCP sans le verifier. Cette passation est documentaire uniquement. Apres verification, presenter le bilan et attendre l'accord utilisateur avant l'agent `Revue post-développement` ; aucun commit, push, deploiement ou cloture autorise.
+
+**EN - Authoritative current status:** option A was authorized and implemented, touching six existing functions and `_cleanup_refused_start` in four production files. Design 0.2 and exclusions are unchanged; development-prohibition/static-only statements below are historical. The [review](issue-2206-review.md) records files, exact commands, red/green evidence, 447 passing tests including 40 focused cases, diagnostics and limitations. Final user approval and post-development review remain pending.
+
+Next intervention is verification, not redesign: complete **AC-007** settled priorities/recovery, **AC-010** ordinary 30-second interruption/frozen-time cancellation/OFF through the old deadline, and **AC-012** two raw 2% / applied 0% cycles accepting the current energy amount. Reuse the two edited test files, real control paths and distinct timer handles. Do not implement P1 energy or general concurrency hardening. Clarify multi-relay/delayed-observation and virtual/inverted coverage, rerun focused checks immediately after edits and then the report's 16-file campaign. Preserve `False` versus `None`/error semantics, command gates, collective OFF and existing recovery. Escalate any required scope expansion rather than silently extending production code.
+
+The user reported adding missing tools, but no availability check or further test followed. Verify this first next session; do not assume the previous MCP failure still applies. Qualify diagnostics without unrelated cleanup, record actual results, then request user approval before post-development review. Documentation-only handoff; no commit, push, deployment or issue closure authorized. The review handoff contains the ordered checklist.
+
 ## FR - Version francaise
 
 ### 1. Metadonnees, statut et sources

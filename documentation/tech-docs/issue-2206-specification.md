@@ -1,5 +1,23 @@
 # Issue #2206 - Specification fonctionnelle / Functional Specification
 
+## Point de reprise / Session Handoff - 2026-11-17
+
+**FR - Statut courant faisant foi :** exigences 0.2 conservees, option A et report P1 autorises pour developpement le 2026-11-17 ; implementation presente, validation incomplete. Les metadonnees et formulations de phase ci-dessous restent historiques : elles ne signifient plus que tout developpement est interdit ou que tous les tests sont non executes. Dernier resultat consigne : 447 reussites, dont 40 cas cibles inclus ; aucune nouvelle execution depuis l'annonce utilisateur du retablissement des outils.
+
+| Critere restant | Verification a terminer, sans changement de perimetre                                                                                                                                                   |
+| --------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| AC-007          | Apres refus stabilise : changements legitimes de consigne/preset/mode ; fenetre ou securite imposant OFF, levee puis reprise serialisee. Pas de remplacement positif suspendu.                          |
+| AC-010          | Interruption ordinaire 30 s, annulation immediate temps fige, OFF puis ancienne echeance : callbacks eligibles, aucun credit ou redemarrage indu ; handles distincts, pas de course imbriquee generale. |
+| AC-012          | Deux echeances a 0,02 brut / 0 applique, 3 500 W, 300 s, minimum ON 10 s ; un credit par cycle au plus. Montant actuel de 5,833 Wh accepte, correction energetique P1 exclue.                           |
+
+A faire ensuite : expliciter la couverture des combinaisons multi-relais/observations retardees et virtuel/inverse, relancer les tests cibles puis les 16 suites de la campagne du [rapport](issue-2206-review.md), qualifier les diagnostics et actualiser les preuves. Les 13 criteres ne sont pas certifies integralement. L'utilisateur a annonce les outils retablis ; disponibilite encore a verifier. Aucun nouveau test ni code produit dans cette passation. Conserver les changements existants, reutiliser les fichiers de tests et obtenir la validation utilisateur du developpement avant revue postdeveloppement ; aucune cloture, publication ou mise en production autorisee.
+
+**EN - Authoritative current status:** requirements 0.2 unchanged; option A and P1 deferral were authorized for development on 2026-11-17. Implementation exists, verification remains incomplete. Phase metadata below is historical, not a current development prohibition or a claim that no tests ran. Last recorded campaign: 447 passes, including 40 focused cases; no execution followed the user's announcement that missing tools were added.
+
+Remaining gates: **AC-007**, settled legitimate changes and serialized window/safety OFF/recovery; **AC-010**, ordinary 30-second interruption, immediate frozen-time cancellation and OFF through the former deadline, without spurious credit/restart; **AC-012**, two raw 2% / applied 0% cycles at 3,500 W, 300 s and 10 s minimum ON, at most one credit per cycle. The current 5.833 Wh amount remains accepted in P0; P1 must not be implemented to satisfy this test. Use distinct timer handles, without testing excluded general nested races.
+
+Then document multi-relay/delayed-observation and virtual/inverted coverage, rerun focused checks and the report's 16-file campaign, qualify diagnostics and update actual evidence. All 13 criteria are not fully certified. Verify tool availability rather than assuming either failure or recovery. This handoff changes documentation only. Preserve existing edits and scope; user approval of development results is required before post-development review. No issue closure, commit, push or deployment is authorized. The [review handoff](issue-2206-review.md) contains the ordered continuation checklist and exact commands.
+
 ## FR - Version francaise
 
 ### 1. Titre et metadonnees

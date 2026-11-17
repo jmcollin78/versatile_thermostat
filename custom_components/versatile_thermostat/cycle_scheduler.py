@@ -436,7 +436,8 @@ class CycleScheduler:
                     _from_cycle_end,
                 )
             else:
-                await self._start_cycle_switch(hvac_mode, on_time_sec, off_time_sec, realized_on_percent)
+                if await self._start_cycle_switch(hvac_mode, on_time_sec, off_time_sec, realized_on_percent) is False:
+                    return
                 # Offsets only exist for a real tick cycle (not for the 0% and 100% branches)
                 offsets = {state.underlying: state.offset for state in self._states}
                 await self._fire_underlying_power(
@@ -631,7 +632,10 @@ class CycleScheduler:
         if on_time_sec >= self._cycle_duration_sec:
             # 100% power: Turn on all underlyings unconditionally to enforce state
             for under in self._underlyings:
-                await under.turn_on()
+                states = self._states
+                if await under.turn_on() is False:
+                    await self._cleanup_refused_start(states)
+                    return False
                 under._should_be_on = True
             # Keep a real master-cycle start time for the same reason as 0% cycles.
             self._cycle_start_time = time.time()
@@ -642,10 +646,16 @@ class CycleScheduler:
         self._init_cycle(on_percent)
 
         # Start ticking immediately with is_initial=True to enforce state
-        await self._tick(_is_initial=True)
+        if await self._tick(_is_initial=True) is False:
+            return False
 
         # Also ensure master cycle end is scheduled independently to wrap up the cycle
         self._cycle_end_unsub = async_call_later(self._hass, self._cycle_duration_sec, self._on_master_cycle_end)
+
+    async def _cleanup_refused_start(self, states):
+        """Stop the still-current cycle after an explicit ON refusal."""
+        if self._states is states and self._current_hvac_mode is not None and not self._is_cancelling:
+            await self._thermostat.async_underlying_entity_turn_off()
 
     def _init_cycle(self, on_percent: float):
         """Initialize states and penalty for the new cycle.
@@ -720,11 +730,16 @@ class CycleScheduler:
                             "%s - tick turn_on (state_duration=%.1fs, initial=%s)",
                             under, state_duration, _is_initial
                         )
+                        states = self._states
                         try:
-                            await under.turn_on()
-                            under._should_be_on = True
+                            result = await under.turn_on()
                         except Exception as err:
                             _LOGGER.error("%s - tick turn_on failed: %s", under, err)
+                        else:
+                            if result is False:
+                                await self._cleanup_refused_start(states)
+                                return False
+                            under._should_be_on = True
                     elif action == 'skip' and new_on_t is not None:
                         if under_dt < self.min_deactivation_delay and state_duration > self.min_activation_delay:
                             # Only the minimal deactivation delay holds this ON phase back:
@@ -744,7 +759,10 @@ class CycleScheduler:
                 elif _is_initial:
                     # Enforce state unconditionally on the first tick
                     if not under.is_device_active:
-                        await under.turn_on()
+                        states = self._states
+                        if await under.turn_on() is False:
+                            await self._cleanup_refused_start(states)
+                            return False
                     under._should_be_on = True
 
             elif not target_is_on:
