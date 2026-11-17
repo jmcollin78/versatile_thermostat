@@ -14,6 +14,7 @@ from custom_components.versatile_thermostat.thermostat_climate_valve import Ther
 from custom_components.versatile_thermostat.feature_power_manager import FeaturePowerManager
 from custom_components.versatile_thermostat.underlyings import UnderlyingSwitch
 from custom_components.versatile_thermostat.cycle_scheduler import CycleScheduler
+from custom_components.versatile_thermostat.const import HVAC_OFF_REASON_SAFETY, HVAC_OFF_REASON_WINDOW_DETECTION
 
 from custom_components.versatile_thermostat.prop_algo_tpi import TpiAlgorithm
 from .const import *  # pylint: disable=wildcard-import, unused-wildcard-import
@@ -1064,6 +1065,136 @@ async def test_first_power_refusal_does_not_restart_cycle(
 
 @pytest.mark.parametrize("expected_lingering_tasks", [True])
 @pytest.mark.parametrize("expected_lingering_timers", [True])
+async def test_issue_2206_settled_refusal_preserves_window_priority_and_changes(
+    hass: HomeAssistant, skip_hass_states_is_state, init_central_power_manager,
+    fake_underlying_switch: MockSwitch,
+):
+    """Serialized user changes and window OFF remain effective after refusal."""
+    entry = MockConfigEntry(
+        domain=DOMAIN,
+        title="PriorityRefusalThermostat",
+        unique_id="priority_refusal_thermostat",
+        data={
+            CONF_NAME: "PriorityRefusalThermostat",
+            CONF_THERMOSTAT_TYPE: CONF_THERMOSTAT_SWITCH,
+            CONF_TEMP_SENSOR: "sensor.mock_temp_sensor",
+            CONF_CYCLE_MIN: 5,
+            CONF_TEMP_MIN: 7,
+            CONF_TEMP_MAX: 30,
+            CONF_USE_POWER_FEATURE: True,
+            CONF_USE_WINDOW_FEATURE: True,
+            CONF_WINDOW_SENSOR: "binary_sensor.mock_window_sensor",
+            CONF_WINDOW_DELAY: 0,
+            CONF_WINDOW_ACTION: CONF_WINDOW_TURN_OFF,
+            CONF_SAFETY_DELAY_MIN: 5,
+            CONF_SAFETY_MIN_ON_PERCENT: 0.1,
+            CONF_SAFETY_DEFAULT_ON_PERCENT: 0.0,
+            CONF_UNDERLYING_LIST: ["switch.mock_switch"],
+            CONF_PROP_FUNCTION: PROPORTIONAL_FUNCTION_TPI,
+            CONF_TPI_COEF_INT: 0.6,
+            CONF_TPI_COEF_EXT: 0.0,
+            CONF_MINIMAL_ACTIVATION_DELAY: 10,
+            CONF_MINIMAL_DEACTIVATION_DELAY: 0,
+            CONF_DEVICE_POWER: 3500,
+            CONF_POWER_UNIT: POWER_UNIT_WATT,
+            CONF_PRESET_POWER: 13,
+        },
+    )
+    entity = await create_thermostat(
+        hass, entry, "climate.priorityrefusalthermostat", {"comfort": 18, "boost": 19}
+    )
+    now = NowClass.get_now(hass)
+    VersatileThermostatAPI.get_vtherm_api()._set_now(now)
+    await entity.async_set_hvac_mode(VThermHvacMode_HEAT)
+    await entity.async_set_preset_mode(VThermPreset.COMFORT)
+    await send_temperature_change_event(entity, 11.9, now)
+    await entity.async_underlying_entity_turn_off()
+    central = VersatileThermostatAPI.get_vtherm_api().central_power_manager
+    central._current_power = 7600
+    central._current_max_power = 11000
+    scheduler = entity.cycle_scheduler
+    handles = []
+
+    def register_timer(_hass, delay, callback):
+        handle = {"delay": delay, "callback": callback, "active": True}
+        handles.append(handle)
+
+        def cancel():
+            handle["active"] = False
+
+        handle["cancel"] = cancel
+        return cancel
+
+    with patch("custom_components.versatile_thermostat.cycle_scheduler.async_call_later", side_effect=register_timer), \
+        patch.object(entity.underlying_entities[0], "turn_on", wraps=entity.underlying_entities[0].turn_on) as turn_on:
+        await scheduler.start_cycle(VThermHvacMode_HEAT, 0.66, force=True)
+        assert entity.power_manager.is_overpowering_detected
+        assert entity.vtherm_preset_mode == VThermPreset.POWER
+        assert not [handle for handle in handles if handle["active"]]
+
+        await entity.async_set_temperature(temperature=20)
+        assert entity.requested_state.target_temperature == 20
+        await entity.async_set_preset_mode(VThermPreset.BOOST)
+        assert entity.requested_state.preset == VThermPreset.BOOST
+        await entity.async_set_hvac_mode(VThermHvacMode_OFF)
+        assert entity.vtherm_hvac_mode == VThermHvacMode_OFF
+        await entity.async_set_hvac_mode(VThermHvacMode_HEAT)
+        assert entity.vtherm_hvac_mode == VThermHvacMode_HEAT
+        assert entity.vtherm_preset_mode == VThermPreset.POWER
+        assert entity.target_temperature == 13
+
+        central._current_power = 0
+        await entity.window_manager.update_window_state(STATE_ON)
+        assert entity.vtherm_hvac_mode == VThermHvacMode_OFF
+        assert entity.hvac_off_reason == HVAC_OFF_REASON_WINDOW_DETECTION
+        blocked_on_count = turn_on.await_count
+        assert not [handle for handle in handles if handle["active"]]
+        await central.calculate_shedding()
+        assert not entity.power_manager.is_overpowering_detected
+        assert entity.vtherm_hvac_mode == VThermHvacMode_OFF
+        assert turn_on.await_count == blocked_on_count
+        assert not [handle for handle in handles if handle["active"]]
+        await entity.window_manager.update_window_state(STATE_OFF)
+        assert entity.vtherm_hvac_mode == VThermHvacMode_HEAT
+        assert entity.vtherm_preset_mode == VThermPreset.BOOST
+        assert entity.target_temperature == 19
+        assert scheduler._cycle_end_unsub is not None
+        assert {handle["cancel"] for handle in handles if handle["active"]} == {
+            timer for timer in (scheduler._tick_unsub, scheduler._cycle_end_unsub) if timer is not None
+        }
+
+        now += timedelta(minutes=6)
+        entity._set_now(now)
+        assert await entity.safety_manager.refresh_and_update_if_changed()
+        await hass.async_block_till_done()
+        assert entity.vtherm_hvac_mode == VThermHvacMode_OFF
+        assert entity.hvac_off_reason == HVAC_OFF_REASON_SAFETY
+        assert not [handle for handle in handles if handle["active"]]
+        await entity.window_manager.update_window_state(STATE_ON)
+        assert entity.hvac_off_reason == HVAC_OFF_REASON_SAFETY
+        blocked_on_count = turn_on.await_count
+        await send_ext_temperature_change_event(entity, 5, now, sleep=False)
+        await send_temperature_change_event(entity, 11.9, now, sleep=False)
+        await hass.async_block_till_done()
+        assert not entity.safety_manager.is_safety_detected
+        assert entity.vtherm_hvac_mode == VThermHvacMode_OFF
+        assert entity.hvac_off_reason == HVAC_OFF_REASON_WINDOW_DETECTION
+        assert turn_on.await_count == blocked_on_count
+        assert not [handle for handle in handles if handle["active"]]
+        await entity.window_manager.update_window_state(STATE_OFF)
+        assert entity.vtherm_hvac_mode == VThermHvacMode_HEAT
+        assert entity.vtherm_preset_mode == VThermPreset.BOOST
+        assert entity.target_temperature == 19
+        assert scheduler._cycle_end_unsub is not None
+        assert {handle["cancel"] for handle in handles if handle["active"]} == {
+            timer for timer in (scheduler._tick_unsub, scheduler._cycle_end_unsub) if timer is not None
+        }
+        await entity.async_underlying_entity_turn_off()
+        assert not [handle for handle in handles if handle["active"]]
+
+
+@pytest.mark.parametrize("expected_lingering_tasks", [True])
+@pytest.mark.parametrize("expected_lingering_timers", [True])
 @pytest.mark.parametrize("inconsistent", [False, True])
 async def test_already_shedding_refusal_stops_real_multi_relay_cycle(
     hass: HomeAssistant, skip_hass_states_is_state, init_central_power_manager, inconsistent,
@@ -1344,7 +1475,7 @@ async def test_issue_2206_two_idle_cycles_keep_raw_energy_amount(
     entity = await create_thermostat(hass, entry, "climate.idleenergythermostat", {"comfort": 18})
     await entity.async_set_hvac_mode(VThermHvacMode_HEAT)
     await entity.async_set_preset_mode(VThermPreset.COMFORT)
-    await send_temperature_change_event(entity, 18 - 0.02 / 0.6, NowClass.get_now(hass))
+    await send_temperature_change_event(entity, 18 - 0.02 / 0.6, NowClass.get_now(hass), sleep=False)
     scheduler = entity.cycle_scheduler
     await scheduler.cancel_cycle()
     handles = []
@@ -1377,7 +1508,9 @@ async def test_issue_2206_two_idle_cycles_keep_raw_energy_amount(
             active[0]["active"] = False
             await active[0]["callback"](None)
             assert credit.call_count == completed_cycles
-            assert entity.total_energy == pytest.approx(completed_cycles * 3500 * 0.02 * 5 / 60)
+            expected_energy = completed_cycles * 3500 * 0.02 * 5 / 60
+            assert entity._total_energy == pytest.approx(expected_energy)
+            assert entity.total_energy == round(expected_energy, 2)
             turn_on.assert_not_awaited()
         await scheduler.cancel_cycle()
         assert not [handle for handle in handles if handle["active"]]
