@@ -1106,6 +1106,7 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
                     self._timed_preset_manager.resume_expiration()
                 return
             self._underlying_temperature_status[under.entity_id] = "accepted"
+            under.mark_temperature_as_sent(temperature)
             if not self._underlying_tracking_suspended:
                 self._underlying_tracking_reason = "candidate_adopted"
 
