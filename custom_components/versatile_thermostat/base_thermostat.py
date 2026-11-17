@@ -50,8 +50,12 @@ from homeassistant.components.climate.const import (
 
 from homeassistant.const import (
     ATTR_TEMPERATURE,
+    PRECISION_HALVES,
+    PRECISION_TENTHS,
+    PRECISION_WHOLE,
     STATE_UNAVAILABLE,
     STATE_UNKNOWN,
+    UnitOfTemperature,
 )
 
 from .const import *  # pylint: disable=wildcard-import, unused-wildcard-import
@@ -483,11 +487,20 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
             and entry_infos.get(CONF_USE_PRESENCE_FEATURE)
         )
 
+        self._unit = self._hass.config.units.temperature_unit
+
         self._ac_mode = entry_infos.get(CONF_AC_MODE) is True
         self._attr_max_temp = float(entry_infos.get(CONF_TEMP_MAX, 0.0))
         self._attr_min_temp = float(entry_infos.get(CONF_TEMP_MIN, 0.0))
         if (step := entry_infos.get(CONF_STEP_TEMPERATURE)) is not None:
             self._attr_target_temperature_step = step
+            if self._unit == UnitOfTemperature.FAHRENHEIT:
+                if step % 1 == 0:
+                    self._attr_precision = PRECISION_WHOLE
+                elif step % 0.5 == 0:
+                    self._attr_precision = PRECISION_HALVES
+                else:
+                    self._attr_precision = PRECISION_TENTHS
 
         self._attr_preset_modes = []
         self._vtherm_preset_modes = []
@@ -504,8 +517,6 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
         self._ext_temp_sensor_entity_id = entry_infos.get(CONF_EXTERNAL_TEMP_SENSOR)
 
         self.set_hvac_list()
-
-        self._unit = self._hass.config.units.temperature_unit
 
         # Will be restored if possible
         self._state_manager = StateManager()
