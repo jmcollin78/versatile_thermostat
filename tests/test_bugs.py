@@ -10,6 +10,7 @@ import logging
 
 from homeassistant.const import STATE_ON, STATE_OFF, STATE_UNAVAILABLE, STATE_UNKNOWN
 from homeassistant.core import HomeAssistant
+from homeassistant.util.unit_system import METRIC_SYSTEM, US_CUSTOMARY_SYSTEM
 from homeassistant.components.climate import (
     DOMAIN as CLIMATE_DOMAIN,
     SERVICE_SET_HVAC_MODE,
@@ -1403,3 +1404,69 @@ async def test_bug_2003(hass: HomeAssistant, supported_features):
     # TARGET_TEMPERATURE_RANGE is NOT supported -> the range keys are absent.
     assert "target_temp_high" not in sent_data
     assert "target_temp_low" not in sent_data
+
+
+@pytest.mark.parametrize(
+    "unit_system_name, step, expected_precision, target_temp",
+    [
+        ("US_CUSTOMARY", 0.5, 0.5, 68.5),
+        ("US_CUSTOMARY", 0.1, 0.1, 68.3),
+        ("US_CUSTOMARY", 1.0, 1.0, 68.0),
+        ("METRIC", 0.5, 0.1, 20.5),
+    ],
+)
+@pytest.mark.parametrize("expected_lingering_tasks", [True])
+@pytest.mark.parametrize("expected_lingering_timers", [True])
+async def test_fahrenheit_precision_matches_step(
+    hass: HomeAssistant,
+    skip_hass_states_is_state,
+    skip_turn_on_off_heater,
+    skip_send_event,
+    unit_system_name: str,
+    step: float,
+    expected_precision: float,
+    target_temp: float,
+):
+    """Test that precision in Fahrenheit matches the configured target temperature step."""
+    hass.config.units = US_CUSTOMARY_SYSTEM if unit_system_name == "US_CUSTOMARY" else METRIC_SYSTEM
+
+    entry = MockConfigEntry(
+        domain=DOMAIN,
+        title="TheOverSwitchMockName",
+        unique_id="uniqueId",
+        data={
+            CONF_NAME: "TheOverSwitchMockName",
+            CONF_THERMOSTAT_TYPE: CONF_THERMOSTAT_SWITCH,
+            CONF_TEMP_SENSOR: "sensor.mock_temp_sensor",
+            CONF_EXTERNAL_TEMP_SENSOR: "sensor.mock_ext_temp_sensor",
+            CONF_CYCLE_MIN: 5,
+            CONF_TEMP_MIN: 45 if unit_system_name == "US_CUSTOMARY" else 7,
+            CONF_TEMP_MAX: 95 if unit_system_name == "US_CUSTOMARY" else 35,
+            CONF_STEP_TEMPERATURE: step,
+            CONF_USE_WINDOW_FEATURE: False,
+            CONF_USE_MOTION_FEATURE: False,
+            CONF_USE_POWER_FEATURE: False,
+            CONF_USE_PRESENCE_FEATURE: False,
+            CONF_UNDERLYING_LIST: ["switch.mock_switch"],
+            CONF_PROP_FUNCTION: PROPORTIONAL_FUNCTION_TPI,
+            CONF_TPI_COEF_INT: 0.3,
+            CONF_TPI_COEF_EXT: 0.01,
+            CONF_MINIMAL_ACTIVATION_DELAY: 30,
+            CONF_MINIMAL_DEACTIVATION_DELAY: 0,
+            CONF_SAFETY_DELAY_MIN: 5,
+            CONF_SAFETY_MIN_ON_PERCENT: 0.0,
+            CONF_SAFETY_DEFAULT_ON_PERCENT: 0.0,
+            CONF_DEVICE_POWER: 200,
+        },
+    )
+
+    entity: BaseThermostat = await create_thermostat(hass, entry, "climate.theoverswitchmockname")
+    assert entity
+    assert entity.precision == expected_precision
+    assert entity.target_temperature_step == step
+
+    await entity.async_set_temperature(temperature=target_temp)
+    await hass.async_block_till_done()
+    state = hass.states.get(entity.entity_id)
+    assert state is not None
+    assert state.attributes["temperature"] == target_temp
