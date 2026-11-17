@@ -1422,6 +1422,7 @@ async def test_fahrenheit_precision_matches_step(
     skip_hass_states_is_state,
     skip_turn_on_off_heater,
     skip_send_event,
+    fake_underlying_switch: MockSwitch,
     unit_system_name: str,
     step: float,
     expected_precision: float,
