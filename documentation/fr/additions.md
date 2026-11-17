@@ -20,6 +20,8 @@ Une carte spéciale pour le Versatile Thermostat a été développée (sur la ba
 
 D'autres cartes compatibles avec _VTherm_, comme Equinox, sont listées dans le [catalogue des plugins](https://www.versatile-thermostat.org/fr/plugins/?family=interface).
 
+Une carte compatible avec _VTherm_, comme celle-ci, est nécessaire pour utiliser le mode sommeil (dormant, `Zzz`) : la carte thermostat par défaut de Home Assistant liste `sleep` dans `hvac_modes` mais ne peut pas le sélectionner.
+
 ## Holm Climate Card
 
 La [Holm Climate Card](https://www.versatile-thermostat.org/en/plugins/#kaaribou/climate-card-holm) est une carte de tableau de bord compatible avec _VTherm_.

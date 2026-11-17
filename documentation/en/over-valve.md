@@ -70,6 +70,9 @@ It is possible to choose a `thermostat_over_valve` to control an air conditioner
 
 ### Sleep mode
 
+> [!NOTE]
+> Sleep mode (`sleep` / `Zzz`) requires a card compatible with Versatile Thermostat, such as the [Versatile Thermostat UI Card](additions.md#the-versatile-thermostat-ui-card). The default Home Assistant thermostat (climate) card is not supported: it lists `sleep` in `hvac_modes` but cannot select it (`climate.set_hvac_mode` rejects `sleep`, which is not a standard HA `HVACMode`). To enter sleep mode, use the `Zzz` button of the VTherm UI Card or call the action `versatile_thermostat.set_hvac_mode_sleep`.
+
 `over_valve` supports sleep mode. Selecting `sleep`, or calling the
 `versatile_thermostat.set_hvac_mode_sleep` action, presents VTherm as off while
 sending a raw 100% opening request to every underlying valve. This request still

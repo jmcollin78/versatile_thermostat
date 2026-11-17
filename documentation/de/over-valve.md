@@ -63,6 +63,9 @@ Es ist möglich, einen `Thermostat_over_valve` zur Steuerung einer Klimaanlage z
 
 ### Ruhemodus
 
+> [!NOTE]
+> Der Ruhemodus (`sleep` / `Zzz`) erfordert eine mit Versatile Thermostat kompatible Karte, etwa die [Versatile Thermostat UI Card](additions.md#die-versatile-thermostat-ui-card). Die Standard-Thermostatkarte (Climate) von Home Assistant wird nicht unterstützt: sie listet `sleep` in `hvac_modes` auf, kann ihn aber nicht auswählen (`climate.set_hvac_mode` lehnt `sleep` ab, da es kein Standard-`HVACMode` von HA ist). Um den Ruhemodus zu aktivieren, verwenden Sie die Schaltfläche `Zzz` der VTherm UI Card oder rufen Sie die Aktion `versatile_thermostat.set_hvac_mode_sleep` auf.
+
 `over_valve` unterstützt den Ruhemodus. Die Auswahl von `sleep` oder der Aufruf
 der Aktion `versatile_thermostat.set_hvac_mode_sleep` zeigt VTherm als
 ausgeschaltet an und sendet gleichzeitig eine rohe Öffnungsanforderung von 100 %

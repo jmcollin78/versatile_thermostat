@@ -20,6 +20,8 @@ Es wurde eine spezielle Karte für das Versatile Thermostat entwickelt (basieren
 
 Weitere mit _VTherm_ kompatible Dashboard-Karten wie Equinox sind im [Plugin-Katalog](https://www.versatile-thermostat.org/de/plugins/?family=interface) aufgeführt.
 
+Eine mit _VTherm_ kompatible Karte wie diese wird für den Ruhemodus (`Zzz`) benötigt: die Standard-Thermostatkarte (Climate) von Home Assistant listet `sleep` zwar in `hvac_modes` auf, kann ihn aber nicht auswählen.
+
 ## Holm Climate Card
 
 Die [Holm Climate Card](https://www.versatile-thermostat.org/en/plugins/#kaaribou/climate-card-holm) ist eine mit _VTherm_ kompatible Dashboard-Karte.

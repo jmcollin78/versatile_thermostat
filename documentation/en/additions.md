@@ -18,6 +18,8 @@ A dedicated card for the Versatile Thermostat has been developed (based on Bette
 
 Other dashboard cards compatible with _VTherm_, such as Equinox, are listed in the [plugins catalog](https://www.versatile-thermostat.org/en/plugins/?family=interface).
 
+A card compatible with _VTherm_, such as this one, is required to use the sleep mode (`Zzz`): the default Home Assistant thermostat (climate) card lists `sleep` in `hvac_modes` but cannot select it.
+
 ## Holm Climate Card
 
 The [Holm Climate Card](https://www.versatile-thermostat.org/en/plugins/#kaaribou/climate-card-holm) is a dashboard card compatible with _VTherm_.

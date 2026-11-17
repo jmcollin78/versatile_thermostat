@@ -16,6 +16,8 @@ Opracowano dedykowaną kartę dla termostatu _*VTherm*_ (bazującą na *Better T
 
 ![image](https://github.com/jmcollin78/versatile-thermostat-ui-card/blob/master/assets/1.png?raw=true)
 
+Karta kompatybilna z _VTherm_, taka jak ta, jest wymagana do korzystania z trybu uśpienia (`Zzz`): domyślna karta termostatu (climate) Home Assistant wyświetla `sleep` w `hvac_modes`, ale nie pozwala go wybrać.
+
 ## Holm Climate Card
 
 [Holm Climate Card](https://www.versatile-thermostat.org/en/plugins/#kaaribou/climate-card-holm) to karta pulpitu kompatybilna z _VTherm_.

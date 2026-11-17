@@ -14,6 +14,8 @@ Vyhrazená karta pro Versatile Thermostat byla vyvinuta (založená na Better Th
 
 ![image](https://github.com/jmcollin78/versatile-thermostat-ui-card/blob/master/assets/1.png?raw=true)
 
+Karta kompatibilní s _VTherm_, jako je tato, je nutná pro použití režimu spánku (`Zzz`): výchozí karta termostatu (climate) Home Assistant `sleep` sice v `hvac_modes` uvádí, ale nelze jej vybrat.
+
 ## Holm Climate Card
 
 [Holm Climate Card](https://www.versatile-thermostat.org/en/plugins/#kaaribou/climate-card-holm) je karta dashboardu kompatibilní s _VTherm_.

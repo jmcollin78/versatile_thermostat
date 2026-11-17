@@ -95,6 +95,13 @@ Specifické funkce lze konfigurovat prostřednictvím dedikované možnosti v me
 Specifické funkce, které vyžadují konfiguraci pro tento typ VTherm, jsou:
 1. Auto-start/stop: Automatické spuštění a zastavení VTherm na základě předpovědí použití. Toto je popsáno zde: [funkce auto-start/stop](feature-auto-start-stop.md).
 2. Pokud je zvolena regulace ventilu, konfigurace algoritmu TPI je přístupná z menu. Viz ([algoritmy](algorithms.md)).
+3. Pokud je zvolena regulace ventilu, můžete _VTherm_ přepnout do režimu spánku (sleep). Režim spánku je specifický pro tento typ termostatu a umožňuje vypnout _VTherm_ při plném 100% otevření ventilu. Režim spánku lze aktivovat dvěma způsoby:
+
+   > [!NOTE]
+   > Režim spánku (`sleep` / `Zzz`) vyžaduje kartu kompatibilní s Versatile Thermostat, například [Versatile Thermostat UI Card](additions.md#karta-versatile-thermostat-ui). Výchozí karta termostatu (climate) Home Assistant není podporována: `sleep` sice uvádí v `hvac_modes`, ale nelze jej vybrat (`climate.set_hvac_mode` zamítá `sleep`, který není standardním `HVACMode` HA).
+
+   1. buď pomocí [karty VTherm UI Card](additions.md#karta-versatile-thermostat-ui) stisknutím tlačítka 'Zzz',
+   2. nebo zavoláním akce s názvem `service_set_hvac_mode_sleep`. Viz [Akce](reference.md#akce-služby)
 
 ## Sledování změn podkladové teploty
 

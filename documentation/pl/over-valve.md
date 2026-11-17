@@ -59,6 +59,9 @@ Możliwy jest wybór `termostatu na zaworze` do sterowania klimatyzatorem, jeśl
 
 ### Tryb uśpienia
 
+> [!NOTE]
+> Tryb uśpienia (`sleep` / `Zzz`) wymaga karty kompatybilnej z Versatile Thermostat, takiej jak [Versatile Thermostat UI Card](additions.md#karta-versatile-thermostat-ui-card). Domyślna karta termostatu (climate) Home Assistant nie jest obsługiwana: wyświetla `sleep` w `hvac_modes`, ale nie pozwala go wybrać (`climate.set_hvac_mode` odrzuca `sleep`, który nie jest standardowym `HVACMode` HA). Aby włączyć tryb uśpienia, użyj przycisku `Zzz` na karcie VTherm UI Card lub wywołaj akcję `versatile_thermostat.set_hvac_mode_sleep`.
+
 `over_valve` obsługuje tryb uśpienia. Wybranie `sleep` lub wywołanie akcji
 `versatile_thermostat.set_hvac_mode_sleep` pokazuje VTherm jako wyłączony, a
 jednocześnie wysyła surowe żądanie otwarcia 100% do każdego zaworu podrzędnego.
