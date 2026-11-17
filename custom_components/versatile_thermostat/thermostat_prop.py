@@ -180,7 +180,7 @@ class ThermostatProp(BaseThermostat[T], Generic[T]):
                 f"{self} - Unknown proportional function: {self._proportional_function}"
             )
 
-        _LOGGER.warning(
+        _LOGGER.debug(
             "%s - External proportional algorithm '%s' not yet registered. Will retry at startup.",
             self,
             self._proportional_function,
