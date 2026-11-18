@@ -1094,6 +1094,9 @@ class UnderlyingClimate(UnderlyingEntity):
         """Get the last send temperature. None if no temperature have been sent yet"""
         return self._last_sent_temperature
 
+    def mark_temperature_as_sent(self, temperature: float):
+        self._last_sent_temperature = temperature
+
     @property
     def hvac_action(self) -> HVACAction | None:
         """Get the hvac action of the underlying"""
