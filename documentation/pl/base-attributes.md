@@ -3,7 +3,7 @@
 
 # Wybór głównych atrybutów
 
-Wybierz menu "Główne".
+Podczas tworzenia termostatu _VTherm_ ten ekran pojawia się zaraz po wyborze typu. Później wybierz menu "Główne".
 
 ![image](images/config-main.png)
 
@@ -20,7 +20,7 @@ Wybierz menu "Główne".
 
 # Wybór funkcji użytkowych
 
-Wybierz menu "Funkcje".
+Podczas tworzenia termostatu _VTherm_ ten ekran pojawia się po urządzeniach i parametrach TPI. Później wybierz menu "Funkcje".
 
 ![image](images/config-features.png)
 
@@ -34,6 +34,6 @@ Wybierz menu "Funkcje".
 
 > ![Tip](images/tips.png) _*Wskazówki*_
 > 1. Lista dostępnych funkcji dostosowuje się do typu Twojego termostatu.
-> 2. Gdy włączysz funkcję, zostanie dodana nowa pozycja w menu do jej konfiguracji.
-> 3. Nie możesz zatwierdzić utworzenia termostatu, jeśli nie wszystkie parametry dla wszystkich włączonych funkcji zostały jeszcze skonfigurowane.
+> 2. Gdy włączysz funkcję, zostanie dodana nowa pozycja w menu do jej konfiguracji. Podczas tworzenia termostatu kreator wyświetla jej ekran zaraz po funkcjach.
+> 3. Nie możesz zatwierdzić utworzenia termostatu, jeśli nie wszystkie parametry dla wszystkich włączonych funkcji zostały jeszcze skonfigurowane. Opcja menu "Konfiguracja niekompletna" wymienia wtedy brakujące ustawienia.
 

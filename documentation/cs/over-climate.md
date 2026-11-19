@@ -26,12 +26,18 @@ Instalace by měla vypadat takto:
 ## Konfigurace
 
 Nejprve nakonfigurujte hlavní nastavení společná pro všechny _VTherm_ (viz [hlavní nastavení](base-attributes.md)).
-Poté klikněte na možnost "Podkladové entity" z menu a uvidíte tuto konfigurační stránku:
-
-![image](images/config-linked-entity2.png)
+Poté nakonfigurujte podkladová zařízení. Při vytváření _VTherm_ je průvodce zobrazí po hlavních atributech. Později vyberte v menu "Podřízená zařízení". Toto menu obsahuje:
+- "Společná nastavení": nastavení sdílená všemi zařízeními (AC režim, synchronizace vnitřní teploty, samo-regulace, auto-ventilátor...). S [přímým ovládáním ventilu](self-regulation.md#samo-regulace-přímým-ovládáním-ventilu) nebo se [synchronizací vnitřní teploty](feature-sync_device_temp.md) následuje druhá stránka nazvaná "Regulace ventilem a synchronizace" s nastaveními těchto funkcí, sdílenými všemi zařízeními,
+- jednu položku pro každé ovládané zařízení s jeho entitou a vlastními nastaveními,
+- "Přidat zařízení".
 
 ### Podkladové entity
-V seznamu "Zařízení k ovládání" byste měli přidat entity `climate`, které budou ovládány VTherm. Akceptovány jsou pouze entity typu `climate`.
+"Přidat zařízení" se nejprve zeptá na entitu `climate` k ovládání. Akceptovány jsou pouze entity typu `climate`. Poté:
+- s přímým ovládáním ventilu se další obrazovka ptá na entity ventilu a otevření tohoto zařízení,
+- se synchronizací vnitřní teploty se ptá na synchronizační entitu tohoto zařízení,
+- jinak se zařízení přidá přímo.
+
+Navrhují se entity stejného fyzického zařízení. Otevření zařízení v seznamu zobrazí jeho nastavení s poli "Nahradit entitu" a "Odebrat toto zařízení".
 
 ### AC režim
 

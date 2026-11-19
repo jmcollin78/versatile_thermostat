@@ -32,12 +32,18 @@ Diagram pokazuje, że _VTherm_ działa w cyklu zamkniętym: **ustawienie → pom
 ## Konfiguracja
 
 W pierwszej kolejności skonfiguruj ustawienia główne, wspólne dla wszystkich termostatów _VTherms_ (patrz: [główne ustawienia](base-attributes.md)).
-Następnie wybierz z menu opcję "Encje podstawowe", a zobaczysz poniższy ekran konfiguracji:
-
-![image](images/config-linked-entity2.png)
+Następnie skonfiguruj urządzenia. Podczas tworzenia termostatu _VTherm_ kreator wyświetla je po atrybutach podstawowych. Później wybierz z menu opcję "Urządzenia". To menu zawiera:
+- "Ustawienia wspólne": ustawienia wspólne dla wszystkich urządzeń (tryb AC, synchronizacja temperatury wewnętrznej, samoregulacja, autowentylacja...). Przy [bezpośrednim sterowaniu zaworem](self-regulation.md#samoregulacja-z-bezpośrednim-sterowaniem-zaworem) lub [synchronizacji temperatury wewnętrznej](feature-sync_device_temp.md) następuje po nich druga strona o nazwie "Regulacja zaworem i synchronizacja", z ustawieniami tych funkcji wspólnymi dla wszystkich urządzeń,
+- po jednej pozycji dla każdego sterowanego urządzenia, z jego encją i własnymi ustawieniami,
+- "Dodaj urządzenie".
 
 ### Encje podstawowe
-Do listy "Sterowane urządzenia" dodaj encje `climate`, które mają być sterowane termostatem. Akceptowane są tu jedynie encje typu `climate`.
+"Dodaj urządzenie" najpierw pyta o encję `climate` do sterowania. Akceptowane są tu jedynie encje typu `climate`. Następnie:
+- przy bezpośrednim sterowaniu zaworem kolejny ekran pyta o encje zaworu i stopnie otwarcia tego urządzenia,
+- przy synchronizacji temperatury wewnętrznej pyta o encję synchronizacji tego urządzenia,
+- w pozostałych przypadkach urządzenie jest dodawane od razu.
+
+Encje należące do tego samego urządzenia fizycznego są podpowiadane. Wybranie urządzenia na liście pokazuje jego ustawienia oraz pola "Zamień encję" i "Usuń to urządzenie".
 
 ### Tryb AC
 

@@ -23,21 +23,20 @@ Tento typ samo-regulace, nazývaný `Přímé ovládání ventilu`, vyžaduje:
 3. Volitelnou entitu typu `number` pro kalibraci vnitřní teploty podkladového zařízení.
 4. Volitelnou entitu typu `number` pro ovládání uzavření ventilu.
 
-Když je zvolena samo-regulace `Přímé ovládání ventilu` na _VTherm_ `over_climate`, objeví se nová konfigurační stránka s názvem `Konfigurace regulace ventilu`:
+Když je ve společných nastaveních podkladových zařízení _VTherm_ `over_climate` zvolena samo-regulace `Přímé ovládání ventilu`, tato nastavení pokračují na druhé stránce nazvané `Regulace ventilem a synchronizace`. Ta obsahuje nastavení sdílená všemi ventily:
+1. "Algoritmus": algoritmus, který vypočítá míru otevření: vestavěný _TPI_, stejný jako pro _VTherm_ `over_switch` a `over_valve`, nebo algoritmus nainstalovaný jako plugin. Viz [algoritmy](algorithms.md),
+2. `opening_threshold`: minimální otevření ventilu, pod kterým se ventil považuje za zavřený, a proto se uplatní parametr 'max_closing_degree',
+3. `max_closing_degree`: absolutní maximální procento uzavření. Ventil se nikdy neuzavře více, než udává tato hodnota. Pokud chcete povolit úplné uzavření ventilu, ponechte tento parametr na 100.
 
-![Menu konfigurace](images/config-self-regulation-valve-1.png)
+Každé zařízení pak má vlastní nastavení ventilu, zadávaná při přidání zařízení a zobrazená při jeho otevření v seznamu podkladových zařízení:
+1. "Entita otevření ventilu": entita `number`, která ovládá míru otevření ventilu. Je povinná,
+2. "Entita zavření ventilu (volitelné)": entita `number`, která ovládá míru uzavření ventilu. Zadejte ji pro všechna zařízení, nebo pro žádné: když ji mají jen některá zařízení, ostatní jsou v seznamu označena ⚠ a vytvoření nelze potvrdit,
+3. "Minimální otevření (%)" (`minimum_opening_degrees`): minimální procento otevření, když je překročen `opening_threshold` a VTherm potřebuje topit. Výchozí hodnota je 0. Když začne vytápění (tj. požadované otevření je větší než `opening_threshold`), ventil se otevře alespoň na tuto hodnotu a v případě potřeby se bude dále postupně zvyšovat,
+4. "Maximální otevření (%)" (`max_opening_degrees`): maximální procento otevření, kterého může ventil dosáhnout. Výchozí hodnota je maximum ventilu (úplné otevření). Ventil se nikdy neotevře nad tuto hodnotu, což umožňuje omezit průtok horké vody a optimalizovat spotřebu energie. Tato hodnota musí být ostře větší než minimální otevření a nesmí překročit maximum ventilu.
 
-To vám umožní konfigurovat entity ovládání ventilu:
+Jako první se navrhují entity stejného fyzického zařízení.
 
-![Entity konfigurace](images/config-self-regulation-valve-2.png)
-
-Musíte poskytnout:
-1. Tolik entit ovládání otevření ventilu, kolik je podkladových zařízení, ve stejném pořadí. Tyto parametry jsou povinné.
-2. Tolik entit kalibrace teplotního offsetu, kolik je podkladových zařízení, ve stejném pořadí. Tyto parametry jsou volitelné; buď musí být poskytnuty všechny, nebo žádné. Jejich použití, pokud je dostupné, je silně doporučeno.
-3. Tolik entit ovládání míry uzavření ventilu, kolik je podkladových zařízení, ve stejném pořadí. Tyto parametry jsou volitelné; buď musí být poskytnuty všechny, nebo žádné.
-4. Seznam minimálních hodnot otevření ventilu, když ventil potřebuje být otevřen. Toto pole je seznam celých čísel. Pokud ventil potřebuje být otevřen, otevře se alespoň na tuto hodnotu; jinak bude úplně uzavřen (0). To zajišťuje, že při potřebě vytápění protéká dostatek vody, zatímco udržuje úplné uzavření, když vytápění není potřeba.
-
-Algoritmus pro výpočet míry otevření je založen na _TPI_, který je popsán [zde](algorithms.md). Je to stejný algoritmus používaný pro _VTherm_ `over_switch` a `over_valve`.
+Kalibrace teplotního offsetu se nastavuje pomocí [synchronizace vnitřní teploty](feature-sync_device_temp.md): v části "Společná nastavení" zaškrtněte "Synchronizovat vnitřní teplotu zařízení", na stránce "Regulace ventilem a synchronizace" zaškrtněte "Použít kalibraci offsetu" a pro každé zařízení zadejte jeho kalibrační entitu jako "Synchronizační entita". Její použití, pokud je dostupná, je silně doporučeno.
 
 Pokud je nakonfigurována entita míry uzavření ventilu, bude nastavena na `100 - míra otevření` pro vynucení ventilu do specifického stavu, jinak je nastavena na 100.
 

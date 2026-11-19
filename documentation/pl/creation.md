@@ -32,10 +32,20 @@ a następnie wybierz typ termostatu:
 
 ![image](images/config-main0.png)
 
-Konfigurację można modyfikować za pomocą tego samego interfejsu. Wystarczy wybrać termostat do edycji i nacisnąć 'Konfiguruj'. Tutaj będzie można zmienić niektóre parametry lub ustawienia.
+Kreator wyświetla następnie, jeden po drugim, ekrany z wymaganymi ustawieniami:
+1. Atrybuty podstawowe,
+2. Urządzenia: najpierw ustawienia wspólne dla wszystkich urządzeń, a potem urządzenia do sterowania (patrz strona wybranego typu),
+3. Parametry TPI, gdy algorytmem jest TPI lub gdy zawór jest sterowany bezpośrednio,
+4. Funkcje, a następnie osobny ekran dla każdej włączonej funkcji,
+5. Parametry zaawansowane.
 
+W przypadku konfiguracji centralnej kreator wyświetla atrybuty podstawowe, funkcje i ekran każdej włączonej funkcji (w tym kotła centralnego), parametry TPI oraz parametry zaawansowane.
 
-Postępuj zgodnie z krokami konfiguracji, wybierając z menu właściwą opcję konfiguracyjną.
+Każdy ekran pokazuje postęp, na przykład `▰▰▱▱▱ 2 / 5`. Lista ekranów zależy od Twoich odpowiedzi: włączenie funkcji dodaje jej ekran. Na końcu kreator otwiera menu konfiguracji z opcją "Wszystko zrobione", która tworzy termostat _VTherm_. Presety, blokada i wilgotność nie są częścią kreatora: zachowują wartości domyślne i można je zmienić z tego menu.
+
+Aby zmodyfikować istniejący termostat _VTherm_, wybierz go na stronie integracji i naciśnij "Konfiguruj": menu konfiguracji otwiera się od razu, bez kreatora.
+
+Gdy brakuje wymaganego ustawienia, menu zamiast opcji "Wszystko zrobione" pokazuje "Konfiguracja niekompletna (n)", gdzie n to liczba ustawień do uzupełnienia. Ta opcja wymienia ekrany do poprawienia, podaje, czego wymaga każdy z nich, i pozwala je bezpośrednio otworzyć.
 
 # Wybór typu termostatu
 

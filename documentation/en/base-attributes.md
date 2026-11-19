@@ -4,7 +4,7 @@
 
 # Choosing Basic Attributes
 
-Select the "Main attributes" menu.
+When a _VTherm_ is created, this screen follows the choice of the type. Afterwards, select the "Main attributes" menu.
 
 ![image](images/config-main.png)
 
@@ -23,7 +23,7 @@ Select the "Main attributes" menu.
 
 ## Choosing the features to Use
 
-Select the "Features" menu.
+When a _VTherm_ is created, this screen follows the underlyings and the TPI parameters. Afterwards, select the "Features" menu.
 
 ![image](images/config-features.png)
 
@@ -38,12 +38,12 @@ Select the "Features" menu.
 
 > ![Tip](images/tips.png) _*Notes*_
 > 1. The list of available functions adapts to your VTherm type.
-> 2. When you enable a function, a new menu entry is added to configure it.
-> 3. You cannot validate the creation of a VTherm if all parameters for all enabled functions have not been configured.
+> 2. When you enable a function, a new menu entry is added to configure it. During the creation, the wizard shows its screen right after the features.
+> 3. You cannot validate the creation of a VTherm if all parameters for all enabled functions have not been configured. The "Configuration not complete" menu option then lists what is missing.
 
 ## Next Step
 
-Configure the controlled equipment ("Underlyings" menu) on the page of the chosen type:
+Configure the controlled equipment ("Underlyings" screens of the wizard, or "Underlyings" menu) on the page of the chosen type:
 
 - [`over_climate` Type Thermostat](over-climate.md): heat pumps, air conditioners and thermostatic valves exposed by a `climate` entity
 - [`over_switch` Type Thermostat](over-switch.md): electric radiators controlled by a switch or a pilot wire

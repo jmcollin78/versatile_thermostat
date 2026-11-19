@@ -34,22 +34,14 @@ This function requires:
 
 ## Configuration
 
-The configuration of this function is done in two steps.
+This function is configured in the underlyings of the _VTherm_:
+1. In the "Common settings", check "Synchronize device internal temperature" to indicate that your devices are equipped with one of the 2 internal temperature synchronization functions.
+2. The next page, "Valve regulation and synchronization", has the "Apply offset calibration" option. Check it to choose mode 1. Otherwise mode 2 will be applied.
+3. Each device then needs its "Synchronization entity", asked when the device is added and shown when it is opened in the list of the underlyings:
+   1. the `local_temperature_calibration` entity in mode 1,
+   2. the `external_temperature_input` entity in mode 2.
 
-In the underlying configuration, you indicate that your devices are equipped with one of the 2 internal temperature synchronization functions by checking the appropriate option:
-
-![image](images/config-synchronize-device-temp.png)
-
-This adds a menu called `Synchronisation de la température de l'appareil` that must be configured:
-
-![image](images/config-synchro.png)
-
-You must check the `Application d'un calibrage` option to choose option 1. Otherwise option 2 will be applied.
-Then you provide the list of entities to control:
-1. either the list of `local_temperature_calibration` entities if you are in case 1,
-2. or the list of `external_temperature_input` entities if you are in case 2.
-
-The entities must be in the order of declaration of the underlying devices and there must be the same number.
+The entities of the same physical device are suggested. A device without a synchronization entity is marked with ⚠ in the list, and the creation cannot be validated until it is set.
 
 > ![Tip](images/tips.png) _*Notes*_
 > - The two modes are mutually exclusive. You can only activate one at a time.

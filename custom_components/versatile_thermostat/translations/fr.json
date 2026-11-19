@@ -5,7 +5,7 @@
     "step": {
       "user": {
         "title": "Type du nouveau Versatile Thermostat",
-        "description": "Choisissez le type de thermostat que vous voulez créer",
+        "description": "Choisissez le type de thermostat que vous voulez créer\n\nLes écrans suivants vous guident dans les réglages obligatoires. Vous pourrez tout modifier plus tard depuis le menu.",
         "data": {
           "thermostat_type": "Type de thermostat"
         },
@@ -29,8 +29,6 @@
           "presence": "Détection de présence",
           "advanced": "Paramètres avancés",
           "auto_start_stop": "Allumage/extinction automatique",
-          "valve_regulation": "Configuration de la regulation par vanne",
-          "sync_device_internal_temp": "Synchronisation de la température de l'appareil",
           "humidity": "Humidité",
           "lock": "Gestion du verrouilage",
           "heating_failure_detection": "Détection de panne de chauffage",
@@ -38,7 +36,7 @@
           "auto_tpi_avg_settings": "Auto TPI - Moyenne pondérée",
           "auto_tpi_ema_settings": "Auto TPI - EWMA",
           "finalize": "Finaliser la création",
-          "configuration_not_complete": "Configuration incomplète"
+          "configuration_not_complete": "Configuration incomplète ({missing_count})"
         }
       },
       "lock": {
@@ -59,7 +57,7 @@
       },
       "main": {
         "title": "Ajout d'un nouveau thermostat",
-        "description": "Principaux attributs obligatoires",
+        "description": "{wizard_progress}Principaux attributs obligatoires",
         "data": {
           "name": "Nom",
           "thermostat_type": "Type de thermostat",
@@ -89,7 +87,7 @@
       },
       "features": {
         "title": "Fonctions",
-        "description": "Fonctions du thermostat à utiliser",
+        "description": "{wizard_progress}Fonctions du thermostat à utiliser",
         "data": {
           "use_window_feature": "Avec détection des ouvertures",
           "use_motion_feature": "Avec détection de mouvement",
@@ -102,50 +100,62 @@
       },
       "type": {
         "title": "Entité(s) liée(s)",
-        "description": "Attributs de(s) l'entité(s) liée(s)",
-        "data": {
-          "underlying_entity_ids": "Les équipements à controller",
-          "heater_keep_alive": "keep-alive (sec)",
-          "proportional_function": "Algorithme",
-          "ac_mode": "AC mode ?",
-          "sync_device_internal_temp": "Synchronisation de la température interne de l'appareil",
-          "auto_regulation_mode": "Auto-régulation",
-          "auto_regulation_dtemp": "Seuil de régulation",
-          "auto_regulation_periode_min": "Période minimale de régulation",
-          "opening_threshold_degree": "Seuil d'ouverture",
-          "min_opening_degrees": "Ouvertures minimales",
-          "max_opening_degrees": "Ouvertures maximales",
-          "max_closing_degree": "Fermetures maximale",
-          "auto_regulation_use_device_temp": "Compenser la température interne du sous-jacent",
-          "inverse_switch_command": "Inverser la commande",
-          "auto_fan_mode": " Auto ventilation mode",
-          "on_command_text": "Personnalisation des commandes d'allumage",
-          "vswitch_on_command": "Commande d'allumage (optionnel)",
-          "off_command_text": "Personnalisation des commandes d'extinction",
-          "vswitch_off_command": "Commande d'extinction (optionnel)"
+        "description": "{wizard_progress}Appareils pilotés par ce VTherm. Ouvrez les réglages communs, un appareil pour voir et modifier tous ses réglages, ou ajoutez un appareil. Les appareils marqués ⚠ n'ont pas un réglage exigé par les réglages communs.",
+        "menu_options": {
+          "underlying_common": "Réglages communs",
+          "underlying_1": "{underlying_1}",
+          "underlying_2": "{underlying_2}",
+          "underlying_3": "{underlying_3}",
+          "underlying_4": "{underlying_4}",
+          "underlying_5": "{underlying_5}",
+          "underlying_6": "{underlying_6}",
+          "underlying_7": "{underlying_7}",
+          "underlying_8": "{underlying_8}",
+          "underlying_9": "{underlying_9}",
+          "underlying_10": "{underlying_10}",
+          "underlying_11": "{underlying_11}",
+          "underlying_12": "{underlying_12}",
+          "underlying_13": "{underlying_13}",
+          "underlying_14": "{underlying_14}",
+          "underlying_15": "{underlying_15}",
+          "underlying_16": "{underlying_16}",
+          "underlying_17": "{underlying_17}",
+          "underlying_18": "{underlying_18}",
+          "underlying_19": "{underlying_19}",
+          "underlying_20": "{underlying_20}",
+          "underlying_add": "Ajouter un appareil",
+          "underlying_continue": "Continuer",
+          "menu": "Retour au menu"
         },
-        "data_description": {
-          "underlying_entity_ids": "La liste des équipements qui seront controlés par ce VTherm",
-          "heater_keep_alive": "Intervalle de rafraichissement du switch en secondes. Laisser vide pour désactiver. À n'utiliser que pour les switchs qui le nécessite.",
-          "proportional_function": "Algorithme à utiliser (d'autres algorithmes peuvent être installés sous forme de {plugins_link})",
-          "ac_mode": "Utilisation du mode Air Conditionné (AC)",
-          "sync_device_internal_temp": "Synchroniser la température interne de l'appareil sous-jacent avec la température mesurée par le VTherm",
-          "auto_regulation_mode": "Utilisation de l'auto-régulation faite par VTherm",
-          "auto_regulation_dtemp": "Le seuil en ° (ou % pour les vannes) en-dessous duquel la régulation ne sera pas envoyée",
-          "auto_regulation_periode_min": "La durée en minutes entre deux mise à jour faites par la régulation",
-          "opening_threshold_degree": "Seuil d'ouverture la vanne en dessous de laquelle la vanne est considérée comme devant être fermée (et alors 'max_closing_degree' s'appliquera)",
-          "min_opening_degrees": "Ouverture minimale pour chaque vanne considérée comme chauffante, séparée par des virgules. Par défaut à 0. Exemple : 20, 25, 30",
-          "max_opening_degrees": "Degré d'ouverture maximum pour chaque équipement sous-jacent, séparé par des virgules. Par défaut 100. La vanne ne s'ouvrira jamais plus que cette valeur. Exemple: 80, 85, 90",
-          "max_closing_degree": "Fermeture maximale. La vanne ne sera jamais fermée au-delà de cette valeur. Mettez à 100 pour fermer complètement la vanne",
-          "auto_regulation_use_device_temp": "Compenser la temperature interne du sous-jacent pour accélérer l'auto-régulation (n'est pas nécessaire dans la plupart des cas)",
-          "inverse_switch_command": "Inverse la commande du switch pour une installation avec fil pilote et diode",
-          "auto_fan_mode": "Active la ventilation automatiquement en cas d'écart important",
-          "on_command_text": "Pour les sous-jacents de type `select` ou `climate` vous devez personnaliser les commandes."
+        "menu_option_descriptions": {
+          "underlying_common": "Réglages partagés par tous les appareils",
+          "underlying_1": "{underlying_1_details}",
+          "underlying_2": "{underlying_2_details}",
+          "underlying_3": "{underlying_3_details}",
+          "underlying_4": "{underlying_4_details}",
+          "underlying_5": "{underlying_5_details}",
+          "underlying_6": "{underlying_6_details}",
+          "underlying_7": "{underlying_7_details}",
+          "underlying_8": "{underlying_8_details}",
+          "underlying_9": "{underlying_9_details}",
+          "underlying_10": "{underlying_10_details}",
+          "underlying_11": "{underlying_11_details}",
+          "underlying_12": "{underlying_12_details}",
+          "underlying_13": "{underlying_13_details}",
+          "underlying_14": "{underlying_14_details}",
+          "underlying_15": "{underlying_15_details}",
+          "underlying_16": "{underlying_16_details}",
+          "underlying_17": "{underlying_17_details}",
+          "underlying_18": "{underlying_18_details}",
+          "underlying_19": "{underlying_19_details}",
+          "underlying_20": "{underlying_20_details}",
+          "underlying_add": "Sélectionner un autre appareil à piloter",
+          "underlying_continue": "Passer à l'étape suivante"
         }
       },
       "tpi": {
         "title": "TPI",
-        "description": "Attributs de l'algo Time Proportional Integral",
+        "description": "{wizard_progress}Attributs de l'algo Time Proportional Integral",
         "data": {
           "tpi_coef_int": "coeff_int",
           "tpi_coef_ext": "coeff_ext",
@@ -176,7 +186,7 @@
       },
       "window": {
         "title": "Gestion d'une ouverture",
-        "description": "Coupe le radiateur si l'ouverture est ouverte.\nLaissez l'id d'entité vide pour utiliser la détection automatique",
+        "description": "{wizard_progress}Coupe le radiateur si l'ouverture est ouverte.\nLaissez l'id d'entité vide pour utiliser la détection automatique",
         "data": {
           "window_sensor_entity_id": "Détecteur d'ouverture (entity id)",
           "window_delay": "Délai de prise en compte à l'ouverture (secondes)",
@@ -200,7 +210,7 @@
       },
       "motion": {
         "title": "Gestion de la détection de mouvement",
-        "description": "Le preset s'ajuste automatiquement si un mouvement est détecté\n'Preset mouvement' et 'Preset sans mouvement' doivent être choisis avec les preset à utiliser",
+        "description": "{wizard_progress}Le preset s'ajuste automatiquement si un mouvement est détecté\n'Preset mouvement' et 'Preset sans mouvement' doivent être choisis avec les preset à utiliser",
         "data": {
           "motion_sensor_entity_id": "Détecteur de mouvement",
           "motion_delay": "Délai d'activation",
@@ -220,7 +230,7 @@
       },
       "power": {
         "title": "Gestion de la puissance",
-        "description": "Attributs de gestion de la puissance.\nSélectionnez W ou kW pour la puissance de chaque VTherm, et W, kW ou Auto pour la configuration centralisée.\nLes valeurs sont normalisées en interne : les valeurs en W et en kW peuvent donc être mélangées en toute sécurité.",
+        "description": "{wizard_progress}Attributs de gestion de la puissance.\nSélectionnez W ou kW pour la puissance de chaque VTherm, et W, kW ou Auto pour la configuration centralisée.\nLes valeurs sont normalisées en interne : les valeurs en W et en kW peuvent donc être mélangées en toute sécurité.",
         "data": {
           "power_sensor_entity_id": "Capteur de puissance totale (entity id)",
           "max_power_sensor_entity_id": "Capteur de puissance Max (entity id)",
@@ -238,7 +248,7 @@
       },
       "presence": {
         "title": "Gestion de la présenc",
-        "description": "Donnez un capteur de présence (true si quelqu'un est présent) et les températures cibles à utiliser en cas d'absence",
+        "description": "{wizard_progress}Donnez un capteur de présence (true si quelqu'un est présent) et les températures cibles à utiliser en cas d'absence",
         "data": {
           "presence_sensor_entity_id": "Capteur de présence",
           "use_presence_central_config": "Utiliser la configuration centrale des températures en cas d'absence. Décochez pour avoir des entités de température dédiées"
@@ -249,7 +259,7 @@
       },
       "advanced": {
         "title": "Paramètres avancés",
-        "description": "Configuration des paramètres avancés. Laissez les valeurs par défaut si vous ne savez pas ce que vous faites.\nCes paramètres peuvent induire des mauvais comportements du thermostat",
+        "description": "{wizard_progress}Configuration des paramètres avancés. Laissez les valeurs par défaut si vous ne savez pas ce que vous faites.\nCes paramètres peuvent induire des mauvais comportements du thermostat",
         "data": {
           "safety_delay_min": "Délai maximal entre 2 mesures de températures",
           "safety_min_on_percent": "Pourcentage minimal de puissance",
@@ -269,7 +279,7 @@
       },
       "central_boiler": {
         "title": "Contrôle de la chaudière centrale",
-        "description": "Donnez les services à appeler pour allumer/éteindre la chaudière centrale. Le service à appeler doit être formatté comme suit: `entity_id/service_name[/attribut:valeur]` (/attribut:valeur est facultatif)\nPar exemple:\n- pour allumer un switch: `switch.controle_chaudiere/switch.turn_on`\n- pour éteindre un switch: `switch.controle_chaudiere/switch.turn_off`\n- pour programmer la chaudière sur 25° et ainsi forcer son allumage: `climate.thermostat_chaudiere/climate.set_temperature/temperature:25`\n- pour envoyer 10° à la chaudière et ainsi forcer son extinction: `climate.thermostat_chaudiere/climate.set_temperature/temperature:10`",
+        "description": "{wizard_progress}Donnez les services à appeler pour allumer/éteindre la chaudière centrale. Le service à appeler doit être formatté comme suit: `entity_id/service_name[/attribut:valeur]` (/attribut:valeur est facultatif)\nPar exemple:\n- pour allumer un switch: `switch.controle_chaudiere/switch.turn_on`\n- pour éteindre un switch: `switch.controle_chaudiere/switch.turn_off`\n- pour programmer la chaudière sur 25° et ainsi forcer son allumage: `climate.thermostat_chaudiere/climate.set_temperature/temperature:25`\n- pour envoyer 10° à la chaudière et ainsi forcer son extinction: `climate.thermostat_chaudiere/climate.set_temperature/temperature:10`",
         "data": {
           "central_boiler_activation_service": "Commande pour allumer",
           "central_boiler_deactivation_service": "Commande pour éteindre",
@@ -281,30 +291,6 @@
           "central_boiler_deactivation_service": "Commande à éxecuter pour éteindre la chaudière centrale au format entity_id/service_name[/attribut:valeur]",
           "central_boiler_activation_delay_sec": "Délai en secondes avant d'activer la chaudière centrale après qu'un VTherm ait demandé l'allumage",
           "keep_alive_boiler_delay_sec": "Délai en secondes pour relancer périodiquement la commande de la chaudière si le maintien actif est activé. Mettre 0 pour désactiver."
-        }
-      },
-      "valve_regulation": {
-        "title": "Auto-régulation par vanne",
-        "description": "Configuration de l'auto-régulation par controle direct de la vanne",
-        "data": {
-          "offset_calibration_entity_ids": "Entités de 'calibrage du décalage''",
-          "opening_degree_entity_ids": "Entités 'ouverture de vanne'",
-          "closing_degree_entity_ids": "Entités 'fermeture de la vanne'",
-          "proportional_function": "Algorithme",
-          "opening_threshold_degree": "Seuil d'ouverture",
-          "min_opening_degrees": "Ouvertures minimales",
-          "max_opening_degrees": "Ouvertures maximales",
-          "max_closing_degree": "Fermetures maximale"
-        },
-        "data_description": {
-          "offset_calibration_entity_ids": "La liste des entités 'calibrage du décalage' (offset calibration). Configurez le si votre TRV possède cette fonction pour une meilleure régulation. Il doit y en avoir une par entité climate sous-jacente",
-          "opening_degree_entity_ids": "La liste des entités 'ouverture de vanne'. Il doit y en avoir une par entité climate sous-jacente",
-          "closing_degree_entity_ids": "La liste des entités 'fermeture de la vanne'. Configurez le si votre TRV possède cette fonction pour une meilleure régulation. Il doit y en avoir une par entité climate sous-jacente",
-          "proportional_function": "Algorithme à utiliser (d'autres algorithmes peuvent être installés sous forme de {plugins_link})",
-          "opening_threshold_degree": "Seuil d'ouverture la vanne en dessous de laquelle la vanne est considérée comme devant être fermée (et alors 'max_closing_degree' s'appliquera)",
-          "min_opening_degrees": "Ouverture minimale pour chaque vanne considérée comme chauffante, séparée par des virgules. Par défaut à 0. Exemple : 20, 25, 30",
-          "max_opening_degrees": "Degré d'ouverture maximum pour chaque équipement sous-jacent, séparé par des virgules. Par défaut 100. La vanne ne s'ouvrira jamais plus que cette valeur. Exemple: 80, 85, 90",
-          "max_closing_degree": "Fermeture maximale. La vanne ne sera jamais fermée au-delà de cette valeur. Mettez à 100 pour fermer complètement la vanne"
         }
       },
       "auto_tpi_configuration": {
@@ -355,18 +341,6 @@
           "auto_tpi_continuous_kext_alpha": "Facteur de lissage pour l'apprentissage continu (Alpha). Défaut 0.04 (adaptation env. 3-5 jours)."
         }
       },
-      "sync_device_internal_temp": {
-        "title": "Synchronisation de la température interne des sous-jacents",
-        "description": "Configuration de la synchronisation des températures internes des sous-jacents",
-        "data": {
-          "sync_with_calibration": "Application d'un calibrage",
-          "sync_entity_ids": "Identifiants des entités utilisées pour la synchronisation"
-        },
-        "data_description": {
-          "sync_with_calibration": "Cochez pour appliquer le calibrage du décalage lors de la synchronisation de la température interne. Décochez pour copier directement la température vers les entités sélectionnées",
-          "sync_entity_ids": "La liste des entités utilisées pour synchroniser la température interne des appareils sous-jacents. Il doit y en avoir une par appareil sous-jacent. Doit être une entité de calibrage si la case est cochée ou une entité de température sinon. Les deux sont des entités de type `number`."
-        }
-      },
       "humidity": {
         "title": "Humidité",
         "description": "Utilisez un capteur d'humidité externe. Capteur détecté : {humidity_detected}",
@@ -381,7 +355,7 @@
       },
       "heating_failure_detection": {
         "title": "Détection de panne de chauffage",
-        "description": "Configuration de la détection de panne de chauffage. Cette fonctionnalité détecte les anomalies lorsque le chauffage est demandé mais que la température n'augmente pas, ou lorsque le chauffage est éteint mais que la température continue de monter.",
+        "description": "{wizard_progress}Configuration de la détection de panne de chauffage. Cette fonctionnalité détecte les anomalies lorsque le chauffage est demandé mais que la température n'augmente pas, ou lorsque le chauffage est éteint mais que la température continue de monter.",
         "data": {
           "use_heating_failure_detection_feature": "Activer la détection de panne de chauffage",
           "use_heating_failure_detection_central_config": "Utiliser la configuration centrale de détection de panne",
@@ -400,6 +374,138 @@
           "temperature_change_tolerance": "Variation minimale de température en degrés pour être considérée comme significative. Les variations plus petites sont ignorées pour filtrer le bruit des capteurs (défaut: 0.5°C)",
           "failure_detection_enable_template": "Un template Jinja2 optionnel qui doit retourner True pour activer la détection. Utile pour désactiver temporairement la détection lorsqu'une source de chaleur externe est active (ex: `is_state('binary_sensor.poele_a_bois', 'off')` entre double accolades). Si vide, la détection est toujours active."
         }
+      },
+      "configuration_not_complete": {
+        "title": "Configuration incomplète",
+        "description": "Ces réglages sont obligatoires pour pouvoir finaliser la configuration. Choisissez un élément pour ouvrir l'écran qui permet de le corriger.",
+        "menu_options": {
+          "main": "Principaux Attributs",
+          "type": "Sous-jacents",
+          "tpi": "Paramètres TPI",
+          "presets": "Pre-réglages",
+          "power": "Gestion de la puissance",
+          "motion": "Détection de mouvement",
+          "presence": "Détection de présence",
+          "advanced": "Paramètres avancés",
+          "central_boiler": "Chauffage central",
+          "menu": "Retour au menu"
+        },
+        "menu_option_descriptions": {
+          "main": "Le nom, les capteurs de température ou la durée du cycle sont manquants",
+          "type": "Ajoutez au moins un appareil et complétez les appareils marqués ⚠",
+          "tpi": "Les coefficients TPI sont obligatoires",
+          "presets": "La configuration centrale est nécessaire pour utiliser ses préréglages",
+          "power": "Les capteurs de puissance ou la température du préréglage délestage sont manquants",
+          "motion": "Un capteur de mouvement est obligatoire quand la fonction est activée",
+          "presence": "Un capteur de présence est obligatoire quand la fonction est activée",
+          "advanced": "Les paramètres de sécurité sont obligatoires",
+          "central_boiler": "Les commandes d'activation et de désactivation sont obligatoires"
+        }
+      },
+      "underlying_common": {
+        "title": "Réglages communs",
+        "description": "{wizard_progress}Réglages partagés par tous les appareils de ce VTherm.",
+        "data": {
+          "heater_keep_alive": "keep-alive (sec)",
+          "proportional_function": "Algorithme",
+          "ac_mode": "AC mode ?",
+          "inverse_switch_command": "Inverser la commande",
+          "auto_regulation_dtemp": "Seuil de régulation",
+          "auto_regulation_periode_min": "Période minimale de régulation",
+          "opening_threshold_degree": "Seuil d'ouverture",
+          "max_closing_degree": "Fermetures maximale",
+          "sync_device_internal_temp": "Synchronisation de la température interne de l'appareil",
+          "auto_regulation_mode": "Auto-régulation",
+          "auto_fan_mode": " Auto ventilation mode",
+          "auto_regulation_use_device_temp": "Compenser la température interne du sous-jacent"
+        },
+        "data_description": {
+          "heater_keep_alive": "Intervalle de rafraichissement du switch en secondes. Laisser vide pour désactiver. À n'utiliser que pour les switchs qui le nécessite.",
+          "proportional_function": "Algorithme à utiliser (d'autres algorithmes peuvent être installés sous forme de {plugins_link})",
+          "ac_mode": "Utilisation du mode Air Conditionné (AC)",
+          "inverse_switch_command": "Inverse la commande du switch pour une installation avec fil pilote et diode",
+          "auto_regulation_dtemp": "Le seuil en ° (ou % pour les vannes) en-dessous duquel la régulation ne sera pas envoyée",
+          "auto_regulation_periode_min": "La durée en minutes entre deux mise à jour faites par la régulation",
+          "opening_threshold_degree": "Seuil d'ouverture la vanne en dessous de laquelle la vanne est considérée comme devant être fermée (et alors 'max_closing_degree' s'appliquera)",
+          "max_closing_degree": "Fermeture maximale. La vanne ne sera jamais fermée au-delà de cette valeur. Mettez à 100 pour fermer complètement la vanne",
+          "sync_device_internal_temp": "Cochez pour synchroniser la température interne des appareils sous-jacents. Chaque appareil doit alors avoir sa propre entité de synchronisation, à renseigner dans les réglages de l'appareil",
+          "auto_regulation_mode": "Utilisation de l'auto-régulation faite par VTherm",
+          "auto_fan_mode": "Active la ventilation automatiquement en cas d'écart important",
+          "auto_regulation_use_device_temp": "Compenser la temperature interne du sous-jacent pour accélérer l'auto-régulation (n'est pas nécessaire dans la plupart des cas)"
+        }
+      },
+      "underlying_common_extra": {
+        "title": "Régulation par vanne et synchronisation",
+        "description": "{wizard_progress}Réglages partagés par tous les appareils pour le contrôle direct des vannes et pour la synchronisation de la température interne.",
+        "data": {
+          "proportional_function": "Algorithme",
+          "opening_threshold_degree": "Seuil d'ouverture",
+          "max_closing_degree": "Fermetures maximale",
+          "sync_with_calibration": "Application d'un calibrage"
+        },
+        "data_description": {
+          "proportional_function": "Algorithme à utiliser (d'autres algorithmes peuvent être installés sous forme de {plugins_link})",
+          "opening_threshold_degree": "Seuil d'ouverture la vanne en dessous de laquelle la vanne est considérée comme devant être fermée (et alors 'max_closing_degree' s'appliquera)",
+          "max_closing_degree": "Fermeture maximale. La vanne ne sera jamais fermée au-delà de cette valeur. Mettez à 100 pour fermer complètement la vanne",
+          "sync_with_calibration": "Cochez pour appliquer le calibrage du décalage lors de la synchronisation de la température interne. Décochez pour copier directement la température vers les entités sélectionnées"
+        }
+      },
+      "underlying_add": {
+        "title": "Ajouter un appareil",
+        "description": "{wizard_progress}Sélectionnez l'appareil à piloter. Ses réglages propres sont demandés à l'écran suivant.",
+        "data": {
+          "underlying_entity_id": "Appareil"
+        },
+        "data_description": {
+          "underlying_entity_id": "L'entité à piloter"
+        }
+      },
+      "underlying": {
+        "title": "{underlying_name}",
+        "description": "{underlying_entity}\n\nRéglages de cet appareil. Seuls les champs qui s'appliquent au type de VTherm et aux réglages communs sont affichés. Les commandes personnalisées et les entités de fermeture doivent être renseignées pour tous les appareils ou pour aucun.",
+        "data": {
+          "opening_degree_entity_id": "Entité d'ouverture de la vanne",
+          "closing_degree_entity_id": "Entité de fermeture de la vanne (optionnelle)",
+          "sync_entity_id": "Entité de synchronisation",
+          "on_command": "Commande d'allumage",
+          "off_command": "Commande d'extinction",
+          "min_opening_degree": "Ouverture minimale (%)",
+          "max_opening_degree": "Ouverture maximale (%)",
+          "replace_entity_id": "Remplacer l'entité",
+          "remove_underlying": "Supprimer cet appareil"
+        },
+        "data_description": {
+          "opening_degree_entity_id": "L'entité number qui règle le degré d'ouverture de la vanne. Les entités du même appareil sont suggérées.",
+          "closing_degree_entity_id": "Entité number optionnelle qui règle le degré de fermeture de la vanne. À renseigner pour tous les appareils ou pour aucun.",
+          "sync_entity_id": "L'entité number utilisée pour synchroniser la température interne de cet appareil : l'entité de calibration si « Appliquer l'offset de calibration » est coché, l'entité de température sinon.",
+          "on_command": "Format : nom_du_service[/attribut:valeur]. Obligatoire pour les entités select et climate. À renseigner pour tous les appareils ou pour aucun.",
+          "off_command": "Format : nom_du_service[/attribut:valeur]. Obligatoire pour les entités select et climate. À renseigner pour tous les appareils ou pour aucun.",
+          "min_opening_degree": "Degré d'ouverture minimal de cet appareil lorsque le seuil d'ouverture est dépassé. 0 par défaut.",
+          "max_opening_degree": "Degré d'ouverture maximal de cet appareil : la vanne ne s'ouvrira jamais au-delà de cette valeur. Il ne peut pas dépasser le maximum de la vanne.",
+          "replace_entity_id": "Sélectionnez une autre entité pour remplacer cet appareil. Si le type d'entité change, les réglages de l'appareil doivent être saisis à nouveau.",
+          "remove_underlying": "Cochez pour retirer cet appareil du VTherm"
+        },
+        "sections": {
+          "commands": {
+            "name": "Commandes personnalisées",
+            "description": "Commandes optionnelles pour allumer et éteindre cet appareil, au format nom_du_service[/attribut:valeur]. À renseigner pour tous les appareils ou pour aucun.",
+            "data": {
+              "on_command": "Commande d'allumage",
+              "off_command": "Commande d'extinction"
+            },
+            "data_description": {
+              "on_command": "Format : nom_du_service[/attribut:valeur]. Obligatoire pour les entités select et climate. À renseigner pour tous les appareils ou pour aucun.",
+              "off_command": "Format : nom_du_service[/attribut:valeur]. Obligatoire pour les entités select et climate. À renseigner pour tous les appareils ou pour aucun."
+            }
+          }
+        }
+      },
+      "auto_start_stop": {
+        "title": "Allumage/extinction automatique",
+        "description": "{wizard_progress}",
+        "data": {
+          "auto_start_stop_level": "Allumage/extinction automatique"
+        }
       }
     },
     "error": {
@@ -408,13 +514,10 @@
       "window_open_detection_method": "Une seule méthode de détection des ouvertures ouvertes doit être utilisée. Utilisez le détecteur d'ouverture ou les seuils de température mais pas les deux.",
       "no_central_config": "Vous ne pouvez pas cocher 'Utiliser la configuration centrale' car aucune configuration centrale n'a été trouvée. Vous devez créer un Versatile Thermostat de type 'Central Configuration' pour pouvoir l'utiliser.",
       "service_configuration_format": "Mauvais format de la configuration du service",
-      "valve_regulation_nb_entities_incorrect": "Le nombre d'entités pour la régulation par vanne doit être égal au nombre d'entité sous-jacentes",
-      "sync_device_internal_temp_nb_entities_incorrect": "Le nombre d'entités pour la synchronisation de la température interne des appareils sous-jacents doit être égal au nombre d'appareils sous-jacents",
-      "min_opening_degrees_format": "Une liste d'entiers positifs séparés par des ',' est attendu. Exemple : 20, 25, 30",
-      "max_opening_degrees_format": "Une liste d'entiers positifs entre 0 et l'ouverture maximale de la vanne séparés par des ',' est attendu. Exemple : 80, 85, 90",
       "min_max_opening_degrees_inconsistent": "Pour chaque équipement sous-jacent, max_opening_degrees doit être strictement supérieur à min_opening_degrees. Veuillez vérifier votre configuration.",
-      "valve_control_parameters_cardinality_incorrect": "Les listes des degrés d'ouverture minimum et maximum ne peuvent pas contenir plus de valeurs que les vannes configurées",
-      "vswitch_configuration_incorrect": "La configuration de la personnalisation des commandes est incorrecte. Elle est obligatoire pour les sous-jacents non switch et le format doit être 'service_name[/attribut:valeur]'. Plus d'informations dans le README."
+      "vswitch_configuration_incorrect": "La configuration de la personnalisation des commandes est incorrecte. Elle est obligatoire pour les sous-jacents non switch et le format doit être 'service_name[/attribut:valeur]'. Plus d'informations dans le README.",
+      "underlying_already_added": "Cette entité est déjà utilisée par un appareil de ce VTherm",
+      "max_opening_degree_out_of_range": "L'ouverture maximale doit être supérieure à 0 et ne doit pas dépasser le maximum de la vanne"
     },
     "abort": {
       "already_configured": "L'appareil est déjà configuré"
@@ -449,13 +552,11 @@
           "presence": "Détection de présence",
           "advanced": "Paramètres avancés",
           "auto_start_stop": "Allumage/extinction automatique",
-          "valve_regulation": "Configuration de la regulation par vanne",
-          "sync_device_internal_temp": "Synchronisation de la température de l'appareil",
           "humidity": "Humidité",
           "lock": "Verrouillage",
           "heating_failure_detection": "Détection de panne de chauffage",
           "finalize": "Finaliser les modifications",
-          "configuration_not_complete": "Configuration incomplète"
+          "configuration_not_complete": "Configuration incomplète ({missing_count})"
         }
       },
       "lock": {
@@ -476,7 +577,7 @@
       },
       "main": {
         "title": "Attributs - {name}",
-        "description": "Principaux attributs obligatoires",
+        "description": "{wizard_progress}Principaux attributs obligatoires",
         "data": {
           "name": "Nom",
           "thermostat_type": "Type de thermostat",
@@ -504,7 +605,7 @@
       },
       "features": {
         "title": "Fonctions - {name}",
-        "description": "Fonctions du thermostat à utiliser",
+        "description": "{wizard_progress}Fonctions du thermostat à utiliser",
         "data": {
           "use_window_feature": "Avec détection des ouvertures",
           "use_motion_feature": "Avec détection de mouvement",
@@ -516,51 +617,63 @@
         }
       },
       "type": {
-        "title": "Entité(s) liée(s) - {name}",
-        "description": "Attributs de(s) l'entité(s) liée(s)",
-        "data": {
-          "underlying_entity_ids": "Les équipements à controller",
-          "heater_keep_alive": "keep-alive (sec)",
-          "proportional_function": "Algorithme",
-          "ac_mode": "AC mode ?",
-          "sync_device_internal_temp": "Synchronisation de la température interne de l'appareil",
-          "auto_regulation_mode": "Auto-régulation",
-          "auto_regulation_dtemp": "Seuil de régulation",
-          "auto_regulation_periode_min": "Période minimale de régulation",
-          "opening_threshold_degree": "Seuil d'ouverture",
-          "min_opening_degrees": "Ouvertures minimales",
-          "max_opening_degrees": "Ouvertures maximales",
-          "max_closing_degree": "Fermetures maximale",
-          "auto_regulation_use_device_temp": "Compenser la température interne du sous-jacent",
-          "inverse_switch_command": "Inverser la commande",
-          "auto_fan_mode": "Auto ventilation mode",
-          "on_command_text": "Personnalisation des commandes d'allumage",
-          "vswitch_on_command": "Commande d'allumage (optionnel)",
-          "off_command_text": "Personnalisation des commandes d'extinction",
-          "vswitch_off_command": "Commande d'extinction (optionnel)"
+        "title": "Entité(s) liée(s)",
+        "description": "{wizard_progress}Appareils pilotés par ce VTherm. Ouvrez les réglages communs, un appareil pour voir et modifier tous ses réglages, ou ajoutez un appareil. Les appareils marqués ⚠ n'ont pas un réglage exigé par les réglages communs.",
+        "menu_options": {
+          "underlying_common": "Réglages communs",
+          "underlying_1": "{underlying_1}",
+          "underlying_2": "{underlying_2}",
+          "underlying_3": "{underlying_3}",
+          "underlying_4": "{underlying_4}",
+          "underlying_5": "{underlying_5}",
+          "underlying_6": "{underlying_6}",
+          "underlying_7": "{underlying_7}",
+          "underlying_8": "{underlying_8}",
+          "underlying_9": "{underlying_9}",
+          "underlying_10": "{underlying_10}",
+          "underlying_11": "{underlying_11}",
+          "underlying_12": "{underlying_12}",
+          "underlying_13": "{underlying_13}",
+          "underlying_14": "{underlying_14}",
+          "underlying_15": "{underlying_15}",
+          "underlying_16": "{underlying_16}",
+          "underlying_17": "{underlying_17}",
+          "underlying_18": "{underlying_18}",
+          "underlying_19": "{underlying_19}",
+          "underlying_20": "{underlying_20}",
+          "underlying_add": "Ajouter un appareil",
+          "underlying_continue": "Continuer",
+          "menu": "Retour au menu"
         },
-        "data_description": {
-          "underlying_entity_ids": "La liste des équipements qui seront controlés par ce VTherm",
-          "heater_keep_alive": "Intervalle de rafraichissement du switch en secondes. Laisser vide pour désactiver. À n'utiliser que pour les switchs qui le nécessite.",
-          "proportional_function": "Algorithme à utiliser (d'autres algorithmes peuvent être installés sous forme de {plugins_link})",
-          "ac_mode": "Utilisation du mode Air Conditionné (AC)",
-          "sync_device_internal_temp": "Synchroniser la température interne de l'appareil sous-jacent avec la température mesurée par le VTherm",
-          "auto_regulation_mode": "Utilisation de l'auto-régulation faite par VTherm",
-          "auto_regulation_dtemp": "Le seuil en ° (ou % pour les vannes) en-dessous duquel la régulation ne sera pas envoyée",
-          "auto_regulation_periode_min": "La durée en minutes entre deux mise à jour faites par la régulation",
-          "opening_threshold_degree": "Seuil d'ouverture la vanne en dessous de laquelle la vanne est considérée comme devant être fermée (et alors 'max_closing_degree' s'appliquera)",
-          "min_opening_degrees": "Ouverture minimale pour chaque vanne considérée comme chauffante, séparée par des virgules. Par défaut à 0. Exemple : 20, 25, 30",
-          "max_opening_degrees": "Degré d'ouverture maximum pour chaque équipement sous-jacent, séparé par des virgules. Par défaut 100. La vanne ne s'ouvrira jamais plus que cette valeur. Exemple: 80, 85, 90",
-          "max_closing_degree": "Fermeture maximale. La vanne ne sera jamais fermée au-delà de cette valeur. Mettez à 100 pour fermer complètement la vanne",
-          "auto_regulation_use_device_temp": "Compenser la temperature interne du sous-jacent pour accélérer l'auto-régulation (n'est pas nécessaire dans la plupart des cas)",
-          "inverse_switch_command": "Inverse la commande du switch pour une installation avec fil pilote et diode",
-          "auto_fan_mode": "Active la ventilation automatiquement en cas d'écart important",
-          "on_command_text": "Pour les sous-jacents de type `select` ou `climate`"
+        "menu_option_descriptions": {
+          "underlying_common": "Réglages partagés par tous les appareils",
+          "underlying_1": "{underlying_1_details}",
+          "underlying_2": "{underlying_2_details}",
+          "underlying_3": "{underlying_3_details}",
+          "underlying_4": "{underlying_4_details}",
+          "underlying_5": "{underlying_5_details}",
+          "underlying_6": "{underlying_6_details}",
+          "underlying_7": "{underlying_7_details}",
+          "underlying_8": "{underlying_8_details}",
+          "underlying_9": "{underlying_9_details}",
+          "underlying_10": "{underlying_10_details}",
+          "underlying_11": "{underlying_11_details}",
+          "underlying_12": "{underlying_12_details}",
+          "underlying_13": "{underlying_13_details}",
+          "underlying_14": "{underlying_14_details}",
+          "underlying_15": "{underlying_15_details}",
+          "underlying_16": "{underlying_16_details}",
+          "underlying_17": "{underlying_17_details}",
+          "underlying_18": "{underlying_18_details}",
+          "underlying_19": "{underlying_19_details}",
+          "underlying_20": "{underlying_20_details}",
+          "underlying_add": "Sélectionner un autre appareil à piloter",
+          "underlying_continue": "Passer à l'étape suivante"
         }
       },
       "tpi": {
         "title": "TPI - {name}",
-        "description": "Attributs de l'algo Time Proportional Integral",
+        "description": "{wizard_progress}Attributs de l'algo Time Proportional Integral",
         "data": {
           "tpi_coef_int": "coeff_int",
           "tpi_coef_ext": "coeff_ext",
@@ -591,7 +704,7 @@
       },
       "window": {
         "title": "Ouverture - {name}",
-        "description": "Coupe le radiateur si l'ouverture est ouverte.\nLaissez l'id d'entité vide pour utiliser la détection automatique",
+        "description": "{wizard_progress}Coupe le radiateur si l'ouverture est ouverte.\nLaissez l'id d'entité vide pour utiliser la détection automatique",
         "data": {
           "window_sensor_entity_id": "Détecteur d'ouverture (entity id)",
           "window_delay": "Délai avant extinction (secondes)",
@@ -615,7 +728,7 @@
       },
       "motion": {
         "title": "Mouvement - {name}",
-        "description": "Le preset s'ajuste automatiquement si un mouvement est détecté\n'Preset mouvement' et 'Preset sans mouvement' doivent être choisis avec les preset à utiliser",
+        "description": "{wizard_progress}Le preset s'ajuste automatiquement si un mouvement est détecté\n'Preset mouvement' et 'Preset sans mouvement' doivent être choisis avec les preset à utiliser",
         "data": {
           "motion_sensor_entity_id": "Détecteur de mouvement",
           "motion_delay": "Délai d'activation",
@@ -635,7 +748,7 @@
       },
       "power": {
         "title": "Puissance - {name}",
-        "description": "Sélectionne automatiquement le preset 'power' si la puissance consommée est supérieure à un maximum.\nDonnez les entity id des capteurs qui mesurent la puissance totale et la puissance max autorisée.\nEnsuite donnez la puissance de l'équipement.\nTous les capteurs et la puissance consommée par l'équipement doivent avoir la même unité de mesure (kW ou W)",
+        "description": "{wizard_progress}Sélectionne automatiquement le preset 'power' si la puissance consommée est supérieure à un maximum.\nDonnez les entity id des capteurs qui mesurent la puissance totale et la puissance max autorisée.\nEnsuite donnez la puissance de l'équipement.\nTous les capteurs et la puissance consommée par l'équipement doivent avoir la même unité de mesure (kW ou W)",
         "data": {
           "power_sensor_entity_id": "Puissance totale",
           "max_power_sensor_entity_id": "Capteur de puissance Max (entity id)",
@@ -651,7 +764,7 @@
       },
       "presence": {
         "title": "Présence - {name}",
-        "description": "Donnez un capteur de présence (true si quelqu'un est présent) et les températures cibles à utiliser en cas d'absence",
+        "description": "{wizard_progress}Donnez un capteur de présence (true si quelqu'un est présent) et les températures cibles à utiliser en cas d'absence",
         "data": {
           "presence_sensor_entity_id": "Capteur de présence",
           "use_presence_central_config": "Utiliser la configuration centrale des températures en cas d'absence. Décochez pour avoir des entités de température dédiées"
@@ -662,7 +775,7 @@
       },
       "advanced": {
         "title": "Avancés - {name}",
-        "description": "Configuration des paramètres avancés. Laissez les valeurs par défaut si vous ne savez pas ce que vous faites.\nCes paramètres peuvent induire des mauvais comportements du thermostat",
+        "description": "{wizard_progress}Configuration des paramètres avancés. Laissez les valeurs par défaut si vous ne savez pas ce que vous faites.\nCes paramètres peuvent induire des mauvais comportements du thermostat",
         "data": {
           "minimal_activation_delay": "Délai minimal d'activation",
           "minimal_deactivation_delay": "Délai de désactivation minimal",
@@ -686,7 +799,7 @@
       },
       "central_boiler": {
         "title": "Contrôle de la chaudière centrale - {name}",
-        "description": "Donnez les services à appeler pour allumer/éteindre la chaudière centrale. Le service à appeler doit être formatté comme suit: `entity_id/service_name[/attribut:valeur]` (/attribut:valeur est facultatif)\nPar exemple:\n- pour allumer un switch: `switch.controle_chaudiere/switch.turn_on`\n- pour éteindre un switch: `switch.controle_chaudiere/switch.turn_off`\n- pour programmer la chaudière sur 25° et ainsi forcer son allumage: `climate.thermostat_chaudiere/climate.set_temperature/temperature:25`\n- pour envoyer 10° à la chaudière et ainsi forcer son extinction: `climate.thermostat_chaudiere/climate.set_temperature/temperature:10`",
+        "description": "{wizard_progress}Donnez les services à appeler pour allumer/éteindre la chaudière centrale. Le service à appeler doit être formatté comme suit: `entity_id/service_name[/attribut:valeur]` (/attribut:valeur est facultatif)\nPar exemple:\n- pour allumer un switch: `switch.controle_chaudiere/switch.turn_on`\n- pour éteindre un switch: `switch.controle_chaudiere/switch.turn_off`\n- pour programmer la chaudière sur 25° et ainsi forcer son allumage: `climate.thermostat_chaudiere/climate.set_temperature/temperature:25`\n- pour envoyer 10° à la chaudière et ainsi forcer son extinction: `climate.thermostat_chaudiere/climate.set_temperature/temperature:10`",
         "data": {
           "central_boiler_activation_service": "Commande pour allumer",
           "central_boiler_deactivation_service": "Commande pour éteindre",
@@ -698,30 +811,6 @@
           "central_boiler_deactivation_service": "Commande à éxecuter pour éteindre la chaudière centrale au format entity_id/service_name[/attribut:valeur]",
           "central_boiler_activation_delay_sec": "Délai en secondes avant d'activer la chaudière centrale après qu'un VTherm ait demandé l'allumage",
           "keep_alive_boiler_delay_sec": "Délai en secondes pour relancer périodiquement la commande de la chaudière si le maintien actif est activé. Mettre 0 pour désactiver."
-        }
-      },
-      "valve_regulation": {
-        "title": "Auto-régulation par vanne - {name}",
-        "description": "Configuration de l'auto-régulation par controle direct de la vanne",
-        "data": {
-          "offset_calibration_entity_ids": "Entités de 'calibrage du décalage''",
-          "opening_degree_entity_ids": "Entités 'ouverture de vanne'",
-          "closing_degree_entity_ids": "Entités 'fermeture de la vanne'",
-          "proportional_function": "Algorithme",
-          "opening_threshold_degree": "Seuil d'ouverture",
-          "min_opening_degrees": "Ouvertures minimales",
-          "max_opening_degrees": "Ouvertures maximales",
-          "max_closing_degree": "Fermetures maximale"
-        },
-        "data_description": {
-          "offset_calibration_entity_ids": "La liste des entités 'calibrage du décalage' (offset calibration). Configurez le si votre TRV possède cette fonction pour une meilleure régulation. Il doit y en avoir une par entité climate sous-jacente",
-          "opening_degree_entity_ids": "La liste des entités 'ouverture de vanne'. Il doit y en avoir une par entité climate sous-jacente",
-          "closing_degree_entity_ids": "La liste des entités 'fermeture de la vanne'. Configurez le si votre TRV possède cette fonction pour une meilleure régulation. Il doit y en avoir une par entité climate sous-jacente",
-          "proportional_function": "Algorithme à utiliser (d'autres algorithmes peuvent être installés sous forme de {plugins_link})",
-          "opening_threshold_degree": "Seuil d'ouverture la vanne en dessous de laquelle la vanne est considérée comme devant être fermée (et alors 'max_closing_degree' s'appliquera)",
-          "min_opening_degrees": "Ouverture minimale pour chaque vanne considérée comme chauffante, séparée par des virgules. Par défaut à 0. Exemple : 20, 25, 30",
-          "max_opening_degrees": "Degré d'ouverture maximum pour chaque équipement sous-jacent, séparé par des virgules. Par défaut 100. La vanne ne s'ouvrira jamais plus que cette valeur. Exemple: 80, 85, 90",
-          "max_closing_degree": "Fermeture maximale. La vanne ne sera jamais fermée au-delà de cette valeur. Mettez à 100 pour fermer complètement la vanne"
         }
       },
       "auto_tpi_configuration": {
@@ -772,18 +861,6 @@
           "auto_tpi_continuous_kext_alpha": "Facteur de lissage pour l'apprentissage continu (Alpha). Défaut 0.04 (adaptation env. 3-5 jours)."
         }
       },
-      "sync_device_internal_temp": {
-        "title": "Synchronisation de la température interne des sous-jacents",
-        "description": "Configuration de la synchronisation des températures internes des sous-jacents",
-        "data": {
-          "sync_with_calibration": "Application d'un calibrage",
-          "sync_entity_ids": "Identifiants des entités utilisées pour la synchronisation"
-        },
-        "data_description": {
-          "sync_with_calibration": "Cochez pour appliquer le calibrage du décalage lors de la synchronisation de la température interne. Décochez pour copier directement la température vers les entités sélectionnées",
-          "sync_entity_ids": "La liste des entités utilisées pour synchroniser la température interne des appareils sous-jacents. Il doit y en avoir une par appareil sous-jacent. Doit être une entité de calibrage si la case est cochée ou une entité de température sinon. Les deux sont des entités de type `number`."
-        }
-      },
       "humidity": {
         "title": "Humidité - {name}",
         "description": "Utilisez un capteur d'humidité externe. Capteur détecté : {humidity_detected}",
@@ -798,7 +875,7 @@
       },
       "heating_failure_detection": {
         "title": "Détection de panne de chauffage - {name}",
-        "description": "Configuration de la détection de panne de chauffage. Cette fonctionnalité détecte les anomalies lorsque le chauffage est demandé mais que la température n'augmente pas, ou lorsque le chauffage est éteint mais que la température continue de monter.",
+        "description": "{wizard_progress}Configuration de la détection de panne de chauffage. Cette fonctionnalité détecte les anomalies lorsque le chauffage est demandé mais que la température n'augmente pas, ou lorsque le chauffage est éteint mais que la température continue de monter.",
         "data": {
           "use_heating_failure_detection_feature": "Activer la détection de panne de chauffage",
           "use_heating_failure_detection_central_config": "Utiliser la configuration centrale de détection de panne",
@@ -817,6 +894,138 @@
           "temperature_change_tolerance": "Variation minimale de température en degrés pour être considérée comme significative. Les variations plus petites sont ignorées pour filtrer le bruit des capteurs (défaut: 0.5°C)",
           "failure_detection_enable_template": "Un template Jinja2 optionnel qui doit retourner True pour activer la détection. Utile pour désactiver temporairement la détection lorsqu'une source de chaleur externe est active (ex: `is_state('binary_sensor.poele_a_bois', 'off')` entre double accolades). Si vide, la détection est toujours active."
         }
+      },
+      "configuration_not_complete": {
+        "title": "Configuration incomplète",
+        "description": "Ces réglages sont obligatoires pour pouvoir finaliser la configuration. Choisissez un élément pour ouvrir l'écran qui permet de le corriger.",
+        "menu_options": {
+          "main": "Principaux Attributs",
+          "type": "Sous-jacents",
+          "tpi": "Paramètres TPI",
+          "presets": "Pre-réglages",
+          "power": "Gestion de la puissance",
+          "motion": "Détection de mouvement",
+          "presence": "Détection de présence",
+          "advanced": "Paramètres avancés",
+          "central_boiler": "Chauffage central",
+          "menu": "Retour au menu"
+        },
+        "menu_option_descriptions": {
+          "main": "Le nom, les capteurs de température ou la durée du cycle sont manquants",
+          "type": "Ajoutez au moins un appareil et complétez les appareils marqués ⚠",
+          "tpi": "Les coefficients TPI sont obligatoires",
+          "presets": "La configuration centrale est nécessaire pour utiliser ses préréglages",
+          "power": "Les capteurs de puissance ou la température du préréglage délestage sont manquants",
+          "motion": "Un capteur de mouvement est obligatoire quand la fonction est activée",
+          "presence": "Un capteur de présence est obligatoire quand la fonction est activée",
+          "advanced": "Les paramètres de sécurité sont obligatoires",
+          "central_boiler": "Les commandes d'activation et de désactivation sont obligatoires"
+        }
+      },
+      "underlying_common": {
+        "title": "Réglages communs - {name}",
+        "description": "{wizard_progress}Réglages partagés par tous les appareils de ce VTherm.",
+        "data": {
+          "heater_keep_alive": "keep-alive (sec)",
+          "proportional_function": "Algorithme",
+          "ac_mode": "AC mode ?",
+          "inverse_switch_command": "Inverser la commande",
+          "auto_regulation_dtemp": "Seuil de régulation",
+          "auto_regulation_periode_min": "Période minimale de régulation",
+          "opening_threshold_degree": "Seuil d'ouverture",
+          "max_closing_degree": "Fermetures maximale",
+          "sync_device_internal_temp": "Synchronisation de la température interne de l'appareil",
+          "auto_regulation_mode": "Auto-régulation",
+          "auto_fan_mode": "Auto ventilation mode",
+          "auto_regulation_use_device_temp": "Compenser la température interne du sous-jacent"
+        },
+        "data_description": {
+          "heater_keep_alive": "Intervalle de rafraichissement du switch en secondes. Laisser vide pour désactiver. À n'utiliser que pour les switchs qui le nécessite.",
+          "proportional_function": "Algorithme à utiliser (d'autres algorithmes peuvent être installés sous forme de {plugins_link})",
+          "ac_mode": "Utilisation du mode Air Conditionné (AC)",
+          "inverse_switch_command": "Inverse la commande du switch pour une installation avec fil pilote et diode",
+          "auto_regulation_dtemp": "Le seuil en ° (ou % pour les vannes) en-dessous duquel la régulation ne sera pas envoyée",
+          "auto_regulation_periode_min": "La durée en minutes entre deux mise à jour faites par la régulation",
+          "opening_threshold_degree": "Seuil d'ouverture la vanne en dessous de laquelle la vanne est considérée comme devant être fermée (et alors 'max_closing_degree' s'appliquera)",
+          "max_closing_degree": "Fermeture maximale. La vanne ne sera jamais fermée au-delà de cette valeur. Mettez à 100 pour fermer complètement la vanne",
+          "sync_device_internal_temp": "Cochez pour synchroniser la température interne des appareils sous-jacents. Chaque appareil doit alors avoir sa propre entité de synchronisation, à renseigner dans les réglages de l'appareil",
+          "auto_regulation_mode": "Utilisation de l'auto-régulation faite par VTherm",
+          "auto_fan_mode": "Active la ventilation automatiquement en cas d'écart important",
+          "auto_regulation_use_device_temp": "Compenser la temperature interne du sous-jacent pour accélérer l'auto-régulation (n'est pas nécessaire dans la plupart des cas)"
+        }
+      },
+      "underlying_common_extra": {
+        "title": "Régulation par vanne et synchronisation - {name}",
+        "description": "{wizard_progress}Réglages partagés par tous les appareils pour le contrôle direct des vannes et pour la synchronisation de la température interne.",
+        "data": {
+          "proportional_function": "Algorithme",
+          "opening_threshold_degree": "Seuil d'ouverture",
+          "max_closing_degree": "Fermetures maximale",
+          "sync_with_calibration": "Application d'un calibrage"
+        },
+        "data_description": {
+          "proportional_function": "Algorithme à utiliser (d'autres algorithmes peuvent être installés sous forme de {plugins_link})",
+          "opening_threshold_degree": "Seuil d'ouverture la vanne en dessous de laquelle la vanne est considérée comme devant être fermée (et alors 'max_closing_degree' s'appliquera)",
+          "max_closing_degree": "Fermeture maximale. La vanne ne sera jamais fermée au-delà de cette valeur. Mettez à 100 pour fermer complètement la vanne",
+          "sync_with_calibration": "Cochez pour appliquer le calibrage du décalage lors de la synchronisation de la température interne. Décochez pour copier directement la température vers les entités sélectionnées"
+        }
+      },
+      "underlying_add": {
+        "title": "Ajouter un appareil - {name}",
+        "description": "{wizard_progress}Sélectionnez l'appareil à piloter. Ses réglages propres sont demandés à l'écran suivant.",
+        "data": {
+          "underlying_entity_id": "Appareil"
+        },
+        "data_description": {
+          "underlying_entity_id": "L'entité à piloter"
+        }
+      },
+      "underlying": {
+        "title": "{underlying_name}",
+        "description": "{underlying_entity}\n\nRéglages de cet appareil. Seuls les champs qui s'appliquent au type de VTherm et aux réglages communs sont affichés. Les commandes personnalisées et les entités de fermeture doivent être renseignées pour tous les appareils ou pour aucun.",
+        "data": {
+          "opening_degree_entity_id": "Entité d'ouverture de la vanne",
+          "closing_degree_entity_id": "Entité de fermeture de la vanne (optionnelle)",
+          "sync_entity_id": "Entité de synchronisation",
+          "on_command": "Commande d'allumage",
+          "off_command": "Commande d'extinction",
+          "min_opening_degree": "Ouverture minimale (%)",
+          "max_opening_degree": "Ouverture maximale (%)",
+          "replace_entity_id": "Remplacer l'entité",
+          "remove_underlying": "Supprimer cet appareil"
+        },
+        "data_description": {
+          "opening_degree_entity_id": "L'entité number qui règle le degré d'ouverture de la vanne. Les entités du même appareil sont suggérées.",
+          "closing_degree_entity_id": "Entité number optionnelle qui règle le degré de fermeture de la vanne. À renseigner pour tous les appareils ou pour aucun.",
+          "sync_entity_id": "L'entité number utilisée pour synchroniser la température interne de cet appareil : l'entité de calibration si « Appliquer l'offset de calibration » est coché, l'entité de température sinon.",
+          "on_command": "Format : nom_du_service[/attribut:valeur]. Obligatoire pour les entités select et climate. À renseigner pour tous les appareils ou pour aucun.",
+          "off_command": "Format : nom_du_service[/attribut:valeur]. Obligatoire pour les entités select et climate. À renseigner pour tous les appareils ou pour aucun.",
+          "min_opening_degree": "Degré d'ouverture minimal de cet appareil lorsque le seuil d'ouverture est dépassé. 0 par défaut.",
+          "max_opening_degree": "Degré d'ouverture maximal de cet appareil : la vanne ne s'ouvrira jamais au-delà de cette valeur. Il ne peut pas dépasser le maximum de la vanne.",
+          "replace_entity_id": "Sélectionnez une autre entité pour remplacer cet appareil. Si le type d'entité change, les réglages de l'appareil doivent être saisis à nouveau.",
+          "remove_underlying": "Cochez pour retirer cet appareil du VTherm"
+        },
+        "sections": {
+          "commands": {
+            "name": "Commandes personnalisées",
+            "description": "Commandes optionnelles pour allumer et éteindre cet appareil, au format nom_du_service[/attribut:valeur]. À renseigner pour tous les appareils ou pour aucun.",
+            "data": {
+              "on_command": "Commande d'allumage",
+              "off_command": "Commande d'extinction"
+            },
+            "data_description": {
+              "on_command": "Format : nom_du_service[/attribut:valeur]. Obligatoire pour les entités select et climate. À renseigner pour tous les appareils ou pour aucun.",
+              "off_command": "Format : nom_du_service[/attribut:valeur]. Obligatoire pour les entités select et climate. À renseigner pour tous les appareils ou pour aucun."
+            }
+          }
+        }
+      },
+      "auto_start_stop": {
+        "title": "Allumage/extinction automatique - {name}",
+        "description": "{wizard_progress}",
+        "data": {
+          "auto_start_stop_level": "Allumage/extinction automatique"
+        }
       }
     },
     "error": {
@@ -825,13 +1034,10 @@
       "window_open_detection_method": "Une seule méthode de détection des ouvertures ouvertes doit être utilisée. Utilisez le détecteur d'ouverture ou les seuils de température mais pas les deux.",
       "no_central_config": "Vous ne pouvez pas cocher 'Utiliser la configuration centrale' car aucune configuration centrale n'a été trouvée. Vous devez créer un Versatile Thermostat de type 'Central Configuration' pour pouvoir l'utiliser.",
       "service_configuration_format": "Mauvais format de la configuration du service",
-      "valve_regulation_nb_entities_incorrect": "Le nombre d'entités pour la régulation par vanne doit être égal au nombre d'entité sous-jacentes",
-      "sync_device_internal_temp_nb_entities_incorrect": "Le nombre d'entités pour la synchronisation de la température interne des appareils sous-jacents doit être égal au nombre d'appareils sous-jacents",
-      "min_opening_degrees_format": "Une liste d'entiers positifs séparés par des ',' est attendu. Exemple : 20, 25, 30",
-      "max_opening_degrees_format": "Une liste d'entiers positifs entre 0 et l'ouverture maximale de la vanne séparés par des ',' est attendu. Exemple : 80, 85, 90",
       "min_max_opening_degrees_inconsistent": "Pour chaque équipement sous-jacent, max_opening_degrees doit être strictement supérieur à min_opening_degrees. Veuillez vérifier votre configuration.",
-      "valve_control_parameters_cardinality_incorrect": "Les listes des degrés d'ouverture minimum et maximum ne peuvent pas contenir plus de valeurs que les vannes configurées",
-      "vswitch_configuration_incorrect": "La configuration de la personnalisation des commandes est incorrecte. Elle est obligatoire pour les sous-jacents non switch et le format doit être 'service_name[/attribut:valeur]'. Plus d'informations dans le README."
+      "vswitch_configuration_incorrect": "La configuration de la personnalisation des commandes est incorrecte. Elle est obligatoire pour les sous-jacents non switch et le format doit être 'service_name[/attribut:valeur]'. Plus d'informations dans le README.",
+      "underlying_already_added": "Cette entité est déjà utilisée par un appareil de ce VTherm",
+      "max_opening_degree_out_of_range": "L'ouverture maximale doit être supérieure à 0 et ne doit pas dépasser le maximum de la vanne"
     },
     "abort": {
       "already_configured": "L'appareil est déjà configuré"

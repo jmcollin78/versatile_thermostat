@@ -3,7 +3,7 @@
 
 # Výběr základních atributů
 
-Vyberte menu "Hlavní atributy".
+Při vytváření _VTherm_ tato obrazovka následuje po výběru typu. Později vyberte menu "Hlavní atributy".
 
 ![image](images/config-main.png)
 
@@ -28,7 +28,7 @@ Zadejte povinné hlavní atributy. Tyto atributy jsou společné pro všechny VT
 
 # Výběr funkcí k použití
 
-Vyberte menu "Funkce".
+Při vytváření _VTherm_ tato obrazovka následuje po podřízených zařízeních a TPI parametrech. Později vyberte menu "Funkce".
 
 ![image](images/config-features.png)
 
@@ -41,5 +41,5 @@ Vyberte funkce, které chcete použít pro tento VTherm:
 
 > ![Tip](images/tips.png) _*Poznámky*_
 > 1. Seznam dostupných funkcí se přizpůsobuje vašemu typu VTherm.
-> 2. Když povolíte funkci, přidá se nová položka menu pro její konfiguraci.
-> 3. Nemůžete potvrdit vytvoření VTherm, pokud nebyly nakonfigurovány všechny parametry pro všechny povolené funkce.
+> 2. Když povolíte funkci, přidá se nová položka menu pro její konfiguraci. Při vytváření _VTherm_ průvodce zobrazí její obrazovku hned po funkcích.
+> 3. Nemůžete potvrdit vytvoření VTherm, pokud nebyly nakonfigurovány všechny parametry pro všechny povolené funkce. Možnost menu "Konfigurace není kompletní" pak vypíše, co chybí.

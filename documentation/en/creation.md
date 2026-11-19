@@ -32,9 +32,20 @@ and choose your thermostat type:
 
 ![image](images/config-main0.png)
 
-The configuration can be modified via the same interface. Simply select the thermostat to modify, press "Configure," and you will be able to change some parameters or settings.
+A wizard then shows, one after the other, the screens with the required settings:
+1. Main attributes,
+2. Underlyings: the settings common to all the devices, then the devices to control (see the page of the chosen type),
+3. TPI parameters, when the algorithm is TPI or when the valve is controlled directly,
+4. Features, then one screen for each enabled feature,
+5. Advanced parameters.
 
-Follow the configuration steps by selecting the menu option to configure.
+For the central configuration, the wizard shows the main attributes, the features and the screen of each enabled feature (including the central boiler), the TPI parameters and the advanced parameters.
+
+Each screen shows its progress, for example `▰▰▱▱▱ 2 / 5`. The list of screens depends on your answers: enabling a feature adds its screen. At the end, the wizard opens the configuration menu with the "All done" option, which creates the _VTherm_. Presets, lock and humidity are not part of the wizard: they keep their default values and can be changed from this menu.
+
+To modify an existing _VTherm_, select it on the integration page and press "Configure": the configuration menu opens directly, without the wizard.
+
+When a required setting is missing, the menu shows "Configuration not complete (n)" instead of "All done", where n is the number of settings to complete. This option lists the screens to fix, says what each one requires, and opens them directly.
 
 > ![Tip](images/tips.png) _*Central configuration*_
 > Most configuration pages (main attributes, TPI parameters, presets, advanced parameters...) have a "Use central configuration" box: when it is checked, these settings come from the _VTherm_ of type "Central Configuration". If a central configuration exists, these boxes are checked by default. Otherwise they are unchecked, the settings must be entered on each _VTherm_, and checking one of them causes an error when saving the page. To share settings between several _VTherm_, create the central configuration first: it is unique, and offered in the list of types as long as it does not exist.

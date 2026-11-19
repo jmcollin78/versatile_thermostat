@@ -28,17 +28,18 @@ Instalace by měla vypadat takto:
 ## Konfigurace
 
 Nejprve nakonfigurujte hlavní nastavení společná pro všechny _VTherm_ (viz [hlavní nastavení](base-attributes.md)).
-Poté klikněte na možnost "Podkladové entity" z menu a uvidíte tuto konfigurační stránku:
-
-![image](images/config-linked-entity.png)
+Poté nakonfigurujte podkladová zařízení. Při vytváření _VTherm_ je průvodce zobrazí po hlavních atributech. Později vyberte v menu "Podřízená zařízení". Toto menu obsahuje:
+- "Společná nastavení": nastavení sdílená všemi zařízeními (algoritmus, keep-alive, AC režim, inverze příkazů),
+- jednu položku pro každé ovládané zařízení s jeho entitou a příkazy,
+- "Přidat zařízení".
 
 ### Podkladová zařízení
 
-V "seznamu zařízení k ovládání" přidáte spínače, které budou ovládány VTherm. Akceptovány jsou pouze entity typu `switch`, `input_boolean`, `select`, `input_select` nebo `climate`.
+"Přidat zařízení" se nejprve zeptá na entitu k ovládání. Akceptovány jsou pouze entity typu `switch`, `input_boolean`, `select`, `input_select` nebo `climate`. Další obrazovka zobrazí nastavení tohoto zařízení: jeho [vlastní příkazy](#přizpůsobení-příkazů).
 
-Pokud jedno z podkladových zařízení není `switch`, pak je přizpůsobení příkazů povinné. Ve výchozím nastavení pro entity `switch` jsou příkazy standardní příkazy zapnutí/vypnutí spínače (`turn_on`, `turn_off`).
+Otevření zařízení v seznamu zobrazí stejná nastavení a navíc dvě pole: "Nahradit entitu" pro ovládání jiné entity místo této a "Odebrat toto zařízení".
 
-Aktuálně dostupný algoritmus je TPI. Viz [algoritmus](#algorithm).
+Pole "Algoritmus" ve společných nastaveních vybírá regulační algoritmus: vestavěný TPI, nebo algoritmus nainstalovaný jako plugin. Viz [algoritmy](algorithms.md).
 Pokud je nakonfigurováno více entit, termostat rozloží aktivace, aby minimalizoval počet spínačů zapnutých v danou chvíli. To umožňuje lepší distribuci výkonu, protože každý radiátor se zapne postupně.
 
 VTherm bude vyhlazovat spotřebovaný výkon co nejvíce střídáním aktivací. Příklad rozložených aktivací:
@@ -61,14 +62,11 @@ Pokud je vaše zařízení ovládáno pilotním drátem s diodou, možná budete
 
 ### Přizpůsobení příkazů
 
-Tato konfigurační sekce umožňuje přizpůsobit příkazy zapnutí a vypnutí zasílané podkladovému zařízení.
-Tyto příkazy jsou povinné, pokud jedno z podkladových zařízení není `switch` (pro entity `switch` se používají standardní příkazy zapnutí/vypnutí).
+Příkazy zapnutí a vypnutí zasílané zařízení se zadávají v nastavení tohoto zařízení:
+- pro `switch` nebo `input_boolean` jsou volitelné a seskupené ve sbalené sekci "Vlastní příkazy". Bez nich se použijí standardní příkazy `turn_on` a `turn_off`,
+- pro `select`, `input_select` nebo `climate` jsou pole "Příkaz zapnutí" a "Příkaz vypnutí" povinná.
 
-Pro přizpůsobení příkazů klikněte na `Přidat` ve spodní části stránky pro příkazy zapnutí i vypnutí:
-
-![virtual switch](images/config-vswitch1.png)
-
-Poté zadejte příkazy zapnutí a vypnutí pomocí formátu `příkaz[/atribut[:hodnota]]`.
+Příkazy zadejte pomocí formátu `příkaz[/atribut[:hodnota]]`.
 Dostupné příkazy závisí na typu podkladového zařízení:
 
 | Typ podkladového zařízení   | Možné příkazy zapnutí                 | Možné příkazy vypnutí                          | Platí pro                         |
@@ -82,16 +80,8 @@ Dostupné příkazy závisí na typu podkladového zařízení:
 
 Samozřejmě tyto příklady lze přizpůsobit vašemu konkrétnímu případu.
 
-Příklad pro Nodon SIN-4-FP-21:
-![virtual switch Nodon](images/config-vswitch2.png)
+Příklad pro Nodon SIN-4-FP-21 (entita `select`): příkaz zapnutí je `select_option/option:comfort` a příkaz vypnutí je `select_option/option:frost_protection`.
 
-Klikněte na "Potvrdit" pro potvrzení úprav.
-
-Pokud dojde k následující chybě:
-
-> Konfigurace přizpůsobení příkazů je nesprávná. Je vyžadována pro podkladová zařízení, která nejsou spínače, a formát musí být 'název_služby[/atribut:hodnota]'. Více podrobností v README.
-
-To znamená, že jeden ze zadaných příkazů je neplatný. Musí být dodržena následující pravidla:
-1. Každý příkaz musí následovat formát `příkaz[/atribut[:hodnota]]` (např. `select_option/option:comfort` nebo `turn_on`) bez mezer nebo speciálních znaků kromě `_`.
-2. Musí být tolik příkazů, kolik je deklarovaných podkladových zařízení, kromě případu, kdy jsou všechna podkladová zařízení entity `switch`, v takovém případě není přizpůsobení příkazů vyžadováno.
-3. Pokud je nakonfigurováno více podkladových zařízení, příkazy musí být ve stejném pořadí. Počet příkazů zapnutí se musí rovnat počtu příkazů vypnutí a počtu podkladových zařízení (ve správném pořadí). Je možné míchat různé typy podkladových zařízení. Jakmile jedno podkladové zařízení není `switch`, všechny příkazy pro všechna podkladová zařízení, včetně entit `switch`, musí být nakonfigurovány.
+Platí následující pravidla:
+1. Každý příkaz musí následovat formát `příkaz[/atribut[:hodnota]]` (např. `select_option/option:comfort` nebo `turn_on`) bez mezer nebo speciálních znaků kromě `_`. Jinak nastavení zařízení zobrazí chybu "Konfigurace virtuálního spínače je nesprávná".
+2. Příkazy se zadávají pro všechna zařízení, nebo pro žádné. Je možné míchat různé typy podkladových zařízení, ale jakmile jedno zařízení není `switch` nebo má jedno zařízení vlastní příkazy, potřebuje své příkazy každé zařízení, včetně entit `switch`. Zařízení bez příkazů je v seznamu podkladových zařízení označeno ⚠ a možnost "Konfigurace není kompletní" k němu vede.

@@ -25,11 +25,14 @@ L'installation doit ressembler à celle pour le VTherm `over_switch` sauf que l'
 ## Configuration
 
 Configurez d'abord les paramètres principaux et communs à tous les _VTherm_ (cf. [paramètres principaux](base-attributes.md)).
-Ensuite cliquez sur l'option de menu "Sous-jacents" et vous allez avoir cette page de configuration. Vous mettez les entités `number` ou `input_number`qui vont être controllés par le VTherm :
+Configurez ensuite les sous-jacents. À la création du _VTherm_, l'assistant les affiche après les principaux attributs. Ensuite, choisissez « Sous-jacents » dans le menu. Ce menu liste :
+- « Réglages communs » : les réglages partagés par toutes les vannes (algorithme, mode AC, seuil et période de régulation, seuil d'ouverture, fermeture maximale),
+- une entrée par vanne pilotée, avec son entité et ses ouvertures,
+- « Ajouter un appareil ».
 
-![image](images/config-linked-entity3.png)
+« Ajouter un appareil » demande d'abord l'entité `number` de la vanne. Seules les entités `number` ou `input_number` sont acceptées. L'écran suivant affiche les réglages de cette vanne : ses ouvertures minimale et maximale (voir [Contrôle de l'ouverture de la vanne](#contrôle-de-louverture-de-la-vanne)). Ouvrir une vanne dans la liste affiche les mêmes réglages, avec « Remplacer l'entité » et « Supprimer cet appareil ».
 
-Le champ « Algorithme » permet de choisir l'algorithme de régulation : le TPI intégré, ou un algorithme installé sous forme de plugin. Voir [les algorithmes](algorithms.md).
+Le champ « Algorithme » des réglages communs permet de choisir l'algorithme de régulation : le TPI intégré, ou un algorithme installé sous forme de plugin. Voir [les algorithmes](algorithms.md).
 
 ### Seuil et période de régulation
 
@@ -43,17 +46,17 @@ Deux champs limitent le nombre de commandes envoyées à la vanne :
 de chaque vanne. La configuration utilise les mêmes paramètres que le contrôle
 direct de vanne avec `over_climate` :
 
-1. `opening_threshold_degree` : sous ce pourcentage TPI brut, la vanne est
-	considérée comme fermée.
-2. `max_closing_degree` : pourcentage de fermeture maximal. Sous le seuil, la
-	commande est `100 - max_closing_degree` ; conserver la valeur `100` ferme
-	complètement la vanne.
-3. `min_opening_degrees` : valeurs minimales d'ouverture séparées par des
-	virgules, une par vanne sous-jacente. La valeur est appliquée dès que le
-	seuil est atteint.
-4. `max_opening_degrees` : valeurs maximales d'ouverture séparées par des
-	virgules, une par vanne sous-jacente. Les valeurs absentes utilisent le
-	maximum supporté par l'entité `number` concernée.
+1. `opening_threshold_degree`, dans les réglages communs : sous ce
+	pourcentage TPI brut, la vanne est considérée comme fermée.
+2. `max_closing_degree`, dans les réglages communs : pourcentage de fermeture
+	maximal. Sous le seuil, la commande est `100 - max_closing_degree` ;
+	conserver la valeur `100` ferme complètement la vanne.
+3. « Ouverture minimale (%) » (`min_opening_degrees`), dans les réglages de
+	chaque vanne : appliquée dès que le seuil est atteint. Vaut `0` par défaut.
+4. « Ouverture maximale (%) » (`max_opening_degrees`), dans les réglages de
+	chaque vanne : la vanne ne s'ouvre jamais plus que cette valeur. Elle ne
+	peut pas dépasser le maximum supporté par l'entité `number`, qui est la
+	valeur par défaut.
 
 La commande physique ne descend jamais sous `100 - max_closing_degree`, y
 compris lorsque la demande TPI brute atteint `opening_threshold_degree`, et
@@ -63,10 +66,9 @@ seuil ; la vanne observée n'est active qu'au-dessus de son plancher physique
 effectif, également borné par le minimum de l'entité. Au démarrage ou après un
 rechargement, une vanne sans demande revient à ce plancher.
 
-Pour plusieurs vannes, les valeurs suivent l'ordre des entités sous-jacentes.
-Les listes courtes utilisent les valeurs par défaut pour les vannes restantes ;
-les listes plus longues sont refusées. Avec les valeurs par défaut (`0`, listes
-vides, `100`), la commande envoyée reste identique au pourcentage TPI brut.
+Chaque vanne a ses propres ouvertures minimale et maximale. Avec les valeurs
+par défaut (seuil `0`, minimum `0`, maximum de la vanne, fermeture maximale
+`100`), la commande envoyée reste identique au pourcentage TPI brut.
 
 Il est possible de choisir un thermostat `over-valve` qui commande une climatisation en cochant la case "AC Mode". Dans ce cas, seul le mode refroidissement sera visible.
 

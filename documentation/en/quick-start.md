@@ -16,19 +16,18 @@ This page sums up the steps to get a working _VTherm_, whatever the controlled e
 
 ## Create the VTherm
 
-1. **Add the integration** Versatile Thermostat from the integrations page and choose the _VTherm_ type that fits the equipment (see [Choosing a VTherm](creation.md)). The central configuration is optional: without it, leave the "Use central configuration" boxes unchecked.
+1. **Add the integration** Versatile Thermostat from the integrations page and choose the _VTherm_ type that fits the equipment (see [Choosing a VTherm](creation.md)). The central configuration is optional: without it, leave the "Use central configuration" boxes unchecked. A wizard then shows the following screens one after the other.
 2. **Main attributes**: give the _VTherm_ a name and choose the room temperature sensor, then the outdoor temperature sensor. Keep the default cycle duration (see [Choosing Basic Attributes](base-attributes.md)).
-3. **Features**: do not enable any for now. You will add them once the _VTherm_ works.
-4. **Underlyings**: select the entity of the equipment. The settings depend on the type:
-   - [`over_climate`](over-climate.md): keep self-regulation disabled to start with. If the valve opening of a TRV can be controlled, choose [direct valve control](self-regulation.md#self-regulation-by-direct-valve-control) instead.
-   - [`over_switch`](over-switch.md): a `switch` is enough. For a pilot wire module (`select`) or a `climate` entity, fill in the [custom commands](over-switch.md#command-customization).
+3. **Underlyings**: first the settings common to all the devices, then the entity of the equipment and its own settings. They depend on the type:
+   - [`over_climate`](over-climate.md): keep self-regulation disabled to start with. If the valve opening of a TRV can be controlled, choose [direct valve control](self-regulation.md#self-regulation-by-direct-valve-control) instead: the valve entities are then asked for each device.
+   - [`over_switch`](over-switch.md): a `switch` is enough. For a pilot wire module (`select`) or a `climate` entity, fill in its [custom commands](over-switch.md#command-customization).
    - [`over_valve`](over-valve.md): select the `number` entity of the valve.
 
-   The settings specific to a device (entities to use, commands, known pitfalls) are on its page in the [device catalog](https://www.versatile-thermostat.org/en/devices/).
-5. **TPI parameters**, if this menu is offered: keep the default values (see [the TPI coefficients](algorithms.md#configuring-the-tpi-algorithm-coefficients)).
-6. **Presets**: validate the menu (see [Presets](feature-presets.md)).
-7. **Advanced parameters**: keep the default values of the safety mode (see [Safety Parameters](feature-advanced.md#safety-parameters)).
-8. **All done**: the _VTherm_ is created.
+   To control several pieces of equipment, add them with "Add a device", then choose "Continue". The settings specific to a device (entities to use, commands, known pitfalls) are on its page in the [device catalog](https://www.versatile-thermostat.org/en/devices/).
+4. **TPI parameters**, if this screen is shown: keep the default values (see [the TPI coefficients](algorithms.md#configuring-the-tpi-algorithm-coefficients)).
+5. **Features**: do not enable any for now. You will add them once the _VTherm_ works.
+6. **Advanced parameters**: keep the default values of the safety mode (see [Safety Parameters](feature-advanced.md#safety-parameters)).
+7. **All done**: the wizard ends on the configuration menu. Choose "All done" to create the _VTherm_. The presets keep their default values until you set them.
 
 ## Set Up and Check
 
