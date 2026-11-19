@@ -1893,6 +1893,8 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
         force=False,
         _command_cause: str | None = None,
         _preserve_underlying_temperature_candidates: bool = False,
+        *,
+        _control_heating: bool = True,
     ):
         """Update the states of the thermostat considering the requested state and the current state"""
         if not self.is_ready:
@@ -1951,10 +1953,11 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
                     force = force or transition_force
                     self.recalculate(force=force)
                     self.reset_last_change_time_from_vtherm()
-                    await self.async_control_heating(
-                        force=force or sub_need_control_heating,
-                        _command_cause=_command_cause,
-                    )
+                    if _control_heating or self.vtherm_hvac_mode == VThermHvacMode_OFF:
+                        await self.async_control_heating(
+                            force=force or sub_need_control_heating,
+                            _command_cause=_command_cause,
+                        )
 
             self.calculate_hvac_action()
             self.update_custom_attributes()

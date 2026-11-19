@@ -605,7 +605,10 @@ class UnderlyingSwitch(UnderlyingEntity):
 
         if not await self.check_overpowering():
             self._thermostat.requested_state.force_changed()
-            await self._thermostat.update_states(force=True)
+            if self._thermostat.proportional_function == PROPORTIONAL_FUNCTION_TPI:
+                await self._thermostat.update_states(force=True, _control_heating=False)
+            else:
+                await self._thermostat.update_states(force=True)
             return False
 
         command = self._on_command.get("command")
