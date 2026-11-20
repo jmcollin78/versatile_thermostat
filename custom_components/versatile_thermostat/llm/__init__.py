@@ -55,6 +55,7 @@ from homeassistant.helpers import llm
 
 from ..const import DOMAIN, SERVICE_SET_TPI_PARAMETERS
 from .diagnostics import GetVThermLogsTool, GetVThermPluginsTool, _target
+from .central_configuration import CentralConfigurationSnapshot
 from ..recorder_export import async_export_history
 from ..tpi_history import TPIHistory
 from ..tpi_identification import IdentificationError, TPIIdentification
@@ -384,9 +385,10 @@ class ListVThermsTool(llm.Tool):
     title = "List VTherms / Lister les VTherm"
     description = (
         "EN: List Versatile Thermostat climate entities available to the assistant "
-        "with a compact state summary. "
+        "with a compact state summary and central configuration usage. "
         "FR: Liste les entités climate Versatile Thermostat disponibles pour "
-        "l'assistant avec un résumé de leur état. Read-only / lecture seule."
+        "l'assistant avec un résumé de leur état et leur utilisation de la "
+        "configuration centrale. Read-only / lecture seule."
     )
     integration = DOMAIN
     annotations = READ_ONLY_ANNOTATIONS
@@ -398,14 +400,28 @@ class ListVThermsTool(llm.Tool):
         llm_context: llm.LLMContext,
     ) -> llm.ToolResult:
         """List available VTherms."""
+        entity_ids = _get_vtherm_entity_ids(hass, llm_context)
+        central = await CentralConfigurationSnapshot.async_create(
+            hass, llm_context, entity_ids
+        )
         thermostats = [
-            _compact_state(state)
-            for entity_id in _get_vtherm_entity_ids(hass, llm_context)
+            {
+                **_compact_state(state),
+                "central_configuration": (
+                    central.thermostat(entity_id)
+                    if central else CentralConfigurationSnapshot.unavailable()
+                ),
+            }
+            for entity_id in entity_ids
             if (state := hass.states.get(entity_id)) is not None
         ]
 
         return llm.ToolResult(
             data={
+                "central_configuration": (
+                    central.as_dict()
+                    if central else CentralConfigurationSnapshot.unavailable()
+                ),
                 "count": len(thermostats),
                 "thermostats": thermostats,
             }
@@ -419,9 +435,10 @@ class GetVThermStatusTool(llm.Tool):
     title = "Get VTherm status / État VTherm"
     description = (
         "EN: Return the complete current Home Assistant state and all attributes "
-        "of one Versatile Thermostat. "
+        "of one Versatile Thermostat, including central configuration and inheritance. "
         "FR: Retourne l'état Home Assistant courant complet et tous les attributs "
-        "d'un Versatile Thermostat. Read-only / lecture seule."
+        "d'un Versatile Thermostat, avec la configuration centrale et l'héritage. "
+        "Read-only / lecture seule."
     )
     integration = DOMAIN
     annotations = READ_ONLY_ANNOTATIONS
@@ -454,9 +471,16 @@ class GetVThermStatusTool(llm.Tool):
             return error
 
         assert state is not None
+        central = await CentralConfigurationSnapshot.async_create(
+            hass, llm_context, [entity_id]
+        )
 
         return llm.ToolResult(
             data={
+                "central_configuration": (
+                    central.as_dict(entity_id)
+                    if central else CentralConfigurationSnapshot.unavailable()
+                ),
                 "entity_id": entity_id,
                 "state": state.state,
                 "last_changed": state.last_changed.isoformat(),
@@ -475,10 +499,11 @@ class DiagnoseVThermTool(llm.Tool):
         "EN: Debug, diagnose or troubleshoot a Versatile Thermostat. Return a "
         "structured read-only snapshot explaining heating/idle/off decisions, "
         "power shedding, safety, windows, presence, motion, auto-start/stop and "
-        "underlying entities. "
+        "underlying entities, including central configuration and inherited settings. "
         "FR: Déboguer, diagnostiquer ou dépanner un Versatile Thermostat. Retourne "
         "un état structuré en lecture seule expliquant chauffe/idle/off, délestage, "
-        "sécurité, fenêtres, présence, mouvement, auto-start/stop et sous-jacents. "
+        "sécurité, fenêtres, présence, mouvement, auto-start/stop et sous-jacents, "
+        "avec la configuration centrale et les réglages hérités. "
         "Prefer specific_states.messages and reason fields over guessing."
     )
     integration = DOMAIN
@@ -514,6 +539,9 @@ class DiagnoseVThermTool(llm.Tool):
         assert state is not None
         attributes = state.attributes
         specific_states = _section(attributes, "specific_states")
+        central = await CentralConfigurationSnapshot.async_create(
+            hass, llm_context, [entity_id]
+        )
 
         sections = {
             section_name: section
@@ -525,6 +553,10 @@ class DiagnoseVThermTool(llm.Tool):
             data={
                 "entity_id": entity_id,
                 "name": _json_safe(attributes.get("friendly_name")),
+                "central_configuration": (
+                    central.as_dict(entity_id)
+                    if central else CentralConfigurationSnapshot.unavailable()
+                ),
                 "availability": state.state
                 not in (STATE_UNAVAILABLE, STATE_UNKNOWN),
                 "current": _compact_state(state),
@@ -1006,21 +1038,74 @@ def _tpi_result(entity_id: str, stage: int, **data: Any) -> llm.ToolResult:
         "status": "error" if failed else "success",
         **data,
     }
-    if failed and payload["state_changed"] is False:
-        payload["message"] = (
-            "No coefficient was changed. Aucun coefficient n'a été modifié."
+    if stage in (1, 2):
+        payload.update(
+            {
+                "experimental": True,
+                "verification_required_before_application": True,
+                "recommendation_reliable": False,
+                "experimental_notice": {
+                    "fr": (
+                        "Calcul expérimental : vérifier les hypothèses, les données et le "
+                        "comportement du chauffage avant toute application. Ce couple "
+                        "n'est pas un réglage optimal validé."
+                    ),
+                    "en": (
+                        "Experimental calculation: verify assumptions, data and heating "
+                        "behavior before any application. This pair is not a validated "
+                        "optimal setting."
+                    ),
+                },
+            }
         )
+        warnings = list(payload.get("warnings", []))
+        warnings.append("experimental_coefficients_verify_before_application")
+        if (
+            payload.get("sources", {}).get("heating_source_kind")
+            == "valve_open_percent_command_proxy"
+        ):
+            warnings.append("valve_command_is_not_measured_heat")
+            payload["heating_proxy_note"] = {
+                "fr": (
+                    "La commande d'ouverture enregistrée est un proxy, pas une mesure "
+                    "du débit ni de la puissance thermique. Non-linéarité des vannes, "
+                    "seuils d'ouverture, température d'eau, disponibilité chaudière, "
+                    "équilibrage et délais peuvent biaiser les coefficients."
+                ),
+                "en": (
+                    "The recorded opening command is a proxy, not measured flow or "
+                    "thermal power. Valve nonlinearity, opening thresholds, water "
+                    "temperature, boiler availability, balancing and delays can "
+                    "bias coefficients."
+                ),
+            }
+        regulation = payload.get("regulation") or {}
+        if regulation.get("analysis_mode") == "adaptive_exploratory":
+            warnings.append("adaptive_tpi_fixed_coefficient_assumption_not_met")
+            payload["model_applicability"] = {
+                "fixed_coefficient_assumption_met": False,
+                "fr": "Auto-TPI ou continuous_kext est actif : calcul exploratoire tenté, mais l'hypothèse de coefficients fixes n'est pas respectée. Ne pas appliquer ce résultat sans validation indépendante.",
+                "en": "Auto-TPI or continuous_kext is enabled at runtime: exploratory calculation attempted, but the fixed-coefficient assumption is not met. Do not apply without independent validation.",
+            }
+            if stage == 2:
+                payload.setdefault("assessment", {})["coherence"] = "model_assumptions_not_met"
+        payload["warnings"] = list(dict.fromkeys(warnings))
+    if stage == 2 and "assessment" not in payload:
+        payload["assessment"] = {"coherence": "not_computed", "validated_optimum": False, "reason": payload.get("reason")}
+    if failed and payload["state_changed"] is False:
+        payload["message"] = "No coefficient was changed. Aucun coefficient n'a été modifié."
         if payload["reason"] == "not_classic_tpi":
             payload["message"] = (
-                "Le TPI classique est requis. SmartPI et Auto-TPI ne sont pas applicables. "
-                "Classic TPI required; SmartPI and Auto-TPI are not applicable. "
+                "Compatibilité TPI non établie : consulter regulation.blocking_criterion "
+                "et missing_information. TPI compatibility not established; see regulation. "
                 "Aucun coefficient n'a été modifié."
             )
         if payload["reason"] == "unsupported_thermostat_type":
             payload["supported"] = False
             payload["message"] = (
                 "L'analyse des coefficients TPI n'est pas encore disponible pour ce type "
-                "de thermostat (climate ou valve). TPI history analysis is not yet supported "
+                "de thermostat. Seuls over_switch, over_valve et over_climate_valve sont pris en charge. "
+                "TPI history analysis is not yet supported "
                 "for this thermostat type. Aucun coefficient n'a été modifié."
             )
     return llm.ToolResult(data=_json_safe(payload), error=failed)
@@ -1046,20 +1131,14 @@ def _tpi_comparison(previous: dict, requested: dict) -> dict:
         before = previous[name]
         absolute = abs(value - before)
         relative = absolute / abs(before) if before else (None if absolute else 0.0)
-        floor = (
-            LARGE_CHANGE_INT_ABSOLUTE
-            if name == "coef_int"
-            else LARGE_CHANGE_EXT_ABSOLUTE
-        )
+        floor = LARGE_CHANGE_INT_ABSOLUTE if name == "coef_int" else LARGE_CHANGE_EXT_ABSOLUTE
         result[name] = {
             "previous": before,
             "requested": value,
             "absolute_delta": absolute,
             "relative_delta": relative,
-            "large_change": absolute >= floor
-            or (
-                absolute > 0 and (relative is None or relative >= LARGE_CHANGE_RELATIVE)
-            ),
+            "percent_delta": ((value - before) / abs(before) * 100 if before else None),
+            "large_change": absolute >= floor or (absolute > 0 and (relative is None or relative >= LARGE_CHANGE_RELATIVE)),
         }
     return result
 
@@ -1074,8 +1153,11 @@ class CheckTPIOptimizationTool(llm.Tool):
         "optimaux ?', 'mes coef sont-ils bien réglés ?' ou 'peux-tu vérifier le réglage TPI ?'. "
         "EN: Start here when asked whether thermostat/TPI coefficients are optimal, "
         "well tuned or need adjustment. Resolve the room with list_vtherms if needed. "
-        "Read-only stage 1/3: announce verification, then check classic TPI, physical "
-        "heating sources and 7 to 14 usable days of Recorder history. If eligible, call "
+        "Read-only stage 1/3: announce verification, identify effective TPI regulation over_switch "
+        "or over_valve or over_climate_valve and 7 to 14 usable days of Recorder history. "
+        "Adaptive native TPI can be analyzed exploratorily with explicit model-assumption warnings. "
+        "Experimental: verify before applying, including for switches. "
+        "Valve opening commands are proxies, not measured heat. If eligible, call "
         "analyze_tpi_coefficients to calculate estimates; current values alone do not "
         "answer this question. Browser/dashboard access is not required. Report a refusal "
         "without bypassing it. Never change settings."
@@ -1099,6 +1181,22 @@ class CheckTPIOptimizationTool(llm.Tool):
                 reason="entity_not_exposed",
                 eligible=False,
             )
+        context = llm_context.context
+        user = (
+            await hass.auth.async_get_user(context.user_id)
+            if context and context.user_id
+            else None
+        )
+        if user is None or (
+            not user.is_admin
+            and not user.permissions.check_entity(entity_id, POLICY_READ)
+        ):
+            return _tpi_result(
+                entity_id,
+                self.stage_number,
+                reason="read_permission_denied",
+                eligible=False,
+            )
         details = {}
         try:
             thermostat = TPIHistory.get_thermostat(hass, entity_id)
@@ -1108,11 +1206,10 @@ class CheckTPIOptimizationTool(llm.Tool):
                     thermostat, "proportional_function", None
                 ),
             }
+            details["regulation"] = TPIHistory.check_classic_tpi(thermostat, allow_adaptive=True)
             history = TPIHistory.from_thermostat(hass, thermostat)
             sources = history.sources
-            details.update(
-                {"sources": sources, "current": _tpi_coefficients(thermostat)}
-            )
+            details.update({"sources": sources, "regulation": sources.get("regulation"), "current": _tpi_coefficients(thermostat)})
             grid, coverage = await history.async_load()
             details["history"] = coverage
             history.require_history(coverage)
@@ -1122,17 +1219,24 @@ class CheckTPIOptimizationTool(llm.Tool):
             result = await hass.async_add_executor_job(identification.analyze)
             if result.get("proposed"):
                 if result.get("model"):
-                    result["current_nominal_response"] = (
-                        TPIIdentification.nominal_response(
-                            result["model"], **details["current"]
-                        )
-                    )
+                    result["current_nominal_response"] = TPIIdentification.nominal_response(result["model"], **details["current"])
                 result["comparison"] = _tpi_comparison(
                     details["current"],
                     {key: result["proposed"][key] for key in ("coef_int", "coef_ext")},
                 )
+                large = [key for key, value in result["comparison"].items() if value["large_change"]]
+                result["assessment"] = {
+                    "coherence": "requires_verification" if large or result.get("warnings") else "no_inconsistency_detected_by_available_checks",
+                    "validated_optimum": False,
+                    "large_coefficient_changes": large,
+                    "note": "Large changes are review flags, not proof that the fit or current settings are wrong. Les fortes variations nécessitent une vérification, pas une application automatique.",
+                }
+                if large:
+                    result.setdefault("warnings", []).append("large_proposed_coefficient_change")
             return _tpi_result(entity_id, 2, **details, **result)
         except IdentificationError as err:
+            if hasattr(err, "regulation"):
+                details["regulation"] = err.regulation
             return _tpi_result(
                 entity_id,
                 self.stage_number,
@@ -1152,13 +1256,18 @@ class AnalyzeTPICoefficientsTool(CheckTPIOptimizationTool):
         "'adaptés' ou 'bien réglés', après check_tpi_optimization réussi. "
         "EN: Calculate estimates for natural questions about optimal or well-tuned "
         "thermostat coefficients after a successful check_tpi_optimization. "
-        "Read-only stage 2/3: announce analysis. Identify classic TPI coefficients from "
+        "Read-only stage 2/3: announce analysis. Estimate native TPI coefficients from "
         "7 to 14 usable Recorder days, chronological validation, multiple resolutions "
-        "and 24-hour block bootstrap. Report exploratory estimates and uncalibrated intervals. "
+        "and 24-hour block bootstrap. Supports over_switch, over_valve and over_climate_valve. "
+        "FR: Calcul expérimental, à vérifier avant application pour les deux types. "
+        "EN: Experimental calculation, verify before applying for both types. "
+        "Valve commands are proxies, not measured flow or heat. "
+        "Report exploratory estimates and uncalibrated intervals. "
         "Kalman is disabled pending validation. Use this MCP calculation rather than "
         "reading a dashboard or guessing from current coefficient values. "
         "Six hours is a nominal design preference, not an identified optimum. "
-        "Present proposals to the user; NEVER apply them automatically."
+        "Attempt adaptive native TPI only as exploratory with explicit assumption warnings. "
+        "Report coherence and large percentage changes. NEVER apply automatically."
     )
     stage_number = 2
 
@@ -1218,7 +1327,7 @@ class SetTPICoefficientsTool(llm.Tool):
                 TPIHistory.check_classic_tpi(thermostat)
                 previous = _tpi_coefficients(thermostat)
             except IdentificationError as err:
-                return _tpi_result(entity_id, 3, reason=err.reason)
+                return _tpi_result(entity_id, 3, reason=err.reason, **({"regulation": err.regulation} if hasattr(err, "regulation") else {}))
             comparison = _tpi_comparison(previous, requested)
             large = any(value["large_change"] for value in comparison.values())
             details = {
@@ -1377,6 +1486,11 @@ def async_get_tools(
         ],
         prompt=_assistant_prompt(llm_context.language)
         + (
+            " Report central_configuration.configured and active, the thermostat's inheritance, "
+            "central-mode and boiler participation in configuration reviews and diagnostics. "
+            "Include relevant central and effective settings when inherited. Unknown visibility "
+            "does not mean absence; central-mode participation alone does not prove inheritance "
+            "or explain a fault. These reads never authorize configuration changes. "
             " For natural requests such as 'fais-moi un graphe pro du thermostat cuisine "
             "annoté sur 48h', 'trace température et consigne' or 'plot my thermostat', "
             "resolve the room if needed and call get_history for the requested period. "
@@ -1400,7 +1514,11 @@ def async_get_tools(
             "TPI workflow: announce Étape/Stage 1/3 verification before check_tpi_optimization, "
             "2/3 analysis before analyze_tpi_coefficients, 3/3 optional application only on an "
             "explicit user decision. No automatic application after analysis. Explain warnings; "
-            "always describe estimates as exploratory and intervals as uncalibrated. Explain that "
+            "always describe estimates as experimental, requiring verification before application "
+            "for over_switch as well as over_climate_valve, and intervals as uncalibrated. "
+            "Include experimental_notice and heating_proxy_note in the user language. "
+            "Valve commands do not measure flow or heat; water temperature, boiler availability, "
+            "nonlinear response and delays may bias the pair. Explain that "
             "six hours is a nominal time constant (about 18 hours to 95%), not an optimum. "
             "Distinguish current/proposed nominal response and the experimental estimator. "
             "Direct explicit coefficient values "

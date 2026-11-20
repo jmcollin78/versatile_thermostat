@@ -54,6 +54,9 @@ Je možné vybrat `thermostat_over_valve` pro ovládání klimatizace zaškrtnut
 
 ### Režim spánku
 
+> [!NOTE]
+> Režim spánku (`sleep` / `Zzz`) vyžaduje kartu kompatibilní s Versatile Thermostat, například [Versatile Thermostat UI Card](additions.md#karta-versatile-thermostat-ui). Výchozí karta termostatu (climate) Home Assistant není podporována: `sleep` sice uvádí v `hvac_modes`, ale nelze jej vybrat (`climate.set_hvac_mode` zamítá `sleep`, který není standardním `HVACMode` HA). Pro přepnutí do režimu spánku použijte tlačítko `Zzz` na kartě VTherm UI Card nebo zavolejte akci `versatile_thermostat.set_hvac_mode_sleep`.
+
 `over_valve` podporuje režim spánku. Výběr `sleep` nebo volání akce
 `versatile_thermostat.set_hvac_mode_sleep` zobrazí VTherm jako vypnutý a zároveň
 odešle požadavek na otevření 100 % do každého podkladového ventilu. Běžný převod

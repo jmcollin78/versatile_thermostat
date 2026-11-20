@@ -22,11 +22,17 @@ Diese benutzerdefinierte Komponente für Home Assistant ist ein Upgrade und eine
 
 VTherm nutzt die native LLM-Plattform von Home Assistant und stellt seine Werkzeuge über den offiziellen Home-Assistant-MCP-Server bereit. Assistenten können die für Assist freigegebenen VTherms auflisten, ihren Zustand lesen und strukturierte Diagnosen anhand der von VTherm gelieferten Meldungen und Gründe abrufen.
 
+MCP-Lesezugriffe zeigen die zentrale Konfiguration und die Vererbung jedes VTherms; Diagnosen unterscheiden zentrale Einstellungen, effektive Werte, zentralen Modus und Heizkesselteilnahme gemäß den Leseberechtigungen.
+
 Auf ausdrücklichen Wunsch können drei Werkzeuge die Solltemperatur, das Preset oder den HVAC-Modus über die standardmäßigen Dienste `climate.*` ändern. Dabei werden Benutzerberechtigungen und Werte geprüft. Diagnoseanfragen bleiben schreibgeschützt; die Option **Read only** des MCP-Servers blendet die Aktionswerkzeuge aus.
 
-Klassische TPI-Koeffizienten lassen sich auch aus 7–14 nutzbaren Tagen Recorder-Verlauf analysieren, mit expliziter Anwendung und zusätzlicher Bestätigung großer Änderungen.
+Klassische TPI-Koeffizienten lassen sich auch aus 7–14 nutzbaren Tagen Recorder-Verlauf analysieren, mit expliziter Anwendung und zusätzlicher Bestätigung großer Änderungen. Die Analyse unterstützt `over_switch`, `over_valve` und experimentell `over_climate_valve` anhand aufgezeichneter Ventilbefehle als Proxy, nicht als gemessene Wärme. Bei allen unterstützten Typen sind Schätzungen experimentell und vor Anwendung zu überprüfen; sie sind keine validierten optimalen Einstellungen.
+
+Natives adaptives TPI kann explorativ mit Warnungen zu Modellannahmen, Kohärenz und großen prozentualen Änderungen analysiert werden; Schreibzugriffe erfordern klassisches TPI.
 
 Einrichtung, Schutzmechanismen und Beispiele stehen in der [LLM/MCP-Dokumentation](documentation/de/feature-llm-mcp.md).
+
+Für Hilfe bei der Diagnose oder Erklärung einer Situation sowie bei der Suche in der Dokumentation können Sie den [VTherm Assistant](https://www.versatile-thermostat.org/en/plugins/#jmcollin78/vtherm_assistant) ausprobieren.
 
 Recorder-Verlauf mit Lesezugriff für CSV-Exporte und Diagramme durch den LLM-Client.
 
@@ -71,7 +77,7 @@ VTherm kann jetzt `current_humidity` mit einem externen Luftfeuchtigkeitssensor 
 
 `over_valve`-Thermostate verfügen jetzt über dieselben Ventilsteuerungsparameter wie `over_climate`-Thermostate mit direkter Ventilregelung: `opening_threshold_degree`, `min_opening_degrees`, `max_closing_degree` und `max_opening_degrees`. Weitere Informationen: [Ventilsteuerung](documentation/de/over-valve.md).
 
-`over_valve`-Thermostate unterstützen jetzt auch den Ruhemodus. Er zeigt VTherm als ausgeschaltet an und sendet eine rohe Öffnungsanforderung von 100 %, ohne die Zentralheizung anzufordern. Konfigurierte Grenzen der Ventilsteuerung können die physische Öffnung begrenzen. Weitere Informationen: [Ruhemodus](documentation/de/over-valve.md#ruhemodus).
+`over_valve`-Thermostate unterstützen jetzt auch den Ruhemodus. Er zeigt VTherm als ausgeschaltet an und sendet eine rohe Öffnungsanforderung von 100 %, ohne die Zentralheizung anzufordern. Konfigurierte Grenzen der Ventilsteuerung können die physische Öffnung begrenzen. Weitere Informationen: [Ruhemodus](documentation/de/over-valve.md#ruhemodus). Für den Ruhemodus ist eine VTherm-kompatible Karte erforderlich, etwa die [Versatile Thermostat UI Card](https://github.com/jmcollin78/versatile-thermostat-ui-card), oder die Aktion `versatile_thermostat.set_hvac_mode_sleep`; die Standard-Climate-Karte von Home Assistant wird nicht unterstützt.
 
 ## Release 10.3.0
 Leistungseinheiten können nun konfiguriert werden. In den Konfigurationsbildschirmen kann eine Einheit für Leistungsmessungen ausgewählt werden (standardmäßig W). Berechnete Energieeinheiten richten sich nach der konfigurierten Leistungseinheit. Bestehende Einträge werden anhand des historischen Geräteleistungswerts migriert: Werte über 100 werden als W behandelt, andere Werte als kW.

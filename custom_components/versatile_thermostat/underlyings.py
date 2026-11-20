@@ -131,6 +131,11 @@ class UnderlyingEntity:
         return self._entity_id
 
     @property
+    def last_command_sent_datetime(self) -> datetime:
+        """Return the time of the last successfully sent command."""
+        return self._last_command_sent_datetime
+
+    @property
     def power_reservation_key(self) -> str:
         """Return the stable power reservation key for this underlying."""
         return self._power_reservation_key
@@ -311,6 +316,11 @@ class UnderlyingEntity:
         return self._hvac_mode
 
     @property
+    def is_on_part_running(self) -> bool | None:
+        """Whether the underlying is in its commanded ON cycle part, if known."""
+        return None
+
+    @property
     def should_device_be_active(self) -> bool | None:
         """If the underlying device should currently be active.
         Need to be overriden"""
@@ -485,6 +495,11 @@ class UnderlyingSwitch(UnderlyingEntity):
         return self._calculate_should_be_on()
 
     @property
+    def is_on_part_running(self) -> bool | None:
+        """Whether the switch is in its commanded ON cycle part, if known."""
+        return self._is_on_part_running
+
+    @property
     def is_device_active(self) -> bool | None:
         """If the toggleable device is currently active."""
         if not self.is_initialized:
@@ -572,6 +587,7 @@ class UnderlyingSwitch(UnderlyingEntity):
                 self._thermostat.power_manager.sub_power_consumption_to_central_power_manager(self.power_reservation_key)
                 _LOGGER.debug("%s - Sending command %s with data=%s", self, command, data)
                 await self._hass.services.async_call(self._domain, command, data)
+                self._last_command_sent_datetime = self._thermostat.now
                 self._is_on_part_running = False
                 self._keep_alive.set_async_action(self._keep_alive_callback)
             except Exception:
@@ -589,7 +605,10 @@ class UnderlyingSwitch(UnderlyingEntity):
 
         if not await self.check_overpowering():
             self._thermostat.requested_state.force_changed()
-            await self._thermostat.update_states(force=True)
+            if self._thermostat.proportional_function == PROPORTIONAL_FUNCTION_TPI:
+                await self._thermostat.update_states(force=True, _control_heating=False)
+            else:
+                await self._thermostat.update_states(force=True)
             return False
 
         command = self._on_command.get("command")
@@ -599,6 +618,7 @@ class UnderlyingSwitch(UnderlyingEntity):
                 self._thermostat.power_manager.add_power_consumption_to_central_power_manager(self.power_reservation_key)
                 _LOGGER.debug("%s - Sending command %s with data=%s", self, command, data)
                 await self._hass.services.async_call(self._domain, command, data)
+                self._last_command_sent_datetime = self._thermostat.now
                 self._is_on_part_running = True
                 self._keep_alive.set_async_action(self._keep_alive_callback)
                 return True
@@ -653,6 +673,14 @@ class UnderlyingSwitch(UnderlyingEntity):
             if self._thermostat.hvac_mode == HVACMode.OFF:
                 _LOGGER.debug(
                     "%s - Skipping switch ON repair because thermostat HVAC mode is OFF (expected=%s, observed=%s)",
+                    self,
+                    should_be_on,
+                    is_on,
+                )
+                return False
+            if self._thermostat.on_percent == 0:
+                _LOGGER.debug(
+                    "%s - Skipping switch ON repair because thermostat demand is zero (expected=%s, observed=%s)",
                     self,
                     should_be_on,
                     is_on,
@@ -1069,6 +1097,9 @@ class UnderlyingClimate(UnderlyingEntity):
         """Get the last send temperature. None if no temperature have been sent yet"""
         return self._last_sent_temperature
 
+    def mark_temperature_as_sent(self, temperature: float):
+        self._last_sent_temperature = temperature
+
     @property
     def hvac_action(self) -> HVACAction | None:
         """Get the hvac action of the underlying"""
@@ -1304,13 +1335,6 @@ class UnderlyingClimate(UnderlyingEntity):
             return False
 
         if str(expected_hvac_mode) == str(under_hvac_mode):
-            return False
-
-        if self._thermostat.now < self._last_command_sent_datetime + timedelta(seconds=resend_delay_sec):
-            _LOGGER.debug(
-                "%s - Skipping climate state repair while waiting for the last command to be applied",
-                self,
-            )
             return False
 
         # Only count a repair if something has really been sent

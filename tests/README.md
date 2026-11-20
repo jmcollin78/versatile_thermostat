@@ -7,9 +7,10 @@ Run commands from the repository root.
 pytest -p no:sugar
 ```
 
-As in the existing CI command, `-p no:sugar` disables the optional terminal
-formatter. The default suite, including GitHub Actions, skips tests marked
-`scientific`.
+The project pytest configuration disables the optional `respx` plugin before it
+can import `httpx`; Home Assistant installs its compatibility aliases during
+pytest startup. `-p no:sugar` disables the optional terminal formatter. The
+default suite, including GitHub Actions, skips tests marked `scientific`.
 Each skip reports that `--run-scientific` is required. Fast contract, permission,
 refusal and integration tests remain enabled, subject to their existing Home
 Assistant version requirements. The CI workflows and their timeout are unchanged.

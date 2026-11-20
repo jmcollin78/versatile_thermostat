@@ -1,6 +1,8 @@
 
 # Troubleshooting
 
+For help diagnosing or explaining a situation, or searching the documentation, try the [VTherm Assistant](https://www.versatile-thermostat.org/en/plugins/#jmcollin78/vtherm_assistant).
+
 - [Troubleshooting](#troubleshooting)
   - [Using a Heatzy](#using-a-heatzy)
   - [Using a radiator with a pilot wire (Nodon SIN-4-FP-21)](#using-a-radiator-with-a-pilot-wire-nodon-sin-4-fp-21)
@@ -24,7 +26,6 @@
   - [VTherm Automatically Switches to 'Cooling' or 'Heating' Mode](#vtherm-automatically-switches-to-cooling-or-heating-mode)
   - [Open Window Detection Does Not Prevent Preset Changes](#open-window-detection-does-not-prevent-preset-changes)
     - [Example:](#example)
-  - [Error stabilization\_threshold is an invalid option](#error-stabilization_threshold-is-an-invalid-option)
   - [Error stabilization\_threshold is an invalid option](#error-stabilization_threshold-is-an-invalid-option)
 
 ## Using a Heatzy

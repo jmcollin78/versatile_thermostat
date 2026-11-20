@@ -24,11 +24,17 @@ L'ensemble de la documentation est disponible sur le [Versatile Thermostat Web s
 
 VTherm utilise la plateforme LLM native de Home Assistant et expose ses outils via le serveur MCP officiel Home Assistant. Les assistants peuvent lister les VTherm exposés à Assist, lire leur état et obtenir un diagnostic structuré fondé sur les messages et raisons fournis par VTherm.
 
+Les lectures MCP incluent la présence de la configuration centrale et l'héritage de chaque VTherm ; les diagnostics distinguent réglages centraux, valeurs effectives, mode central et chaudière, selon les permissions de lecture.
+
 Sur demande explicite, trois outils permettent de modifier la consigne, le preset ou le mode HVAC via les services standards `climate.*`, avec vérification des permissions utilisateur et des valeurs. Les demandes de diagnostic restent en lecture seule ; l'option **Read only** du serveur MCP masque les outils d'action.
 
-Les coefficients TPI classiques peuvent aussi être analysés à partir de 7 à 14 jours exploitables d’historique Recorder, avec application explicite et confirmation supplémentaire pour les gros changements.
+Les coefficients TPI classiques peuvent aussi être analysés à partir de 7 à 14 jours exploitables d’historique Recorder, avec application explicite et confirmation supplémentaire pour les gros changements. L’analyse accepte `over_switch`, `over_valve` et, expérimentalement, `over_climate_valve` à partir des commandes de vanne enregistrées, utilisées comme proxy et non comme chaleur mesurée. Pour tous les types pris en charge, les estimations sont expérimentales, à vérifier avant application ; elles ne constituent pas des réglages optimaux validés.
+
+Le TPI natif adaptatif peut être analysé à titre exploratoire avec avertissements sur les hypothèses, bilan de cohérence et fortes variations en pourcentage ; les écritures restent réservées au TPI classique.
 
 Consultez la [documentation LLM/MCP](documentation/fr/feature-llm-mcp.md) pour la configuration, les garde-fous et les exemples.
+
+Pour vous aider à diagnostiquer ou expliquer une situation, ou à rechercher dans la documentation, essayez le [VTherm Assistant](https://www.versatile-thermostat.org/en/plugins/#jmcollin78/vtherm_assistant).
 
 Historique Recorder en lecture seule pour exports CSV et graphiques réalisés par le client LLM.
 
@@ -73,7 +79,7 @@ VTherm peut désormais exposer `current_humidity` depuis un capteur d’humidit�
 
 Les thermostats `over_valve` ont maintenant les mêmes paramètres de controle de la vanne que les `over_climate` avec régulation par contrôle direct de la vanne. Il s'agit des paramètres `opening_threshold_degree`, `min_opening_degrees`, `max_closing_degree` et `max_opening_degrees`. Plus d'informations ici: [contrôle de la vanne](documentation/fr/over_valve.md)
 
-Les thermostats `over_valve` prennent également en charge le mode sommeil. Le sommeil affiche le VTherm comme arrêté et envoie une demande brute d'ouverture à 100 % sans solliciter la chaudière centrale. Les limites configurées du contrôle de vanne peuvent plafonner l'ouverture physique. Plus d'informations : [mode sommeil](documentation/fr/over-valve.md#mode-sommeil).
+Les thermostats `over_valve` prennent également en charge le mode sommeil. Le sommeil affiche le VTherm comme arrêté et envoie une demande brute d'ouverture à 100 % sans solliciter la chaudière centrale. Les limites configurées du contrôle de vanne peuvent plafonner l'ouverture physique. Plus d'informations : [mode sommeil](documentation/fr/over-valve.md#mode-sommeil). L'utilisation du mode sommeil nécessite une carte compatible VTherm, comme la [Versatile Thermostat UI Card](https://github.com/jmcollin78/versatile-thermostat-ui-card), ou l'action `versatile_thermostat.set_hvac_mode_sleep` ; la carte climate par défaut de Home Assistant n'est pas supportée.
 
 ## Release 10.3.0
 Vous pouvez maintenant spécifier les unités de puissance. Les écrans de configuration proposent une unité pour les mesures de puissance (W par défaut). Les unités d'énergie calculées sont alignées avec l'unité de puissance configurée. Les entités existantes sont migrées en fonction de leur valeur historique de puissance : au-delà de 100, la valeur est considérée en W, sinon en kW.

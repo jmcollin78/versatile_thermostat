@@ -2,9 +2,9 @@
 
 Diese Dokumentation beschreibt das Hinzufügen von LLM/MCP-Werkzeugen zu **Versatile Thermostat (VTherm)** über den offiziellen MCP-Server von Home Assistant.
 
-Die bereitgestellte Datei `llm.py` stellt Folgendes bereit:
+Das bereitgestellte Paket `llm/` stellt Folgendes bereit:
 
-- 4 Werkzeuge zum Lesen, Diagnostizieren und für den Verlauf;
+- 6 Werkzeuge zum Lesen, Diagnostizieren, für Protokolle und Verlauf;
 - 3 einfache Aktionswerkzeuge: Temperatur, Preset und HVAC-Modus;
 - 2 TPI-Lesewerkzeuge und 1 TPI-Werkzeug für explizite Änderungen;
 - Beschreibungen und Anweisungen, die auf **Französisch und Englisch** verwendet werden können;
@@ -16,16 +16,20 @@ Die bereitgestellte Datei `llm.py` stellt Folgendes bereit:
 
 ## 1. Zu installierende Datei
 
-Die folgenden vier Dateien in das Integrationsverzeichnis kopieren:
+Die folgenden Module in das Integrationsverzeichnis kopieren:
 
 ```text
-/config/custom_components/versatile_thermostat/llm.py
+/config/custom_components/versatile_thermostat/llm/__init__.py
+/config/custom_components/versatile_thermostat/llm/diagnostics.py
+/config/custom_components/versatile_thermostat/llm/diagnostic_time.py
+/config/custom_components/versatile_thermostat/llm/central_configuration.py
 /config/custom_components/versatile_thermostat/recorder_export.py
 /config/custom_components/versatile_thermostat/tpi_history.py
+/config/custom_components/versatile_thermostat/tpi_regulation.py
 /config/custom_components/versatile_thermostat/tpi_identification.py
 ```
 
-Diese Module aus derselben Revision installieren. Bei einer manuellen Aktualisierung `llm.py`, `tpi_history.py` und `tpi_identification.py` gemeinsam ersetzen: `TPIHistory` enthält den Home-Assistant-Kontext und die Quellen eines Thermostats, `TPIIdentification` dessen Raster und Analyseparameter. Die interne Klassenstruktur erhält die bestehenden MCP-Werkzeuge und Berechnungen.
+Diese Module aus derselben Revision installieren. Bei einer manuellen Aktualisierung `llm/__init__.py`, `tpi_history.py`, `tpi_regulation.py` und `tpi_identification.py` gemeinsam ersetzen: `TPIHistory` enthält den Home-Assistant-Kontext und die Quellen eines Thermostats, `TPIIdentification` dessen Raster und Analyseparameter. Die interne Klassenstruktur erhält die bestehenden MCP-Werkzeuge und Berechnungen.
 
 Verzeichnisstruktur:
 
@@ -36,19 +40,24 @@ Verzeichnisstruktur:
 ├── const.py
 ├── manifest.json
 ├── ...
-├── llm.py
+├── llm/
+│   ├── __init__.py
+│   ├── diagnostics.py
+│   ├── diagnostic_time.py
+│   └── central_configuration.py
 ├── recorder_export.py
 ├── tpi_history.py
+├── tpi_regulation.py
 └── tpi_identification.py
 ```
 
 Es ist nicht erforderlich, `manifest.json` zu ändern, um die Plattform `llm` zu deklarieren.
 
-Home Assistant erkennt Integrationsplattformen dynamisch und lädt `llm.py` bei Bedarf, wenn eine LLM-API die Werkzeuge der Integration benötigt.
+Home Assistant erkennt Integrationsplattformen dynamisch und lädt `llm/__init__.py` bei Bedarf, wenn eine LLM-API die Werkzeuge der Integration benötigt.
 
 Nach dem Kopieren der Datei einen **vollständigen Neustart von Home Assistant** durchführen.
 
-> Achtung: Wenn `llm.py` manuell zu einer von HACS verwalteten VTherm-Installation hinzugefügt wurde, kann ein zukünftiges HACS-Update das Integrationsverzeichnis ersetzen. Bewahre eine Kopie der Datei auf, bis sie direkt in das VTherm-Projekt integriert wurde.
+> Achtung: Wenn `llm/__init__.py` manuell zu einer von HACS verwalteten VTherm-Installation hinzugefügt wurde, kann ein zukünftiges HACS-Update das Integrationsverzeichnis ersetzen. Bewahre eine Kopie der Datei auf, bis sie direkt in das VTherm-Projekt integriert wurde.
 
 ---
 
@@ -63,6 +72,8 @@ assist__versatile_thermostat__list_vtherms
 assist__versatile_thermostat__get_status
 assist__versatile_thermostat__diagnose
 assist__versatile_thermostat__get_history
+assist__versatile_thermostat__get_logs
+assist__versatile_thermostat__get_plugins
 ```
 
 ### Aktionen — Stufe 2A
@@ -232,6 +243,16 @@ Ein Abschnitt, der auf der Entität nicht vorhanden ist, wird einfach nicht zur�
 
 ---
 
+### Zentrale Konfiguration und Vererbung
+
+`list_vtherms`, `get_status` und `diagnose` ergänzen ein Objekt `central_configuration`. Die Liste meldet dessen Vorhandensein sowie die Vererbungsgruppen und die Teilnahme jedes Thermostats am zentralen Modus und am Heizkessel. Status und Diagnose enthalten zusätzlich relevante zentrale Einstellungen und die effektiven Werte des geladenen Thermostats.
+
+`configured` beschreibt, ob ein zentraler Eintrag existiert; `active` folgt den Auswahlkriterien von VTherm. Deaktivierte oder fehlerhafte Einträge gelten nicht als aktiv. Mehrere geeignete Einträge ergeben `status: ambiguous`, ohne willkürliche Auswahl. Gruppen: `main`, `tpi`, `window`, `motion`, `power`, `presence`, `presets`, `advanced` und `lock`. `inheritance` beschreibt die Auswahl des geladenen Thermostats; `uses_central_configuration` erfordert zusätzlich eine aktive zentrale Konfiguration. Zentraler Modus und Heizkesselteilnahme bleiben getrennte Funktionen.
+
+Diese zusätzlichen Daten erfordern ein geladenes, weiterhin für Assist freigegebenes VTherm-Ziel und einen authentifizierten Benutzer mit `READ`-Berechtigung. Administratoren können die geprüften zentralen Gruppen lesen; andere Benutzer sehen nur die von ihren berechtigten Zielen geerbten Gruppen. Bei fehlendem Zugriff oder Lesefehlern erhalten `configured: null` und `status: unavailable` die Unsicherheit, ohne die gewöhnliche Diagnose zu verwerfen.
+
+`settings` enthält nur ausdrücklich freigegebene Felder des zentralen Eintrags, niemals die Rohkonfiguration, Sperrcodes, Heizkesselbefehle oder Templates. `thermostat.effective_settings` stammt aus den geladenen `entry_infos`. Effektive Presets kommen aus `preset_temperatures`, da ihre Temperaturen in Number-Entitäten liegen. Die zentrale Leistungseinheit kann `auto` sein, während der Thermostat W oder kW verwendet. Während eines Neuladens können konfigurierte und effektive Werte abweichen. Diese Lesevorgänge ändern keine Konfiguration.
+
 ## 6. VTherm-Dokumentation und Fehlersuche
 
 Das Ergebnis von `diagnose` enthält außerdem `support_resources` mit französischen **und** englischen Ressourcen:
@@ -268,7 +289,7 @@ Für komplexe Fehlersuche weist der an das LLM übergebene Prompt das Modell an:
 
 ### Wichtig
 
-`llm.py` **lädt selbst keine Webseiten herunter**.
+`llm/__init__.py` **lädt selbst keine Webseiten herunter**.
 
 Die Datei stellt dem LLM-Client URLs und Anweisungen bereit. Wenn der verwendete Client (Codex, Gemini, Claude usw.) über Webzugriff verfügt, kann er die Dokumentation aufrufen. Andernfalls kann er dem Benutzer zumindest die Links bereitstellen.
 
@@ -284,7 +305,7 @@ VTherm stellt folgende Aktion bereit:
 versatile_thermostat.download_logs
 ```
 
-Die Datei `llm.py` führt diese Aktion nicht automatisch aus; sie weist lediglich als Ressource für die Fehlersuche darauf hin.
+Die Datei `llm/__init__.py` führt diese Aktion nicht automatisch aus; sie weist lediglich als Ressource für die Fehlersuche darauf hin.
 
 Home-Assistant-Beispiel:
 
@@ -485,7 +506,7 @@ werden aus dem MCP-Katalog gefiltert, da sie als `read_only=False` deklariert si
 
 Die Diagnosewerkzeuge bleiben verfügbar.
 
-Das ist nützlich, wenn vorübergehend wieder nur Stufe 1 verwendet werden soll, ohne `llm.py` zu ändern.
+Das ist nützlich, wenn vorübergehend wieder nur Stufe 1 verwendet werden soll, ohne `llm/__init__.py` zu ändern.
 
 ---
 
@@ -657,9 +678,10 @@ Prüfen:
 1. ob die Datei hier vorhanden ist:
 
    ```text
-   /config/custom_components/versatile_thermostat/llm.py
+   /config/custom_components/versatile_thermostat/llm/__init__.py
 /config/custom_components/versatile_thermostat/recorder_export.py
 /config/custom_components/versatile_thermostat/tpi_history.py
+/config/custom_components/versatile_thermostat/tpi_regulation.py
 /config/custom_components/versatile_thermostat/tpi_identification.py
    ```
 
@@ -669,7 +691,7 @@ Prüfen:
 5. die Assist-/Device-Control-API wird vom MCP-Server bereitgestellt;
 6. der MCP-Client hat sich nach dem Neustart erneut verbunden.
 
-Die Plattform `llm.py` wird bei Bedarf geladen: Das Fehlen einer Meldung beim Start von Home Assistant bedeutet nicht zwangsläufig, dass sie nicht erkannt wurde.
+Die Plattform `llm/__init__.py` wird bei Bedarf geladen: Das Fehlen einer Meldung beim Start von Home Assistant bedeutet nicht zwangsläufig, dass sie nicht erkannt wurde.
 
 ---
 
@@ -718,9 +740,17 @@ Drei Werkzeuge ergänzen die bisherigen Funktionen:
 
 Lesewerkzeuge benötigen nur `entity_id`. Der Client kündigt jeden Schritt vor dem Aufruf an; Hintergrundarbeit wird nicht simuliert. Jede Antwort enthält `stage`, `stage_number`, `stage_total` und `state_changed`.
 
-Die Analyse erfordert klassisches TPI (`proportional_function=tpi`), ohne konfiguriertes Auto-TPI, aktives Lernen oder kontinuierliche Außenkompensation. Diese Version unterstützt `over_switch` mit einem oder mehreren physischen Schaltern. Aufgezeichnete EIN-Zeiten werden integriert und gemäß VTherms gleichen Leistungsanteilen `device_power / N` gemittelt, einschließlich versetzter Phasen und Übergänge innerhalb einer Minute. Die absolute Heizleistung ist nicht erforderlich. Unterschiedliche individuelle Heizleistungen werden dadurch nicht gemessen.
+Die Erkennung verwendet geladene native Handler-, Algorithmus- und Managerobjekte statt gespeicherter Optionen oder alter Lerndaten. `regulation` meldet Regelungstyp, `compatible` (Annahme fester Koeffizienten), `analysis_mode`, `blocking_criterion` und `missing_information`. Sind Hauptlernen und continuous_kext zur Laufzeit deaktiviert, wird klassisches TPI auch bei verbliebenen Konfigurationsoptionen akzeptiert. Bei aktivem nativem Auto-TPI oder continuous_kext wird die Berechnung schreibgeschützt als `adaptive_exploratory` versucht, mit `adaptive_tpi_fixed_coefficient_assumption_not_met`. continuous_kext kann Kext unabhängig von `autolearn_enabled` lernen und speichern; ein vorübergehender Zyklusausschluss beweist keine Inaktivität. SmartPI, andere Algorithmen oder nicht überprüfbare native Zustände werden mit konkretem Grund abgelehnt. Schreibzugriffe benötigen weiterhin klassisches TPI. Der aktuelle Zustand belegt keine durchgehende Inaktivität im historischen Zeitraum.
 
-Für `over_climate`, `over_valve` und Climate-Ventilregelung liefert die Antwort ausdrücklich `eligible: false`, `supported: false`, `reason: unsupported_thermostat_type`: Für diesen Typ ist die Analyse noch nicht verfügbar. Mehrdeutige virtuelle Befehle werden ebenfalls abgelehnt; kein blinder Rückgriff auf `hvac_action`.
+`assessment` meldet Kohärenzgrenzen und bestätigt niemals ein Optimum. `comparison.percent_delta` zeigt die vorzeichenbehaftete Änderung (null bei Ausgangswert null). `large_proposed_coefficient_change` warnt bei absoluten Änderungen ≥0,15 innen / ≥0,01 außen oder relativen Änderungen ≥50 %, einschließlich jeder Änderung von null. Die Schwellen verlangen Prüfung und beweisen keinen Fehler. Wissenschaftliche Ablehnungen und fehlende Daten werden weiterhin berücksichtigt; fehlgeschlagene Fits werden nicht erzwungen.
+
+Diese Version unterstützt `over_switch` mit einem oder mehreren physischen Schaltern. Aufgezeichnete EIN-Zeiten werden integriert und gemäß VTherms gleichen Leistungsanteilen `device_power / N` gemittelt, einschließlich versetzter Phasen und Übergänge innerhalb einer Minute. Die absolute Heizleistung ist nicht erforderlich. Unterschiedliche individuelle Heizleistungen werden dadurch nicht gemessen.
+
+`over_valve` und `over_climate_valve` (Climate mit direkter Ventilregelung) werden ebenfalls **experimentell** unterstützt. Eingang `u` ist der am VTherm aufgezeichnete gemeinsame Befehl `valve_open_percent`, geteilt durch 100 und über jede Minute integriert. `sources.heating_source_kind` lautet `valve_open_percent_command_proxy`. Dieser Proxy misst weder bestätigte physische Position noch Durchfluss oder Wärmeleistung. Ventilnichtlinearität, Öffnungsschwellen, Wassertemperatur, Kesselverfügbarkeit, hydraulischer Abgleich und Verzögerungen können die Koeffizienten verzerren. Eine gute statistische Anpassung bestätigt diese Annahmen nicht. Fehlende, nicht endliche oder außerhalb von 0–100 liegende Befehle bleiben unbekannt; kein Ersetzen durch null, Beschneiden oder Rekonstruieren aus `hvac_action`.
+
+Für **alle unterstützten Typen**, `over_switch`, `over_valve` und `over_climate_valve`, enthält jede Prüf-/Analyseantwort `experimental: true`, `verification_required_before_application: true`, `recommendation_reliable: false` und `experimental_notice` (FR/EN). Der Assistent muss erklären: **„Experimentelle Berechnung: vor jeder Anwendung überprüfen; dieses Paar ist keine validierte optimale Einstellung.“** Bei Ventilen auch `heating_proxy_note` erläutern. Annahmen und Analysezeitraum prüfen, mit aktuellen Koeffizienten vergleichen und das Verhalten nach einer ausdrücklich beschlossenen Anwendung beobachten. Dies bestätigt keine Zuverlässigkeit.
+
+`over_climate` ohne direkte Ventilregelung bleibt mit `eligible: false`, `supported: false`, `reason: unsupported_thermostat_type` abgelehnt. Mehrdeutige virtuelle Befehle werden ebenfalls abgelehnt. Vor Recorder-Zugriff sind Assist-Freigabe und authentifizierte `READ`-Berechtigung erforderlich.
 
 Recorder liefert höchstens die **letzten 14 Tage**. Nach Ausschlüssen sind mindestens **7 Tage tatsächlich nutzbarer Minuten** erforderlich. Innen- und Außensensor stammen aus der effektiven VTherm-Konfiguration einschließlich zentraler Konfiguration. Ergebnisse enthalten `sources`, `history_requested_days`, `history_available_days`, `history_usable_days`, Ausschlüsse und aktuelle Einstellungen. Eine Recorder-Aufbewahrungsdauer wird nicht vorausgesetzt.
 

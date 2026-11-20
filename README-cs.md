@@ -18,6 +18,10 @@ jazycích: [Angličtina](README.md) | [Francouzština](README-fr.md) | [Němčin
 
 Tato vlastní komponenta pro Home Assistant je vylepšením a kompletním přepsáním komponenty "Awesome thermostat" (viz [Github](https://github.com/dadge/awesome_thermostat)) s přidanými funkcemi.
 
+# Asistent VTherm
+
+S diagnostikou či vysvětlením situace nebo vyhledáváním v dokumentaci vám pomůže [VTherm Assistant](https://www.versatile-thermostat.org/en/plugins/#jmcollin78/vtherm_assistant).
+
 # Snímky obrazovky
 
 Versatile Thermostat UI Card (K dispozici na [Github](https://github.com/jmcollin78/versatile-thermostat-ui-card)) :
@@ -57,7 +61,7 @@ VTherm nyní může poskytovat `current_humidity` z externího senzoru vlhkosti 
 
 Termostaty `over_valve` mají nyní stejné parametry řízení ventilu jako termostaty `over_climate` s regulací přímým řízením ventilu: `opening_threshold_degree`, `min_opening_degrees`, `max_closing_degree` a `max_opening_degrees`. Více informací: [řízení ventilu](documentation/cs/over-valve.md).
 
-Termostaty `over_valve` nyní podporují také režim spánku. Tento režim zobrazí VTherm jako vypnutý a odešle hrubý požadavek na otevření 100 %, aniž by vyžadoval vytápění z centrálního kotle. Nastavené limity řízení ventilu mohou omezit fyzické otevření. Více informací: [režim spánku](documentation/cs/over-valve.md#režim-spánku).
+Termostaty `over_valve` nyní podporují také režim spánku. Tento režim zobrazí VTherm jako vypnutý a odešle hrubý požadavek na otevření 100 %, aniž by vyžadoval vytápění z centrálního kotle. Nastavené limity řízení ventilu mohou omezit fyzické otevření. Více informací: [režim spánku](documentation/cs/over-valve.md#režim-spánku). Použití režimu spánku vyžaduje kartu kompatibilní s VTherm, například [Versatile Thermostat UI Card](https://github.com/jmcollin78/versatile-thermostat-ui-card), nebo akci `versatile_thermostat.set_hvac_mode_sleep`; výchozí karta climate Home Assistant není podporována.
 
 ## Verze 10.3.0
 Nyní lze konfigurovat jednotky výkonu. Konfigurační obrazovky umožňují vybrat jednotku pro měření výkonu (výchozí je W). Jednotky vypočtené energie odpovídají nakonfigurované jednotce výkonu. Stávající položky jsou migrovány podle historické hodnoty výkonu zařízení: hodnoty vyšší než 100 se považují za W, ostatní za kW.

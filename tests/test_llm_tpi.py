@@ -1,5 +1,7 @@
 """Boundary tests for TPI LLM tools, permissions, confirmation and readback."""
 
+from .tpi_runtime import native_runtime
+
 from datetime import timedelta
 from types import SimpleNamespace
 from unittest.mock import AsyncMock, Mock, patch
@@ -34,6 +36,8 @@ def setup_tools():
         tpi_coef_int=0.3,
         tpi_coef_ext=0.02,
     )
+
+    native_runtime(thermostat)
 
     async def service(domain, name, data, **kwargs):
         thermostat.tpi_coef_int = data.get("tpi_coef_int", thermostat.tpi_coef_int)
@@ -301,7 +305,7 @@ async def test_check_does_not_fit_or_bootstrap(setup_tools):
 
 
 async def test_direct_write_rejects_auto_tpi_without_history(setup_tools):
-    setup_tools[1].entry_infos["auto_tpi_mode"] = True
+    setup_tools[1].auto_tpi_manager.state.autolearn_enabled = True
     result = await call(setup_tools, coef_int=0.32)
     assert result.data["reason"] == "not_classic_tpi"
     setup_tools[0].services.async_call.assert_not_awaited()
@@ -341,3 +345,223 @@ async def test_recorder_missing_explicit_refusal():
     hass = SimpleNamespace(config=SimpleNamespace(components=set()))
     with pytest.raises(IdentificationError, match="recorder_unavailable"):
         await TPIHistory(hass, {}).async_load()
+
+
+@pytest.mark.parametrize(
+    "kind", ["physical_switches", "valve_open_percent_command_proxy"]
+)
+@pytest.mark.parametrize(
+    "tool_class", [module.CheckTPIOptimizationTool, module.AnalyzeTPICoefficientsTool]
+)
+async def test_experimental_warning_required_before_application(
+    setup_tools, kind, tool_class
+):
+    hass, _, context = setup_tools
+    hass.async_add_executor_job = AsyncMock(
+        return_value={
+            "status": "success",
+            "proposed": {"coef_int": 0.35, "coef_ext": 0.025},
+            "warnings": [],
+        }
+    )
+    with patch.object(
+        TPIHistory,
+        "resolve_sources",
+        return_value={
+            "primary_resolution": 10,
+            "heating_source_kind": kind,
+        },
+    ), patch.object(
+        TPIHistory,
+        "async_load",
+        new=AsyncMock(
+            return_value=(
+                object(),
+                {"history_available_days": 10, "history_usable_days": 9},
+            )
+        ),
+    ):
+        result = await tool_class([ENTITY]).async_call(
+            hass, SimpleNamespace(tool_args={"entity_id": ENTITY}), context
+        )
+    assert result.data["experimental"] is True
+    assert result.data["verification_required_before_application"] is True
+    assert result.data["recommendation_reliable"] is False
+    assert "expérimental" in result.data["experimental_notice"]["fr"]
+    assert "before" in result.data["experimental_notice"]["en"]
+    if kind == "valve_open_percent_command_proxy":
+        assert "valve_command_is_not_measured_heat" in result.data["warnings"]
+    assert (
+        "experimental_coefficients_verify_before_application" in result.data["warnings"]
+    )
+    assert result.data["state_changed"] is False
+    hass.services.async_call.assert_not_awaited()
+
+
+@pytest.mark.parametrize(
+    "tool_class", [module.CheckTPIOptimizationTool, module.AnalyzeTPICoefficientsTool]
+)
+@pytest.mark.parametrize("access", ["anonymous", "missing_user", "denied"])
+async def test_tpi_read_permission_before_history(setup_tools, tool_class, access):
+    hass, _, context = setup_tools
+    if access == "anonymous":
+        context.context = Context()
+    elif access == "missing_user":
+        hass.auth.async_get_user.return_value = None
+    else:
+        hass.auth.async_get_user.return_value.permissions.check_entity.return_value = (
+            False
+        )
+    with patch.object(TPIHistory, "from_thermostat") as history:
+        result = await tool_class([ENTITY]).async_call(
+            hass, SimpleNamespace(tool_args={"entity_id": ENTITY}), context
+        )
+    assert result.data["reason"] == "read_permission_denied"
+    assert result.data["state_changed"] is False
+    history.assert_not_called()
+    hass.services.async_call.assert_not_awaited()
+
+
+async def test_failed_valve_fit_preserves_warning_and_returns_no_pair(setup_tools):
+    hass, _, context = setup_tools
+    hass.async_add_executor_job = AsyncMock(
+        return_value={"reason": "ill_conditioned_model"}
+    )
+    with patch.object(
+        TPIHistory,
+        "resolve_sources",
+        return_value={
+            "primary_resolution": 10,
+            "heating_source_kind": "valve_open_percent_command_proxy",
+        },
+    ), patch.object(
+        TPIHistory,
+        "async_load",
+        new=AsyncMock(
+            return_value=(
+                object(),
+                {"history_available_days": 10, "history_usable_days": 9},
+            )
+        ),
+    ):
+        result = await module.AnalyzeTPICoefficientsTool([ENTITY]).async_call(
+            hass, SimpleNamespace(tool_args={"entity_id": ENTITY}), context
+        )
+    assert result.error
+    assert "proposed" not in result.data
+    assert result.data["experimental"] is True
+    assert "valve_command_is_not_measured_heat" in result.data["warnings"]
+    hass.services.async_call.assert_not_awaited()
+
+
+@pytest.mark.parametrize(
+    "mode", ["classic", "learning", "continuous", "smartpi", "missing"]
+)
+async def test_check_analysis_share_effective_regulation_rule(setup_tools, mode):
+    hass, thermostat, context = setup_tools
+    thermostat.is_over_switch = True
+    thermostat.is_initialized = True
+    thermostat.temperature_unit = "°C"
+    thermostat.ext_temp_sensor_entity_id = "sensor.outside"
+    thermostat.cycle_min = 5
+    thermostat.entity_id = ENTITY
+    thermostat.entry_infos = {
+        "temperature_sensor_entity_id": "sensor.inside",
+        "underlying_entity_ids": ["switch.heater"],
+        "auto_tpi_mode": True,
+        "auto_tpi_continuous_kext": True,
+    }
+    from custom_components.versatile_thermostat.const import CONF_UNDERLYING_LIST
+
+    thermostat.entry_infos[CONF_UNDERLYING_LIST] = ["switch.heater"]
+    if mode == "learning":
+        thermostat.auto_tpi_manager.state.autolearn_enabled = True
+    elif mode == "continuous":
+        thermostat.auto_tpi_manager._continuous_kext = True
+    elif mode == "smartpi":
+        thermostat.proportional_function = "smartpi"
+    elif mode == "missing":
+        thermostat._algo_handler = None
+    entries = [
+        SimpleNamespace(
+            domain="binary_sensor",
+            platform="versatile_thermostat",
+            translation_key="safety_state",
+            entity_id="binary_sensor.safety",
+        )
+    ]
+    hass.async_add_executor_job = AsyncMock(
+        return_value={
+            "proposed": {"coef_int": 1.2, "coef_ext": 0.001},
+            "warnings": ["weak_heater_excitation"],
+        }
+    )
+    with patch(
+        "custom_components.versatile_thermostat.tpi_history.er.async_get",
+        return_value=Mock(),
+    ), patch(
+        "custom_components.versatile_thermostat.tpi_history.er.async_entries_for_config_entry",
+        return_value=entries,
+    ), patch.object(
+        TPIHistory,
+        "async_load",
+        new=AsyncMock(
+            return_value=(
+                object(),
+                {"history_available_days": 10, "history_usable_days": 9},
+            )
+        ),
+    ) as load:
+        results = [
+            await cls([ENTITY]).async_call(
+                hass, SimpleNamespace(tool_args={"entity_id": ENTITY}), context
+            )
+            for cls in (
+                module.CheckTPIOptimizationTool,
+                module.AnalyzeTPICoefficientsTool,
+            )
+        ]
+    assert results[0].data["regulation"] == results[1].data["regulation"]
+    if mode in ("classic", "learning", "continuous"):
+        assert results[0].data["eligible"] is True
+        assert results[1].data["comparison"]["coef_ext"][
+            "percent_delta"
+        ] == pytest.approx(-95)
+        assert "large_proposed_coefficient_change" in results[1].data["warnings"]
+        assert results[1].data["assessment"]["coherence"] == (
+            "requires_verification"
+            if mode == "classic"
+            else "model_assumptions_not_met"
+        )
+        if mode != "classic":
+            assert (
+                "adaptive_tpi_fixed_coefficient_assumption_not_met"
+                in results[1].data["warnings"]
+            )
+    else:
+        assert (
+            results[0].data["reason"] == results[1].data["reason"] == "not_classic_tpi"
+        )
+        load.assert_not_awaited()
+        assert "proposed" not in results[1].data
+    hass.services.async_call.assert_not_awaited()
+
+
+@pytest.mark.parametrize(
+    "before,after,percent,large",
+    [
+        (0, 0, None, False),
+        (0, 0.001, None, True),
+        (0.02, 0.021, 5, False),
+        (0.02, 0.01, -50, True),
+        (0.02, 0.04, 100, True),
+    ],
+)
+def test_percentage_change_warning_boundaries(before, after, percent, large):
+    result = module._tpi_comparison({"coef_ext": before}, {"coef_ext": after})[
+        "coef_ext"
+    ]
+    assert result["percent_delta"] == (
+        pytest.approx(percent) if percent is not None else None
+    )
+    assert result["large_change"] is large

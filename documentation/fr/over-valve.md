@@ -72,6 +72,9 @@ Il est possible de choisir un thermostat `over-valve` qui commande une climatisa
 
 ### Mode sommeil
 
+> [!NOTE]
+> Le mode sommeil (`sleep` / `Zzz`) nécessite une carte compatible avec Versatile Thermostat, comme la [Versatile Thermostat UI Card](additions.md#versatile-thermostat-ui-card). La carte thermostat par défaut de Home Assistant n'est pas supportée : elle liste `sleep` dans `hvac_modes` mais ne peut pas le sélectionner (`climate.set_hvac_mode` rejette `sleep`, qui n'est pas un `HVACMode` standard de HA). Pour passer en mode sommeil, utilisez le bouton `Zzz` de la VTherm UI Card ou appelez l'action `versatile_thermostat.set_hvac_mode_sleep`.
+
 `over_valve` prend en charge le mode sommeil. La sélection de `sleep`, ou
 l'appel de l'action `versatile_thermostat.set_hvac_mode_sleep`, présente le
 VTherm comme arrêté tout en envoyant une demande brute d'ouverture à 100 % à

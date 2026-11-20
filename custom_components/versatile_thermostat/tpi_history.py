@@ -14,8 +14,6 @@ from homeassistant.util import dt as dt_util
 from homeassistant.const import UnitOfTemperature
 
 from .const import (
-    CONF_AUTO_TPI_CONTINUOUS_KEXT,
-    CONF_AUTO_TPI_MODE,
     CONF_INVERSE_SWITCH,
     CONF_TEMP_SENSOR,
     CONF_UNDERLYING_LIST,
@@ -25,7 +23,6 @@ from .const import (
     CONF_VSWITCH_ON_CMD_LIST,
     CONF_WINDOW_SENSOR,
     DOMAIN,
-    PROPORTIONAL_FUNCTION_TPI,
 )
 from .tpi_identification import (
     Grid,
@@ -34,6 +31,7 @@ from .tpi_identification import (
     MIN_DAYS,
 )
 from .recorder_export import read_recorder_history
+from .tpi_regulation import TPIRegulation
 
 
 class TPIHistory:
@@ -64,17 +62,9 @@ class TPIHistory:
         return entity
 
     @staticmethod
-    def check_classic_tpi(thermostat: Any) -> None:
-        """Reject other regulation, configured Auto-TPI and running learning."""
-        config = thermostat.entry_infos
-        manager = getattr(thermostat, "auto_tpi_manager", None)
-        if (
-            thermostat.proportional_function != PROPORTIONAL_FUNCTION_TPI
-            or config.get(CONF_AUTO_TPI_MODE, False)
-            or config.get(CONF_AUTO_TPI_CONTINUOUS_KEXT, False)
-            or (manager is not None and manager.learning_active)
-        ):
-            raise IdentificationError("not_classic_tpi")
+    def check_classic_tpi(thermostat: Any, *, allow_adaptive: bool = False) -> dict:
+        """Check the loaded regulation independently of the hardware/history type."""
+        return TPIRegulation(thermostat).check(allow_adaptive=allow_adaptive)
 
     @staticmethod
     def resolve_sources(hass: HomeAssistant, thermostat: Any) -> dict:
@@ -83,11 +73,24 @@ class TPIHistory:
         CycleScheduler gives every relay the same duty with staggered phases.
         FeaturePowerManager.calculate_underlying_startup_power allocates P/N to
         each relay. Reconstruct that convention from all actual switch histories.
-        Neither valve opening nor a regulated climate HVAC action measures heat.
+        Valve-regulated climates use the recorded common opening command as an
+        experimental proxy only; it does not measure delivered thermal power.
         """
-        if not thermostat.is_over_switch:
+        if (
+            sum(
+                getattr(thermostat, key, False) is True
+                for key in ("is_over_switch", "is_over_valve", "is_over_climate")
+            )
+            > 1
+        ):
+            raise IdentificationError("ambiguous_thermostat_type")
+        valve_proxy = getattr(thermostat, "is_over_valve", False) or (
+            getattr(thermostat, "is_over_climate", False)
+            and getattr(thermostat, "have_valve_regulation", False)
+        )
+        if not thermostat.is_over_switch and not valve_proxy:
             raise IdentificationError("unsupported_thermostat_type")
-        TPIHistory.check_classic_tpi(thermostat)
+        regulation = TPIHistory.check_classic_tpi(thermostat, allow_adaptive=True)
         if not thermostat.is_initialized:
             raise IdentificationError("vtherm_not_initialized")
         config = thermostat.entry_infos
@@ -99,10 +102,14 @@ class TPIHistory:
             raise IdentificationError("missing_internal_temperature")
         if not outside:
             raise IdentificationError("missing_external_temperature")
-        heaters = config.get(CONF_UNDERLYING_LIST, [])
+        heaters = (
+            [thermostat.entity_id]
+            if valve_proxy
+            else config.get(CONF_UNDERLYING_LIST, [])
+        )
         if not heaters:
             raise IdentificationError("missing_heating_history")
-        if (
+        if not valve_proxy and (
             len(set(heaters)) != len(heaters)
             or any(not entity_id.startswith("switch.") for entity_id in heaters)
             or config.get(CONF_VSWITCH_ON_CMD_LIST)
@@ -141,12 +148,21 @@ class TPIHistory:
         if not math.isfinite(cycle) or cycle < 1 or not cycle.is_integer():
             raise IdentificationError("unsupported_cycle_length")
         return {
+            "regulation": regulation,
             "temperature_source": inside,
             "external_temperature_source": outside,
             "heating_source": heaters[0],
             "heating_sources": list(heaters),
-            "heating_source_kind": "physical_switches",
-            "heating_aggregation": "equal_power_shares_vtherm_P_over_N",
+            "heating_source_kind": (
+                "valve_open_percent_command_proxy"
+                if valve_proxy
+                else "physical_switches"
+            ),
+            "heating_aggregation": (
+                "recorded_valve_command_divided_by_100"
+                if valve_proxy
+                else "equal_power_shares_vtherm_P_over_N"
+            ),
             "heating_weights": [1 / len(heaters)] * len(heaters),
             "window_source": window,
             "safety_source": diagnostics["safety_state"],
@@ -156,7 +172,7 @@ class TPIHistory:
                 else None
             ),
             "climate_source": thermostat.entity_id,
-            "inverse_switch": bool(config.get(CONF_INVERSE_SWITCH)),
+            "inverse_switch": not valve_proxy and bool(config.get(CONF_INVERSE_SWITCH)),
             "primary_resolution": int(cycle),
         }
 
@@ -180,10 +196,26 @@ class TPIHistory:
         )
 
     @staticmethod
+    def _valve_command(state: State) -> float:
+        """Recorded VTherm command in [0, 100], not valve feedback or heat.
+
+        Never substitute HVAC action, on_percent or today's state. Unknown and
+        invalid commands invalidate intervals rather than becoming zero/clipped.
+        """
+        value = state.attributes.get("valve_open_percent")
+        if state.state in ("unknown", "unavailable") or isinstance(value, bool):
+            return math.nan
+        try:
+            value = float(value)
+        except (ValueError, TypeError):
+            return math.nan
+        return value / 100 if math.isfinite(value) and 0 <= value <= 100 else math.nan
+
+    @staticmethod
     def interval_values(
         points: list[tuple[float, float]], times: np.ndarray, *, maximum: bool = False
     ) -> np.ndarray:
-        """Integrate binary events over each minute, including subminute changes.
+        """Integrate held command/binary events, including subminute changes.
 
         Used for actual heater duty and any protective/window override. A single
         unknown interval makes that minute unknown; no interpolation across it.
@@ -276,11 +308,17 @@ class TPIHistory:
         outside = Grid.sample_previous(
             points("external_temperature_source", self._number), times
         )
+        heating_value = (
+            self._valve_command
+            if self._sources.get("heating_source_kind")
+            == "valve_open_percent_command_proxy"
+            else self._binary
+        )
         heater = np.mean(
             [
                 self.interval_values(
                     [
-                        (s.last_updated.timestamp() / 60, self._binary(s))
+                        (s.last_updated.timestamp() / 60, heating_value(s))
                         for s in states[entity_id]
                         if s.last_updated <= end
                     ],
@@ -290,6 +328,8 @@ class TPIHistory:
             ],
             axis=0,
         )
+        if not np.any(np.isfinite(heater)):
+            raise IdentificationError("missing_heating_history")
         if self._sources["inverse_switch"]:
             heater = 1 - heater
         window = (

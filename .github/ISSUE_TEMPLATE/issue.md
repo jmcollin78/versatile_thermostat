@@ -6,7 +6,7 @@ about: Create a report to help us improve
 
 # Read this carefully
 
-I read carefully this instructions and fill this form before writing an issue. Tnhis will help the reader to help me.
+I read carefully this instructions and fill this form before writing an issue. This will help the reader to help me.
 
 <!-- If you choose to not follow this template, you accept to have no answer from the author. The tag on the issue 'Template not respected' means you don't respect this template. Potentially, you will not have a relevant answer.
 
@@ -17,6 +17,8 @@ This template will allow the maintainer to be efficient and post the more accura
 If you have a simple question or you are not sure this is an issue, don't open an issue but open a new discussion [here](https://github.com/jmcollin78/versatile_thermostat/discussions).
 
 Check also in the [Troubleshooting](../../documentation/en/troubleshooting.md) page of the README if the aswer is not already given.
+
+You can also try the [VTherm Assistant](https://www.versatile-thermostat.org/en/plugins/#jmcollin78/vtherm_assistant) to diagnose or explain your situation, or search the documentation.
 
 Issues not containing the minimum requirements will be closed:
 

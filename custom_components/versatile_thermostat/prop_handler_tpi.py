@@ -3,7 +3,7 @@
 
 import logging
 from vtherm_api.log_collector import get_vtherm_logger
-from typing import Any, TYPE_CHECKING
+from typing import TYPE_CHECKING
 from datetime import datetime
 
 from homeassistant.exceptions import ServiceValidationError
@@ -196,6 +196,10 @@ class TPIHandler:
                 if self._auto_tpi_manager.learning_active:
                     t.tpi_coef_int = learned_params.get(CONF_TPI_COEF_INT, t.tpi_coef_int)
                     t.tpi_coef_ext = learned_params.get(CONF_TPI_COEF_EXT, t.tpi_coef_ext)
+                    # The algorithm was built with the configured coefficients: align it
+                    # so the first demand computation uses the learned ones.
+                    if t.prop_algorithm:
+                        t.prop_algorithm.update_parameters(tpi_coef_int=t.tpi_coef_int, tpi_coef_ext=t.tpi_coef_ext)
                     _LOGGER.info("%s - Restored Auto TPI parameters: %s", t, learned_params)
                 else:
                     _LOGGER.info("%s - Auto TPI parameters found but not applied because learning is disabled", t)
@@ -243,72 +247,6 @@ class TPIHandler:
             return not api.central_boiler_manager.is_on
         return False
 
-    async def _get_tpi_data(self) -> dict[str, Any]:
-        """Calculate and return TPI cycle parameters."""
-        t = self._thermostat
-        get_feature_manager = getattr(t, "get_feature_manager", None)
-        heating_failure_manager = (
-            get_feature_manager("heating_failure_detection")
-            if callable(get_feature_manager)
-            else None
-        )
-        is_heating_failure = bool(
-            getattr(heating_failure_manager, "is_detected", False)
-        )
-
-        # Feed current temperatures to AutoTpiManager BEFORE getting params
-        if self._auto_tpi_manager:
-            await self._auto_tpi_manager.update(
-                room_temp=t.current_temperature,
-                ext_temp=t.current_outdoor_temperature,
-                target_temp=t.target_temperature,
-                hvac_mode=str(t.vtherm_hvac_mode),
-                is_overpowering_detected=t.power_manager.is_overpowering_detected,
-                is_central_boiler_off=self._is_central_boiler_off(),
-                is_heating_failure=is_heating_failure,
-            )
-
-        # Sync coefficients from AutoTpiManager before calculating
-        if self._auto_tpi_manager and self._auto_tpi_manager.learning_active:
-            new_params = await self._auto_tpi_manager.calculate()
-            if new_params:
-                new_coef_int = new_params.get(CONF_TPI_COEF_INT)
-                new_coef_ext = new_params.get(CONF_TPI_COEF_EXT)
-                if new_coef_int != t.prop_algorithm.tpi_coef_int or \
-                   new_coef_ext != t.prop_algorithm.tpi_coef_ext:
-                    t.prop_algorithm.update_parameters(tpi_coef_int=new_coef_int, tpi_coef_ext=new_coef_ext)
-                    _LOGGER.debug("%s - Synced TPI coeffs before cycle: int=%.3f, ext=%.3f",
-                                  t, new_coef_int, new_coef_ext)
-
-        # Force recalculation with potentially updated coefficients
-        t.recalculate()
-
-        # Calculate time (in seconds)
-        if t.prop_algorithm:
-            on_time_sec, off_time_sec, forced_by_timing = calculate_cycle_times(
-                t.on_percent,
-                t.cycle_min,
-                t.minimal_activation_delay,
-                t.minimal_deactivation_delay,
-            )
-
-            realized_percent = on_time_sec / (t.cycle_min * 60)
-
-            # Notify prop_algorithm if forced by timing (existing behavior)
-            if forced_by_timing:
-                if t.prop_algorithm and hasattr(t.prop_algorithm, "update_realized_power"):
-                    t.prop_algorithm.update_realized_power(realized_percent)
-        else:
-            on_time_sec = 0
-            off_time_sec = 0
-
-        return {
-            "on_time_sec": on_time_sec,
-            "off_time_sec": off_time_sec,
-            "on_percent": t.safe_on_percent,
-            "hvac_mode": str(t.vtherm_hvac_mode),
-        }
-
     async def control_heating(self, timestamp=None, force=False):
         """TPI-specific control heating logic."""
         del timestamp
@@ -343,6 +281,7 @@ class TPIHandler:
                 new_coef_ext = new_params.get(CONF_TPI_COEF_EXT)
                 if new_coef_int is not None and new_coef_ext is not None:
                     if t.prop_algorithm:
+                        coefs_changed = new_coef_int != t.prop_algorithm.tpi_coef_int or new_coef_ext != t.prop_algorithm.tpi_coef_ext
                         # Update effective algo parameters
                         t.prop_algorithm.update_parameters(tpi_coef_int=new_coef_int, tpi_coef_ext=new_coef_ext)
                         # Keep thermostat attributes in sync
@@ -350,6 +289,10 @@ class TPIHandler:
                         t.tpi_coef_ext = new_coef_ext
                         _LOGGER.debug("%s - Synced PropAlgorithm with current Auto TPI coeffs: int=%.3f, ext=%.3f",
                                       t, new_coef_int, new_coef_ext)
+                        if coefs_changed:
+                            # The cached demand was computed with the previous
+                            # coefficients: refresh it before scheduling the cycle.
+                            t.recalculate()
 
         # Stop here if we are off
         if t.vtherm_hvac_mode == VThermHvacMode_OFF:

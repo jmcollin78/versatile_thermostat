@@ -1,5 +1,7 @@
 # Řešení problémů
 
+S diagnostikou či vysvětlením situace nebo vyhledáváním v dokumentaci vám pomůže [VTherm Assistant](https://www.versatile-thermostat.org/en/plugins/#jmcollin78/vtherm_assistant).
+
 - [Řešení problémů](#řešení-problémů)
   - [Použití Heatzy](#použití-heatzy)
   - [Použití radiátoru s pilotním drátem (Nodon SIN-4-FP-21)](#použití-radiátoru-s-pilotním-drátem-nodon-sin-4-fp-21)

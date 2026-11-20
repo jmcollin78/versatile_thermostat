@@ -22,11 +22,17 @@ This custom component for Home Assistant is an upgrade and a complete rewrite of
 
 VTherm integrates with Home Assistant's native LLM platform and exposes its tools through the official Home Assistant MCP Server. Assistants can list VTherms exposed to Assist, read their state and obtain structured diagnostics based on VTherm's own messages and reasons.
 
+MCP reads include central-configuration presence and each VTherm's inheritance; diagnostics distinguish central settings, effective values, central mode and boiler participation, subject to read permissions.
+
 For explicit control requests, three tools can change the target temperature, preset or HVAC mode through standard `climate.*` services, with user permission and value checks. Diagnostic requests remain read-only; the MCP Server's **Read only** option hides action tools.
 
-Classic TPI coefficients can also be analyzed from 7–14 usable days of Recorder history, with explicit application and additional confirmation for large changes.
+Classic TPI coefficients can also be analyzed from 7–14 usable days of Recorder history, with explicit application and additional confirmation for large changes. Analysis supports `over_switch`, `over_valve` and experimental `over_climate_valve` using recorded valve commands as a proxy, not measured heat. For all supported types, estimates are experimental and must be verified before application; they are not validated optimal settings.
+
+Native adaptive TPI can be analyzed exploratorily with explicit assumption warnings, coherence checks and large percentage-change alerts; writes still require classic TPI.
 
 See the [LLM/MCP documentation](documentation/en/feature-llm-mcp.md) for setup, safeguards and examples.
+
+For help diagnosing or explaining a situation, or searching the documentation, try the [VTherm Assistant](https://www.versatile-thermostat.org/en/plugins/#jmcollin78/vtherm_assistant).
 
 Read-only Recorder history for CSV exports and charts created by the LLM client.
 
@@ -70,7 +76,7 @@ VTherm can now expose `current_humidity` from an external humidity sensor for al
 
 `over_valve` thermostats now have the same valve control parameters as `over_climate` thermostats with direct valve control regulation: `opening_threshold_degree`, `min_opening_degrees`, `max_closing_degree`, and `max_opening_degrees`. More information: [valve control](documentation/en/over-valve.md).
 
-`over_valve` thermostats now also support Sleep mode. Sleep displays VTherm as off and sends a raw 100% opening request without requesting central boiler heating. Configured valve-control limits can cap the physical opening. More information: [Sleep mode](documentation/en/over-valve.md#sleep-mode).
+`over_valve` thermostats now also support Sleep mode. Sleep displays VTherm as off and sends a raw 100% opening request without requesting central boiler heating. Configured valve-control limits can cap the physical opening. More information: [Sleep mode](documentation/en/over-valve.md#sleep-mode). Using sleep mode requires a VTherm-compatible card, such as the [Versatile Thermostat UI Card](https://github.com/jmcollin78/versatile-thermostat-ui-card), or the `versatile_thermostat.set_hvac_mode_sleep` action; the default Home Assistant climate card is not supported.
 
 ## Release 10.3.0
 Power units can now be configured. Configuration screens let you select a unit for power measurements (W by default). Calculated energy units match the configured power unit. Existing entries are migrated using the historical device power value: values above 100 are treated as W; other values as kW.

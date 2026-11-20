@@ -55,8 +55,12 @@ from homeassistant.components.climate.const import (
 
 from homeassistant.const import (
     ATTR_TEMPERATURE,
+    PRECISION_HALVES,
+    PRECISION_TENTHS,
+    PRECISION_WHOLE,
     STATE_UNAVAILABLE,
     STATE_UNKNOWN,
+    UnitOfTemperature,
 )
 
 from .const import *  # pylint: disable=wildcard-import, unused-wildcard-import
@@ -581,11 +585,20 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
             and entry_infos.get(CONF_USE_PRESENCE_FEATURE)
         )
 
+        self._unit = self._hass.config.units.temperature_unit
+
         self._ac_mode = entry_infos.get(CONF_AC_MODE) is True
         self._attr_max_temp = float(entry_infos.get(CONF_TEMP_MAX, 0.0))
         self._attr_min_temp = float(entry_infos.get(CONF_TEMP_MIN, 0.0))
         if (step := entry_infos.get(CONF_STEP_TEMPERATURE)) is not None:
             self._attr_target_temperature_step = step
+            if self._unit == UnitOfTemperature.FAHRENHEIT:
+                if step % 1 == 0:
+                    self._attr_precision = PRECISION_WHOLE
+                elif step % 0.5 == 0:
+                    self._attr_precision = PRECISION_HALVES
+                else:
+                    self._attr_precision = PRECISION_TENTHS
 
         self._attr_preset_modes = []
         self._vtherm_preset_modes = []
@@ -602,8 +615,6 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
         self._ext_temp_sensor_entity_id = entry_infos.get(CONF_EXTERNAL_TEMP_SENSOR)
 
         self.set_hvac_list()
-
-        self._unit = self._hass.config.units.temperature_unit
 
         # Will be restored if possible
         self._state_manager = StateManager()
@@ -1980,6 +1991,8 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
         force=False,
         _command_cause: str | None = None,
         _preserve_underlying_temperature_candidates: bool = False,
+        *,
+        _control_heating: bool = True,
     ):
         """Update the states of the thermostat considering the requested state and the current state"""
         if not self.is_ready:
@@ -2038,10 +2051,11 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
                     force = force or transition_force
                     self.recalculate(force=force)
                     self.reset_last_change_time_from_vtherm()
-                    await self.async_control_heating(
-                        force=force or sub_need_control_heating,
-                        _command_cause=_command_cause,
-                    )
+                    if _control_heating or self.vtherm_hvac_mode == VThermHvacMode_OFF:
+                        await self.async_control_heating(
+                            force=force or sub_need_control_heating,
+                            _command_cause=_command_cause,
+                        )
 
             self.calculate_hvac_action()
             self.update_custom_attributes()

@@ -5,6 +5,7 @@ body:
     attributes:
       value: |
         Thank you for sharing your suggestion to improve the project!
+        You can also try the [VTherm Assistant](https://www.versatile-thermostat.org/en/plugins/#jmcollin78/vtherm_assistant) to explain a situation or search the documentation.
 
   - type: textarea
     id: problem

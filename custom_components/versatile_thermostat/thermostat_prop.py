@@ -180,7 +180,7 @@ class ThermostatProp(BaseThermostat[T], Generic[T]):
                 f"{self} - Unknown proportional function: {self._proportional_function}"
             )
 
-        _LOGGER.warning(
+        _LOGGER.debug(
             "%s - External proportional algorithm '%s' not yet registered. Will retry at startup.",
             self,
             self._proportional_function,
@@ -243,12 +243,15 @@ class ThermostatProp(BaseThermostat[T], Generic[T]):
         force=False,
         _command_cause: str | None = None,
         _preserve_underlying_temperature_candidates: bool = False,
+        *,
+        _control_heating: bool = True,
     ):
         """Update states and delegate to handler."""
         changed = await super().update_states(
             force,
             _command_cause,
             _preserve_underlying_temperature_candidates,
+            _control_heating=_control_heating,
         )
         if self._algo_handler:
             # External proportional plugins may need to react to temperature
