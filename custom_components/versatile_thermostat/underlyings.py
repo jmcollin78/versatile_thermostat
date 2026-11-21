@@ -1363,6 +1363,7 @@ class UnderlyingValve(UnderlyingEntity):
 
     # Time to wait after a command before a repair. None: resend_delay_sec. A plugin may ask for more.
     _settle_sec: float | None = None
+    _repair_wait_sec: float | None = None
 
     def __init__(
         self,
@@ -1623,9 +1624,10 @@ class UnderlyingValve(UnderlyingEntity):
         if abs(current - expected_opening) <= 0.5:
             return False
 
-        # A plugin may ask for a longer wait (also tolerate test doubles which have no such attribute)
-        settle_sec = self._settle_sec if isinstance(self._settle_sec, (int, float)) else resend_delay_sec
-        if self._thermostat.now < self._last_command_sent_datetime + timedelta(seconds=settle_sec):
+        # Only a plugin can ask for a wait here (also tolerate test doubles which have no such attribute).
+        # Without a plugin, the grace period is applied by the repair manager, not by a direct check.
+        wait_sec = self._repair_wait_sec
+        if isinstance(wait_sec, (int, float)) and self._thermostat.now < self._last_command_sent_datetime + timedelta(seconds=wait_sec):
             _LOGGER.debug(
                 "%s - Skipping valve state repair while waiting for the last command to be applied",
                 self,
@@ -1987,7 +1989,10 @@ class UnderlyingValveRegulation(UnderlyingValve):
         # The repair waits for the end of the command, as a plugin announced it
         self._settle_sec = settle_sec
         if handled or settle_sec is not None:
+            self._repair_wait_sec = settle_sec if settle_sec is not None else resend_delay_sec
             self._last_command_sent_datetime = self._thermostat.now
+        else:
+            self._repair_wait_sec = None
 
         _LOGGER.debug(
             "%s - valve regulation - I have sent opening_degree=%s closing_degree=%s (handled by a plugin: %s)",
