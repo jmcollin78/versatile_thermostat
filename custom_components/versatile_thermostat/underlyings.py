@@ -473,7 +473,8 @@ class UnderlyingSwitch(UnderlyingEntity):
         """Set the HVACmode. Returns true if something have change"""
 
         if hvac_mode == VThermHvacMode_OFF:
-            if self.is_device_active:
+            # Also when a turn_on is still in flight: HA may still show the switch off
+            if self.is_device_active is True or self._is_on_part_running is True:
                 await self.turn_off()
 
         if self.hvac_mode != hvac_mode:

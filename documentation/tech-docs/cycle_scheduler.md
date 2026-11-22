@@ -275,13 +275,15 @@ Conditions are evaluated in cascade (if / elif). Once a state is determined, sub
 
 Once the theoretical state is determined, the tick checks whether the underlying's state actually needs to change, taking into account minimum activation and deactivation duration constraints.
 
+The tick compares the theoretical state with the **commanded** state of the underlying (`is_on_part_running`, the last command sent), as the keep-alive and the repair do. It does not compare it with the state Home Assistant shows: that state may be stale while a command is in flight, for example with a Zigbee relay that confirms a command a few seconds later. The tick reads the state Home Assistant shows only while the commanded state is unknown.
+
 ---
 
 ## 8. Need ON — Activation Logic
 
 ### 8.1 Nominal Case
 
-If the underlying is already ON, no action is needed.
+If the underlying is already commanded ON, no action is needed.
 
 `under_dt` is determined: the time elapsed since the underlying's last state change.
 
@@ -318,7 +320,7 @@ The logic is symmetric to Need ON, with inverted roles:
 
 ### 9.1 Nominal Case
 
-If the underlying is already OFF, no action is needed.
+If the underlying is already commanded OFF, no action is needed.
 
 If both conditions are met:
 - `under_dt >= minimal_activation_delay` (the underlying has been ON long enough)
@@ -605,7 +607,7 @@ This call is independent of the `on_cycle_started` callback (which fires only at
 | Force restart             | `force=True` cancels all current timers via `cancel_cycle()` then restarts immediately.                                               |
 | HVAC_MODE_OFF             | Handler sets `t._on_time_sec=0`, `t._off_time_sec=cycle_sec` directly, then calls `async_underlying_entity_turn_off()` (→ `cancel_cycle()` + `turn_off()`). |
 | Single underlying         | `compute_circular_offsets` returns `[0.0]`. Identical behavior: single underlying with offset 0.                                      |
-| Keep-alive                | Remains in `UnderlyingSwitch`. Reads `_should_be_on` (updated by the scheduler) to resend the current state periodically.            |
+| Keep-alive                | Remains in `UnderlyingSwitch`. Reads `_is_on_part_running` (the commanded state) to resend it periodically.                           |
 | Timing constraints        | `calculate_cycle_times()` is called **internally** by `start_cycle()`. Handlers also call it directly for `realized_percent` feedback only. |
 
 ---

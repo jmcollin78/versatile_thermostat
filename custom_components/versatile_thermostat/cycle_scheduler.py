@@ -645,7 +645,7 @@ class CycleScheduler:
 
         self._init_cycle(on_percent)
 
-        # Start ticking immediately with is_initial=True to enforce state
+        # Start ticking immediately
         if await self._tick(_is_initial=True) is False:
             return False
 
@@ -687,8 +687,12 @@ class CycleScheduler:
         """Evaluate all underlyings and schedule the next tick.
 
         When _is_initial=True (called at cycle start), current_t is forced to 0.0
-        to avoid floating-point drift, and the is_device_active check is skipped so
-        the desired state is always enforced unconditionally on the first tick.
+        to avoid floating-point drift.
+
+        Each underlying is compared with its commanded state (is_on_part_running),
+        as the keep-alive and the repair do, not with what HA shows: the shown
+        state may be stale while a command is in flight. The shown state only
+        counts while the commanded state is unknown.
         """
         from homeassistant.util import dt as dt_util
         now = time.time()
@@ -718,8 +722,12 @@ class CycleScheduler:
             else:
                 under_dt = 999999.0  # Safe large value if no history
 
+            commanded_on = under.is_on_part_running
+            if commanded_on is None:
+                commanded_on = under.is_device_active
+
             if target_is_on:
-                if not under.is_device_active:
+                if not commanded_on:
                     action, new_on_t, pen_delta = evaluate_need_on(
                         under_dt, state_duration,
                         self.min_deactivation_delay, self.min_activation_delay,
@@ -757,16 +765,10 @@ class CycleScheduler:
                         if 0 < resched_time < next_global_tick:
                             next_global_tick = resched_time
                 elif _is_initial:
-                    # Enforce state unconditionally on the first tick
-                    if not under.is_device_active:
-                        states = self._states
-                        if await under.turn_on() is False:
-                            await self._cleanup_refused_start(states)
-                            return False
                     under._should_be_on = True
 
             elif not target_is_on:
-                if under.is_device_active:
+                if commanded_on:
                     action, new_off_t, pen_delta = evaluate_need_off(
                         under_dt, state_duration,
                         self.min_activation_delay, self.min_deactivation_delay,
@@ -792,14 +794,6 @@ class CycleScheduler:
                         resched_time = new_off_t - current_t
                         if 0 < resched_time < next_global_tick:
                             next_global_tick = resched_time
-                elif _is_initial:
-                    # Enforce state unconditionally on the first tick
-                    if under.is_device_active:
-                        try:
-                            await under.turn_off()
-                            under._should_be_on = False
-                        except Exception as err:
-                            _LOGGER.error("%s - initial turn_off failed: %s", under, err)
 
         # Ensure we do not schedule too fast (< 0.1s)
         next_global_tick = max(0.1, next_global_tick)
