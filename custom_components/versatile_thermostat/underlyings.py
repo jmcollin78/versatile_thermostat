@@ -1066,10 +1066,9 @@ class UnderlyingClimate(UnderlyingEntity):
         if self.is_command_blocked(CLIMATE_DOMAIN, SERVICE_SET_TEMPERATURE):
             return False
 
-        if command_cause == COMMAND_CAUSE_UNDERLYING_TRACKING:
-            if not self._thermostat._can_send_underlying_tracking_command():
-                return False
-            self._thermostat._record_underlying_tracking_command(self.entity_id, target_temp)
+        # Issue #2141 - a setpoint propagated after a knob change is not debited from the tracking
+        # budget: the candidates are debounced and the echoes are recognized on the setpoint grid.
+        # The budget only protects the HVAC mode tracking (#2159).
 
         try:
             self._last_sent_temperature = target_temp
@@ -1225,6 +1224,38 @@ class UnderlyingClimate(UnderlyingEntity):
     def target_temperature_step(self) -> float:
         """Get the target_temperature_step"""
         return self.get_underlying_attribute(ATTR_TARGET_TEMP_STEP)
+
+    def _setpoint_cell(self, value: float) -> float:
+        """Issue #2141 - index of a setpoint on the setpoint grid of this underlying.
+
+        A TRV rounds the setpoint it receives (19.6 -> 19.5) or reports it with a small
+        offset (21.5 displayed, 21.6 reported): both are in the same cell of its grid,
+        while one step of the knob always moves to another cell.
+        Issue #2175 - use the VTherm step when the underlying publishes none.
+        """
+        step = self.target_temperature_step
+        if step is None:
+            step = getattr(self._thermostat, "target_temperature_step", None)
+        try:
+            step = float(step)
+        except (TypeError, ValueError):
+            return float(value)
+        if not step > 0:
+            return float(value)
+        return math.floor(float(value) / step + 0.5 + 1e-9)
+
+    def is_same_setpoint(self, first: float | None, second: float | None) -> bool:
+        """Issue #2141 - True if both setpoints are the same value for this underlying"""
+        if first is None or second is None:
+            return False
+        return self._setpoint_cell(first) == self._setpoint_cell(second)
+
+    def is_vtherm_setpoint(self, value: float | None) -> bool:
+        """Issue #2141 - True if value is the setpoint VTherm sent, as this underlying can represent it.
+
+        This is what tells the report of a VTherm command from a manual change. It does not depend on time.
+        """
+        return self.is_same_setpoint(value, self.last_sent_temperature)
 
     @property
     def target_temperature_high(self) -> float | None:

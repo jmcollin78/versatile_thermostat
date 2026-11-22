@@ -197,17 +197,15 @@ async def test_mixed_candidate_timer_starts_after_application(hass, tracking_the
 
     with patch.object(entity, "update_states", side_effect=apply), patch("custom_components.versatile_thermostat.thermostat_climate.async_call_later", side_effect=register):
         await entity.underlying_changed(under, None, None, 27, None, State(under.entity_id, "off"), State(under.entity_id, "heat"))
-    if initial == 2:
-        assert not timers
-        assert entity._underlying_tracking_suspended
-    else:
-        assert [(when, delay) for when, delay, _ in timers] == [(8, 5)]
-        assert entity._underlying_tracking_attempts == initial + 1
-        assert entity.requested_state.target_temperature == 20
-        with patch.object(entity, "update_states", new=AsyncMock()):
-            await timers[0][2](None)
-        assert entity.requested_state.target_temperature == 27
-        assert entity._underlying_tracking_attempts == initial + 2
+    # Issue #2141 - the temperature tracking does not depend on the mode budget, even when it is exhausted
+    assert entity._underlying_tracking_suspended == (initial == 2)
+    assert [(when, delay) for when, delay, _ in timers] == [(8, 5)]
+    assert entity._underlying_tracking_attempts == initial + 1
+    assert entity.requested_state.target_temperature == 20
+    with patch.object(entity, "update_states", new=AsyncMock()):
+        await timers[0][2](None)
+    assert entity.requested_state.target_temperature == 27
+    assert entity._underlying_tracking_attempts == initial + 1
 
 
 async def test_refused_mode_keeps_action_fan_and_temperature_source(tracking_thermostat):
@@ -257,7 +255,8 @@ async def test_cancelled_candidate_is_inert_even_if_a_cancel_handle_fails(hass, 
 
 
 @pytest.mark.parametrize("sequence", ["MMT", "MTM", "TMM"])
-async def test_mixed_adoptions_share_one_budget_without_service(hass, tracking_thermostat, sequence):
+async def test_mode_budget_ignores_temperature_adoptions(hass, tracking_thermostat, sequence):
+    """Issue #2141 - only the mode adoptions are debited from the tracking budget (#2159)"""
     entity = tracking_thermostat
     under = entity.underlying_entity(0)
     with patch.object(under, "_underlying_changed", new=AsyncMock()):
@@ -272,8 +271,10 @@ async def test_mixed_adoptions_share_one_budget_without_service(hass, tracking_t
         patch.object(entity, "update_states", new=AsyncMock()),
         patch("custom_components.versatile_thermostat.thermostat_climate.async_call_later", side_effect=lambda h, d, cb: (callbacks.append(cb), lambda: None)[1]),
     ):
-        for index, kind in enumerate(sequence, 1):
+        modes = 0
+        for kind in sequence:
             if kind == "M":
+                modes += 1
                 current = str(entity.requested_state.hvac_mode)
                 target = "off" if current == "heat" else "heat"
                 # The mocked application does not advance the effective mode.
@@ -282,11 +283,20 @@ async def test_mixed_adoptions_share_one_budget_without_service(hass, tracking_t
             else:
                 entity._consider_underlying_temperature_candidate(under, 27)
                 await callbacks[-1](None)
-            assert entity._underlying_tracking_attempts == index
-        assert entity._underlying_tracking_suspended
+                assert entity.requested_state.target_temperature == 27
+            assert entity._underlying_tracking_attempts == modes
+        assert not entity._underlying_tracking_suspended
+        # The third mode adoption exhausts the budget
         current = str(entity.requested_state.hvac_mode)
         entity._state_manager.current_state.set_hvac_mode(entity.requested_state.hvac_mode)
         await entity.underlying_changed(under, None, None, None, None, State(under.entity_id, "off" if current == "heat" else "heat"), State(under.entity_id, current))
+        assert entity._underlying_tracking_attempts == 3
+        assert entity._underlying_tracking_suspended
+        # A fourth one is refused
+        current = str(entity.requested_state.hvac_mode)
+        entity._state_manager.current_state.set_hvac_mode(entity.requested_state.hvac_mode)
+        await entity.underlying_changed(under, None, None, None, None, State(under.entity_id, "off" if current == "heat" else "heat"), State(under.entity_id, current))
+        assert str(entity.requested_state.hvac_mode) == current
         assert entity._underlying_tracking_attempts == 3
 
 
@@ -447,11 +457,12 @@ async def test_temperature_setter_failure(hass, tracking_thermostat, assign):
         with pytest.raises(ValueError, match="temperature setter"):
             await callbacks[0](None)
     assert state.target_temperature == (27 if assign else 20)
-    assert entity._underlying_tracking_attempts == int(assign)
+    # Issue #2141 - a temperature adoption is not debited
+    assert entity._underlying_tracking_attempts == 0
     assert not entity._underlying_temperature_candidates
     update.assert_not_awaited()
     await callbacks[0](None)
-    assert entity._underlying_tracking_attempts == int(assign)
+    assert entity._underlying_tracking_attempts == 0
 
 
 async def test_temperature_candidate_replaced_during_manual_cleanup(hass, tracking_thermostat):
@@ -596,7 +607,8 @@ async def test_failed_early_resume_is_not_retried(hass, tracking_thermostat):
     assert entity._underlying_tracking_attempts == 0
 
 
-async def test_identical_temperature_keeps_manual_effects_and_counts_real_attempt(hass, tracking_thermostat):
+async def test_identical_temperature_keeps_manual_effects_and_is_not_debited(hass, tracking_thermostat):
+    """Issue #2141 - the propagated setpoint is sent but not debited from the mode budget"""
     entity = tracking_thermostat
     under = entity.underlying_entity(0)
     hass.states.async_set(under.entity_id, "off", {"temperature": 22})
@@ -631,8 +643,8 @@ async def test_identical_temperature_keeps_manual_effects_and_counts_real_attemp
     assert state.target_temperature == 22
     assert state.preset == VThermPreset.NONE
     assert not manager.is_timed_preset_active
-    assert entity._underlying_tracking_attempts == 3
-    assert entity._underlying_tracking_suspended
+    assert entity._underlying_tracking_attempts == 2
+    assert not entity._underlying_tracking_suspended
     await manager._async_timed_preset_expired(old_expiration)
     assert state.preset == VThermPreset.NONE
 
@@ -692,11 +704,12 @@ async def test_real_tagged_attempt_and_trvzb_resend(tracking_thermostat):
         assert callbacks[0][0] == 2
         under._last_sent_temperature = 23
         await callbacks[0][1](None)
-        assert entity._underlying_tracking_attempts == 3
-        assert entity._underlying_tracking_suspended
+        # Issue #2141 - the TRVZB setpoint resend is not debited from the mode budget
+        assert entity._underlying_tracking_attempts == 2
+        assert not entity._underlying_tracking_suspended
         assert service.await_count == 2
-        assert await under.set_temperature(24, None, None, command_cause=COMMAND_CAUSE_UNDERLYING_TRACKING) is False
-        assert service.await_count == 2
+        assert await under.set_temperature(24, None, None, command_cause=COMMAND_CAUSE_UNDERLYING_TRACKING) is True
+        assert service.await_count == 3
 
 
 async def test_valve_inherited_callback_obeys_suspension(hass, skip_hass_states_is_state, skip_turn_on_off_heater, skip_send_event):

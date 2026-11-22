@@ -199,7 +199,7 @@ async def test_filtered_mode_keeps_action_fan_and_temperature_tracking(hass, tra
 
     assert entity.requested_state.hvac_mode == VThermHvacMode_HEAT
     assert entity.requested_state.target_temperature == 27
-    assert entity._underlying_tracking_attempts == 1  # temperature adoption only
+    assert entity._underlying_tracking_attempts == 0  # #2141 - a temperature adoption is not debited
     update.assert_awaited_with(force=True, _command_cause=COMMAND_CAUSE_UNDERLYING_TRACKING)
 
 
@@ -226,8 +226,9 @@ async def test_hvac_transition_uses_shared_budget_and_cause(tracking_thermostat)
         update.assert_not_awaited()
 
 
-async def test_temperature_adoption_counts_but_identical_retains_manual_effects(hass, tracking_thermostat):
-    """A request-identical admissible candidate remains a manual action, not an adoption."""
+async def test_temperature_adoption_not_debited_and_identical_retains_manual_effects(hass, tracking_thermostat):
+    """A request-identical admissible candidate remains a manual action, not an adoption.
+    Issue #2141 - a temperature adoption is not debited from the tracking budget."""
     entity = tracking_thermostat
     under = entity.underlying_entity(0)
     callbacks = []
@@ -255,4 +256,4 @@ async def test_temperature_adoption_counts_but_identical_retains_manual_effects(
         entity._consider_underlying_temperature_candidate(under, value)
         await callbacks[-1](None)
         assert entity.requested_state.target_temperature == value
-        assert entity._underlying_tracking_attempts == 1
+        assert entity._underlying_tracking_attempts == 0

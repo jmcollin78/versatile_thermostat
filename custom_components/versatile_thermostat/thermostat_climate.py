@@ -219,6 +219,13 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
 
         self.stop_recalculate_later()
 
+        # Issue #2141 - while a setpoint changed on an underlying is debounced, a regulation cycle
+        # must not overwrite it: the knob wins. A change requested through VTherm (preset,
+        # temperature, mode) cancels the candidates before reaching this point.
+        if _command_cause != COMMAND_CAUSE_UNDERLYING_TRACKING and self._follow_underlying_temp_change and self._underlying_temperature_candidates:
+            _LOGGER.debug("%s - regulated temperature not sent while an underlying setpoint change is debounced", self)
+            return
+
         if self.vtherm_hvac_mode == VThermHvacMode_OFF:
             _LOGGER.debug(
                 "%s - don't send regulated temperature cause VTherm is off ", self
@@ -705,6 +712,7 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
                     under.entity_id: {
                         "requested_temperature": self.requested_state.target_temperature,
                         "last_sent_temperature": under.last_sent_temperature,
+                        "underlying_step": under.target_temperature_step,
                         "observed_temperature": self._underlying_temperature_observed.get(under.entity_id),
                         "status": self._underlying_temperature_status.get(under.entity_id),
                         "candidate_temperature": (
@@ -933,9 +941,25 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
             else:
                 self._consider_underlying_temperature_candidate(under, candidate_temperature)
 
+    def _snap_underlying_temperature(self, value):
+        """Issue #2141 - a TRV may report a setpoint slightly off its own grid (e.g. 23.1 for a
+        displayed 23.0). VTherm works in steps of target_temperature_step, so adopt the nearest step."""
+        step = getattr(self, "_attr_target_temperature_step", None)
+        try:
+            if isinstance(value, (int, float)) and step and float(step) > 0:
+                return round(round_to_nearest(float(value), float(step)), 2)
+        except (TypeError, ValueError):
+            pass
+        return value
+
     def _adopt_underlying_value(self, entity_id: str, kind: str, value: Any):
-        """Count a retained mutation once, even if its setter assigns then raises."""
+        """Count a retained mutation once, even if its setter assigns then raises.
+
+        Issue #2141 - only a mode adoption is debited from the tracking budget (#2159).
+        """
         state = self.requested_state
+        if kind == "temperature":
+            value = self._snap_underlying_temperature(value)
         attribute = "hvac_mode" if kind == "mode" else "target_temperature"
         setter = state.set_hvac_mode if kind == "mode" else state.set_target_temperature
         before = getattr(state, attribute)
@@ -947,7 +971,9 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
             primary_error = err
 
         adopted = before != value and getattr(state, attribute) == value
-        if adopted:
+        if adopted and kind == "temperature":
+            self._underlying_tracking_reason = "temperature_adopted"
+        elif adopted:
             try:
                 self._record_underlying_tracking_command(entity_id, marker)
             except BaseException as err:
@@ -955,7 +981,7 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
                     primary_error = err
                 else:
                     _LOGGER.exception("%s - Error recording %s adoption after setter failure", self, kind)
-            if kind == "mode" and not marker["invalidation_started"]:
+            if not marker["invalidation_started"]:
                 marker["invalidation_started"] = True
                 try:
                     self._cancel_all_underlying_temperature_candidates()
@@ -968,17 +994,6 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
             raise primary_error
         return adopted
 
-    def _underlying_temperature_step(self, under) -> float | None:
-        """Return the setpoint step used to detect an ambiguous underlying setpoint.
-
-        Issue #2175 - some integrations (e.g. Matter) do not publish target_temp_step:
-        fall back to the step of this thermostat.
-        """
-        step = under.target_temperature_step
-        if step is None:
-            step = self.target_temperature_step
-        return step
-
     def _consider_underlying_temperature_candidate(self, under, temperature: float):
         """Debounce a distinct underlying setpoint before applying it to this thermostat."""
         if isinstance(temperature, bool) or not isinstance(temperature, (int, float)) or not (-float("inf") < temperature < float("inf")):
@@ -987,35 +1002,23 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
             return
 
         temperature = float(temperature)
-        if not self._can_send_underlying_tracking_command():
-            self._underlying_temperature_status[under.entity_id] = "suspended"
+
+        # Issue #2141 - a report equal to the setpoint VTherm sent, as the underlying can represent it,
+        # is the answer of the underlying to a VTherm command, never a manual change. It is compared on
+        # the setpoint grid of the underlying: 19.6 -> 19.5 or 21.5 -> 21.6 are the same setpoint, a
+        # knob step (0.5) is another one. A pending candidate of this underlying is obsolete too.
+        if under.is_vtherm_setpoint(temperature):
+            self._cancel_underlying_temperature_candidate(under.entity_id)
+            self._underlying_temperature_status[under.entity_id] = "echo_possible"
             return
-
-        last_sent_temperature = under.last_sent_temperature
-        if last_sent_temperature is not None:
-            difference = abs(temperature - last_sent_temperature)
-            if difference == 0:
-                self._cancel_underlying_temperature_candidate(under.entity_id)
-                self._underlying_temperature_status[under.entity_id] = "echo_possible"
-                return
-
-            underlying_step = self._underlying_temperature_step(under)
-            if underlying_step is not None and difference <= underlying_step:
-                self._cancel_underlying_temperature_candidate(under.entity_id)
-                self._underlying_temperature_status[under.entity_id] = "ambiguous"
-                _LOGGER.debug(
-                    "%s - Underlying setpoint %s is ambiguous against last sent value %s",
-                    self,
-                    temperature,
-                    last_sent_temperature,
-                )
-                return
 
         current = self._underlying_temperature_candidates.get(under.entity_id)
         if current and current["temperature"] == temperature:
             return
 
-        self._cancel_underlying_temperature_candidate(under.entity_id, resume_timed_preset=False)
+        # Issue #2141 - one candidate at a time for the whole VTherm: the last manual change wins,
+        # whichever underlying it comes from.
+        self._cancel_all_underlying_temperature_candidates(resume_timed_preset=False)
         self._underlying_temperature_candidate_version += 1
         version = self._underlying_temperature_candidate_version
 
@@ -1026,18 +1029,16 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
             if candidate is None or candidate["version"] != version:
                 return
 
-            latest_sent = under.last_sent_temperature
-            latest_step = self._underlying_temperature_step(under)
-            if latest_sent is not None and (temperature == latest_sent or (latest_step is not None and abs(temperature - latest_sent) <= latest_step)):
+            # Re-check against what VTherm sent in the meantime
+            if under.is_vtherm_setpoint(temperature):
                 self._cancel_underlying_temperature_candidate(under.entity_id)
-                self._underlying_temperature_status[under.entity_id] = "echo_possible" if temperature == latest_sent else "ambiguous"
+                self._underlying_temperature_status[under.entity_id] = "echo_possible"
                 return
 
             if (
                 current_temperature != temperature
                 or candidate["state_snapshot"] != self._underlying_temperature_state_snapshot()
                 or not self._follow_underlying_temp_change
-                or not self._can_send_underlying_tracking_command()
                 or any(other["version"] > version for other in self._underlying_temperature_candidates.values())
             ):
                 self._cancel_underlying_temperature_candidate(under.entity_id)
@@ -1048,17 +1049,14 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
             def closure_still_valid():
                 """Recheck live state after calls that may execute reentrantly."""
                 latest_state = self._hass.states.get(under.entity_id)
-                latest_sent = under.last_sent_temperature
-                latest_step = self._underlying_temperature_step(under)
                 return (
                     self._underlying_temperature_candidate_version == version
                     and not self._underlying_temperature_candidates
                     and self._follow_underlying_temp_change
-                    and self._can_send_underlying_tracking_command()
                     and candidate["state_snapshot"] == self._underlying_temperature_state_snapshot()
                     and latest_state is not None
                     and latest_state.attributes.get("temperature") == temperature
-                    and not (latest_sent is not None and (temperature == latest_sent or (latest_step is not None and abs(temperature - latest_sent) <= latest_step)))
+                    and not under.is_vtherm_setpoint(temperature)
                 )
 
             # Issue #2184 - a TRV setpoint change is a manual change: with a manual override
@@ -1100,15 +1098,15 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
             if (
                 self._underlying_temperature_candidate_version != version
                 or self._underlying_temperature_candidates
-                or current_snapshot != (snapshot[0], temperature, *snapshot[2:])
+                or current_snapshot != (snapshot[0], self._snap_underlying_temperature(temperature), *snapshot[2:])
             ):
                 if not self._underlying_temperature_candidates:
                     self._timed_preset_manager.resume_expiration()
                 return
             self._underlying_temperature_status[under.entity_id] = "accepted"
+            # The underlying holds the reported value, not the snapped one
             under.mark_temperature_as_sent(temperature)
-            if not self._underlying_tracking_suspended:
-                self._underlying_tracking_reason = "candidate_adopted"
+            self._underlying_tracking_reason = "candidate_adopted"
 
             if not (start_override and await self._timed_preset_manager.start_manual_override(previous_preset, command_cause=COMMAND_CAUSE_UNDERLYING_TRACKING)):
                 if start_override:

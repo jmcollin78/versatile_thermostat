@@ -528,13 +528,14 @@ async def test_underlying_change_follow(
     entity.remove_thermostat()
 
 
-async def test_underlying_setpoint_ambiguous_without_underlying_step(
+async def test_underlying_setpoint_grid_without_underlying_step(
     hass: HomeAssistant,
     skip_hass_states_is_state,
     skip_turn_on_off_heater,
     skip_send_event,
 ):
-    """Issue #2175: when the underlying publishes no target_temp_step (e.g. Matter), the VTherm step detects an ambiguous setpoint."""
+    """Issue #2175: when the underlying publishes no target_temp_step (e.g. Matter), the VTherm step is the setpoint grid.
+    Issue #2141: a report in the cell of the last sent setpoint is an echo, one knob step is a manual change."""
     temps = {VThermPreset.FROST: 7, VThermPreset.ECO: 16, VThermPreset.COMFORT: 17, VThermPreset.BOOST: 18}
     entry = MockConfigEntry(
         domain=DOMAIN,
@@ -557,14 +558,14 @@ async def test_underlying_setpoint_ambiguous_without_underlying_step(
             patch.object(UnderlyingClimate, "target_temperature_step", new_callable=PropertyMock, return_value=None),
             patch("custom_components.versatile_thermostat.thermostat_climate.async_call_later", return_value=lambda: None) as call_later,
         ):
-            # The TRV goes back one VTherm step (29.0 -> 28.5): ambiguous, never debounced nor adopted
-            entity._consider_underlying_temperature_candidate(under, 28.5)
-            assert entity._underlying_temperature_status[under.entity_id] == "ambiguous"
+            # The TRV reports the sent setpoint with a small offset (29.0 -> 29.1): same cell, an echo
+            entity._consider_underlying_temperature_candidate(under, 29.1)
+            assert entity._underlying_temperature_status[under.entity_id] == "echo_possible"
             assert under.entity_id not in entity._underlying_temperature_candidates
             call_later.assert_not_called()
 
-            # Two steps away: a genuine change is still debounced
-            entity._consider_underlying_temperature_candidate(under, 28.0)
+            # One knob step (29.0 -> 28.5): a genuine change, debounced
+            entity._consider_underlying_temperature_candidate(under, 28.5)
             assert entity._underlying_temperature_status[under.entity_id] == "candidate_pending"
             call_later.assert_called_once()
 
@@ -580,7 +581,7 @@ async def test_underlying_tracking_attempt_limit_and_external_rearm(
     skip_turn_on_off_heater,
     skip_send_event,
 ):
-    """The third tracking send is allowed, later sends are blocked, and external commands rearm."""
+    """Issue #2141: a propagated setpoint is never debited. External commands rearm the mode budget."""
     temps = {VThermPreset.FROST: 7, VThermPreset.ECO: 16, VThermPreset.COMFORT: 17, VThermPreset.BOOST: 18}
     entry = MockConfigEntry(
         domain=DOMAIN,
@@ -607,14 +608,18 @@ async def test_underlying_tracking_attempt_limit_and_external_rearm(
             service_call.reset_mock()
             entity._on_external_command_received()
 
-            for temperature in (20, 21, 22):
+            for temperature in (20, 21, 22, 23):
                 assert await under.set_temperature(temperature, entity.max_temp, entity.min_temp, command_cause="underlying_tracking") is True
 
-            assert service_call.await_count == 3
-            assert entity._underlying_tracking_attempts == 3
-            assert entity._underlying_tracking_suspended is True
-            assert await under.set_temperature(23, entity.max_temp, entity.min_temp, command_cause="underlying_tracking") is False
-            assert service_call.await_count == 3
+            assert service_call.await_count == 4
+            assert entity._underlying_tracking_attempts == 0
+            assert entity._underlying_tracking_suspended is False
+
+            # An exhausted mode budget does not block a propagated setpoint
+            entity._underlying_tracking_attempts = 3
+            entity._underlying_tracking_suspended = True
+            assert await under.set_temperature(24, entity.max_temp, entity.min_temp, command_cause="underlying_tracking") is True
+            assert service_call.await_count == 5
 
             entity._underlying_tracking_attempts = 2
             entity._underlying_tracking_suspended = True
@@ -626,7 +631,7 @@ async def test_underlying_tracking_attempt_limit_and_external_rearm(
             await entity.async_set_temperature(temperature=entity.target_temperature + 1)
             assert entity._underlying_tracking_attempts == 0
             assert entity._underlying_tracking_suspended is False
-            assert service_call.await_count == 4
+            assert service_call.await_count == 6
 
             entity._underlying_tracking_attempts = 3
             entity._underlying_tracking_suspended = True
