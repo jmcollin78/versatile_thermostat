@@ -2094,7 +2094,10 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
             return self._power_manager.power_temperature
         if preset_mode == VThermPreset.ACTIVITY:
             motion_preset = self._motion_manager.get_current_motion_preset()
-            if self._ac_mode and self.vtherm_hvac_mode == VThermHvacMode_COOL:
+            if self._ac_mode and (
+                self.vtherm_hvac_mode == VThermHvacMode_COOL
+                or (self.vtherm_hvac_mode in (VThermHvacMode_OFF, VThermHvacMode_FAN_ONLY, VThermHvacMode_DRY) and self.requested_state.hvac_mode == VThermHvacMode_COOL)
+            ):
                 motion_preset = motion_preset + PRESET_AC_SUFFIX
 
             if motion_preset in self._presets:
