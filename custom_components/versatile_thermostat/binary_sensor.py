@@ -439,6 +439,7 @@ class CentralBoilerBinarySensor(BinarySensorEntity):
 
         api: VersatileThermostatAPI = VersatileThermostatAPI.get_vtherm_api(self._hass)
         api.central_boiler_manager.register_central_boiler(self)
+        self._attr_is_on = api.central_boiler_manager.is_detected
 
         # Listen to central boiler events
         self.async_on_remove(

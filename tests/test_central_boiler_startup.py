@@ -517,6 +517,7 @@ async def test_real_reload_with_boiler_needed_sends_no_off(hass: HomeAssistant, 
     await send_temperature_change_event(entity, 10, dt_util.now())
     await wait_for_local_condition(lambda: manager.is_on is True)
     assert pump.is_on
+    assert hass.states.get("binary_sensor.central_configuration_central_boiler").state == STATE_ON
 
     central_entry = next(entry for entry in hass.config_entries.async_entries(DOMAIN) if entry.data.get(CONF_THERMOSTAT_TYPE) == CONF_THERMOSTAT_CENTRAL_CONFIG)
 
@@ -551,6 +552,7 @@ async def test_real_reload_with_boiler_needed_sends_no_off(hass: HomeAssistant, 
     assert all(starting_during_reload) is reload_all
     assert manager._vtherms_starting is False
     assert manager.is_on is True
+    assert hass.states.get("binary_sensor.central_configuration_central_boiler").state == STATE_ON
     entity.remove_thermostat()
 
 
