@@ -2076,3 +2076,121 @@ async def test_auto_start_stop_dry_stop_mode_uses_ac_preset_temp(hass: HomeAssis
     assert vtherm.target_temperature == 25.0
 
     vtherm.remove_thermostat()
+
+
+async def test_auto_start_stop_cool_activity_window_keeps_auto_stop(hass: HomeAssistant, skip_hass_states_is_state):
+    temps = {
+        "frost": 7.0,
+        "eco": 17.0,
+        "comfort": 19.0,
+        "boost": 21.0,
+        "eco_ac": 27.0,
+        "comfort_ac": 25.0,
+        "boost_ac": 23.0,
+        "frost_away": 7.1,
+        "eco_away": 17.1,
+        "comfort_away": 19.1,
+        "boost_away": 21.1,
+        "eco_ac_away": 27.1,
+        "comfort_ac_away": 25.1,
+        "boost_ac_away": 23.1,
+    }
+
+    config_entry = MockConfigEntry(
+        domain=DOMAIN,
+        title="TheOverClimateMockName",
+        unique_id="overClimateUniqueId",
+        data={
+            CONF_NAME: "overClimate",
+            CONF_TEMP_SENSOR: "sensor.mock_temp_sensor",
+            CONF_THERMOSTAT_TYPE: CONF_THERMOSTAT_CLIMATE,
+            CONF_EXTERNAL_TEMP_SENSOR: "sensor.mock_ext_temp_sensor",
+            CONF_CYCLE_MIN: 5,
+            CONF_TEMP_MIN: 15,
+            CONF_TEMP_MAX: 30,
+            CONF_USE_WINDOW_FEATURE: True,
+            CONF_WINDOW_SENSOR: "binary_sensor.window_sensor",
+            CONF_WINDOW_DELAY: 10,
+            CONF_USE_MOTION_FEATURE: True,
+            CONF_MOTION_SENSOR: "binary_sensor.mock_motion_sensor",
+            CONF_MOTION_DELAY: 10,
+            CONF_MOTION_OFF_DELAY: 30,
+            CONF_MOTION_PRESET: "comfort",
+            CONF_NO_MOTION_PRESET: "eco",
+            CONF_USE_POWER_FEATURE: False,
+            CONF_USE_AUTO_START_STOP_FEATURE: True,
+            CONF_USE_PRESENCE_FEATURE: True,
+            CONF_PRESENCE_SENSOR: "binary_sensor.presence_sensor",
+            CONF_UNDERLYING_LIST: ["climate.mock_climate"],
+            CONF_MINIMAL_ACTIVATION_DELAY: 30,
+            CONF_MINIMAL_DEACTIVATION_DELAY: 0,
+            CONF_SAFETY_DELAY_MIN: 5,
+            CONF_SAFETY_MIN_ON_PERCENT: 0.3,
+            CONF_AUTO_FAN_MODE: CONF_AUTO_FAN_TURBO,
+            CONF_AC_MODE: True,
+            CONF_AUTO_START_STOP_LEVEL: AUTO_START_STOP_LEVEL_FAST,
+        },
+    )
+
+    await create_and_register_mock_climate(hass, "mock_climate", "mock_climate", {}, hvac_modes=[VThermHvacMode_OFF, VThermHvacMode_COOL, VThermHvacMode_HEAT])
+
+    vtherm: ThermostatOverClimate = await create_thermostat(hass, config_entry, "climate.overclimate")
+    assert vtherm is not None
+
+    await set_all_climate_preset_temp(hass, vtherm, temps, "overclimate")
+
+    tz = get_tz(hass)  # pylint: disable=invalid-name
+    now: datetime = datetime.now(tz=tz)
+
+    await send_window_change_event(vtherm, False, False, now, False)
+    await send_presence_change_event(vtherm, True, False, now)
+    await send_temperature_change_event(vtherm, 29, now, True)
+    await vtherm.async_set_hvac_mode(VThermHvacMode_COOL)
+    await vtherm.async_set_preset_mode(VThermPreset.ACTIVITY)
+    await hass.async_block_till_done()
+
+    assert vtherm.hvac_mode == VThermHvacMode_COOL
+    assert vtherm.target_temperature == 27.0
+
+    now = now + timedelta(minutes=5)
+    vtherm.auto_start_stop_manager._auto_start_stop_algo._accumulated_error = 0
+    vtherm._set_now(now)
+    await send_temperature_change_event(vtherm, 27, now, True)
+    await hass.async_block_till_done()
+    assert vtherm.hvac_mode == VThermHvacMode_COOL
+
+    now = now + timedelta(minutes=5)
+    vtherm._set_now(now)
+    await send_temperature_change_event(vtherm, 25, now, True)
+    await wait_for_local_condition(lambda: vtherm.hvac_mode == VThermHvacMode_OFF, timeout=3.0, hass=hass)
+
+    assert vtherm.hvac_mode == VThermHvacMode_OFF
+    assert vtherm.hvac_off_reason == HVAC_OFF_REASON_AUTO_START_STOP
+    assert vtherm.auto_start_stop_manager.is_auto_stop_detected is True
+    assert vtherm.target_temperature == 27.0
+
+    now = now + timedelta(minutes=2)
+    with patch("homeassistant.helpers.condition.state", return_value=True):
+        vtherm._set_now(now)
+        try_function = await send_window_change_event(vtherm, True, False, now, sleep=False)
+        await try_function(None)
+        await hass.async_block_till_done()
+
+        assert vtherm.window_state == STATE_ON
+        assert vtherm.hvac_mode == VThermHvacMode_OFF
+        assert vtherm.hvac_off_reason == HVAC_OFF_REASON_WINDOW_DETECTION
+
+    now = now + timedelta(minutes=1)
+    with patch("homeassistant.helpers.condition.state", return_value=True):
+        vtherm._set_now(now)
+        try_function = await send_window_change_event(vtherm, False, True, now, sleep=False)
+        await try_function(None)
+        await hass.async_block_till_done()
+
+        assert vtherm.window_state == STATE_OFF
+        assert vtherm.hvac_mode == VThermHvacMode_OFF
+        assert vtherm.hvac_off_reason == HVAC_OFF_REASON_AUTO_START_STOP
+        assert vtherm.auto_start_stop_manager.is_auto_stop_detected is True
+        assert vtherm.target_temperature == 27.0
+
+    vtherm.remove_thermostat()
