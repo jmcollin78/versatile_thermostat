@@ -71,26 +71,26 @@ def _auto_start_stop_entry() -> MockConfigEntry:
     )
 
 
-def test_migration_writes_marker_and_clears_flag_but_keeps_level(hass: HomeAssistant):
+async def test_migration_writes_marker_and_clears_flag_but_keeps_level(hass: HomeAssistant):
     """The migration disables the core feature and keeps the level for the plugin."""
     entry = _auto_start_stop_entry()
     entry.add_to_hass(hass)
 
-    assert _migrate_auto_start_stop_entry(hass, entry) is True
+    assert await _migrate_auto_start_stop_entry(hass, entry) is True
 
     assert entry.data[CONF_USE_AUTO_START_STOP_FEATURE] is False
     assert entry.data[CONF_AUTO_START_STOP_MIGRATED_BY] == AUTO_START_STOP_MIGRATED_BY_VTHERM_AUTO_START_STOP
     assert entry.data[CONF_AUTO_START_STOP_LEVEL] == AUTO_START_STOP_LEVEL_MEDIUM
 
 
-def test_migration_is_idempotent(hass: HomeAssistant):
+async def test_migration_is_idempotent(hass: HomeAssistant):
     """A second run on a marked entry writes nothing."""
     entry = _auto_start_stop_entry()
     entry.add_to_hass(hass)
-    assert _migrate_auto_start_stop_entry(hass, entry) is True
+    assert await _migrate_auto_start_stop_entry(hass, entry) is True
     migrated_data = dict(entry.data)
 
-    assert _migrate_auto_start_stop_entry(hass, entry) is False
+    assert await _migrate_auto_start_stop_entry(hass, entry) is False
     assert entry.data == migrated_data
 
 
@@ -112,9 +112,7 @@ async def test_migration_without_external_manager_leaves_entry_untouched(hass: H
     assert CONF_AUTO_START_STOP_MIGRATED_BY not in entry.data
 
 
-async def test_migration_failure_on_one_thermostat_does_not_block_others(
-    hass: HomeAssistant, skip_hass_states_is_state, skip_send_event, caplog
-):
+async def test_migration_failure_on_one_thermostat_does_not_block_others(hass: HomeAssistant, skip_hass_states_is_state, skip_send_event, caplog):
     """A failing thermostat is logged and the remaining ones are still migrated."""
     from custom_components.versatile_thermostat.vtherm_central_api import (
         VersatileThermostatAPI,
@@ -159,10 +157,10 @@ async def test_migration_failure_on_one_thermostat_does_not_block_others(
 
     real_migrate = _migrate_auto_start_stop_entry
 
-    def _side_effect(hass_arg, entry):
+    async def _side_effect(hass_arg, entry):
         if entry is failing_entry:
             raise RuntimeError("boom")
-        return real_migrate(hass_arg, entry)
+        return await real_migrate(hass_arg, entry)
 
     with patch(
         "custom_components.versatile_thermostat._migrate_auto_start_stop_entry",
@@ -181,7 +179,7 @@ async def test_migrated_flag_survives_reload_and_has_no_uninstall_handler(hass: 
 
     entry = _auto_start_stop_entry()
     entry.add_to_hass(hass)
-    assert _migrate_auto_start_stop_entry(hass, entry) is True
+    assert await _migrate_auto_start_stop_entry(hass, entry) is True
 
     assert await hass.config_entries.async_reload(entry.entry_id)
     await hass.async_block_till_done()
@@ -441,9 +439,7 @@ async def test_migration_offset_calibration_not_configured(
     entity.remove_thermostat()
 
 
-async def test_migrated_thermostat_exposes_no_core_auto_start_stop_entity(
-    hass: HomeAssistant, skip_hass_states_is_state, skip_send_event
-):
+async def test_migrated_thermostat_exposes_no_core_auto_start_stop_entity(hass: HomeAssistant, skip_hass_states_is_state, skip_send_event):
     """A migrated entry creates neither the enable switch nor the stop-mode select."""
     await create_and_register_mock_climate(
         hass=hass,
@@ -469,20 +465,14 @@ async def test_migrated_thermostat_exposes_no_core_auto_start_stop_entity(
     switch_component = hass.data["switch"]
     select_component = hass.data["select"]
 
-    assert not any(
-        (e.unique_id or "").endswith("_enable_auto_start_stop")
-        for e in switch_component.entities
-    )
-    assert not any(
-        (e.unique_id or "").endswith("_auto_start_stop_stop_mode")
-        for e in select_component.entities
-    )
+    assert not any((e.unique_id or "").endswith("_enable_auto_start_stop") for e in switch_component.entities)
+    assert not any((e.unique_id or "").endswith("_auto_start_stop_stop_mode") for e in select_component.entities)
 
 
 def _register_feature_entity(registry, entry, entity_id, unique_id):
     """Register one entity as if the core platform had created it."""
-    registry.async_get_or_create(
-        "switch",
+    return registry.async_get_or_create(
+        entity_id.split(".", 1)[0],
         DOMAIN,
         unique_id,
         config_entry=entry,
@@ -490,7 +480,7 @@ def _register_feature_entity(registry, entry, entity_id, unique_id):
     )
 
 
-def test_cleanup_removes_entities_of_a_renamed_thermostat(hass: HomeAssistant):
+async def test_cleanup_removes_entities_of_a_renamed_thermostat(hass: HomeAssistant):
     """The suffix match removes the entities even after the thermostat was renamed."""
     from homeassistant.helpers.entity_registry import async_get as async_get_registry
     from custom_components.versatile_thermostat import (
@@ -505,13 +495,11 @@ def test_cleanup_removes_entities_of_a_renamed_thermostat(hass: HomeAssistant):
     _register_feature_entity(registry, entry, "switch.old_name_enable", "renamed_enable_auto_start_stop")
     _register_feature_entity(registry, entry, "select.old_name_mode", "renamed_auto_start_stop_stop_mode")
 
-    assert _remove_core_auto_start_stop_entities(hass, entry) == 2
-    assert not any(
-        e.config_entry_id == entry.entry_id for e in registry.entities.values()
-    )
+    assert await _remove_core_auto_start_stop_entities(hass, entry) == 2
+    assert not any(e.config_entry_id == entry.entry_id for e in registry.entities.values())
 
 
-def test_cleanup_leaves_other_thermostats_untouched(hass: HomeAssistant):
+async def test_cleanup_leaves_other_thermostats_untouched(hass: HomeAssistant):
     """The cleanup is scoped to the migrated entry."""
     from homeassistant.helpers.entity_registry import async_get as async_get_registry
     from custom_components.versatile_thermostat import (
@@ -527,14 +515,14 @@ def test_cleanup_leaves_other_thermostats_untouched(hass: HomeAssistant):
     _register_feature_entity(registry, migrated_entry, "switch.migrated_enable", "migrated_enable_auto_start_stop")
     _register_feature_entity(registry, other_entry, "switch.other_enable", "other_enable_auto_start_stop")
 
-    assert _remove_core_auto_start_stop_entities(hass, migrated_entry) == 1
+    assert await _remove_core_auto_start_stop_entities(hass, migrated_entry) == 1
 
     remaining = [e for e in registry.entities.values() if e.config_entry_id == other_entry.entry_id]
     assert len(remaining) == 1
     assert remaining[0].unique_id == "other_enable_auto_start_stop"
 
 
-def test_cleanup_without_created_entities_is_harmless(hass: HomeAssistant, caplog):
+async def test_cleanup_without_created_entities_is_harmless(hass: HomeAssistant, caplog):
     """Nothing is removed and no error is logged when the feature never existed."""
     from custom_components.versatile_thermostat import (
         _remove_core_auto_start_stop_entities,
@@ -544,6 +532,139 @@ def test_cleanup_without_created_entities_is_harmless(hass: HomeAssistant, caplo
     entry.add_to_hass(hass)
 
     with caplog.at_level(logging.ERROR):
-        assert _remove_core_auto_start_stop_entities(hass, entry) == 0
+        assert await _remove_core_auto_start_stop_entities(hass, entry) == 0
 
     assert not [r for r in caplog.records if r.levelno >= logging.ERROR]
+
+
+@pytest.mark.parametrize("renamed", [False, True])
+async def test_migration_saves_exact_entity_ids_before_removing_them(hass, renamed):
+    """A later dedicated plugin entry can reuse the actual production IDs."""
+    from homeassistant.helpers import entity_registry as er
+
+    entry = _auto_start_stop_entry()
+    entry.add_to_hass(hass)
+    registry = er.async_get(hass)
+    controls = {
+        "switch": _register_feature_entity(
+            registry, entry, "switch.thermostat_chambre_enable_auto_start_stop",
+            "old_name_enable_auto_start_stop",
+        ),
+        "select": _register_feature_entity(
+            registry, entry, "select.chambre_thermostat_chambre_auto_start_stop_stop_mode",
+            "old_name_auto_start_stop_stop_mode",
+        ),
+    }
+    if renamed:
+        controls = {
+            domain: registry.async_update_entity(control.entity_id, new_entity_id=f"{domain}.user_customized_control")
+            for domain, control in controls.items()
+        }
+    expected = {domain: control.entity_id for domain, control in controls.items()}
+    remove = registry.async_remove
+
+    def remove_after_saving(entity_id):
+        assert entry.data[CONF_AUTO_START_STOP_ENTITY_IDS] == expected
+        remove(entity_id)
+
+    with patch.object(registry, "async_remove", side_effect=remove_after_saving):
+        assert await _migrate_auto_start_stop_entry(hass, entry) is True
+    assert entry.data[CONF_AUTO_START_STOP_ENTITY_IDS] == expected
+    assert all(registry.async_get(entity_id) is None for entity_id in expected.values())
+    with patch.object(hass.config_entries, "async_update_entry") as update:
+        assert await _migrate_auto_start_stop_entry(hass, entry) is False
+        update.assert_not_called()
+
+
+@pytest.mark.parametrize("remembered_switch", [None, "switch.remembered_custom_id"])
+async def test_delegated_entry_recovers_missing_ids_without_overwriting(hass, remembered_switch):
+    """Retained deleted rows repair test installations that delegated earlier."""
+    from homeassistant.helpers import entity_registry as er
+
+    entry = _auto_start_stop_entry()
+    entry.add_to_hass(hass)
+    registry = er.async_get(hass)
+    switch = _register_feature_entity(
+        registry, entry, "switch.old_auto_start_stop", "old_name_enable_auto_start_stop",
+    )
+    select = _register_feature_entity(
+        registry, entry, "select.old_stop_mode", "old_name_auto_start_stop_stop_mode",
+    )
+    for control in (switch, select):
+        registry.async_remove(control.entity_id)
+    data = {
+        **entry.data,
+        CONF_USE_AUTO_START_STOP_FEATURE: False,
+        CONF_AUTO_START_STOP_MIGRATED_BY: AUTO_START_STOP_MIGRATED_BY_VTHERM_AUTO_START_STOP,
+    }
+    if remembered_switch is not None:
+        data[CONF_AUTO_START_STOP_ENTITY_IDS] = {"switch": remembered_switch}
+    hass.config_entries.async_update_entry(entry, data=data)
+
+    assert await _migrate_auto_start_stop_entry(hass, entry) is True
+    assert entry.data[CONF_AUTO_START_STOP_ENTITY_IDS] == {
+        "switch": remembered_switch or switch.entity_id,
+        "select": select.entity_id,
+    }
+    assert entry.data[CONF_USE_AUTO_START_STOP_FEATURE] is False
+    assert entry.data[CONF_AUTO_START_STOP_LEVEL] == AUTO_START_STOP_LEVEL_MEDIUM
+    assert await _migrate_auto_start_stop_entry(hass, entry) is False
+
+
+async def test_identity_capture_prefers_current_rows_to_deleted_history(hass):
+    from homeassistant.helpers import entity_registry as er
+
+    entry = _auto_start_stop_entry()
+    entry.add_to_hass(hass)
+    registry = er.async_get(hass)
+    old = _register_feature_entity(
+        registry, entry, "switch.before_rename", "old_name_enable_auto_start_stop",
+    )
+    registry.async_remove(old.entity_id)
+    current = _register_feature_entity(
+        registry, entry, "switch.current_name", "new_name_enable_auto_start_stop",
+    )
+    assert await _migrate_auto_start_stop_entry(hass, entry) is True
+    assert entry.data[CONF_AUTO_START_STOP_ENTITY_IDS] == {"switch": current.entity_id}
+
+
+async def test_identity_capture_and_cleanup_ignore_unrelated_owners(hass):
+    from homeassistant.helpers import entity_registry as er
+
+    entry = _auto_start_stop_entry()
+    other = _auto_start_stop_entry()
+    entry.add_to_hass(hass)
+    other.add_to_hass(hass)
+    registry = er.async_get(hass)
+    foreign = registry.async_get_or_create(
+        "switch", "another_integration", "same_suffix_enable_auto_start_stop",
+        config_entry=entry,
+    )
+    other_control = _register_feature_entity(
+        registry, other, "select.other_thermostat", "other_auto_start_stop_stop_mode",
+    )
+    assert await _migrate_auto_start_stop_entry(hass, entry) is True
+    assert entry.data[CONF_AUTO_START_STOP_ENTITY_IDS] == {}
+    assert registry.async_get(foreign.entity_id) == foreign
+    assert registry.async_get(other_control.entity_id) == other_control
+
+
+async def test_remembered_ids_do_not_prevent_retrying_incomplete_cleanup(hass):
+    from homeassistant.helpers import entity_registry as er
+
+    entry = _auto_start_stop_entry()
+    entry.add_to_hass(hass)
+    registry = er.async_get(hass)
+    control = _register_feature_entity(
+        registry, entry, "switch.waiting_for_cleanup", "old_name_enable_auto_start_stop",
+    )
+    hass.config_entries.async_update_entry(entry, data={
+        **entry.data,
+        CONF_USE_AUTO_START_STOP_FEATURE: False,
+        CONF_AUTO_START_STOP_MIGRATED_BY: AUTO_START_STOP_MIGRATED_BY_VTHERM_AUTO_START_STOP,
+        CONF_AUTO_START_STOP_ENTITY_IDS: {"switch": control.entity_id},
+    })
+    with patch.object(hass.config_entries, "async_update_entry") as update:
+        assert await _migrate_auto_start_stop_entry(hass, entry) is False
+        update.assert_not_called()
+    assert registry.async_get(control.entity_id) is None

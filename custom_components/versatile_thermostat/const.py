@@ -283,6 +283,7 @@ CONF_AUTO_START_STOP_STABLE_NAME = "auto_start_stop"
 # feature has been handed over to the external plugin. The value identifies the
 # plugin that performed the migration.
 CONF_AUTO_START_STOP_MIGRATED_BY = "auto_start_stop_migrated_by"
+CONF_AUTO_START_STOP_ENTITY_IDS = "auto_start_stop_entity_ids"
 # The plugin identifier written into the marker above.
 AUTO_START_STOP_MIGRATED_BY_VTHERM_AUTO_START_STOP = "vtherm_auto_start_stop"
 
