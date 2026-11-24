@@ -273,6 +273,19 @@ AUTO_START_STOP_STOP_MODES = [
     AUTO_START_STOP_STOP_MODE_DRY,
 ]
 
+# ─── Auto-start/stop delegation to an external plugin ────────────────────────
+# Stable name under which an external plugin registers its feature manager. The
+# thermostat's ``auto_start_stop_manager`` access point resolves this name first
+# so that the arbitration (state_manager.py) follows the actual decision owner.
+CONF_AUTO_START_STOP_STABLE_NAME = "auto_start_stop"
+
+# Config-entry data key stamped on a thermostat entry once its auto-start/stop
+# feature has been handed over to the external plugin. The value identifies the
+# plugin that performed the migration.
+CONF_AUTO_START_STOP_MIGRATED_BY = "auto_start_stop_migrated_by"
+# The plugin identifier written into the marker above.
+AUTO_START_STOP_MIGRATED_BY_VTHERM_AUTO_START_STOP = "vtherm_auto_start_stop"
+
 HVAC_OFF_REASON_NAME = "hvac_off_reason"
 HVAC_MODE_REASON_NAME = "hvac_mode_reason"
 HVAC_OFF_REASON_MANUAL = "hvac_off_manual"
@@ -503,11 +516,7 @@ CONF_WINDOW_ACTIONS = [
     CONF_WINDOW_ECO_TEMP,
 ]
 
-SUPPORT_FLAGS = (
-    ClimateEntityFeature.TARGET_TEMPERATURE
-    | ClimateEntityFeature.TURN_OFF
-    | ClimateEntityFeature.TURN_ON
-)
+SUPPORT_FLAGS = ClimateEntityFeature.TARGET_TEMPERATURE | ClimateEntityFeature.TURN_OFF | ClimateEntityFeature.TURN_ON
 
 SERVICE_SET_PRESENCE = "set_presence"
 SERVICE_SET_SAFETY = "set_safety"
@@ -582,24 +591,18 @@ MSG_TARGET_TEMP_TIMED_PRESET = "target_temp_timed_preset"
 MSG_NOT_INITIALIZED = "not_initialized"
 MSG_UNDERLYING_UNAVAILABLE = "underlying_unavailable"
 
+
 #  A special regulation parameter suggested by @Maia here: https://github.com/jmcollin78/versatile_thermostat/discussions/154
 class RegulationParamSlow:
     """Light parameters for slow latency regulation"""
 
-    kp: float = (
-        0.2  # 20% of the current internal regulation offset are caused by the current difference of target temperature and room temperature
-    )
-    ki: float = (
-        0.8 / 288.0
-    )  # 80% of the current internal regulation offset are caused by the average offset of the past 24 hours
-    k_ext: float = (
-        1.0 / 25.0
-    )  # this will add 1°C to the offset when it's 25°C colder outdoor than indoor
+    kp: float = 0.2  # 20% of the current internal regulation offset are caused by the current difference of target temperature and room temperature
+    ki: float = 0.8 / 288.0  # 80% of the current internal regulation offset are caused by the average offset of the past 24 hours
+    k_ext: float = 1.0 / 25.0  # this will add 1°C to the offset when it's 25°C colder outdoor than indoor
     offset_max: float = 2.0  # limit to a final offset of -2°C to +2°C
-    accumulated_error_threshold: float = (
-        2.0 * 288
-    )  # this allows up to 2°C long term offset in both directions
+    accumulated_error_threshold: float = 2.0 * 288  # this allows up to 2°C long term offset in both directions
     overheat_protection: bool = True
+
 
 class RegulationParamLight:
     """Light parameters for regulation"""
@@ -648,6 +651,7 @@ class RegulationParamVeryStrong:
     offset_max: float = 8
     accumulated_error_threshold: float = 80
     overheat_protection: bool = True
+
 
 def send_vtherm_event(hass, event_type: EventType, entity, data: dict):
     """Send an event"""

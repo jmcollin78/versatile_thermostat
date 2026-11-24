@@ -2,9 +2,10 @@
 
 """Test that external feature managers (provided by plugins) are refreshed on each cycle."""
 
+import logging
 from datetime import datetime, timedelta
 
-from unittest.mock import patch
+from unittest.mock import MagicMock, patch
 
 from homeassistant.core import HomeAssistant
 from homeassistant.config_entries import ConfigEntryState
@@ -66,7 +67,7 @@ class FakeExternalPropFactory:
         raise NotImplementedError
 
 
-def _over_climate_entry() -> MockConfigEntry:
+def _over_climate_entry(enable_auto_start_stop: bool = False) -> MockConfigEntry:
     """Build the over_climate entry used by the reload tests."""
     return MockConfigEntry(
         domain=DOMAIN,
@@ -92,13 +93,21 @@ def _over_climate_entry() -> MockConfigEntry:
             CONF_MINIMAL_DEACTIVATION_DELAY: 0,
             CONF_SAFETY_DELAY_MIN: 5,
             CONF_SAFETY_MIN_ON_PERCENT: 0.3,
+            **(
+                {
+                    CONF_USE_AUTO_START_STOP_FEATURE: True,
+                    CONF_AUTO_START_STOP_LEVEL: AUTO_START_STOP_LEVEL_FAST,
+                }
+                if enable_auto_start_stop
+                else {}
+            ),
         },
     )
 
 
-async def _setup_only_entry(hass: HomeAssistant) -> MockConfigEntry:
+async def _setup_only_entry(hass: HomeAssistant, entry: MockConfigEntry | None = None) -> MockConfigEntry:
     """Set up the only over_climate entry."""
-    entry = _over_climate_entry()
+    entry = entry or _over_climate_entry()
     await create_and_register_mock_climate(
         hass=hass,
         unique_id="mock_climate",
@@ -125,9 +134,90 @@ class FakeExternalFeatureManagerFactory:
         return FakeExternalFeatureManager(thermostat)
 
 
-async def test_external_feature_manager_refreshed_each_cycle(
-    hass: HomeAssistant, skip_hass_states_is_state, skip_send_event
-):
+class FakeAutoStartStopFeatureManagerFactory(FakeExternalFeatureManagerFactory):
+    """Factory using the stable name reserved for auto-start/stop delegation."""
+
+    name = "auto_start_stop"
+
+
+async def test_auto_start_stop_manager_prefers_external_stable_name(hass: HomeAssistant, skip_hass_states_is_state, skip_send_event):
+    """The access point resolves the external manager by its factory name."""
+    api = VersatileThermostatAPI.get_vtherm_api(hass)
+    api.register_feature_manager(FakeAutoStartStopFeatureManagerFactory())
+
+    try:
+        await _setup_only_entry(hass)
+        entity: ThermostatOverClimate = search_entity(hass, "climate.theoverclimatemockname", "climate")
+        assert entity
+
+        external_manager = entity.get_feature_manager("auto_start_stop")
+        assert external_manager is not None
+        assert external_manager.name == entity.name
+        assert external_manager.name != "auto_start_stop"
+        assert entity.auto_start_stop_manager is external_manager
+    finally:
+        api.unregister_feature_manager("auto_start_stop")
+
+
+async def test_auto_start_stop_manager_falls_back_to_core_manager(hass: HomeAssistant, skip_hass_states_is_state, skip_send_event):
+    """The access point returns the core manager when no external owner exists."""
+    await _setup_only_entry(hass)
+    entity: ThermostatOverClimate = search_entity(hass, "climate.theoverclimatemockname", "climate")
+    assert entity
+    assert entity.auto_start_stop_manager is entity._auto_start_stop_manager
+
+
+async def test_external_auto_start_stop_makes_core_manager_inert(hass: HomeAssistant, skip_hass_states_is_state, skip_send_event, caplog):
+    """The core manager logs its no-op refresh after an external owner attaches."""
+    api = VersatileThermostatAPI.get_vtherm_api(hass)
+    api.register_feature_manager(FakeAutoStartStopFeatureManagerFactory())
+
+    try:
+        await _setup_only_entry(hass)
+        entity: ThermostatOverClimate = search_entity(hass, "climate.theoverclimatemockname", "climate")
+        assert entity
+        core_manager = entity._auto_start_stop_manager
+        assert core_manager._is_inert is True
+
+        with caplog.at_level(logging.DEBUG):
+            assert await core_manager.refresh_and_update_if_changed() is False
+
+        assert any("auto start/stop core manager is inert" in record.message for record in caplog.records)
+    finally:
+        api.unregister_feature_manager("auto_start_stop")
+
+
+async def test_removing_external_manager_and_reloading_restores_core_manager(hass: HomeAssistant, skip_hass_states_is_state, skip_send_event):
+    """Reloading without the external owner restores normal core detection."""
+    api = VersatileThermostatAPI.get_vtherm_api(hass)
+    api.register_feature_manager(FakeAutoStartStopFeatureManagerFactory())
+    entry = _over_climate_entry(enable_auto_start_stop=True)
+
+    try:
+        await _setup_only_entry(hass, entry)
+        await hass.async_block_till_done()
+        delegated_entity: ThermostatOverClimate = search_entity(hass, "climate.theoverclimatemockname", "climate")
+        assert delegated_entity
+        assert delegated_entity._auto_start_stop_manager._is_inert is True
+
+        api.unregister_feature_manager("auto_start_stop")
+        assert await hass.config_entries.async_reload(entry.entry_id)
+        await hass.async_block_till_done()
+
+        core_entity: ThermostatOverClimate = search_entity(hass, "climate.theoverclimatemockname", "climate")
+        assert core_entity
+        core_manager = core_entity._auto_start_stop_manager
+        assert core_manager._is_inert is False
+        assert core_entity.auto_start_stop_manager is core_manager
+
+        core_manager._auto_start_stop_algo.should_be_turned_off = MagicMock(return_value=False)
+        assert await core_manager.refresh_state() is False
+        core_manager._auto_start_stop_algo.should_be_turned_off.assert_called_once()
+    finally:
+        api.unregister_feature_manager("auto_start_stop")
+
+
+async def test_external_feature_manager_refreshed_each_cycle(hass: HomeAssistant, skip_hass_states_is_state, skip_send_event):
     """An external feature manager should be instantiated and refreshed on each cycle."""
 
     api = VersatileThermostatAPI.get_vtherm_api(hass)
@@ -173,9 +263,7 @@ async def test_external_feature_manager_refreshed_each_cycle(
         await hass.config_entries.async_setup(entry.entry_id)
         assert entry.state is ConfigEntryState.LOADED
 
-        entity: ThermostatOverClimate = search_entity(
-            hass, "climate.theoverclimatemockname", "climate"
-        )
+        entity: ThermostatOverClimate = search_entity(hass, "climate.theoverclimatemockname", "climate")
         assert entity
         assert isinstance(entity, ThermostatOverClimate)
 
@@ -201,9 +289,7 @@ async def test_external_feature_manager_refreshed_each_cycle(
         assert entity.is_ready is True
 
         # 2. Each control cycle must refresh the external manager
-        with patch(
-            "custom_components.versatile_thermostat.underlyings.UnderlyingClimate.set_fan_mode"
-        ):
+        with patch("custom_components.versatile_thermostat.underlyings.UnderlyingClimate.set_fan_mode"):
             before = fake_manager.refresh_state_calls
             await entity.async_control_heating(force=True)
             assert fake_manager.refresh_state_calls == before + 1
@@ -214,9 +300,7 @@ async def test_external_feature_manager_refreshed_each_cycle(
         api.unregister_feature_manager("fake_external_fm")
 
 
-async def test_reload_only_entry_keeps_feature_manager(
-    hass: HomeAssistant, skip_hass_states_is_state, skip_send_event
-):
+async def test_reload_only_entry_keeps_feature_manager(hass: HomeAssistant, skip_hass_states_is_state, skip_send_event):
     """Reloading the only entry must keep the API and its feature manager registrations."""
 
     api = VersatileThermostatAPI.get_vtherm_api(hass)
@@ -231,18 +315,14 @@ async def test_reload_only_entry_keeps_feature_manager(
         assert VersatileThermostatAPI.get_vtherm_api(hass) is api
         assert api.list_feature_managers() == ["fake_external_fm"]
 
-        entity: ThermostatOverClimate = search_entity(
-            hass, "climate.theoverclimatemockname", "climate"
-        )
+        entity: ThermostatOverClimate = search_entity(hass, "climate.theoverclimatemockname", "climate")
         assert entity
         assert "fake_external_fm" in entity._external_manager_names
     finally:
         api.unregister_feature_manager("fake_external_fm")
 
 
-async def test_reload_only_entry_keeps_prop_algorithm(
-    hass: HomeAssistant, skip_hass_states_is_state, skip_send_event
-):
+async def test_reload_only_entry_keeps_prop_algorithm(hass: HomeAssistant, skip_hass_states_is_state, skip_send_event):
     """Reloading the only entry must keep the API and its proportional algorithm registrations."""
 
     api = VersatileThermostatAPI.get_vtherm_api(hass)
@@ -262,9 +342,7 @@ async def test_reload_only_entry_keeps_prop_algorithm(
         api.unregister_prop_algorithm("fake_external_prop")
 
 
-async def test_unload_last_entry_without_plugin_removes_api(
-    hass: HomeAssistant, skip_hass_states_is_state, skip_send_event
-):
+async def test_unload_last_entry_without_plugin_removes_api(hass: HomeAssistant, skip_hass_states_is_state, skip_send_event):
     """Without any plugin registration, unloading the last entry still removes the API."""
 
     api = VersatileThermostatAPI.get_vtherm_api(hass)

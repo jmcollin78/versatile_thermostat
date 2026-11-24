@@ -1,5 +1,6 @@
 # pylint: disable=unused-argument, line-too-long, protected-access, too-many-lines
-""" Test the Window management """
+"""Test the Window management"""
+
 import logging
 from datetime import datetime
 from unittest.mock import PropertyMock, MagicMock
@@ -65,9 +66,7 @@ async def test_auto_start_stop_feature_manager_create(
         # fmt: on
     ],
 )
-async def test_auto_start_stop_feature_manager_post_init(
-    hass: HomeAssistant, use_auto_start_stop_feature, level, is_configured
-):
+async def test_auto_start_stop_feature_manager_post_init(hass: HomeAssistant, use_auto_start_stop_feature, level, is_configured):
     """Test the FeatureMotionManager class direclty"""
 
     fake_vtherm = MagicMock(spec=BaseThermostat)
@@ -87,11 +86,7 @@ async def test_auto_start_stop_feature_manager_post_init(
     )
 
     assert auto_start_stop_manager.is_configured is is_configured
-    assert (
-        auto_start_stop_manager.auto_start_stop_level == level
-        if level and is_configured
-        else AUTO_START_STOP_LEVEL_NONE
-    )
+    assert auto_start_stop_manager.auto_start_stop_level == level if level and is_configured else AUTO_START_STOP_LEVEL_NONE
     should_be_enabled = level not in [None, AUTO_START_STOP_LEVEL_NONE] and is_configured
     assert auto_start_stop_manager.auto_start_stop_enable is should_be_enabled
     assert auto_start_stop_manager._auto_start_stop_algo is not None
@@ -133,6 +128,21 @@ def _make_manager(hass, level=AUTO_START_STOP_LEVEL_MEDIUM) -> FeatureAutoStartS
         }
     )
     return manager
+
+
+async def test_inert_manager_does_not_refresh_or_publish(hass: HomeAssistant):
+    """An inert core manager keeps its state and does not update the thermostat."""
+    manager = _make_manager(hass)
+    manager._is_auto_stop_detected = True
+    manager._auto_start_stop_algo._accumulated_error = 7.5
+    manager._auto_start_stop_algo.should_be_turned_off = MagicMock(return_value=False)
+    manager.set_inert(True)
+
+    assert await manager.refresh_and_update_if_changed() is False
+    assert manager.is_auto_stop_detected is True
+    assert manager._auto_start_stop_algo.accumulated_error == 7.5
+    manager._auto_start_stop_algo.should_be_turned_off.assert_not_called()
+    manager._vtherm.update_states.assert_not_awaited()
 
 
 async def test_restore_state_when_auto_stopped(hass: HomeAssistant):
