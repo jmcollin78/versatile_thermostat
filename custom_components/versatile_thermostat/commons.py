@@ -3,6 +3,8 @@
 # pylint: disable=line-too-long
 
 import logging
+import math
+from typing import Any
 from vtherm_api.log_collector import get_vtherm_logger
 import warnings
 
@@ -14,6 +16,11 @@ from homeassistant.helpers.template import is_template_string
 from .const import ServiceConfigurationError, DOMAIN
 
 _LOGGER = get_vtherm_logger(__name__)
+
+
+def is_finite_number(value: Any) -> bool:
+    """True for a finite int or float (a bool is not a number here)"""
+    return isinstance(value, (int, float)) and not isinstance(value, bool) and math.isfinite(value)
 
 
 def round_to_nearest(n: float, x: float) -> float:

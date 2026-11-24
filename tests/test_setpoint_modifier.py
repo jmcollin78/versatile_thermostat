@@ -227,7 +227,7 @@ async def test_several_modifiers_are_applied_in_order(hass: HomeAssistant, skip_
     first = factory.managers[0]
     second = FakeSetpointModifier(entity, delta=-0.5)
     third = FakeSetpointModifier(entity, fail=True)
-    entity._external_managers.extend([second, third])
+    entity._external_managers._managers.extend([second, third])
 
     assert entity._adjust_regulated_temperature(21, 0.5, None) == 19.5
     assert [call[0] for call in first.calls] == [21]

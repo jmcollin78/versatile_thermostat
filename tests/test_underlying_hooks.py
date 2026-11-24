@@ -691,7 +691,7 @@ async def test_failing_hook_is_logged_and_core_command_is_sent(hass: HomeAssista
 async def test_slow_hook_times_out_and_core_command_is_sent(hass: HomeAssistant, fake_temp_sensor, fake_ext_temp_sensor, caplog):
     """A hook slower than the timeout is cut, logged, and the core command is sent"""
     register(hass, SlowManager)
-    with patch("custom_components.versatile_thermostat.base_thermostat.UNDERLYING_HOOK_TIMEOUT_SEC", 0.05):
+    with patch("custom_components.versatile_thermostat.external_manager.UNDERLYING_HOOK_TIMEOUT_SEC", 0.05):
         vtherm, _, _, _ = await heating_climate_valve_vtherm(hass, fake_temp_sensor)
         await vtherm.async_set_hvac_mode(VThermHvacMode_OFF)
         await hass.async_block_till_done()

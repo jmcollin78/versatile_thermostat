@@ -271,7 +271,7 @@ async def test_timeout_is_isolated(hass: HomeAssistant, fake_temp_sensor, fake_e
     vtherm, _, _, _ = await start(hass, fake_temp_sensor, events)
     under = vtherm._underlyings_valve_regulation[0]
 
-    with patch("custom_components.versatile_thermostat.base_thermostat.UNDERLYING_HOOK_TIMEOUT_SEC", 0.05):
+    with patch("custom_components.versatile_thermostat.external_manager.UNDERLYING_HOOK_TIMEOUT_SEC", 0.05):
         await send(hass, under, events, 50)
 
     assert len(written(events, OPENING)) == 1

@@ -1355,7 +1355,7 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
 
                     # A plugin may adjust the offset (e.g. a device which reads it with the opposite sign)
                     if self._external_managers:
-                        offset = self.adjust_calibration_offset(
+                        offset = self._external_managers.adjust_calibration_offset(
                             CalibrationOffsetRequest(
                                 climate_entity_id=under.entity_id,
                                 calibration_entity_id=sync_entity_id,

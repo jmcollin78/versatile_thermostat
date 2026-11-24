@@ -2,23 +2,12 @@
 # pylint: disable=too-many-lines
 # pylint: disable=invalid-name
 """ Implements the VersatileThermostat climate component """
-import asyncio
-import dataclasses
-import inspect
 import math
 from typing import Optional, Any, Generic
 from datetime import datetime
 from collections.abc import Callable
 
-from vtherm_api import (
-    UNDERLYING_HOOK_TIMEOUT_SEC,
-    CalibrationOffsetRequest,
-    UnderlyingPowerCommand,
-    ValveCommand,
-    ValveDiagnosticState,
-    ValveWriteDecision,
-    ValveWriteRequest,
-)
+from vtherm_api import ValveDiagnosticState
 from vtherm_api.log_collector import get_vtherm_logger
 from homeassistant.util import dt as dt_util
 
@@ -64,7 +53,7 @@ from homeassistant.const import (
 )
 
 from .const import *  # pylint: disable=wildcard-import, unused-wildcard-import
-from .commons import round_to_nearest, write_event_log
+from .commons import write_event_log
 from .commons_type import ConfigData
 
 from .config_schema import *  # pylint: disable=wildcard-import, unused-wildcard-import
@@ -75,6 +64,7 @@ from .underlyings import UnderlyingEntity, UnderlyingValve, T
 from .ema import ExponentialMovingAverage
 
 from .base_manager import BaseFeatureManager
+from .external_manager import ExternalManager
 from .feature_presence_manager import FeaturePresenceManager
 from .feature_power_manager import FeaturePowerManager
 from .feature_motion_manager import FeatureMotionManager
@@ -224,16 +214,8 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
         # Instantiate all features manager
         self._managers: list[BaseFeatureManager] = []
 
-        # Names of feature managers provided by external plugins that have
-        # already been instantiated for this thermostat. Used to avoid
-        # registering the same external manager twice (post_init + startup retry).
-        self._external_manager_names: set[str] = set()
-
-        # Instances of feature managers provided by external plugins. They are
-        # also present in ``self._managers`` (for lifecycle) but are tracked
-        # separately so they can be refreshed on every control cycle (internal
-        # managers have their own dedicated per-cycle mechanisms).
-        self._external_managers: list[BaseFeatureManager] = []
+        # Collection and hook facade of the feature managers provided by external plugins.
+        self._external_managers: ExternalManager = ExternalManager(self)
 
         self._presence_manager: FeaturePresenceManager = FeaturePresenceManager(
             self, hass
@@ -280,219 +262,6 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
             if getattr(manager, "name", None) == name:
                 return manager
         return None
-
-    def _load_external_feature_managers(self):
-        """Instantiate feature managers provided by external plugins.
-
-        Query the VTherm API registry and create one manager instance per
-        eligible thermostat (the factory decides eligibility through its
-        ``supports`` method). Managers whose plugin registers after this
-        thermostat has been built are picked up later during ``async_startup``,
-        mirroring the external proportional algorithm retry behavior.
-        """
-        api = VersatileThermostatAPI.get_vtherm_api(self.hass)
-        if api is None or not hasattr(api, "get_feature_manager_factories"):
-            _LOGGER.debug(
-                "%s - external feature managers not loaded: api=%s, has get_feature_manager_factories=%s",
-                self,
-                api is not None,
-                hasattr(api, "get_feature_manager_factories"),
-            )
-            return
-
-        for factory in api.get_feature_manager_factories():
-            name = factory.name
-            if name in self._external_manager_names:
-                _LOGGER.debug("%s - external feature manager '%s' already loaded", self, name)
-                continue
-            try:
-                if not factory.supports(self):
-                    _LOGGER.debug("%s - external feature manager '%s' not created: supports() returned False", self, name)
-                    continue
-                manager = factory.create(self)
-                manager.post_init(self._entry_infos)
-            except Exception as exc:  # pylint: disable=broad-except
-                _LOGGER.error(
-                    "%s - Error while creating external feature manager '%s': %s",
-                    self,
-                    name,
-                    exc,
-                )
-                continue
-
-            self.register_manager(manager)
-            self._external_manager_names.add(name)
-            self._external_managers.append(manager)
-            _LOGGER.info("%s - Registered external feature manager '%s'", self, name)
-
-    def _is_external_manager_configured(self, manager) -> bool:
-        """Read is_configured of an external manager. A failing manager is considered not configured."""
-        try:
-            return bool(manager.is_configured)
-        except Exception as exc:  # pylint: disable=broad-except
-            _LOGGER.error(
-                "%s - Error while reading is_configured of external feature manager '%s': %s",
-                self,
-                getattr(manager, "name", None),
-                exc,
-            )
-            return False
-
-    async def _async_call_external_hook(self, method_name: str, *args) -> None:
-        """Call an optional hook on each configured external feature manager.
-
-        A failing or slow plugin is logged and never blocks the core command.
-        """
-        for manager in self._external_managers:
-            hook = getattr(manager, method_name, None)
-            if hook is None:
-                _LOGGER.debug("%s - external hook %s skipped for '%s': the manager has no such hook", self, method_name, manager.name)
-                continue
-            if not self._is_external_manager_configured(manager):
-                _LOGGER.debug("%s - external hook %s skipped for '%s': is_configured is False", self, method_name, manager.name)
-                continue
-            _LOGGER.debug("%s - calling external hook %s of '%s'", self, method_name, manager.name)
-            try:
-                async with asyncio.timeout(UNDERLYING_HOOK_TIMEOUT_SEC):
-                    await hook(*args)
-            except TimeoutError:
-                _LOGGER.warning(
-                    "%s - External feature manager '%s' timed out in %s",
-                    self,
-                    manager.name,
-                    method_name,
-                )
-            except Exception as exc:  # pylint: disable=broad-except
-                _LOGGER.error(
-                    "%s - Error in %s of external feature manager '%s': %s",
-                    self,
-                    method_name,
-                    manager.name,
-                    exc,
-                )
-
-    async def async_before_underlying_hvac_mode(
-        self,
-        climate_entity_id: str,
-        hvac_mode: VThermHvacMode | str,
-        current_hvac_mode: VThermHvacMode | str | None,
-        command_cause: str | None = None,
-    ) -> None:
-        """Notify external managers that an underlying climate is about to change its HVAC mode."""
-        if not self._external_managers:
-            return
-        await self._async_call_external_hook(
-            "async_before_underlying_hvac_mode",
-            climate_entity_id,
-            str(hvac_mode),
-            None if current_hvac_mode is None else str(current_hvac_mode),
-            command_cause,
-        )
-
-    def _configured_external_managers(self, method_name: str) -> list:
-        """The configured external feature managers which implement a method, in the order they were registered"""
-        managers = []
-        for manager in self._external_managers:
-            if not hasattr(manager, method_name):
-                continue
-            if self._is_external_manager_configured(manager):
-                managers.append(manager)
-        return managers
-
-    @staticmethod
-    def _is_finite_number(value: Any) -> bool:
-        """True for a finite int or float (a bool is not a number here)"""
-        return isinstance(value, (int, float)) and not isinstance(value, bool) and math.isfinite(value)
-
-    async def async_before_valve_write(self, request: ValveWriteRequest) -> tuple[int, bool, float | None]:
-        """Let the external feature managers change the opening degree before it is written, or write the valve themselves.
-
-        Returns the final opening degree, True when a plugin writes the valve itself (the core writes nothing) and the time
-        the core must wait before repairing the valve (None for the default one). Each manager receives the value left by
-        the previous one. A manager which fails, times out or returns an invalid value is logged and ignored.
-        """
-        opening_degree = request.opening_degree
-        if not self._external_managers:
-            return opening_degree, False, None
-
-        handled = False
-        settle_sec: float | None = None
-        for manager in self._configured_external_managers("async_before_valve_write"):
-            _LOGGER.debug("%s - calling external hook async_before_valve_write of '%s' with opening_degree=%s", self, manager.name, opening_degree)
-            try:
-                async with asyncio.timeout(UNDERLYING_HOOK_TIMEOUT_SEC):
-                    decision = await manager.async_before_valve_write(dataclasses.replace(request, opening_degree=opening_degree))
-            except TimeoutError:
-                _LOGGER.warning("%s - External feature manager '%s' timed out in async_before_valve_write", self, manager.name)
-                continue
-            except Exception as exc:  # pylint: disable=broad-except
-                _LOGGER.error("%s - Error in async_before_valve_write of external feature manager '%s': %s", self, manager.name, exc)
-                continue
-
-            if decision is None:
-                continue
-            if not isinstance(decision, ValveWriteDecision):
-                _LOGGER.warning("%s - External feature manager '%s' returned an invalid valve write decision (%s). It is ignored", self, manager.name, decision)
-                continue
-
-            if decision.opening_degree is not None:
-                if self._is_finite_number(decision.opening_degree):
-                    opening_degree = int(min(max(round(decision.opening_degree), 0), request.max_opening_degree))
-                else:
-                    _LOGGER.warning("%s - External feature manager '%s' returned an invalid opening degree (%s). It is ignored", self, manager.name, decision.opening_degree)
-
-            if decision.settle_sec is not None:
-                if self._is_finite_number(decision.settle_sec) and decision.settle_sec >= 0:
-                    settle_sec = decision.settle_sec if settle_sec is None else max(settle_sec, decision.settle_sec)
-                else:
-                    _LOGGER.warning("%s - External feature manager '%s' returned an invalid settle_sec (%s). It is ignored", self, manager.name, decision.settle_sec)
-
-            if decision.handled:
-                _LOGGER.debug("%s - external feature manager '%s' writes the valve itself", self, manager.name)
-                handled = True
-                break
-
-        return opening_degree, handled, settle_sec
-
-    def adjust_calibration_offset(self, request: CalibrationOffsetRequest) -> float:
-        """Let the external feature managers adjust the calibration offset. Each one receives the value left by the previous one.
-        When a manager changed it, the result is rounded to the step and clamped to min..max. A manager which fails or returns an
-        invalid value is logged and ignored."""
-        if not self._external_managers:
-            return request.offset
-
-        offset = request.offset
-        for manager in self._configured_external_managers("adjust_calibration_offset"):
-            try:
-                adjusted = manager.adjust_calibration_offset(dataclasses.replace(request, offset=offset))
-            except Exception as exc:  # pylint: disable=broad-except
-                _LOGGER.error("%s - Error while adjusting the calibration offset with external feature manager '%s': %s", self, manager.name, exc)
-                continue
-            if adjusted is None:
-                continue
-            if inspect.iscoroutine(adjusted):
-                # The method must not be a coroutine: close it to avoid a "never awaited" warning
-                adjusted.close()
-            if not self._is_finite_number(adjusted):
-                _LOGGER.warning("%s - External feature manager '%s' returned an invalid calibration offset (%s). It is ignored", self, manager.name, adjusted)
-                continue
-            offset = adjusted
-
-        if offset != request.offset:
-            offset = min(request.max_offset, max(request.min_offset, round_to_nearest(offset, request.step)))
-        return offset
-
-    async def async_after_valve_command(self, command: ValveCommand) -> None:
-        """Notify external managers that a valve command was sent to a valve-regulation underlying."""
-        if not self._external_managers:
-            return
-        await self._async_call_external_hook("async_after_valve_command", command)
-
-    async def async_on_underlying_power(self, command: UnderlyingPowerCommand) -> None:
-        """Notify external managers of the power requested from and applied to an underlying."""
-        if not self._external_managers:
-            return
-        await self._async_call_external_hook("async_on_underlying_power", command)
 
     def clean_central_config_doublon(
         self, config_entry: ConfigData, central_config: ConfigEntry | None
@@ -576,7 +345,8 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
         # Instantiate feature managers provided by external plugins that are
         # already registered at this point. Late-registered plugins are handled
         # by a retry in async_startup.
-        self._load_external_feature_managers()
+        for manager in self._external_managers.load_feature_managers(self._entry_infos):
+            self.register_manager(manager)
 
         self._use_central_config_temperature = entry_infos.get(
             CONF_USE_PRESETS_CENTRAL_CONFIG
@@ -775,7 +545,8 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
         # its factory after this thermostat was built (load order between the
         # core and the plugin is not guaranteed). Newly created managers are
         # then started in the loop below.
-        self._load_external_feature_managers()
+        for manager in self._external_managers.load_feature_managers(self._entry_infos):
+            self.register_manager(manager)
 
         # start listening for all managers
         for manager in self._managers:
@@ -2125,7 +1896,7 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
 
         # Preserve the legacy manager until existing entries have migrated, but
         # let an external manager with the same stable name take precedence.
-        if "heating_failure_detection" not in self._external_manager_names:
+        if not self._external_managers.has_manager("heating_failure_detection"):
             await self._heating_failure_detection_manager.refresh_state()
 
         # Check and repair state discrepancies

@@ -992,7 +992,7 @@ class CycleScheduler:
         # Cheap exit without any external manager (the common case)
         if not getattr(self._thermostat, "_external_managers", True):
             return
-        hook = getattr(self._thermostat, "async_on_underlying_power", None)
+        hook = getattr(getattr(self._thermostat, "_external_managers", None), "async_on_underlying_power", None)
         # Test doubles of the thermostat may not implement the hook
         if hook is None or not inspect.iscoroutinefunction(hook):
             return

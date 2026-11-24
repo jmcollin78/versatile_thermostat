@@ -762,7 +762,7 @@ class UnderlyingClimate(UnderlyingEntity):
 
         # Issue #2181 - notify external managers just before the command is really sent
         if not self.is_command_blocked(CLIMATE_DOMAIN, SERVICE_SET_HVAC_MODE):
-            hook = _thermostat_hook(self._thermostat, "async_before_underlying_hvac_mode")
+            hook = _thermostat_hook(self._thermostat._external_managers, "async_before_underlying_hvac_mode")
             if hook is not None:
                 _LOGGER.debug("%s - calling the before-hvac-mode hook: hvac_mode=%s current=%s cause=%s", self, hvac_mode, state.state, command_cause)
                 await hook(self._entity_id, hvac_mode, state.state, command_cause)
@@ -1948,7 +1948,7 @@ class UnderlyingValveRegulation(UnderlyingValve):
 
         # A plugin may change the opening degree, or write the valve itself. Nothing is asked when the gate blocks the write.
         if not self._is_write_blocked():
-            hook = _thermostat_hook(self._thermostat, "async_before_valve_write")
+            hook = _thermostat_hook(self._thermostat._external_managers, "async_before_valve_write")
             if hook is not None:
                 opening_degree, handled, settle_sec = await hook(
                     ValveWriteRequest(
@@ -2029,7 +2029,7 @@ class UnderlyingValveRegulation(UnderlyingValve):
         if self._is_write_blocked():
             _LOGGER.debug("%s - after-valve-command hook not called: %s.%s is blocked", self, self._opening_degree_entity_id.split(".")[0], SERVICE_SET_VALUE)
             return
-        hook = _thermostat_hook(self._thermostat, "async_after_valve_command")
+        hook = _thermostat_hook(self._thermostat._external_managers, "async_after_valve_command")
         if hook is None:
             _LOGGER.debug("%s - after-valve-command hook not called: the thermostat has no such hook", self)
             return
