@@ -47,15 +47,6 @@ class ExternalManager:
     def __bool__(self) -> bool:
         return bool(self._managers)
 
-    def __eq__(self, other) -> bool:
-        if isinstance(other, ExternalManager):
-            return self._managers == other._managers
-        if isinstance(other, (list, tuple)):
-            return self._managers == list(other)
-        return NotImplemented
-
-    __hash__ = None  # mutable collection, like list
-
     def has_manager(self, name: str) -> bool:
         """True if a manager from the factory `name` has been loaded."""
         return name in self._manager_names

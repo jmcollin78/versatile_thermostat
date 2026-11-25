@@ -404,8 +404,8 @@ async def test_valve_hook_causes(hass: HomeAssistant, fake_temp_sensor, fake_ext
     await uninhibit(hass, vtherm)
 
 
-async def test_valve_hook_not_called_for_seed_nor_recalibration(hass: HomeAssistant, fake_temp_sensor, fake_ext_temp_sensor):
-    """The seed of unknown degrees and the recalibration write the numbers without the valve hook"""
+async def test_valve_hook_not_called_for_seed_nor_direct_number_write(hass: HomeAssistant, fake_temp_sensor, fake_ext_temp_sensor):
+    """The seed of unknown degrees and a direct write of the numbers do not notify the valve hook"""
     events = register(hass)
     vtherm, _, opening, closing = await heating_climate_valve_vtherm(hass, fake_temp_sensor)
     under = vtherm._underlyings_valve_regulation[0]
@@ -419,7 +419,7 @@ async def test_valve_hook_not_called_for_seed_nor_recalibration(hass: HomeAssist
         await hass.async_block_till_done()
         assert any(e[0] == "service" and e[3] == CLOSING for e in events)
 
-        # recalibration
+        # direct write of the numbers
         events.clear()
         await under.send_value_to_number(OPENING, 100)
         await under.send_value_to_number(CLOSING, 0)
@@ -635,7 +635,7 @@ async def test_unconfigured_manager_receives_nothing(hass: HomeAssistant, fake_t
     await vtherm.async_set_hvac_mode(VThermHvacMode_OFF)
     await hass.async_block_till_done()
 
-    assert len(vtherm._external_managers) == 1
+    assert len(vtherm.external_manager) == 1
     assert events == []
 
 
@@ -656,7 +656,7 @@ async def test_failing_is_configured_is_isolated(hass: HomeAssistant, fake_temp_
     api(hass).register_feature_manager(good_factory)
 
     vtherm, _, opening, _ = await heating_climate_valve_vtherm(hass, fake_temp_sensor)
-    assert len(vtherm._external_managers) == 2
+    assert len(vtherm.external_manager) == 2
     good_events.clear()
 
     with record_services(good_events):
@@ -717,7 +717,7 @@ async def test_manager_with_one_hook_only(hass: HomeAssistant, fake_temp_sensor,
 async def test_no_plugin_no_error(hass: HomeAssistant, fake_temp_sensor, fake_ext_temp_sensor):
     """Without any external manager the hooks return immediately"""
     vtherm, _, _, _ = await heating_climate_valve_vtherm(hass, fake_temp_sensor)
-    assert vtherm._external_managers == []
+    assert not vtherm.external_manager
     await vtherm.async_set_hvac_mode(VThermHvacMode_OFF)
     await hass.async_block_till_done()
     assert hass.states.get(CLIMATE).state == "off"

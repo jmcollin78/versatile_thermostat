@@ -6,7 +6,6 @@ For valves: passthrough mode that calls set_valve_open_percent() directly
 without temporal scheduling.
 """
 
-import inspect
 import logging
 import time
 from vtherm_api.command_receipt import (
@@ -990,11 +989,7 @@ class CycleScheduler:
         notification can reach a manager late: the managers are awaited one after the other.
         """
         # Cheap exit without any external manager (the common case)
-        if not getattr(self._thermostat, "_external_managers", True):
-            return
-        hook = getattr(getattr(self._thermostat, "_external_managers", None), "async_on_underlying_power", None)
-        # Test doubles of the thermostat may not implement the hook
-        if hook is None or not inspect.iscoroutinefunction(hook):
+        if not self._thermostat.external_manager:
             return
         if getattr(self._thermostat, "is_inhibited", False) is True:
             # The inhibition command gate drops every underlying command: nothing is applied
@@ -1030,7 +1025,7 @@ class CycleScheduler:
                 cycle_start_monotonic=self._cycle_start_monotonic,
                 monotonic=time.monotonic(),
             )
-            await hook(command)
+            await self._thermostat.external_manager.async_on_underlying_power(command)
 
     async def _fire_command_receipt(
         self,

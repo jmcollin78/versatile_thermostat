@@ -1,7 +1,6 @@
 # pylint: disable=unused-argument, line-too-long, too-many-lines, broad-exception-caught
 
 """Underlying entities classes"""
-import inspect
 import math
 import re
 from typing import Any, Dict, List, Optional, Tuple, TypeVar
@@ -69,11 +68,6 @@ resend_delay_sec = 2
 off_settle_delay_sec = 15
 
 _LOGGER = get_vtherm_logger(__name__)
-
-def _thermostat_hook(thermostat: Any, name: str):
-    """Issue #2181 - the coroutine hook of the thermostat, None if it does not implement it (test doubles)"""
-    hook = getattr(thermostat, name, None)
-    return hook if inspect.iscoroutinefunction(hook) else None
 
 
 class UnderlyingEntityType(StrEnum):
@@ -762,12 +756,8 @@ class UnderlyingClimate(UnderlyingEntity):
 
         # Issue #2181 - notify external managers just before the command is really sent
         if not self.is_command_blocked(CLIMATE_DOMAIN, SERVICE_SET_HVAC_MODE):
-            hook = _thermostat_hook(self._thermostat._external_managers, "async_before_underlying_hvac_mode")
-            if hook is not None:
-                _LOGGER.debug("%s - calling the before-hvac-mode hook: hvac_mode=%s current=%s cause=%s", self, hvac_mode, state.state, command_cause)
-                await hook(self._entity_id, hvac_mode, state.state, command_cause)
-            else:
-                _LOGGER.debug("%s - before-hvac-mode hook not called: the thermostat has no such hook", self)
+            _LOGGER.debug("%s - calling the before-hvac-mode hook: hvac_mode=%s current=%s cause=%s", self, hvac_mode, state.state, command_cause)
+            await self._thermostat.external_manager.async_before_underlying_hvac_mode(self._entity_id, hvac_mode, state.state, command_cause)
         else:
             _LOGGER.debug("%s - before-hvac-mode hook not called: %s.%s is blocked", self, CLIMATE_DOMAIN, SERVICE_SET_HVAC_MODE)
 
@@ -1362,7 +1352,6 @@ class UnderlyingValve(UnderlyingEntity):
     """Represent a underlying switch"""
 
     # Time to wait after a command before a repair. None: resend_delay_sec. A plugin may ask for more.
-    _settle_sec: float | None = None
     _repair_wait_sec: float | None = None
 
     def __init__(
@@ -1624,10 +1613,9 @@ class UnderlyingValve(UnderlyingEntity):
         if abs(current - expected_opening) <= 0.5:
             return False
 
-        # Only a plugin can ask for a wait here (also tolerate test doubles which have no such attribute).
+        # Only a plugin can ask for a wait here.
         # Without a plugin, the grace period is applied by the repair manager, not by a direct check.
-        wait_sec = self._repair_wait_sec
-        if isinstance(wait_sec, (int, float)) and self._thermostat.now < self._last_command_sent_datetime + timedelta(seconds=wait_sec):
+        if self._repair_wait_sec is not None and self._thermostat.now < self._last_command_sent_datetime + timedelta(seconds=self._repair_wait_sec):
             _LOGGER.debug(
                 "%s - Skipping valve state repair while waiting for the last command to be applied",
                 self,
@@ -1948,25 +1936,21 @@ class UnderlyingValveRegulation(UnderlyingValve):
 
         # A plugin may change the opening degree, or write the valve itself. Nothing is asked when the gate blocks the write.
         if not self._is_write_blocked():
-            hook = _thermostat_hook(self._thermostat._external_managers, "async_before_valve_write")
-            if hook is not None:
-                opening_degree, handled, settle_sec = await hook(
-                    ValveWriteRequest(
-                        climate_entity_id=self._climate_underlying.entity_id,
-                        opening_degree_entity_id=self._opening_degree_entity_id,
-                        closing_degree_entity_id=self._closing_degree_entity_id if self.has_closing_degree_entity else None,
-                        percent_open=int(value or 0),
-                        opening_degree=opening_degree,
-                        requested_opening_degree=requested_opening_degree,
-                        max_opening_degree=self._max_opening_degree,
-                        hvac_mode=str(self._thermostat.vtherm_hvac_mode),
-                        cause=cause,
-                    )
+            opening_degree, handled, settle_sec = await self._thermostat.external_manager.async_before_valve_write(
+                ValveWriteRequest(
+                    climate_entity_id=self._climate_underlying.entity_id,
+                    opening_degree_entity_id=self._opening_degree_entity_id,
+                    closing_degree_entity_id=self._closing_degree_entity_id if self.has_closing_degree_entity else None,
+                    percent_open=int(value or 0),
+                    opening_degree=opening_degree,
+                    requested_opening_degree=requested_opening_degree,
+                    max_opening_degree=self._max_opening_degree,
+                    hvac_mode=str(self._thermostat.vtherm_hvac_mode),
+                    cause=cause,
                 )
-                if opening_degree != requested_opening_degree:
-                    closing_degree = 100 - opening_degree
-            else:
-                _LOGGER.debug("%s - before-valve-write hook not called: the thermostat has no such hook", self)
+            )
+            if opening_degree != requested_opening_degree:
+                closing_degree = 100 - opening_degree
 
             self._last_core_opening = requested_opening_degree
             self._last_final_opening = opening_degree
@@ -1987,7 +1971,6 @@ class UnderlyingValveRegulation(UnderlyingValve):
                 await self.send_value_to_number(self._closing_degree_entity_id, closing_degree)
 
         # The repair waits for the end of the command, as a plugin announced it
-        self._settle_sec = settle_sec
         if handled or settle_sec is not None:
             self._repair_wait_sec = settle_sec if settle_sec is not None else resend_delay_sec
             self._last_command_sent_datetime = self._thermostat.now
@@ -2029,10 +2012,6 @@ class UnderlyingValveRegulation(UnderlyingValve):
         if self._is_write_blocked():
             _LOGGER.debug("%s - after-valve-command hook not called: %s.%s is blocked", self, self._opening_degree_entity_id.split(".")[0], SERVICE_SET_VALUE)
             return
-        hook = _thermostat_hook(self._thermostat._external_managers, "async_after_valve_command")
-        if hook is None:
-            _LOGGER.debug("%s - after-valve-command hook not called: the thermostat has no such hook", self)
-            return
         _LOGGER.debug(
             "%s - calling the after-valve-command hook: cause=%s percent_open=%s opening_degree=%s closing_degree=%s hvac_mode=%s",
             self,
@@ -2042,7 +2021,7 @@ class UnderlyingValveRegulation(UnderlyingValve):
             closing_degree,
             self._thermostat.vtherm_hvac_mode,
         )
-        await hook(
+        await self._thermostat.external_manager.async_after_valve_command(
             ValveCommand(
                 climate_entity_id=self._climate_underlying.entity_id,
                 opening_degree_entity_id=self._opening_degree_entity_id,
@@ -2056,10 +2035,6 @@ class UnderlyingValveRegulation(UnderlyingValve):
                 written_by_plugin=written_by_plugin,
             )
         )
-
-    async def async_notify_recalibration_write(self, percent_open: int, opening_degree: int, closing_degree: int | None) -> None:
-        """Notify external managers of a forced write of the valve recalibration (100 for the full opening, 0 for the full closing)"""
-        await self._notify_valve_command(percent_open, opening_degree, closing_degree, ValveCommandCause.RECALIBRATION)
 
     @property
     def climate_entity_id(self) -> str:

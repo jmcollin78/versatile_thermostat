@@ -17,6 +17,7 @@ from custom_components.versatile_thermostat.const import (
     REPAIR_MIN_DELAY_AFTER_INIT_SEC,
 )
 from custom_components.versatile_thermostat.underlyings import UnderlyingClimate, UnderlyingSwitch, UnderlyingValve, UnderlyingValveRegulation
+from custom_components.versatile_thermostat.external_manager import ExternalManager
 from .commons import *  # pylint: disable=wildcard-import, unused-wildcard-import
 
 logging.getLogger().setLevel(logging.DEBUG)
@@ -103,6 +104,7 @@ async def test_real_underlying_repair_grace_and_direct_check(hass: HomeAssistant
     """The manager gates real underlying checks; direct checks retain their corrections."""
     now = datetime.now(timezone.utc)
     thermostat = MagicMock()
+    thermostat.external_manager = ExternalManager(thermostat)
     thermostat.name = "thermostat"
     thermostat.now = now
     thermostat.is_ready = True
@@ -155,6 +157,7 @@ async def test_repair_preserves_missing_and_unavailable_state_behavior(hass: Hom
     """The manager leaves each underlying's existing unavailable-state behavior intact."""
     now = datetime.now(timezone.utc)
     thermostat = MagicMock(name="thermostat", now=now, is_ready=True, is_inversed=False)
+    thermostat.external_manager = ExternalManager(thermostat)
     thermostat.hvac_mode = HVACMode.HEAT
     thermostat.vtherm_hvac_mode = VThermHvacMode_HEAT
     thermostat.get_underlying_hvac_mode.side_effect = lambda value: value

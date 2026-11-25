@@ -34,7 +34,6 @@ def test_empty_collection():
     assert len(ext) == 0
     assert not ext
     assert list(ext) == []
-    assert ext == []
     assert not ext.has_manager("any")
 
 
@@ -44,8 +43,6 @@ def test_one_manager():
     assert len(ext) == 1
     assert bool(ext) is True
     assert list(ext) == [m1]
-    assert ext == [m1]
-    assert ext != []
     assert ext.has_manager("a")
     assert not ext.has_manager("b")
 
@@ -55,20 +52,8 @@ def test_several_managers_order_and_len():
     ext, _ = _make_manager([("a", m1), ("b", m2), ("c", m3)])
     assert len(ext) == 3
     assert [m for m in ext] == [m1, m2, m3]
-    assert ext == [m1, m2, m3]
-    assert ext == (m1, m2, m3)
-    assert ext != [m3, m2, m1]
     assert ext.has_manager("a") and ext.has_manager("b") and ext.has_manager("c")
     assert not ext.has_manager("d")
-
-
-def test_equality_between_collections():
-    m1 = MagicMock()
-    ext1, _ = _make_manager([("a", m1)])
-    ext2, _ = _make_manager([("a", m1)])
-    assert ext1 == ext2
-    assert ext1 != ExternalManager(MagicMock())
-    assert ext1 != "not a collection"
 
 
 # --- Loading (Requirements 3.1, 3.2, 3.3, 3.5, 3.6, 7.2) ---
@@ -195,4 +180,3 @@ def test_load_api_without_get_feature_manager_factories_creates_nothing():
     with patch(_API_PATH, return_value=MagicMock(spec=[])):
         assert ext.load_feature_managers({}) == []
     assert len(ext) == 0
-    assert ext == []

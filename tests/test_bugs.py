@@ -32,6 +32,7 @@ from custom_components.versatile_thermostat.thermostat_switch import (
 )
 
 from custom_components.versatile_thermostat.cycle_scheduler import CycleScheduler
+from custom_components.versatile_thermostat.external_manager import ExternalManager
 
 from .commons import *
 
@@ -832,6 +833,7 @@ async def test_bug_1777(mock_call_later, hass):
 
     fake_thermostat = MagicMock()
     fake_thermostat.incremente_energy = MagicMock()
+    fake_thermostat.external_manager = ExternalManager(fake_thermostat)
     fake_thermostat.minimal_activation_delay = 0
     fake_thermostat.minimal_deactivation_delay = 0
 
@@ -950,6 +952,7 @@ async def test_bug_1921_keep_active_cycle_when_next_repeat_becomes_zero(mock_cal
 
     fake_thermostat = MagicMock()
     fake_thermostat.incremente_energy = MagicMock()
+    fake_thermostat.external_manager = ExternalManager(fake_thermostat)
     fake_thermostat.minimal_activation_delay = 480
     fake_thermostat.minimal_deactivation_delay = 480
 

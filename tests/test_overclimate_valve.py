@@ -16,6 +16,7 @@ from custom_components.versatile_thermostat.thermostat_climate_valve import (
 )
 from custom_components.versatile_thermostat.opening_degree_algorithm import OpeningClosingDegreeCalculation
 from custom_components.versatile_thermostat.underlyings import UnderlyingClimate, UnderlyingValve, UnderlyingValveRegulation
+from custom_components.versatile_thermostat.external_manager import ExternalManager
 from custom_components.versatile_thermostat.feature_repair_incorrect_state_manager import FeatureRepairIncorrectStateManager
 
 from .commons import *
@@ -1047,9 +1048,11 @@ async def test_min_max_closing_degrees_algo(
 
 async def test_valve_regulation_never_sends_below_effective_floor(hass: HomeAssistant):
     """Keep opening and closing commands coherent around the control threshold."""
+    thermostat = MagicMock()
+    thermostat.external_manager = ExternalManager(thermostat)
     valve = UnderlyingValveRegulation(
         hass=hass,
-        thermostat=MagicMock(),
+        thermostat=thermostat,
         climate_underlying=MagicMock(),
         opening_degree_entity_id="number.opening",
         closing_degree_entity_id="number.closing",
@@ -1337,6 +1340,7 @@ async def test_valve_off_discards_previous_opening_target(observed_active, close
     valve = MagicMock(spec=UnderlyingValve)
     valve._thermostat = MagicMock(now=now)
     valve._entity_id = "number.mock_opening_degree"
+    valve._repair_wait_sec = None
     valve.is_initialized = True
     valve._hvac_mode = VThermHvacMode_HEAT
     valve._percent_open = 60
@@ -1385,6 +1389,7 @@ async def test_valve_regulation_off_does_not_repeat_closed_commands(hass: HomeAs
     """Repeated OFF and repair leave a closed regulated valve and its climate alone."""
     now = datetime.now()
     thermostat = MagicMock(now=now)
+    thermostat.external_manager = ExternalManager(thermostat)
     climate = MagicMock()
     climate.set_hvac_mode = AsyncMock()
     valve = UnderlyingValveRegulation(
@@ -1464,6 +1469,7 @@ async def test_valve_direct_repair_does_not_wait_for_last_command():
     valve._thermostat = thermostat
     valve._hvac_mode = VThermHvacMode_HEAT
     valve._last_sent_opening_value = 40
+    valve._repair_wait_sec = None
     valve._last_command_sent_datetime = now
     valve.send_percent_open = AsyncMock()
     type(valve).current_valve_opening = PropertyMock(return_value=10)
@@ -1499,6 +1505,7 @@ async def test_valve_pair_service_timestamps_are_independent(hass: HomeAssistant
     """Each successful pair member timestamps the valve, independently of its climate."""
     now = datetime.now(timezone.utc)
     thermostat = MagicMock(now=now, name="thermostat", is_ready=True)
+    thermostat.external_manager = ExternalManager(thermostat)
     climate = UnderlyingClimate(hass, thermostat, "climate.test")
     valve = UnderlyingValveRegulation(hass, thermostat, "number.opening", "number.closing", climate)
     valve._percent_open = 40
@@ -1536,6 +1543,7 @@ async def test_valve_without_closing_and_hook_failure_preserves_send(hass: HomeA
     """A single successful opening remains timestamped if the later hook fails."""
     now = datetime.now(timezone.utc)
     thermostat = MagicMock(now=now)
+    thermostat.external_manager = ExternalManager(thermostat)
     climate = UnderlyingClimate(hass, thermostat, "climate.test")
     valve = UnderlyingValveRegulation(hass, thermostat, "number.opening", None, climate)
     valve._percent_open = 40

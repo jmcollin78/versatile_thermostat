@@ -14,6 +14,7 @@ from vtherm_api.command_receipt import (
 )
 
 from custom_components.versatile_thermostat.cycle_scheduler import CycleScheduler
+from custom_components.versatile_thermostat.external_manager import ExternalManager
 from custom_components.versatile_thermostat.valve_command import ValveCommandMixin
 from custom_components.versatile_thermostat.underlyings import UnderlyingEntityType
 from custom_components.versatile_thermostat.vtherm_hvac_mode import (
@@ -60,6 +61,7 @@ def make_thermostat():
     """Create a mock thermostat."""
     t = MagicMock()
     t.incremente_energy = MagicMock()
+    t.external_manager = ExternalManager(t)
     t.__str__ = lambda self: "MockThermostat"
     return t
 
@@ -666,6 +668,7 @@ class TestCycleSchedulerCallbacks:
                 self.calls = []
                 self._on_time_sec = 0
                 self._off_time_sec = 0
+                self.external_manager = ExternalManager(self)
 
             def apply_valve_command_percent(self, on_percent, force=False):
                 self.calls.append((on_percent, force))
@@ -889,6 +892,7 @@ class FakeValveThermostat(ValveCommandMixin):
         self.is_sleeping = False
         self.now = datetime(2024, 1, 1, tzinfo=timezone.utc)
         self.recalculate_later_calls = 0
+        self.external_manager = ExternalManager(self)
 
     @property
     def valve_open_percent(self) -> int:

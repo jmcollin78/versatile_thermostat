@@ -256,6 +256,11 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
         """Register a manager"""
         self._managers.append(manager)
 
+    @property
+    def external_manager(self) -> ExternalManager:
+        """Return the external manager"""
+        return self._external_managers
+
     def get_feature_manager(self, name: str):
         """Return the newest manager registered under a stable name."""
         for manager in reversed(self._managers):

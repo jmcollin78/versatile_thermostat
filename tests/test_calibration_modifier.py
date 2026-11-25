@@ -137,7 +137,7 @@ def requests(events: list) -> list[CalibrationOffsetRequest]:
 async def test_no_manager_unchanged(hass: HomeAssistant, fake_temp_sensor, fake_ext_temp_sensor):
     """Without plugin the offset is room - (local - current_offset), clamped and rounded"""
     vtherm, _, _ = await create_vtherm(hass, fake_temp_sensor, fake_ext_temp_sensor)
-    assert vtherm._external_managers == []
+    assert not vtherm.external_manager
     events: list = []
 
     assert await synchronize(hass, vtherm, events) == [3.0]

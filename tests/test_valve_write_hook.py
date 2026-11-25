@@ -130,7 +130,7 @@ def requests(events: list) -> list[ValveWriteRequest]:
 async def start(hass: HomeAssistant, fake_temp_sensor, events: list):
     """Create the VTherm heating with the plugin still passive, then let the plugin act. Returns what heating_climate_valve_vtherm returns"""
     result = await heating_climate_valve_vtherm(hass, fake_temp_sensor)
-    for manager in result[0]._external_managers:
+    for manager in result[0].external_manager:
         manager.enabled = True
     events.clear()
     return result
@@ -148,7 +148,7 @@ async def test_no_manager_unchanged(hass: HomeAssistant, fake_temp_sensor, fake_
     """Without any plugin the core computes and writes the degrees as before"""
     events: list = []
     vtherm, _, opening, _ = await start(hass, fake_temp_sensor, events)
-    assert vtherm._external_managers == []
+    assert not vtherm.external_manager
     under = vtherm._underlyings_valve_regulation[0]
 
     await send(hass, under, events, 50)
@@ -158,7 +158,7 @@ async def test_no_manager_unchanged(hass: HomeAssistant, fake_temp_sensor, fake_
     assert written(events, CLOSING) == [100 - core_opening[0]]
     assert under.last_sent_opening_value == core_opening[0]
     assert float(hass.states.get(OPENING).state) == core_opening[0]
-    assert under._settle_sec is None
+    assert under._repair_wait_sec is None
 
 
 async def test_chain_order_and_modification(hass: HomeAssistant, fake_temp_sensor, fake_ext_temp_sensor):
@@ -385,7 +385,7 @@ async def test_settle_sec_also_applies_when_the_core_writes(hass: HomeAssistant,
     under = vtherm._underlyings_valve_regulation[0]
     await send(hass, under, events, 50)
     now = vtherm.now
-    assert under._settle_sec == 20
+    assert under._repair_wait_sec == 20
     # the valve drifts
     opening.set_native_value(0)
     await hass.async_block_till_done()
@@ -413,9 +413,15 @@ async def test_settle_sec_is_reset_by_the_next_command(hass: HomeAssistant, fake
     under = vtherm._underlyings_valve_regulation[0]
     OnceSlow.calls = 0
     await send(hass, under, events, 50)
-    assert under._settle_sec == 30.0
     await send(hass, under, events, 60)
-    assert under._settle_sec is None
+    now = vtherm.now
+    # the plugin wrote nothing: the valve drifted from the last sent value
+    assert under.current_valve_opening != under.last_sent_opening_value
+    # the 30 s of the first command no longer apply: the default delay does
+    vtherm._set_now(now + timedelta(seconds=1))
+    assert await under.check_and_repair() is False
+    vtherm._set_now(now + timedelta(seconds=2, milliseconds=100))
+    assert await under.check_and_repair() is True
 
 
 async def test_invalid_settle_sec_is_ignored(hass: HomeAssistant, fake_temp_sensor, fake_ext_temp_sensor, caplog):
@@ -433,7 +439,7 @@ async def test_invalid_settle_sec_is_ignored(hass: HomeAssistant, fake_temp_sens
 
     await send(hass, under, events, 50)
 
-    assert under._settle_sec is None
+    assert under._repair_wait_sec is None
     assert "invalid settle_sec" in caplog.text
 
 
@@ -497,12 +503,12 @@ async def test_not_called_when_the_gate_blocks_the_write(hass: HomeAssistant, fa
     await send(hass, under, events, 70)
 
     assert events == []
-    assert under._settle_sec is None
+    assert under._repair_wait_sec is None
     await uninhibit(hass, vtherm)
 
 
-async def test_not_called_for_seed_nor_recalibration(hass: HomeAssistant, fake_temp_sensor, fake_ext_temp_sensor):
-    """The seed of unknown degrees and the recalibration write the numbers without the valve write hook"""
+async def test_not_called_for_seed_nor_direct_number_write(hass: HomeAssistant, fake_temp_sensor, fake_ext_temp_sensor):
+    """The seed of unknown degrees and a direct write of the numbers do not call the valve write hook"""
     events = register_plugin(hass, PlusTen, "plus")
     vtherm, _, _, _ = await start(hass, fake_temp_sensor, events)
     under = vtherm._underlyings_valve_regulation[0]
@@ -526,7 +532,7 @@ async def test_not_called_for_seed_nor_recalibration(hass: HomeAssistant, fake_t
 
 
 async def test_recalibration_notifies_without_the_write_hook(hass: HomeAssistant, fake_temp_sensor, fake_ext_temp_sensor):
-    """The recalibration notifies the after-valve hook, but the plugin can neither change nor take over its writes"""
+    """The plugin can neither change nor take over the writes of the recalibration (its notifications are tested in test_underlying_hooks)"""
     events = register_plugin(hass, PlusTen, "plus")
     vtherm, _, _, _ = await start(hass, fake_temp_sensor, events)
     events.clear()
@@ -535,11 +541,9 @@ async def test_recalibration_notifies_without_the_write_hook(hass: HomeAssistant
         await vtherm.service_recalibrate_valves(1)
         await hass.async_block_till_done()
 
+    # the recalibration did run
+    assert any(c.cause == ValveCommandCause.RECALIBRATION for c in commands(events, "after_valve"))
     assert all(request.cause == ValveCommandCause.REGULATION for request in requests(events))
-    assert [(c.percent_open, c.opening_degree, c.closing_degree) for c in commands(events, "after_valve") if c.cause == ValveCommandCause.RECALIBRATION] == [
-        (100, 100, 0),
-        (0, 0, 100),
-    ]
 
 
 async def test_inhibition_resync_compares_with_the_final_value(hass: HomeAssistant, fake_temp_sensor, fake_ext_temp_sensor):
