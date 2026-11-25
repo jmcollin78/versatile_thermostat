@@ -41,6 +41,7 @@ from homeassistant.helpers.event import (
 
 
 from homeassistant.components.climate.const import (
+    ATTR_HVAC_MODE,
     ATTR_PRESET_MODE,
     # ATTR_FAN_MODE,
     HVACMode,
@@ -1808,14 +1809,24 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
     async def async_set_temperature(self, **kwargs):
         """Set new requested target temperature and turn off any active presets."""
         temperature = kwargs.get(ATTR_TEMPERATURE)
-        write_event_log(_LOGGER, self, f"Set target temp: {temperature}")
+        hvac_mode = kwargs.get(ATTR_HVAC_MODE)
+        write_event_log(
+            _LOGGER,
+            self,
+            f"Set target temp: {temperature}" + (f", hvac mode: {hvac_mode}" if hvac_mode is not None else ""),
+        )
         if temperature is None:
             return
+
+        if hvac_mode is not None:
+            self._valid_mode_or_raise("hvac", str(hvac_mode), self.hvac_modes)
 
         self._on_external_command_received()
 
         # The previous preset must be read before the requested state is changed
         previous_preset = self._state_manager.requested_state.preset
+        if hvac_mode is not None:
+            self._state_manager.requested_state.set_hvac_mode(hvac_mode)
         self._state_manager.requested_state.set_target_temperature(temperature)
 
         # With a manual override duration, revert to the previous preset later (issue #1875)
