@@ -463,12 +463,7 @@ async def test_over_switch_with_central_config_but_no_central_config(
         },
     )
 
-    assert result["type"] == FlowResultType.MENU
-    assert result["step_id"] == "menu"
-    result = await hass.config_entries.flow.async_configure(
-        result["flow_id"], user_input={"next_step_id": "main"}
-    )
-
+    # the creation wizard starts with the main attributes
     assert result["type"] == FlowResultType.FORM
     assert result["step_id"] == "main"
     assert result["errors"] == {}

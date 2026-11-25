@@ -3,6 +3,8 @@
 Ta strona przedstawia kroki potrzebne do szybkiego skonfigurowania podstawowego, ale poprawnie działającego termostatu _VTherm_.  
 Struktura jest podzielona według typu urządzenia.
 
+Po wybraniu typu termostatu kreator wyświetla kolejno wymagane ekrany: atrybuty podstawowe, urządzenia (najpierw ustawienia wspólne dla wszystkich urządzeń, potem encja sprzętu i jej własne ustawienia), parametry TPI (jeśli ten ekran jest wyświetlany), funkcje i parametry zaawansowane. Aby sterować kilkoma urządzeniami, dodaj je przyciskiem "Dodaj urządzenie", a następnie wybierz "Dalej". Na końcu kreator otwiera menu konfiguracji: wybierz "Wszystko zrobione", aby utworzyć termostat _VTherm_. Presety zachowują wartości domyślne, dopóki ich nie ustawisz.
+
 
 - [Szybki start](#quick-start)
   - [Nodon SIN-4-FP-21 lub podobne (przewodowe sterowanie z diodą aktywacyjną)](#nodon-sin-4-fp-21-or-similar-pilot-wire)
@@ -26,7 +28,7 @@ Aby zintegrować urządzenie z _VTherm_, należy wykonać następujące kroki:
 1. Utwórz termostat _VTherm_ typu `termostat na przełączniku`. Zobacz: [Wybór termostatu](creation.md).
 2. Przypisz mu główne atrybuty (nazwa, czujnik temperatury w pomieszczeniu oraz czujnik temperatury zewnętrznej). Zobacz: [Wybór głównych atrybutów](base-attributes.md)  
 3. Przypisz jedno lub więcej urządzeń podrzędnych do sterowania. Urządzeniem podrzędnym w tym przypadku jest encja `select`, która steruje urządzeniem. Zobacz: [urządzenia](over-switch.md).  
-4. Podaj własne polecenia `on`/`off` (obowiązkowe dla urządzenia). Zobacz: [dosotsowywanie poleceń](over-switch.md#command-customization). Polecenia niestandardowe mają format: `select_option/option:<preset>`, zgodnie z opisem w dokumentacji.
+4. W ustawieniach urządzenia podaj własne polecenia `on`/`off` w polach "Polecenie włączenia" i "Polecenie wyłączenia" (obowiązkowe dla encji `select`). Zobacz: [dosotsowywanie poleceń](over-switch.md#command-customization). Polecenia niestandardowe mają format: `select_option/option:<preset>`, zgodnie z opisem w dokumentacji.
 Po wykonaniu tych czterech kroków będziesz mieć w pełni funkcjonalny termostat _VTherm_, który będzie sterował Twoim Nodonem lub innym podobnym urządzeniem.
 
 ## Heatzy, eCosy, lub podobne (sterowane encją `climate`)
@@ -39,7 +41,7 @@ Aby zintegrować urządzenie z VTherm, należy wykonać następujące kroki:
 1. Utwórz termostat _VTherm_ typu `termostat na przełączniku`. Zobacz: [Wybór termostatu](creation.md)  
 2. Przypisz mu główne atrybuty (nazwa, czujnik temperatury w pomieszczeniu oraz czujnik temperatury zewnętrznej). Zobacz: [Wybór głównych atrybutów](base-attributes.md).   
 3. Przypisz jedno lub więcej urządzeń podrzędnych do sterowania. Urządzeniem podrzędnym w tym przypadku jest encja `climate`, która steruje urządzeniem **Heatzy** lub **eCosy**. Zobacz: [urządzenia](over-switch.md).  
-4. Podaj własne polecenia `on`/`off` (obowiązkowe). Zobacz: [dosotsowywanie poleceń](over-switch.md#command-customization). Polecenia niestandardowe mają format: `set_hvac_mode/hvac_mode:<mode>`, zgodnie z opisem w dokumentacji.
+4. W ustawieniach urządzenia podaj własne polecenia `on`/`off` w polach "Polecenie włączenia" i "Polecenie wyłączenia" (obowiązkowe dla encji `climate`). Zobacz: [dosotsowywanie poleceń](over-switch.md#command-customization). Polecenia niestandardowe mają format: `set_hvac_mode/hvac_mode:<mode>`, zgodnie z opisem w dokumentacji.
 
 Po wykonaniu tych czterech kroków będziesz mieć w pełni funkcjonalny termostat _VTherm_, sterujący Twoim urządzeniem _Heatzy_, _eCosy_ lub podobnym.
 
@@ -67,7 +69,7 @@ Aby zintegrować urządzenie z VTherm, należy wykonać następujące kroki:
 2. Przypisz mu główne atrybuty (nazwa, czujnik temperatury w pomieszczeniu oraz czujnik temperatury zewnętrznej). Zobacz: [Wybór głównych atrybutów](base-attributes.md). 
 3. Przypisz jedno lub więcej urządzeń podrzędnych do sterowania. Urządzeniem podrzędnym w tym przypadku jest encja `climate`, która steruje TRV. Zobacz: [urządzenia](over-switch.md).  
 4. Określ typ regulacji jako **Bezposrednie sterowanie zaworem**. Pozostaw niezaznaczoną opcję **Kompensacja temperatury podstawowej**. Zobacz [samoregulacja](over-climate.md#auto-regulation).  
-5. Podaj encje typu `number` o nazwach `opening_degree`, `closing_degree` oraz `calibration_offset`. Zobacz: [urządzenia](over-switch.md). 
+5. W ustawieniach urządzenia, wyświetlanych przy jego dodawaniu, podaj encje typu `number`: `opening_degree` w polu "Encja otwarcia zaworu" i `closing_degree` w polu "Encja zamknięcia zaworu (opcjonalnie)". Encję `calibration_offset` podaj w polu "Encja synchronizacji", jeśli włączona jest [synchronizacja temperatury wewnętrznej](feature-sync_device_temp.md). Zobacz: [samoregulacja](self-regulation.md#samoregulacja-z-bezpośrednim-sterowaniem-zaworem).
 
 
 ### Ważne uwagi
@@ -88,7 +90,7 @@ Aby zintegrować urządzenie z VTherm, należy wykonać następujące kroki:
 2. Przypisz mu główne atrybuty (nazwa, czujnik temperatury w pomieszczeniu oraz czujnik temperatury zewnętrznej). Zobacz: [Wybór głównych atrybutów](base-attributes.md).
 3. Przypisz jedno lub więcej urządzeń podrzędnych do sterowania. Urządzeniem podrzędnym w tym przypadku jest encja `climate` TRV. Zobacz: [urządzenia](over-climate.md).
 4. Włącz samoregulację: zacznij od `Słaba` lub `Średnia` i zachowaj domyślne wartości progu regulacji oraz minimalnego okresu regulacji. Zobacz: [samoregulacja](self-regulation.md). Pozostaw niezaznaczoną opcję `Użyj temperatury wewnętrznej urządzenia`, chyba że wewnętrzny termometr TRV jest bardzo niedokładny (to ostateczność, zobacz [kompensacja temperatury wewnętrznej](over-climate.md#kompensacja-temperatury-wewnętrznej-urządzeń-bazowych)).
-5. Jeśli TRV udostępnia encję `number` taką jak `local_temperature_calibration`, włącz synchronizację temperatury wewnętrznej urządzenia z kalibracją (tryb 1). Jeśli udostępnia encję `external_temperature_input`, możesz zamiast tego użyć trybu 2. Zobacz: [synchronizacja temperatury wewnętrznej](feature-sync_device_temp.md).
+5. Jeśli TRV udostępnia encję `number` taką jak `local_temperature_calibration`, włącz synchronizację temperatury wewnętrznej urządzenia z kalibracją (tryb 1). Jeśli udostępnia encję `external_temperature_input`, możesz zamiast tego użyć trybu 2. Tę encję podajesz następnie w ustawieniach urządzenia, w polu "Encja synchronizacji". Zobacz: [synchronizacja temperatury wewnętrznej](feature-sync_device_temp.md).
 
 Niektóre wbudowane funkcje TRV kolidują z _VTherm_. Są to ustawienia urządzenia, którymi _VTherm_ nie zarządza, więc sprawdź je bezpośrednio na urządzeniu (lub w Zigbee2MQTT / ZHA):
 - Wyłącz wewnętrzny harmonogram tygodniowy i nie używaj trybu systemowego `auto`. Pozostaw TRV w trybie `heat`: _VTherm_ obsługuje harmonogramy za pomocą [presetów](feature-presets.md),

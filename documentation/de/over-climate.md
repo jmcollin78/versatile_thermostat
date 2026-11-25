@@ -30,12 +30,18 @@ Die Installation sollte etwa so aussehen::
 ## Konfiguration
 
 Konfigurieren Sie zunächst die Haupteinstellungen, die für alle _VTherms_ gelten (siehe [Haupteinstellungen](base-attributes.md)).
-Klicken Sie dann im Menü auf die Option „Basiswerte“, um diese Konfigurationsseite anzuzeigen:
-
-![image](images/config-linked-entity2.png)
+Konfigurieren Sie dann die zugeordneten Geräte. Beim Erstellen des _VTherm_ zeigt der Assistent sie nach den wichtigsten Eigenschaften an. Später wählen Sie „Basiswerte“ im Menü. Dieses Menü enthält:
+- „Gemeinsame Einstellungen“: die Einstellungen, die für alle Geräte gelten (AC-Modus, Synchronisierung der Innentemperatur, Selbstregulierung, Auto-Fan...). Mit [direkter Ventilsteuerung](self-regulation.md#selbstregulierung-bei-direkter-ventilkontrolle) oder der [Synchronisierung der Innentemperatur](feature-sync_device_temp.md) folgt eine zweite Seite namens „Ventilregelung und Synchronisierung“ mit den Einstellungen dieser Funktionen, die für alle Geräte gelten,
+- einen Eintrag für jedes gesteuerte Gerät, mit seiner Entity und seinen eigenen Einstellungen,
+- „Gerät hinzufügen“.
 
 ### Die zugeordneten Geräte
-In der Liste „Zu steuernde Geräte“ sollten Sie die `climate`-Entities hinzufügen, die von VTherm gesteuert werden sollen. Es werden nur Entities des Typs `climate` akzeptiert.
+„Gerät hinzufügen“ fragt zuerst nach der zu steuernden `climate`-Entity. Es werden nur Entities des Typs `climate` akzeptiert. Danach:
+- mit direkter Ventilsteuerung fragt der nächste Bildschirm nach den Ventil-Entities und den Öffnungen dieses Geräts,
+- mit der Synchronisierung der Innentemperatur fragt er nach der Synchronisierungs-Entität dieses Geräts,
+- andernfalls wird das Gerät direkt hinzugefügt.
+
+Die Entities desselben physischen Geräts werden vorgeschlagen. Wenn Sie ein Gerät in der Liste öffnen, sehen Sie seine Einstellungen mit „Entität ersetzen“ und „Dieses Gerät entfernen“.
 
 ### Klimaanlagenmodus/AC Modus
 

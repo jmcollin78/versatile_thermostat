@@ -173,6 +173,23 @@ CONF_MANUAL_OVERRIDE_DURATION_MIN = "manual_override_duration_min"
 CONF_VSWITCH_ON_CMD_LIST = "vswitch_on_command"
 CONF_VSWITCH_OFF_CMD_LIST = "vswitch_off_command"
 
+# Fields of the form of one underlying device of the config flow. The values are stored by position
+# in the lists above (underlying_entity_ids, opening_degree_entity_ids, ...)
+CONF_UNDERLYING_ENTITY = "underlying_entity_id"
+CONF_OPENING_DEGREE_ENTITY = "opening_degree_entity_id"
+CONF_CLOSING_DEGREE_ENTITY = "closing_degree_entity_id"
+CONF_SYNC_ENTITY = "sync_entity_id"
+CONF_VSWITCH_ON_CMD = "on_command"
+CONF_VSWITCH_OFF_CMD = "off_command"
+CONF_VSWITCH_COMMANDS_SECTION = "commands"
+CONF_MIN_OPENING_DEGREE = "min_opening_degree"
+CONF_MAX_OPENING_DEGREE = "max_opening_degree"
+CONF_REPLACE_ENTITY = "replace_entity_id"
+CONF_REMOVE_UNDERLYING = "remove_underlying"
+
+# Number of devices which can be displayed (and so edited) in the config flow of a VTherm
+MAX_UNDERLYINGS = 20
+
 # Deprecated
 CONF_HEATER = "heater_entity_id"
 CONF_HEATER_2 = "heater_entity2_id"

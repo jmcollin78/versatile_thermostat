@@ -54,33 +54,25 @@ def get_prop_function_options() -> list[str]:
 
 
 def build_step_thermostat_switch_schema() -> vol.Schema:
-    """Build the proportional switch thermostat schema with dynamic algorithms."""
+    """Build the common settings of the switch thermostat with dynamic algorithms.
+    The devices themselves and their specific settings are configured one by one"""
     return vol.Schema(
         {
-            vol.Required(CONF_UNDERLYING_LIST): selector.EntitySelector(
-                selector.EntitySelectorConfig(domain=[SWITCH_DOMAIN, INPUT_BOOLEAN_DOMAIN, SELECT_DOMAIN, INPUT_SELECT_DOMAIN, CLIMATE_DOMAIN], multiple=True),
-            ),
             vol.Optional(CONF_HEATER_KEEP_ALIVE): cv.positive_int,
             vol.Required(CONF_PROP_FUNCTION, default=PROPORTIONAL_FUNCTION_TPI): vol.In(
                 get_prop_function_options()
             ),
             vol.Optional(CONF_AC_MODE, default=False): cv.boolean,
             vol.Optional(CONF_INVERSE_SWITCH, default=False): cv.boolean,
-            vol.Optional("on_command_text"): vol.In([]),
-            vol.Optional(CONF_VSWITCH_ON_CMD_LIST): selector.TextSelector(selector.TextSelectorConfig(type=selector.TextSelectorType.TEXT, multiple=True)),
-            vol.Optional("off_command_text"): vol.In([]),
-            vol.Optional(CONF_VSWITCH_OFF_CMD_LIST): selector.TextSelector(selector.TextSelectorConfig(type=selector.TextSelectorType.TEXT, multiple=True)),
         }
     )
 
 
 def build_step_thermostat_valve_schema() -> vol.Schema:
-    """Build the valve thermostat schema with dynamic algorithms."""
+    """Build the common settings of the valve thermostat with dynamic algorithms.
+    The devices themselves and their specific settings are configured one by one"""
     return vol.Schema(
         {
-            vol.Required(CONF_UNDERLYING_LIST): selector.EntitySelector(
-                selector.EntitySelectorConfig(domain=[NUMBER_DOMAIN, INPUT_NUMBER_DOMAIN], multiple=True),
-            ),
             vol.Required(CONF_PROP_FUNCTION, default=PROPORTIONAL_FUNCTION_TPI): vol.In(get_prop_function_options()),
             vol.Optional(CONF_AC_MODE, default=False): cv.boolean,
             vol.Optional(CONF_AUTO_REGULATION_DTEMP, default=10): vol.Coerce(float),
@@ -88,8 +80,6 @@ def build_step_thermostat_valve_schema() -> vol.Schema:
             vol.Optional(CONF_OPENING_THRESHOLD_DEGREE, default=0): vol.All(
                 cv.positive_int, vol.Range(min=0, max=100)
             ),
-            vol.Optional(CONF_MIN_OPENING_DEGREES, default=""): str,
-            vol.Optional(CONF_MAX_OPENING_DEGREES, default=""): str,
             vol.Optional(CONF_MAX_CLOSING_DEGREE, default=100): vol.All(
                 cv.positive_int, vol.Range(min=0, max=100)
             ),
@@ -97,29 +87,34 @@ def build_step_thermostat_valve_schema() -> vol.Schema:
     )
 
 
-def build_step_valve_regulation_schema() -> vol.Schema:
-    """Build the valve regulation schema with dynamic algorithms."""
-    return vol.Schema(
-        {
-            vol.Required(CONF_OPENING_DEGREE_LIST): selector.EntitySelector(
-                selector.EntitySelectorConfig(domain=[NUMBER_DOMAIN, INPUT_NUMBER_DOMAIN], multiple=True),
-            ),
-            vol.Optional(CONF_CLOSING_DEGREE_LIST): selector.EntitySelector(
-                selector.EntitySelectorConfig(domain=[NUMBER_DOMAIN, INPUT_NUMBER_DOMAIN], multiple=True),
-            ),
-            vol.Required(CONF_PROP_FUNCTION, default=PROPORTIONAL_FUNCTION_TPI): vol.In(
-                get_prop_function_options()
-            ),
-            vol.Optional(CONF_OPENING_THRESHOLD_DEGREE, default=0): vol.All(
-                cv.positive_int, vol.Range(min=0, max=100)
-            ),
-            vol.Optional(CONF_MIN_OPENING_DEGREES, default=""): str,
-            vol.Optional(CONF_MAX_OPENING_DEGREES, default=""): str,
-            vol.Optional(CONF_MAX_CLOSING_DEGREE, default=100): vol.All(
-                cv.positive_int, vol.Range(min=0, max=100)
-            ),
-        }
-    )
+def build_step_underlying_extra_schema(valve_regulation: bool, sync_device_internal_temp: bool) -> vol.Schema:
+    """Build the second page of the common settings of an over_climate: valve regulation and
+    synchronization of the internal temperature. Only the fields which apply are included"""
+    schema = {}
+    if valve_regulation:
+        schema[vol.Required(CONF_PROP_FUNCTION, default=PROPORTIONAL_FUNCTION_TPI)] = vol.In(get_prop_function_options())
+        schema[vol.Optional(CONF_OPENING_THRESHOLD_DEGREE, default=0)] = vol.All(cv.positive_int, vol.Range(min=0, max=100))
+        schema[vol.Optional(CONF_MAX_CLOSING_DEGREE, default=100)] = vol.All(cv.positive_int, vol.Range(min=0, max=100))
+    if sync_device_internal_temp:
+        schema[vol.Optional(CONF_SYNC_WITH_CALIBRATION, default=True)] = cv.boolean
+    return vol.Schema(schema)
+
+
+def build_step_underlying_add_schema(thermostat_type: str) -> vol.Schema:
+    """Build the schema to select the entity of a new device, the domains depend on the type of VTherm"""
+    return vol.Schema({vol.Required(CONF_UNDERLYING_ENTITY): build_underlying_entity_selector(thermostat_type)})
+
+
+def build_underlying_entity_selector(thermostat_type: str) -> selector.EntitySelector:
+    """Build the selector of the entity of one device, the domains depend on the type of VTherm"""
+    if thermostat_type == CONF_THERMOSTAT_SWITCH:
+        domains = [SWITCH_DOMAIN, INPUT_BOOLEAN_DOMAIN, SELECT_DOMAIN, INPUT_SELECT_DOMAIN, CLIMATE_DOMAIN]
+    elif thermostat_type == CONF_THERMOSTAT_VALVE:
+        domains = [NUMBER_DOMAIN, INPUT_NUMBER_DOMAIN]
+    else:
+        domains = [CLIMATE_DOMAIN]
+    return selector.EntitySelector(selector.EntitySelectorConfig(domain=domains))
+
 
 STEP_USER_DATA_SCHEMA = vol.Schema(  # pylint: disable=invalid-name
     {
@@ -242,9 +237,6 @@ STEP_THERMOSTAT_SWITCH = build_step_thermostat_switch_schema()  # pylint: disabl
 
 STEP_THERMOSTAT_CLIMATE = vol.Schema(  # pylint: disable=invalid-name
     {
-        vol.Required(CONF_UNDERLYING_LIST): selector.EntitySelector(
-            selector.EntitySelectorConfig(domain=CLIMATE_DOMAIN, multiple=True),
-        ),
         vol.Optional(CONF_AC_MODE, default=False): cv.boolean,
         vol.Optional(CONF_SYNC_DEVICE_INTERNAL_TEMP, default=False): cv.boolean,
         vol.Optional(CONF_AUTO_REGULATION_MODE, default=CONF_AUTO_REGULATION_NONE): selector.SelectSelector(
@@ -279,17 +271,6 @@ STEP_AUTO_START_STOP = vol.Schema(  # pylint: disable=invalid-name
                 translation_key="auto_start_stop",
                 mode="dropdown",
             )
-        ),
-    }
-)
-
-STEP_VALVE_REGULATION = build_step_valve_regulation_schema()  # pylint: disable=invalid-name
-
-STEP_SYNC_DEVICE_INTERNAL_TEMP = vol.Schema(  # pylint: disable=invalid-name
-    {
-        vol.Optional(CONF_SYNC_WITH_CALIBRATION, default=True): cv.boolean,
-        vol.Required(CONF_SYNC_ENTITY_LIST): selector.EntitySelector(
-            selector.EntitySelectorConfig(domain=[NUMBER_DOMAIN, INPUT_NUMBER_DOMAIN], multiple=True),
         ),
     }
 )

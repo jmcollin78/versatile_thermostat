@@ -23,23 +23,18 @@ Ten typ samoregulacji, nazwany 'Bezpośrednim sterowaniem zaworami', wymaga:
 2. Encji typu `number` do sterowania szybkością otwierania zaworu _TRV_.
 3. Opcjonalnej encji typu `number` do sterowania zamykaniem zaworu.
 
-Gdy wybraną samoregulacją jest 'bezpośrednie sterowanie zaworem' `termostatu na klimacie`, pojawia się nowe okno konfiguracji o nazwie 'Konfiguracja regulacji zaworów':
+Gdy w ustawieniach wspólnych urządzeń `termostatu na klimacie` wybrano 'bezpośrednie sterowanie zaworem', ustawienia te są kontynuowane na drugiej stronie o nazwie "Regulacja zaworem i synchronizacja". Zawiera ona ustawienia wspólne dla wszystkich zaworów:
+1. "Algorytm": algorytm obliczający stopień otwarcia: wbudowany _TPI_, ten sam, który jest używany dla `termostatu na przełączniku` i `termostatu na zaworze`, lub algorytm zainstalowany jako wtyczka. Zobacz: [algorytmy](algorithms.md),
+2. `opening_threshold`: minimalne otwarcie zaworu, poniżej którego zawór powinien być uznany za zamknięty, a w konsekwencji stosuje się parametr 'max_closing_degree',
+3. `max_closing_degree`: absolutny maksymalny procent zamknięcia. Zawór nigdy nie zamknie się bardziej niż wskazuje ta wartość. Jeśli chcesz zezwolić na całkowite zamknięcie zaworu, pozostaw ten parametr na 100.
 
-![image](images/config-self-regulation-valve-1.png)
+Każde urządzenie ma następnie własne ustawienia zaworu, podawane przy dodawaniu urządzenia i widoczne po wybraniu go na liście urządzeń:
+1. "Encja otwarcia zaworu": encja `number` sterująca stopniem otwarcia zaworu. Jest **obowiązkowa**,
+2. "Encja zamknięcia zaworu (opcjonalnie)": encja `number` sterująca stopniem zamknięcia zaworu. Należy ją podać dla **wszystkich** urządzeń lub dla **żadnego**: gdy ma ją tylko część urządzeń, pozostałe są oznaczone ⚠ na liście, a utworzenia termostatu nie można zatwierdzić. Zdecydowanie zaleca się jej użycie, jeśli jest dostępna,
+3. "Minimalne otwarcie (%)" (`minimum_opening_degrees`): minimalny procent otwarcia, gdy `opening_threshold` jest przekroczony i VTherm musi grzać. Wartość domyślna to 0. Gdy ogrzewanie się rozpoczyna (tj. żądane otwarcie jest większe niż `opening_threshold`), zawór otworzy się z wartością większą lub równą tej i będzie nadal regularnie zwiększać w razie potrzeby,
+4. "Maksymalne otwarcie (%)" (`max_opening_degrees`): maksymalny procent otwarcia, który zawór może osiągnąć. Wartością domyślną jest maksimum zaworu (pełne otwarcie). Zawór nigdy nie otworzy się powyżej tej wartości, co pozwala ograniczyć przepływ gorącej wody i zoptymalizować zużycie energii. Ta wartość musi być ściśle większa niż minimalne otwarcie i nie może przekraczać maksimum zaworu.
 
-Pozwala ono skonfigurować ustawienia sterowania zaworem:
-
-![image](images/config-self-regulation-valve-2.png)
-
-Należy podać:
-1. Tyle jednostek sterujących otwieraniem zaworu, ile jest urządzeń bazowych, w tej samej kolejności. Parametry te są **obowiązkowe**.
-2. Tyle jednostek sterujących szybkością zamykania zaworu, ile jest urządzeń bazowych, w tej samej kolejności. Parametry te są **opcjonalne**. Należy podać je **wszystkie** lub nie podawać **żadnych**. Zdecydowanie zaleca się ich użycie, jeśli są dostępne.
-3. `opening_threshold`: minimalne otwarcie zaworu, poniżej którego zawór powinien być uznany za zamknięty, a w konsekwencji stosuje się parametr 'max_closing_degree',
-4. `max_closing_degree`: absolutny maksymalny procent zamknięcia. Zawór nigdy nie zamknie się bardziej niż wskazuje ta wartość. Jeśli chcesz zezwolić na całkowite zamknięcie zaworu, pozostaw ten parametr na 100,
-5. `minimum_opening_degrees`: minimalny procent otwarcia, gdy `opening_threshold` jest przekroczony i VTherm musi grzać. To pole jest dostosowywalne dla każdego zaworu w przypadku VTherm z wieloma zaworami. Podajesz listę minimalnych otwarć oddzielonych ','. Wartość domyślna to 0. Przykład: '20, 25, 30'. Gdy ogrzewanie się rozpoczyna (tj. żądane otwarcie jest większe niż `opening_threshold`), zawór otworzy się z wartością większą lub równą tej i będzie nadal regularnie zwiększać w razie potrzeby.
-6. `max_opening_degrees`: maksymalny procent otwarcia, który zawór może osiągnąć. To pole jest dostosowywalne dla każdego zaworu w przypadku VTherm z wieloma zaworami. Podajesz listę maksymalnych otwarć oddzielonych ','. Wartość domyślna to 100 (pełne otwarcie). Przykład: '80, 85, 90'. Zawór nigdy nie otworzy się powyżej tej wartości, co pozwala ograniczyć przepływ gorącej wody i zoptymalizować zużycie energii. Ta wartość musi być ściśle większa niż `minimum_opening_degrees` dla każdego zaworu.
-
-Algorytm obliczania współczynnika otwierania oparty jest na _TPI_, który opisano [tutaj](algorithms.md). Jest to ten sam algorytm, który jest używany dla `termostatu na przełączniku` i `termostatu na zaworze`.
+Encje należące do tego samego urządzenia fizycznego są podpowiadane w pierwszej kolejności.
 
 Jeśli skonfigurowano jednostkę współczynnika zamykania zaworu, zostanie ona ustawiona na `100 - współczynnik otwierania`, aby wymusić przejście zaworu w określony stan. W przeciwnym razie zostanie ustawiona na `100`.
 

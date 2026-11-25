@@ -27,23 +27,18 @@ Ce type d'auto-régulation nommé `Controle direct de la vanne` nécessite :
 2. une entité de type `number` qui permet de contrôle du taux d'ouverture de la vanne du _TRV_,
 3. une entité facultative de type `number` permettant le contrôle de la fermeture de la vanne
 
-Lorsque l'auto-régulation choisie est `Contrôle direct de la vanne` sur un _VTherm_ `over_climate` alors une nouvelle page de configuration nommée `Configuration de la régulation par vanne` apparait :
+Lorsque `Contrôle direct de la vanne` est choisi dans les réglages communs des sous-jacents d'un _VTherm_ `over_climate`, ces réglages continuent sur une deuxième page nommée `Régulation par vanne et synchronisation`. Elle regroupe les réglages partagés par toutes les vannes :
+1. « Algorithme » : l'algorithme qui calcule le taux d'ouverture : le _TPI_ intégré, le même que pour les _VTherm_ `over_switch` et `over_valve`, ou un algorithme installé sous forme de plugin. Voir [les algorithmes](algorithms.md),
+2. `opening_threshold` : l'ouverture minimale de la vanne en dessous de laquelle la vanne doit être considérée comme fermée, et par conséquent, le paramètre 'max_closing_degree' s'applique,
+3. `max_closing_degree` : le pourcentage de fermeture maximum absolu. La vanne ne se fermera jamais plus que ce qui est indiqué dans cette valeur. Si vous voulez autoriser la fermeture complète de la vanne, alors laissez ce paramètre sur 100.
 
-![Menu de configuration](images/config-self-regulation-valve-1.png)
+Chaque appareil a ensuite ses propres réglages de vanne, demandés à l'ajout de l'appareil et affichés quand on l'ouvre dans la liste des sous-jacents :
+1. « Entité d'ouverture de la vanne » : l'entité `number` qui contrôle le taux d'ouverture de la vanne. Elle est obligatoire,
+2. « Entité de fermeture de la vanne (optionnelle) » : l'entité `number` qui contrôle le taux de fermeture de la vanne. Donnez-la pour tous les appareils ou pour aucun : quand seuls certains appareils en ont une, les autres sont marqués ⚠ dans la liste et la création ne peut pas être finalisée,
+3. « Ouverture minimale (%) » (`minimum_opening_degrees`) : le pourcentage d'ouverture minimal lorsque le `opening_threshold` est dépassé et que le VTherm doit chauffer. La valeur par défaut est 0. Lorsque la chauffe démarre (ie l'ouverture demandée est supérieure à `opening_threshold`), la vanne s'ouvrira avec une valeur supérieure ou égale à celle-ci et continuera d'augmenter régulièrement si nécessaire,
+4. « Ouverture maximale (%) » (`max_opening_degrees`) : le pourcentage d'ouverture maximal que la vanne peut atteindre. La valeur par défaut est le maximum de la vanne (ouverture complète). La vanne ne s'ouvrira jamais au-delà de cette valeur, permettant ainsi de limiter le débit d'eau chaude et d'optimiser la consommation énergétique. Cette valeur doit être strictement supérieure à l'ouverture minimale, et ne peut pas dépasser le maximum de la vanne.
 
-Elle permet de configurer les entités de contrôle de la vanne :
-
-![Entités de configuration](images/config-self-regulation-valve-2.png)
-
-Vous devez donner :
-1. autant d'entités de contrôle d'ouverture de la vanne qu'il y a de sous-jacents et dans le même ordre. Ces paramètres sont obligatoires,
-2. autant d'entités de contrôle du taux de fermeture qu'il y a de sous-jacents et dans le même ordre. Ces paramètres sont facultatifs ; ils doivent être tous fournis ou aucun,
-3. `opening_threshold` : l'ouverture minimale de la vanne en dessous de laquelle la vanne doit être considérée comme fermée, et par conséquent, le paramètre 'max_closing_degree' s'applique,
-4. `max_closing_degree` : le pourcentage de fermeture maximum absolu. La vanne ne se fermera jamais plus que ce qui est indiqué dans cette valeur. Si vous voulez autoriser la fermeture complète de la vanne, alors laissez ce paramètre sur 100,
-5. `minimum_opening_degrees` : le pourcentage d'ouverture minimal lorsque le `opening_threshold` est dépassé et que le VTherm doit chauffer. Ce champ est personnalisable par vanne dans le cas d'un VTherm avec plusieurs vannes. Vous spécifiez la liste des ouvertures minimales séparées par des ','. La valeur par défaut est 0. Exemple : '20, 25, 30'. Lorsque la chauffe démarre (ie l'ouverture demandée est supérieure à `opening_threshold`), la vanne s'ouvrira avec une valeur supérieure ou égale à celle-ci et continuera d'augmenter régulièrement si nécessaire.
-6. `max_opening_degrees` : le pourcentage d'ouverture maximal que la vanne peut atteindre. Ce champ est personnalisable par vanne dans le cas d'un VTherm avec plusieurs vannes. Vous spécifiez la liste des ouvertures maximales séparées par des ','. La valeur par défaut est 100 (ouverture complète). Exemple : '80, 85, 90'. La vanne ne s'ouvrira jamais au-delà de cette valeur, permettant ainsi de limiter le débit d'eau chaude et d'optimiser la consommation énergétique. Cette valeur doit être strictement supérieure à `minimum_opening_degrees` pour chaque vanne.
-
-Le taux d'ouverture est calculé par l'algorithme choisi dans le champ « Algorithme » de cette page : le _TPI_ intégré, le même que pour les _VTherm_ `over_switch` et `over_valve`, ou un algorithme installé sous forme de plugin. Voir [les algorithmes](algorithms.md).
+Les entités du même appareil physique sont proposées en premier.
 
 Si une entité de type taux de fermeture de la vanne est configurée, il sera positionné à la valeur `100 - taux d'ouverture` pour forcer la vanne dans un état sinon elle est positionnée à 100.
 

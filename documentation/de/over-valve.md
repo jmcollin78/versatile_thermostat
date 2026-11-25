@@ -24,11 +24,14 @@ Die Installation sollte ähnlich wie bei der VTherm-Einrichtung `over_switch` se
 ## Konfiguration
 
 Zuerst konfigurieren Sie die Haupteinstellungen, die für alle _VTherms_ gelten (siehe [Haupteinstellungen](base-attributes.md)).
-Dann klicken Sie auf die Option „Basiswerte“ aus dem Menü, dann sehen Sie diese Konfigurationsseite, Sie sollten die `number`-Entities hinzufügen, die von VTherm kontrolliert werden. Es werden nur `number` oder `input_number` Entitäten akzeptiert.
+Dann konfigurieren Sie die zugehörigen Geräte. Beim Erstellen des _VTherm_ zeigt der Assistent sie nach den wichtigsten Eigenschaften an. Später wählen Sie „Basiswerte“ im Menü. Dieses Menü enthält:
+- „Gemeinsame Einstellungen“: die Einstellungen, die für alle Ventile gelten (Algorithmus, AC-Modus, Regelungsschwelle und Mindestzeitraum, Öffnungsschwelle, maximale Schließweite),
+- einen Eintrag für jedes gesteuerte Ventil, mit seiner Entity und seinen Öffnungen,
+- „Gerät hinzufügen“.
 
-![image](images/config-linked-entity3.png)
+„Gerät hinzufügen“ fragt zuerst nach der `number`-Entity des Ventils. Es werden nur `number` oder `input_number` Entitäten akzeptiert. Der nächste Bildschirm zeigt die Einstellungen dieses Ventils: seine minimale und maximale Öffnung (siehe [Steuerung der Ventilöffnung](#steuerung-der-ventilöffnung)). Wenn Sie ein Ventil in der Liste öffnen, sehen Sie dieselben Einstellungen mit „Entität ersetzen“ und „Dieses Gerät entfernen“.
 
-Im Feld „Algorithmus“ wählen Sie den Regelalgorithmus: den integrierten TPI oder einen als Plugin installierten Algorithmus. Siehe [Algorithmen](algorithms.md).
+Im Feld „Algorithmus“ der gemeinsamen Einstellungen wählen Sie den Regelalgorithmus: den integrierten TPI oder einen als Plugin installierten Algorithmus. Siehe [Algorithmen](algorithms.md).
 
 ### Regelungsschwelle und Mindestzeitraum
 
@@ -42,9 +45,20 @@ Zwei Felder begrenzen die Anzahl der an das Ventil gesendeten Befehle:
 Ventil-Entität anpassen. Der `opening_threshold_degree` wird anhand des rohen
 TPI-Prozentsatzes ausgewertet. Liegt dieser darunter, lautet der Sollwert
 `100 - max_closing_degree`. Danach wird der Mindestöffnungsgrad angewendet und
-anschließend der Höchstöffnungsgrad. `opening_threshold_degree` und
-`max_closing_degree` gelten für den gesamten Thermostat. Mit den Standardwerten
-bleibt der gesendete Befehl identisch zum TPI-Rohwert.
+anschließend der Höchstöffnungsgrad:
+
+1. `opening_threshold_degree`, in den gemeinsamen Einstellungen: unterhalb
+	dieses rohen TPI-Prozentsatzes gilt das Ventil als geschlossen.
+2. `max_closing_degree`, in den gemeinsamen Einstellungen: maximaler
+	Schließgrad. Der Befehl unterhalb der Schwelle lautet
+	`100 - max_closing_degree`; behalten Sie den Standardwert `100` bei, um das
+	Ventil vollständig zu schließen.
+3. „Minimale Öffnung (%)“ (`min_opening_degrees`), in den Einstellungen jedes
+	Ventils: wird angewendet, sobald die Schwelle erreicht ist. Standard `0`.
+4. „Maximale Öffnung (%)“ (`max_opening_degrees`), in den Einstellungen jedes
+	Ventils: Das Ventil öffnet nie weiter als dieser Wert. Er darf das von der
+	`number`-Entity unterstützte Maximum nicht überschreiten, das auch der
+	Standardwert ist.
 
 Der physische Befehl unterschreitet niemals `100 - max_closing_degree`, auch
 nicht wenn die rohe TPI-Anforderung `opening_threshold_degree` erreicht, und
@@ -54,10 +68,10 @@ beobachtete Ventil ist nur oberhalb seines wirksamen physischen Minimums aktiv,
 das auch durch das Entity-Minimum begrenzt wird. Beim Start oder Neuladen kehrt
 ein Ventil ohne Anforderung zu diesem Minimum zurück.
 
-`min_opening_degrees` und `max_opening_degrees` sind durch Kommata getrennte
-Listen in der Reihenfolge der untergeordneten Ventile. Unvollständige Listen
-sind zulässig: fehlende Werte verwenden die Standardwerte. Listen mit mehr
-Werten als konfigurierte Ventile werden abgelehnt.
+Jedes Ventil hat seine eigene minimale und maximale Öffnung. Mit den
+Standardwerten (Schwelle `0`, Minimum `0`, Maximum des Ventils, maximale
+Schließweite `100`) bleibt der an das Ventil gesendete Befehl identisch zum
+TPI-Rohwert.
 
 Es ist möglich, einen `Thermostat_over_valve` zur Steuerung einer Klimaanlage zu wählen, indem man das Kästchen "AC Mode" aktiviert. In diesem Fall wird nur der Kühlmodus angezeigt.
 

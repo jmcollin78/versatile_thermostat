@@ -16,19 +16,18 @@ Cette page résume les étapes pour obtenir un _VTherm_ fonctionnel, quel que so
 
 ## Créer le VTherm
 
-1. **Ajoutez l'intégration** Versatile Thermostat depuis la page des intégrations et choisissez le type de _VTherm_ adapté à l'équipement (voir [Choix du VTherm](creation.md)). La configuration centrale est facultative : sans elle, laissez décochées les cases « Utiliser la configuration centrale ».
+1. **Ajoutez l'intégration** Versatile Thermostat depuis la page des intégrations et choisissez le type de _VTherm_ adapté à l'équipement (voir [Choix du VTherm](creation.md)). La configuration centrale est facultative : sans elle, laissez décochées les cases « Utiliser la configuration centrale ». Un assistant affiche ensuite les écrans suivants, l'un après l'autre.
 2. **Principaux attributs** : donnez un nom au _VTherm_ et choisissez le capteur de température de la pièce, puis le capteur de température extérieure. Gardez la durée de cycle par défaut (voir [Choix des attributs de base](base-attributes.md)).
-3. **Fonctions** : n'en activez aucune pour l'instant. Vous les ajouterez une fois le _VTherm_ fonctionnel.
-4. **Sous-jacents** : sélectionnez l'entité de l'équipement. Les réglages dépendent du type :
-   - [`over_switch`](over-switch.md) : un `switch` suffit. Pour un module fil pilote (`select`) ou une entité `climate`, renseignez les [commandes personnalisées](over-switch.md#la-personnalisation-des-commandes).
-   - [`over_climate`](over-climate.md) : si l'ouverture de la vanne d'un TRV est pilotable, choisissez le [contrôle direct de la vanne](self-regulation.md#auto-régulation-par-contrôle-direct-de-la-vanne). Sinon, laissez l'auto-régulation désactivée pour commencer.
+3. **Sous-jacents** : d'abord les réglages communs à tous les appareils, puis l'entité de l'équipement et ses propres réglages. Ils dépendent du type :
+   - [`over_switch`](over-switch.md) : un `switch` suffit. Pour un module fil pilote (`select`) ou une entité `climate`, renseignez ses [commandes personnalisées](over-switch.md#la-personnalisation-des-commandes).
+   - [`over_climate`](over-climate.md) : si l'ouverture de la vanne d'un TRV est pilotable, choisissez le [contrôle direct de la vanne](self-regulation.md#auto-régulation-par-contrôle-direct-de-la-vanne) : les entités de la vanne sont alors demandées pour chaque appareil. Sinon, laissez l'auto-régulation désactivée pour commencer.
    - [`over_valve`](over-valve.md) : sélectionnez l'entité `number` de la vanne.
 
-   Les réglages propres à un matériel (entités à utiliser, commandes, pièges connus) sont dans sa fiche du [catalogue des matériels](https://www.versatile-thermostat.org/fr/devices/).
-5. **Paramètres TPI**, si ce menu est proposé : gardez les valeurs par défaut (voir [les coefficients du TPI](algorithms.md#configurez-les-coefficients-de-lalgorithme-tpi)).
-6. **Pre-réglages** : validez le menu (voir [Les presets](feature-presets.md)).
-7. **Paramètres avancés** : gardez les valeurs par défaut du mode sécurité (voir [Paramètres de sécurité](feature-advanced.md#paramètres-de-sécurité)).
-8. **Finaliser la création** : le _VTherm_ est créé.
+   Pour piloter plusieurs équipements, ajoutez-les avec « Ajouter un appareil », puis choisissez « Continuer ». Les réglages propres à un matériel (entités à utiliser, commandes, pièges connus) sont dans sa fiche du [catalogue des matériels](https://www.versatile-thermostat.org/fr/devices/).
+4. **Paramètres TPI**, si cet écran s'affiche : gardez les valeurs par défaut (voir [les coefficients du TPI](algorithms.md#configurez-les-coefficients-de-lalgorithme-tpi)).
+5. **Fonctions** : n'en activez aucune pour l'instant. Vous les ajouterez une fois le _VTherm_ fonctionnel.
+6. **Paramètres avancés** : gardez les valeurs par défaut du mode sécurité (voir [Paramètres de sécurité](feature-advanced.md#paramètres-de-sécurité)).
+7. **Finaliser la création** : l'assistant se termine sur le menu de configuration. Choisissez « Finaliser la création » pour créer le _VTherm_. Les presets gardent leurs valeurs par défaut jusqu'à ce que vous les régliez.
 
 ## Régler et vérifier
 
