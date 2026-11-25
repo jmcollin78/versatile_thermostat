@@ -247,12 +247,15 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
             # the last sent value, to avoid resending the same setpoint on each cycle.
             self._regulated_target_temp = self.target_temperature
             for under in self._underlyings:
-                if _command_cause == COMMAND_CAUSE_UNDERLYING_TRACKING and under.underlying_target_temperature == self.target_temperature:
+                if not under.is_initialized:
                     continue
-                if under.last_sent_temperature == self.target_temperature:
+                target_temp = under.clamp_sent_value(self.target_temperature)
+                if _command_cause == COMMAND_CAUSE_UNDERLYING_TRACKING and under.underlying_target_temperature == target_temp:
+                    continue
+                if under.last_sent_temperature == target_temp:
                     continue
                 await under.set_temperature(
-                    self.target_temperature,
+                    target_temp,
                     self._attr_max_temp,
                     self._attr_min_temp,
                     command_cause=_command_cause,
@@ -309,6 +312,8 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
 
         self._last_regulation_change = self.now
         for under in self._underlyings:
+            if not under.is_initialized:
+                continue
             # issue 348 - use device temperature if configured as offset
             offset_temp = 0
             device_temp = 0
@@ -322,7 +327,10 @@ class ThermostatOverClimate(BaseThermostat[UnderlyingClimate]):
             ):
                 offset_temp = device_temp - self.current_temperature
 
-            target_temp = round_to_nearest(new_regulated_temp + offset_temp, regulation_step)
+            target_temp = under.clamp_sent_value(round_to_nearest(new_regulated_temp + offset_temp, regulation_step))
+
+            if not force and target_temp == under.last_sent_temperature:
+                continue
 
             # The dtemp is the difference between the new target temp and the last sent temperature to the underlying.
             # If the dtemp is too low, we consider that there is no need to send a new temperature to the underlying because it

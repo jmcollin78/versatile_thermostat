@@ -1,7 +1,7 @@
 # pylint: disable=wildcard-import, unused-wildcard-import, protected-access, unused-argument, line-too-long
 
 """ Test the normal start of a Thermostat """
-from unittest.mock import patch, call, ANY
+from unittest.mock import patch, call, ANY, PropertyMock
 from datetime import datetime, timedelta
 
 from homeassistant.core import HomeAssistant
@@ -737,6 +737,69 @@ async def test_over_climate_set_regulation_mode_none_replaces_algo(
     # The do-nothing algo must now be in place: it always returns the target
     entity._regulation_algo.set_target_temp(20)
     assert entity._regulation_algo.calculate_regulated_temperature(17, 10, 1.0) == 20
+
+    entity.remove_thermostat()
+
+
+@pytest.mark.parametrize("hvac_mode", [VThermHvacMode_HEAT, VThermHvacMode_COOL, VThermHvacMode_DRY])
+@pytest.mark.parametrize("use_device_temp", [False, True])
+async def test_over_climate_device_steps(hass: HomeAssistant, skip_hass_states_is_state, skip_send_event, hvac_mode, use_device_temp):
+    """Normalize each device's setpoint before filtering repeated commands (#2260)."""
+    for unique_id, step in [("mock_climate", 0.5), ("other_climate", 1.0)]:
+        await create_and_register_mock_climate(
+            hass,
+            unique_id,
+            unique_id,
+            hvac_modes=[VThermHvacMode_OFF, VThermHvacMode_HEAT, VThermHvacMode_COOL, VThermHvacMode_DRY],
+            step=step,
+        )
+
+    entry = MockConfigEntry(
+        domain=DOMAIN,
+        title="TheOverClimateMockName",
+        unique_id="uniqueId",
+        data=PARTIAL_CLIMATE_CONFIG | {
+            CONF_UNDERLYING_LIST: ["climate.mock_climate", "climate.other_climate"],
+            CONF_AC_MODE: True,
+            CONF_AUTO_REGULATION_DTEMP: 0.1,
+            CONF_AUTO_REGULATION_PERIOD_MIN: 0,
+            CONF_AUTO_REGULATION_USE_DEVICE_TEMP: use_device_temp,
+        },
+    )
+    entity: ThermostatOverClimate = await create_thermostat(hass, entry, "climate.theoverclimatemockname")
+    await wait_for_local_condition(lambda: entity.is_ready is True)
+
+    with (
+        patch.object(ThermostatOverClimate, "current_temperature", new_callable=PropertyMock, return_value=20.0),
+        patch.object(UnderlyingClimate, "underlying_current_temperature", new_callable=PropertyMock, return_value=20.6),
+        patch.object(entity._regulation_algo, "calculate_regulated_temperature", return_value=20.8),
+        patch.object(UnderlyingClimate, "hass_services_async_call") as mock_service_call,
+    ):
+        await entity.async_set_hvac_mode(hvac_mode)
+        await entity.async_set_temperature(temperature=20.8)
+        await hass.async_block_till_done()
+
+        first, second = entity._underlyings
+        first._last_sent_temperature = None
+        second._last_sent_temperature = None
+        mock_service_call.reset_mock()
+        expected_first = 21.5 if use_device_temp and hvac_mode != VThermHvacMode_DRY else 21.0
+
+        with (
+            patch.object(first, "set_temperature", wraps=first.set_temperature) as first_send,
+            patch.object(second, "set_temperature", wraps=second.set_temperature) as second_send,
+        ):
+            await entity._send_regulated_temperature(force=True)
+            first_send.assert_awaited_once_with(expected_first, entity.max_temp, entity.min_temp, command_cause=None)
+            second_send.assert_awaited_once_with(21.0, entity.max_temp, entity.min_temp, command_cause=None)
+            assert first.last_sent_temperature == expected_first
+            assert second.last_sent_temperature == 21.0
+            assert mock_service_call.await_count == 2
+
+            await entity._send_regulated_temperature()
+            assert first_send.await_count == 1
+            assert second_send.await_count == 1
+            assert mock_service_call.await_count == 2
 
     entity.remove_thermostat()
 

@@ -1407,6 +1407,78 @@ async def test_bug_2003(hass: HomeAssistant, supported_features):
 
 
 @pytest.mark.parametrize(
+    "min_temp, max_temp, step, sent, expected",
+    [
+        (7.0, 30.0, 0.5, 20.8, 21.0),
+        (7.0, 30.0, 0.5, 20.2, 20.0),
+        (20.2, 30.0, 0.5, 20.9, 20.7),
+        (7.0, 30.0, 1.0, 20.6, 21.0),
+        (None, 30.0, 0.5, 20.8, 21.0),
+        (7.0, 30.0, None, 20.8, 20.8),
+        (7.0, 30.0, 0.5, 30.8, 30.0),
+        (7.0, 30.0, 0.5, 6.8, 7.0),
+        (20.2, 30.0, 0.5, 30.1, 29.7),
+        (None, 30.2, 0.5, 30.8, 30.0),
+        (7.0, None, 0.5, 20.8, 21.0),
+        (7.0, 30.0, 0.0, 20.8, 20.8),
+        (7.0, 30.0, -0.5, 20.8, 20.8),
+        (7.0, 30.0, float("nan"), 20.8, 20.8),
+        (7.0, 30.0, float("inf"), 20.8, 20.8),
+    ],
+    ids=[
+        "issue-2260_daikin_half_degree",
+        "issue-2260_half_degree_lower_side",
+        "issue-2260_offset_grid_min_20p2",
+        "issue-2260_integer_step_haier",
+        "issue-2260_no_min_temp",
+        "issue-2260_no_step_regression",
+        "issue-2260_above_max",
+        "issue-2260_below_min",
+        "issue-2260_offset_grid_upper_bound",
+        "issue-2260_only_max_temp",
+        "issue-2260_only_min_temp",
+        "issue-2260_zero_step",
+        "issue-2260_negative_step",
+        "issue-2260_nan_step",
+        "issue-2260_infinite_step",
+    ],
+)
+async def test_bug_2260(hass: HomeAssistant, min_temp, max_temp, step, sent, expected):
+    """Bug #2260 - sent temperatures must respect the device's step and bounds."""
+
+    thermostat = MagicMock()
+    under = UnderlyingClimate(
+        hass=hass,
+        thermostat=thermostat,
+        climate_entity_id="climate.test",
+    )
+
+    under_state = State(
+        "climate.test",
+        HVACMode.HEAT,
+        attributes={
+            "supported_features": ClimateEntityFeature.TARGET_TEMPERATURE,
+            "temperature": 20.0,
+            **({"min_temp": min_temp} if min_temp is not None else {}),
+            **({"max_temp": max_temp} if max_temp is not None else {}),
+            **({"target_temp_step": step} if step is not None else {}),
+        },
+    )
+    under.state_manager.get_state = MagicMock(return_value=under_state)
+    under.hass_services_async_call = AsyncMock()
+
+    with patch.object(type(under), "is_initialized", new_callable=PropertyMock, return_value=True):
+        assert under.clamp_sent_value(sent) == expected
+        assert under.clamp_sent_value(expected) == expected
+        await under.set_temperature(sent, 35.0, 7.0)
+
+    assert under.last_sent_temperature == expected
+    assert under.hass_services_async_call.await_count == 1
+    sent_data = under.hass_services_async_call.await_args.args[2]
+    assert sent_data[ATTR_TEMPERATURE] == expected
+
+
+@pytest.mark.parametrize(
     "unit_system_name, step, expected_precision, target_temp",
     [
         ("US_CUSTOMARY", 0.5, 0.5, 68.5),
