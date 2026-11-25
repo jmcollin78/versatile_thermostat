@@ -54,6 +54,7 @@ from homeassistant.util import dt as dt_util
 from vtherm_api import ValveCommand, ValveCommandCause
 from vtherm_api.log_collector import get_vtherm_logger
 from .opening_degree_algorithm import OpeningClosingDegreeCalculation
+from .commons import round_to_nearest
 
 
 from .const import *  # pylint: disable=wildcard-import, unused-wildcard-import
@@ -1212,17 +1213,17 @@ class UnderlyingClimate(UnderlyingEntity):
         return self.get_underlying_attribute("temperature_unit") or UnitOfTemperature.CELSIUS
 
     @property
-    def min_temp(self) -> str:
+    def min_temp(self) -> float | None:
         """Get the min_temp"""
         return self.get_underlying_attribute(ATTR_MIN_TEMP)
 
     @property
-    def max_temp(self) -> str:
+    def max_temp(self) -> float | None:
         """Get the max_temp"""
         return self.get_underlying_attribute(ATTR_MAX_TEMP)
 
     @property
-    def target_temperature_step(self) -> float:
+    def target_temperature_step(self) -> float | None:
         """Get the target_temperature_step"""
         return self.get_underlying_attribute(ATTR_TARGET_TEMP_STEP)
 
@@ -1274,11 +1275,7 @@ class UnderlyingClimate(UnderlyingEntity):
 
     @overrides
     def clamp_sent_value(self, value) -> float:
-        """Try to adapt the target temp value to the min_temp / max_temp found
-        in the underlying entity (if any)"""
-        min_val = None
-        max_val = None
-
+        """Adapt the target temperature to the device's setpoint step and bounds."""
         if not self.is_initialized:
             raise RuntimeError(f"{self} - cannot cap sent value because underlying is not initialized")
             # return value
@@ -1288,18 +1285,22 @@ class UnderlyingClimate(UnderlyingEntity):
         # because HA's climate component normalizes them via show_temp() before storing.
         # No unit conversion is needed here.
 
-        if self.min_temp is not None:
-            min_val = self.min_temp
-            max_val = self.max_temp
+        min_val = self.min_temp
+        max_val = self.max_temp
+        new_value = self.adapt_to_device_step(value)
 
-            new_value = max(min_val, min(value, max_val))
-        else:
-            _LOGGER.debug("%s - no min and max attributes on underlying", self)
-            new_value = value
+        if min_val is not None:
+            new_value = max(min_val, new_value)
+        if max_val is not None:
+            max_step_value = self.adapt_to_device_step(max_val)
+            step = self.target_temperature_step
+            if max_step_value > max_val and step is not None:
+                max_step_value = round(max_step_value - step, 6)
+            new_value = min(new_value, max_step_value)
 
         if new_value != value:
             _LOGGER.info(
-                "%s - Target temp have been updated due min, max of the underlying entity. new_value=%.0f value=%.0f min=%.0f max=%.0f",
+                "%s - Target temperature adapted to device constraints. new_value=%s value=%s min=%s max=%s",
                 self,
                 new_value,
                 value,
@@ -1308,6 +1309,14 @@ class UnderlyingClimate(UnderlyingEntity):
             )
 
         return new_value
+
+    def adapt_to_device_step(self, value: float) -> float:
+        """Round to the device's step relative to its minimum temperature, if known."""
+        step = self.target_temperature_step
+        if step is None or not math.isfinite(step) or step <= 0:
+            return value
+        base = self.min_temp or 0.0
+        return round(base + round_to_nearest(value - base, step), 6)
 
     def set_min_max_step_sync_entity(
         self,
