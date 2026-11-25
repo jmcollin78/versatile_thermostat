@@ -827,12 +827,12 @@ def hvac_action() -> HVACAction
 
 ## Plugin Hooks (issue #2181)
 
-The underlyings notify the optional hooks of the external feature managers (plugins) through `BaseThermostat`. The hooks are defined by `vtherm_api` 0.9.0 and are notifications only: they never modify or cancel the core command. A hook is called only for a manager whose `is_configured` is true, is awaited under `UNDERLYING_HOOK_TIMEOUT_SEC` (10 s) and an exception or a timeout is logged without blocking the command. Without any external manager the call returns immediately. See [issue-2181-design.md](issue-2181-design.md) (in French) for the full design.
+The underlyings notify the optional hooks of the external feature managers (plugins) through `BaseThermostat`. The hooks of the table below are defined by `vtherm_api` 0.9.0 and are notifications only: they never modify or cancel the core command. The contracts described after the table (valve write, calibration offset) are defined by `vtherm_api` 0.10.0 and can change the command. A hook is called only for a manager whose `is_configured` is true, is awaited under `UNDERLYING_HOOK_TIMEOUT_SEC` (10 s) and an exception or a timeout is logged without blocking the command. Without any external manager the call returns immediately. See [issue-2181-design.md](issue-2181-design.md) (in French) for the full design.
 
 | Hook                                | Called from                                                  | When                                                                                                                                                                  |
 | ----------------------------------- | ------------------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `async_before_underlying_hvac_mode` | `UnderlyingClimate.set_hvac_mode`                            | Just before `climate.set_hvac_mode`, with the real state of the climate as `current_hvac_mode`. Not called if the mode is already set, if the inhibition gate blocks the command or if the overpowering refuses to turn on. `command_cause` is `"underlying_tracking"` when the VTherm follows a change made on the device. |
-| `async_after_valve_command`         | `UnderlyingValveRegulation.send_percent_open`                | After the opening degree and, if any, the closing degree have been sent. Not called if the inhibition gate blocks `set_value` on the opening entity.                  |
+| `async_after_valve_command`         | `UnderlyingValveRegulation.send_percent_open` and the valve recalibration | After the opening degree and, if any, the closing degree have been sent. Not called if the inhibition gate blocks `set_value` on the opening entity.                  |
 
 `send_percent_open` takes a `cause` (`ValveCommandCause`), ignored by `UnderlyingValve` which keeps the same signature:
 
@@ -843,10 +843,33 @@ The underlyings notify the optional hooks of the external feature managers (plug
 | `async_inhibition_stop`                                         | `TURN_OFF`   |
 | `check_initial_state`                                           | `STARTUP`    |
 | `check_and_repair`                                              | `REPAIR`     |
+| `service_recalibrate_valves` (`async_notify_recalibration_write`) | `RECALIBRATION` |
 
 When a VTherm goes OFF, the climates receive the OFF mode first (so `async_before_underlying_hvac_mode` runs first). The valve is closed afterwards by the regulation, with the cause `REGULATION` and `hvac_mode="off"`. This order is kept on purpose. The `TURN_OFF` cause is used only when `turn_off` is called on the underlying itself or when an inhibition stops.
 
-The valve recalibration and `_seed_unknown_degrees_once` write the number entities with `send_value_to_number` and do not call the hook. `UnderlyingValveRegulation.climate_entity_id` exposes the climate it drives. The power hook (`async_on_underlying_power`) is called by the `CycleScheduler`, see [cycle_scheduler.md](cycle_scheduler.md).
+`_seed_unknown_degrees_once` writes the number entities with `send_value_to_number` and does not call the hook. The valve recalibration does the same, then calls `UnderlyingValveRegulation.async_notify_recalibration_write`: the hook receives, for each valve, one `RECALIBRATION` command after the full opening (`percent_open=100`, opening and closing degrees as forced, `closing_degree=None` without closing entity) and one after the full closing (`percent_open=0`), with `written_by_plugin=False` and `requested_opening_degree=None`. A plugin that owns a companion entity, for example the closing degree of a device the VTherm does not drive, aligns it there. Nothing is notified when the inhibition gate drops the write. `UnderlyingValveRegulation.climate_entity_id` exposes the climate it drives. The power hook (`async_on_underlying_power`) is called by the `CycleScheduler`, see [cycle_scheduler.md](cycle_scheduler.md).
+
+### Valve write (`async_before_valve_write`)
+
+`UnderlyingValveRegulation.send_percent_open` calls `BaseThermostat.async_before_valve_write` after the opening and closing degrees have been computed and before they are written. A plugin can change the opening degree, or write the valve itself (for example to run a closing sequence specific to a device). The contract is `InterfaceValveWriteHook` in `vtherm_api` 0.10.0.
+
+- The call is made for every cause. It is not made for the valve recalibration (which only notifies `async_after_valve_command`), for `_seed_unknown_degrees_once`, nor when the inhibition gate blocks `set_value` on the opening entity (nothing is written and nothing is notified, as before).
+- The managers are called in the order of registration, each one under `UNDERLYING_HOOK_TIMEOUT_SEC`. Each one receives in `opening_degree` the value left by the previous one. `requested_opening_degree` is always the value of the core.
+- `None` or an empty `ValveWriteDecision` leaves the value unchanged. A value is rounded to an integer and clamped to `0..max_opening_degree`. A value which is not a finite number, an answer which is not a `ValveWriteDecision`, an exception and a timeout are logged and ignored.
+- When the value is changed and the core writes, the closing degree is `100 - opening degree`, like the closing degree computed by the core.
+- `handled=True` stops the chain. The core writes neither the opening nor the closing degree. If `opening_degree` is given it is the value the valve will end at, otherwise it is the proposed value.
+- In both cases the final value becomes `_last_sent_opening_value`, and `_settle_sec` holds the `settle_sec` of the decision (the largest one if several managers give one, `None` for the default). When a plugin handles the write, or announces a `settle_sec`, `_last_command_sent_datetime` is set to the time of the decision. `check_and_repair` waits `settle_sec` (default `resend_delay_sec`, 2 s) after it. A repair goes through the hook again, with the cause `REPAIR`.
+- `async_inhibition_resync` expects the valve at the final value of the plugin when the core value has not changed since the last command, and no longer checks the closing degree if a plugin wrote the valve.
+- `async_after_valve_command` is called in all cases. `ValveCommand.requested_opening_degree` holds the value of the core when a manager changed it, `ValveCommand.written_by_plugin` is true when a plugin wrote the valve.
+
+### Calibration offset (`adjust_calibration_offset`)
+
+`ThermostatOverClimate.synchronize_device_temperature` calls `BaseThermostat.adjust_calibration_offset` in calibration mode only (`sync_with_calibration`), after the offset has been computed, clamped and rounded by the core, and before it is compared with the current offset. The contract is `InterfaceCalibrationOffsetModifier` in `vtherm_api` 0.10.0. It is synchronous and does no input or output.
+
+- The request holds the offset proposed, the offset of the core (`requested_offset`), the raw `current_offset` read from the calibration entity, the temperature of the device, the temperature of the room, and the `min_offset`, `max_offset` and `step` of the entity. The values are in the unit and the direction of the device: a device with an inverted sign receives `current_offset` as it is and can compute the offset again.
+- The managers are called in the order of registration, each one receives the value left by the previous one, `None` keeps the value. An exception or a value which is not a finite number is logged and ignored.
+- When a manager changed the value, the core rounds it to `step` and clamps it to `min_offset..max_offset`. The offset is written only if it differs from `current_offset`.
+- Nothing is called when the data is missing (no temperature of the device, of the room or of the calibration entity), nor in the mode where the room temperature is sent directly to the device.
 
 ---
 

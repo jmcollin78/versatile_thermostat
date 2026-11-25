@@ -180,9 +180,9 @@ async def test_external_feature_manager_refreshed_each_cycle(
         assert isinstance(entity, ThermostatOverClimate)
 
         # 1. The external manager has been instantiated and registered
-        assert "fake_external_fm" in entity._external_manager_names
-        assert len(entity._external_managers) == 1
-        fake_manager: FakeExternalFeatureManager = entity._external_managers[0]
+        assert entity.external_manager.has_manager("fake_external_fm")
+        assert len(entity.external_manager) == 1
+        fake_manager: FakeExternalFeatureManager = list(entity.external_manager)[0]
         assert fake_manager in entity._managers
         assert fake_manager.post_init_calls >= 1
 
@@ -235,7 +235,7 @@ async def test_reload_only_entry_keeps_feature_manager(
             hass, "climate.theoverclimatemockname", "climate"
         )
         assert entity
-        assert "fake_external_fm" in entity._external_manager_names
+        assert entity.external_manager.has_manager("fake_external_fm")
     finally:
         api.unregister_feature_manager("fake_external_fm")
 

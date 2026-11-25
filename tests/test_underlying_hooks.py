@@ -404,8 +404,8 @@ async def test_valve_hook_causes(hass: HomeAssistant, fake_temp_sensor, fake_ext
     await uninhibit(hass, vtherm)
 
 
-async def test_valve_hook_not_called_for_seed_nor_recalibration(hass: HomeAssistant, fake_temp_sensor, fake_ext_temp_sensor):
-    """The seed of unknown degrees and the recalibration write the numbers without the valve hook"""
+async def test_valve_hook_not_called_for_seed_nor_direct_number_write(hass: HomeAssistant, fake_temp_sensor, fake_ext_temp_sensor):
+    """The seed of unknown degrees and a direct write of the numbers do not notify the valve hook"""
     events = register(hass)
     vtherm, _, opening, closing = await heating_climate_valve_vtherm(hass, fake_temp_sensor)
     under = vtherm._underlyings_valve_regulation[0]
@@ -419,7 +419,7 @@ async def test_valve_hook_not_called_for_seed_nor_recalibration(hass: HomeAssist
         await hass.async_block_till_done()
         assert any(e[0] == "service" and e[3] == CLOSING for e in events)
 
-        # recalibration
+        # direct write of the numbers
         events.clear()
         await under.send_value_to_number(OPENING, 100)
         await under.send_value_to_number(CLOSING, 0)
@@ -427,6 +427,71 @@ async def test_valve_hook_not_called_for_seed_nor_recalibration(hass: HomeAssist
         assert any(e[0] == "service" and e[3] == OPENING for e in events)
 
     assert commands(events, "after_valve") == []
+
+
+def recalibration_commands(events: list) -> list:
+    """The valve commands sent for the recalibration"""
+    return [c for c in commands(events, "after_valve") if c.cause == ValveCommandCause.RECALIBRATION]
+
+
+async def recalibrate(hass: HomeAssistant, vtherm) -> None:
+    """Run the valve recalibration to its end, without the real delays"""
+    with patch("custom_components.versatile_thermostat.thermostat_climate_valve.asyncio.sleep"):
+        await vtherm.service_recalibrate_valves(1)
+        await hass.async_block_till_done()
+
+
+async def test_valve_hook_called_for_recalibration(hass: HomeAssistant, fake_temp_sensor, fake_ext_temp_sensor):
+    """The recalibration notifies the full opening then the full closing, after each forced write"""
+    events = register(hass)
+    vtherm, _, _, _ = await heating_climate_valve_vtherm(hass, fake_temp_sensor)
+    events.clear()
+
+    with record_services(events):
+        await recalibrate(hass, vtherm)
+
+    valve_commands = recalibration_commands(events)
+    assert len(valve_commands) == 2
+    full_open, full_close = valve_commands
+    assert (full_open.percent_open, full_open.opening_degree, full_open.closing_degree) == (100, 100, 0)
+    assert (full_close.percent_open, full_close.opening_degree, full_close.closing_degree) == (0, 0, 100)
+    for command in valve_commands:
+        assert command.climate_entity_id == CLIMATE
+        assert command.opening_degree_entity_id == OPENING
+        assert command.closing_degree_entity_id == CLOSING
+        assert command.written_by_plugin is False
+        assert command.requested_opening_degree is None
+        assert command.hvac_mode == "off"
+    # each notification follows the forced writes it announces
+    assert position(events, lambda e: e[0] == "service" and e[3] == CLOSING and e[4]["value"] == 0) < position(
+        events, lambda e: e[0] == "after_valve" and e[1].cause == ValveCommandCause.RECALIBRATION
+    )
+
+
+async def test_valve_hook_recalibration_without_closing_entity(hass: HomeAssistant, fake_temp_sensor, fake_ext_temp_sensor):
+    """No closing degree entity: the recalibration notifies a closing_degree None"""
+    events = register(hass)
+    vtherm, _, _, _ = await heating_climate_valve_vtherm(hass, fake_temp_sensor)
+    under = vtherm._underlyings_valve_regulation[0]
+    under._closing_degree_entity_id = None
+    events.clear()
+
+    await recalibrate(hass, vtherm)
+
+    valve_commands = recalibration_commands(events)
+    assert [(c.percent_open, c.opening_degree, c.closing_degree, c.closing_degree_entity_id) for c in valve_commands] == [(100, 100, None, None), (0, 0, None, None)]
+
+
+async def test_valve_hook_recalibration_dropped_by_the_gate(hass: HomeAssistant, fake_temp_sensor, fake_ext_temp_sensor):
+    """The gate drops the forced writes of the recalibration: nothing is notified"""
+    events = register(hass)
+    vtherm, _, _, _ = await heating_climate_valve_vtherm(hass, fake_temp_sensor)
+    await inhibit(hass, vtherm, False)
+    events.clear()
+
+    await recalibrate(hass, vtherm)
+
+    assert recalibration_commands(events) == []
 
 
 ##
@@ -570,7 +635,7 @@ async def test_unconfigured_manager_receives_nothing(hass: HomeAssistant, fake_t
     await vtherm.async_set_hvac_mode(VThermHvacMode_OFF)
     await hass.async_block_till_done()
 
-    assert len(vtherm._external_managers) == 1
+    assert len(vtherm.external_manager) == 1
     assert events == []
 
 
@@ -591,7 +656,7 @@ async def test_failing_is_configured_is_isolated(hass: HomeAssistant, fake_temp_
     api(hass).register_feature_manager(good_factory)
 
     vtherm, _, opening, _ = await heating_climate_valve_vtherm(hass, fake_temp_sensor)
-    assert len(vtherm._external_managers) == 2
+    assert len(vtherm.external_manager) == 2
     good_events.clear()
 
     with record_services(good_events):
@@ -626,7 +691,7 @@ async def test_failing_hook_is_logged_and_core_command_is_sent(hass: HomeAssista
 async def test_slow_hook_times_out_and_core_command_is_sent(hass: HomeAssistant, fake_temp_sensor, fake_ext_temp_sensor, caplog):
     """A hook slower than the timeout is cut, logged, and the core command is sent"""
     register(hass, SlowManager)
-    with patch("custom_components.versatile_thermostat.base_thermostat.UNDERLYING_HOOK_TIMEOUT_SEC", 0.05):
+    with patch("custom_components.versatile_thermostat.external_manager.UNDERLYING_HOOK_TIMEOUT_SEC", 0.05):
         vtherm, _, _, _ = await heating_climate_valve_vtherm(hass, fake_temp_sensor)
         await vtherm.async_set_hvac_mode(VThermHvacMode_OFF)
         await hass.async_block_till_done()
@@ -652,7 +717,7 @@ async def test_manager_with_one_hook_only(hass: HomeAssistant, fake_temp_sensor,
 async def test_no_plugin_no_error(hass: HomeAssistant, fake_temp_sensor, fake_ext_temp_sensor):
     """Without any external manager the hooks return immediately"""
     vtherm, _, _, _ = await heating_climate_valve_vtherm(hass, fake_temp_sensor)
-    assert vtherm._external_managers == []
+    assert not vtherm.external_manager
     await vtherm.async_set_hvac_mode(VThermHvacMode_OFF)
     await hass.async_block_till_done()
     assert hass.states.get(CLIMATE).state == "off"

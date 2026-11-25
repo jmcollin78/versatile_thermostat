@@ -91,10 +91,13 @@ class FakeSetpointModifierFactory:
         return manager
 
 
-async def create_modified_thermostat(hass: HomeAssistant, **options) -> tuple[ThermostatOverClimate, FakeSetpointModifierFactory, datetime]:
-    """Register the fake plugin, create the thermostat and return it with the factory and the simulated date"""
+async def create_modified_thermostat(hass: HomeAssistant, extra_factories=(), **options) -> tuple[ThermostatOverClimate, FakeSetpointModifierFactory, datetime]:
+    """Register the fake plugin (then extra_factories, in order), create the thermostat and return it with the factory and the simulated date"""
     factory = FakeSetpointModifierFactory(**options)
-    VersatileThermostatAPI.get_vtherm_api(hass).register_feature_manager(factory)
+    api = VersatileThermostatAPI.get_vtherm_api(hass)
+    api.register_feature_manager(factory)
+    for extra in extra_factories:
+        api.register_feature_manager(extra)
 
     entry = MockConfigEntry(domain=DOMAIN, title="TheOverClimateMockName", unique_id="uniqueId", data=CONFIG)
     entity: ThermostatOverClimate = await create_thermostat(hass, entry, "climate.theoverclimatemockname")
@@ -223,16 +226,24 @@ async def test_is_configured_failure_is_isolated(hass: HomeAssistant, skip_send_
 
 async def test_several_modifiers_are_applied_in_order(hass: HomeAssistant, skip_send_event, fake_temp_sensor, fake_ext_temp_sensor, fake_underlying_climate):
     """Each modifier receives the value returned by the previous one, in the order of registration. A failing one keeps the value it received"""
-    entity, factory, _ = await create_modified_thermostat(hass)
-    first = factory.managers[0]
-    second = FakeSetpointModifier(entity, delta=-0.5)
-    third = FakeSetpointModifier(entity, fail=True)
-    entity._external_managers.extend([second, third])
+    second_factory = FakeSetpointModifierFactory(delta=-0.5)
+    second_factory.name = "second_setpoint_modifier"
+    third_factory = FakeSetpointModifierFactory(fail=True)
+    third_factory.name = "third_setpoint_modifier"
+    api = VersatileThermostatAPI.get_vtherm_api(hass)
+    try:
+        entity, factory, _ = await create_modified_thermostat(hass, extra_factories=(second_factory, third_factory))
+        first, second, third = factory.managers[0], second_factory.managers[0], third_factory.managers[0]
+        for manager in (first, second, third):
+            manager.calls.clear()
 
-    assert entity._adjust_regulated_temperature(21, 0.5, None) == 19.5
-    assert [call[0] for call in first.calls] == [21]
-    assert [call[0] for call in second.calls] == [20]
-    assert [call[0] for call in third.calls] == [19.5]
+        assert entity._adjust_regulated_temperature(21, 0.5, None) == 19.5
+        assert [call[0] for call in first.calls] == [21]
+        assert [call[0] for call in second.calls] == [20]
+        assert [call[0] for call in third.calls] == [19.5]
+    finally:
+        api.unregister_feature_manager("second_setpoint_modifier")
+        api.unregister_feature_manager("third_setpoint_modifier")
 
     entity.remove_thermostat()
 
@@ -342,7 +353,7 @@ async def check_flow_is_unchanged(entity: ThermostatOverClimate) -> None:
 async def test_plain_thermostat_flow_is_unchanged(hass: HomeAssistant, skip_send_event, fake_temp_sensor, fake_ext_temp_sensor, fake_underlying_climate):
     """Without any plugin, the flow is the one of a thermostat without the hook"""
     entity = await create_plain_thermostat(hass)
-    assert not entity._external_managers
+    assert not entity.external_manager
 
     await check_flow_is_unchanged(entity)
 
@@ -352,7 +363,7 @@ async def test_plain_thermostat_flow_is_unchanged(hass: HomeAssistant, skip_send
 async def test_unconfigured_manager_flow_is_unchanged(hass: HomeAssistant, skip_send_event, fake_temp_sensor, fake_ext_temp_sensor, fake_underlying_climate):
     """With a plugin which is not configured, the flow is the one of a thermostat without a plugin"""
     entity, _, _ = await create_modified_thermostat(hass, configured=False)
-    assert entity._external_managers
+    assert entity.external_manager
 
     await check_flow_is_unchanged(entity)
 
@@ -365,7 +376,7 @@ async def test_other_plugin_flow_is_unchanged(hass: HomeAssistant, skip_send_eve
     api.register_feature_manager(FakeExternalFeatureManagerFactory())
     try:
         entity = await create_plain_thermostat(hass)
-        assert entity._external_managers
+        assert entity.external_manager
 
         await check_flow_is_unchanged(entity)
 

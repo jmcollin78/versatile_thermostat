@@ -17,6 +17,7 @@ from custom_components.versatile_thermostat.thermostat_climate import (
 )
 from custom_components.versatile_thermostat.underlyings import UnderlyingClimate
 from custom_components.versatile_thermostat.feature_repair_incorrect_state_manager import FeatureRepairIncorrectStateManager
+from custom_components.versatile_thermostat.external_manager import ExternalManager
 
 from custom_components.versatile_thermostat.switch import (
     FollowUnderlyingTemperatureChange,
@@ -1831,6 +1832,7 @@ async def test_multi_climate(
 async def test_underlying_climate_target_temperature_bounds_are_not_exposed(hass: HomeAssistant, attributes):
     """The underlying climate wrapper does not expose target temperature bounds."""
     thermostat = MagicMock(spec=ThermostatOverClimate)
+    thermostat.external_manager = ExternalManager(thermostat)
     under = UnderlyingClimate(hass, thermostat, "climate.mock_climate")
     under._is_initialized = True
     under._state_manager.get_state = MagicMock(return_value=State("climate.mock_climate", HVACMode.OFF, attributes=attributes))
@@ -1856,6 +1858,7 @@ async def test_delayed_temperature_resend_uses_effective_setpoint(
     expected_temperature,
 ):
     thermostat = MagicMock(spec=ThermostatOverClimate)
+    thermostat.external_manager = ExternalManager(thermostat)
     thermostat.get_underlying_hvac_mode.side_effect = lambda hvac_mode: hvac_mode
     thermostat.now = datetime.now(tz=get_tz(hass))
     thermostat.target_temperature = target_temperature
@@ -1908,6 +1911,7 @@ async def test_delayed_temperature_resend_cancelled_on_hvac_off(hass: HomeAssist
     """A HEAT -> OFF sequence must cancel the pending temperature resend scheduled by HEAT,
     otherwise a set_temperature is sent to an underlying that is off (and wakes up e.g. a Sonoff TRVZB)"""
     thermostat = MagicMock(spec=ThermostatOverClimate)
+    thermostat.external_manager = ExternalManager(thermostat)
     thermostat.get_underlying_hvac_mode.side_effect = lambda hvac_mode: hvac_mode
     thermostat.now = datetime.now(tz=get_tz(hass))
     thermostat.target_temperature = 20.0
@@ -1951,6 +1955,7 @@ async def test_repair_resends_conforming_temperature_and_restarts_grace(hass: Ho
     """Repair retains #1900 even with a matching setpoint and moves the next repair deadline."""
     now = datetime.now(timezone.utc)
     thermostat = MagicMock(spec=ThermostatOverClimate)
+    thermostat.external_manager = ExternalManager(thermostat)
     thermostat.now = now
     thermostat.name = "thermostat"
     thermostat.is_ready = True
@@ -2002,6 +2007,7 @@ async def test_matching_climate_mode_setpoint_difference_does_not_repair(hass: H
     """A setpoint mismatch alone is not a climate repair."""
     now = datetime.now(timezone.utc)
     thermostat = MagicMock(spec=ThermostatOverClimate)
+    thermostat.external_manager = ExternalManager(thermostat)
     thermostat.now = now
     thermostat.name = "thermostat"
     thermostat.is_ready = True
@@ -2026,6 +2032,7 @@ async def test_climate_non_send_preserves_timestamp(hass: HomeAssistant, reason)
     """Blocked, failed, deduplicated and uninitialized commands do not update the timestamp."""
     now = datetime.now(timezone.utc)
     thermostat = MagicMock(spec=ThermostatOverClimate)
+    thermostat.external_manager = ExternalManager(thermostat)
     thermostat.now = now
     thermostat.get_underlying_hvac_mode.side_effect = lambda value: value
     under = UnderlyingClimate(hass, thermostat, "climate.test")
@@ -2052,6 +2059,7 @@ async def test_repair_then_off_cancels_temperature_resend(hass: HomeAssistant, m
     """OFF cancels the callback scheduled by a repair without sending temperature."""
     now = datetime.now(timezone.utc)
     thermostat = MagicMock(spec=ThermostatOverClimate)
+    thermostat.external_manager = ExternalManager(thermostat)
     thermostat.now = now
     thermostat.vtherm_hvac_mode = mode
     thermostat.get_underlying_hvac_mode.side_effect = lambda value: value
@@ -2079,6 +2087,7 @@ async def test_fan_delay_and_timestamp_unchanged(hass: HomeAssistant, age, immed
     """Fan sends remain strictly more than two seconds apart and timestamp only sends."""
     now = datetime.now(timezone.utc)
     thermostat = MagicMock(spec=ThermostatOverClimate)
+    thermostat.external_manager = ExternalManager(thermostat)
     thermostat.now = now
     under = UnderlyingClimate(hass, thermostat, "climate.test")
     under._is_initialized = True

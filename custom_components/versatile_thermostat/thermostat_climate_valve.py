@@ -12,6 +12,8 @@ from homeassistant.components.climate import HVACAction, HVACMode
 from homeassistant.helpers.event import EventStateChangedData, async_call_later
 from homeassistant.exceptions import ServiceValidationError
 
+from vtherm_api import ValveCommandCause
+
 from .underlyings import UnderlyingValveRegulation, UnderlyingClimate
 
 from .base_thermostat import ConfigData
@@ -589,6 +591,7 @@ class ThermostatOverClimateValve(ValveCommandMixin, ThermostatProp[UnderlyingCli
                         await under.send_value_to_number(opening, open_val)
                         if closing:
                             await under.send_value_to_number(closing, close_val)
+                        await under._notify_valve_command(100, open_val, close_val if closing else None, ValveCommandCause.RECALIBRATION)
 
                     await asyncio.sleep(delay_seconds)
 
@@ -605,6 +608,7 @@ class ThermostatOverClimateValve(ValveCommandMixin, ThermostatProp[UnderlyingCli
                         await under.send_value_to_number(opening, open_val2)
                         if closing:
                             await under.send_value_to_number(closing, close_val2)
+                        await under._notify_valve_command(0, open_val2, close_val2 if closing else None, ValveCommandCause.RECALIBRATION)
                     await asyncio.sleep(delay_seconds)
 
                 except Exception as exc:  # pylint: disable=broad-except
