@@ -101,7 +101,16 @@ class ThermostatOverValve(ValveCommandMixin, ThermostatProp[UnderlyingValve]):  
         """Refresh central boiler accounting when entering or leaving sleep."""
         was_sleeping = self.is_sleeping
         await super().async_set_hvac_mode(hvac_mode, _external_command=_external_command)
+        await self._async_refresh_central_boiler_on_sleep_change(was_sleeping)
 
+    @overrides
+    async def async_set_temperature(self, **kwargs):
+        """Refresh central boiler accounting if hvac_mode leaves sleep."""
+        was_sleeping = self.is_sleeping
+        await super().async_set_temperature(**kwargs)
+        await self._async_refresh_central_boiler_on_sleep_change(was_sleeping)
+
+    async def _async_refresh_central_boiler_on_sleep_change(self, was_sleeping: bool):
         if was_sleeping == self.is_sleeping or not self.is_used_by_central_boiler:
             return
 
