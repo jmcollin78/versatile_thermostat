@@ -122,6 +122,7 @@ custom_components/vtherm_auto_fan_extended
 custom_components/vtherm_heating_failure_detection
 custom_components/vtherm_inhibition
 custom_components/vtherm_auto_start_stop
+custom_components/vtherm_dashboard
 
 .coverage
 htmlcov
