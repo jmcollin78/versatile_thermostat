@@ -1,20 +1,21 @@
 # 🧠 Auto TPI: Podrobný technický průvodce
 
 > [!NOTE]
-> Tento dokument je určen pro pokročilé uživatele, kteří chtějí podrobně porozumět algoritmu Auto TPI. Pro přístupnější úvod viz [Uživatelská příručka Auto TPI](feature-autotpi.md).
+> Tento dokument je určen pokročilým uživatelům, kteří chtějí pochopit, jak Auto TPI funguje. Pro jednodušší úvod viz [Uživatelská příručka Auto TPI](feature-autotpi.md).
 
 ---
 
 ## Obsah
 
 1. [Algoritmus TPI](#algoritmus-tpi)
-2. [Detailní cyklus učení](#detailní-cyklus-učení)
-3. [Kalibrace tepelné kapacity](#kalibrace-tepelné-kapacity)
-4. [Algoritmy pro výpočet koeficientů](#algoritmy-pro-výpočet-koeficientů)
-5. [Mechanismy automatické korekce](#mechanismy-automatické-korekce)
-6. [Pokročilé parametry a konstanty](#pokročilé-parametry-a-konstanty)
-7. [Služby a API](#služby-a-api)
-8. [Pokročilá diagnostika a řešení problémů](#pokročilá-diagnostika-a-řešení-problémů)
+2. [Model místnosti a cílové koeficienty](#model-místnosti-a-cílové-koeficienty)
+3. [Cyklus učení](#cyklus-učení)
+4. [Učení Kint](#učení-kint)
+5. [Učení Kext](#učení-kext)
+6. [Průběžné učení Kext](#průběžné-učení-kext)
+7. [Parametry a konstanty](#parametry-a-konstanty)
+8. [Služby a API](#služby-a-api)
+9. [Diagnostika a řešení problémů](#diagnostika-a-řešení-problémů)
 
 ---
 
@@ -22,359 +23,188 @@
 
 ### Základní princip
 
-Algoritmus **TPI** (Time Proportional & Integral) vypočítává v každém cyklu **procento výkonu**. Toto procento určuje, jak dlouho bude ohřívač během cyklu aktivní (např. 60 % v 10minutovém cyklu = 6 minut vytápění).
+Algoritmus **TPI** (Time Proportional & Integral) v každém cyklu vypočítá **procento výkonu**. Toto procento určuje, jak dlouho bude topení během cyklu aktivní (např. 60 % v 10minutovém cyklu = 6 minut topení).
 
 ### Základní vzorec
 
 ```
-Výkon = (Kint × ΔT_vnitřní) + (Kext × ΔT_venkovní)
+Power = (Kint × ΔT_indoor) + (Kext × ΔT_outdoor)
 ```
 
 Kde:
-- **Kint** (`tpi_coef_int`): Vnitřní koeffizient, reaguje na rozdíl od požadované hodnoty
-- **Kext** (`tpi_coef_ext`): Venkovní koeficient, kompenzuje tepelné ztráty
-- **ΔT_vnitřní** = Požadovaná hodnota − Vnitřní teplota
-- **ΔT_venkovní** = Požadovaná hodnota − Venkovní teplota
+- **Kint** (`tpi_coef_int`): Vnitřní koeficient, reaguje na odchylku od požadované hodnoty
+- **Kext** (`tpi_coef_ext`): Vnější koeficient, kompenzuje tepelné ztráty
+- **ΔT_indoor** = Požadovaná hodnota − Vnitřní teplota
+- **ΔT_outdoor** = Požadovaná hodnota − Venkovní teplota
 
-```mermaid
-graph LR
-    subgraph Vstupy
-        A[Vnitřní teplota]
-        B[Venkovní teplota]
-        C[Požadovaná hodnota]
-    end
-    
-    subgraph Výpočet TPI
-        D["ΔT_int = Požadovaná hodnota - T_int"]
-        E["ΔT_ext = Požadovaná hodnota - T_ext"]
-        F["Výkon = Kint×ΔT_int + Kext×ΔT_ext"]
-    end
-    
-    subgraph Výstup
-        G["Výkon % (0-100%)"]
-        H["Doba ZAP/VYP"]
-    end
-    
-    A --> D
-    C --> D
-    B --> E
-    C --> E
-    D --> F
-    E --> F
-    F --> G
-    G --> H
-```
+Výkon je omezen na 0–100 %. V režimu chlazení jsou rozdíly obráceny.
 
-### Role koeficientů
+### Úloha koeficientů
 
-| Koeficient | Role | Situační učení |
+| Koeficient | Úloha | Situace při učení |
 |-------------|------|-------------------|
-| **Kint** | Řídí **reaktivitu**: čím vyšší je, tím rychleji vytápění reaguje na rozdíly | Během **vzestupu teploty** (rozdíl > 0,05 °C, výkon < 99 %) |
-| **Kext** | Kompenzuje **tepelné ztráty**: čím vyšší je, tím více vytápění předvídá ochlazování | Během **stabilizace** kolem požadované hodnoty (rozdíl < 0,5 °C) |
+| **Kint** | Určuje **reaktivitu**: čím je vyšší, tím silněji topení reaguje na odchylku | Během **nárůstu teploty** (odchylka ≥ 0,3 °C na začátku okna, výkon mezi 0 a 100 %) |
+| **Kext** | Kompenzuje **tepelné ztráty**: dodává výkon potřebný k udržení požadované hodnoty | Když je místnost **ustálená blízko požadované hodnoty** |
 
 ---
 
-## Detailní cyklus učení
+## Model místnosti a cílové koeficienty
 
-### Přehled toku
+Auto TPI se opírá o jednoduchý model místnosti (jedna tepelná kapacita, jedna ztráta směrem ven):
 
-```mermaid
-flowchart TD
-    subgraph Inicializace
-        A[Start relace] --> B{Rychlost ohřevu = 0?}
-        B -->|Ano| C[Historická předkalibrace]
-        B -->|Ne| G[Aktivní učení]
-        
-        C --> D{Spolehlivost >= 20%?}
-        D -->|Ano| G
-        D -->|Ne| E[Režim Bootstrap]
-        E -->|3 agresivní cykly| F[Odhadovaná kapacita]
-        F --> G
-    end
-    
-    subgraph "Smyčka učení"
-        G --> H[Start cyklu TPI]
-        H --> I[Snímek počátečního stavu]
-        I --> J[Provést ZAP/VYP vytápění]
-        J --> K[Konec cyklu: Měřit ΔT]
-        K --> L{Platné podmínky?}
-        
-        L -->|Ne| M[Přeskočit učení]
-        L -->|Ano| N{Analyzovat situaci}
-        
-        N -.->|Překmit| O[🔸 Korekce Kext<br/>volitelně]
-        N -.->|Stagnace| P[🔸 Kint Boost<br/>volitelně]
-        N -->|T° stoupá| Q[Učení Kint]
-        N -->|Stabilizace| R[Učení Kext]
-        
-        O -.-> S[Aktualizace koeficientů]
-        P -.-> S
-        Q --> S
-        R --> S
-        M --> H
-        S --> H
-    end
-    
-    subgraph Finalizace
-        S --> T{50 cyklů Kint A Kext?}
-        T -->|Ne| H
-        T -->|Ano| U[Uložit do konfigurace]
-        U --> V[Oznámení o ukončení]
-    end
-    
-    style O fill:#fff3cd,stroke:#ffc107,stroke-width:2px
-    style P fill:#fff3cd,stroke:#ffc107,stroke-width:2px
+```
+dT/dt = a × P − b × (T − T_ext)
 ```
 
-> [!NOTE]
-> **Žluté boxy s čárkovanými čarami** (🔸) představují **volitelné** korekční mechanismy. Musí být explicitně povoleny prostřednictvím parametrů služby `set_auto_tpi_mode`.
+- `a` (°C/h): rychlost nárůstu teploty při 100% výkonu, bez ztrát
+- `b` (1/h): míra ztrát, převrácená hodnota časové konstanty místnosti
+- `P`: topný výkon (0–1)
 
-### Podrobnosti o snímku cyklu
+**Kext**: při požadované hodnotě je potřebný výkon `P = (b/a) × (Setpoint − T_ext)`. Ideální Kext je tedy `b/a`. S touto hodnotou samotný venkovní člen udrží požadovanou hodnotu a nezůstane žádná statická odchylka.
 
-Na začátku každého cyklu algoritmus zachytí aktuální stav:
+**Kint**: jakmile Kext kompenzuje ztráty, místnost stoupá rychlostí `a × Kint × odchylka`. Aby se odchylka uzavřela s časovou konstantou `T_cl`, musí být Kint `1 / (a × T_cl)`. Slabé topné těleso (malé `a`) tedy potřebuje větší Kint.
 
-| Zachycená data | Využití |
-|---------------|-------|
-| `last_temp_in` | Vnitřní teplota na začátku cyklu |
-| `last_temp_out` | Venkovní teplota na začátku cyklu |
-| `last_order` | Požadovaná hodnota na začátku cyklu |
-| `last_power` | Vypočtený výkon pro tento cyklus (0,0 až 1,0) |
-| `last_state` | Režim HVAC (vytápění/chlazení) |
+`T_cl` je cílová časová konstanta uzavřené smyčky. Odvozuje se od **doby ohřevu** topného tělesa:
 
-Na konci cyklu jsou tyto hodnoty porovnány s aktuálními měřeními pro výpočet postupu.
+```
+T_cl = 2 × (heating_time + cycle / 2)     omezeno na [30 min, 180 min]
+```
 
-### Podmínky validace cyklu
+Pomalé topné těleso (dlouhá doba ohřevu) dává delší `T_cl`, tedy jemnější regulaci bez překmitu.
 
-Cyklus je pro učení **ignorován**, pokud:
+Ani `a` ani `b` není třeba znát: oba koeficienty se učí z pozorování malými kroky směrem k těmto cílům.
+
+---
+
+## Cyklus učení
+
+Na konci každého TPI cyklu správce cyklus zkontroluje a aktualizuje učení.
+
+### Záznam cyklu
+
+Na začátku každého cyklu systém zaznamená vnitřní a venkovní teplotu, požadovanou hodnotu, výkon a režim HVAC. Na konci cyklu se použije skutečně aplikovaný výkon (po časových omezeních).
+
+### Podmínky platnosti cyklu
+
+Cyklus se pro učení ignoruje, pokud:
 
 | Podmínka | Důvod |
 |-----------|--------|
-| Výkon = 0 % nebo 100 % | Nasycení: žádné využitelné informace o účinnosti |
-| Požadovaná hodnota změněna | Cíl změněn uprostřed cyklu |
-| Aktivní odpojování zátěže | Vytápění bylo nuceně vypnuto Správcem výkonu |
-| Detekována porucha | Detekována anomálie (neúčinné vytápění) |
-| Centrální kotel VYPNUT | Termostat vyžaduje, ale kotel nereaguje |
-| První cyklus po restartu | Žádná platná referenční data |
+| Výkon ≤ 0 % nebo ≥ 100 % | Nasycený cyklus nic neříká o tom, jaký výkon použít |
+| Cyklus kratší nebo delší, než se očekávalo | Přerušený cyklus nebo mezera v datech |
+| Omezení výkonu během cyklu | Topení bylo omezeno jinou funkcí |
+| Centrální kotel vypnut | Topné těleso netopilo |
+| Zjištěna porucha vytápění | Topné těleso netopilo podle požadavku |
+| První cyklus po zastavení | Chybí předchozí stav |
+| Požadovaná hodnota změněna během cyklu | Cyklus mísí dva cíle |
+| \|Požadovaná hodnota − T_ext\| < 1 °C (Kext) | Venkovní člen je příliš malý na to, aby se dal naučit |
+
+### Konec relace
+
+Relace se ukončí, jakmile je Kint naučen během **15 oken** a Kext během **50 cyklů**. Koeficienty se pak zapíší do konfigurace a odešle se oznámení.
 
 ---
 
-## Kalibrace tepelné kapacity
+## Učení Kint
 
-### Definice
+Kint se učí v **oknech** několika po sobě jdoucích cyklů, nikdy ne z jediného cyklu: u 5minutového cyklu je změna teploty řádově stejná jako rozlišení čidla (často 0,1 °C).
 
-**Tepelná kapacita** (nebo **rychlost ohřevu**) představuje maximální rychlost vzestupu teploty vašeho systému, vyjádřenou v **°C za hodinu** (°C/h).
+### Pravidla oken
 
-Příklad: Kapacita 2,0 °C/h znamená, že váš radiátor dokáže při plném výkonu zvýšit teplotu o 2 °C za jednu hodinu (za ideálních adiabatických podmínek).
+- Okno se otevře, když je místnost alespoň **0,3 °C** od požadované hodnoty, a to až **T_cl / 2** po poslední změně požadované hodnoty, změně režimu nebo neplatném cyklu (topné těleso na to potřebuje čas, aby zareagovalo).
+- Každý cyklus okna musí být platný s výkonem mezi 0 a 100 %. Jinak se okno uzavře bez učení.
+- Okno trvá nejméně **max(30 min, T_cl)**. Další okno začíná tam, kde předchozí skončilo, za stejné podmínky 0,3 °C.
+- Okno se přijímá pouze podle své délky a počáteční odchylky. Nikdy nezáleží na naměřené změně teploty: jinak by se zachovala jen okna, kde šum zvýšil nárůst, a Kint by byl zkreslený.
 
-### Metody určení
+### Vzorec aktualizace
 
-```mermaid
-graph TD
-    A[Rychlost ohřevu = 0?] -->|Ano| B[Předkalibrace]
-    A -->|Ne| C[Použít konfigurovanou hodnotu]
-    
-    B --> D{Historie k dispozici?}
-    D -->|Ano| E[Analýza historie]
-    D -->|Ne| F[Režim Bootstrap]
-    
-    E --> G{Spolehlivost >= 20%?}
-    G -->|Ano| H[Kalibrovaná kapacita]
-    G -->|Ne| F
-    
-    F --> I[3 agresivní cykly Kint=1.0 Kext=0.1]
-    I --> J[Měřit skutečný vzestup]
-    J --> K[Odhadovaná kapacita]
-    
-    H --> L[Učení Kint/Kext]
-    K --> L
-    C --> L
+```
+mean_gap    = Setpoint − (T_start + T_end) / 2
+target_rate = mean_gap / T_cl
+rate        = (T_end − T_start) / duration
+ratio       = target_rate / rate          (1.15 if rate ≤ 0)
+Kint_new    = Kint × clamp(ratio, 1/1.15, 1.15)
 ```
 
-### Předkalibrace pomocí analýzy historie
+Kint se mění nejvýše o ±15 % na okno a zůstává v rozsahu [0.01, 1.0]. Omezený krok konverguje k mediánu poměru: izolované okno narušené šumem nebo sluncem nemůže Kint výrazně posunout.
 
-Služba `auto_tpi_calibrate_capacity` analyzuje historii senzorů:
-
-1. **Získání** dat `temperature_slope` a `power_percent` za 30 dní
-2. **Filtrování**: ponechá pouze body, kde `power >= 95 %`
-3. **Eliminace odlehlých hodnot** pomocí metody IQR (Interquartile Range)
-4. **Výpočet 75. percentilu** sklonů (reprezentativnější než medián)
-5. **Adiabatická korekce**: `Kapacita = P75 + Kext × ΔT`
-6. **Aplikace bezpečnostní rezervy**: standardně 20 %
-
-### Režim Bootstrap
-
-Pokud je historie nedostatečná (spolehlivost < 20 %), systém přejde do **režimu bootstrap**:
-
-- **Agresivní koeficienty**: Kint = 1.0, Kext = 0.1
-- **Trvání**: minimálně 3 cykly
-- **Cíl**: Vyvolat významný vzestup teploty pro měření skutečné kapacity
-- **Bezpečnostní časový limit**: Pokud dojde k selhání po 5 cyklech, výchozí kapacita = 0,3 °C/h (pomalé systémy)
+Pokud místnost během okna překročila požadovanou hodnotu (`mean_gap ≤ 0`), okno se nepoužije.
 
 ---
 
-## Algoritmy pro výpočet koeficientů
+## Učení Kext
 
-### Učení Kint (Vnitřní koeficient)
+### Podmínka ustálení
 
-Algoritmus upravuje Kint, když teplota **stoupá** k požadované hodnotě.
+Náběh po změně požadované hodnoty patří k Kint. Kext se učí pouze tehdy:
+- nejméně **3 × T_cl** po poslední změně požadované hodnoty,
+- a jakmile se místnost vrátila do **0,3 °C** od požadované hodnoty, nebo po **12 × T_cl**, aby šlo opravit i velmi chybný Kext (velká statická odchylka).
 
-#### Podrobný vzorec
+### Vzorec
 
-```mermaid
-flowchart LR
-    subgraph "1. Efektivní kapacita"
-        A["C_eff = C_ref × (1 - Kext × ΔT_ext)"]
-    end
-    
-    subgraph "2. Max. možný vzestup"
-        B["max_rise = C_eff × doba_cyklu × účinnost"]
-    end
-    
-    subgraph "3. Upravený cíl"
-        C["target = min(teplotní_rozdíl, max_rise)"]
-    end
-    
-    subgraph "4. Poměr"
-        D["ratio = (target / skutečný_vzestup) × agresivita"]
-    end
-    
-    subgraph "5. Nové Kint"
-        E["Kint_new = Kint_old × ratio"]
-    end
-    
-    A --> B --> C --> D --> E
-```
-
-#### Použité proměnné
-
-| Proměnná | Popis | Typická hodnota |
-|----------|-------------|---------------|
-| `C_ref` | Kalibrovaná referenční kapacita | 1,5 °C/h |
-| `Kext` | Aktuální venkovní koeficient | 0,02 |
-| `ΔT_ext` | Rozdíl vnitřní/venkovní teploty | 15 °C |
-| `doba_cyklu` | V hodinách | 0,167 (10 min) |
-| `účinnost` | Použité procento výkonu | 0,70 |
-| `agresivita` | Faktory moderování | 0,9 |
-
-### Učení Kext (Venkovní koeficient)
-
-Algoritmus upravuje Kext, když je teplota **blízko požadované hodnoty** (|rozdíl| < 0,5 °C).
-
-#### Vzorec
+Když je místnost ustálená a odchylka malá (|odchylka| ≤ 1 °C, nebo jakákoli odchylka nad požadovanou hodnotou při výkonu alespoň 10 %):
 
 ```
-Korekce = Kint × (vnitřní_rozdíl / venkovní_rozdíl)
-Kext_new = Kext_old + Korekce
+Kext_target = Kext + Kint × (ΔT_indoor / ΔT_outdoor)
 ```
 
-- Pokud je vnitřní_rozdíl **záporný** (překmit) → Záporná korekce → **Kext klesá**
-- Pokud je vnitřní_rozdíl **kladný** (nedostatečný ohřev) → Kladná korekce → **Kext stoupá**
+Zbylá vnitřní odchylka se převede na venkovní výkon, který by ji odstranil. Kext_target je omezen na 1.2.
 
-### Metody vyhlazování
+Vzorky nad požadovanou hodnotou se ignorují při velmi nízkém výkonu (místnost se přirozeně ochlazuje nebo ji ohřívá externí zdroj).
 
-K vyhlazení nových hodnot jsou k dispozici dvě metody:
+### Vyhlazování
 
-#### Vážený průměr (režim "Discovery")
-
-```
-Kint_final = (Kint_old × počet + Kint_new) / (počet + 1)
-```
-
-| Cyklus | Stará váha | Nová váha | Dopad nové hodnoty |
-|-------|------------|------------|------------------|
-| 1 | 1 | 1 | 50 % |
-| 10 | 10 | 1 | 9 % |
-| 50 | 50 | 1 | 2 % |
-
-> Počítadlo je omezeno na 50 pro zachování minimální reaktivity.
-
-#### EWMA (režim "Fine Tuning")
+Vzorky se kombinují **váženým průměrem**:
 
 ```
-Kint_final = (1 - α) × Kint_old + α × Kint_new
-α(n) = α₀ / (1 + decay_rate × n)
+Kext_new = (Kext × n + Kext_target) / (n + 1)       n = počet vzorků, omezeno na 50
 ```
 
-| Parametr | Výchozí | Popis |
-|-----------|---------|-------------|
-| `α₀` (počáteční alfa) | 0,08 | Počáteční váha nových hodnot |
-| `decay_rate` | 0,12 | Rychlost poklesu alfa |
+Nakonfigurovaný Kext nemá váhu: první vzorek jej nahradí, pak každý vzorek váží 1/(n+1). Pro pevnou veličinu dává průměr nejméně zašuměný odhad.
 
 ---
 
-## Mechanismy automatické korekce
+## Průběžné učení Kext
 
-### Korekce překmitu (Kext Deboost)
+Je-li zapnuto **Průběžné učení Kext**, Kext se i po relaci dále upravuje, aby sledoval pomalé změny ztrát.
 
-> **Aktivace**: Parametr `allow_kext_compensation_on_overshoot` ve službě `set_auto_tpi_mode`
+### Podmínky způsobilosti
+- Alespoň jeden vzorek Kext z učební relace.
+- Stejné podmínky cyklu a ustálení jako u učení Kext.
 
-Detekuje a koriguje stav, kdy teplota **překročí požadovanou hodnotu**, aniž by klesala zpět.
+### Vzorec
 
-```mermaid
-flowchart TD
-    A{T° > Požadovaná hodn. + 0,2 °C?} -->|Ano| B{Výkon > 5%?}
-    B -->|Ano| C{T° neklesá?}
-    C -->|Ano| D[Korekce Kext]
-    
-    A -->|Ne| E[Žádná korekce]
-    B -->|Ne| E
-    C -->|Ne| E
-    
-    D --> F["redukce = překmit × Kint / ΔT_ext"]
-    F --> G["Kext_cíl = max(0,001, Kext - redukce)"]
-    G --> H[Aplikovat s alfa boost ×2]
+```
+Kext_new = Kext × (1 − α) + Kext_target × α        α = 0.04
 ```
 
-### Korekce stagnace (Kint Boost)
-
-> **Aktivierung**: Parametr `allow_kint_boost_on_stagnation` ve službě `set_auto_tpi_mode`
-
-Detekuje a koriguje stav, kdy teplota **stagnuje** navzdory významnému rozdílu.
-
-```mermaid
-flowchart TD
-    A{Rozdíl > 0,5 °C?} -->|Ano| B{Postup < 0,02 °C?}
-    B -->|Ano| C{Výkon < 99%?}
-    C -->|Ano| D{Po sobě jdoucí boosty < 5?}
-    D -->|Ano| E[Kint Boost]
-    
-    A -->|Ne| F[Žádná korekce]
-    B -->|Ne| F
-    C -->|Ne| F
-    D -->|Ne| G[Upozornění na poddimenzované vytápění]
-    
-    E --> H["boost = 8% × min(rozdíl/0.3, 2.0)"]
-    H --> I["Kint_cíl = Kint × (1 + boost)"]
-```
+Pevná váha umožňuje, aby Kext sledoval veličinu, která se pomalu mění. Nová hodnota se zapíše do konfigurace, pokud se změní o více než 0,001.
 
 ---
 
-## Pokročilé parametry a konstanty
+## Parametry a konstanty
 
-### Interní konstanty (nekonfigurovatelné)
+### Nastavitelné parametry
 
-| Konstanta | Hodnota | Popis |
-|----------|-------|-------------|
-| `MIN_KINT` | 0,01 | Spodní hranice Kint pro zachování reaktivity |
-| `OVERSHOOT_THRESHOLD` | 0,2 °C | Práh překmitu pro spuštění korekce |
-| `OVERSHOOT_POWER_THRESHOLD` | 5 % | Minimální výkon pro považování překmitu za chybu Kext |
-| `OVERSHOOT_CORRECTION_BOOST` | 2,0 | Násobitel alfa během korekce |
-| `NATURAL_RECOVERY_POWER_THRESHOLD` | 20 % | Max. výkon pro přeskočení učení v přirozené obnově |
-| `INSUFFICIENT_RISE_GAP_THRESHOLD` | 0,5 °C | Min. rozdíl pro spuštění Kint boostu |
-| `MAX_CONSECUTIVE_KINT_BOOSTS` | 5 | Limit před upozorněním na poddimenzování |
-| `MIN_PRE_BOOTSTRAP_CALIBRATION_RELIABILITY` | 20 % | Min. spolehlivost pro přeskočení bootstrapu |
+| Parametr | Popis |
+|-----------|-------------|
+| `heater_heating_time` | Doba ohřevu topného tělesa (min). Určuje `T_cl`. |
+| `auto_tpi_continuous_kext` | Průběžné učení Kext po relaci. |
 
-### Konfigurovatelné parametry
+### Interní konstanty
 
-| Parametr | Typ | Výchozí | Rozsah |
-|-----------|------|---------|-------|
-| **Agresivita** | Posuvník | 1.0 | 0.5 - 1.0 |
-| **Doba ohřevu** | Minuty | 5 | 1 - 30 |
-| **Doba ochlazování** | Minuty | 7 | 1 - 60 |
-| **Rychlost ohřevu** | °C/h | 0 (auto) | 0 - 5.0 |
-| **Počáteční váha** (Discovery) | Celé číslo | 1 | 1 - 50 |
-| **Alpha** (Fine Tuning) | Float | 0.08 | 0.01 - 0.3 |
-| **Rychlost poklesu** | Float | 0.12 | 0.0 - 0.5 |
+| Konstanta | Hodnota | Úloha |
+|----------|-------|------|
+| Minimální odchylka pro okno Kint | 0,3 °C | Kint se učí pouze tehdy, když má místnost odchylku, kterou je třeba uzavřít |
+| Minimální délka okna | 30 min (nebo T_cl, je-li delší) | Několik kroků čidla na okno |
+| Maximální krok Kint | ×1.15 / ÷1.15 | Omezený krok na okno |
+| Meze Kint | 0.01 – 1.0 | |
+| Počet oken Kint do konce relace | 15 | |
+| Počet cyklů Kext do konce relace | 50 | |
+| Ustálení Kext | 3 × T_cl, poté blízko požadované hodnoty (nebo 12 × T_cl) | Kext se během náběhu neučí |
+| Maximální odchylka pro Kext | 1.0 °C | |
+| Maximální Kext | 1.2 | |
+| Alfa průběžného učení Kext | 0.04 | |
 
 ---
 
@@ -382,135 +212,71 @@ flowchart TD
 
 ### `versatile_thermostat.set_auto_tpi_mode`
 
-Ovládá spuštění/zastavení učení.
+Spustí nebo zastaví učební relaci.
+
+| Parametr | Typ | Popis |
+|-----------|------|-------------|
+| `auto_tpi_mode` | boolean | `true` pro spuštění, `false` pro zastavení |
+| `reinitialise` | boolean | `true` (výchozí): začít znovu od nakonfigurovaných koeficientů. `false`: pokračovat v předchozí relaci |
 
 ```yaml
 service: versatile_thermostat.set_auto_tpi_mode
 target:
-  entity_id: climate.my_thermostat
+  entity_id: climate.living_room
 data:
-  auto_tpi_mode: true                    # true = start, false = stop
-  reinitialise: true                     # true = úplný reset, false = pokračovat
-  allow_kint_boost_on_stagnation: false  # Boost Kint při stagnaci
-  allow_kext_compensation_on_overshoot: false  # Korekce Kext při překmitu
+  auto_tpi_mode: true
+  reinitialise: true
 ```
-
-### `versatile_thermostat.auto_tpi_calibrate_capacity`
-
-Kalibruje tepelnou kapacitu z historie.
-
-```yaml
-service: versatile_thermostat.auto_tpi_calibrate_capacity
-target:
-  entity_id: climate.my_thermostat
-data:
-  start_date: "2024-01-01T00:00:00+00:00"  # Volitelné
-  end_date: "2024-02-01T00:00:00+00:00"    # Volitelné
-  min_power_threshold: 95                   # Min % výkonu
-  capacity_safety_margin: 20                # % bezpečnostní rezervy
-  save_to_config: true                      # Uložit do konfigurace
-```
-
-**Návratové hodnoty služby**:
-
-| Klíč | Popis |
-|-----|-------------|
-| `max_capacity` | Vypočtená hrubá kapacita (°C/h) |
-| `recommended_capacity` | Kapacita po rezervě (°C/h) |
-| `reliability` | Index spolehlivosti (%) |
-| `samples_used` | Počet použitých vzorků |
-| `outliers_removed` | Počet odstraněných odlehlých hodnot |
 
 ---
 
-## Pokročilá diagnostika a řešení problémů
+## Diagnostika a řešení problémů
 
 ### Diagnostický senzor
 
 Entita: `sensor.<name>_auto_tpi_learning_state`
 
+Stav: `active` během relace, jinak `off`.
+
 | Atribut | Popis |
 |-----------|-------------|
-| `active` | Učení probíhá |
-| `heating_cycles_count` | Celkový počet sledovaných cyklů |
-| `coeff_int_cycles` | Validované cykly Kint |
-| `coeff_ext_cycles` | Validované cykly Kext |
-| `model_confidence` | Spolehlivost 0.0 - 1.0 |
+| `heating_cycles_count` | Celkový počet pozorovaných cyklů |
+| `coeff_int_cycles` | Naučená okna Kint |
+| `coeff_ext_cycles` | Naučené cykly Kext |
+| `model_confidence` | Postup relace 0.0 – 1.0 |
 | `calculated_coef_int` | Aktuální Kint |
 | `calculated_coef_ext` | Aktuální Kext |
-| `last_learning_status` | Důvod posledního cyklu |
-| `capacity_heat_status` | `learning` nebo `learned` |
-| `capacity_heat_value` | Aktuální kapacita (°C/h) |
+| `last_learning_status` | Výsledek posledního cyklu |
+| `learning_start_dt` | Začátek relace |
 
-### Společné stavy učení
+### Běžné stavy učení
 
-| Stav | Význam | Doporučená akce |
-|--------|---------|------------------|
-| `learned_indoor_heat` | Kint úspěšně aktualizováno | Normální |
-| `learned_outdoor_heat` | Kext úspěšně aktualizováno | Normální |
-| `power_out_of_range` | Výkon na 0 % nebo 100 % | Počkejte na nenasycený cyklus |
-| `real_rise_too_small` | Vzestup < 0,01 °C | Zkontrolujte senzor nebo dobu cyklu |
-| `setpoint_changed_during_cycle` | Požadovaná hodnota změněna | Neměňte požadovanou hodnotu |
-| `no_capacity_defined` | Žádná kalibrovaná kapacita | Počkejte na kalibraci/bootstrap |
-| `corrected_kext_overshoot` | Aplikována korekce překmitu | Normální, pokud je Kext příliš vysoký |
-| `corrected_kint_insufficient_rise` | Aplikován boost Kint | Normální, pokud je Kint příliš nízký |
-| `max_kint_boosts_reached` | 5 po sobě jdoucích boostů | **Poddimenzované vytápění** |
+| Stav | Význam |
+|--------|---------|
+| `learned_indoor_heat` / `learned_indoor_cool` | Kint aktualizován na konci okna |
+| `learned_outdoor_heat` / `learned_outdoor_cool` | Kext aktualizován |
+| `kext_waiting_settling` | Kext čeká, až se místnost po změně požadované hodnoty ustálí |
+| `kint_window_crossed_setpoint` | Místnost překročila požadovanou hodnotu během okna, okno nepoužito |
+| `power_out_of_range(...)` | Výkon na 0 % nebo 100 %, cyklus ignorován |
+| `cycle_gap_detected` / `cycle_too_short` | Nenormální délka cyklu, cyklus ignorován |
+| `setpoint_changed_during_cycle` | Požadovaná hodnota změněna během cyklu |
+| `outdoor_delta_too_small(...)` | Venkovní teplota příliš blízko požadované hodnoty |
+| `gap_too_large_for_outdoor(...)` | Odchylka nad 1 °C, Kext se neučí |
+| `cooling_down_naturally` / `warming_up_naturally` | Místnost se k požadované hodnotě vrací sama, Kext se nemění |
+| `continuous_kext_learned_heat` / `continuous_kext_learned_cool` | Kext aktualizován průběžným učením |
 
-### Diagnostický rozhodovací strom
+### Řešení problémů
 
-```mermaid
-flowchart TD
-    A[Detekován problém] --> B{Kint nebo Kext?}
-    
-    B -->|Kint příliš nízký| C[T° stoupá pomalu]
-    C --> D{Po 10 cyklech?}
-    D -->|Ano| E[Zkontrolujte doby ohřevu/chlazení]
-    D -->|Ne| F[Počkejte na konvergenci]
-    
-    B -->|Kint příliš vysoký| G[Oscilace T°]
-    G --> H[Snižte agresivitu]
-    
-    B -->|Kext příliš nízký| I[T° klesá pod požadovanou hodn.]
-    I --> J[Zkontrolujte venkovní senzor T°]
-    
-    B -->|Kext příliš vysoký| K[Přetrvávající překmit]
-    K --> L[Povolit allow_kext_compensation]
-    
-    A --> M{Žádné učení?}
-    M -->|power_out_of_range| N[Nasycené vytápění]
-    N --> O[Počkejte na příznivé podmínky]
-    M -->|no_capacity_defined| P[Žádná kalibrace]
-    P --> Q[Zkontrolujte historii nebo vnuťte hodnotu]
-```
+| Příznak | Pravděpodobná příčina | Postup |
+|---------|--------------|--------|
+| Kint nepostupuje | Žádný nárůst alespoň 0,3 °C při nenasyceném výkonu | Na několik hodin snižte požadovanou hodnotu o 1–2 °C a pak ji vraťte zpět |
+| Překmit po každém náběhu | Doba ohřevu je pro topné těleso příliš krátká | Zvyšte dobu ohřevu a poté restartujte relaci |
+| Pomalý náběh, bez překmitu | Doba ohřevu je příliš dlouhá | Snižte dobu ohřevu a poté restartujte relaci |
+| Místnost je trvale pod nebo nad požadovanou hodnotou | Kext ještě není naučen, nebo se změnily ztráty | Nechte relaci doběhnout nebo zapněte průběžné učení Kext |
+| Učení vůbec nepostupuje | Topení trvale na 100 % (extrémní mráz) | Počkejte na mírnější počasí |
 
-### Soubor perzistence
+### Soubor s perzistencí
 
-**Umístění**: `.storage/versatile_thermostat_{unique_id}_auto_tpi_v2.json`
+**Umístění**: `.storage/versatile_thermostat.auto_tpi.<unique_id>`
 
-Tento soubor obsahuje kompletní stav učení a obnovuje se při restartu Home Assistant. Lze jej smazat pro vynucení úplného resetu (nedoporučuje se).
-
----
-
-## Přílohy
-
-### Doporučené referenční hodnoty
-
-| Typ vytápění | Doba ohřevu | Doba chladnutí | Typická kapacita |
-|--------------|--------------|--------------|------------------|
-| Elektrický konvektor | 2-5 min | 3-7 min | 2,0-3,0 °C/h |
-| Akumulační radiátor | 5-10 min | 10-20 min | 1,0-2,0 °C/h |
-| Podlahové vytápění | 15-30 min | 30-60 min | 0,3-0,8 °C/h |
-| Centrální kotel | 5-15 min | 10-30 min | 1,0-2,5 °C/h |
-
-### Kompletní matematické vzorce
-
-**Efektivní kapacita**:
-$$C_{eff} = C_{ref} \times (1 - K_{ext} \times \Delta T_{ext})$$
-
-**Adaptivní Alpha (EWMA)**:
-$$\alpha(n) = \frac{\alpha_0}{1 + k \times n}$$
-
-**Spolehlivost kalibrace**:
-$$reliability = 100 \times \min\left(\frac{samples}{20}, 1\right) \times \max\left(0, 1 - \frac{CV}{2}\right)$$
-
-Kde CV = variační koeficient (směrodatná odchylka / průměr)
+Tento soubor obsahuje stav učení a obnoví se při restartu Home Assistant. Dokud není zaznamenán žádný cyklus učení, použijí se nakonfigurované koeficienty.

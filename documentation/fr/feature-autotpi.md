@@ -1,168 +1,129 @@
-# 🧠 Auto TPI : Apprentissage Automatique
+# 🧠 Auto TPI : Apprentissage automatique
 
 > [!NOTE]
-> Cette fonctionnalité est principalement dédiée aux systèmes de chauffage de type **Switch** (On/Off), comme les radiateurs électriques, les chaudières, chauffage par le sol ou les poêles à granulés. L'adaptation pour les vannes thermostatiques (TRV) du fait de leur non linéarité est encore problématique.
+> Cette fonctionnalité est principalement conçue pour les systèmes de chauffage de type **Switch** (Tout ou rien), comme les radiateurs électriques, les chaudières, le chauffage par le sol ou les poêles à granulés. L'adaptation aux vannes thermostatiques (TRV) reste problématique en raison de leur non-linéarité : la chaleur délivrée n'est pas proportionnelle à l'ouverture de la vanne.
 
-L'**Auto TPI** permet à votre thermostat d'apprendre par lui-même les caractéristiques thermiques de votre pièce. Il ajuste automatiquement les coefficients $K_{int}$ (Inertie interne) et $K_{ext}$ (Isolation externe) pour atteindre et maintenir votre consigne avec une précision optimale.
+**Auto TPI** permet à votre thermostat d'apprendre seul le comportement thermique de votre pièce. Il ajuste automatiquement les coefficients $K_{int}$ (intérieur) et $K_{ext}$ (extérieur) pour atteindre et maintenir votre consigne.
 
 > [!TIP]
-> **Pour les utilisateurs avancés** : Une documentation technique détaillée expliquant les algorithmes, les formules mathématiques et les mécanismes internes est disponible ici : [Documentation Technique Auto TPI](feature-autotpi-technical.md).
+> **Pour les utilisateurs avancés** : une documentation technique détaillée expliquant les algorithmes, les formules et les mécanismes internes est disponible ici : [Documentation technique Auto TPI](feature-autotpi-technical.md).
 
 ---
 
-## 🔄 Le Cycle d'une Session
+## 🔄 Cycle de session
 
-L'Auto TPI fonctionne par **sessions d'apprentissage ponctuelles**. Durant une session, le système analyse dynamiquement la réaction de votre pièce : il commence par évaluer la puissance réelle de votre chauffage, puis ajuste Kint Kext au cours de 50 cycles TPI minimum par coefficient.
+Auto TPI fonctionne par **sessions d'apprentissage**. Pendant une session, le système observe votre pièce et ajuste les deux coefficients par petits pas, chacun dans la situation où il peut être mesuré de façon fiable.
 
 ```mermaid
 graph LR
-    %% Palette Flat Design
     classDef startEnd fill:#f1f8e9,stroke:#558b2f,stroke-width:2px,color:#33691e
     classDef decision fill:#e3f2fd,stroke:#1565c0,stroke-width:2px,color:#0d47a1
     classDef process fill:#eceff1,stroke:#455a64,stroke-width:1px,color:#263238
-    classDef bootstrap fill:#fff9c4,stroke:#fbc02d,stroke-width:2px,color:#f57f17
 
-    A([Lancement session]) --> B{Taux = 0?}
-    
-    B -- "Oui" --> C[Calibration]
-    B -- "Non" --> D["Apprentissage (min 50 cycles)"]
-    
-    C --> E{Historique\nsuffisant?}
-    E -- "Oui" --> D
-    E -- "Non" --> F[Bootstrap]
-    F -->|3 cycles| D
-    
-    D --> G{Session finie?}
-    G -- "Non" --> D
-    G -- "Oui" --> H([Session terminée])
+    A([Début de session]) --> B["Apprentissage<br/>Kint : 15 fenêtres de montée<br/>Kext : 50 cycles stabilisés"]
+    B --> C{Les deux sont terminés ?}
+    C -- "Non" --> B
+    C -- "Oui" --> D([Coefficients sauvegardés])
 
-    class A,H startEnd
-    class B,E,G decision
-    class C,D process
-    class F bootstrap
+    class A,D startEnd
+    class C decision
+    class B process
 ```
 
-1.  **Initialisation** : Si le **Taux de chauffe** est à 0, le système tente d'abord une **Calibration** en analysant vos données historiques de température, slope et de puissance (via le service `calibrate_capacity`).
-2.  **Mode Bootstrap** : Si l'historique n'est pas assez fiable pour estimer le taux de chauffe, le système entre en mode **Bootstrap**. Il effectue 3 cycles de chauffe intense pour déterminer la capacité de chauffe de votre radiateur.
-3.  **Apprentissage actif** : Une fois le taux de chauffe connu, le système affine les coefficients TPI à chaque cycle. Cette phase dure au **minimum 50 cycles** par coefficient pour garantir leur stabilité.
-4.  **Sauvegarde** : À la fin de la session (environ 48h), les coefficients appris **et** le taux de chauffe final sont automatiquement enregistrés dans votre configuration permanente.
+1.  **Début** : la session part des coefficients de votre configuration.
+2.  **Apprentissage** : Kint et Kext sont ajustés indépendamment (voir ci-dessous).
+3.  **Sauvegarde** : une fois Kint ajusté sur **15 fenêtres de montée** et Kext sur **50 cycles**, la session se termine : les coefficients sont enregistrés dans votre configuration et une notification est envoyée.
 
 ### Quand Kint et Kext sont-ils ajustés ?
 
-Le système apprend les deux coefficients dans des situations différentes :
-
 | Coefficient | Situation d'apprentissage | Explication |
 | :--- | :--- | :--- |
-| **Kint** (Inertie interne) | Pendant la **montée en température**, quand l'écart avec la consigne est significatif (> 0.05°C) et que le chauffage n'est pas en saturation (100%). | Kint contrôle la réactivité du chauffage. Il s'ajuste quand le système doit "rattraper" la consigne. |
-| **Kext** (Isolation externe) | Pendant la **stabilisation autour de la consigne**, quand l'écart est faible (< 1°C). | Kext compense les pertes thermiques vers l'extérieur. Il s'ajuste quand le système maintient la température. |
+| **Kint** (intérieur) | Pendant une **montée en température**, lorsque la pièce est à au moins **0,3°C** en dessous de la consigne et que le chauffage n'est ni arrêté ni à 100 %. La montée est observée sur des fenêtres d'au moins 30 minutes. | Kint règle la vigueur de la réaction du chauffage à un écart. Il est ajusté pour que la pièce comble l'écart à une vitesse cible, dérivée du **temps de chauffe** de votre émetteur. |
+| **Kext** (extérieur) | Lorsque la pièce est **stabilisée autour de la consigne** : un certain temps après le dernier changement de consigne, une fois la pièce revenue à moins de 0,3°C de la consigne. | Kext compense les **pertes thermiques** vers l'extérieur. Il est ajusté pour que l'écart restant disparaisse. |
 
 > [!TIP]
-> C'est pourquoi il est important de créer des cycles de chauffe variés pendant l'apprentissage : la montée en température permet d'ajuster Kint, et la stabilisation permet d'ajuster Kext.
+> Kint ne peut être appris que lorsque la pièce doit rattraper la consigne. Les changements de consigne programmés (réduit de nuit, presets) suffisent à fournir ces situations.
 
 > [!NOTE]
-> **Cycles en saturation** : Les cycles à **0%** ou **100%** de puissance sont **ignorés** pour le calcul des coefficients Kint et Kext (car ils ne fournissent pas d'information exploitable sur la réponse thermique). En revanche, les cycles à 100% sont utilisés pour ajuster le **taux de chauffe**.
+> **Cycles saturés** : les cycles à **0%** ou **100%** de puissance sont **ignorés**, car ils ne disent rien sur la manière dont la puissance doit être ajustée.
 
 ---
 
-## 🚀 Démarrage de l'apprentissage
+## 🚀 Démarrer l'apprentissage
 
 Une fois la fonctionnalité **Auto TPI** activée et configurée pour votre thermostat, l'apprentissage ne démarre pas automatiquement. Vous devez le lancer manuellement :
 
-1.  **Via la carte dédiée (Recommandé)** : Utilisez le bouton "Play" sur la [carte Auto TPI Learning](https://github.com/KipK/auto-tpi-learning-card).
-2.  **Via le service "Définir le mode Auto TPI"** : Appelez ce service (`set_auto_tpi_mode`) depuis les outils de développement. C'est ce service qui active démarre ou arrête une session d'auto TPI.
+1.  **Via la carte dédiée (recommandé)** : utilisez le bouton "Play" de la [carte Auto TPI Learning](https://github.com/KipK/auto-tpi-learning-card).
+2.  **Via le service "Définir le mode Auto TPI"** : appelez ce service (`set_auto_tpi_mode`) depuis les outils de développement. Ce service démarre ou arrête une session Auto TPI. Avec `reinitialise: true`, la session repart des coefficients configurés ; sinon elle reprend la session précédente.
 
 ---
 
-## ⚙️ Configuration Standard
+## ⚙️ Configuration
 
-Lors de l'activation de l'Auto TPI, les paramètres suivants vous sont proposés :
+Lors de l'activation de l'Auto TPI, les paramètres suivants sont disponibles :
 
 | Paramètre | Description |
 | :--- | :--- |
-| **Type d'apprentissage** | **Découverte** (pour un premier apprentissage) ou **Ajustement fin** (pour peaufiner des réglages existants). |
-| **Agressivité** | Facteur de réduction des coefficients (1.0 = 100%). Réduisez cette valeur (ex: 0.8) si vous observez des dépassements de consigne fréquents (overshoot). |
-| **Temps de chauffe** | Temps nécessaire à votre équipement pour atteindre sa pleine puissance (ex: 5 min pour un radiateur électrique). |
-| **Temps de refroidissement** | Temps nécessaire pour refroidir après l'arrêt (ex: 7 min pour un radiateur électrique). |
-| **Taux de chauffe** | Capacité de montée en température (°C/heure). Laissez à **0** pour laisser le système le calculer automatiquement via la calibration ou le bootstrap. |
+| **Temps de chauffe** | Temps nécessaire à votre chauffage pour atteindre sa pleine puissance après sa mise en marche. Il fixe la vitesse de réponse visée de la régulation : plus l'émetteur est lent, plus Kint est réglé en douceur. |
+| **Apprentissage continu du Kext** | Continue d'ajuster Kext après la fin de la session (voir ci-dessous). |
+
+Valeurs de référence pour le temps de chauffe :
+
+| Type de chauffage | Temps de chauffe |
+| :--- | :--- |
+| Radiateur électrique | 5 min |
+| Radiateur à eau | 15 min |
+| Chauffage par le sol | 30 min |
 
 ---
 
-## 🛠️ Configuration Avancée
+## 💡 Bonnes pratiques
 
-Si vous cochez "Activer les paramètres avancés", vous accédez aux réglages fins des algorithmes.
-
-### Méthode "Découverte" (Moyenne pondérée)
-Utilisée pour stabiliser rapidement un nouveau système.
--   **Poids Initial** (1 à 50) : Définit l'importance des coefficients actuels par rapport aux nouvelles découvertes.
-    -   À **1** : Les nouveaux coefficients calculés remplacent quasi-intégralement les anciens. L'apprentissage est rapide mais sensible aux perturbations.
-    -   À **50** : Les anciens coefficients ont beaucoup plus de poids. L'apprentissage est très lent mais très stable.
-    -   **Conseil** : Laissez à 1 pour un premier apprentissage. Si vous souhaitez reprendre un apprentissage interrompu en conservant une partie des acquis, mettez une valeur intermédiaire (ex: 25).
-
-### Méthode "Ajustement fin" (EWMA)
-Utilisée pour une adaptation douce et  très précise.
--   **Alpha** : Facteur de lissage. Plus il est élevé, plus le système réagit vite aux changements récents.
--   **Taux de décroissance** : Permet de réduire progressivement la vitesse d'apprentissage pour se stabiliser sur les meilleures valeurs trouvées.
-
----
-
-## 💡 Bonnes Pratiques
-
-### Évitez les perturbations externes
-Pendant une session d'apprentissage (surtout les premières heures), essayez d'éviter :
--   Le plein soleil direct sur le capteur de température.
+### Éviter les perturbations externes
+Pendant une session d'apprentissage, essayez d'éviter :
+-   Le soleil direct sur le capteur de température.
 -   L'utilisation d'une source de chaleur secondaire (cheminée, poêle).
--   Les courants d'air massifs (portes ouvertes).
-Ces facteurs faussent la perception qu'a le système de l'isolation de votre pièce.
+-   Les fenêtres ou portes longtemps ouvertes.
 
-### Évitez les conditions extrêmes
+Ces facteurs font varier la température de la pièce sans lien avec le chauffage, et le système les prendrait pour une propriété de la pièce.
+
+### Éviter les conditions extrêmes
 
 > [!CAUTION]
-> **Ne lancez pas d'apprentissage si vos chauffages sont en saturation** (100% de puissance en permanence). Cela se produit typiquement lors de vagues de froid exceptionnelles où le chauffage n'arrive plus à atteindre la consigne. Dans ces conditions, le système ne peut pas apprendre correctement car il n'a aucune marge de manœuvre pour ajuster la puissance. Attendez des conditions météo plus clémentes pour lancer une session d'apprentissage.
+> **Ne lancez pas d'apprentissage si vos chauffages sont saturés** (100 % de puissance en permanence). Cela se produit typiquement lors de vagues de froid exceptionnelles, où le chauffage n'arrive plus à atteindre la consigne. Les cycles saturés sont ignorés, donc la session ne progresserait pas. Attendez des conditions météo plus clémentes pour lancer une session d'apprentissage.
 
-### Déroulement idéal d'une session "Découverte"
+### Déroulement idéal d'une session
 
-> [!TIP]
-> **Exemple concret** : Si votre consigne habituelle est de **18°C**, baissez-la temporairement à **15°C** et attendez que la pièce se stabilise. Puis relancez l'apprentissage et remettez la consigne à **18°C**. Cela crée un écart de 3°C que le système va observer pour apprendre.
-
-1.  **Préparation** : Baissez la consigne d'au moins 3°C par rapport à votre température habituelle. Laissez la pièce se refroidir et se stabiliser à cette nouvelle température.
-2.  **Lancement** : Activez l'apprentissage et **remettez la consigne à sa valeur habituelle**. Le système va observer la montée en température.
-3.  **Stabilisation** : Laissez le système stabiliser la température autour de la consigne pendant plusieurs heures.
-4.  **Sollicitation** : Une fois que les coefficients ne bougent plus vraiment, provoquez un nouveau cycle de chauffe en baissant la consigne de 2°C puis en la remontant.
-5.  **Stabilisation** : Laissez le système stabiliser la température autour de la consigne pendant plusieurs heures.
-6.  **Finalisation** : Si l'apprentissage n'est pas encore terminé, laissez le système tourner jusqu'à son terme en reprenant vos habitudes de vie normales. L'Auto TPI s'arrêtera de lui-même une fois les coefficients stabilisés après au moins 50 cycles chacun.
+1.  **Lancement** : démarrez la session d'apprentissage et gardez vos horaires habituels. Chaque montée après une consigne plus basse (nuit, absence) fournit des fenêtres d'apprentissage de Kint ; chaque période stabilisée fournit des cycles de Kext.
+2.  **Accélérer si besoin** : si votre consigne change rarement, baissez-la de 1 à 2°C pendant quelques heures, puis remontez-la : la montée fournit des fenêtres d'apprentissage de Kint.
+3.  **Fin** : la session s'arrête d'elle-même dès que les deux coefficients ont suffisamment d'observations.
 
 > [!NOTE]
-> **À propos de l'overshoot (dépassement de consigne)** : Un overshoot lors de la première montée en température est **normal** et même bénéfique ! Il fournit des données précieuses pour l'apprentissage. Le système va s'en servir pour affiner les coefficients. En revanche, si les overshoots **persistent ou s'aggravent** après plusieurs cycles, cela peut indiquer un problème de configuration Auto TPI (temps de chauffe/refroidissement incorrects, agressivité trop élevée) ou un problème de configuration du VTherm lui-même.
-
-### Déroulement idéal d'une session "Ajustement fin"
-1.  **Stabilité** : Conservez vos habitudes de chauffage habituelles en évitant simplement les perturbations exceptionnelles (fenêtres ouvertes longtemps, chauffage d'appoint).
-2.  **Observation** : Laissez le système observer les micro-variations et ajuster les coefficients sur 50 cycles.
-3.  **Ré-évaluation** : Si vous constatez que les coefficients dérivent fortement ou que le confort se dégrade, il est préférable de relancer une session complète en mode **Découverte**.
+> **À propos du dépassement de consigne (overshoot)** : un léger dépassement après une montée est normal avec un émetteur lent. Si les dépassements **persistent** après la fin de la session, vérifiez le **temps de chauffe** de votre configuration : une valeur trop courte pour l'émetteur rend la régulation trop rapide.
 
 ---
 
-## 🔄 Apprentissage Continu du Kext
+## 🔄 Apprentissage continu du Kext
 
-Alors que les sessions Auto TPI standard sont conçues pour un apprentissage ponctuel (découverte initiale ou ajustement fin), la fonctionnalité d'**Apprentissage Continu du Kext** permet au thermostat de s'adapter aux changements climatiques à long terme et aux variations d'isolation du bâtiment sans nécessiter de sessions manuelles.
+La fonctionnalité **Apprentissage continu du Kext** permet au thermostat de suivre les lentes évolutions des pertes thermiques (saison, vent, usage du bâtiment) après la session d'apprentissage, sans en lancer une nouvelle.
 
-### Comment ça marche
-Une fois activé, le système surveille en permanence la précision du coefficient $K_{ext}$ (Isolation externe) pendant le fonctionnement normal. S'il détecte un écart systématique (ex: la température est toujours 0,2°C en dessous de la consigne lors de vagues de froid), il applique des micro-corrections via une **Moyenne Mobile Exponentielle (EWMA)**.
+### Fonctionnement
+Une fois activé, le système continue de vérifier l'écart restant lorsque la pièce est stabilisée autour de la consigne. Si l'écart reste du même côté (par exemple, la pièce est toujours 0,2°C sous la consigne par temps froid), il corrige Kext par petits pas, avec un facteur de lissage fixe (moyenne mobile exponentielle, alpha 0,04).
 
 ### Points clés
-- **Adaptation Passive** : Fonctionne en arrière-plan tant que le thermostat est en service.
-- **Sécurité** : Actif uniquement lorsque la puissance n'est pas saturée et que le système est stable.
-- **Alpha Configurable** : Vous pouvez ajuster le facteur "Alpha" (0,04 par défaut) pour contrôler la vitesse d'adaptation. Une valeur plus élevée signifie une adaptation plus rapide mais une plus grande sensibilité au bruit.
-- **Bootstrap Requis** : L'apprentissage continu ne démarre qu'après au moins un cycle d'apprentissage extérieur réussi lors d'une session standard.
+- **Adaptation passive** : fonctionne en arrière-plan tant que le thermostat est actif.
+- **Sécurité** : actif uniquement lorsque la puissance n'est pas saturée et que la pièce est stabilisée autour de la consigne.
+- **Nécessite une première session** : l'apprentissage continu ne démarre qu'après au moins un cycle d'apprentissage de Kext effectué dans une session standard.
 
 ---
 
-## 📊 Suivi visualisé
+## 📊 Suivi visuel
 
 Pour suivre l'évolution de l'apprentissage en temps réel, il est fortement recommandé d'installer la carte personnalisée **Auto TPI Learning Card**.
 
 ### Installation via HACS
 
-[![Open your Home Assistant instance and open a repository inside the Home Assistant Community Store.](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=KipK&repository=auto-tpi-learning-card&category=plugin)
+[![Ouvrez votre instance Home Assistant et ouvrez un dépôt dans la Home Assistant Community Store.](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=KipK&repository=auto-tpi-learning-card&category=plugin)
 
 Ou ajoutez manuellement le dépôt personnalisé : [https://github.com/KipK/auto-tpi-learning-card](https://github.com/KipK/auto-tpi-learning-card)
 
@@ -170,7 +131,7 @@ Ou ajoutez manuellement le dépôt personnalisé : [https://github.com/KipK/auto
 
 ![Aperçu de la carte Auto TPI](https://github.com/KipK/auto-tpi-learning-card/blob/main/assets/card.png?raw=true)
 
--   📈 Progression de la calibration et de l'apprentissage en temps réel
--   🔢 Coefficients `Kint`, `Kext` et taux de chauffe en cours de calcul
+-   📈 Progression de l'apprentissage en temps réel
+-   🔢 Coefficients `Kint`, `Kext` en cours de calcul
 -   ▶️ Bouton de contrôle pour démarrer/arrêter la session
--   🔧 Options pour réinitialiser la session, activer le Boost Kint ou le Deboost Kext
+-   🔧 Option pour réinitialiser la session
