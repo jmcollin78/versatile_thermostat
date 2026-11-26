@@ -7,6 +7,8 @@ from typing import TYPE_CHECKING
 from datetime import datetime
 
 from homeassistant.exceptions import ServiceValidationError
+from homeassistant.components.sensor import DOMAIN as SENSOR_DOMAIN
+from homeassistant.helpers import entity_registry as er
 
 from .prop_algo_tpi import TpiAlgorithm
 from .auto_tpi_manager import AutoTpiManager
@@ -325,6 +327,14 @@ class TPIHandler:
         # Cycle management is now passive, no need to start/stop loop
         pass
 
+    def _resolve_diagnostic_entity_id(self) -> str | None:
+        """Return the Auto TPI learning sensor entity id, or None when Auto TPI is not enabled."""
+        t = self._thermostat
+        if not self._auto_tpi_manager or not t.entry_infos.get(CONF_AUTO_TPI_MODE, False):
+            return None
+        registry = er.async_get(t.hass)
+        return registry.async_get_entity_id(SENSOR_DOMAIN, DOMAIN, f"{t.entry_infos.get(CONF_NAME)}_auto_tpi_learning")
+
     def update_attributes(self):
         """Add TPI-specific attributes to thermostat."""
         t = self._thermostat
@@ -336,6 +346,8 @@ class TPIHandler:
                 if self._auto_tpi_manager and (self._auto_tpi_manager.learning_active or self._auto_tpi_manager._continuous_kext)
                 else {}
             ),
+            # Auto TPI learning sensor, read by dashboards as the regulation diagnostics entity
+            "regulation_diagnostics": self._resolve_diagnostic_entity_id(),
         })
 
         t._attr_extra_state_attributes["configuration"].update({

@@ -689,3 +689,43 @@ async def test_added_to_hass_applies_learned_coefs_to_algorithm():
     # The first demand computation uses the learned coefficients
     thermostat.recalculate()
     assert thermostat.on_percent == 0.27
+
+
+async def test_climate_publishes_auto_tpi_diagnostics_entity(hass: HomeAssistant, skip_hass_states_is_state):
+    """The climate publishes the Auto TPI learning sensor as its regulation diagnostics entity."""
+    entry = MockConfigEntry(
+        domain=DOMAIN,
+        title="AutoTpiDiag",
+        unique_id="auto_tpi_diag",
+        version=2,
+        minor_version=5,
+        data={
+            CONF_NAME: "AutoTpiDiag",
+            CONF_THERMOSTAT_TYPE: CONF_THERMOSTAT_SWITCH,
+            CONF_TEMP_SENSOR: "sensor.mock_temp_sensor",
+            CONF_EXTERNAL_TEMP_SENSOR: "sensor.mock_ext_temp_sensor",
+            CONF_CYCLE_MIN: 5,
+            CONF_TEMP_MIN: 15,
+            CONF_TEMP_MAX: 30,
+            CONF_USE_WINDOW_FEATURE: False,
+            CONF_USE_MOTION_FEATURE: False,
+            CONF_USE_POWER_FEATURE: False,
+            CONF_USE_PRESENCE_FEATURE: False,
+            CONF_UNDERLYING_LIST: ["switch.mock_switch"],
+            CONF_PROP_FUNCTION: PROPORTIONAL_FUNCTION_TPI,
+            CONF_TPI_COEF_INT: 0.5,
+            CONF_TPI_COEF_EXT: 0.01,
+            CONF_MINIMAL_ACTIVATION_DELAY: 30,
+            CONF_MINIMAL_DEACTIVATION_DELAY: 30,
+            CONF_AUTO_TPI_MODE: True,
+        },
+    )
+
+    entity: ThermostatProp = await create_thermostat(hass, entry, "climate.autotpidiag")
+    assert entity
+
+    entity.update_custom_attributes()
+    diagnostic_entity_id = entity.extra_state_attributes["specific_states"]["regulation_diagnostics"]
+    assert diagnostic_entity_id is not None
+    assert diagnostic_entity_id.startswith("sensor.")
+    assert hass.states.get(diagnostic_entity_id) is not None
