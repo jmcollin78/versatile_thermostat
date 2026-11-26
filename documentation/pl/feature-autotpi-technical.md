@@ -111,7 +111,7 @@ Kint uczy się w **oknach** kilku kolejnych cykli, nigdy na podstawie pojedyncze
 
 ### Zasady okien
 
-- Okno otwiera się, gdy pomieszczenie jest oddalone od nastawy o co najmniej **0,3°C**, i dopiero **T_cl / 2** po ostatniej zmianie nastawy, zmianie trybu lub nieprawidłowym cyklu (źródło ciepła potrzebuje tego czasu, aby zareagować).
+- Okno otwiera się, gdy pomieszczenie jest oddalone od nastawy o co najmniej **0,3°C**, i dopiero **T_cl / 2** po ostatniej zmianie nastawy, zmianie trybu, cyklu przy 0% lub nieprawidłowym cyklu (źródło ciepła potrzebuje tego czasu, aby zareagować). Cykl przy 100% zamyka okno bez ponownego uruchamiania tego opóźnienia: źródło ciepła już pracuje.
 - Każdy cykl okna musi być prawidłowy, z mocą między 0 a 100%. W przeciwnym razie okno jest zamykane bez uczenia.
 - Okno trwa co najmniej **max(30 min, T_cl)**. Następne okno zaczyna się tam, gdzie kończy się poprzednie, na tym samym warunku 0,3°C.
 - Okno jest akceptowane wyłącznie na podstawie swojego czasu trwania i początkowego odchylenia. Nigdy nie zależy od zmierzonej zmiany temperatury: w przeciwnym razie zachowane byłyby tylko okna, w których szum zwiększył wzrost, co zniekształciłoby Kint.

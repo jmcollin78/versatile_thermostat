@@ -111,7 +111,7 @@ Kint est appris sur des **fenêtres** de plusieurs cycles consécutifs, jamais s
 
 ### Règles des fenêtres
 
-- Une fenêtre s'ouvre lorsque la pièce est à au moins **0,3°C** de la consigne, et seulement **T_cl / 2** après le dernier changement de consigne, de mode ou cycle invalide (l'émetteur a besoin de ce temps pour réagir).
+- Une fenêtre s'ouvre lorsque la pièce est à au moins **0,3°C** de la consigne, et seulement **T_cl / 2** après le dernier changement de consigne, de mode, cycle à 0 % ou cycle invalide (l'émetteur a besoin de ce temps pour réagir). Un cycle à 100 % ferme la fenêtre sans relancer ce délai : l'émetteur fonctionne déjà.
 - Chaque cycle de la fenêtre doit être valide avec une puissance comprise entre 0 et 100 %. Sinon, la fenêtre est fermée sans apprentissage.
 - Une fenêtre dure au moins **max(30 min, T_cl)**. La fenêtre suivante commence là où la précédente se termine, sous la même condition de 0,3°C.
 - Une fenêtre est acceptée uniquement sur sa durée et son écart de départ. Elle ne dépend jamais de la variation de température mesurée : sinon, seules les fenêtres où le bruit a augmenté la montée seraient conservées, ce qui biaiserait Kint.

@@ -1,5 +1,14 @@
 # Release Notes
 
+## Release 11.0
+> 1. **Auto TPI rewritten** (see [Auto TPI](feature-autotpi.md)):
+>    - Kint is learned over temperature rise windows of at least 30 minutes, toward a target speed set by the heater **heating time**. Noisy sensors or sensors with a 0.1 °C step no longer drive Kint down.
+>    - Kext is learned once the room has settled near the setpoint, with a weighted average. Continuous Kext keeps a fixed smoothing and is used by the regulation right away.
+>    - The configuration keeps only the heating time and continuous Kext. The heating capacity, the bootstrap, the learning type, the advanced settings, the aggressiveness and the cooling time are removed.
+>    - Removed: the `auto_tpi_calibrate_capacity` action and the `allow_kint_boost_on_stagnation` / `allow_kext_compensation_on_overshoot` fields of `set_auto_tpi_mode`. Update the automations that use them.
+>    - Coefficients learned before may be wrong (Kint often far too low): a repair asks to start a new learning session.
+> 2. **TPI thresholds**: the high and low thresholds work as a hysteresis on the temperature only and no longer depend on the temperature slope.
+
 ## Release 9.3 - stable version
 > 1. **Stuck valve detection**: Major improvement to heating failure detection. When an anomaly is detected on `over_climate_valve` type VTherms, the thermostat now diagnoses whether the problem is caused by a stuck TRV valve (stuck open or closed) by comparing the commanded state with the real state. This information - `root_cause` - is sent in the anomaly event, allowing you to take appropriate actions (notification, valve recovery, etc.). More information [here](feature-heating-failure-detection.md),
 > 2. **Auto-relock after unlock**: Added `auto_relock_sec` parameter to the lock feature. When configured, the thermostat will automatically re-lock after the specified number of seconds following an unlock. You can completely disable this feature by setting it to 0. By default, auto-relock is set to 30 seconds for improved security. More information [here](feature-lock.md),

@@ -17,10 +17,12 @@ from typing import Callable
 from homeassistant.core import HomeAssistant
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.helpers import entity_platform, service
+from homeassistant.helpers import issue_registry as ir
 from homeassistant.helpers.storage import Store
 from homeassistant.util import dt as dt_util
 
 from .const import (
+    DOMAIN,
     CONF_TPI_COEF_INT,
     CONF_TPI_COEF_EXT,
 )
@@ -247,6 +249,36 @@ class AutoTpiManager:
 
         return data
 
+    @property
+    def _relearn_issue_id(self) -> str:
+        """Repair issue id asking to learn the coefficients again."""
+        return f"auto_tpi_relearn_{self._unique_id}"
+
+    def _report_previous_learning(self, data: dict) -> None:
+        """Raise a repair issue when the stored state comes from the per-cycle learning.
+
+        That learning stored a heating capacity and could drive Kint far too low.
+        The issue asks for a new learning session; it is removed when one starts.
+        """
+        learned_kint = data.get("coeff_indoor_autolearn", 0) > KINT_COUNT_START
+        if "capacity_heat_learn_count" not in data or not learned_kint:
+            return
+        _LOGGER.warning("%s - Auto TPI: coefficients learned by the previous learning method, a new learning session is advised", self._name)
+        ir.async_create_issue(
+            self._hass,
+            DOMAIN,
+            self._relearn_issue_id,
+            is_fixable=False,
+            is_persistent=True,
+            severity=ir.IssueSeverity.WARNING,
+            translation_key="auto_tpi_relearn",
+            translation_placeholders={
+                "name": self._name,
+                "kint": f"{data.get('coeff_indoor_heat', 0) / self._unit_factor:.3f}",
+                "kext": f"{data.get('coeff_outdoor_heat', 0) / self._unit_factor:.3f}",
+            },
+        )
+
     def set_coefficients_written_callback(self, callback: Callable[[float | None, float | None], None]):
         """Set a callback called when learned coefficients are written to the configuration."""
         self._coefficients_written_callback = callback
@@ -444,6 +476,7 @@ class AutoTpiManager:
                     _LOGGER.error("%s - Auto TPI: Migration error: %s", self._name, e)
 
         if data:
+            self._report_previous_learning(data)
             self.state = AutoTpiState.from_dict(data)
 
             # Clamping: Apply new max_coef_int to loaded coefficients immediately,
@@ -776,6 +809,12 @@ class AutoTpiManager:
         is_heat = self.state.last_state == "heat"
         is_cool = self.state.last_state == "cool"
         now = dt_util.now()
+
+        if cycle_valid and (is_heat or is_cool) and self.state.last_power >= self.saturation_threshold:
+            # A saturated cycle says nothing about Kint, but the emitter is already fully
+            # running: close the window without waiting for the emitter delay again.
+            self._kint_window_start = None
+            return
 
         if not (cycle_valid and (is_heat or is_cool) and 0 < self.state.last_power < self.saturation_threshold):
             self._reset_kint_window(now)
@@ -1384,6 +1423,7 @@ class AutoTpiManager:
 
         if reset_data:
             _LOGGER.info("%s - Auto TPI: Starting learning with coef_int=%.3f, coef_ext=%.3f (resetting all data)", self._name, target_int, target_ext)
+            ir.async_delete_issue(self._hass, DOMAIN, self._relearn_issue_id)
 
             # Reset coefficients to target values
             self.state.coeff_indoor_heat = target_int

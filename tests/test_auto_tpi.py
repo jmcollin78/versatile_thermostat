@@ -58,6 +58,13 @@ def log_test_execution(request):
     yield
     _LOGGER.info("Finished test: %s", request.node.name)
 
+@pytest.fixture(autouse=True)
+def mock_issue_registry():
+    """The mocked hass has no issue registry."""
+    with patch("custom_components.versatile_thermostat.auto_tpi_manager.ir") as mock_ir:
+        yield mock_ir
+
+
 @pytest.fixture
 def mock_hass():
     """Mock Home Assistant."""
@@ -807,3 +814,58 @@ async def test_continuous_kext_is_applied_to_the_regulation(hass: HomeAssistant,
     assert entity.prop_algorithm.tpi_coef_ext == pytest.approx(0.0162)
     assert entity.tpi_coef_ext == pytest.approx(0.0162)
     assert entity.prop_algorithm.tpi_coef_int == pytest.approx(0.6)
+
+
+@pytest.mark.parametrize("stored_extra, expect_issue", [
+    ({"capacity_heat_learn_count": 3, "coeff_indoor_autolearn": 30}, True),
+    ({"capacity_heat_learn_count": 3, "coeff_indoor_autolearn": 1}, False),
+    ({"coeff_indoor_autolearn": 30}, False),
+])
+async def test_previous_learning_raises_a_relearn_issue(mock_hass, mock_store, mock_config_entry, stored_extra, expect_issue):
+    """A state stored by the previous learning method with a learned Kint raises a repair issue, removed at the next session."""
+    stored = AutoTpiState(coeff_indoor_heat=0.029, coeff_outdoor_heat=0.02, total_cycles=2000).to_dict()
+    stored.update(stored_extra)
+    mock_store.async_load = AsyncMock(return_value=stored)
+    manager = AutoTpiManager(hass=mock_hass, config_entry=mock_config_entry, unique_id="test_relearn", name="Bedroom", cycle_min=5, coef_int=0.029, coef_ext=0.02)
+    manager.calculate = AsyncMock()
+
+    with patch("custom_components.versatile_thermostat.auto_tpi_manager.ir") as mock_ir:
+        await manager.async_load_data()
+        assert mock_ir.async_create_issue.called is expect_issue
+        if expect_issue:
+            kwargs = mock_ir.async_create_issue.call_args.kwargs
+            assert mock_ir.async_create_issue.call_args.args[2] == "auto_tpi_relearn_test_relearn"
+            assert kwargs["translation_key"] == "auto_tpi_relearn"
+            assert kwargs["translation_placeholders"] == {"name": "Bedroom", "kint": "0.029", "kext": "0.020"}
+
+        await manager.start_learning(reset_data=True)
+        mock_ir.async_delete_issue.assert_called_once_with(mock_hass, "versatile_thermostat", "auto_tpi_relearn_test_relearn")
+
+
+async def test_kint_window_opens_right_after_saturation(manager):
+    """A saturated cycle closes the window but does not restart the emitter delay."""
+    start = datetime(2026, 1, 5, 8, 0, tzinfo=timezone.utc)
+    with patch("custom_components.versatile_thermostat.auto_tpi_manager.dt_util") as mock_dt:
+        manager.state.autolearn_enabled = True
+        manager.state.last_state = "heat"
+        manager._current_target_temp = 20.0
+        manager._current_temp_in = 18.0
+        manager._kint_window_hold_since = start - timedelta(hours=2)
+
+        mock_dt.now.return_value = start
+        manager.state.last_power = 1.0
+        manager._process_kint_window(True)
+        assert manager._kint_window_start is None
+
+        mock_dt.now.return_value = start + timedelta(minutes=5)
+        manager.state.last_power = 0.8
+        manager._process_kint_window(True)
+        assert manager._kint_window_start is not None
+
+        # A cycle at 0% (emitter stopped) restarts the emitter delay
+        manager.state.last_power = 0.0
+        manager._process_kint_window(True)
+        mock_dt.now.return_value = start + timedelta(minutes=10)
+        manager.state.last_power = 0.5
+        manager._process_kint_window(True)
+        assert manager._kint_window_start is None

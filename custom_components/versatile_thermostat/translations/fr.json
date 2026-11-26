@@ -1010,5 +1010,11 @@
       }
     }
   },
-  "exceptions": {}
+  "exceptions": {},
+  "issues": {
+    "auto_tpi_relearn": {
+      "title": "Auto TPI : réapprendre les coefficients de {name}",
+      "description": "L'apprentissage Auto TPI de {name} a été amélioré. Les coefficients appris auparavant (Kint {kint}, Kext {kext}) peuvent être faux, Kint souvent beaucoup trop bas. Démarrez une nouvelle session d'apprentissage depuis la carte Auto TPI, le tableau de bord Equinox ou l'action `versatile_thermostat.set_auto_tpi_mode` avec `reinitialise: true`. Ce message disparaît au démarrage de la session."
+    }
+  }
 }

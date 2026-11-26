@@ -1,5 +1,14 @@
 # Note de versions
 
+## Release 11.0
+> 1. **Auto TPI réécrit** (voir [Auto TPI](feature-autotpi.md)) :
+>    - Kint est appris sur des fenêtres de montée en température d'au moins 30 minutes, vers une vitesse cible fixée par le **temps de chauffe** de l'émetteur. Les capteurs bruités ou au pas de 0,1 °C ne font plus dériver Kint vers le bas.
+>    - Kext est appris une fois la pièce stabilisée près de la consigne, par moyenne pondérée. Le Kext continu garde un lissage fixe et est utilisé immédiatement par la régulation.
+>    - La configuration ne garde que le temps de chauffe et le Kext continu. La capacité de chauffe, le bootstrap, le type d'apprentissage, les paramètres avancés, l'agressivité et le temps de refroidissement sont supprimés.
+>    - Supprimés : l'action `auto_tpi_calibrate_capacity` et les champs `allow_kint_boost_on_stagnation` / `allow_kext_compensation_on_overshoot` de `set_auto_tpi_mode`. Mettez à jour les automatisations qui les utilisent.
+>    - Les coefficients appris auparavant peuvent être faux (Kint souvent beaucoup trop bas) : une réparation invite à lancer une nouvelle session d'apprentissage.
+> 2. **Seuils TPI** : les seuils haut et bas fonctionnent comme une hystérésis sur la seule température et ne dépendent plus de la pente de température.
+
 ## Release 9.3 - version stable
 > 1. **Diagnostic des vannes bloquées** : Amélioration majeure de la détection d'anomalie de chauffe. Lorsqu'une anomalie est détectée sur les VTherms de type `over_climate_valve`, le thermostat diagnostique maintenant si le problème est causé par une vanne TRV bloquée (bloquée ouverte ou fermée) en comparant l'état commandé avec l'état réel. Cette information - `root_cause` - est envoyée dans l'événement d'anomalie, vous permettant de prendre les actions appropriées (notification, relance de la vanne, etc.). Plus d'informations [ici](feature-heating-failure-detection.md),
 > 2. **Relockage automatique du verrou** : Ajout du paramètre `auto_relock_sec` à la fonctionnalité de verrouillage. Lorsque configuré, le thermostat se relockera automatiquement après le délai spécifié (en secondes) suivant un déverrouillage. Vous pouvez complètement désactiver cette fonctionnalité en le mettant à 0. Par défaut, le relockage automatique est configuré à 30 secondes pour améliorer la sécurité. Plus d'informations [ici](feature-lock.md),

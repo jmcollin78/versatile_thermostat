@@ -1,5 +1,14 @@
 # Poznámky k vydáním
 
+## Verze 11.0
+> 1. **Auto TPI přepsáno** (viz [Auto TPI](feature-autotpi.md)):
+>    - Kint se učí v oknech nárůstu teploty dlouhých alespoň 30 minut, směrem k cílové rychlosti danou **dobou ohřevu** topného tělesa. Hlučná čidla nebo čidla s krokem 0,1 °C už Kint nesnižují.
+>    - Kext se učí, když se místnost ustálí blízko požadované hodnoty, váženým průměrem. Průběžné učení Kext udržuje pevné vyhlazení a regulace ho používá hned.
+>    - Konfigurace si ponechá pouze dobu ohřevu a průběžné učení Kext. Odstraněny jsou výkon topení, bootstrap, typ učení, pokročilá nastavení, agresivita a doba chlazení.
+>    - Odstraněno: akce `auto_tpi_calibrate_capacity` a pole `allow_kint_boost_on_stagnation` / `allow_kext_compensation_on_overshoot` služby `set_auto_tpi_mode`. Upravte automatizace, které je používají.
+>    - Koeficienty naučené dříve mohou být chybné (Kint často výrazně příliš nízký): oprava vyzve ke spuštění nové učební relace.
+> 2. **Prahy TPI**: vysoký a nízký práh fungují jako hystereze pouze na teplotě a dále nezávisí na sklonu teploty.
+
 ## Verze 9.3 (stabilní)
 > 1. **Detekce zaseknutého ventilu**: významné vylepšení detekce poruch vytápění. Při anomálii u _VTherm_ typu `over_climate_valve` termostat diagnostikuje, zda je příčinou zaseknutý TRV ventil (zaseknutý otevřený/zavřený), a pošle `root_cause` v události. Více informací [zde](documentation/cs/feature-heating-failure-detection.md),
 > 2. **Automatické opětovné zamčení po odemčení**: přidán parametr `auto_relock_sec` ve funkci zámku. Při nastavení se termostat po odemčení automaticky znovu zamkne po zadaném počtu sekund. Více informací [zde](documentation/cs/feature-lock.md),

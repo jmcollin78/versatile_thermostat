@@ -111,7 +111,7 @@ Kint se učí v **oknech** několika po sobě jdoucích cyklů, nikdy ne z jedin
 
 ### Pravidla oken
 
-- Okno se otevře, když je místnost alespoň **0,3 °C** od požadované hodnoty, a to až **T_cl / 2** po poslední změně požadované hodnoty, změně režimu nebo neplatném cyklu (topné těleso na to potřebuje čas, aby zareagovalo).
+- Okno se otevře, když je místnost alespoň **0,3 °C** od požadované hodnoty, a to až **T_cl / 2** po poslední změně požadované hodnoty, změně režimu, cyklu při 0 % nebo neplatném cyklu (topné těleso na to potřebuje čas, aby zareagovalo). Cyklus při 100 % okno uzavře bez restartu této prodlevy: topné těleso už běží.
 - Každý cyklus okna musí být platný s výkonem mezi 0 a 100 %. Jinak se okno uzavře bez učení.
 - Okno trvá nejméně **max(30 min, T_cl)**. Další okno začíná tam, kde předchozí skončilo, za stejné podmínky 0,3 °C.
 - Okno se přijímá pouze podle své délky a počáteční odchylky. Nikdy nezáleží na naměřené změně teploty: jinak by se zachovala jen okna, kde šum zvýšil nárůst, a Kint by byl zkreslený.

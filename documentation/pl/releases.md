@@ -1,5 +1,14 @@
 # Informacje o wydaniach
 
+## Wydanie 11.0
+> 1. **Auto TPI przepisane** (zobacz [Auto TPI](feature-autotpi.md)):
+>    - Kint jest uczone w oknach narastania temperatury trwających co najmniej 30 minut, w kierunku docelowej prędkości wyznaczonej przez **czas nagrzewania** grzejnika. Szumiące czujniki lub czujniki o kroku 0,1 °C już nie obniżają Kint.
+>    - Kext jest uczone, gdy pomieszczenie ustabilizuje się blisko nastawy, średnią ważoną. Ciągłe uczenie Kext utrzymuje stałe wygładzanie i jest od razu używane przez regulację.
+>    - Konfiguracja zachowuje tylko czas nagrzewania i ciągłe uczenie Kext. Usunięte zostały: moc grzewcza, bootstrap, typ uczenia, ustawienia zaawansowane, agresywność i czas chłodzenia.
+>    - Usunięto: akcję `auto_tpi_calibrate_capacity` oraz pola `allow_kint_boost_on_stagnation` / `allow_kext_compensation_on_overshoot` usługi `set_auto_tpi_mode`. Zaktualizuj automatyzacje, które ich używają.
+>    - Wcześniej nauczone współczynniki mogą być błędne (Kint często zbyt niski): naprawa prosi o rozpoczęcie nowej sesji uczenia.
+> 2. **Progi TPI**: progi wysoki i niski działają jako histereza wyłącznie na temperaturze i nie zależą już od nachylenia temperatury.
+
 ## Wydanie 9.3 - wersja stabilna
 > 1. **Wykrywanie zablokowanych zaworów**: Znaczne ulepszenie wykrywania awarii ogrzewania. Gdy anomalia zostanie wykryta na termostatach typu `over_climate_valve`, termostat diagnozuje teraz, czy problem jest spowodowany zablokowanym zaworem TRV (zablokowany otwarty lub zamknięty), porównując stan poleceń ze stanem rzeczywistym. Informacja ta - `root_cause` - jest wysyłana w zdarzeniu anomalii, umożliwiając podjęcie odpowiednich działań (powiadomienie, odzyskanie zaworu itp.). Więcej informacji [tutaj](documentation/pl/feature-heating-failure-detection.md),
 > 2. **Automatyczne ponowne zablokowanie po odblokowaniu**: Dodano parametr `auto_relock_sec` do funkcji blokady. Gdy jest skonfigurowany, termostat automatycznie się blokuje ponownie po określonej liczbie sekund po odblokowaniu. Tę funkcję można całkowicie wyłączyć, ustawiając wartość 0. Domyślnie automatyczne ponowne zablokowanie jest ustawione na 30 sekund dla zwiększonego bezpieczeństwa. Więcej informacji [tutaj](documentation/pl/feature-lock.md),

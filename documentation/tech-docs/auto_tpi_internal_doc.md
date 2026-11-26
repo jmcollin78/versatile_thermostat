@@ -65,7 +65,7 @@ La logique se base sur le `hvac_mode` (`heat` / `cool`), pas sur `hvac_action`.
 Kint est appris sur des fenêtres de plusieurs cycles, car sur un cycle de 5 min la variation de température est du même ordre que la résolution du capteur.
 
 *   **Cycle valide** : pas de `cycle_gap_detected`, pas de délestage, chaudière centrale active, pas de défaut de chauffe, `0 < last_power < 1`, mode `heat` ou `cool`. Un cycle invalide ferme la fenêtre (`_reset_kint_window`) et horodate `_kint_window_hold_since`.
-*   **Ouverture** : au moins `T_cl / 2` après `_kint_window_hold_since` (retard de l'émetteur), et écart ≥ `KINT_MIN_GAP` (0,3 °C).
+*   **Ouverture** : au moins `T_cl / 2` après `_kint_window_hold_since` (retard de l'émetteur), et écart ≥ `KINT_MIN_GAP` (0,3 °C). Un cycle saturé (100 %) ferme la fenêtre sans mettre à jour `_kint_window_hold_since` : l'émetteur tourne déjà, sinon une montée courte après saturation (émetteur lent et puissant) n'ouvrirait jamais de fenêtre.
 *   **Clôture** : après `max(KINT_WINDOW_MIN_MINUTES, T_cl)`. La fenêtre suivante démarre au même point si l'écart est encore ≥ 0,3 °C.
 *   **Acceptation** : uniquement sur la durée et l'écart de départ. Elle ne dépend jamais de la variation mesurée, ce qui évite le biais de sélection.
 *   **Pas** :

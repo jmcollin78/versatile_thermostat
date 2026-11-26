@@ -111,7 +111,7 @@ Kint wird über **Fenster** aus mehreren aufeinanderfolgenden Zyklen gelernt, ni
 
 ### Fensterregeln
 
-- Ein Fenster öffnet sich, wenn der Raum mindestens **0,3 °C** vom Sollwert entfernt ist, und erst **T_cl / 2** nach der letzten Sollwertänderung, Modusänderung oder einem ungültigen Zyklus (der Heizkörper braucht diese Zeit, um zu reagieren).
+- Ein Fenster öffnet sich, wenn der Raum mindestens **0,3 °C** vom Sollwert entfernt ist, und erst **T_cl / 2** nach der letzten Sollwertänderung, Modusänderung, einem Zyklus bei 0 % oder einem ungültigen Zyklus (der Heizkörper braucht diese Zeit, um zu reagieren). Ein Zyklus bei 100 % schließt das Fenster, ohne diese Verzögerung neu zu starten: Der Heizkörper läuft bereits.
 - Jeder Zyklus des Fensters muss gültig sein, mit einer Leistung zwischen 0 und 100 %. Andernfalls wird das Fenster ohne Lernen geschlossen.
 - Ein Fenster dauert mindestens **max(30 min, T_cl)**. Das nächste Fenster beginnt dort, wo das vorherige endet, unter derselben 0,3-°C-Bedingung.
 - Ein Fenster wird nur anhand seiner Dauer und seiner Anfangsabweichung akzeptiert. Es hängt niemals von der gemessenen Temperaturänderung ab: Andernfalls würden nur die Fenster behalten, in denen Rauschen den Anstieg verstärkt hat, was Kint verfälschen würde.
