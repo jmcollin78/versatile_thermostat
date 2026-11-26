@@ -47,6 +47,8 @@ CLOSED_LOOP_TIME_MIN_MINUTES = 30.0  # Bounds of the target closed-loop time con
 CLOSED_LOOP_TIME_MAX_MINUTES = 180.0
 KEXT_SETTLE_FACTOR = 3.0  # Kext is learned only after KEXT_SETTLE_FACTOR closed-loop times since the last setpoint change
 KEXT_FORCE_SETTLE_FACTOR = 12.0  # ... and once the room came near the setpoint, or after this many closed-loop times
+CONTINUOUS_KEXT_ALPHA = 0.04  # Fixed smoothing of the continuous Kext learning
+KINT_COUNT_START = 1  # Initial value of the Kint window counter
 
 
 @dataclass
@@ -143,12 +145,7 @@ class AutoTpiManager:
         coef_int: float = 0.6,
         coef_ext: float = 0.04,
         heater_heating_time: int = 5,
-        calculation_method: str = "ema",
-        avg_initial_weight: int = 1,
-        ema_alpha: float = 0.15,
-        ema_decay_rate: float = 0.08,
         continuous_kext: bool = False,
-        continuous_kext_alpha: float = 0.04,
     ):
         self._hass = hass
         self._name = name
@@ -161,16 +158,13 @@ class AutoTpiManager:
         self._heater_heating_time = heater_heating_time
 
         self._continuous_kext = continuous_kext
-        self._continuous_kext_alpha = continuous_kext_alpha
+        self._continuous_kext_alpha = CONTINUOUS_KEXT_ALPHA
 
         self._temp_unit = self._hass.config.units.temperature_unit
         self._unit_factor = 1.8 if self._temp_unit == UnitOfTemperature.FAHRENHEIT else 1.0
 
-        self._calculation_method = calculation_method
-        self._ema_alpha = ema_alpha
-        self._avg_initial_weight = avg_initial_weight
+        self._avg_initial_weight = KINT_COUNT_START
         self._max_coef_int = 1.0
-        self._ema_decay_rate = ema_decay_rate
 
         # Notification management
         self._last_notified_coef_int: Optional[float] = None
@@ -532,12 +526,6 @@ class AutoTpiManager:
 
         self._calculated_params = params
         return params
-
-    def _get_adaptive_alpha(self, cycle_count: int) -> float:
-        """Calculate the decreasing alpha of the EMA smoothing."""
-
-        # Standard calculation
-        return self._ema_alpha / (1 + self._ema_decay_rate * cycle_count)
 
     def _should_learn(self) -> bool:
         """Check if learning should be performed."""
@@ -948,18 +936,11 @@ class AutoTpiManager:
         count = self.state.coeff_outdoor_cool_autolearn if is_cool else self.state.coeff_outdoor_autolearn
         old_coeff = current_outdoor
 
-        # Apply EMA or average
-        effective_count = min(count, 50)
-
-        if self._calculation_method == "average":
-            # Kext counter starts at 0, so first cycle should have weight 0
-            weight_old = effective_count
-            avg_coeff = ((old_coeff * weight_old) + coeff_new) / (weight_old + 1)
-            _LOGGER.debug("%s - Auto TPI: Outdoor Weighted Average: old=%.3f (weight=%d, real_count=%d), new=%.3f, result=%.3f", self._name, old_coeff, weight_old, count, coeff_new, avg_coeff)
-        else:  # EMA
-            alpha = self._get_adaptive_alpha(effective_count)
-            avg_coeff = (old_coeff * (1.0 - alpha)) + (coeff_new * alpha)
-            _LOGGER.debug("%s - Auto TPI: Outdoor EMA: old=%.3f, new=%.3f, alpha=%.3f (eff_count=%d, real_count=%d), result=%.3f", self._name, old_coeff, coeff_new, alpha, effective_count, count, avg_coeff)
+        # Weighted average: the configured Kext has no weight (the Kext counter starts at 0),
+        # then each sample weighs 1 / (count + 1), with the count capped at 50.
+        weight_old = min(count, 50)
+        avg_coeff = ((old_coeff * weight_old) + coeff_new) / (weight_old + 1)
+        _LOGGER.debug("%s - Auto TPI: Outdoor Weighted Average: old=%.3f (weight=%d, real_count=%d), new=%.3f, result=%.3f", self._name, old_coeff, weight_old, count, coeff_new, avg_coeff)
 
         new_count = count + 1
 

@@ -139,12 +139,7 @@ class TPIHandler:
 
         # Initialize Auto TPI Manager from config
         heater_heating_time = entry.get(CONF_AUTO_TPI_HEATER_HEATING_TIME, 5)
-        calculation_method = entry.get(CONF_AUTO_TPI_CALCULATION_METHOD, AUTO_TPI_METHOD_EMA)
-        ema_alpha = entry.get(CONF_AUTO_TPI_EMA_ALPHA, 0.2)
-        avg_initial_weight = entry.get(CONF_AUTO_TPI_AVG_INITIAL_WEIGHT, 1)
-
         continuous_kext = entry.get(CONF_AUTO_TPI_CONTINUOUS_KEXT, False)
-        continuous_kext_alpha = entry.get(CONF_AUTO_TPI_CONTINUOUS_KEXT_ALPHA, 0.04)
 
         _LOGGER.info("%s - DEBUG: TPI coefficients from entry_infos: int=%.3f, ext=%.3f",
                      t, t.tpi_coef_int, t.tpi_coef_ext)
@@ -158,11 +153,7 @@ class TPIHandler:
             coef_int=t.tpi_coef_int,
             coef_ext=t.tpi_coef_ext,
             heater_heating_time=heater_heating_time,
-            calculation_method=calculation_method,
-            ema_alpha=ema_alpha,
-            avg_initial_weight=avg_initial_weight,
             continuous_kext=continuous_kext,
-            continuous_kext_alpha=continuous_kext_alpha,
         )
         self._auto_tpi_manager.set_is_vtherm_stopping_callback(lambda: t.is_removed)
         _LOGGER.info("%s - DEBUG: AutoTpiManager initialized with defaults: int=%.3f, ext=%.3f",

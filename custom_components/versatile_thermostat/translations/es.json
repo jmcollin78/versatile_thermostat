@@ -35,8 +35,6 @@
           "lock": "Bloqueo",
           "heating_failure_detection": "Detección de fallos de calefacción",
           "auto_tpi_configuration": "Auto TPI - Configuración",
-          "auto_tpi_avg_settings": "Auto TPI - Media ponderada",
-          "auto_tpi_ema_settings": "Auto TPI - Media móvil exponencial (EWMA)",
           "finalize": "Todo listo",
           "configuration_not_complete": "Configuración incompleta"
         }
@@ -310,48 +308,12 @@
         "title": "Auto TPI - Configuración",
         "description": "Configuración general del aprendizaje de Auto TPI.",
         "data": {
-          "auto_tpi_learning_type": "Tipo de aprendizaje",
           "heater_heating_time": "Tiempo de calentamiento (minutos)",
-          "heater_cooling_time": "Tiempo de enfriamiento (minutos)",
-          "auto_tpi_heating_rate": "Velocidad de calentamiento ({unit}/h)",
-          "auto_tpi_cooling_rate": "Velocidad de enfriamiento ({unit}/h)",
-          "auto_tpi_aggressiveness": "Agresividad de la regulación",
-          "auto_tpi_enable_advanced_settings": "Activar los parámetros avanzados",
           "auto_tpi_continuous_kext": "Aprendizaje continuo de Kext"
         },
         "data_description": {
-          "auto_tpi_learning_type": "Elige «Descubrimiento» para el inicio (media ponderada, peso 1) o «Ajuste fino» para los ajustes continuos (EWMA, alfa 0,08).",
-          "heater_heating_time": "Tiempo hasta alcanzar la potencia máxima (minutos)",
-          "heater_cooling_time": "Tiempo de enfriamiento después de la parada (minutos)\n\n| Tipo | Tiempo de calentamiento | Tiempo de enfriamiento |\n| :--- | :--- | :--- |\n| Radiador eléctrico | 5 min | 7 min |\n| Radiador de agua | 15 min | 20 min |\n| Suelo radiante | 30 min | 45 min |",
-          "auto_tpi_heating_rate": "Capacidad de calentamiento del radiador ({unit} por hora). Indica 0 para que se aprenda automáticamente (inicialización).",
-          "auto_tpi_cooling_rate": "Capacidad de enfriamiento del radiador ({unit} por hora). Indica 0 para que se aprenda automáticamente (inicialización).",
-          "auto_tpi_aggressiveness": "Factor de reducción de los coeficientes aprendidos (50-100 %). Los valores más bajos proporcionan coeficientes más conservadores y reducen el riesgo de sobrepasar la consigna.",
-          "auto_tpi_enable_advanced_settings": "Marca esta opción para acceder al ajuste fino de los parámetros (alfa, decaimiento y peso).",
+          "heater_heating_time": "Tiempo hasta alcanzar la potencia máxima (minutos)\n\n| Tipo | Tiempo de calentamiento |\n| :--- | :--- |\n| Radiador eléctrico | 5 min |\n| Radiador de agua | 15 min |\n| Suelo radiante | 30 min |",
           "auto_tpi_continuous_kext": "Marca esta opción para permitir el aprendizaje continuo del coeficiente exterior (Kext) fuera de las sesiones de Auto TPI."
-        }
-      },
-      "auto_tpi_avg_settings": {
-        "title": "Auto TPI - Media ponderada",
-        "description": "Parámetros del método de media ponderada.",
-        "data": {
-          "auto_tpi_avg_initial_weight": "Peso inicial"
-        },
-        "data_description": {
-          "auto_tpi_avg_initial_weight": "Peso del valor inicial o anterior en el cálculo de la media"
-        }
-      },
-      "auto_tpi_ema_settings": {
-        "title": "Auto TPI - Media móvil exponencial (EWMA)",
-        "description": "Parámetros del método EWMA.\n\nRecomendaciones:\n| Situación | Alfa (ema_alpha) | Tasa de decaimiento (ema_decay_rate) |\n| :--- | :--- | :--- |\n| Aprendizaje inicial | 0.15 | 0.08 |\n| Ajuste fino | 0.08 | 0.12 |\n| Aprendizaje continuo | 0.05 | 0.02 |",
-        "data": {
-          "auto_tpi_ema_alpha": "Alfa",
-          "auto_tpi_ema_decay_rate": "Tasa de decaimiento",
-          "auto_tpi_continuous_kext_alpha": "Alfa para Kext continuo"
-        },
-        "data_description": {
-          "auto_tpi_ema_alpha": "Factor de suavizado (0-1). Cuanto mayor sea, más rápida será la adaptación.",
-          "auto_tpi_ema_decay_rate": "Velocidad a la que disminuye alfa con el tiempo (estabilización)",
-          "auto_tpi_continuous_kext_alpha": "Factor de suavizado para el aprendizaje continuo de Kext (alfa). Valor predeterminado: 0,04 (adaptación aproximada de 3 a 5 días)."
         }
       },
       "sync_device_internal_temp": {
@@ -750,48 +712,12 @@
         "title": "Auto TPI - Configuración - {name}",
         "description": "Configuración general del aprendizaje de Auto TPI.",
         "data": {
-          "auto_tpi_learning_type": "Tipo de aprendizaje",
-          "auto_tpi_heating_rate": "Velocidad de calentamiento ({unit}/h)",
-          "auto_tpi_cooling_rate": "Velocidad de enfriamiento ({unit}/h)",
           "heater_heating_time": "Tiempo de calentamiento (minutos)",
-          "heater_cooling_time": "Tiempo de enfriamiento (minutos)",
-          "auto_tpi_aggressiveness": "Agresividad de la regulación",
-          "auto_tpi_enable_advanced_settings": "Activar los parámetros avanzados",
           "auto_tpi_continuous_kext": "Aprendizaje continuo de Kext"
         },
         "data_description": {
-          "auto_tpi_learning_type": "Elige «Descubrimiento» para el inicio (media ponderada, peso 1) o «Ajuste fino» para los ajustes continuos (EWMA, alfa 0,08).",
-          "auto_tpi_heating_rate": "Capacidad de calentamiento del radiador ({unit} por hora). Indica 0 para que se aprenda automáticamente (inicialización).",
-          "auto_tpi_cooling_rate": "Capacidad de enfriamiento del radiador ({unit} por hora). Indica 0 para que se aprenda automáticamente (inicialización).",
-          "heater_heating_time": "Tiempo hasta alcanzar la potencia máxima (minutos)",
-          "heater_cooling_time": "Tiempo de enfriamiento después de la parada (minutos)\n\n| Tipo | Tiempo de calentamiento | Tiempo de enfriamiento |\n| :--- | :--- | :--- |\n| Radiador eléctrico | 5 min | 7 min |\n| Radiador de agua | 15 min | 20 min |\n| Suelo radiante | 30 min | 45 min |",
-          "auto_tpi_aggressiveness": "Factor de reducción de los coeficientes aprendidos (50-100 %). Los valores más bajos proporcionan coeficientes más conservadores y reducen el riesgo de sobrepasar la consigna.",
-          "auto_tpi_enable_advanced_settings": "Marca esta opción para modificar los parámetros del algoritmo seleccionado.",
+          "heater_heating_time": "Tiempo hasta alcanzar la potencia máxima (minutos)\n\n| Tipo | Tiempo de calentamiento |\n| :--- | :--- |\n| Radiador eléctrico | 5 min |\n| Radiador de agua | 15 min |\n| Suelo radiante | 30 min |",
           "auto_tpi_continuous_kext": "Marca esta opción para permitir el aprendizaje continuo del coeficiente exterior (Kext) fuera de las sesiones de Auto TPI."
-        }
-      },
-      "auto_tpi_avg_settings": {
-        "title": "Auto TPI - Media ponderada - {name}",
-        "description": "Parámetros del método de media ponderada.",
-        "data": {
-          "auto_tpi_avg_initial_weight": "Peso inicial"
-        },
-        "data_description": {
-          "auto_tpi_avg_initial_weight": "Peso inicial de los coeficientes existentes en el cálculo de la media (habitualmente entre 1 y 50). Cuanto mayor sea el peso, más lento y estable será el aprendizaje."
-        }
-      },
-      "auto_tpi_ema_settings": {
-        "title": "Auto TPI - EWMA - {name}",
-        "description": "Parámetros del método EWMA.\n\nRecomendaciones:\n| Situación | Alfa (ema_alpha) | Tasa de decaimiento (ema_decay_rate) |\n| :--- | :--- | :--- |\n| Ajustes intensos | 0.15 | 0.08 |\n| Ajuste fino | 0.08 | 0.12 |",
-        "data": {
-          "auto_tpi_ema_alpha": "Alfa",
-          "auto_tpi_ema_decay_rate": "Tasa de decaimiento",
-          "auto_tpi_continuous_kext_alpha": "Alfa para Kext continuo"
-        },
-        "data_description": {
-          "auto_tpi_ema_alpha": "Factor de suavizado (0-1). Cuanto mayor sea, más rápida será la adaptación.",
-          "auto_tpi_ema_decay_rate": "Velocidad a la que disminuye alfa con el tiempo (estabilización)",
-          "auto_tpi_continuous_kext_alpha": "Factor de suavizado para el aprendizaje continuo de Kext (alfa). Valor predeterminado: 0,04 (adaptación aproximada de 3 a 5 días)."
         }
       },
       "heating_failure_detection": {
@@ -889,18 +815,6 @@
         "auto_start_stop_fast": "Detección rápida"
       }
     },
-    "auto_tpi_calculation_method": {
-      "options": {
-        "average": "Media",
-        "ema": "Media móvil exponencial (EMA)"
-      }
-    },
-    "auto_tpi_learning_type": {
-      "options": {
-        "discovery": "Descubrimiento",
-        "fine_tuning": "Ajuste fino"
-      }
-    },
     "power_unit": {
       "options": {
         "w": "Vatios (W)",
@@ -970,7 +884,6 @@
         "name": "Estado del aprendizaje de Auto TPI",
         "state": {
           "disabled": "Desactivado",
-          "bootstrap": "Inicialización",
           "active": "Activo",
           "off": "Apagado"
         }
@@ -1083,10 +996,6 @@
         }
       }
     },
-    "reset_auto_tpi_capacities": {
-      "name": "Restablecer las capacidades de Auto TPI",
-      "description": "Restablecer las capacidades máximas de calentamiento y enfriamiento aprendidas a 1,0 °C/h. Los coeficientes aprendidos NO se restablecen."
-    },
     "set_tpi_parameters": {
       "name": "Establecer los parámetros TPI",
       "description": "Cambiar los parámetros TPI",
@@ -1148,9 +1057,5 @@
       }
     }
   },
-  "exceptions": {
-    "auto_tpi_learning_stopped": {
-      "message": "El aprendizaje Auto TPI de {name} se ha detenido tras 3 fallos consecutivos. Motivo: {reason}. Revisa la configuración."
-    }
-  }
+  "exceptions": {}
 }

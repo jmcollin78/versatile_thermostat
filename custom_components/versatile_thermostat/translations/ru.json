@@ -310,12 +310,8 @@
         }
       },
       "auto_tpi_configuration": {
-        "data": {
-          "auto_tpi_cooling_rate": "Скорость охлаждения ({unit}/ч)"
-        },
-        "data_description": {
-          "auto_tpi_cooling_rate": "Способность радиатора к охлаждению ({unit} в час). Оставьте 0 для автоматического обучения (bootstrap)."
-        }
+        "data": {},
+        "data_description": {}
       },
       "heating_failure_detection": {
         "title": "Обнаружение сбоев отопления",
@@ -667,12 +663,8 @@
         }
       },
       "auto_tpi_configuration": {
-        "data": {
-          "auto_tpi_cooling_rate": "Скорость охлаждения ({unit}/ч)"
-        },
-        "data_description": {
-          "auto_tpi_cooling_rate": "Способность радиатора к охлаждению ({unit} в час). Оставьте 0 для автоматического обучения (bootstrap)."
-        }
+        "data": {},
+        "data_description": {}
       },
       "heating_failure_detection": {
         "title": "Обнаружение сбоев отопления",

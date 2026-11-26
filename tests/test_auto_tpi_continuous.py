@@ -53,7 +53,6 @@ def manager(mock_hass, mock_store, mock_config_entry):
         coef_ext=0.01,
         heater_heating_time=10,
         continuous_kext=True,
-        continuous_kext_alpha=0.1 # 10% learning rate
     )
 
 async def test_should_learn_continuous_basics(manager):

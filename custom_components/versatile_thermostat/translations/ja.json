@@ -35,8 +35,6 @@
                     "lock": "ロック",
                     "heating_failure_detection": "暖房の異常検知",
                     "auto_tpi_configuration": "Auto TPI - 設定",
-                    "auto_tpi_avg_settings": "Auto TPI - 加重平均",
-                    "auto_tpi_ema_settings": "Auto TPI - EWMA",
                     "finalize": "すべて完了",
                     "configuration_not_complete": "設定が完了していません"
                 }
@@ -310,48 +308,12 @@
                 "title": "Auto TPI - 設定",
                 "description": "Auto TPI 学習の全般設定です。",
                 "data": {
-                    "auto_tpi_learning_type": "学習タイプ",
                     "heater_heating_time": "暖房時間（分）",
-                    "heater_cooling_time": "冷却時間（分）",
-                    "auto_tpi_heating_rate": "昇温速度（{unit}/h）",
-                    "auto_tpi_cooling_rate": "降温速度（{unit}/h）",
-                    "auto_tpi_aggressiveness": "積極度",
-                    "auto_tpi_enable_advanced_settings": "詳細パラメーターを有効にする",
                     "auto_tpi_continuous_kext": "Kext の継続学習"
                 },
                 "data_description": {
-                    "auto_tpi_learning_type": "初回起動には「探索」（加重平均、重み 1）、継続的な調整には「微調整」（EWMA、Alpha 0.08）を選択します。",
-                    "heater_heating_time": "最大電力に到達するまでの時間（分）です",
-                    "heater_cooling_time": "停止後に冷めるまでの時間（分）です\n\n| タイプ | 暖房時間 | 冷却時間 |\n| :--- | :--- | :--- |\n| 電気ラジエーター | 5 分 | 7 分 |\n| 温水ラジエーター | 15 分 | 20 分 |\n| 床暖房 | 30 分 | 45 分 |",
-                    "auto_tpi_heating_rate": "ラジエーターの昇温能力（1 時間あたり {unit}）です。0 のままにすると自動学習（ブートストラップ）を行います。",
-                    "auto_tpi_cooling_rate": "ラジエーターの降温能力（1 時間あたり {unit}）です。0 のままにすると自動学習（ブートストラップ）を行います。",
-                    "auto_tpi_aggressiveness": "学習した係数の縮小率（50 ～ 100%）です。値を小さくすると係数がより保守的になり、オーバーシュートのリスクが下がります。",
-                    "auto_tpi_enable_advanced_settings": "パラメーターの微調整（Alpha、減衰率、重み）を行う場合はチェックを入れてください。",
+                    "heater_heating_time": "最大電力に到達するまでの時間（分）です\n\n| タイプ | 暖房時間 |\n| :--- | :--- |\n| 電気ラジエーター | 5 分 |\n| 温水ラジエーター | 15 分 |\n| 床暖房 | 30 分 |",
                     "auto_tpi_continuous_kext": "AutoTPI のセッション外でも外部係数（Kext）の継続学習を有効にする場合はチェックを入れてください。"
-                }
-            },
-            "auto_tpi_avg_settings": {
-                "title": "Auto TPI - 加重平均",
-                "description": "加重平均方式のパラメーターです。",
-                "data": {
-                    "auto_tpi_avg_initial_weight": "初期の重み"
-                },
-                "data_description": {
-                    "auto_tpi_avg_initial_weight": "平均値の計算における初期値/前回値の重みです"
-                }
-            },
-            "auto_tpi_ema_settings": {
-                "title": "Auto TPI - EWMA",
-                "description": "EWMA 方式のパラメーターです。\n\n推奨値：\n| 状況 | Alpha (ema_alpha) | 減衰率 (ema_decay_rate) |\n| :--- | :--- | :--- |\n| 初期学習 | 0.15 | 0.08 |\n| 微調整学習 | 0.08 | 0.12 |\n| 継続学習 | 0.05 | 0.02 |",
-                "data": {
-                    "auto_tpi_ema_alpha": "Alpha",
-                    "auto_tpi_ema_decay_rate": "減衰率",
-                    "auto_tpi_continuous_kext_alpha": "Kext の継続学習の Alpha"
-                },
-                "data_description": {
-                    "auto_tpi_ema_alpha": "平滑化係数（0 ～ 1）です。大きいほど適応が速くなります",
-                    "auto_tpi_ema_decay_rate": "Alpha が時間とともに減少する割合（安定化）です",
-                    "auto_tpi_continuous_kext_alpha": "Kext の継続学習の平滑化係数（Alpha）です。デフォルトは 0.04（約 3 ～ 5 日で適応）です。"
                 }
             },
             "sync_device_internal_temp": {
@@ -750,48 +712,12 @@
                 "title": "Auto TPI - 設定 - {name}",
                 "description": "Auto TPI 学習の全般設定です。",
                 "data": {
-                    "auto_tpi_learning_type": "学習タイプ",
-                    "auto_tpi_heating_rate": "昇温速度（{unit}/h）",
-                    "auto_tpi_cooling_rate": "降温速度（{unit}/h）",
                     "heater_heating_time": "暖房時間（分）",
-                    "heater_cooling_time": "冷却時間（分）",
-                    "auto_tpi_aggressiveness": "積極度",
-                    "auto_tpi_enable_advanced_settings": "詳細パラメーターを有効にする",
                     "auto_tpi_continuous_kext": "Kext の継続学習"
                 },
                 "data_description": {
-                    "auto_tpi_learning_type": "初回起動には「探索」（加重平均、重み 1）、継続的な調整には「微調整」（EWMA、Alpha 0.08）を選択します。",
-                    "auto_tpi_heating_rate": "ラジエーターの昇温能力（1 時間あたり {unit}）です。0 のままにすると自動学習（ブートストラップ）を行います。",
-                    "auto_tpi_cooling_rate": "ラジエーターの降温能力（1 時間あたり {unit}）です。0 のままにすると自動学習（ブートストラップ）を行います。",
-                    "heater_heating_time": "最大電力に到達するまでの時間（分）です",
-                    "heater_cooling_time": "停止後に冷めるまでの時間（分）です\n\n| タイプ | 暖房時間 | 冷却時間 |\n| :--- | :--- | :--- |\n| 電気ラジエーター | 5 分 | 7 分 |\n| 温水ラジエーター | 15 分 | 20 分 |\n| 床暖房 | 30 分 | 45 分 |",
-                    "auto_tpi_aggressiveness": "学習した係数の縮小率（50 ～ 100%）です。値を小さくすると係数がより保守的になり、オーバーシュートのリスクが下がります。",
-                    "auto_tpi_enable_advanced_settings": "選択したアルゴリズムのパラメーターを変更する場合はチェックを入れてください。",
+                    "heater_heating_time": "最大電力に到達するまでの時間（分）です\n\n| タイプ | 暖房時間 |\n| :--- | :--- |\n| 電気ラジエーター | 5 分 |\n| 温水ラジエーター | 15 分 |\n| 床暖房 | 30 分 |",
                     "auto_tpi_continuous_kext": "AutoTPI のセッション外でも外部係数（Kext）の継続学習を有効にする場合はチェックを入れてください。"
-                }
-            },
-            "auto_tpi_avg_settings": {
-                "title": "Auto TPI - 加重平均 - {name}",
-                "description": "加重平均方式のパラメーターです。",
-                "data": {
-                    "auto_tpi_avg_initial_weight": "初期の重み"
-                },
-                "data_description": {
-                    "auto_tpi_avg_initial_weight": "平均値の計算における既存の係数の初期の重みです（通常は 1 ～ 50）。重みが大きいほど、学習は遅く安定します。"
-                }
-            },
-            "auto_tpi_ema_settings": {
-                "title": "Auto TPI - EWMA - {name}",
-                "description": "EWMA 方式のパラメーターです。\n\n推奨値：\n| 状況 | Alpha (ema_alpha) | 減衰率 (ema_decay_rate) |\n| :--- | :--- | :--- |\n| 大きな調整 | 0.15 | 0.08 |\n| 微調整 | 0.08 | 0.12 |",
-                "data": {
-                    "auto_tpi_ema_alpha": "Alpha",
-                    "auto_tpi_ema_decay_rate": "減衰率",
-                    "auto_tpi_continuous_kext_alpha": "Kext の継続学習の Alpha"
-                },
-                "data_description": {
-                    "auto_tpi_ema_alpha": "平滑化係数（0 ～ 1）です。大きいほど適応が速くなります",
-                    "auto_tpi_ema_decay_rate": "Alpha が時間とともに減少する割合（安定化）です",
-                    "auto_tpi_continuous_kext_alpha": "Kext の継続学習の平滑化係数（Alpha）です。デフォルトは 0.04（約 3 ～ 5 日で適応）です。"
                 }
             },
             "heating_failure_detection": {
@@ -889,18 +815,6 @@
                 "auto_start_stop_fast": "速い検知"
             }
         },
-        "auto_tpi_calculation_method": {
-            "options": {
-                "average": "平均",
-                "ema": "指数移動平均（EMA）"
-            }
-        },
-        "auto_tpi_learning_type": {
-            "options": {
-                "discovery": "探索",
-                "fine_tuning": "微調整"
-            }
-        },
         "power_unit": {
             "options": {
                 "w": "ワット（W）",
@@ -970,7 +884,6 @@
                 "name": "Auto TPI 学習状態",
                 "state": {
                     "disabled": "無効",
-                    "bootstrap": "ブートストラップ",
                     "active": "アクティブ",
                     "off": "オフ"
                 }
@@ -1083,10 +996,6 @@
                 }
             }
         },
-        "reset_auto_tpi_capacities": {
-            "name": "Auto TPI の能力のリセット",
-            "description": "学習した最大の暖房能力と冷房能力を 1.0 °C/h にリセットします。学習した係数はリセットされません。"
-        },
         "set_tpi_parameters": {
             "name": "TPI パラメーターの設定",
             "description": "TPI パラメーターを変更します",
@@ -1148,9 +1057,5 @@
             }
         }
     },
-    "exceptions": {
-        "auto_tpi_learning_stopped": {
-            "message": "{name} の Auto TPI 学習は、3 回連続で失敗したため停止しました。理由：{reason}。設定を確認してください。"
-        }
-    }
+    "exceptions": {}
 }

@@ -35,8 +35,6 @@
                     "lock": "鎖定",
                     "heating_failure_detection": "暖氣故障偵測",
                     "auto_tpi_configuration": "自動 TPI - 設定",
-                    "auto_tpi_avg_settings": "自動 TPI - 加權平均",
-                    "auto_tpi_ema_settings": "自動 TPI - EWMA",
                     "finalize": "全部完成",
                     "configuration_not_complete": "設定尚未完成"
                 }
@@ -310,48 +308,12 @@
                 "title": "自動 TPI - 設定",
                 "description": "自動 TPI 學習的一般設定。",
                 "data": {
-                    "auto_tpi_learning_type": "學習類型",
                     "heater_heating_time": "加熱時間（分鐘）",
-                    "heater_cooling_time": "冷卻時間（分鐘）",
-                    "auto_tpi_heating_rate": "升溫速率（{unit}/小時）",
-                    "auto_tpi_cooling_rate": "降溫速率（{unit}/小時）",
-                    "auto_tpi_aggressiveness": "積極程度",
-                    "auto_tpi_enable_advanced_settings": "啟用進階參數",
                     "auto_tpi_continuous_kext": "持續學習 Kext"
                 },
                 "data_description": {
-                    "auto_tpi_learning_type": "初次啟動請選擇「探索」（加權平均，權重 1），持續調整請選擇「微調」（EWMA，Alpha 0.08）。",
-                    "heater_heating_time": "達到全功率所需的時間（分鐘）",
-                    "heater_cooling_time": "停止後冷卻所需的時間（分鐘）\n\n| 類型 | 加熱時間 | 冷卻時間 |\n| :--- | :--- | :--- |\n| 電暖器 | 5 分鐘 | 7 分鐘 |\n| 水暖散熱器 | 15 分鐘 | 20 分鐘 |\n| 地板暖氣 | 30 分鐘 | 45 分鐘 |",
-                    "auto_tpi_heating_rate": "散熱器的升溫能力（每小時 {unit}）。設為 0 表示自動學習（啟動引導）。",
-                    "auto_tpi_cooling_rate": "散熱器的降溫能力（每小時 {unit}）。設為 0 表示自動學習（啟動引導）。",
-                    "auto_tpi_aggressiveness": "學習所得係數的縮減因子（50-100%）。數值越低，係數越保守，可降低溫度過衝的風險。",
-                    "auto_tpi_enable_advanced_settings": "勾選以存取參數微調（Alpha、衰減、權重）。",
+                    "heater_heating_time": "達到全功率所需的時間（分鐘）\n\n| 類型 | 加熱時間 |\n| :--- | :--- |\n| 電暖器 | 5 分鐘 |\n| 水暖散熱器 | 15 分鐘 |\n| 地板暖氣 | 30 分鐘 |",
                     "auto_tpi_continuous_kext": "勾選以在自動 TPI 學習程序之外，持續學習外部係數（Kext）。"
-                }
-            },
-            "auto_tpi_avg_settings": {
-                "title": "自動 TPI - 加權平均",
-                "description": "加權平均法的參數。",
-                "data": {
-                    "auto_tpi_avg_initial_weight": "初始權重"
-                },
-                "data_description": {
-                    "auto_tpi_avg_initial_weight": "計算平均值時，初始／先前數值的權重"
-                }
-            },
-            "auto_tpi_ema_settings": {
-                "title": "自動 TPI - EWMA",
-                "description": "EWMA 方法的參數。\n\n建議值：\n| 情況 | Alpha (ema_alpha) | 衰減率 (ema_decay_rate) |\n| :--- | :--- | :--- |\n| 初始學習 | 0.15 | 0.08 |\n| 精細學習 | 0.08 | 0.12 |\n| 持續學習 | 0.05 | 0.02 |",
-                "data": {
-                    "auto_tpi_ema_alpha": "Alpha",
-                    "auto_tpi_ema_decay_rate": "衰減率",
-                    "auto_tpi_continuous_kext_alpha": "持續學習 Kext 的 Alpha"
-                },
-                "data_description": {
-                    "auto_tpi_ema_alpha": "平滑係數（0-1）。數值越高，適應越快",
-                    "auto_tpi_ema_decay_rate": "Alpha 隨時間下降的速率（趨於穩定）",
-                    "auto_tpi_continuous_kext_alpha": "持續學習 Kext 的平滑係數（Alpha）。預設 0.04（約需 3 至 5 天適應）。"
                 }
             },
             "sync_device_internal_temp": {
@@ -750,48 +712,12 @@
                 "title": "自動 TPI - 設定 - {name}",
                 "description": "自動 TPI 學習的一般設定。",
                 "data": {
-                    "auto_tpi_learning_type": "學習類型",
-                    "auto_tpi_heating_rate": "升溫速率（{unit}/小時）",
-                    "auto_tpi_cooling_rate": "降溫速率（{unit}/小時）",
                     "heater_heating_time": "加熱時間（分鐘）",
-                    "heater_cooling_time": "冷卻時間（分鐘）",
-                    "auto_tpi_aggressiveness": "積極程度",
-                    "auto_tpi_enable_advanced_settings": "啟用進階參數",
                     "auto_tpi_continuous_kext": "持續學習 Kext"
                 },
                 "data_description": {
-                    "auto_tpi_learning_type": "初次啟動請選擇「探索」（加權平均，權重 1），持續調整請選擇「微調」（EWMA，Alpha 0.08）。",
-                    "auto_tpi_heating_rate": "散熱器的升溫能力（每小時 {unit}）。設為 0 表示自動學習（啟動引導）。",
-                    "auto_tpi_cooling_rate": "散熱器的降溫能力（每小時 {unit}）。設為 0 表示自動學習（啟動引導）。",
-                    "heater_heating_time": "達到全功率所需的時間（分鐘）",
-                    "heater_cooling_time": "停止後冷卻所需的時間（分鐘）\n\n| 類型 | 加熱時間 | 冷卻時間 |\n| :--- | :--- | :--- |\n| 電暖器 | 5 分鐘 | 7 分鐘 |\n| 水暖散熱器 | 15 分鐘 | 20 分鐘 |\n| 地板暖氣 | 30 分鐘 | 45 分鐘 |",
-                    "auto_tpi_aggressiveness": "學習所得係數的縮減因子（50-100%）。數值越低，係數越保守，可降低溫度過衝的風險。",
-                    "auto_tpi_enable_advanced_settings": "勾選以修改所選演算法的參數。",
+                    "heater_heating_time": "達到全功率所需的時間（分鐘）\n\n| 類型 | 加熱時間 |\n| :--- | :--- |\n| 電暖器 | 5 分鐘 |\n| 水暖散熱器 | 15 分鐘 |\n| 地板暖氣 | 30 分鐘 |",
                     "auto_tpi_continuous_kext": "勾選以在自動 TPI 學習程序之外，持續學習外部係數（Kext）。"
-                }
-            },
-            "auto_tpi_avg_settings": {
-                "title": "自動 TPI - 加權平均 - {name}",
-                "description": "加權平均法的參數。",
-                "data": {
-                    "auto_tpi_avg_initial_weight": "初始權重"
-                },
-                "data_description": {
-                    "auto_tpi_avg_initial_weight": "現有係數在平均計算中的初始權重（一般為 1-50）。權重越高，學習越慢但越穩定。"
-                }
-            },
-            "auto_tpi_ema_settings": {
-                "title": "自動 TPI - EWMA - {name}",
-                "description": "EWMA 方法的參數。\n\n建議值：\n| 情況 | Alpha (ema_alpha) | 衰減率 (ema_decay_rate) |\n| :--- | :--- | :--- |\n| 大幅調整 | 0.15 | 0.08 |\n| 微調 | 0.08 | 0.12 |",
-                "data": {
-                    "auto_tpi_ema_alpha": "Alpha",
-                    "auto_tpi_ema_decay_rate": "衰減率",
-                    "auto_tpi_continuous_kext_alpha": "持續學習 Kext 的 Alpha"
-                },
-                "data_description": {
-                    "auto_tpi_ema_alpha": "平滑係數（0-1）。數值越高，適應越快",
-                    "auto_tpi_ema_decay_rate": "Alpha 隨時間下降的速率（趨於穩定）",
-                    "auto_tpi_continuous_kext_alpha": "持續學習 Kext 的平滑係數（Alpha）。預設 0.04（約需 3 至 5 天適應）。"
                 }
             },
             "heating_failure_detection": {
@@ -889,18 +815,6 @@
                 "auto_start_stop_fast": "快速偵測"
             }
         },
-        "auto_tpi_calculation_method": {
-            "options": {
-                "average": "平均",
-                "ema": "指數移動平均（EMA）"
-            }
-        },
-        "auto_tpi_learning_type": {
-            "options": {
-                "discovery": "探索",
-                "fine_tuning": "微調"
-            }
-        },
         "power_unit": {
             "options": {
                 "w": "瓦特（W）",
@@ -970,7 +884,6 @@
                 "name": "自動 TPI 學習狀態",
                 "state": {
                     "disabled": "已停用",
-                    "bootstrap": "啟動引導",
                     "active": "啟用中",
                     "off": "關"
                 }
@@ -1083,10 +996,6 @@
                 }
             }
         },
-        "reset_auto_tpi_capacities": {
-            "name": "重設自動 TPI 能力值",
-            "description": "將學習到的最大加熱與冷卻能力重設為 1.0 °C/h。已學習的係數不會被重設。"
-        },
         "set_tpi_parameters": {
             "name": "設定 TPI 參數",
             "description": "變更 TPI 參數",
@@ -1148,9 +1057,5 @@
             }
         }
     },
-    "exceptions": {
-        "auto_tpi_learning_stopped": {
-            "message": "由於連續 3 次失敗，{name} 的自動 TPI 學習已停止。原因：{reason}。請檢查您的設定。"
-        }
-    }
+    "exceptions": {}
 }

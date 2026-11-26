@@ -328,12 +328,8 @@
         }
       },
       "auto_tpi_configuration": {
-        "data": {
-          "auto_tpi_cooling_rate": "Szybkość chłodzenia ({unit}/h)"
-        },
-        "data_description": {
-          "auto_tpi_cooling_rate": "Zdolność chłodzenia grzejnika ({unit} na godzinę). Pozostaw 0 dla automatycznego uczenia (bootstrap)."
-        }
+        "data": {},
+        "data_description": {}
       },
       "heating_failure_detection": {
         "title": "Wykrywanie awarii ogrzewania",
@@ -410,8 +406,6 @@
           "humidity": "Wilgotność",
           "lock": "Blokada",
           "auto_tpi_configuration": "Auto TPI - Ogólne",
-          "auto_tpi_avg_settings": "Auto TPI - Średnia",
-          "auto_tpi_ema_settings": "Auto TPI - EMA",
           "finalize": "Wszystko zrobione",
           "configuration_not_complete": "Konfiguracja niekompletna",
           "heating_failure_detection": "Wykrywanie awarii ogrzewania"
@@ -703,10 +697,7 @@
           "auto_tpi_keep_ext_learning": "Kontynuuj naukę współczynnika zewnętrznego",
           "auto_tpi_continuous_learning": "Ciągłe uczenie",
           "heater_heating_time": "Czas nagrzewania się grzejnika (w min.)",
-          "heater_cooling_time": "Czas wychładzania się grzejnika (w min.)",
-          "auto_tpi_max_coef_int": "Maksymalna wartość współczynnika wewnętrznego",
-          "auto_tpi_heating_rate": "Szybkość nagrzewania ({unit}/h)",
-          "auto_tpi_cooling_rate": "Szybkość wystudzania ({unit}/h)"
+          "auto_tpi_max_coef_int": "Maksymalna wartość współczynnika wewnętrznego"
         },
         "data_description": {
           "auto_tpi_enable_update_config": "Automatycznie aktualizuj konfigurację o wyuczone współczynniki",
@@ -714,31 +705,7 @@
           "auto_tpi_keep_ext_learning": "Nauka wpółczynnika zewnętrznego będzie kontynuowana nawet po osiągnieciu 50 cykli, dopóki współczynnik wewnętrzny nie ustabilizuje się.",
           "auto_tpi_continuous_learning": "Po zakończeniu procesu nauki system będzie obliczał i aplikował w tle nowe wartości współczynników (zalecana metoda EMA).",
           "heater_heating_time": "Czas osiągnięcia pełnej mocy (w min.)",
-          "heater_cooling_time": "Czas wychłodzenia po zatrzymaniu (w min.)",
-          "auto_tpi_max_coef_int": "Maksymalna dopuszczalna wartość współczynnika wewnętrznego",
-          "auto_tpi_cooling_rate": "Zdolność chłodzenia grzejnika ({unit} na godzinę). Pozostaw 0 dla automatycznego uczenia (bootstrap)."
-        }
-      },
-      "auto_tpi_avg_settings": {
-        "title": "Auto TPI - Średnia - {name}",
-        "description": "Parametry metody uśredniania.",
-        "data": {
-          "auto_tpi_avg_initial_weight": "Waga początkowa"
-        },
-        "data_description": {
-          "auto_tpi_avg_initial_weight": "Waga początkowej/poprzedniej wartości w obliczaniu średniej"
-        }
-      },
-      "auto_tpi_ema_settings": {
-        "title": "Auto TPI - EMA - {name}",
-        "description": "Parametry metody EMA.\n\nZalecenia:\n| Sytuacja | Alfa (ema_alpha) | Tempo rozkładu (ema_decay_rate) |\n| :--- | :--- | :--- |\n| Początkowe uczenie | 0.15 | 0.08 |\n| Dokładne uczenie | 0.08 | 0.12 |\n| Ciągłe uczenie | 0.05 | 0.02 |",
-        "data": {
-          "auto_tpi_ema_alpha": "Alfa",
-          "auto_tpi_ema_decay_rate": "Wpółczynnik rozkładu"
-        },
-        "data_description": {
-          "auto_tpi_ema_alpha": "Współczynnik wygładzania (0-1). Im wyższy, tym szybsza adaptacja",
-          "auto_tpi_ema_decay_rate": "Tempo, w jakim rozkład alfa maleje w czasie (stabilizacja)"
+          "auto_tpi_max_coef_int": "Maksymalna dopuszczalna wartość współczynnika wewnętrznego"
         }
       },
       "heating_failure_detection": {
@@ -833,12 +800,6 @@
         "auto_start_stop_slow": "Powolna detekcja",
         "auto_start_stop_medium": "Średnia detekcja",
         "auto_start_stop_fast": "Szybka detekcja"
-      }
-    },
-    "auto_tpi_calculation_method": {
-      "options": {
-        "average": "Średnia",
-        "ema": "Zmienna Średnia Wykładnicza (EMA)"
       }
     },
     "power_unit": {
@@ -937,10 +898,6 @@
         }
       }
     },
-    "reset_auto_tpi_capacities": {
-      "name": "Reset wydajności Auto TPI",
-      "description": "Zresetuj zapamiętane maksymalne wydajności grzania i chłodzenia do 1,0 °C/h. Zapamiętane współczynniki NIE są resetowane."
-    },
     "set_tpi_parameters": {
       "name": "Ustawienia parametrów TPI",
       "description": "Zmień parametry TPI",
@@ -984,9 +941,5 @@
       }
     }
   },
-  "exceptions": {
-    "auto_tpi_learning_stopped": {
-      "message": "Nauka Auto TPI dla {name} została zatrzymana z powodu 3-ech kolejnych błędów. Powód: {reason}. Sprawdź swoją konfigurację."
-    }
-  }
+  "exceptions": {}
 }

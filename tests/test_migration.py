@@ -230,6 +230,45 @@ async def test_migration_freezes_power_unit_from_legacy_configuration(
     assert config_entry.data[CONF_POWER_UNIT] == expected_power_unit
 
 
+async def test_migration_removes_obsolete_auto_tpi_keys(hass: HomeAssistant):
+    """Migration to 2.5 removes the Auto TPI settings that are no longer used and keeps the others."""
+    data = {
+        CONF_NAME: "migrationName",
+        CONF_THERMOSTAT_TYPE: CONF_THERMOSTAT_SWITCH,
+        "auto_tpi_mode": True,
+        "heater_heating_time": 15,
+        "auto_tpi_continuous_kext": True,
+        "auto_tpi_learning_type": "discovery",
+        "auto_tpi_enable_advanced_settings": False,
+        "heater_cooling_time": 20,
+        "auto_tpi_calculation_method": "average",
+        "auto_tpi_ema_alpha": 0.15,
+        "auto_tpi_avg_initial_weight": 1,
+        "auto_tpi_heating_rate": 0.3,
+        "auto_tpi_cooling_rate": 1.0,
+        "auto_tpi_aggressiveness": 1.0,
+        "auto_tpi_ema_decay_rate": 0.08,
+        "auto_tpi_continuous_kext_alpha": 0.04,
+    }
+    config_entry = MockConfigEntry(
+        version=2,
+        minor_version=4,
+        domain=DOMAIN,
+        title="Migration auto TPI",
+        unique_id="migration-auto-tpi",
+        data=data,
+    )
+    config_entry.add_to_hass(hass)
+
+    assert await async_migrate_entry(hass, config_entry) is True
+    assert (config_entry.version, config_entry.minor_version) == (2, 5)
+    for key in OBSOLETE_AUTO_TPI_KEYS:
+        assert key not in config_entry.data
+    assert config_entry.data["auto_tpi_mode"] is True
+    assert config_entry.data["heater_heating_time"] == 15
+    assert config_entry.data["auto_tpi_continuous_kext"] is True
+
+
 # @pytest.mark.parametrize("expected_lingering_timers", [True])
 async def test_migration_security_safety(
     hass: HomeAssistant,

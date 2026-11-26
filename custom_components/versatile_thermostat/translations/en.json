@@ -35,8 +35,6 @@
                     "lock": "Lock",
                     "heating_failure_detection": "Heating failure detection",
                     "auto_tpi_configuration": "Auto TPI - Configuration",
-                    "auto_tpi_avg_settings": "Auto TPI - Weighted Average",
-                    "auto_tpi_ema_settings": "Auto TPI - EWMA",
                     "finalize": "All done",
                     "configuration_not_complete": "Configuration not complete"
                 }
@@ -310,48 +308,12 @@
                 "title": "Auto TPI - Configuration",
                 "description": "General settings for Auto TPI learning.",
                 "data": {
-                    "auto_tpi_learning_type": "Learning Type",
                     "heater_heating_time": "Heating time (min)",
-                    "heater_cooling_time": "Cooling time (min)",
-                    "auto_tpi_heating_rate": "Heating Rate ({unit}/h)",
-                    "auto_tpi_cooling_rate": "Cooling Rate ({unit}/h)",
-                    "auto_tpi_aggressiveness": "Aggressiveness",
-                    "auto_tpi_enable_advanced_settings": "Enable Advanced Parameters",
                     "auto_tpi_continuous_kext": "Continuous Kext Learning"
                 },
                 "data_description": {
-                    "auto_tpi_learning_type": "Choose 'Discovery' for initial startup (Weighted Average, weight 1) or 'Fine Tuning' for continuous adjustments (EWMA, Alpha 0.08).",
-                    "heater_heating_time": "Time to reach full power (minutes)",
-                    "heater_cooling_time": "Time to cool down after stop (minutes)\n\n| Type | Heating time | Cooling time |\n| :--- | :--- | :--- |\n| Electric radiator | 5mn | 7mn |\n| Water radiator | 15mn | 20mn |\n| Underfloor heating | 30mn | 45mn |",
-                    "auto_tpi_heating_rate": "Radiator temperature rise capacity ({unit} per hour). Leave at 0 for automatic learning (bootstrap).",
-                    "auto_tpi_cooling_rate": "Radiator temperature cooling capacity ({unit} per hour). Leave at 0 for automatic learning (bootstrap).",
-                    "auto_tpi_aggressiveness": "Reduction factor for learned coefficients (50-100%). Lower values result in more conservative coefficients and reduce overshoot risk.",
-                    "auto_tpi_enable_advanced_settings": "Check to access parameter fine-tuning (Alpha, Decay, Weight).",
+                    "heater_heating_time": "Time for the heater to reach full power after it is switched on (minutes). Auto TPI uses it to set the target response speed of the regulation.\n\n| Type | Heating time |\n| :--- | :--- |\n| Electric radiator | 5mn |\n| Water radiator | 15mn |\n| Underfloor heating | 30mn |",
                     "auto_tpi_continuous_kext": "Check to enable continuous learning of the external coefficient (Kext) outside of AutoTPI sessions."
-                }
-            },
-            "auto_tpi_avg_settings": {
-                "title": "Auto TPI - Weighted Average",
-                "description": "Parameters for Weighted Average method.",
-                "data": {
-                    "auto_tpi_avg_initial_weight": "Initial Weight"
-                },
-                "data_description": {
-                    "auto_tpi_avg_initial_weight": "Weight of the initial/previous value in the average calculation"
-                }
-            },
-            "auto_tpi_ema_settings": {
-                "title": "Auto TPI - EWMA",
-                "description": "Parameters for EWMA method.\n\nRecommendations:\n| Situation | Alpha (ema_alpha) | Decay Rate (ema_decay_rate) |\n| :--- | :--- | :--- |\n| Initial Learning | 0.15 | 0.08 |\n| Fine Learning | 0.08 | 0.12 |\n| Continuous Learning | 0.05 | 0.02 |",
-                "data": {
-                    "auto_tpi_ema_alpha": "Alpha",
-                    "auto_tpi_ema_decay_rate": "Decay Rate",
-                    "auto_tpi_continuous_kext_alpha": "Continuous Kext Alpha"
-                },
-                "data_description": {
-                    "auto_tpi_ema_alpha": "Smoothing factor (0-1). Higher = faster adaptation",
-                    "auto_tpi_ema_decay_rate": "Rate at which Alpha decreases over time (stabilization)",
-                    "auto_tpi_continuous_kext_alpha": "Smoothing factor for continuous Kext learning (Alpha). Default 0.04 (approx 3-5 days adaptation)."
                 }
             },
             "sync_device_internal_temp": {
@@ -750,48 +712,12 @@
                 "title": "Auto TPI - Configuration - {name}",
                 "description": "General settings for Auto TPI learning.",
                 "data": {
-                    "auto_tpi_learning_type": "Learning Type",
-                    "auto_tpi_heating_rate": "Heating Rate ({unit}/h)",
-                    "auto_tpi_cooling_rate": "Cooling Rate ({unit}/h)",
                     "heater_heating_time": "Heating time (min)",
-                    "heater_cooling_time": "Cooling time (min)",
-                    "auto_tpi_aggressiveness": "Aggressiveness",
-                    "auto_tpi_enable_advanced_settings": "Enable Advanced Parameters",
                     "auto_tpi_continuous_kext": "Continuous Kext Learning"
                 },
                 "data_description": {
-                    "auto_tpi_learning_type": "Choose 'Discovery' for initial startup (Weighted Average, weight 1) or 'Fine Tuning' for continuous adjustments (EWMA, Alpha 0.08).",
-                    "auto_tpi_heating_rate": "Radiator temperature rise capacity ({unit} per hour). Leave at 0 for automatic learning (bootstrap).",
-                    "auto_tpi_cooling_rate": "Radiator temperature cooling capacity ({unit} per hour). Leave at 0 for automatic learning (bootstrap).",
-                    "heater_heating_time": "Time to reach full power (minutes)",
-                    "heater_cooling_time": "Time to cool down after stop (minutes)\n\n| Type | Heating time | Cooling time |\n| :--- | :--- | :--- |\n| Electric radiator | 5mn | 7mn |\n| Water radiator | 15mn | 20mn |\n| Underfloor heating | 30mn | 45mn |",
-                    "auto_tpi_aggressiveness": "Reduction factor for learned coefficients (50-100%). Lower values result in more conservative coefficients and reduce overshoot risk.",
-                    "auto_tpi_enable_advanced_settings": "Check to modify the parameters of the chosen algorithm.",
+                    "heater_heating_time": "Time for the heater to reach full power after it is switched on (minutes). Auto TPI uses it to set the target response speed of the regulation.\n\n| Type | Heating time |\n| :--- | :--- |\n| Electric radiator | 5mn |\n| Water radiator | 15mn |\n| Underfloor heating | 30mn |",
                     "auto_tpi_continuous_kext": "Check to enable continuous learning of the external coefficient (Kext) outside of AutoTPI sessions."
-                }
-            },
-            "auto_tpi_avg_settings": {
-                "title": "Auto TPI - Weighted Average - {name}",
-                "description": "Parameters for Weighted Average method.",
-                "data": {
-                    "auto_tpi_avg_initial_weight": "Initial Weight"
-                },
-                "data_description": {
-                    "auto_tpi_avg_initial_weight": "Initial weight of existing coefficients in the average calculation (1-50 is typical). Higher weight means slower and more stable learning."
-                }
-            },
-            "auto_tpi_ema_settings": {
-                "title": "Auto TPI - EWMA - {name}",
-                "description": "Parameters for EWMA method.\n\nRecommendations:\n| Situation | Alpha (ema_alpha) | Decay Rate (ema_decay_rate) |\n| :--- | :--- | :--- |\n| Strong adjustments | 0.15 | 0.08 |\n| Fine tuning | 0.08 | 0.12 |",
-                "data": {
-                    "auto_tpi_ema_alpha": "Alpha",
-                    "auto_tpi_ema_decay_rate": "Decay Rate",
-                    "auto_tpi_continuous_kext_alpha": "Continuous Kext Alpha"
-                },
-                "data_description": {
-                    "auto_tpi_ema_alpha": "Smoothing factor (0-1). Higher = faster adaptation",
-                    "auto_tpi_ema_decay_rate": "Rate at which Alpha decreases over time (stabilization)",
-                    "auto_tpi_continuous_kext_alpha": "Smoothing factor for continuous Kext learning (Alpha). Default 0.04 (approx 3-5 days adaptation)."
                 }
             },
             "heating_failure_detection": {
@@ -889,18 +815,6 @@
                 "auto_start_stop_fast": "Fast detection"
             }
         },
-        "auto_tpi_calculation_method": {
-            "options": {
-                "average": "Average",
-                "ema": "Exponential Moving Average (EMA)"
-            }
-        },
-        "auto_tpi_learning_type": {
-            "options": {
-                "discovery": "Discovery",
-                "fine_tuning": "Fine Tuning"
-            }
-        },
         "power_unit": {
             "options": {
                 "w": "Watts (W)",
@@ -970,7 +884,6 @@
                 "name": "Auto TPI Learning State",
                 "state": {
                     "disabled": "Disabled",
-                    "bootstrap": "Bootstrap",
                     "active": "Active",
                     "off": "Off"
                 }
@@ -1083,10 +996,6 @@
                 }
             }
         },
-        "reset_auto_tpi_capacities": {
-            "name": "Reset Auto TPI Capacities",
-            "description": "Reset the learned maximum heating and cooling capacities to 1.0 °C/h. Learned coefficients are NOT reset."
-        },
         "set_tpi_parameters": {
             "name": "Set TPI parameters",
             "description": "Change the TPI parameters",
@@ -1148,9 +1057,5 @@
             }
         }
     },
-    "exceptions": {
-        "auto_tpi_learning_stopped": {
-            "message": "Auto TPI learning for {name} has been stopped due to 3 consecutive failures. Reason: {reason}. Please check your configuration."
-        }
-    }
+    "exceptions": {}
 }

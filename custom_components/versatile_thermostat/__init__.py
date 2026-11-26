@@ -393,14 +393,7 @@ async def async_migrate_entry(hass: HomeAssistant, config_entry: ConfigEntry):
         if version <= 201:
             # Migration 2.1 to 2.2 -> add auto TPI parameters with default values
             new[CONF_AUTO_TPI_MODE] = False
-            new[CONF_AUTO_TPI_CALCULATION_METHOD] = AUTO_TPI_METHOD_AVG
-            new[CONF_AUTO_TPI_EMA_ALPHA] = 0.15
-            new[CONF_AUTO_TPI_AVG_INITIAL_WEIGHT] = 1
-            new[CONF_AUTO_TPI_EMA_DECAY_RATE] = 0.08
             new[CONF_AUTO_TPI_HEATER_HEATING_TIME] = 5
-            new[CONF_AUTO_TPI_HEATER_COOLING_TIME] = 5
-            new[CONF_AUTO_TPI_HEATING_POWER] = 1.0
-            new[CONF_AUTO_TPI_COOLING_POWER] = 1.0
 
             # migrate CONF_OFFSET_CALIBRATION_LIST if present into CONF_SYNC_DEVICE_INTERNAL_TEMP_LIST
             offset_calib_list = config_entry.data.get(CONF_OFFSET_CALIBRATION_LIST, None)
@@ -435,6 +428,11 @@ async def async_migrate_entry(hass: HomeAssistant, config_entry: ConfigEntry):
                     device_power = get_safe_float_value(new.get(CONF_DEVICE_POWER))
                     # Reproduce the historical THRESHOLD_WATT_KILO heuristic
                     new[CONF_POWER_UNIT] = POWER_UNIT_WATT if device_power is not None and device_power > THRESHOLD_POWER_WATT_KILO else POWER_UNIT_KILO_WATT
+
+        if version <= 204:
+            # Auto TPI learns over multi-cycle windows: capacity, smoothing and learning type settings are gone
+            for key in OBSOLETE_AUTO_TPI_KEYS:
+                new.pop(key, None)
 
         # Update the config entry with migrated data
         hass.config_entries.async_update_entry(config_entry, data=new, version=CONFIG_VERSION, minor_version=CONFIG_MINOR_VERSION)

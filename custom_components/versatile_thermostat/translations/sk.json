@@ -303,12 +303,8 @@
         }
       },
       "auto_tpi_configuration": {
-        "data": {
-          "auto_tpi_cooling_rate": "Rýchlosť chladenia ({unit}/h)"
-        },
-        "data_description": {
-          "auto_tpi_cooling_rate": "Schopnosť chladiča ochladzovať ({unit} za hodinu). Pre automatické učenie (bootstrap) ponechajte hodnotu 0."
-        }
+        "data": {},
+        "data_description": {}
       },
       "heating_failure_detection": {
         "title": "Detekcia porúch vykurovania",
@@ -650,12 +646,8 @@
         }
       },
       "auto_tpi_configuration": {
-        "data": {
-          "auto_tpi_cooling_rate": "Rýchlosť chladenia ({unit}/h)"
-        },
-        "data_description": {
-          "auto_tpi_cooling_rate": "Schopnosť chladiča ochladzovať ({unit} za hodinu). Pre automatické učenie (bootstrap) ponechajte hodnotu 0."
-        }
+        "data": {},
+        "data_description": {}
       },
       "heating_failure_detection": {
         "title": "Detekcia porúch vykurovania",
