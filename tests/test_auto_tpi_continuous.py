@@ -158,7 +158,7 @@ async def test_on_cycle_completed_triggers_perform_learning(manager):
     await manager.on_cycle_started(on_time_sec=150, off_time_sec=150, on_percent=0.5, hvac_mode="heat")
 
     # Backdate cycle_start_date so elapsed >= cycle_min (5 min) when on_cycle_completed is called
-    manager.state.cycle_start_date = start_time - timedelta(minutes=6)
+    manager.state.cycle_start_date = start_time - timedelta(minutes=5)
 
     # We patch _perform_learning to verify it is called
     with patch.object(manager, "_perform_learning", wraps=manager._perform_learning) as mock_perform:

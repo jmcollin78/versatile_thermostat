@@ -51,6 +51,17 @@ MAX_CONSECUTIVE_KINT_BOOSTS = 5  # Max consecutive Kint boosts before warning (u
 MIN_PRE_BOOTSTRAP_CALIBRATION_RELIABILITY = 20.0  # Min reliability (%) to use calibration instead of bootstrap
 MIN_EFFICIENCY_FOR_CAPACITY = 0.60  # Min efficiency (60%) to learn capacity - prevents outliers from external factors
 
+# Kint learning: multiplicative steps toward a target closing rate of the gap.
+# The room rate is measured over windows of several cycles. A window is accepted on
+# its duration and starting gap only, never on the measured rise.
+KINT_MIN_GAP = 0.3  # Min gap (°C) to the setpoint at the start of a Kint window
+KINT_WINDOW_MIN_MINUTES = 30.0  # Min duration of a Kint window
+KINT_MAX_STEP = 1.15  # Max multiplicative Kint change per window
+KINT_WINDOWS_TO_FINISH = 15  # Kint windows needed to end the learning
+CLOSED_LOOP_TIME_MIN_MINUTES = 30.0  # Bounds of the target closed-loop time constant
+CLOSED_LOOP_TIME_MAX_MINUTES = 180.0
+KEXT_SETTLE_FACTOR = 3.0  # Kext is learned only after KEXT_SETTLE_FACTOR closed-loop times since the last setpoint change
+
 
 @dataclass
 class AutoTpiState:
@@ -244,6 +255,13 @@ class AutoTpiManager:
         self._central_boiler_off: bool = False
         self._current_is_heating_failure: bool = False
 
+        # Kint learning window (transient)
+        self._kint_window_start: tuple[datetime, float] | None = None  # (time, room temperature)
+        self._kint_window_hold_since: datetime | None = None  # last setpoint change or window reset
+        self._last_setpoint_change: datetime | None = None
+        self._last_target_seen: float | None = None
+        self._last_hvac_mode_seen: str | None = None
+
         # Shutdown safety check
         self._is_vtherm_stopping_callback: Callable[[], bool] | None = None
 
@@ -393,7 +411,7 @@ class AutoTpiManager:
 
         # 1. Check if learning is finished/stabilized (for non-continuous learning)
         # We check if the *raw* counter has reached the threshold, which accounts for _avg_initial_weight.
-        INT_CYCLES_THRESHOLD = 50 + self._avg_initial_weight
+        INT_CYCLES_THRESHOLD = KINT_WINDOWS_TO_FINISH + self._avg_initial_weight
         EXT_CYCLES_THRESHOLD = 50
 
         is_int_finished = int_cycles_count >= INT_CYCLES_THRESHOLD
@@ -640,6 +658,18 @@ class AutoTpiManager:
         self._central_boiler_off = is_central_boiler_off
         self._current_is_heating_failure = is_heating_failure
 
+        # Track setpoint and mode changes: they restart the Kint window and delay Kext learning
+        if (
+            self._last_target_seen is None
+            or abs(self._current_target_temp - self._last_target_seen) > 0.05
+            or hvac_mode != self._last_hvac_mode_seen
+        ):
+            now = dt_util.now()
+            self._last_setpoint_change = now
+            self._reset_kint_window(now)
+        self._last_target_seen = self._current_target_temp
+        self._last_hvac_mode_seen = hvac_mode
+
         # Calculate and return power
         # Use hvac_mode to force direction
         calc_state_str = "stop"
@@ -651,51 +681,23 @@ class AutoTpiManager:
         return self.calculate_power(self._current_target_temp, self._current_temp_in, self._current_temp_out, calc_state_str)
 
     async def calculate(self) -> Optional[dict]:
-        """Calculate TPI parameters, using aggressive coefficients during bootstrap."""
+        """Return the current TPI coefficients for the regulation."""
+        params = {}
 
-        # Determine if in bootstrap (capacity not yet learned)
-        in_bootstrap = (
-            self.state.max_capacity_heat == 0 or
-            self.state.capacity_heat_learn_count < 3
-        )
+        # Use hvac_mode to determine which coefficients to return
+        # This prevents flapping when switching between heating/cooling actions while in the same mode (e.g. idle)
+        # Note: hvac_mode usually comes from VThermHvacMode (heat, cool, off, auto...)
+        is_cool_mode = self._current_hvac_mode == "cool"
 
-        # Temporarily override learned coefficients if in bootstrap
-        saved_kint = self.state.coeff_indoor_heat
-        saved_kext = self.state.coeff_outdoor_heat
+        if is_cool_mode:
+            params[CONF_TPI_COEF_INT] = self.state.coeff_indoor_cool / self._unit_factor
+            params[CONF_TPI_COEF_EXT] = self.state.coeff_outdoor_cool / self._unit_factor
+        else:
+            params[CONF_TPI_COEF_INT] = self.state.coeff_indoor_heat / self._unit_factor
+            params[CONF_TPI_COEF_EXT] = self.state.coeff_outdoor_heat / self._unit_factor
 
-        if in_bootstrap:
-            # Use aggressive coefficients for bootstrap
-            # User requested 1.0 / 0.1 as "normal" values (sufficiently aggressive vs 0.6 default)
-            KINT_BOOTSTRAP = 1.0
-            KEXT_BOOTSTRAP = 0.1
-
-            self.state.coeff_indoor_heat = KINT_BOOTSTRAP
-            self.state.coeff_outdoor_heat = KEXT_BOOTSTRAP
-
-        try:
-            # Return current coefficients for the thermostat to use
-            params = {}
-
-            # Use hvac_mode to determine which coefficients to return
-            # This prevents flapping when switching between heating/cooling actions while in the same mode (e.g. idle)
-            # Note: hvac_mode usually comes from VThermHvacMode (heat, cool, off, auto...)
-
-            is_cool_mode = self._current_hvac_mode == "cool"
-
-            if is_cool_mode:
-                params[CONF_TPI_COEF_INT] = self.state.coeff_indoor_cool / self._unit_factor
-                params[CONF_TPI_COEF_EXT] = self.state.coeff_outdoor_cool / self._unit_factor
-            else:
-                params[CONF_TPI_COEF_INT] = self.state.coeff_indoor_heat / self._unit_factor
-                params[CONF_TPI_COEF_EXT] = self.state.coeff_outdoor_heat / self._unit_factor
-
-            self._calculated_params = params
-            return params
-        finally:
-            # Restore original values
-            if in_bootstrap:
-                self.state.coeff_indoor_heat = saved_kint
-                self.state.coeff_outdoor_heat = saved_kext
+        self._calculated_params = params
+        return params
 
     def _get_adaptive_alpha(self, cycle_count: int) -> float:
         """Calculate adaptive alpha for EMA, with temporary boost on regime change."""
@@ -910,80 +912,16 @@ class AutoTpiManager:
                 if self._correct_kext_overshoot(overshoot, is_cool=True):
                     return  # Skip other learning for this cycle
 
-        # CASE 0.5: Insufficient Rise Correction
-        # ----------------------------------------
-        # When temperature stagnates despite a significant gap (> 0.3°C)
-        # and power is not saturated, Kint is likely too low.
-        # Instead of incorrectly adjusting Kext, we boost Kint.
-        #
-        # This handles the scenario where:
-        # - target_diff > 0.3°C (significant gap to setpoint)
-        # - temp_progress < 0.02 (temperature is stagnating or dropping)
-        # - power < 0.99 (not saturated, so we CAN increase power)
-        #
-        # In this case, standard indoor learning fails (requires temp_progress > 0.05)
-        # and the system incorrectly falls through to outdoor learning, increasing Kext.
-
-        temp_stagnating = temp_progress < 0.02
-
-        if target_diff > INSUFFICIENT_RISE_GAP_THRESHOLD and temp_stagnating and self.state.last_power < 0.99:
-            if self._correct_kint_insufficient_rise(target_diff, temp_progress, is_cool):
-                return  # Kint corrected, skip other learning for this cycle
-
-        # CASE 1: Indoor Learning
-        # ---------------------------
-        # Strict conditions to avoid false positives:
-        # - Significant temperature progress (> 0.05°C)
-        # - Significant gap to cover (> 0.1°C)
-        # - Power not saturated (0 < power < 0.99)
-        # - Main Learning Session MUST be active (we don't learn Kint in continuous mode)
-
-        if self.state.autolearn_enabled and 0 < self.state.last_power < 0.99:
-            temp_progress_threshold = 0.05
-            target_diff_threshold = 0.01
-            if temp_progress > temp_progress_threshold and target_diff > target_diff_threshold:
-                # Indoor learning attempt
-                error = self._learn_indoor(target_diff, temp_progress, self._last_cycle_power_efficiency, is_cool)
-                if error is not None:
-                    # Learning was successful - temperature is rising
-                    self.state.last_learning_status = f"learned_indoor_{'cool' if is_cool else 'heat'}"
-                    _LOGGER.info("%s - Auto TPI: Indoor coefficient learned successfully (Error: %.3f)", self._name, error)
-                    self._learning_just_completed = True
-
-                    # Reset consecutive Kint boosts counter since temperature is now rising
-                    if self.state.consecutive_boosts > 0:
-                        _LOGGER.debug("%s - Auto TPI: Resetting consecutive_boosts counter (was %d)", self._name, self.state.consecutive_boosts)
-                        self.state.consecutive_boosts = 0
-
-                    # Continuous Learning: Track error and detect regime change
-                    if self._continuous_learning:
-                        self.state.recent_errors.append(error)
-                        # Keep only the last 20 errors (N=10 for detection + buffer)
-                        if len(self.state.recent_errors) > 20:
-                            self.state.recent_errors = self.state.recent_errors[-20:]
-
-                        is_regime_change = self._detect_regime_change(self.state.recent_errors)
-                        if is_regime_change and not self.state.regime_change_detected:
-                            self.state.regime_change_detected = True
-                            _LOGGER.warning("%s - Auto TPI: SYSTEMIC REGIME CHANGE DETECTED. Alpha boost activated.", self._name)
-
-                    return  # Indoor success, we exit
-                else:
-                    # Indoor failed, reason already logged in _learn_indoor
-                    _LOGGER.debug("%s - Auto TPI: Indoor learning failed, will try outdoor", self._name)
-            else:
-                _LOGGER.debug("%s - Auto TPI: Indoor conditions not met (progress=%.3f, target_diff=%.3f)", self._name, temp_progress, target_diff)
-        else:
-            _LOGGER.debug("%s - Auto TPI: Skipping indoor coeff learning because power is saturated (%.1f%%)", self._name, self.state.last_power * 100)
-
-        # CASE 2: Outdoor Learning
+        # Outdoor Learning (Kint is learned separately over multi-cycle windows)
         # ----------------------------
-        # Executed when:
-        # - Indoor was not applicable (conditions not met)
-        # - OR indoor failed (_learn_indoor returned False)
         # Conditions:
+        # - The room has settled since the last setpoint change
         # - Relevant outdoor temperature (outdoor_condition)
         # - Significant remaining gap
+        if not self._is_settled_for_kext():
+            self.state.last_learning_status = "kext_waiting_settling"
+            _LOGGER.debug("%s - Auto TPI: Skipping outdoor learning - room not settled since the last setpoint change", self._name)
+            return
 
         gap_in = target_temp - current_temp_in
         gap_threshold = 0.05
@@ -1024,172 +962,117 @@ class AutoTpiManager:
         self.state.last_learning_status = f"no_learning_possible(progress={temp_progress:.2f},target_diff={target_diff:.2f},gap_in={gap_in:.2f})"
         _LOGGER.debug("%s - Auto TPI: No learning possible - %s", self._name, self.state.last_learning_status)
 
-    def _learn_indoor(self, delta_theoretical: float, delta_real: float, efficiency: float = 1.0, is_cool: bool = False) -> Optional[float]:
-        """Learn indoor coefficient and optionally capacity."""
+    @property
+    def closed_loop_time_min(self) -> float:
+        """Target closed-loop time constant (min): twice the emitter delay plus half a cycle, bounded."""
+        t_cl = 2.0 * (self._heater_heating_time + self._cycle_min / 2.0)
+        return min(CLOSED_LOOP_TIME_MAX_MINUTES, max(CLOSED_LOOP_TIME_MIN_MINUTES, t_cl))
 
-        real_rise = delta_real
-        rise_threshold = 0.01
+    def _reset_kint_window(self, now: datetime | None = None) -> None:
+        """Close the current Kint window without learning and hold the next start."""
+        self._kint_window_start = None
+        self._kint_window_hold_since = now if now is not None else dt_util.now()
 
-        if real_rise <= rise_threshold:
-            _LOGGER.debug("%s - Auto TPI: Cannot learn indoor - real_rise %.3f <= %.3f. Will try outdoor learning.", self._name, real_rise, rise_threshold)
-            self.state.last_learning_status = "real_rise_too_small"
-            return None
+    def _is_settled_for_kext(self) -> bool:
+        """True when enough time has passed since the last setpoint change to learn Kext."""
+        if self._last_setpoint_change is None:
+            return True
+        elapsed_min = (dt_util.now() - self._last_setpoint_change).total_seconds() / 60.0
+        return elapsed_min >= KEXT_SETTLE_FACTOR * self.closed_loop_time_min
 
+    def _process_kint_window(self, cycle_valid: bool) -> None:
+        """Advance the Kint window at the end of a cycle and learn when it is long enough.
 
-        # === KINT LEARNING ===
-        # 1. Get adiabatic capacity
-        ref_capacity_h = self.state.max_capacity_heat if not is_cool else self.state.max_capacity_cool
+        A window spans several consecutive valid cycles with the same setpoint and an
+        unsaturated, non-zero power. It starts only half a closed-loop time after the
+        last setpoint change or window reset (emitter delay), and only if the gap to
+        the setpoint is at least KINT_MIN_GAP. Its acceptance never depends on the
+        measured temperature change.
+        """
+        if not self.state.autolearn_enabled:
+            self._kint_window_start = None
+            return
 
-        # Fallback if not learned yet
-        if ref_capacity_h <= 0:
-            count = self.state.capacity_heat_learn_count
+        is_heat = self.state.last_state == "heat"
+        is_cool = self.state.last_state == "cool"
+        now = dt_util.now()
 
-            if count == 0:
-                ref_capacity_h = 0.5  # Very conservative for first cycle
-                _LOGGER.warning(
-                    "%s - First cycle: using very conservative capacity 0.5°C/h",
-                    self._name
-                )
-            else:
-                ref_capacity_h = 1.0  # Standard fallback
-                _LOGGER.debug(
-                    "%s - Capacity not yet converged (count=%d), using fallback 1.0°C/h",
-                    self._name, count
-                )
+        if not (cycle_valid and (is_heat or is_cool) and 0 < self.state.last_power < self.saturation_threshold):
+            self._reset_kint_window(now)
+            return
 
-        # If no capacity defined, skip learning for this cycle
-        if ref_capacity_h <= 0:
-            _LOGGER.debug("%s - Auto TPI: Cannot learn indoor - no capacity defined (ref_capacity_h=%.2f)", self._name, ref_capacity_h)
-            self.state.last_learning_status = "no_capacity_defined"
-            return False
+        temp = self._current_temp_in
+        t_cl = self.closed_loop_time_min
 
-        # 2. Calculate Effective Capacity with thermal losses
+        if self._kint_window_start is None:
+            if self._kint_window_hold_since is not None and (now - self._kint_window_hold_since).total_seconds() / 60.0 < t_cl / 2.0:
+                return
+            gap = (temp - self._current_target_temp) if is_cool else (self._current_target_temp - temp)
+            if gap >= KINT_MIN_GAP:
+                self._kint_window_start = (now, temp)
+            return
+
+        start_time, start_temp = self._kint_window_start
+        elapsed_min = (now - start_time).total_seconds() / 60.0
+        if elapsed_min < max(KINT_WINDOW_MIN_MINUTES, t_cl):
+            return
+
+        self._learn_kint_from_window(start_temp, temp, elapsed_min, is_cool)
+        # The next window starts where this one ends, under the same starting gap condition
+        gap = (temp - self._current_target_temp) if is_cool else (self._current_target_temp - temp)
+        self._kint_window_start = (now, temp) if gap >= KINT_MIN_GAP else None
+
+    def _learn_kint_from_window(self, start_temp: float, end_temp: float, elapsed_min: float, is_cool: bool) -> None:
+        """Move Kint one bounded step toward the target closing rate of the gap.
+
+        Target rate r* = mean gap / T_cl. Observed rate r = room temperature change / duration.
+        With Kext compensating the losses, r = capacity * Kint * gap, so the fixed point is
+        Kint = 1 / (capacity * T_cl). The bounded multiplicative step converges toward the
+        median ratio, which keeps isolated noisy windows from driving Kint.
+        """
+        target = self._current_target_temp
+        elapsed_h = elapsed_min / 60.0
         if is_cool:
-            k_ext = self.state.coeff_outdoor_cool
-            delta_t = self._current_temp_out - self._current_temp_in
+            mean_gap = (start_temp + end_temp) / 2.0 - target
+            rate = (start_temp - end_temp) / elapsed_h
         else:
-            k_ext = self.state.coeff_outdoor_heat
-            delta_t = self._current_temp_in - self._current_temp_out
+            mean_gap = target - (start_temp + end_temp) / 2.0
+            rate = (end_temp - start_temp) / elapsed_h
 
-        loss_factor = k_ext * max(0.0, delta_t)
-        loss_factor = min(loss_factor, 0.95)  # Prevent going negative
+        if mean_gap <= 0:
+            self.state.last_learning_status = "kint_window_crossed_setpoint"
+            return
 
-        effective_capacity_h = ref_capacity_h * (1.0 - loss_factor)
-
-        # 3. Calculate Max Achievable Rise in this cycle (°C)
-        cycle_duration_h = self._cycle_min / 60.0
-        max_achievable_rise = effective_capacity_h * cycle_duration_h * efficiency
-
-        _LOGGER.debug(
-            "%s - Auto TPI: Capacity calc: ref=%.3f °C/h, loss=%.2f, eff=%.3f °C/h, max_rise=%.3f °C (cycle=%.1f min, eff=%.2f)",
-            self._name,
-            ref_capacity_h,
-            loss_factor,
-            effective_capacity_h,
-            max_achievable_rise,
-            self._cycle_min,
-            efficiency,
-        )
-
-        # 4. Calculate adjusted_theoretical: aim for full gap, capped by capacity
-        adjusted_theoretical = min(delta_theoretical, max_achievable_rise)
-
-        if max_achievable_rise < delta_theoretical:
-            mode_str = "cooling" if is_cool else "heating"
-            _LOGGER.debug("%s - Auto TPI: Target rise clamped from %.3f to %.3f (Max %s Capacity)", self._name, delta_theoretical, max_achievable_rise, mode_str)
-
-        if adjusted_theoretical <= 0:
-            _LOGGER.warning("%s - Auto TPI: Cannot learn indoor - adjusted_theoretical <= 0 (max_rise=%.3f, target_diff=%.3f)", self._name, max_achievable_rise, delta_theoretical)
-            self.state.last_learning_status = "adjusted_theoretical_lte_0"
-            return False
-
-        ratio = adjusted_theoretical / real_rise
-
-        # Apply aggressiveness to the ratio to get more conservative Kint
-        # This ensures aggressiveness always has an effect, regardless of capacity saturation
-        ratio = ratio * self._aggressiveness
-
-        current_coeff = self.state.coeff_indoor_cool if is_cool else self.state.coeff_indoor_heat
-        coeff_new = current_coeff * ratio
-
-        # Validate coefficient - reject only truly invalid values (non-finite or <= 0)
-        if not math.isfinite(coeff_new) or coeff_new <= 0:
-            _LOGGER.warning("%s - Auto TPI: Invalid new indoor coeff: %.3f (non-finite or <= 0), skipping", self._name, coeff_new)
-            self.state.last_learning_status = "invalid_indoor_coeff"
-            return False
-
-        # 4. Cap Coefficient
-        MAX_COEFF = self._max_coef_int
-        if coeff_new > MAX_COEFF:
-            _LOGGER.info("%s - Auto TPI: Calculated indoor coeff %.3f > %.1f, capping to %.1f before averaging", self._name, coeff_new, MAX_COEFF, MAX_COEFF)
-            coeff_new = MAX_COEFF
+        target_rate = mean_gap / (self.closed_loop_time_min / 60.0)
+        ratio = target_rate / rate if rate > 0 else KINT_MAX_STEP
+        ratio = min(KINT_MAX_STEP, max(1.0 / KINT_MAX_STEP, ratio))
 
         old_coeff = self.state.coeff_indoor_cool if is_cool else self.state.coeff_indoor_heat
-        count = self.state.coeff_indoor_cool_autolearn if is_cool else self.state.coeff_indoor_autolearn
-
-        # 5. Calculation Method
-        # 5. Calculation Method
-        # Cap the effective count to keep the system responsive
-        # Even if we have 1000 cycles history, we weigh the new sample as if we had at most 50 cycles.
-        effective_count = min(count, 50)
-
-        if self._calculation_method == "average":
-            # Weighted average
-            # avg_coeff = ((old_coeff * count + coeff_new) / (count + 1))
-            # We must use the current count (not incremented) as weight for old_coeff
-
-            # If count is 0 (should not happen for valid state), treat as 1
-            weight_old = max(effective_count, 1)
-
-            avg_coeff = ((old_coeff * weight_old) + coeff_new) / (weight_old + 1)
-            _LOGGER.debug("%s - Auto TPI: Weighted Average: old=%.3f (weight=%d, real_count=%d), new=%.3f, result=%.3f", self._name, old_coeff, weight_old, count, coeff_new, avg_coeff)
-
-        else:  # EMA
-            # EMA Smoothing (20% weight by default)
-            # new_avg = (old_avg * (1 - alpha)) + (new_sample * alpha)
-            alpha = self._get_adaptive_alpha(effective_count)
-            avg_coeff = (old_coeff * (1.0 - alpha)) + (coeff_new * alpha)
-            _LOGGER.debug("%s - Auto TPI: EMA: old=%.3f, new=%.3f, alpha=%.3f (eff_count=%d, real_count=%d), result=%.3f", self._name, old_coeff, coeff_new, alpha, effective_count, count, avg_coeff)
-
-        # Apply minimum Kint threshold to maintain temperature responsiveness
-        if avg_coeff < MIN_KINT:
-            _LOGGER.warning(
-                "%s - Auto TPI: Calculated Kint %.4f is below minimum %.4f, capping to minimum",
-                self._name, avg_coeff, MIN_KINT
-            )
-            avg_coeff = MIN_KINT
-
-        # Update counters
-        new_count = count + 1
+        new_coeff = min(self._max_coef_int, max(MIN_KINT, old_coeff * ratio))
 
         if is_cool:
-            self.state.coeff_indoor_cool = avg_coeff
-            self.state.coeff_indoor_cool_autolearn = new_count
+            self.state.coeff_indoor_cool = new_coeff
+            self.state.coeff_indoor_cool_autolearn += 1
+            count = self.state.coeff_indoor_cool_autolearn
         else:
-            self.state.coeff_indoor_heat = avg_coeff
-            self.state.coeff_indoor_autolearn = new_count
+            self.state.coeff_indoor_heat = new_coeff
+            self.state.coeff_indoor_autolearn += 1
+            count = self.state.coeff_indoor_autolearn
 
+        self.state.last_learning_status = f"learned_indoor_{'cool' if is_cool else 'heat'}"
+        self._learning_just_completed = True
         _LOGGER.info(
-            "%s - Auto TPI: Learn indoor (%s). Old: %.3f, New calculated: %.3f (rise=%.3f), Averaged: %.3f (count: %d)",
+            "%s - Auto TPI: Learn indoor (%s) over %.0f min. Rate %.3f °C/h, target rate %.3f °C/h (mean gap %.2f). Kint %.3f -> %.3f (count: %d)",
             self._name,
             "cool" if is_cool else "heat",
+            elapsed_min,
+            rate,
+            target_rate,
+            mean_gap,
             old_coeff,
-            coeff_new,
-            real_rise,
-            avg_coeff,
-            new_count,
+            new_coeff,
+            count,
         )
-
-        # Reset boost counter after successful learning
-        if hasattr(self.state, "consecutive_boosts"):
-            self.state.consecutive_boosts = 0
-
-        # Reset regime change flag after consuming the boost
-        if self._continuous_learning and self.state.regime_change_detected:
-            _LOGGER.debug("%s - Auto TPI: Regime change alpha consumed, resetting flag", self._name)
-            self.state.regime_change_detected = False
-
-        return adjusted_theoretical - real_rise  # Return the error: Expected Rise - Actual Rise
 
     def _learn_outdoor(self, current_temp_in: float, current_temp_out: float, is_cool: bool = False) -> bool:
         """Learn outdoor coefficient."""
@@ -2005,27 +1888,8 @@ class AutoTpiManager:
         return 1.0
 
     def calculate_power(self, setpoint: float, temp_in: float, temp_out: float, state_str: str) -> float:
-        """Calculate TPI power, using aggressive coefficients during bootstrap."""
-
-        # Bootstrap logic: aggressive coefficients
-        in_bootstrap = (
-            state_str == "heat" and
-            (self.state.max_capacity_heat == 0 or self.state.capacity_heat_learn_count < 3)
-        )
-
-        saved_kint = self.state.coeff_indoor_heat
-        saved_kext = self.state.coeff_outdoor_heat
-
-        if in_bootstrap:
-            self.state.coeff_indoor_heat = 1.0
-            self.state.coeff_outdoor_heat = 0.1
-
-        try:
-            return self._calculate_power_tpi(setpoint, temp_in, temp_out, state_str)
-        finally:
-            if in_bootstrap:
-                 self.state.coeff_indoor_heat = saved_kint
-                 self.state.coeff_outdoor_heat = saved_kext
+        """Calculate TPI power with the current coefficients."""
+        return self._calculate_power_tpi(setpoint, temp_in, temp_out, state_str)
 
     def _calculate_power_tpi(self, setpoint: float, temp_in: float, temp_out: float, state_str: str) -> float:
         """Normal TPI proportional control."""
@@ -2747,6 +2611,11 @@ class AutoTpiManager:
             self.state.last_learning_status = "continuous_kext_setpoint_changed"
             return
 
+        if not self._is_settled_for_kext():
+            _LOGGER.debug("%s - Continuous Kext: Room not settled since the last setpoint change", self._name)
+            self.state.last_learning_status = "kext_waiting_settling"
+            return
+
         target_temp = self.state.last_order
         gap_in = target_temp - current_temp_in
         gap_out = target_temp - current_temp_out
@@ -2936,12 +2805,12 @@ class AutoTpiManager:
                     self.state.max_capacity_heat
                 )
 
-        # PHASE 2: Kint/Kext Learning (requires non-saturated power)
-        # Skip during bootstrap (learn only capacity first)
-        if in_bootstrap:
-            _LOGGER.debug("%s - Auto TPI: In bootstrap mode, skipping Kint/Kext learning", self._name)
+        # PHASE 2: Kext Learning (per cycle, requires non-saturated power)
+        cycle_gap_detected = self.state.last_learning_status == "cycle_gap_detected"
+        if cycle_gap_detected:
+            _LOGGER.debug("%s - Auto TPI: Skipping Kint/Kext learning due to invalid cycle (gap detected)", self._name)
         elif self._should_learn() and is_significant_cycle:
-            _LOGGER.info("%s - Auto TPI: Attempting to learn Kint/Kext from cycle data", self._name)
+            _LOGGER.info("%s - Auto TPI: Attempting to learn Kext from cycle data", self._name)
             await self._perform_learning(self._current_temp_in, self._current_temp_out)
         elif self._continuous_kext and is_significant_cycle and self._should_learn_continuous_kext():
             _LOGGER.info("%s - Continuous Kext: Learning active...", self._name)
@@ -2955,6 +2824,17 @@ class AutoTpiManager:
             # Only update status if it wasn't already set to "cycle_gap_detected" or other critical error
             if self.state.last_learning_status != "cycle_gap_detected":
                 self.state.last_learning_status = reason
+
+        # PHASE 3: Kint Learning over multi-cycle windows
+        self._process_kint_window(
+            not cycle_gap_detected
+            and not self._current_cycle_interrupted
+            and not self._central_boiler_off
+            and not self._current_is_heating_failure
+        )
+
+        # The interruption flag applies to the completed cycle only
+        self._current_cycle_interrupted = False
 
         # Check for failures
         await self._detect_failures(self._current_temp_in)

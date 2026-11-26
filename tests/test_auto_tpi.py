@@ -11,6 +11,8 @@ from homeassistant.const import STATE_ON, STATE_OFF
 from custom_components.versatile_thermostat.auto_tpi_manager import (
     AutoTpiManager,
     AutoTpiState,
+    KINT_MAX_STEP,
+    KINT_WINDOW_MIN_MINUTES,
     STORAGE_VERSION,
     STORAGE_KEY_PREFIX,
 )
@@ -333,34 +335,83 @@ async def test_resume_after_failure_shutdown_resets_failure_count(manager, mock_
     mock_hass.services.async_call.assert_awaited_once()
 
 
-async def test_perform_learning_indoor(manager):
-    """Test indoor coefficient learning."""
+def _run_kint_window(manager, start_temp, end_temp, power=0.5, end_cycle_valid=True):
+    """Open a Kint window at start_temp and close it at end_temp one window length later."""
+    start = datetime(2026, 1, 5, 8, 0, tzinfo=timezone.utc)
+    window_min = max(KINT_WINDOW_MIN_MINUTES, manager.closed_loop_time_min)
+    with patch("custom_components.versatile_thermostat.auto_tpi_manager.dt_util") as mock_dt:
+        mock_dt.now.return_value = start
+        manager.state.autolearn_enabled = True
+        manager.state.last_state = "heat"
+        manager.state.last_power = power
+        manager._current_target_temp = 20.0
+        manager._current_temp_in = start_temp
+        manager._process_kint_window(True)
+        opened = manager._kint_window_start
+
+        mock_dt.now.return_value = start + timedelta(minutes=window_min)
+        manager._current_temp_in = end_temp
+        manager._process_kint_window(end_cycle_valid)
+    return opened
+
+
+async def test_kint_window_slow_rise_increases_kint(manager):
+    """A rise slower than the target rate increases Kint by at most one bounded step."""
+    manager.state.coeff_indoor_heat = 0.5
+
+    opened = _run_kint_window(manager, start_temp=19.0, end_temp=19.05)
+
+    assert opened is not None
+    assert manager.state.coeff_indoor_heat == pytest.approx(0.5 * KINT_MAX_STEP)
+    assert manager.state.last_learning_status == "learned_indoor_heat"
+    assert manager.state.coeff_indoor_autolearn == 2
+
+
+async def test_kint_window_fast_rise_decreases_kint(manager):
+    """A rise faster than the target rate decreases Kint by at most one bounded step."""
+    manager.state.coeff_indoor_heat = 0.5
+
+    _run_kint_window(manager, start_temp=19.0, end_temp=19.9)
+
+    assert manager.state.coeff_indoor_heat == pytest.approx(0.5 / KINT_MAX_STEP)
+
+
+async def test_kint_window_not_opened_near_setpoint(manager):
+    """No window starts when the gap to the setpoint is below the minimum gap."""
+    manager.state.coeff_indoor_heat = 0.5
+
+    opened = _run_kint_window(manager, start_temp=19.8, end_temp=19.8)
+
+    assert opened is None
+    assert manager.state.coeff_indoor_heat == 0.5
+
+
+async def test_kint_window_reset_by_invalid_cycle(manager):
+    """An invalid or saturated cycle closes the window without learning."""
+    manager.state.coeff_indoor_heat = 0.5
+
+    _run_kint_window(manager, start_temp=19.0, end_temp=19.05, end_cycle_valid=False)
+    assert manager.state.coeff_indoor_heat == 0.5
+    assert manager._kint_window_start is None
+
+    _run_kint_window(manager, start_temp=19.0, end_temp=19.05, power=1.0)
+    assert manager.state.coeff_indoor_heat == 0.5
+
+
+async def test_kext_waits_for_settling_after_setpoint_change(manager):
+    """Kext is not learned right after a setpoint change."""
     manager.state.autolearn_enabled = True
     manager.state.last_state = "heat"
     manager.state.last_order = 20.0
-    manager.state.last_temp_in = 19.0
-    manager.state.coeff_indoor_heat = 0.5
-    manager.state.max_capacity_heat = 2.0 # deg/h
-    manager.state.last_power = 0.5 # 50%
-    manager._last_cycle_power_efficiency = 1.0
-    
-    # Current state (end of cycle)
-    # Rise = 0.2 deg
-    # Target diff (at start) = 1.0
-    current_temp_in = 19.2
-    current_temp_out = 0.0
-    
-    # Mock capability to ensure we use max_capacity
-    manager._use_capacity_as_rate = True
-    
-    # Initialize current target temp to match last_order so it doesn't detect a setpoint change
-    manager._current_target_temp = manager.state.last_order
+    manager.state.last_temp_in = 19.8
+    manager.state.last_power = 0.5
 
-    await manager._perform_learning(current_temp_in, current_temp_out)
-    
-    assert manager.state.last_learning_status.startswith("learned_indoor")
-    assert manager.state.coeff_indoor_heat != 0.5 # Should have changed
+    await manager.update(room_temp=19.8, ext_temp=5.0, hvac_mode="heat", target_temp=20.0)
+    old_kext = manager.state.coeff_outdoor_heat
+    await manager._perform_learning(19.8, 5.0)
 
+    assert manager.state.last_learning_status == "kext_waiting_settling"
+    assert manager.state.coeff_outdoor_heat == old_kext
 
 
 async def test_cycle_lifecycle(manager):

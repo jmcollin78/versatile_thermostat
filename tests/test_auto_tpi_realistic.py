@@ -48,7 +48,6 @@ def quiet_auto_tpi_logs():
     logger.setLevel(previous)
 
 
-@pytest.mark.xfail(strict=True, reason="Kint learning is biased low by noisy and quantized temperature measurements")
 @pytest.mark.parametrize("schedule, start_temp, sensor", SCENARIOS)
 async def test_auto_tpi_kint_does_not_collapse(schedule, start_temp, sensor):
     """The learned Kint stays at least at half of the reference value."""
