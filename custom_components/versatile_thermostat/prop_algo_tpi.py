@@ -65,6 +65,10 @@ class TpiAlgorithm:
         self._tpi_threshold_low = tpi_threshold_low
         self._tpi_threshold_high = tpi_threshold_high
         self._apply_threshold = tpi_threshold_low != 0.0 and tpi_threshold_high != 0.0
+        # Threshold hysteresis state: True while on_percent is forced to 0
+        # (set above the high threshold, released below the low threshold).
+        self._threshold_cut: bool = False
+        self._threshold_hvac_mode: VThermHvacMode | None = None
         # True once calculate() has been called with a valid temperature.
         # When False, on_percent returns None so the cycle scheduler
         # does not touch an already-active switch at startup.
@@ -95,25 +99,16 @@ class TpiAlgorithm:
             if hvac_mode == VThermHvacMode_COOL:
                 delta_temp = current_temp - target_temp
                 delta_ext_temp = ext_current_temp - target_temp if ext_current_temp is not None else 0
-                slope = -slope if slope is not None else None
             else:
                 delta_temp = target_temp - current_temp
                 delta_ext_temp = target_temp - ext_current_temp if ext_current_temp is not None else 0
 
             # Apply thresholds
-            if (
-                # fmt: off
-                self._apply_threshold
-                and slope is not None
-                and ((slope > 0.0 and -delta_temp > self._tpi_threshold_high)
-                or (slope < 0.0 and -delta_temp > self._tpi_threshold_low))
-                # fmt: on
-            ):
+            if self._update_threshold_cut(-delta_temp, hvac_mode):
                 _LOGGER.debug(
-                    "%s - Proportional algorithm: on_percent is forced to 0 cause current_temp (%.1f) is outside the thresholds (slope=%.1f, target_temp=%.1f, tpi_threshold_low=%.1f, tpi_threshold_high=%.1f). Heating/cooling will be disabled.",  # pylint: disable=line-too-long
+                    "%s - Proportional algorithm: on_percent is forced to 0 cause current_temp (%.1f) went above the high threshold and has not yet gone below the low threshold (target_temp=%.1f, tpi_threshold_low=%.1f, tpi_threshold_high=%.1f). Heating/cooling will be disabled.",  # pylint: disable=line-too-long
                     self._vtherm_entity_id,
                     current_temp,
-                    slope,
                     target_temp,
                     self._tpi_threshold_low,
                     self._tpi_threshold_high,
@@ -145,6 +140,26 @@ class TpiAlgorithm:
             target_temp if target_temp else -9999.0,
             self._calculated_on_percent,
         )
+
+    def _update_threshold_cut(self, overshoot: float, hvac_mode: VThermHvacMode) -> bool:
+        """Update and return the threshold hysteresis state.
+        overshoot is the deviation beyond the target in the regulation direction
+        (current - target in heat mode, target - current in cool mode).
+        The cut is set above the high threshold, released below the low threshold
+        and kept in between. It does not depend on the temperature slope.
+        """
+        if hvac_mode != self._threshold_hvac_mode:
+            self._threshold_hvac_mode = hvac_mode
+            self._threshold_cut = False
+
+        if not self._apply_threshold:
+            self._threshold_cut = False
+        elif overshoot > self._tpi_threshold_high:
+            self._threshold_cut = True
+        elif overshoot < self._tpi_threshold_low:
+            self._threshold_cut = False
+
+        return self._threshold_cut
 
     def update_parameters(
         self,
