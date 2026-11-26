@@ -49,6 +49,7 @@ KEXT_SETTLE_FACTOR = 3.0  # Kext is learned only after KEXT_SETTLE_FACTOR closed
 KEXT_FORCE_SETTLE_FACTOR = 12.0  # ... and once the room came near the setpoint, or after this many closed-loop times
 CONTINUOUS_KEXT_ALPHA = 0.04  # Fixed smoothing of the continuous Kext learning
 KINT_COUNT_START = 1  # Initial value of the Kint window counter
+CONFIG_COEF_TOLERANCE = 0.0015  # Coefficients are written to the configuration with 3 decimals
 
 
 @dataclass
@@ -206,6 +207,8 @@ class AutoTpiManager:
 
         # Shutdown safety check
         self._is_vtherm_stopping_callback: Callable[[], bool] | None = None
+        # Called with (coef_int, coef_ext) in user units when learned coefficients are written
+        self._coefficients_written_callback: Callable[[float | None, float | None], None] | None = None
 
     def get_filtered_state(self) -> dict:
         """Get the AutoTpiState as a dict, but filtered for public exposure."""
@@ -244,6 +247,23 @@ class AutoTpiManager:
 
         return data
 
+    def set_coefficients_written_callback(self, callback: Callable[[float | None, float | None], None]):
+        """Set a callback called when learned coefficients are written to the configuration."""
+        self._coefficients_written_callback = callback
+
+    def _align_with_configuration(self) -> None:
+        """Replace the stored coefficients that differ from the configured ones beyond the write rounding."""
+        for attr, configured in (
+            ("coeff_indoor_heat", self._default_coef_int),
+            ("coeff_indoor_cool", self._default_coef_int),
+            ("coeff_outdoor_heat", self._default_coef_ext),
+            ("coeff_outdoor_cool", self._default_coef_ext),
+        ):
+            stored = getattr(self.state, attr)
+            if abs(stored - configured) > CONFIG_COEF_TOLERANCE * self._unit_factor:
+                _LOGGER.info("%s - Auto TPI: %s %.4f differs from the configuration, using the configured %.4f", self._name, attr, stored, configured)
+                setattr(self.state, attr, configured)
+
     def set_is_vtherm_stopping_callback(self, callback: Callable[[], bool]):
         """Set a callback to check if the VTherm is stopping."""
         self._is_vtherm_stopping_callback = callback
@@ -267,6 +287,13 @@ class AutoTpiManager:
 
         if coef_ext is not None:
             updates[CONF_TPI_COEF_EXT] = round(coef_ext / self._unit_factor, 3)
+
+        # The regulation uses the written coefficients right away (the configuration update does not reload)
+        if self._coefficients_written_callback and updates:
+            self._coefficients_written_callback(
+                coef_int / self._unit_factor if coef_int is not None else None,
+                coef_ext / self._unit_factor if coef_ext is not None else None,
+            )
 
         # Always save to local storage (Persistence)
         await self.async_save_data()
@@ -436,6 +463,10 @@ class AutoTpiManager:
                 self.state.coeff_indoor_cool_autolearn = self._avg_initial_weight
                 self.state.coeff_outdoor_autolearn = 0
                 self.state.coeff_outdoor_cool_autolearn = 0
+            elif not self.state.autolearn_enabled:
+                # Outside a learning session the configuration is the reference:
+                # a coefficient changed by the user replaces the stored one.
+                self._align_with_configuration()
 
             _LOGGER.info("%s - Auto TPI: State loaded. Cycles: %d, Indoor learn count: %d", self._name, self.state.total_cycles, self.state.coeff_indoor_autolearn)
         else:

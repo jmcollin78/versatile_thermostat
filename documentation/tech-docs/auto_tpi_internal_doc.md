@@ -31,7 +31,7 @@ Ces formules servent de référence aux tests de simulation ; elles ne sont pas 
 1.  **`AutoTpiManager`** :
     *   Gère le cycle de vie de l'apprentissage (`start_learning`, `stop_learning`, `process_learning_completion`).
     *   Persiste l'état (`AutoTpiState`) dans `.storage/versatile_thermostat.auto_tpi.<unique_id>`. `AutoTpiState.from_dict` ignore les clés inconnues.
-    *   Écrit les coefficients appris dans la config entry (`async_update_learning_data`) sans recharger l'intégration (`skip_reload_on_config_update`).
+    *   Écrit les coefficients appris dans la config entry (`async_update_learning_data`) sans recharger l'intégration (`skip_reload_on_config_update`), puis appelle `_coefficients_written_callback` : le `TPIHandler` (`_apply_written_coefficients`) les applique aussitôt à `TpiAlgorithm` (fin de session, Kext continu).
     *   Envoie la notification de fin d'apprentissage.
 
 2.  **`TPIHandler`** (`prop_handler_tpi.py`) :
@@ -130,7 +130,7 @@ Kint est appris sur des fenêtres de plusieurs cycles, car sur un cycle de 5 min
 
 ## 7. Persistance et Restauration
 
-*   `async_load_data` : charge l'état, plafonne Kint à 1,0. Si `total_cycles == 0`, les coefficients configurés sont imposés.
+*   `async_load_data` : charge l'état, plafonne Kint à 1,0. Si `total_cycles == 0`, les coefficients configurés sont imposés. Hors session, `_align_with_configuration` remplace un coefficient stocké qui diffère de la config au-delà de l'arrondi d'écriture (`CONFIG_COEF_TOLERANCE`) : la config fait référence.
 *   Le statut est remis à `learning_started` et le cycle en cours est abandonné (`cycle_active = False`).
 *   Les fenêtres Kint et l'horodatage de consigne ne sont pas persistés : après un redémarrage, le premier `update()` est traité comme un changement de consigne.
 

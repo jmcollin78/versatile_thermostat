@@ -178,7 +178,7 @@ When **Continuous Kext Learning** is enabled, Kext keeps being adjusted after th
 Kext_new = Kext × (1 − α) + Kext_target × α        α = 0.04
 ```
 
-A fixed weight lets Kext follow a quantity that drifts slowly. The new value is written to the configuration when it changes by more than 0.001.
+A fixed weight lets Kext follow a quantity that drifts slowly. The new value is written to the configuration when it changes by more than 0.001, and the regulation uses it right away.
 
 ---
 
@@ -279,4 +279,4 @@ State: `active` during a session, `off` otherwise.
 
 **Location**: `.storage/versatile_thermostat.auto_tpi.<unique_id>`
 
-This file contains the learning state and is restored on Home Assistant restart. When no learning cycle has been recorded yet, the configured coefficients are used.
+This file contains the learning state and is restored on Home Assistant restart. When no learning cycle has been recorded yet, the configured coefficients are used. Outside a learning session, the configuration is the reference: a coefficient changed in the configuration (options or `set_tpi_parameters` service) replaces the stored one.

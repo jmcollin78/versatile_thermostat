@@ -178,7 +178,7 @@ Wenn **Continuous Kext Learning** aktiviert ist, wird Kext auch nach der Sitzung
 Kext_new = Kext × (1 − α) + Kext_target × α        α = 0.04
 ```
 
-Ein fester Gewichtungsfaktor lässt Kext einer langsam driftenden Größe folgen. Der neue Wert wird in die Konfiguration geschrieben, wenn er sich um mehr als 0.001 ändert.
+Ein fester Gewichtungsfaktor lässt Kext einer langsam driftenden Größe folgen. Der neue Wert wird in die Konfiguration geschrieben, wenn er sich um mehr als 0.001 ändert, und die Regelung verwendet ihn sofort.
 
 ---
 
@@ -279,4 +279,4 @@ Zustand: `active` während einer Sitzung, sonst `off`.
 
 **Speicherort**: `.storage/versatile_thermostat.auto_tpi.<unique_id>`
 
-Diese Datei enthält den Lernzustand und wird beim Neustart von Home Assistant wiederhergestellt. Solange noch kein Lernzyklus erfasst wurde, werden die konfigurierten Koeffizienten verwendet.
+Diese Datei enthält den Lernzustand und wird beim Neustart von Home Assistant wiederhergestellt. Solange noch kein Lernzyklus erfasst wurde, werden die konfigurierten Koeffizienten verwendet. Außerhalb einer Lernsitzung gilt die Konfiguration als Referenz: Ein in der Konfiguration (Optionen oder Dienst `set_tpi_parameters`) geänderter Koeffizient ersetzt den gespeicherten.

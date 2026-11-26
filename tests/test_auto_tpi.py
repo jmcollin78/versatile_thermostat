@@ -158,13 +158,14 @@ async def test_load_data_no_existing(manager, mock_store):
     assert manager.state.coeff_indoor_autolearn == 1 
 
 async def test_load_data_existing(manager, mock_store):
-    """Test loading existing data."""
+    """Test loading existing data of a learning session in progress."""
     existing_state = AutoTpiState(
         coeff_indoor_heat=0.3,
         coeff_outdoor_heat=0.05,
         total_cycles=100,
         coeff_indoor_autolearn=50,
-        coeff_outdoor_autolearn=50
+        coeff_outdoor_autolearn=50,
+        autolearn_enabled=True,
     )
     mock_store.async_load.return_value = existing_state.to_dict()
     
@@ -729,3 +730,80 @@ async def test_climate_publishes_auto_tpi_diagnostics_entity(hass: HomeAssistant
     assert diagnostic_entity_id is not None
     assert diagnostic_entity_id.startswith("sensor.")
     assert hass.states.get(diagnostic_entity_id) is not None
+
+
+async def test_written_coefficients_are_reported_to_the_regulation(manager):
+    """Writing learned coefficients calls the regulation callback in user units."""
+    applied = []
+    manager.set_coefficients_written_callback(lambda kint, kext: applied.append((kint, kext)))
+    manager._enable_update_config = False
+
+    await manager.async_update_learning_data(coef_ext=0.0162)
+    await manager.async_update_learning_data(coef_int=0.7, coef_ext=0.02)
+
+    assert applied == [(None, 0.0162), (0.7, 0.02)]
+
+
+@pytest.mark.parametrize("learning_active, expected_kext", [(False, 0.034), (True, 0.0162)])
+async def test_load_aligns_stored_coefficients_with_configuration_outside_sessions(mock_hass, mock_store, mock_config_entry, learning_active, expected_kext):
+    """Outside a learning session, a coefficient changed in the configuration replaces the stored one."""
+    stored = AutoTpiState(coeff_indoor_heat=0.6, coeff_outdoor_heat=0.0162, coeff_indoor_cool=0.6, coeff_outdoor_cool=0.0162)
+    stored.total_cycles = 100
+    stored.autolearn_enabled = learning_active
+    mock_store.async_load = AsyncMock(return_value=stored.to_dict())
+    manager = AutoTpiManager(
+        hass=mock_hass,
+        config_entry=mock_config_entry,
+        unique_id="test_align",
+        name="test_align",
+        cycle_min=5,
+        coef_int=0.6,
+        coef_ext=0.034,
+    )
+    manager.calculate = AsyncMock()
+
+    await manager.async_load_data()
+
+    assert manager.state.coeff_outdoor_heat == pytest.approx(expected_kext)
+    assert manager.state.coeff_indoor_heat == pytest.approx(0.6)
+
+
+async def test_continuous_kext_is_applied_to_the_regulation(hass: HomeAssistant, skip_hass_states_is_state):
+    """A Kext written by Auto TPI is used by the TPI algorithm without reloading."""
+    entry = MockConfigEntry(
+        domain=DOMAIN,
+        title="AutoTpiLive",
+        unique_id="auto_tpi_live",
+        version=2,
+        minor_version=5,
+        data={
+            CONF_NAME: "AutoTpiLive",
+            CONF_THERMOSTAT_TYPE: CONF_THERMOSTAT_SWITCH,
+            CONF_TEMP_SENSOR: "sensor.mock_temp_sensor",
+            CONF_EXTERNAL_TEMP_SENSOR: "sensor.mock_ext_temp_sensor",
+            CONF_CYCLE_MIN: 5,
+            CONF_TEMP_MIN: 15,
+            CONF_TEMP_MAX: 30,
+            CONF_USE_WINDOW_FEATURE: False,
+            CONF_USE_MOTION_FEATURE: False,
+            CONF_USE_POWER_FEATURE: False,
+            CONF_USE_PRESENCE_FEATURE: False,
+            CONF_UNDERLYING_LIST: ["switch.mock_switch"],
+            CONF_PROP_FUNCTION: PROPORTIONAL_FUNCTION_TPI,
+            CONF_TPI_COEF_INT: 0.6,
+            CONF_TPI_COEF_EXT: 0.034,
+            CONF_MINIMAL_ACTIVATION_DELAY: 30,
+            CONF_MINIMAL_DEACTIVATION_DELAY: 30,
+            CONF_AUTO_TPI_MODE: True,
+            "auto_tpi_continuous_kext": True,
+        },
+    )
+    entity: ThermostatProp = await create_thermostat(hass, entry, "climate.autotpilive")
+    manager = entity._algo_handler._auto_tpi_manager
+    assert manager.learning_active is False
+
+    await manager.async_update_learning_data(coef_ext=0.0162)
+
+    assert entity.prop_algorithm.tpi_coef_ext == pytest.approx(0.0162)
+    assert entity.tpi_coef_ext == pytest.approx(0.0162)
+    assert entity.prop_algorithm.tpi_coef_int == pytest.approx(0.6)

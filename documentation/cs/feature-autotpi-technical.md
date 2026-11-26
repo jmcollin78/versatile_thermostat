@@ -178,7 +178,7 @@ Je-li zapnuto **Průběžné učení Kext**, Kext se i po relaci dále upravuje,
 Kext_new = Kext × (1 − α) + Kext_target × α        α = 0.04
 ```
 
-Pevná váha umožňuje, aby Kext sledoval veličinu, která se pomalu mění. Nová hodnota se zapíše do konfigurace, pokud se změní o více než 0,001.
+Pevná váha umožňuje, aby Kext sledoval veličinu, která se pomalu mění. Nová hodnota se zapíše do konfigurace, pokud se změní o více než 0,001, a regulace ji okamžitě použije.
 
 ---
 
@@ -279,4 +279,4 @@ Stav: `active` během relace, jinak `off`.
 
 **Umístění**: `.storage/versatile_thermostat.auto_tpi.<unique_id>`
 
-Tento soubor obsahuje stav učení a obnoví se při restartu Home Assistant. Dokud není zaznamenán žádný cyklus učení, použijí se nakonfigurované koeficienty.
+Tento soubor obsahuje stav učení a obnoví se při restartu Home Assistant. Dokud není zaznamenán žádný cyklus učení, použijí se nakonfigurované koeficienty. Mimo učební relaci je referencí konfigurace: koeficient změněný v konfiguraci (možnosti nebo služba `set_tpi_parameters`) nahradí uložený.

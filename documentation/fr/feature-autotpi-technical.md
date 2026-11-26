@@ -178,7 +178,7 @@ Lorsque l'**Apprentissage continu du Kext** est activé, Kext continue d'être a
 Kext_new = Kext × (1 − α) + Kext_target × α        α = 0.04
 ```
 
-Un poids fixe permet à Kext de suivre une grandeur qui dérive lentement. La nouvelle valeur est écrite dans la configuration lorsqu'elle change de plus de 0,001.
+Un poids fixe permet à Kext de suivre une grandeur qui dérive lentement. La nouvelle valeur est écrite dans la configuration lorsqu'elle change de plus de 0,001, et la régulation l'utilise immédiatement.
 
 ---
 
@@ -279,4 +279,4 @@ Entité : `sensor.<name>_auto_tpi_learning_state`
 
 **Emplacement** : `.storage/versatile_thermostat.auto_tpi.<unique_id>`
 
-Ce fichier contient l'état de l'apprentissage et est restauré au redémarrage de Home Assistant. Tant qu'aucun cycle d'apprentissage n'a été enregistré, les coefficients configurés sont utilisés.
+Ce fichier contient l'état de l'apprentissage et est restauré au redémarrage de Home Assistant. Tant qu'aucun cycle d'apprentissage n'a été enregistré, les coefficients configurés sont utilisés. En dehors d'une session d'apprentissage, la configuration fait référence : un coefficient modifié dans la configuration (options ou service `set_tpi_parameters`) remplace celui qui est stocké.

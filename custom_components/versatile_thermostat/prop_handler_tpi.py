@@ -158,6 +158,7 @@ class TPIHandler:
             continuous_kext=continuous_kext,
         )
         self._auto_tpi_manager.set_is_vtherm_stopping_callback(lambda: t.is_removed)
+        self._auto_tpi_manager.set_coefficients_written_callback(self._apply_written_coefficients)
         _LOGGER.info("%s - DEBUG: AutoTpiManager initialized with defaults: int=%.3f, ext=%.3f",
                      t, self._auto_tpi_manager._default_coef_int, self._auto_tpi_manager._default_coef_ext)
 
@@ -326,6 +327,17 @@ class TPIHandler:
         del changed
         # Cycle management is now passive, no need to start/stop loop
         pass
+
+    def _apply_written_coefficients(self, coef_int: float | None, coef_ext: float | None) -> None:
+        """Use the coefficients written by Auto TPI (end of session, continuous Kext) in the regulation."""
+        t = self._thermostat
+        if not t.prop_algorithm:
+            return
+        t.prop_algorithm.update_parameters(tpi_coef_int=coef_int, tpi_coef_ext=coef_ext)
+        t.tpi_coef_int = t.prop_algorithm.tpi_coef_int
+        t.tpi_coef_ext = t.prop_algorithm.tpi_coef_ext
+        _LOGGER.info("%s - Auto TPI coefficients applied: Kint=%.3f, Kext=%.4f", t, t.tpi_coef_int, t.tpi_coef_ext)
+        t.recalculate()
 
     def _resolve_diagnostic_entity_id(self) -> str | None:
         """Return the Auto TPI learning sensor entity id, or None when Auto TPI is not enabled."""

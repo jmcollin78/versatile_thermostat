@@ -178,7 +178,7 @@ Gdy **Continuous Kext Learning** jest włączone, Kext jest nadal dostosowywany 
 Kext_new = Kext × (1 − α) + Kext_target × α        α = 0.04
 ```
 
-Stała waga pozwala Kext podążać za wielkością, która powoli się zmienia. Nowa wartość jest zapisywana w konfiguracji, gdy zmieni się o więcej niż 0.001.
+Stała waga pozwala Kext podążać za wielkością, która powoli się zmienia. Nowa wartość jest zapisywana w konfiguracji, gdy zmieni się o więcej niż 0.001, a regulacja natychmiast ją wykorzystuje.
 
 ---
 
@@ -279,4 +279,4 @@ Stan: `active` podczas sesji, w przeciwnym razie `off`.
 
 **Lokalizacja**: `.storage/versatile_thermostat.auto_tpi.<unique_id>`
 
-Plik zawiera stan uczenia i jest przywracany po ponownym uruchomieniu Home Assistant. Gdy nie zarejestrowano jeszcze żadnego cyklu uczenia, używane są skonfigurowane współczynniki.
+Plik zawiera stan uczenia i jest przywracany po ponownym uruchomieniu Home Assistant. Gdy nie zarejestrowano jeszcze żadnego cyklu uczenia, używane są skonfigurowane współczynniki. Poza sesją uczenia konfiguracja jest punktem odniesienia: współczynnik zmieniony w konfiguracji (opcje lub usługa `set_tpi_parameters`) zastępuje zapisany.
