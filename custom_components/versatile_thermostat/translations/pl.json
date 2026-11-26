@@ -941,32 +941,6 @@
       "name": "Reset wydajności Auto TPI",
       "description": "Zresetuj zapamiętane maksymalne wydajności grzania i chłodzenia do 1,0 °C/h. Zapamiętane współczynniki NIE są resetowane."
     },
-    "auto_tpi_calibrate_capacity": {
-      "name": "Kalibracja wydajności Auto TPI",
-      "description": "Skalibruj wydajność ogrzewania/chłodzenia (w °C/godzinę) za pomocą regresji liniowej na danych historycznych obiektu. Wyuczone współczynniki NIE są aktualizowane.",
-      "fields": {
-        "start_date": {
-          "name": "Historia od dnia",
-          "description": "Data, od której ma zostać pobrana historia (domyślnie: 30 dni temu)."
-        },
-        "end_date": {
-          "name": "Historia do dnia",
-          "description": "Data, do której ma zostać pobrana historia (domyślnie: dzisiaj)."
-        },
-        "hvac_mode": {
-          "name": "Tryb HVAC",
-          "description": "Który tryb ma być kalibrowany (grzanie lub chłodzenie)."
-        },
-        "save_to_config": {
-          "name": "Zapis w konfiguracji",
-          "description": "Zastosuj obliczone wydajności do konfiguracji Auto TPI."
-        },
-        "min_power_threshold": {
-          "name": "Próg mocy minimalnej",
-          "description": "Minimalny procent mocy, przy którym cykl jest uznawany za nasycony (domyślnie: 95%). Niższe wartości uwzględniają więcej cykli, ale mogą być mniej dokładne."
-        }
-      }
-    },
     "set_tpi_parameters": {
       "name": "Ustawienia parametrów TPI",
       "description": "Zmień parametry TPI",

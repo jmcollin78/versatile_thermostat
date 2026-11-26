@@ -295,34 +295,12 @@ class ThermostatProp(BaseThermostat[T], Generic[T]):
         self,
         auto_tpi_mode: bool,
         reinitialise: bool = True,
-        allow_kint_boost_on_stagnation: bool = False,
-        allow_kext_compensation_on_overshoot: bool = False,
     ):
         """Service: set Auto TPI mode."""
         if hasattr(self._algo_handler, 'service_set_auto_tpi_mode'):
             await self._algo_handler.service_set_auto_tpi_mode(
                 auto_tpi_mode=auto_tpi_mode,
                 reinitialise=reinitialise,
-                allow_kint_boost_on_stagnation=allow_kint_boost_on_stagnation,
-                allow_kext_compensation_on_overshoot=allow_kext_compensation_on_overshoot,
-            )
-        else:
-            raise ServiceValidationError(f"{self} - This service is only available for TPI algorithm.")
-
-    async def service_auto_tpi_calibrate_capacity(
-        self,
-        save_to_config: bool,
-        min_power_threshold: int,
-        start_date=None,
-        end_date=None,
-    ):
-        """Service: calibrate Auto TPI capacity."""
-        if hasattr(self._algo_handler, 'service_auto_tpi_calibrate_capacity'):
-            return await self._algo_handler.service_auto_tpi_calibrate_capacity(
-                save_to_config=save_to_config,
-                min_power_threshold=min_power_threshold,
-                start_date=start_date,
-                end_date=end_date,
             )
         else:
             raise ServiceValidationError(f"{self} - This service is only available for TPI algorithm.")
@@ -331,16 +309,12 @@ class ThermostatProp(BaseThermostat[T], Generic[T]):
         self,
         auto_tpi_mode: bool,
         reinitialise: bool = True,
-        allow_kint_boost: bool = False,
-        allow_kext_overshoot: bool = False,
     ):
         """Set the auto TPI mode."""
         if hasattr(self._algo_handler, 'async_set_auto_tpi_mode'):
             await self._algo_handler.async_set_auto_tpi_mode(
                 auto_tpi_mode=auto_tpi_mode,
                 reinitialise=reinitialise,
-                allow_kint_boost=allow_kint_boost,
-                allow_kext_overshoot=allow_kext_overshoot,
             )
 
     def _bind_scheduler(self, scheduler) -> None:

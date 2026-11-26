@@ -1087,32 +1087,6 @@
             "name": "Reset Auto TPI Capacities",
             "description": "Reset the learned maximum heating and cooling capacities to 1.0 °C/h. Learned coefficients are NOT reset."
         },
-        "auto_tpi_calibrate_capacity": {
-            "name": "Auto Tpi Calibrate Capacity",
-            "description": "Calibrate the heating/cooling capacity (in °C/hour) using linear regression on the entity's history data. Learned coefficients are NOT updated.",
-            "fields": {
-                "start_date": {
-                    "name": "History from date",
-                    "description": "Date from which to retrieve history (default is 30 days ago)"
-                },
-                "end_date": {
-                    "name": "History to date",
-                    "description": "Date until which to retrieve history (default is now)"
-                },
-                "hvac_mode": {
-                    "name": "HVAC Mode",
-                    "description": "Which mode to calibrate (heat or cool)."
-                },
-                "save_to_config": {
-                    "name": "Save to Config",
-                    "description": "Apply the calculated capacity to the Auto TPI configuration."
-                },
-                "min_power_threshold": {
-                    "name": "Minimum Power Threshold",
-                    "description": "Minimum power percentage to consider a cycle as saturated (default 95%). Lower values will include more cycles but may be less accurate."
-                }
-            }
-        },
         "set_tpi_parameters": {
             "name": "Set TPI parameters",
             "description": "Change the TPI parameters",

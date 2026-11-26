@@ -89,8 +89,6 @@ class SimResult:
 
     kint: float
     kext: float
-    capacity: float
-    capacity_count: int
     learning_active: bool
     kint_history: list = field(default_factory=list)
     kext_history: list = field(default_factory=list)
@@ -120,7 +118,6 @@ async def run_simulation(
     cycle_min: int = 5,
     coef_int: float = 0.6,
     coef_ext: float = 0.01,
-    heating_rate: float = 0.0,
     heater_heating_time: int = 15,
     start_temp: float = 17.0,
     schedule=default_schedule,
@@ -132,9 +129,7 @@ async def run_simulation(
     minute = 0
     rng = random.Random(seed)
 
-    with patch(f"{MANAGER_MODULE}.Store") as store_cls, patch(f"{MANAGER_MODULE}.dt_util") as dt_util_mock, patch(
-        f"{MANAGER_MODULE}.async_call_later"
-    ):
+    with patch(f"{MANAGER_MODULE}.Store") as store_cls, patch(f"{MANAGER_MODULE}.dt_util") as dt_util_mock:
         store = store_cls.return_value
         store.async_load = AsyncMock(return_value=None)
         store.async_save = AsyncMock()
@@ -151,13 +146,10 @@ async def run_simulation(
             cycle_min=cycle_min,
             coef_int=coef_int,
             coef_ext=coef_ext,
-            heating_rate=heating_rate,
             heater_heating_time=heater_heating_time,
-            heater_cooling_time=heater_heating_time,
         )
         manager._enable_update_config = False  # pylint: disable=protected-access
         manager._enable_notification = False  # pylint: disable=protected-access
-        manager._try_pre_bootstrap_calibration = AsyncMock(return_value=None)  # pylint: disable=protected-access
         await manager.start_learning(reset_data=True)
 
         algo = TpiAlgorithm(coef_int, coef_ext, "climate.sim")
@@ -165,7 +157,7 @@ async def run_simulation(
         temp = start_temp
         emitter = 0.0
         reported = sensor.quantize(temp)
-        result = SimResult(0, 0, 0, 0, True)
+        result = SimResult(0, 0, True)
         in_band = counted = 0
         reached = False
         last_setpoint = schedule(0)
@@ -217,8 +209,6 @@ async def run_simulation(
 
         result.kint = manager.state.coeff_indoor_heat
         result.kext = manager.state.coeff_outdoor_heat
-        result.capacity = manager.state.max_capacity_heat
-        result.capacity_count = manager.state.capacity_heat_learn_count
         result.learning_active = manager.learning_active
         result.in_band_ratio = in_band / counted if counted else 0.0
         return result

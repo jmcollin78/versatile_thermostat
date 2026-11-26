@@ -1039,32 +1039,6 @@
       "name": "Réinitialiser les Capacités Auto TPI",
       "description": "Réinitialise les capacités maximales de chauffage et de refroidissement à 1.0 °C/h. Les coefficients appris ne sont PAS réinitialisés."
     },
-    "auto_tpi_calibrate_capacity": {
-      "name": "Auto Tpi Calibrer la Capacité",
-      "description": "Calibre la capacité de chauffage/refroidissement (en °C/heure) en utilisant la régression linéaire sur les données d'historique de l'entité. Les coefficients TPI appris ne sont PAS mis à jour.",
-      "fields": {
-        "start_date": {
-          "name": "Date de début de l'historique",
-          "description": "Date à partir de laquelle récupérer l'historique (par défaut il y a 30 jours)"
-        },
-        "end_date": {
-          "name": "Date de fin de l'historique",
-          "description": "Date jusqu'à laquelle récupérer l'historique (par défaut maintenant)"
-        },
-        "hvac_mode": {
-          "name": "Mode HVAC",
-          "description": "Quel mode calibrer (heat ou cool)."
-        },
-        "save_to_config": {
-          "name": "Sauvegarder dans la configuration",
-          "description": "Appliquer la capacité calculée à la configuration Auto TPI"
-        },
-        "min_power_threshold": {
-          "name": "Seuil de puissance minimum",
-          "description": "Pourcentage de puissance minimum pour considérer un cycle comme saturé (par défaut 95%). Des valeurs plus basses incluront plus de cycles mais peuvent être moins précises."
-        }
-      }
-    },
     "set_tpi_parameters": {
       "name": "Définir les paramètres TPI",
       "description": "Modifier les paramètres TPI",

@@ -2657,8 +2657,6 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
         self,
         auto_tpi_mode: bool,
         reinitialise: bool = True,
-        allow_kint_boost_on_stagnation: bool = False,
-        allow_kext_compensation_on_overshoot: bool = False,
     ):
         """Stub method for Auto TPI mode service on non-TPI thermostats.
 
@@ -2669,25 +2667,6 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
             ServiceValidationError: Always raised to indicate the service is not available
         """
         raise ServiceValidationError(f"{self} - The set_auto_tpi_mode service is only available for switch/valve type thermostats. " "This thermostat does not use TPI algorithm.")
-
-    async def service_auto_tpi_calibrate_capacity(
-        self,
-        save_to_config: bool,
-        min_power_threshold: int,
-        start_date: datetime | None = None,
-        end_date: datetime | None = None,
-    ):
-        """Stub method for Auto TPI capacity calibration service on non-TPI thermostats.
-
-        This service is only available for switch/valve type thermostats that use TPI algorithm.
-        For over_climate thermostats, this service is not supported.
-
-        Raises:
-            ServiceValidationError: Always raised to indicate the service is not available
-        """
-        raise ServiceValidationError(
-            f"{self} - The auto_tpi_calibrate_capacity service is only available for switch/valve type thermostats. " "This thermostat does not use TPI algorithm."
-        )
 
     async def service_set_timed_preset(self, preset: str, duration_minutes: float):
         """Called by a service call:

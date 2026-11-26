@@ -14,11 +14,6 @@ from custom_components.versatile_thermostat.auto_tpi_manager import (
 import logging
 _LOGGER = logging.getLogger(__name__)
 
-@pytest.fixture(autouse=True)
-def mock_async_call_later():
-    with patch("custom_components.versatile_thermostat.auto_tpi_manager.async_call_later") as mock_call_later:
-        yield mock_call_later
-
 @pytest.fixture
 def mock_hass():
     """Mock Home Assistant."""
@@ -57,7 +52,6 @@ def manager(mock_hass, mock_store, mock_config_entry):
         coef_int=0.6,
         coef_ext=0.01,
         heater_heating_time=10,
-        heater_cooling_time=5,
         continuous_kext=True,
         continuous_kext_alpha=0.1 # 10% learning rate
     )

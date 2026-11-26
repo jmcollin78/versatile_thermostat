@@ -1087,32 +1087,6 @@
       "name": "Restablecer las capacidades de Auto TPI",
       "description": "Restablecer las capacidades máximas de calentamiento y enfriamiento aprendidas a 1,0 °C/h. Los coeficientes aprendidos NO se restablecen."
     },
-    "auto_tpi_calibrate_capacity": {
-      "name": "Calibrar la capacidad de Auto TPI",
-      "description": "Calibrar la capacidad de calentamiento o enfriamiento (en °C/h) mediante una regresión lineal de los datos históricos de la entidad. Los coeficientes aprendidos NO se actualizan.",
-      "fields": {
-        "start_date": {
-          "name": "Fecha inicial del historial",
-          "description": "Fecha a partir de la cual se recuperará el historial (por defecto, hace 30 días)"
-        },
-        "end_date": {
-          "name": "Fecha final del historial",
-          "description": "Fecha hasta la cual se recuperará el historial (por defecto, ahora)"
-        },
-        "hvac_mode": {
-          "name": "Modo de climatización",
-          "description": "Modo que se va a calibrar (`heat` o `cool`)"
-        },
-        "save_to_config": {
-          "name": "Guardar en la configuración",
-          "description": "Aplicar la capacidad calculada a la configuración de Auto TPI"
-        },
-        "min_power_threshold": {
-          "name": "Umbral mínimo de potencia",
-          "description": "Porcentaje mínimo de potencia para considerar que un ciclo está saturado (predeterminado: 95 %). Los valores más bajos incluyen más ciclos, pero pueden reducir la precisión."
-        }
-      }
-    },
     "set_tpi_parameters": {
       "name": "Establecer los parámetros TPI",
       "description": "Cambiar los parámetros TPI",

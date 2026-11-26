@@ -1003,32 +1003,6 @@
             "name": "重置 Auto TPI 能力",
             "description": "将学习的最大加热和冷却能力重置为 1.0 °C/h。学习的系数不会重置。"
         },
-        "auto_tpi_calibrate_capacity": {
-            "name": "Auto TPI 校准能力",
-            "description": "使用实体历史数据的线性回归来校准加热/冷却能力（以°C/小时为单位）。学习的系数不会更新。",
-            "fields": {
-                "start_date": {
-                    "name": "历史开始日期",
-                    "description": "检索历史记录的日期（默认为 30 天前）"
-                },
-                "end_date": {
-                    "name": "历史结束日期",
-                    "description": "检索历史记录的截止日期（默认为现在）"
-                },
-                "hvac_mode": {
-                    "name": "HVAC 模式",
-                    "description": "校准哪种模式（加热或冷却）。"
-                },
-                "save_to_config": {
-                    "name": "保存到配置",
-                    "description": "将计算出的容量应用于自动 TPI 配置。"
-                },
-                "min_power_threshold": {
-                    "name": "最小功率阈值",
-                    "description": "将周期视为饱和的最小功率百分比（默认 95%）。较低的值将包括更多的周期，但可能不太准确。"
-                }
-            }
-        },
         "set_tpi_parameters": {
             "name": "设置 TPI 参数",
             "description": "更改 TPI 参数",

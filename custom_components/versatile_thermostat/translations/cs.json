@@ -1027,32 +1027,6 @@
             "name": "Resetujte automatické kapacity TPI",
             "description": "Resetujte naučené maximální topné a chladicí výkony na 1,0 °C/h. Naučené koeficienty NENÍ resetováno."
         },
-        "auto_tpi_calibrate_capacity": {
-            "name": "Automatická kalibrace kapacity TPI",
-            "description": "Kalibrujte výkon vytápění/chlazení (ve °C/hodinu) pomocí lineární regrese na historických datech entity. Naučené koeficienty NEJSOU aktualizovány.",
-            "fields": {
-                "start_date": {
-                    "name": "Historie od data",
-                    "description": "Datum, od kterého se má načíst historie (výchozí je před 30 dny)"
-                },
-                "end_date": {
-                    "name": "Historie k dnešnímu dni",
-                    "description": "Datum, do kterého se má načíst historie (výchozí je nyní)"
-                },
-                "hvac_mode": {
-                    "name": "Režim HVAC",
-                    "description": "Jaký režim kalibrovat (topení nebo chlazení)."
-                },
-                "save_to_config": {
-                    "name": "Uložit do konfigurace",
-                    "description": "Použijte vypočítanou kapacitu na konfiguraci Auto TPI."
-                },
-                "min_power_threshold": {
-                    "name": "Minimální práh výkonu",
-                    "description": "Minimální procento výkonu, aby byl cyklus považován za nasycený (výchozí 95 %). Nižší hodnoty budou zahrnovat více cyklů, ale mohou být méně přesné."
-                }
-            }
-        },
         "set_tpi_parameters": {
             "name": "Nastavte parametry TPI",
             "description": "Změňte parametry TPI",

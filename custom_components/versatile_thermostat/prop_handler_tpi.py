@@ -139,14 +139,10 @@ class TPIHandler:
 
         # Initialize Auto TPI Manager from config
         heater_heating_time = entry.get(CONF_AUTO_TPI_HEATER_HEATING_TIME, 5)
-        heater_cooling_time = entry.get(CONF_AUTO_TPI_HEATER_COOLING_TIME, 5)
         calculation_method = entry.get(CONF_AUTO_TPI_CALCULATION_METHOD, AUTO_TPI_METHOD_EMA)
         ema_alpha = entry.get(CONF_AUTO_TPI_EMA_ALPHA, 0.2)
         avg_initial_weight = entry.get(CONF_AUTO_TPI_AVG_INITIAL_WEIGHT, 1)
 
-        heating_rate = entry.get(CONF_AUTO_TPI_HEATING_POWER, 1.0)
-        cooling_rate = entry.get(CONF_AUTO_TPI_COOLING_POWER, 1.0)
-        aggressiveness = entry.get(CONF_AUTO_TPI_AGGRESSIVENESS, 1.0)
         continuous_kext = entry.get(CONF_AUTO_TPI_CONTINUOUS_KEXT, False)
         continuous_kext_alpha = entry.get(CONF_AUTO_TPI_CONTINUOUS_KEXT_ALPHA, 0.04)
 
@@ -159,19 +155,12 @@ class TPIHandler:
             t.unique_id,
             t.name,
             t.cycle_min,
-            t.tpi_threshold_low,
-            t.tpi_threshold_high,
-            t.minimal_deactivation_delay,
             coef_int=t.tpi_coef_int,
             coef_ext=t.tpi_coef_ext,
             heater_heating_time=heater_heating_time,
-            heater_cooling_time=heater_cooling_time,
             calculation_method=calculation_method,
             ema_alpha=ema_alpha,
             avg_initial_weight=avg_initial_weight,
-            heating_rate=heating_rate,
-            cooling_rate=cooling_rate,
-            aggressiveness=aggressiveness,
             continuous_kext=continuous_kext,
             continuous_kext_alpha=continuous_kext_alpha,
         )
@@ -450,8 +439,6 @@ class TPIHandler:
         self,
         auto_tpi_mode: bool,
         reinitialise: bool = True,
-        allow_kint_boost_on_stagnation: bool = False,
-        allow_kext_compensation_on_overshoot: bool = False,
     ):
         """Service handler for set_auto_tpi_mode."""
         t = self._thermostat
@@ -464,72 +451,23 @@ class TPIHandler:
         write_event_log(
             _LOGGER,
             t,
-            f"Calling SERVICE_SET_AUTO_TPI_MODE, auto_tpi_mode: {auto_tpi_mode}, "
-            f"reinitialise: {reinitialise}, "
-            f"allow_kint_boost: {allow_kint_boost_on_stagnation}, "
-            f"allow_kext_overshoot: {allow_kext_compensation_on_overshoot}",
+            f"Calling SERVICE_SET_AUTO_TPI_MODE, auto_tpi_mode: {auto_tpi_mode}, reinitialise: {reinitialise}",
         )
-        await self.async_set_auto_tpi_mode(
-            auto_tpi_mode,
-            reinitialise,
-            allow_kint_boost_on_stagnation,
-            allow_kext_compensation_on_overshoot,
-        )
-
-    async def service_auto_tpi_calibrate_capacity(
-        self,
-        save_to_config: bool,
-        min_power_threshold: int,
-        start_date: datetime | None = None,
-        end_date: datetime | None = None,
-    ):
-        """Service handler for auto_tpi_calibrate_capacity."""
-        t = self._thermostat
-
-        if t.proportional_function != PROPORTIONAL_FUNCTION_TPI:
-            raise ServiceValidationError(f"{t} - This service is only available for TPI algorithm.")
-        if not t.entry_infos.get(CONF_AUTO_TPI_MODE, False):
-            raise ServiceValidationError(f"{t} - Auto TPI is not enabled in configuration.")
-
-        write_event_log(_LOGGER, t, f"Calling SERVICE_AUTO_TPI_CALIBRATE_CAPACITY, save_to_config: {save_to_config}, start_date: {start_date}, end_date: {end_date}, min_power_threshold: {min_power_threshold}")
-
-        if not self._auto_tpi_manager:
-            raise ServiceValidationError(f"{t} - Auto TPI Manager not initialized, cannot calibrate capacity.")
-
-        result = await self._auto_tpi_manager.service_calibrate_capacity(
-            thermostat_entity_id=t.entity_id,
-            ext_temp_entity_id=t.ext_temp_sensor_entity_id,
-            save_to_config=save_to_config,
-            start_date=start_date,
-            end_date=end_date,
-            min_power_threshold=min_power_threshold / 100.0,
-        )
-
-        if result and result.get("success") and result.get("max_capacity"):
-            t.recalculate()
-
-        t.update_custom_attributes()
-        t.async_write_ha_state()
-
-        return result
+        await self.async_set_auto_tpi_mode(auto_tpi_mode, reinitialise)
 
     async def async_set_auto_tpi_mode(
         self,
         auto_tpi_mode: bool,
         reinitialise: bool = True,
-        allow_kint_boost: bool = False,
-        allow_kext_overshoot: bool = False,
     ):
         """Set the auto TPI mode."""
         t = self._thermostat
 
         _LOGGER.debug(
-            "%s - async_set_auto_tpi_mode called with auto_tpi_mode=%s, reinitialise=%s, kint_boost=%s, kext_overshoot=%s",
+            "%s - async_set_auto_tpi_mode called with auto_tpi_mode=%s, reinitialise=%s",
             t,
             auto_tpi_mode,
             reinitialise,
-            allow_kint_boost,
-            allow_kext_overshoot,
         )
         if not self._auto_tpi_manager:
             _LOGGER.warning("%s - Auto TPI Manager not initialized", t)
@@ -547,8 +485,6 @@ class TPIHandler:
                 coef_int=self._auto_tpi_manager._default_coef_int,
                 coef_ext=self._auto_tpi_manager._default_coef_ext,
                 reset_data=reinitialise,
-                allow_kint_boost=allow_kint_boost,
-                allow_kext_overshoot=allow_kext_overshoot,
             )
 
             # Sync PropAlgorithm with the configured coefficients

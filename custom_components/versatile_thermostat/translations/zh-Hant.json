@@ -1087,32 +1087,6 @@
             "name": "重設自動 TPI 能力值",
             "description": "將學習到的最大加熱與冷卻能力重設為 1.0 °C/h。已學習的係數不會被重設。"
         },
-        "auto_tpi_calibrate_capacity": {
-            "name": "自動 TPI 校準能力值",
-            "description": "根據實體的歷史資料，以線性迴歸校準加熱／冷卻能力（單位 °C/小時）。已學習的係數不會被更新。",
-            "fields": {
-                "start_date": {
-                    "name": "歷史起始日期",
-                    "description": "擷取歷史資料的起始日期（預設為 30 天前）"
-                },
-                "end_date": {
-                    "name": "歷史結束日期",
-                    "description": "擷取歷史資料的結束日期（預設為現在）"
-                },
-                "hvac_mode": {
-                    "name": "HVAC 模式",
-                    "description": "要校準的模式（加熱或製冷）。"
-                },
-                "save_to_config": {
-                    "name": "儲存到設定",
-                    "description": "將計算出的能力值套用到自動 TPI 設定。"
-                },
-                "min_power_threshold": {
-                    "name": "最低功率閾值",
-                    "description": "將一個週期視為飽和所需的最低功率百分比（預設 95%）。較低的數值會納入更多週期，但準確度可能較低。"
-                }
-            }
-        },
         "set_tpi_parameters": {
             "name": "設定 TPI 參數",
             "description": "變更 TPI 參數",

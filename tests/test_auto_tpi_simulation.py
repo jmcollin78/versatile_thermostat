@@ -82,7 +82,6 @@ async def test_auto_tpi_convergence_simulation(mock_hass, mock_store, mock_confi
         coef_int=0.3, # Start LOW
         coef_ext=0.01, # Start LOW
         heater_heating_time=1,
-        heater_cooling_time=1,
     )
     # Enable autolearn configuration
     manager.state.autolearn_enabled = True
@@ -103,8 +102,7 @@ async def test_auto_tpi_convergence_simulation(mock_hass, mock_store, mock_confi
     print(f"\n{'Cycle':<5} | {'RoomT':<8} | {'ExtT':<8} | {'Power%':<8} | {'Kint':<8} | {'Kext':<8} | {'Status'}")
     print("-" * 80)
 
-    with patch("custom_components.versatile_thermostat.auto_tpi_manager.dt_util") as mock_dt_util, \
-         patch("custom_components.versatile_thermostat.auto_tpi_manager.async_call_later") as mock_call_later:
+    with patch("custom_components.versatile_thermostat.auto_tpi_manager.dt_util") as mock_dt_util:
         
         mock_dt_util.now.side_effect = lambda: sim_time
         mock_dt_util.as_local.side_effect = lambda x: x

@@ -1087,32 +1087,6 @@
             "name": "Auto TPI の能力のリセット",
             "description": "学習した最大の暖房能力と冷房能力を 1.0 °C/h にリセットします。学習した係数はリセットされません。"
         },
-        "auto_tpi_calibrate_capacity": {
-            "name": "Auto TPI の能力のキャリブレーション",
-            "description": "エンティティの履歴データに対する線形回帰を使って、暖房/冷房の能力（°C/時間）をキャリブレーションします。学習した係数は更新されません。",
-            "fields": {
-                "start_date": {
-                    "name": "履歴の開始日",
-                    "description": "履歴を取得する開始日です（デフォルトは 30 日前）"
-                },
-                "end_date": {
-                    "name": "履歴の終了日",
-                    "description": "履歴を取得する終了日です（デフォルトは現在）"
-                },
-                "hvac_mode": {
-                    "name": "HVAC モード",
-                    "description": "キャリブレーションするモードです（暖房（heat）または冷房（cool））。"
-                },
-                "save_to_config": {
-                    "name": "設定に保存",
-                    "description": "計算した能力を Auto TPI の設定に反映します。"
-                },
-                "min_power_threshold": {
-                    "name": "最小電力のしきい値",
-                    "description": "サイクルを飽和していると見なす最小の電力割合です（デフォルトは 95%）。値を小さくするとより多くのサイクルが対象になりますが、精度が下がる可能性があります。"
-                }
-            }
-        },
         "set_tpi_parameters": {
             "name": "TPI パラメーターの設定",
             "description": "TPI パラメーターを変更します",

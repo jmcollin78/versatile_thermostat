@@ -1003,32 +1003,6 @@
             "name": "Reimposta capacità TPI automatiche",
             "description": "Reimpostare le capacità massime di riscaldamento e raffreddamento apprese a 1,0 °C/h. I coefficienti appresi NON vengono reimpostati."
         },
-        "auto_tpi_calibrate_capacity": {
-            "name": "Capacità di calibrazione automatica Tpi",
-            "description": "Calibrare la capacità di riscaldamento/raffreddamento (in °C/ora) utilizzando la regressione lineare sui dati storici dell'entità. I coefficienti appresi NON vengono aggiornati.",
-            "fields": {
-                "start_date": {
-                    "name": "Storico dalla data",
-                    "description": "Data da cui recuperare la cronologia (l'impostazione predefinita è 30 giorni fa)"
-                },
-                "end_date": {
-                    "name": "Storico alla data",
-                    "description": "Data fino alla quale recuperare la cronologia (l'impostazione predefinita è ora)"
-                },
-                "hvac_mode": {
-                    "name": "Modo HVAC",
-                    "description": "Quale modalità calibrare (riscaldamento o raffreddamento)."
-                },
-                "save_to_config": {
-                    "name": "Salva in Config",
-                    "description": "Applicare la capacità calcolata alla configurazione Auto TPI."
-                },
-                "min_power_threshold": {
-                    "name": "Soglia minima di potenza",
-                    "description": "Percentuale minima di potenza per considerare un ciclo come saturo (impostazione predefinita 95%). Valori inferiori includeranno più cicli, ma potrebbero essere meno accurati."
-                }
-            }
-        },
         "set_tpi_parameters": {
             "name": "Imposta parametri TPI",
             "description": "Modifica i parametri TPI",

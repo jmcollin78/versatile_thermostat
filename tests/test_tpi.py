@@ -608,8 +608,6 @@ async def test_tpi_services_not_allowed_on_over_climate(hass: HomeAssistant, ski
         await entity.service_set_auto_tpi_mode(
             auto_tpi_mode=True,
             reinitialise=True,
-            allow_kint_boost_on_stagnation=False,
-            allow_kext_compensation_on_overshoot=False,
         )
 
     # Try to call the service - it should raise an error or do nothing

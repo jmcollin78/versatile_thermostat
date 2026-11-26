@@ -1077,32 +1077,6 @@
       "name": "Auto-TPI-Funktionen zurücksetzen",
       "description": "Setzt die maximalen Heiz- und Kühlkapazitäten auf 1,0 °C/h zurück. Die erlernten Koeffizienten werden NICHT zurückgesetzt."
     },
-    "auto_tpi_calibrate_capacity": {
-      "name": "Auto-TPI-Kapazitätskalibrierung",
-      "description": "Kalibriert die Heiz-/Kühlleistung (in °C/Stunde) mithilfe einer linearen Regression auf Basis der historischen Daten der Entity. Die erlernten TPI-Koeffizienten werden NICHT aktualisiert.",
-      "fields": {
-        "start_date": {
-          "name": "Startdatum des Verlaufs",
-          "description": "Datum, ab dem der Verlauf abgerufen werden soll (standardmäßig sind es 30 Tage)"
-        },
-        "end_date": {
-          "name": "Enddatum des Verlaufs",
-          "description": "Datum, bis zu dem der Verlauf abgerufen werden soll (Standardwert: jetzt)"
-        },
-        "hvac_mode": {
-          "name": "HVAC-Modus",
-          "description": "Welcher Modus soll kalibriert werden (Heizung oder Kühlung)?"
-        },
-        "save_to_config": {
-          "name": "Konfiguration speichern",
-          "description": "Die berechnete Kapazität auf die Auto-TPI-Konfiguration anwenden"
-        },
-        "min_power_threshold": {
-          "name": "Mindestleistungsschwelle",
-          "description": "Mindestprozentsatz der Leistung, ab dem ein Zyklus als gesättigt gilt (Standardwert 95 %). Niedrigere Werte umfassen mehr Zyklen, können jedoch weniger genau sein."
-        }
-      }
-    },
     "set_tpi_parameters": {
       "name": "TPI-Parameter definieren",
       "description": "TPI-Einstellungen ändern",
