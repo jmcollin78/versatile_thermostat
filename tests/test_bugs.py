@@ -34,6 +34,7 @@ from custom_components.versatile_thermostat.thermostat_switch import (
 from custom_components.versatile_thermostat.cycle_scheduler import CycleScheduler
 
 from .commons import *
+from .test_cycle_scheduler import make_underlying
 
 
 logging.getLogger().setLevel(logging.DEBUG)
@@ -426,6 +427,9 @@ async def test_bug_407(
     ):
         now = now + timedelta(seconds=30)
         VersatileThermostatAPI.get_vtherm_api()._set_now(now)
+
+        # The heater is stopped by VTherm (as in the OFF part of a cycle): its last command is OFF too
+        await entity.underlying_entities[0].turn_off()
 
         # change preset to Comfort
         await entity.async_set_preset_mode(VThermPreset.COMFORT)
@@ -835,16 +839,7 @@ async def test_bug_1777(mock_call_later, hass):
     fake_thermostat.minimal_activation_delay = 0
     fake_thermostat.minimal_deactivation_delay = 0
 
-    under = MagicMock()
-    async def turn_on_side_effect():
-        under.is_device_active = True
-
-    async def turn_off_side_effect():
-        under.is_device_active = False
-
-    under.turn_on = AsyncMock(side_effect=turn_on_side_effect)
-    under.turn_off = AsyncMock(side_effect=turn_off_side_effect)
-    under.is_device_active = False
+    under = make_underlying()
     under._should_be_on = False
     under._on_time_sec = 0
     under._off_time_sec = 0
@@ -953,17 +948,7 @@ async def test_bug_1921_keep_active_cycle_when_next_repeat_becomes_zero(mock_cal
     fake_thermostat.minimal_activation_delay = 480
     fake_thermostat.minimal_deactivation_delay = 480
 
-    under = MagicMock()
-
-    async def turn_on_side_effect():
-        under.is_device_active = True
-
-    async def turn_off_side_effect():
-        under.is_device_active = False
-
-    under.turn_on = AsyncMock(side_effect=turn_on_side_effect)
-    under.turn_off = AsyncMock(side_effect=turn_off_side_effect)
-    under.is_device_active = False
+    under = make_underlying()
     under._should_be_on = False
     under._on_time_sec = 0
     under._off_time_sec = 0

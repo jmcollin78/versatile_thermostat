@@ -4,7 +4,7 @@ import time
 from datetime import datetime, timedelta, timezone
 
 import pytest
-from unittest.mock import MagicMock, AsyncMock, PropertyMock, patch, call
+from unittest.mock import DEFAULT, MagicMock, AsyncMock, patch, call
 from homeassistant.core import HomeAssistant
 from vtherm_api.command_receipt import (
     AppliedCommandReceipt,
@@ -29,10 +29,29 @@ from custom_components.versatile_thermostat.vtherm_hvac_mode import (
 
 
 def make_underlying(name="R1", active=False, entity_type=UnderlyingEntityType.SWITCH):
-    """Create a mock underlying entity."""
+    """Create a mock underlying entity.
+
+    Like a real switch, an accepted command updates both the commanded state
+    (is_on_part_running) and the observed state (is_device_active). A refused
+    turn_on (turn_on.return_value = False) records nothing.
+    """
     under = MagicMock()
-    under.turn_on = AsyncMock(return_value=True)
-    under.turn_off = AsyncMock()
+
+    def _record(is_on: bool):
+        under.is_on_part_running = is_on
+        under.is_device_active = is_on
+
+    async def _turn_on():
+        if under.turn_on.return_value is not False:
+            _record(True)
+        return DEFAULT
+
+    async def _turn_off():
+        _record(False)
+        return DEFAULT
+
+    under.turn_on = AsyncMock(return_value=True, side_effect=_turn_on)
+    under.turn_off = AsyncMock(side_effect=_turn_off)
     under.set_valve_open_percent = AsyncMock()
     under.is_device_active = active
     under.is_on_part_running = None
@@ -109,24 +128,6 @@ class TestCycleSchedulerLifecycle:
         mock_call_later.assert_not_called()
         thermostat.incremente_energy.assert_not_called()
         assert all(args.args[0].value != "cycle_start" for args in power_hook.await_args_list)
-
-    @pytest.mark.asyncio
-    @patch("custom_components.versatile_thermostat.cycle_scheduler.async_call_later")
-    async def test_initial_observation_change_still_aborts_on_refusal(self, mock_call_later):
-        """The initial enforcement branch also consumes an explicit refusal."""
-        thermostat = make_thermostat()
-        thermostat.async_underlying_entity_turn_off = AsyncMock()
-        underlying = make_underlying()
-        type(underlying).is_device_active = PropertyMock(side_effect=[True, False])
-        underlying.turn_on.return_value = False
-        scheduler = CycleScheduler(make_hass(), thermostat, [underlying], 600)
-
-        await scheduler.start_cycle(VThermHvacMode_HEAT, 0.5, force=True)
-
-        underlying.turn_on.assert_awaited_once()
-        thermostat.async_underlying_entity_turn_off.assert_awaited_once()
-        assert not underlying._should_be_on
-        mock_call_later.assert_not_called()
 
     @pytest.mark.parametrize("on_percent", [0.5, 1.0])
     @pytest.mark.asyncio
@@ -502,8 +503,11 @@ class TestCycleSchedulerLifecycle:
 
         # Previous cancel functions were called
         assert mock_cancel.call_count >= initial_calls
-        # R1 turned on again
-        r1.turn_on.assert_called_once()
+        # The new cycle starts in R1's ON part: R1 is still commanded ON, so no command is sent again
+        r1.turn_on.assert_not_called()
+        assert r1.is_on_part_running is True
+        assert scheduler._current_on_percent == 0.5
+        assert mock_call_later.call_count > initial_calls  # the new cycle was scheduled
 
 
 # ─────────────────────────────────────────────

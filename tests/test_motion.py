@@ -615,13 +615,11 @@ async def test_motion_management_time_enough_and_not_presence(hass: HomeAssistan
         assert entity.presence_state == STATE_OFF
 
     # starts detecting motion
-    with patch("custom_components.versatile_thermostat.base_thermostat.BaseThermostat.send_event") as mock_send_event, patch(
-        "custom_components.versatile_thermostat.underlyings.UnderlyingSwitch.turn_on"
-    ) as mock_heater_on, patch("custom_components.versatile_thermostat.underlyings.UnderlyingSwitch.turn_off") as mock_heater_off, patch(
-        "custom_components.versatile_thermostat.underlyings.UnderlyingSwitch.is_device_active",
-        new_callable=PropertyMock,
-        return_value=False,
-    ), patch(
+    with patch("custom_components.versatile_thermostat.base_thermostat.BaseThermostat.send_event") as mock_send_event, patch.object(
+        UnderlyingSwitch, "turn_on", autospec=True, side_effect=UnderlyingSwitch.turn_on
+    ) as mock_heater_on, patch.object(
+        UnderlyingSwitch, "turn_off", autospec=True, side_effect=UnderlyingSwitch.turn_off
+    ) as mock_heater_off, patch(
         "homeassistant.helpers.condition.state", return_value=True
     ):
         event_timestamp = now - timedelta(minutes=3)
@@ -641,13 +639,11 @@ async def test_motion_management_time_enough_and_not_presence(hass: HomeAssistan
         assert mock_send_event.call_count == 0
 
     # stop detecting motion with confirmation of stop
-    with patch("custom_components.versatile_thermostat.base_thermostat.BaseThermostat.send_event") as mock_send_event, patch(
-        "custom_components.versatile_thermostat.underlyings.UnderlyingSwitch.turn_on"
-    ) as mock_heater_on, patch("custom_components.versatile_thermostat.underlyings.UnderlyingSwitch.turn_off") as mock_heater_off, patch(
-        "custom_components.versatile_thermostat.underlyings.UnderlyingSwitch.is_device_active",
-        new_callable=PropertyMock,
-        return_value=True,
-    ), patch(
+    with patch("custom_components.versatile_thermostat.base_thermostat.BaseThermostat.send_event") as mock_send_event, patch.object(
+        UnderlyingSwitch, "turn_on", autospec=True, side_effect=UnderlyingSwitch.turn_on
+    ) as mock_heater_on, patch.object(
+        UnderlyingSwitch, "turn_off", autospec=True, side_effect=UnderlyingSwitch.turn_off
+    ) as mock_heater_off, patch(
         "homeassistant.helpers.condition.state", return_value=True
     ):
         event_timestamp = now - timedelta(minutes=2)

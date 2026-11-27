@@ -275,13 +275,15 @@ Les conditions sont évaluées en cascade (if / elif). Dès qu'un état est dét
 
 Une fois l'état théorique déterminé, le tick vérifie s'il y a lieu de changer effectivement l'état du sous-jacent, en tenant compte des contraintes de durée minimale d'activation et de désactivation.
 
+Le tick compare l'état théorique à l'état **commandé** du sous-jacent (`is_on_part_running`, la dernière commande envoyée), comme le keep-alive et la réparation. Il ne le compare pas à l'état affiché par Home Assistant : cet état peut être périmé pendant qu'une commande est en vol, par exemple avec un relais Zigbee qui confirme une commande quelques secondes plus tard. Le tick ne lit l'état affiché par Home Assistant que tant que l'état commandé est inconnu.
+
 ---
 
 ## 8. Need ON — Logique d'Activation
 
 ### 8.1 Cas nominal
 
-Si le sous-jacent est déjà ON, aucune action n'est nécessaire.
+Si le sous-jacent est déjà commandé ON, aucune action n'est nécessaire.
 
 On détermine `under_dt` : le temps écoulé depuis le dernier changement d'état du sous-jacent.
 
@@ -318,7 +320,7 @@ La logique est symétrique à Need ON, avec inversion des rôles :
 
 ### 9.1 Cas nominal
 
-Si le sous-jacent est déjà OFF, aucune action n'est nécessaire.
+Si le sous-jacent est déjà commandé OFF, aucune action n'est nécessaire.
 
 Si les deux conditions suivantes sont remplies :
 - `under_dt >= minimal_activation_delay` (le sous-jacent est resté ON assez longtemps)
@@ -605,7 +607,7 @@ Cet appel est indépendant du callback `on_cycle_started` (qui se déclenche uni
 | Redémarrage forcé          | `force=True` annule tous les minuteurs actuels via `cancel_cycle()` puis redémarre immédiatement.                                                                              |
 | HVAC_MODE_OFF              | Le gestionnaire positionne `t._on_time_sec=0`, `t._off_time_sec=cycle_sec` directement, puis appelle `async_underlying_entity_turn_off()` (→ `cancel_cycle()` + `turn_off()`). |
 | Sous-jacent unique         | `compute_circular_offsets` retourne `[0.0]`. Comportement identique : un seul sous-jacent avec offset 0.                                                                      |
-| Keep-alive                 | Reste dans `UnderlyingSwitch`. Lit `_should_be_on` (mis à jour par le planificateur) pour renvoyer l'état actuel périodiquement.                                               |
+| Keep-alive                 | Reste dans `UnderlyingSwitch`. Lit `_is_on_part_running` (l'état commandé) pour le renvoyer périodiquement.                                                                    |
 | Contraintes temporelles    | `calculate_cycle_times()` est appelé **en interne** par `start_cycle()`. Les gestionnaires l'appellent aussi directement pour le retour `realized_percent` uniquement.         |
 
 ---

@@ -78,13 +78,11 @@ async def test_one_switch_cycle(hass: HomeAssistant, skip_send_event, fake_temp_
     assert entity.cycle_scheduler is not None
 
     # Set temperature to a low level - CycleScheduler will orchestrate the cycle
-    with patch("custom_components.versatile_thermostat.base_thermostat.BaseThermostat.send_event") as mock_send_event, patch(
-        "custom_components.versatile_thermostat.underlyings.UnderlyingSwitch.turn_on"
-    ) as mock_heater_on, patch("custom_components.versatile_thermostat.underlyings.UnderlyingSwitch.turn_off") as mock_heater_off, patch(
-        "custom_components.versatile_thermostat.underlyings.UnderlyingSwitch.is_device_active",
-        new_callable=PropertyMock,
-        return_value=False,
-    ) as mock_device_active, patch(
+    with patch("custom_components.versatile_thermostat.base_thermostat.BaseThermostat.send_event") as mock_send_event, patch.object(
+        UnderlyingSwitch, "turn_on", autospec=True, side_effect=UnderlyingSwitch.turn_on
+    ) as mock_heater_on, patch.object(
+        UnderlyingSwitch, "turn_off", autospec=True, side_effect=UnderlyingSwitch.turn_off
+    ) as mock_heater_off, patch(
         "custom_components.versatile_thermostat.cycle_scheduler.async_call_later",
         return_value=None,
     ) as mock_call_later:
@@ -103,13 +101,11 @@ async def test_one_switch_cycle(hass: HomeAssistant, skip_send_event, fake_temp_
 
     # Set a temperature at middle level - cycle already running, no force
     event_timestamp = now - timedelta(minutes=4)
-    with patch("custom_components.versatile_thermostat.base_thermostat.BaseThermostat.send_event") as mock_send_event, patch(
-        "custom_components.versatile_thermostat.underlyings.UnderlyingSwitch.turn_on"
-    ) as mock_heater_on, patch("custom_components.versatile_thermostat.underlyings.UnderlyingSwitch.turn_off") as mock_heater_off, patch(
-        "custom_components.versatile_thermostat.underlyings.UnderlyingSwitch.is_device_active",
-        new_callable=PropertyMock,
-        return_value=True, # simulate heater was turned ON by the 100% cycle
-    ) as mock_device_active:
+    with patch("custom_components.versatile_thermostat.base_thermostat.BaseThermostat.send_event") as mock_send_event, patch.object(
+        UnderlyingSwitch, "turn_on", autospec=True, side_effect=UnderlyingSwitch.turn_on
+    ) as mock_heater_on, patch.object(
+        UnderlyingSwitch, "turn_off", autospec=True, side_effect=UnderlyingSwitch.turn_off
+    ) as mock_heater_off:
         await send_temperature_change_event(entity, 18.1, event_timestamp)
 
         # No special event
@@ -126,13 +122,11 @@ async def test_one_switch_cycle(hass: HomeAssistant, skip_send_event, fake_temp_
         assert mock_heater_off.call_count == 0
 
     # Simulate the master cycle ending: it should restart using the new parameters
-    with patch("custom_components.versatile_thermostat.base_thermostat.BaseThermostat.send_event") as mock_send_event, patch(
-        "custom_components.versatile_thermostat.underlyings.UnderlyingSwitch.turn_on"
-    ) as mock_heater_on, patch("custom_components.versatile_thermostat.underlyings.UnderlyingSwitch.turn_off") as mock_heater_off, patch(
-        "custom_components.versatile_thermostat.underlyings.UnderlyingSwitch.is_device_active",
-        new_callable=PropertyMock,
-        return_value=True, # Heater still ON
-    ) as mock_device_active, patch(
+    with patch("custom_components.versatile_thermostat.base_thermostat.BaseThermostat.send_event") as mock_send_event, patch.object(
+        UnderlyingSwitch, "turn_on", autospec=True, side_effect=UnderlyingSwitch.turn_on
+    ) as mock_heater_on, patch.object(
+        UnderlyingSwitch, "turn_off", autospec=True, side_effect=UnderlyingSwitch.turn_off
+    ) as mock_heater_off, patch(
         "custom_components.versatile_thermostat.cycle_scheduler.async_call_later",
         return_value=None,
     ) as mock_call_later:
@@ -251,13 +245,11 @@ async def test_multiple_switchs(
         )
 
     # Set temperature to a low level - CycleScheduler handles all 4 underlyings
-    with patch("custom_components.versatile_thermostat.base_thermostat.BaseThermostat.send_event") as mock_send_event, patch(
-        "custom_components.versatile_thermostat.underlyings.UnderlyingSwitch.turn_on"
-    ) as mock_heater_on, patch("custom_components.versatile_thermostat.underlyings.UnderlyingSwitch.turn_off") as mock_heater_off, patch(
-        "custom_components.versatile_thermostat.underlyings.UnderlyingSwitch.is_device_active",
-        new_callable=PropertyMock,
-        return_value=False,
-    ) as mock_device_active, patch(
+    with patch("custom_components.versatile_thermostat.base_thermostat.BaseThermostat.send_event") as mock_send_event, patch.object(
+        UnderlyingSwitch, "turn_on", autospec=True, side_effect=UnderlyingSwitch.turn_on
+    ) as mock_heater_on, patch.object(
+        UnderlyingSwitch, "turn_off", autospec=True, side_effect=UnderlyingSwitch.turn_off
+    ) as mock_heater_off, patch(
         "custom_components.versatile_thermostat.cycle_scheduler.async_call_later",
         return_value=None,
     ) as mock_call_later:
@@ -280,13 +272,11 @@ async def test_multiple_switchs(
     # Set a temperature at middle level - cycle already running, no force
     # Previous command at 15 degree puts power at ~100%, cycle running
     event_timestamp = now - timedelta(minutes=4)
-    with patch("custom_components.versatile_thermostat.base_thermostat.BaseThermostat.send_event") as mock_send_event, patch(
-        "custom_components.versatile_thermostat.underlyings.UnderlyingSwitch.turn_on"
-    ) as mock_heater_on, patch("custom_components.versatile_thermostat.underlyings.UnderlyingSwitch.turn_off") as mock_heater_off, patch(
-        "custom_components.versatile_thermostat.underlyings.UnderlyingSwitch.is_device_active",
-        new_callable=PropertyMock,
-        return_value=True, # simulate heaters are all ON from the 100% cycle
-    ) as mock_device_active:
+    with patch("custom_components.versatile_thermostat.base_thermostat.BaseThermostat.send_event") as mock_send_event, patch.object(
+        UnderlyingSwitch, "turn_on", autospec=True, side_effect=UnderlyingSwitch.turn_on
+    ) as mock_heater_on, patch.object(
+        UnderlyingSwitch, "turn_off", autospec=True, side_effect=UnderlyingSwitch.turn_off
+    ) as mock_heater_off:
         await send_temperature_change_event(entity, 18.5, event_timestamp)
 
         # No special event
@@ -300,13 +290,11 @@ async def test_multiple_switchs(
         assert mock_heater_off.call_count == 0
 
     # Simulate the master cycle ending: it should restart using the new parameters
-    with patch("custom_components.versatile_thermostat.base_thermostat.BaseThermostat.send_event") as mock_send_event, patch(
-        "custom_components.versatile_thermostat.underlyings.UnderlyingSwitch.turn_on"
-    ) as mock_heater_on, patch("custom_components.versatile_thermostat.underlyings.UnderlyingSwitch.turn_off") as mock_heater_off, patch(
-        "custom_components.versatile_thermostat.underlyings.UnderlyingSwitch.is_device_active",
-        new_callable=PropertyMock,
-        return_value=True, # Heaters still ON
-    ) as mock_device_active, patch(
+    with patch("custom_components.versatile_thermostat.base_thermostat.BaseThermostat.send_event") as mock_send_event, patch.object(
+        UnderlyingSwitch, "turn_on", autospec=True, side_effect=UnderlyingSwitch.turn_on
+    ) as mock_heater_on, patch.object(
+        UnderlyingSwitch, "turn_off", autospec=True, side_effect=UnderlyingSwitch.turn_off
+    ) as mock_heater_off, patch(
         "custom_components.versatile_thermostat.cycle_scheduler.async_call_later",
         return_value=None,
     ) as mock_call_later:

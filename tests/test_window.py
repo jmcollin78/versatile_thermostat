@@ -336,15 +336,11 @@ async def test_window_auto_fast(hass: HomeAssistant, skip_hass_states_is_state, 
     # Make the temperature down
     with patch(
         "custom_components.versatile_thermostat.base_thermostat.BaseThermostat.send_event"
-    ) as mock_send_event, patch(
-        "custom_components.versatile_thermostat.underlyings.UnderlyingSwitch.turn_on"
-    ) as mock_heater_on, patch(
-        "custom_components.versatile_thermostat.underlyings.UnderlyingSwitch.turn_off"
-    ) as mock_heater_off, patch(
-        "custom_components.versatile_thermostat.underlyings.UnderlyingSwitch.is_device_active",
-        new_callable=PropertyMock,
-        return_value=True,
-    ):
+    ) as mock_send_event, patch.object(
+        UnderlyingSwitch, "turn_on", autospec=True, side_effect=UnderlyingSwitch.turn_on
+    ) as mock_heater_on, patch.object(
+        UnderlyingSwitch, "turn_off", autospec=True, side_effect=UnderlyingSwitch.turn_off
+    ) as mock_heater_off:
         event_timestamp = event_timestamp + timedelta(minutes=1)
         await send_temperature_change_event(entity, 19, event_timestamp)
 
@@ -363,15 +359,11 @@ async def test_window_auto_fast(hass: HomeAssistant, skip_hass_states_is_state, 
     # send one degre down in one minute
     with patch(
         "custom_components.versatile_thermostat.base_thermostat.BaseThermostat.send_event"
-    ) as mock_send_event, patch(
-        "custom_components.versatile_thermostat.underlyings.UnderlyingSwitch.turn_on"
-    ) as mock_heater_on, patch(
-        "custom_components.versatile_thermostat.underlyings.UnderlyingSwitch.turn_off"
-    ) as mock_heater_off, patch(
-        "custom_components.versatile_thermostat.underlyings.UnderlyingSwitch.is_device_active",
-        new_callable=PropertyMock,
-        return_value=True,
-    ):
+    ) as mock_send_event, patch.object(
+        UnderlyingSwitch, "turn_on", autospec=True, side_effect=UnderlyingSwitch.turn_on
+    ) as mock_heater_on, patch.object(
+        UnderlyingSwitch, "turn_off", autospec=True, side_effect=UnderlyingSwitch.turn_off
+    ) as mock_heater_off:
         event_timestamp = event_timestamp + timedelta(minutes=1)
         await send_temperature_change_event(entity, 18, event_timestamp)
 
@@ -401,15 +393,11 @@ async def test_window_auto_fast(hass: HomeAssistant, skip_hass_states_is_state, 
     # send another 0.1 degre in one minute -> no change
     with patch(
         "custom_components.versatile_thermostat.base_thermostat.BaseThermostat.send_event"
-    ) as mock_send_event, patch(
-        "custom_components.versatile_thermostat.underlyings.UnderlyingSwitch.turn_on"
-    ) as mock_heater_on, patch(
-        "custom_components.versatile_thermostat.underlyings.UnderlyingSwitch.turn_off"
-    ) as mock_heater_off, patch(
-        "custom_components.versatile_thermostat.underlyings.UnderlyingSwitch.is_device_active",
-        new_callable=PropertyMock,
-        return_value=False,
-    ):
+    ) as mock_send_event, patch.object(
+        UnderlyingSwitch, "turn_on", autospec=True, side_effect=UnderlyingSwitch.turn_on
+    ) as mock_heater_on, patch.object(
+        UnderlyingSwitch, "turn_off", autospec=True, side_effect=UnderlyingSwitch.turn_off
+    ) as mock_heater_off:
         event_timestamp = event_timestamp + timedelta(minutes=1)
         await send_temperature_change_event(entity, 17.9, event_timestamp)
 
@@ -429,15 +417,11 @@ async def test_window_auto_fast(hass: HomeAssistant, skip_hass_states_is_state, 
     # send another plus 1.1 degre in one minute -> restore state
     with patch(
         "custom_components.versatile_thermostat.base_thermostat.BaseThermostat.send_event"
-    ) as mock_send_event, patch(
-        "custom_components.versatile_thermostat.underlyings.UnderlyingSwitch.turn_on"
-    ) as mock_heater_on, patch(
-        "custom_components.versatile_thermostat.underlyings.UnderlyingSwitch.turn_off"
-    ) as mock_heater_off, patch(
-        "custom_components.versatile_thermostat.underlyings.UnderlyingSwitch.is_device_active",
-        new_callable=PropertyMock,
-        return_value=False,
-    ):
+    ) as mock_send_event, patch.object(
+        UnderlyingSwitch, "turn_on", autospec=True, side_effect=UnderlyingSwitch.turn_on
+    ) as mock_heater_on, patch.object(
+        UnderlyingSwitch, "turn_off", autospec=True, side_effect=UnderlyingSwitch.turn_off
+    ) as mock_heater_off:
         event_timestamp = event_timestamp + timedelta(minutes=1)
         await send_temperature_change_event(entity, 19, event_timestamp)
 
@@ -1673,15 +1657,11 @@ async def test_window_action_eco_temp(hass: HomeAssistant, skip_hass_states_is_s
     # 2. Make the temperature down
     with patch(
         "custom_components.versatile_thermostat.base_thermostat.BaseThermostat.send_event"
-    ) as mock_send_event, patch(
-        "custom_components.versatile_thermostat.underlyings.UnderlyingSwitch.turn_on"
-    ) as mock_heater_on, patch(
-        "custom_components.versatile_thermostat.underlyings.UnderlyingSwitch.turn_off"
-    ) as mock_heater_off, patch(
-        "custom_components.versatile_thermostat.underlyings.UnderlyingSwitch.is_device_active",
-        new_callable=PropertyMock,
-        return_value=True,
-    ):
+    ) as mock_send_event, patch.object(
+        UnderlyingSwitch, "turn_on", autospec=True, side_effect=UnderlyingSwitch.turn_on
+    ) as mock_heater_on, patch.object(
+        UnderlyingSwitch, "turn_off", autospec=True, side_effect=UnderlyingSwitch.turn_off
+    ) as mock_heater_off:
         event_timestamp = event_timestamp + timedelta(minutes=1)
         await send_temperature_change_event(entity, 19, event_timestamp)
 
@@ -1695,15 +1675,11 @@ async def test_window_action_eco_temp(hass: HomeAssistant, skip_hass_states_is_s
     # 3. send one degre down in one minute
     with patch(
         "custom_components.versatile_thermostat.base_thermostat.BaseThermostat.send_event"
-    ) as mock_send_event, patch(
-        "custom_components.versatile_thermostat.underlyings.UnderlyingSwitch.turn_on"
-    ) as mock_heater_on, patch(
-        "custom_components.versatile_thermostat.underlyings.UnderlyingSwitch.turn_off"
-    ) as mock_heater_off, patch(
-        "custom_components.versatile_thermostat.underlyings.UnderlyingSwitch.is_device_active",
-        new_callable=PropertyMock,
-        return_value=True,
-    ):
+    ) as mock_send_event, patch.object(
+        UnderlyingSwitch, "turn_on", autospec=True, side_effect=UnderlyingSwitch.turn_on
+    ) as mock_heater_on, patch.object(
+        UnderlyingSwitch, "turn_off", autospec=True, side_effect=UnderlyingSwitch.turn_off
+    ) as mock_heater_off:
         event_timestamp = event_timestamp + timedelta(minutes=1)
         await send_temperature_change_event(entity, 18, event_timestamp)
 
@@ -1735,15 +1711,11 @@ async def test_window_action_eco_temp(hass: HomeAssistant, skip_hass_states_is_s
     # 4. send another 0.1 degre in one minute -> no change
     with patch(
         "custom_components.versatile_thermostat.base_thermostat.BaseThermostat.send_event"
-    ) as mock_send_event, patch(
-        "custom_components.versatile_thermostat.underlyings.UnderlyingSwitch.turn_on"
-    ) as mock_heater_on, patch(
-        "custom_components.versatile_thermostat.underlyings.UnderlyingSwitch.turn_off"
-    ) as mock_heater_off, patch(
-        "custom_components.versatile_thermostat.underlyings.UnderlyingSwitch.is_device_active",
-        new_callable=PropertyMock,
-        return_value=False,
-    ):
+    ) as mock_send_event, patch.object(
+        UnderlyingSwitch, "turn_on", autospec=True, side_effect=UnderlyingSwitch.turn_on
+    ) as mock_heater_on, patch.object(
+        UnderlyingSwitch, "turn_off", autospec=True, side_effect=UnderlyingSwitch.turn_off
+    ) as mock_heater_off:
         event_timestamp = event_timestamp + timedelta(minutes=1)
         await send_temperature_change_event(entity, 17.9, event_timestamp)
 
@@ -1763,15 +1735,11 @@ async def test_window_action_eco_temp(hass: HomeAssistant, skip_hass_states_is_s
     # 5. send another plus 1.1 degre in one minute -> restore state
     with patch(
         "custom_components.versatile_thermostat.base_thermostat.BaseThermostat.send_event"
-    ) as mock_send_event, patch(
-        "custom_components.versatile_thermostat.underlyings.UnderlyingSwitch.turn_on"
-    ) as mock_heater_on, patch(
-        "custom_components.versatile_thermostat.underlyings.UnderlyingSwitch.turn_off"
-    ) as mock_heater_off, patch(
-        "custom_components.versatile_thermostat.underlyings.UnderlyingSwitch.is_device_active",
-        new_callable=PropertyMock,
-        return_value=False,
-    ):
+    ) as mock_send_event, patch.object(
+        UnderlyingSwitch, "turn_on", autospec=True, side_effect=UnderlyingSwitch.turn_on
+    ) as mock_heater_on, patch.object(
+        UnderlyingSwitch, "turn_off", autospec=True, side_effect=UnderlyingSwitch.turn_off
+    ) as mock_heater_off:
         event_timestamp = event_timestamp + timedelta(minutes=1)
         await send_temperature_change_event(entity, 19, event_timestamp)
 
@@ -1873,15 +1841,11 @@ async def test_window_action_frost_temp(hass: HomeAssistant, skip_hass_states_is
     # 2. Make the temperature down
     with patch(
         "custom_components.versatile_thermostat.base_thermostat.BaseThermostat.send_event"
-    ) as mock_send_event, patch(
-        "custom_components.versatile_thermostat.underlyings.UnderlyingSwitch.turn_on"
-    ) as mock_heater_on, patch(
-        "custom_components.versatile_thermostat.underlyings.UnderlyingSwitch.turn_off"
-    ) as mock_heater_off, patch(
-        "custom_components.versatile_thermostat.underlyings.UnderlyingSwitch.is_device_active",
-        new_callable=PropertyMock,
-        return_value=True,
-    ):
+    ) as mock_send_event, patch.object(
+        UnderlyingSwitch, "turn_on", autospec=True, side_effect=UnderlyingSwitch.turn_on
+    ) as mock_heater_on, patch.object(
+        UnderlyingSwitch, "turn_off", autospec=True, side_effect=UnderlyingSwitch.turn_off
+    ) as mock_heater_off:
         event_timestamp = event_timestamp + timedelta(minutes=1)
         await send_temperature_change_event(entity, 19, event_timestamp)
 
@@ -1895,15 +1859,11 @@ async def test_window_action_frost_temp(hass: HomeAssistant, skip_hass_states_is
     # 3. send one degre down in one minute
     with patch(
         "custom_components.versatile_thermostat.base_thermostat.BaseThermostat.send_event"
-    ) as mock_send_event, patch(
-        "custom_components.versatile_thermostat.underlyings.UnderlyingSwitch.turn_on"
-    ) as mock_heater_on, patch(
-        "custom_components.versatile_thermostat.underlyings.UnderlyingSwitch.turn_off"
-    ) as mock_heater_off, patch(
-        "custom_components.versatile_thermostat.underlyings.UnderlyingSwitch.is_device_active",
-        new_callable=PropertyMock,
-        return_value=True,
-    ):
+    ) as mock_send_event, patch.object(
+        UnderlyingSwitch, "turn_on", autospec=True, side_effect=UnderlyingSwitch.turn_on
+    ) as mock_heater_on, patch.object(
+        UnderlyingSwitch, "turn_off", autospec=True, side_effect=UnderlyingSwitch.turn_off
+    ) as mock_heater_off:
         event_timestamp = event_timestamp + timedelta(minutes=1)
         await send_temperature_change_event(entity, 18, event_timestamp)
 
@@ -1934,15 +1894,11 @@ async def test_window_action_frost_temp(hass: HomeAssistant, skip_hass_states_is
     # 4. send another 0.1 degre in one minute -> no change
     with patch(
         "custom_components.versatile_thermostat.base_thermostat.BaseThermostat.send_event"
-    ) as mock_send_event, patch(
-        "custom_components.versatile_thermostat.underlyings.UnderlyingSwitch.turn_on"
-    ) as mock_heater_on, patch(
-        "custom_components.versatile_thermostat.underlyings.UnderlyingSwitch.turn_off"
-    ) as mock_heater_off, patch(
-        "custom_components.versatile_thermostat.underlyings.UnderlyingSwitch.is_device_active",
-        new_callable=PropertyMock,
-        return_value=False,
-    ):
+    ) as mock_send_event, patch.object(
+        UnderlyingSwitch, "turn_on", autospec=True, side_effect=UnderlyingSwitch.turn_on
+    ) as mock_heater_on, patch.object(
+        UnderlyingSwitch, "turn_off", autospec=True, side_effect=UnderlyingSwitch.turn_off
+    ) as mock_heater_off:
         event_timestamp = event_timestamp + timedelta(minutes=1)
         await send_temperature_change_event(entity, 17.9, event_timestamp)
 
@@ -1962,15 +1918,11 @@ async def test_window_action_frost_temp(hass: HomeAssistant, skip_hass_states_is
     # 5. send another plus 1.1 degre in one minute -> restore state
     with patch(
         "custom_components.versatile_thermostat.base_thermostat.BaseThermostat.send_event"
-    ) as mock_send_event, patch(
-        "custom_components.versatile_thermostat.underlyings.UnderlyingSwitch.turn_on"
-    ) as mock_heater_on, patch(
-        "custom_components.versatile_thermostat.underlyings.UnderlyingSwitch.turn_off"
-    ) as mock_heater_off, patch(
-        "custom_components.versatile_thermostat.underlyings.UnderlyingSwitch.is_device_active",
-        new_callable=PropertyMock,
-        return_value=False,
-    ):
+    ) as mock_send_event, patch.object(
+        UnderlyingSwitch, "turn_on", autospec=True, side_effect=UnderlyingSwitch.turn_on
+    ) as mock_heater_on, patch.object(
+        UnderlyingSwitch, "turn_off", autospec=True, side_effect=UnderlyingSwitch.turn_off
+    ) as mock_heater_off:
         event_timestamp = event_timestamp + timedelta(minutes=1)
         await send_temperature_change_event(entity, 19, event_timestamp)
 
