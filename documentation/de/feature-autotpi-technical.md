@@ -126,7 +126,7 @@ ratio       = target_rate / rate          (1.15 if rate ≤ 0)
 Kint_new    = Kint × clamp(ratio, 1/1.15, 1.15)
 ```
 
-Kint ändert sich pro Fenster um höchstens ±15 % und bleibt im Bereich [0.01, 1.0]. Ein begrenzter Schritt konvergiert zum Median des Verhältnisses: Ein einzelnes Fenster, das durch Rauschen oder Sonne gestört ist, kann Kint nicht stark verschieben.
+Kint ändert sich pro Fenster um höchstens ±15 % und bleibt im Bereich [0.01, 3.0]. Ein begrenzter Schritt konvergiert zum Median des Verhältnisses: Ein einzelnes Fenster, das durch Rauschen oder Sonne gestört ist, kann Kint nicht stark verschieben.
 
 Hat der Raum während des Fensters den Sollwert überschritten (`mean_gap ≤ 0`), wird das Fenster nicht verwendet.
 
@@ -198,7 +198,7 @@ Ein fester Gewichtungsfaktor lässt Kext einer langsam driftenden Größe folgen
 | Mindestabweichung für ein Kint-Fenster | 0.3 °C | Kint wird nur gelernt, wenn der Raum eine Abweichung zu schließen hat |
 | Fensterdauer | 10 Min. bis max(30 Min., T_cl), anhand der vorherigen Anstiegsgeschwindigkeit festgelegt | Etwa 0.3 °C Änderung pro Fenster |
 | Maximaler Kint-Schritt | ×1.15 / ÷1.15 | Begrenzter Schritt pro Fenster |
-| Grenzen für Kint | 0.01 – 1.0 | |
+| Grenzen für Kint | 0.01 – 3.0 | |
 | Kint-Fenster bis zum Ende der Sitzung | 15 | |
 | Kext-Zyklen bis zum Ende der Sitzung | 50 | |
 | Kext-Einschwingen | 3 × T_cl, danach nahe am Sollwert (oder 12 × T_cl) | Kext wird während eines Anstiegs nicht gelernt |

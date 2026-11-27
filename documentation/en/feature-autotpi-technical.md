@@ -126,7 +126,7 @@ ratio       = target_rate / rate          (1.15 if rate ≤ 0)
 Kint_new    = Kint × clamp(ratio, 1/1.15, 1.15)
 ```
 
-Kint moves by at most ±15% per window and stays within [0.01, 1.0]. A bounded step converges toward the median of the ratio: an isolated window disturbed by noise or by the sun cannot move Kint much.
+Kint moves by at most ±15% per window and stays within [0.01, 3.0]. A bounded step converges toward the median of the ratio: an isolated window disturbed by noise or by the sun cannot move Kint much.
 
 If the room crossed the setpoint during the window (`mean_gap ≤ 0`), the window is not used.
 
@@ -198,7 +198,7 @@ A fixed weight lets Kext follow a quantity that drifts slowly. The new value is 
 | Minimum gap for a Kint window | 0.3°C | Kint is learned only when the room has a gap to close |
 | Window duration | 10 min to max(30 min, T_cl), set from the previous rise speed | About 0.3°C of change per window |
 | Maximum Kint step | ×1.15 / ÷1.15 | Bounded step per window |
-| Kint bounds | 0.01 – 1.0 | |
+| Kint bounds | 0.01 – 3.0 | |
 | Kint windows to end the session | 15 | |
 | Kext cycles to end the session | 50 | |
 | Kext settling | 3 × T_cl, then near setpoint (or 12 × T_cl) | Kext is not learned during a rise |

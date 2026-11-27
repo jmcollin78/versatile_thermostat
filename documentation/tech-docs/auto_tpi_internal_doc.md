@@ -74,7 +74,7 @@ Kint est appris sur des fenêtres de plusieurs cycles, car sur un cycle de 5 min
     target_rate = mean_gap / T_cl
     rate        = (T_fin − T_début) / durée               (inversé en cool)
     ratio       = target_rate / rate   (KINT_MAX_STEP si rate ≤ 0)
-    Kint        = clamp(Kint · clamp(ratio, 1/KINT_MAX_STEP, KINT_MAX_STEP), MIN_KINT, 1.0)
+    Kint        = clamp(Kint · clamp(ratio, 1/KINT_MAX_STEP, KINT_MAX_STEP), MIN_KINT, MAX_KINT)
     ```
     Si `mean_gap ≤ 0`, la fenêtre n'est pas utilisée (`kint_window_crossed_setpoint`).
 *   Le compteur `coeff_indoor_autolearn` démarre à `KINT_COUNT_START` (1). Le pas borné converge vers la médiane du ratio.
@@ -130,7 +130,7 @@ Kint est appris sur des fenêtres de plusieurs cycles, car sur un cycle de 5 min
 
 ## 7. Persistance et Restauration
 
-*   `async_load_data` : charge l'état, plafonne Kint à 1,0. Si `total_cycles == 0`, les coefficients configurés sont imposés. Hors session, `_align_with_configuration` remplace un coefficient stocké qui diffère de la config au-delà de l'arrondi d'écriture (`CONFIG_COEF_TOLERANCE`) : la config fait référence.
+*   `async_load_data` : charge l'état, plafonne Kint à `MAX_KINT` (3,0). Si `total_cycles == 0`, les coefficients configurés sont imposés. Hors session, `_align_with_configuration` remplace un coefficient stocké qui diffère de la config au-delà de l'arrondi d'écriture (`CONFIG_COEF_TOLERANCE`) : la config fait référence.
 *   Le statut est remis à `learning_started` et le cycle en cours est abandonné (`cycle_active = False`).
 *   Les fenêtres Kint et l'horodatage de consigne ne sont pas persistés : après un redémarrage, le premier `update()` est traité comme un changement de consigne.
 

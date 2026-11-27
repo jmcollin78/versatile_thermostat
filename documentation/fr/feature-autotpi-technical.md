@@ -126,7 +126,7 @@ ratio       = target_rate / rate          (1.15 if rate ≤ 0)
 Kint_new    = Kint × clamp(ratio, 1/1.15, 1.15)
 ```
 
-Kint varie d'au plus ±15 % par fenêtre et reste dans [0,01 ; 1,0]. Un pas borné converge vers la médiane du ratio : une fenêtre isolée perturbée par le bruit ou par le soleil ne peut pas beaucoup déplacer Kint.
+Kint varie d'au plus ±15 % par fenêtre et reste dans [0,01 ; 3,0]. Un pas borné converge vers la médiane du ratio : une fenêtre isolée perturbée par le bruit ou par le soleil ne peut pas beaucoup déplacer Kint.
 
 Si la pièce a franchi la consigne pendant la fenêtre (`mean_gap ≤ 0`), la fenêtre n'est pas utilisée.
 
@@ -198,7 +198,7 @@ Un poids fixe permet à Kext de suivre une grandeur qui dérive lentement. La no
 | Écart minimum pour une fenêtre de Kint | 0,3°C | Kint n'est appris que lorsque la pièce a un écart à combler |
 | Durée d'une fenêtre | 10 min à max(30 min, T_cl), d'après la vitesse de montée précédente | Environ 0,3°C de variation par fenêtre |
 | Pas maximum de Kint | ×1,15 / ÷1,15 | Pas borné par fenêtre |
-| Bornes de Kint | 0,01 – 1,0 | |
+| Bornes de Kint | 0,01 – 3,0 | |
 | Fenêtres de Kint pour terminer la session | 15 | |
 | Cycles de Kext pour terminer la session | 50 | |
 | Stabilisation de Kext | 3 × T_cl, puis proche de la consigne (ou 12 × T_cl) | Kext n'est pas appris pendant une montée |

@@ -35,6 +35,7 @@ STORAGE_KEY_PREFIX = "versatile_thermostat.auto_tpi"
 
 # Configurable constants for learning algorithm behavior
 MIN_KINT = 0.01  # Minimum Kint threshold to maintain temperature responsiveness
+MAX_KINT = 3.0  # Weak or slow emitters (underfloor, low-temperature water) can need Kint above 1
 NATURAL_RECOVERY_POWER_THRESHOLD = 0.10  # Max power (10%) to consider temperature change as natural recovery
 KEXT_LEARNING_MAX_GAP = 1.0  # Max gap (°C) to allow Kext learning (Near-Field vs Far-Field)
 
@@ -170,7 +171,7 @@ class AutoTpiManager:
         self._unit_factor = 1.8 if self._temp_unit == UnitOfTemperature.FAHRENHEIT else 1.0
 
         self._avg_initial_weight = KINT_COUNT_START
-        self._max_coef_int = 1.0
+        self._max_coef_int = MAX_KINT
 
         # Notification management
         self._last_notified_coef_int: Optional[float] = None

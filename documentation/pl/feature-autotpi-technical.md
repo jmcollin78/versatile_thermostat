@@ -126,7 +126,7 @@ ratio       = target_rate / rate          (1.15 if rate ≤ 0)
 Kint_new    = Kint × clamp(ratio, 1/1.15, 1.15)
 ```
 
-Kint zmienia się najwyżej o ±15% na okno i pozostaje w przedziale [0.01, 1.0]. Ograniczony krok zbiega do mediany stosunku: pojedyncze okno zakłócone szumem lub słońcem nie może mocno przesunąć Kint.
+Kint zmienia się najwyżej o ±15% na okno i pozostaje w przedziale [0.01, 3.0]. Ograniczony krok zbiega do mediany stosunku: pojedyncze okno zakłócone szumem lub słońcem nie może mocno przesunąć Kint.
 
 Jeśli pomieszczenie przekroczyło nastawę w trakcie okna (`mean_gap ≤ 0`), okno nie jest wykorzystywane.
 
@@ -198,7 +198,7 @@ Stała waga pozwala Kext podążać za wielkością, która powoli się zmienia.
 | Minimalne odchylenie dla okna Kint | 0.3°C | Kint jest uczony tylko wtedy, gdy pomieszczenie ma odchylenie do zmniejszenia |
 | Czas trwania okna | 10 min do max(30 min, T_cl), ustalany na podstawie poprzedniej szybkości wzrostu | Około 0.3°C zmiany na okno |
 | Maksymalny krok Kint | ×1.15 / ÷1.15 | Ograniczony krok na okno |
-| Granice Kint | 0.01 – 1.0 | |
+| Granice Kint | 0.01 – 3.0 | |
 | Okna Kint do zakończenia sesji | 15 | |
 | Cykle Kext do zakończenia sesji | 50 | |
 | Stabilizacja Kext | 3 × T_cl, potem blisko nastawy (lub 12 × T_cl) | Kext nie jest uczony podczas wzrostu |

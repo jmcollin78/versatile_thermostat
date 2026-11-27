@@ -126,7 +126,7 @@ ratio       = target_rate / rate          (1.15 if rate ≤ 0)
 Kint_new    = Kint × clamp(ratio, 1/1.15, 1.15)
 ```
 
-Kint se mění nejvýše o ±15 % na okno a zůstává v rozsahu [0.01, 1.0]. Omezený krok konverguje k mediánu poměru: izolované okno narušené šumem nebo sluncem nemůže Kint výrazně posunout.
+Kint se mění nejvýše o ±15 % na okno a zůstává v rozsahu [0.01, 3.0]. Omezený krok konverguje k mediánu poměru: izolované okno narušené šumem nebo sluncem nemůže Kint výrazně posunout.
 
 Pokud místnost během okna překročila požadovanou hodnotu (`mean_gap ≤ 0`), okno se nepoužije.
 
@@ -198,7 +198,7 @@ Pevná váha umožňuje, aby Kext sledoval veličinu, která se pomalu mění. N
 | Minimální odchylka pro okno Kint | 0,3 °C | Kint se učí pouze tehdy, když má místnost odchylku, kterou je třeba uzavřít |
 | Délka okna | 10 min až max(30 min, T_cl), podle předchozí rychlosti nárůstu | Asi 0,3 °C změny na okno |
 | Maximální krok Kint | ×1.15 / ÷1.15 | Omezený krok na okno |
-| Meze Kint | 0.01 – 1.0 | |
+| Meze Kint | 0.01 – 3.0 | |
 | Počet oken Kint do konce relace | 15 | |
 | Počet cyklů Kext do konce relace | 50 | |
 | Ustálení Kext | 3 × T_cl, poté blízko požadované hodnoty (nebo 12 × T_cl) | Kext se během náběhu neučí |
