@@ -38,7 +38,7 @@ graph LR
 
 | Coefficient | Situation d'apprentissage | Explication |
 | :--- | :--- | :--- |
-| **Kint** (intérieur) | Pendant une **montée en température**, lorsque la pièce est à au moins **0,3°C** en dessous de la consigne et que le chauffage n'est ni arrêté ni à 100 %. La montée est observée sur des fenêtres d'au moins 30 minutes. | Kint règle la vigueur de la réaction du chauffage à un écart. Il est ajusté pour que la pièce comble l'écart à une vitesse cible, dérivée du **temps de chauffe** de votre émetteur. |
+| **Kint** (intérieur) | Pendant une **montée en température**, lorsque la pièce est à au moins **0,3°C** en dessous de la consigne et que le chauffage n'est ni arrêté ni à 100 %. La montée est observée sur des fenêtres de 10 à 30 minutes (plus longues pour les émetteurs lents), dimensionnées d'après la vitesse de montée. | Kint règle la vigueur de la réaction du chauffage à un écart. Il est ajusté pour que la pièce comble l'écart à une vitesse cible, dérivée du **temps de chauffe** de votre émetteur. |
 | **Kext** (extérieur) | Lorsque la pièce est **stabilisée autour de la consigne** : un certain temps après le dernier changement de consigne, une fois la pièce revenue à moins de 0,3°C de la consigne. | Kext compense les **pertes thermiques** vers l'extérieur. Il est ajusté pour que l'écart restant disparaisse. |
 
 > [!TIP]

@@ -38,7 +38,7 @@ graph LR
 
 | Coefficient | Learning Situation | Explanation |
 | :--- | :--- | :--- |
-| **Kint** (indoor) | During a **temperature rise**, when the room is at least **0.3°C** below the setpoint and the heating is neither stopped nor at 100%. The rise is observed over windows of at least 30 minutes. | Kint sets how strongly the heating reacts to a gap. It is adjusted so that the room closes the gap at a target speed, derived from the **heating time** of your emitter. |
+| **Kint** (indoor) | During a **temperature rise**, when the room is at least **0.3°C** below the setpoint and the heating is neither stopped nor at 100%. The rise is observed over windows of 10 to 30 minutes (longer for slow emitters), sized from the rise speed. | Kint sets how strongly the heating reacts to a gap. It is adjusted so that the room closes the gap at a target speed, derived from the **heating time** of your emitter. |
 | **Kext** (outdoor) | When the room is **settled near the setpoint**: some time after the last setpoint change, once the room came back within 0.3°C of the setpoint. | Kext compensates for the heat losses to the outside. It is adjusted so that the remaining gap disappears. |
 
 > [!TIP]

@@ -38,7 +38,7 @@ graph LR
 
 | Koeficient | Situace při učení | Vysvětlení |
 | :--- | :--- | :--- |
-| **Kint** (vnitřní) | Během **nárůstu teploty**, když je místnost alespoň o **0,3 °C** pod požadovanou hodnotou a topení není vypnuté ani na 100 %. Nárůst se sleduje v oknech dlouhých alespoň 30 minut. | Kint určuje, jak silně topení reaguje na odchylku. Upravuje se tak, aby místnost odchylku uzavírala cílovou rychlostí odvozenou od **doby ohřevu** vašeho topného tělesa. |
+| **Kint** (vnitřní) | Během **nárůstu teploty**, když je místnost alespoň o **0,3 °C** pod požadovanou hodnotou a topení není vypnuté ani na 100 %. Nárůst se sleduje v oknech dlouhých 10 až 30 minut (u pomalých topných těles déle), podle rychlosti nárůstu. | Kint určuje, jak silně topení reaguje na odchylku. Upravuje se tak, aby místnost odchylku uzavírala cílovou rychlostí odvozenou od **doby ohřevu** vašeho topného tělesa. |
 | **Kext** (vnější) | Když je místnost **ustálená blízko požadované hodnoty**: určitý čas po poslední změně požadované hodnoty, jakmile se místnost vrátila do 0,3 °C od požadované hodnoty. | Kext kompenzuje tepelné ztráty směrem ven. Upravuje se tak, aby zbylá odchylka zmizela. |
 
 > [!TIP]

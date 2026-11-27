@@ -2,7 +2,7 @@
 
 ## Release 11.0
 > 1. **Auto TPI réécrit** (voir [Auto TPI](feature-autotpi.md)) :
->    - Kint est appris sur des fenêtres de montée en température d'au moins 30 minutes, vers une vitesse cible fixée par le **temps de chauffe** de l'émetteur. Les capteurs bruités ou au pas de 0,1 °C ne font plus dériver Kint vers le bas.
+>    - Kint est appris sur des fenêtres de montée en température dimensionnées d'après la vitesse de montée, vers une vitesse cible fixée par le **temps de chauffe** de l'émetteur. Les capteurs bruités ou au pas de 0,1 °C ne font plus dériver Kint vers le bas.
 >    - Kext est appris une fois la pièce stabilisée près de la consigne, par moyenne pondérée. Le Kext continu garde un lissage fixe et est utilisé immédiatement par la régulation.
 >    - La configuration ne garde que le temps de chauffe et le Kext continu. La capacité de chauffe, le bootstrap, le type d'apprentissage, les paramètres avancés, l'agressivité et le temps de refroidissement sont supprimés.
 >    - Supprimés : l'action `auto_tpi_calibrate_capacity` et les champs `allow_kint_boost_on_stagnation` / `allow_kext_compensation_on_overshoot` de `set_auto_tpi_mode`. Mettez à jour les automatisations qui les utilisent.

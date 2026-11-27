@@ -869,3 +869,13 @@ async def test_kint_window_opens_right_after_saturation(manager):
         manager.state.last_power = 0.5
         manager._process_kint_window(True)
         assert manager._kint_window_start is None
+
+
+@pytest.mark.parametrize("previous_rise, expected_min", [(0.0, 30.0), (0.05, 30.0), (0.4, 15.0), (2.0, 10.0)])
+async def test_kint_window_duration_follows_the_previous_rise(manager, previous_rise, expected_min):
+    """The window is sized at its start from the rise measured over the previous 20 minutes."""
+    start = datetime(2026, 1, 5, 8, 0, tzinfo=timezone.utc)
+    manager._recent_temps = [(start - timedelta(minutes=20), 18.0), (start - timedelta(minutes=5), 18.0 + previous_rise * 15 / 20)]
+    # T_cl is 30 min with the fixture (heating time 10 min, cycle 5 min)
+    assert manager.closed_loop_time_min == 30.0
+    assert manager._kint_window_duration(start) == pytest.approx(expected_min)

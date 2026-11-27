@@ -113,7 +113,7 @@ Kint uczy się w **oknach** kilku kolejnych cykli, nigdy na podstawie pojedyncze
 
 - Okno otwiera się, gdy pomieszczenie jest oddalone od nastawy o co najmniej **0,3°C**, i dopiero **T_cl / 2** po ostatniej zmianie nastawy, zmianie trybu, cyklu przy 0% lub nieprawidłowym cyklu (źródło ciepła potrzebuje tego czasu, aby zareagować). Cykl przy 100% zamyka okno bez ponownego uruchamiania tego opóźnienia: źródło ciepła już pracuje.
 - Każdy cykl okna musi być prawidłowy, z mocą między 0 a 100%. W przeciwnym razie okno jest zamykane bez uczenia.
-- Okno trwa co najmniej **max(30 min, T_cl)**. Następne okno zaczyna się tam, gdzie kończy się poprzednie, na tym samym warunku 0,3°C.
+- Czas trwania okna ustala się w chwili jego otwarcia na podstawie szybkości wzrostu zmierzonej w ciągu poprzednich 20 minut, tak aby okno obejmowało około 0,3°C zmiany: od 10 minut (i co najmniej 2 cykle) przy szybkim wzroście do **max(30 min, T_cl)** przy wolnym. Wykorzystuje wyłącznie dane starsze niż okno, więc nigdy nie zależy od zmiany, którą okno mierzy. Następne okno zaczyna się tam, gdzie kończy się poprzednie, na tym samym warunku 0,3°C.
 - Okno jest akceptowane wyłącznie na podstawie swojego czasu trwania i początkowego odchylenia. Nigdy nie zależy od zmierzonej zmiany temperatury: w przeciwnym razie zachowane byłyby tylko okna, w których szum zwiększył wzrost, co zniekształciłoby Kint.
 
 ### Wzór aktualizacji
@@ -196,7 +196,7 @@ Stała waga pozwala Kext podążać za wielkością, która powoli się zmienia.
 | Stała | Wartość | Rola |
 |----------|-------|------|
 | Minimalne odchylenie dla okna Kint | 0.3°C | Kint jest uczony tylko wtedy, gdy pomieszczenie ma odchylenie do zmniejszenia |
-| Minimalny czas trwania okna | 30 min (lub T_cl, jeśli dłuższy) | Kilka kroków czujnika na okno |
+| Czas trwania okna | 10 min do max(30 min, T_cl), ustalany na podstawie poprzedniej szybkości wzrostu | Około 0.3°C zmiany na okno |
 | Maksymalny krok Kint | ×1.15 / ÷1.15 | Ograniczony krok na okno |
 | Granice Kint | 0.01 – 1.0 | |
 | Okna Kint do zakończenia sesji | 15 | |

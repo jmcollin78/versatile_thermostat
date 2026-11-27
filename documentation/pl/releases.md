@@ -2,7 +2,7 @@
 
 ## Wydanie 11.0
 > 1. **Auto TPI przepisane** (zobacz [Auto TPI](feature-autotpi.md)):
->    - Kint jest uczone w oknach narastania temperatury trwających co najmniej 30 minut, w kierunku docelowej prędkości wyznaczonej przez **czas nagrzewania** grzejnika. Szumiące czujniki lub czujniki o kroku 0,1 °C już nie obniżają Kint.
+>    - Kint jest uczone w oknach narastania temperatury, których długość dobierana jest według szybkości wzrostu, w kierunku docelowej prędkości wyznaczonej przez **czas nagrzewania** grzejnika. Szumiące czujniki lub czujniki o kroku 0,1 °C już nie obniżają Kint.
 >    - Kext jest uczone, gdy pomieszczenie ustabilizuje się blisko nastawy, średnią ważoną. Ciągłe uczenie Kext utrzymuje stałe wygładzanie i jest od razu używane przez regulację.
 >    - Konfiguracja zachowuje tylko czas nagrzewania i ciągłe uczenie Kext. Usunięte zostały: moc grzewcza, bootstrap, typ uczenia, ustawienia zaawansowane, agresywność i czas chłodzenia.
 >    - Usunięto: akcję `auto_tpi_calibrate_capacity` oraz pola `allow_kint_boost_on_stagnation` / `allow_kext_compensation_on_overshoot` usługi `set_auto_tpi_mode`. Zaktualizuj automatyzacje, które ich używają.

@@ -38,7 +38,7 @@ graph LR
 
 | Współczynnik | Sytuacja uczenia | Wyjaśnienie |
 | :--- | :--- | :--- |
-| **Kint** (wewnętrzny) | Podczas **wzrostu temperatury**, gdy pomieszczenie jest co najmniej o **0,3°C** poniżej nastawy, a grzanie nie jest wyłączone ani na 100%. Wzrost jest obserwowany w oknach trwających co najmniej 30 minut. | Kint określa, jak mocno ogrzewanie reaguje na odchylenie. Jest dostosowywany tak, aby pomieszczenie zmniejszało odchylenie z docelową prędkością, wyprowadzoną z **czasu nagrzewania** Twojego grzejnika. |
+| **Kint** (wewnętrzny) | Podczas **wzrostu temperatury**, gdy pomieszczenie jest co najmniej o **0,3°C** poniżej nastawy, a grzanie nie jest wyłączone ani na 100%. Wzrost jest obserwowany w oknach trwających od 10 do 30 minut (w przypadku wolnych źródeł ciepła dłużej), dobieranych według szybkości wzrostu. | Kint określa, jak mocno ogrzewanie reaguje na odchylenie. Jest dostosowywany tak, aby pomieszczenie zmniejszało odchylenie z docelową prędkością, wyprowadzoną z **czasu nagrzewania** Twojego grzejnika. |
 | **Kext** (zewnętrzny) | Gdy pomieszczenie jest **ustabilizowane blisko nastawy**: pewien czas po ostatniej zmianie nastawy, gdy temperatura wróciła w granice 0,3°C od nastawy. | Kext kompensuje straty ciepła na zewnątrz. Jest dostosowywany tak, aby pozostałe odchylenie zniknęło. |
 
 > [!TIP]

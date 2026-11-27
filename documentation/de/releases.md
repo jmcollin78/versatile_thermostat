@@ -2,7 +2,7 @@
 
 ## Release 11.0
 > 1. **Auto TPI neu geschrieben** (siehe [Auto TPI](feature-autotpi.md)):
->    - Kint wird über Temperaturanstiegsfenster von mindestens 30 Minuten gelernt, mit einer Zielgeschwindigkeit, die durch die **Heizzeit** des Heizkörpers festgelegt wird. Verrauschte Sensoren oder Sensoren mit 0,1-°C-Schritt senken Kint nicht mehr.
+>    - Kint wird über Temperaturanstiegsfenster gelernt, deren Dauer an der Anstiegsgeschwindigkeit bemessen wird, mit einer Zielgeschwindigkeit, die durch die **Heizzeit** des Heizkörpers festgelegt wird. Verrauschte Sensoren oder Sensoren mit 0,1-°C-Schritt senken Kint nicht mehr.
 >    - Kext wird gelernt, sobald sich der Raum nahe am Sollwert eingependelt hat, mit einem gewichteten Mittelwert. Das kontinuierliche Kext-Lernen behält eine feste Glättung bei und wird von der Regelung sofort verwendet.
 >    - Die Konfiguration behält nur die Heizzeit und das kontinuierliche Kext-Lernen. Heizleistung, Bootstrap, Lerntyp, erweiterte Einstellungen, Aggressivität und Abkühlzeit entfallen.
 >    - Entfernt: die Aktion `auto_tpi_calibrate_capacity` und die Felder `allow_kint_boost_on_stagnation` / `allow_kext_compensation_on_overshoot` des Dienstes `set_auto_tpi_mode`. Aktualisieren Sie die Automatisierungen, die sie verwenden.

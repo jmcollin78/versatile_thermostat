@@ -113,7 +113,7 @@ Kint is learned over **windows** of several consecutive cycles, never over a sin
 
 - A window opens when the room is at least **0.3°C** from the setpoint, and only **T_cl / 2** after the last setpoint change, mode change, cycle at 0% or invalid cycle (the emitter needs this time to respond). A cycle at 100% closes the window without restarting this delay: the emitter is already running.
 - Every cycle of the window must be valid with a power between 0 and 100%. Otherwise the window is closed without learning.
-- A window lasts at least **max(30 min, T_cl)**. The next window starts where the previous one ends, under the same 0.3°C condition.
+- The window duration is set when it opens, from the rise speed measured over the previous 20 minutes, so that the window sees about 0.3°C of change: between 10 minutes (and at least 2 cycles) for a fast rise and **max(30 min, T_cl)** for a slow one. It only uses data older than the window, so it never depends on the change the window measures. The next window starts where the previous one ends, under the same 0.3°C condition.
 - A window is accepted on its duration and its starting gap only. It never depends on the measured temperature change: otherwise only the windows where noise increased the rise would be kept, which would bias Kint.
 
 ### Update Formula
@@ -196,7 +196,7 @@ A fixed weight lets Kext follow a quantity that drifts slowly. The new value is 
 | Constant | Value | Role |
 |----------|-------|------|
 | Minimum gap for a Kint window | 0.3°C | Kint is learned only when the room has a gap to close |
-| Minimum window duration | 30 min (or T_cl if longer) | Several sensor steps per window |
+| Window duration | 10 min to max(30 min, T_cl), set from the previous rise speed | About 0.3°C of change per window |
 | Maximum Kint step | ×1.15 / ÷1.15 | Bounded step per window |
 | Kint bounds | 0.01 – 1.0 | |
 | Kint windows to end the session | 15 | |

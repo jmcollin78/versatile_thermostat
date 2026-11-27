@@ -38,7 +38,7 @@ graph LR
 
 | Koeffizient | Lernsituation | Erklärung |
 | :--- | :--- | :--- |
-| **Kint** (intern) | Während eines **Temperaturanstiegs**, wenn der Raum mindestens **0,3 °C** unter dem Sollwert liegt und die Heizung weder abgeschaltet ist noch bei 100 % läuft. Der Anstieg wird in Fenstern von mindestens 30 Minuten beobachtet. | Kint legt fest, wie stark die Heizung auf eine Abweichung reagiert. Es wird so angepasst, dass der Raum die Abweichung mit einer Zielgeschwindigkeit ausgleicht, die von der **Heizzeit** Ihres Heizkörpers abgeleitet ist. |
+| **Kint** (intern) | Während eines **Temperaturanstiegs**, wenn der Raum mindestens **0,3 °C** unter dem Sollwert liegt und die Heizung weder abgeschaltet ist noch bei 100 % läuft. Der Anstieg wird in Fenstern von 10 bis 30 Minuten beobachtet (bei trägen Heizkörpern länger), abhängig von der Anstiegsgeschwindigkeit. | Kint legt fest, wie stark die Heizung auf eine Abweichung reagiert. Es wird so angepasst, dass der Raum die Abweichung mit einer Zielgeschwindigkeit ausgleicht, die von der **Heizzeit** Ihres Heizkörpers abgeleitet ist. |
 | **Kext** (extern) | Wenn der Raum **nahe am Sollwert eingeschwungen** ist: einige Zeit nach der letzten Sollwertänderung, sobald der Raum wieder innerhalb von 0,3 °C des Sollwerts liegt. | Kext kompensiert die Wärmeverluste nach außen. Es wird so angepasst, dass die verbleibende Abweichung verschwindet. |
 
 > [!TIP]

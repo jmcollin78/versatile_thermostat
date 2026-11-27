@@ -113,7 +113,7 @@ Kint wird über **Fenster** aus mehreren aufeinanderfolgenden Zyklen gelernt, ni
 
 - Ein Fenster öffnet sich, wenn der Raum mindestens **0,3 °C** vom Sollwert entfernt ist, und erst **T_cl / 2** nach der letzten Sollwertänderung, Modusänderung, einem Zyklus bei 0 % oder einem ungültigen Zyklus (der Heizkörper braucht diese Zeit, um zu reagieren). Ein Zyklus bei 100 % schließt das Fenster, ohne diese Verzögerung neu zu starten: Der Heizkörper läuft bereits.
 - Jeder Zyklus des Fensters muss gültig sein, mit einer Leistung zwischen 0 und 100 %. Andernfalls wird das Fenster ohne Lernen geschlossen.
-- Ein Fenster dauert mindestens **max(30 min, T_cl)**. Das nächste Fenster beginnt dort, wo das vorherige endet, unter derselben 0,3-°C-Bedingung.
+- Die Fensterdauer wird beim Öffnen anhand der Anstiegsgeschwindigkeit der vorangegangenen 20 Minuten festgelegt, sodass das Fenster etwa 0,3 °C Änderung erfasst: zwischen 10 Minuten (und mindestens 2 Zyklen) bei schnellem Anstieg und **max(30 min, T_cl)** bei langsamem Anstieg. Es verwendet nur Daten, die älter als das Fenster sind, und hängt daher nie von der Änderung ab, die das Fenster misst. Das nächste Fenster beginnt dort, wo das vorherige endet, unter derselben 0,3-°C-Bedingung.
 - Ein Fenster wird nur anhand seiner Dauer und seiner Anfangsabweichung akzeptiert. Es hängt niemals von der gemessenen Temperaturänderung ab: Andernfalls würden nur die Fenster behalten, in denen Rauschen den Anstieg verstärkt hat, was Kint verfälschen würde.
 
 ### Aktualisierungsformel
@@ -196,7 +196,7 @@ Ein fester Gewichtungsfaktor lässt Kext einer langsam driftenden Größe folgen
 | Konstante | Wert | Rolle |
 |----------|------|-------|
 | Mindestabweichung für ein Kint-Fenster | 0.3 °C | Kint wird nur gelernt, wenn der Raum eine Abweichung zu schließen hat |
-| Mindestdauer eines Fensters | 30 Min. (oder T_cl, falls länger) | Mehrere Sensorschritte pro Fenster |
+| Fensterdauer | 10 Min. bis max(30 Min., T_cl), anhand der vorherigen Anstiegsgeschwindigkeit festgelegt | Etwa 0.3 °C Änderung pro Fenster |
 | Maximaler Kint-Schritt | ×1.15 / ÷1.15 | Begrenzter Schritt pro Fenster |
 | Grenzen für Kint | 0.01 – 1.0 | |
 | Kint-Fenster bis zum Ende der Sitzung | 15 | |

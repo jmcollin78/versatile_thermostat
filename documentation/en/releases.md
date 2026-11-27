@@ -2,7 +2,7 @@
 
 ## Release 11.0
 > 1. **Auto TPI rewritten** (see [Auto TPI](feature-autotpi.md)):
->    - Kint is learned over temperature rise windows of at least 30 minutes, toward a target speed set by the heater **heating time**. Noisy sensors or sensors with a 0.1 °C step no longer drive Kint down.
+>    - Kint is learned over temperature rise windows sized from the rise speed, toward a target speed set by the heater **heating time**. Noisy sensors or sensors with a 0.1 °C step no longer drive Kint down.
 >    - Kext is learned once the room has settled near the setpoint, with a weighted average. Continuous Kext keeps a fixed smoothing and is used by the regulation right away.
 >    - The configuration keeps only the heating time and continuous Kext. The heating capacity, the bootstrap, the learning type, the advanced settings, the aggressiveness and the cooling time are removed.
 >    - Removed: the `auto_tpi_calibrate_capacity` action and the `allow_kint_boost_on_stagnation` / `allow_kext_compensation_on_overshoot` fields of `set_auto_tpi_mode`. Update the automations that use them.

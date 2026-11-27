@@ -113,7 +113,7 @@ Kint est appris sur des **fenêtres** de plusieurs cycles consécutifs, jamais s
 
 - Une fenêtre s'ouvre lorsque la pièce est à au moins **0,3°C** de la consigne, et seulement **T_cl / 2** après le dernier changement de consigne, de mode, cycle à 0 % ou cycle invalide (l'émetteur a besoin de ce temps pour réagir). Un cycle à 100 % ferme la fenêtre sans relancer ce délai : l'émetteur fonctionne déjà.
 - Chaque cycle de la fenêtre doit être valide avec une puissance comprise entre 0 et 100 %. Sinon, la fenêtre est fermée sans apprentissage.
-- Une fenêtre dure au moins **max(30 min, T_cl)**. La fenêtre suivante commence là où la précédente se termine, sous la même condition de 0,3°C.
+- La durée de la fenêtre est fixée à son ouverture, d'après la vitesse de montée mesurée sur les 20 minutes précédentes, pour qu'elle voie environ 0,3°C de variation : entre 10 minutes (et au moins 2 cycles) pour une montée rapide et **max(30 min, T_cl)** pour une montée lente. Elle n'utilise que des données antérieures à la fenêtre et ne dépend donc jamais de la variation que la fenêtre mesure. La fenêtre suivante commence là où la précédente se termine, sous la même condition de 0,3°C.
 - Une fenêtre est acceptée uniquement sur sa durée et son écart de départ. Elle ne dépend jamais de la variation de température mesurée : sinon, seules les fenêtres où le bruit a augmenté la montée seraient conservées, ce qui biaiserait Kint.
 
 ### Formule de mise à jour
@@ -196,7 +196,7 @@ Un poids fixe permet à Kext de suivre une grandeur qui dérive lentement. La no
 | Constante | Valeur | Rôle |
 |-----------|--------|------|
 | Écart minimum pour une fenêtre de Kint | 0,3°C | Kint n'est appris que lorsque la pièce a un écart à combler |
-| Durée minimum d'une fenêtre | 30 min (ou T_cl si plus long) | Plusieurs pas du capteur par fenêtre |
+| Durée d'une fenêtre | 10 min à max(30 min, T_cl), d'après la vitesse de montée précédente | Environ 0,3°C de variation par fenêtre |
 | Pas maximum de Kint | ×1,15 / ÷1,15 | Pas borné par fenêtre |
 | Bornes de Kint | 0,01 – 1,0 | |
 | Fenêtres de Kint pour terminer la session | 15 | |

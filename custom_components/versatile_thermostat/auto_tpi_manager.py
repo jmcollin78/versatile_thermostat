@@ -42,7 +42,10 @@ KEXT_LEARNING_MAX_GAP = 1.0  # Max gap (°C) to allow Kext learning (Near-Field 
 # The room rate is measured over windows of several cycles. A window is accepted on
 # its duration and starting gap only, never on the measured rise.
 KINT_MIN_GAP = 0.3  # Min gap (°C) to the setpoint at the start of a Kint window
-KINT_WINDOW_MIN_MINUTES = 30.0  # Min duration of a Kint window
+KINT_WINDOW_MIN_MINUTES = 30.0  # Max duration of a Kint window when the rise is slow (or T_cl if longer)
+KINT_WINDOW_SHORTEST_MINUTES = 10.0  # Shortest Kint window (and at least 2 cycles)
+KINT_WINDOW_RISE = 0.3  # Expected temperature change over a window (°C), used to size it from the previous rise
+KINT_RATE_LOOKBACK_MINUTES = 20.0  # Span used to measure the rise before a window
 KINT_MAX_STEP = 1.15  # Max multiplicative Kint change per window
 KINT_WINDOWS_TO_FINISH = 15  # Kint windows needed to end the learning
 CLOSED_LOOP_TIME_MIN_MINUTES = 30.0  # Bounds of the target closed-loop time constant
@@ -200,7 +203,8 @@ class AutoTpiManager:
         self._current_is_heating_failure: bool = False
 
         # Kint learning window (transient)
-        self._kint_window_start: tuple[datetime, float] | None = None  # (time, room temperature)
+        self._kint_window_start: tuple[datetime, float, float] | None = None  # (time, room temperature, duration min)
+        self._recent_temps: list[tuple[datetime, float]] = []  # room temperature at the last cycle ends
         self._kint_window_hold_since: datetime | None = None  # last setpoint change or window reset
         self._last_setpoint_change: datetime | None = None
         self._setpoint_reached: bool = True  # room came within KINT_MIN_GAP of the setpoint since the last change
@@ -813,10 +817,17 @@ class AutoTpiManager:
         if cycle_valid and (is_heat or is_cool) and self.state.last_power >= self.saturation_threshold:
             # A saturated cycle says nothing about Kint, but the emitter is already fully
             # running: close the window without waiting for the emitter delay again.
+            if self._kint_window_start is not None:
+                _LOGGER.debug("%s - Auto TPI: Kint window closed without learning (saturated cycle)", self._name)
             self._kint_window_start = None
             return
 
         if not (cycle_valid and (is_heat or is_cool) and 0 < self.state.last_power < self.saturation_threshold):
+            if self._kint_window_start is not None:
+                _LOGGER.debug(
+                    "%s - Auto TPI: Kint window closed without learning (cycle valid=%s, power=%.0f%%)",
+                    self._name, cycle_valid, self.state.last_power * 100,
+                )
             self._reset_kint_window(now)
             return
 
@@ -828,18 +839,51 @@ class AutoTpiManager:
                 return
             gap = (temp - self._current_target_temp) if is_cool else (self._current_target_temp - temp)
             if gap >= KINT_MIN_GAP:
-                self._kint_window_start = (now, temp)
+                self._kint_window_start = (now, temp, self._kint_window_duration(now))
+                _LOGGER.debug(
+                    "%s - Auto TPI: Kint window opened at %.2f° (gap %.2f°), duration %.0f min",
+                    self._name, temp, gap, self._kint_window_start[2],
+                )
             return
 
-        start_time, start_temp = self._kint_window_start
+        start_time, start_temp, duration_min = self._kint_window_start
         elapsed_min = (now - start_time).total_seconds() / 60.0
-        if elapsed_min < max(KINT_WINDOW_MIN_MINUTES, t_cl):
+        if elapsed_min < duration_min:
             return
 
         self._learn_kint_from_window(start_temp, temp, elapsed_min, is_cool)
         # The next window starts where this one ends, under the same starting gap condition
         gap = (temp - self._current_target_temp) if is_cool else (self._current_target_temp - temp)
-        self._kint_window_start = (now, temp) if gap >= KINT_MIN_GAP else None
+        self._kint_window_start = (now, temp, self._kint_window_duration(now)) if gap >= KINT_MIN_GAP else None
+
+    def _record_cycle_temperature(self, now: datetime) -> None:
+        """Keep the room temperature of the recent cycle ends, used to size the Kint windows."""
+        self._recent_temps.append((now, self._current_temp_in))
+        horizon = KINT_RATE_LOOKBACK_MINUTES + 2 * self._cycle_min
+        self._recent_temps = [(t, v) for t, v in self._recent_temps if (now - t).total_seconds() / 60.0 <= horizon]
+
+    def _kint_window_duration(self, now: datetime) -> float:
+        """Window duration (min) chosen at its start, from the rise measured before it.
+
+        The window should see about KINT_WINDOW_RISE of temperature change: a fast rise
+        gets a short window, a slow one up to max(30 min, T_cl). The duration only uses
+        data older than the window, so it never depends on the change the window measures.
+        """
+        shortest = max(KINT_WINDOW_SHORTEST_MINUTES, 2 * self._cycle_min)
+        longest = max(KINT_WINDOW_MIN_MINUTES, self.closed_loop_time_min)
+        before = [(t, v) for t, v in self._recent_temps if t < now]
+        if len(before) < 2:
+            return longest
+        (t_last, v_last) = before[-1]
+        older = [(t, v) for t, v in before if (t_last - t).total_seconds() / 60.0 <= KINT_RATE_LOOKBACK_MINUTES]
+        t_old, v_old = older[0]
+        span_h = (t_last - t_old).total_seconds() / 3600.0
+        if span_h <= 0:
+            return longest
+        rate = abs(v_last - v_old) / span_h
+        if rate <= 0:
+            return longest
+        return min(longest, max(shortest, 60.0 * KINT_WINDOW_RISE / rate))
 
     def _learn_kint_from_window(self, start_temp: float, end_temp: float, elapsed_min: float, is_cool: bool) -> None:
         """Move Kint one bounded step toward the target closing rate of the gap.
@@ -860,6 +904,7 @@ class AutoTpiManager:
 
         if mean_gap <= 0:
             self.state.last_learning_status = "kint_window_crossed_setpoint"
+            _LOGGER.debug("%s - Auto TPI: Kint window not used, the room crossed the setpoint (%.2f° -> %.2f°)", self._name, start_temp, end_temp)
             return
 
         target_rate = mean_gap / (self.closed_loop_time_min / 60.0)
@@ -1343,6 +1388,7 @@ class AutoTpiManager:
             and not self._central_boiler_off
             and not self._current_is_heating_failure
         )
+        self._record_cycle_temperature(now)
 
         # The interruption flag applies to the completed cycle only
         self._current_cycle_interrupted = False
