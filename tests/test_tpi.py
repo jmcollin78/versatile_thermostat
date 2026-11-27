@@ -297,30 +297,30 @@ async def test_wrong_tpi_parameters(
         (0.0,               0.0,                15,          14,           0,                0,     VThermHvacMode_HEAT, 0.25), #  0.1 + 0,15
         # temp > target, no thresholds, no slope
         (0.0,               0.0,                14,          15,           0,                0,     VThermHvacMode_HEAT, 0.04), # -0.1 + 0,14
-        # Slope > 0 and below high threshold (no effect)
+        # Below high threshold (no effect)
         (0.5,               1.1,                14,          15,           0,                1,     VThermHvacMode_HEAT, 0.04),
-        # Slope > 0 and above high threshold (clamp to 0)
+        # Above high threshold (clamp to 0)
         (0.5,               0.9,                14,          15,           0,                1,     VThermHvacMode_HEAT, 0.0),
-        # Slope < 0 and above low threshold (clamp to 0)
-        (0.5,               1.1,                14,          15,           0,               -1,     VThermHvacMode_HEAT, 0.0),
-        # Slope < 0 and below low threshold (no effect)
+        # Between low and high thresholds without having been above high (no effect, the slope is not used)
+        (0.5,               1.1,                14,          15,           0,               -1,     VThermHvacMode_HEAT, 0.04),
+        # Below low threshold (no effect)
         (1.1,               2.0,                14,          15,           0,               -1,     VThermHvacMode_HEAT, 0.04),
-        # Slope < 0 and above low negative threshold (clamp to 0)
-        (-1,                2.0,                15,          14.1,         0,               -1,     VThermHvacMode_HEAT, 0.0),
+        # Above low negative threshold but below high threshold (no effect)
+        (-1,                2.0,                15,          14.1,         0,               -1,     VThermHvacMode_HEAT, 0.24),
         ## COOL mode
         # temp > target, No thresholds
         (0.0,               0.0,                14,          15,          29,                0,     VThermHvacMode_COOL, 0.25), #  0.1 + 0,15
         # temp < target, no thresholds, no slope
         (0.0,               0.0,                15,          14,          29,                0,     VThermHvacMode_COOL, 0.04), # -0.1 + 0,14
-        # Slope < 0, below high threshold (no effect)
+        # Below high threshold (no effect)
         (0.5,               1.1,                15,          14,          29,               -1,     VThermHvacMode_COOL, 0.04),
-        # Slope < 0, above high threshold (clamp to 0)
+        # Above high threshold (clamp to 0)
         (0.5,               0.9,                15,          14,          29,               -1,     VThermHvacMode_COOL, 0.0),
-        # Slope > 0, above low threshold (clamp to 0)
-        (0.5,               1.1,                15,          14,          29,                1,     VThermHvacMode_COOL, 0.0),
-        # Slope > 0, below low threshold (no effect)
+        # Between low and high thresholds without having been above high (no effect, the slope is not used)
+        (0.5,               1.1,                15,          14,          29,                1,     VThermHvacMode_COOL, 0.04),
+        # Below low threshold (no effect)
         (1.1,               2,                  15,          14,          29,                1,     VThermHvacMode_COOL, 0.04),
-        # Slope > 0 and above high negative threshold (clamp to 0)
+        # Above high threshold with a negative low threshold (clamp to 0)
         (-1,                2.0,                14,          16.1,        29,               1,      VThermHvacMode_HEAT, 0.0),
 
     ],
@@ -351,6 +351,49 @@ async def test_prop_algorithm_thresholds(
     tpi_algo.calculate(target_temp, current_temp, ext_current_temp, slope, hvac_mode)
 
     assert tpi_algo.on_percent == expected_on_percent
+
+
+async def test_prop_algorithm_thresholds_hysteresis(hass):
+    """Test that the threshold cut is kept between the thresholds whatever the slope,
+    released below the low threshold and reset on hvac mode change."""
+    tpi_algo: TpiAlgorithm = TpiAlgorithm(
+        0.1,
+        0.01,
+        "test_entity_id",
+        max_on_percent=None,
+        tpi_threshold_low=0.2,
+        tpi_threshold_high=0.5,
+    )
+    target, ext = 19.5, 9.5
+
+    # Above the high threshold: cut
+    tpi_algo.calculate(target, 20.1, ext, 0.1, VThermHvacMode_HEAT)
+    assert tpi_algo.on_percent == 0.0
+
+    # Still above the high threshold, slope is 0 (no new measurement): cut kept
+    tpi_algo.calculate(target, 20.1, ext, 0.0, VThermHvacMode_HEAT)
+    assert tpi_algo.on_percent == 0.0
+
+    # Between the thresholds with any slope: cut kept
+    for slope in (-0.1, 0.0, -0.0, 0.1, None):
+        tpi_algo.calculate(target, 19.8, ext, slope, VThermHvacMode_HEAT)
+        assert tpi_algo.on_percent == 0.0
+
+    # Below the low threshold: released (0.1 * 0 + 0.01 * 10)
+    tpi_algo.calculate(target, 19.5, ext, -0.1, VThermHvacMode_HEAT)
+    assert tpi_algo.on_percent == 0.1
+
+    # Back between the thresholds without going above high: not cut (0.1 * -0.4 + 0.01 * 10)
+    tpi_algo.calculate(target, 19.9, ext, 0.1, VThermHvacMode_HEAT)
+    assert tpi_algo.on_percent == 0.06
+
+    # Cut again above high, then a hvac mode change resets the state
+    tpi_algo.calculate(target, 20.1, ext, 0.1, VThermHvacMode_HEAT)
+    assert tpi_algo.on_percent == 0.0
+    tpi_algo.calculate(target, 19.9, ext, 0.0, VThermHvacMode_OFF)
+    assert tpi_algo.on_percent == 0.0
+    tpi_algo.calculate(target, 19.9, ext, 0.0, VThermHvacMode_HEAT)
+    assert tpi_algo.on_percent == 0.06
 
 
 @pytest.mark.parametrize("expected_lingering_tasks", [True])
@@ -565,8 +608,6 @@ async def test_tpi_services_not_allowed_on_over_climate(hass: HomeAssistant, ski
         await entity.service_set_auto_tpi_mode(
             auto_tpi_mode=True,
             reinitialise=True,
-            allow_kint_boost_on_stagnation=False,
-            allow_kext_compensation_on_overshoot=False,
         )
 
     # Try to call the service - it should raise an error or do nothing

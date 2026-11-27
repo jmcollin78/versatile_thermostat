@@ -11,6 +11,8 @@ from homeassistant.const import STATE_ON, STATE_OFF
 from custom_components.versatile_thermostat.auto_tpi_manager import (
     AutoTpiManager,
     AutoTpiState,
+    KINT_MAX_STEP,
+    KINT_WINDOW_MIN_MINUTES,
     STORAGE_VERSION,
     STORAGE_KEY_PREFIX,
 )
@@ -18,7 +20,6 @@ from custom_components.versatile_thermostat.const import (
     AUTO_TPI_EVENT,
     CONF_TPI_COEF_INT,
     CONF_TPI_COEF_EXT,
-    CONF_AUTO_TPI_HEATING_POWER,
     CONF_NAME,
     CONF_THERMOSTAT_TYPE,
     CONF_THERMOSTAT_SWITCH,
@@ -57,11 +58,12 @@ def log_test_execution(request):
     yield
     _LOGGER.info("Finished test: %s", request.node.name)
 
-# Patch async_call_later to avoid loop issues
 @pytest.fixture(autouse=True)
-def mock_async_call_later():
-    with patch("custom_components.versatile_thermostat.auto_tpi_manager.async_call_later") as mock_call_later:
-        yield mock_call_later
+def mock_issue_registry():
+    """The mocked hass has no issue registry."""
+    with patch("custom_components.versatile_thermostat.auto_tpi_manager.ir") as mock_ir:
+        yield mock_ir
+
 
 @pytest.fixture
 def mock_hass():
@@ -101,7 +103,6 @@ def manager(mock_hass, mock_store, mock_config_entry):
         coef_int=0.6,
         coef_ext=0.01,
         heater_heating_time=10,
-        heater_cooling_time=5,
     )
 
 
@@ -164,13 +165,14 @@ async def test_load_data_no_existing(manager, mock_store):
     assert manager.state.coeff_indoor_autolearn == 1 
 
 async def test_load_data_existing(manager, mock_store):
-    """Test loading existing data."""
+    """Test loading existing data of a learning session in progress."""
     existing_state = AutoTpiState(
         coeff_indoor_heat=0.3,
         coeff_outdoor_heat=0.05,
         total_cycles=100,
         coeff_indoor_autolearn=50,
-        coeff_outdoor_autolearn=50
+        coeff_outdoor_autolearn=50,
+        autolearn_enabled=True,
     )
     mock_store.async_load.return_value = existing_state.to_dict()
     
@@ -208,7 +210,6 @@ async def test_should_learn_basic(manager):
     """Test _should_learn basic conditions."""
     manager.state.autolearn_enabled = True
     manager.state.last_power = 0.5  # 50%
-    manager.state.consecutive_failures = 0
     manager.state.previous_state = "heat"
     manager.state.last_order = 20
     manager.state.last_state = "heat"
@@ -234,15 +235,6 @@ async def test_should_learn_power_saturation(manager):
     manager.state.last_power = 1.0  # > 0.99
     assert manager._should_learn() is False
 
-async def test_should_learn_failures(manager):
-    """Test _should_learn failure limit."""
-    manager.state.autolearn_enabled = True
-    manager.state.last_power = 0.5
-    
-    manager.state.consecutive_failures = 3
-    assert manager._should_learn() is False
-
-
 @pytest.mark.parametrize("hvac_mode,start_temp,end_temp", [("heat", 19.0, 18.5), ("cool", 23.0, 23.5)])
 @pytest.mark.parametrize("continuous_kext", [False, True])
 async def test_disabled_learning_does_not_report_cycle_failures(manager, mock_hass, hvac_mode, start_temp, end_temp, continuous_kext):
@@ -250,117 +242,120 @@ async def test_disabled_learning_does_not_report_cycle_failures(manager, mock_ha
     manager.state.autolearn_enabled = False
     manager._continuous_kext = continuous_kext
     manager.state.coeff_indoor_autolearn = 30
-    manager.state.consecutive_failures = 2
     mock_hass.services = MagicMock(async_call=AsyncMock())
 
-    with patch("custom_components.versatile_thermostat.auto_tpi_manager.translation.async_get_translations", new_callable=AsyncMock, return_value={}):
-        for _ in range(2):
-            await manager.update(room_temp=start_temp, ext_temp=5.0, target_temp=21.0, hvac_mode=hvac_mode)
-            await manager.on_cycle_started(on_time_sec=300, off_time_sec=0, on_percent=1.0, hvac_mode=hvac_mode)
-            manager.state.cycle_start_date = datetime.now(timezone.utc) - timedelta(minutes=5)
-            manager._current_temp_in = end_temp
-            await manager.on_cycle_completed()
-
-    assert manager.state.total_cycles == 2
-    assert manager.state.cycle_active is False
-    assert manager.learning_active is False
-    assert manager.state.consecutive_failures == 2
-    mock_hass.services.async_call.assert_not_called()
-
-
-@pytest.mark.parametrize("hvac_mode,start_temp,end_temp", [("heat", 19.0, 18.5), ("cool", 23.0, 23.5)])
-async def test_active_learning_reports_failure_once(manager, mock_hass, hvac_mode, start_temp, end_temp):
-    """Active learning stops at three failures without repeating the notification."""
-    manager.state.autolearn_enabled = True
-    manager.state.coeff_indoor_autolearn = 30
-    manager.state.consecutive_failures = 2
-    mock_hass.services = MagicMock(async_call=AsyncMock())
-
-    with patch("custom_components.versatile_thermostat.auto_tpi_manager.translation.async_get_translations", new_callable=AsyncMock, return_value={}):
+    for _ in range(2):
         await manager.update(room_temp=start_temp, ext_temp=5.0, target_temp=21.0, hvac_mode=hvac_mode)
         await manager.on_cycle_started(on_time_sec=300, off_time_sec=0, on_percent=1.0, hvac_mode=hvac_mode)
         manager.state.cycle_start_date = datetime.now(timezone.utc) - timedelta(minutes=5)
         manager._current_temp_in = end_temp
         await manager.on_cycle_completed()
 
-        assert manager.learning_active is False
-        assert manager.state.consecutive_failures == 3
-        mock_hass.services.async_call.assert_awaited_once()
-        assert mock_hass.services.async_call.call_args.args[:2] == ("persistent_notification", "create")
-        assert mock_hass.services.async_call.call_args.args[2]["notification_id"] == "autotpi_learning_stopped_test_id"
-
-        await manager._detect_failures(end_temp)
-
-    assert manager.state.consecutive_failures == 3
-    mock_hass.services.async_call.assert_awaited_once()
-
-
-async def test_resume_after_failure_shutdown_resets_failure_count(manager, mock_hass):
-    """Resuming learning keeps learned data and starts a fresh failure streak."""
-    manager.state.autolearn_enabled = True
-    manager.state.coeff_indoor_autolearn = 30
-    manager.state.consecutive_failures = 2
-    manager.state.last_state = "heat"
-    manager.state.last_power = 1.0
-    manager.state.last_order = 21.0
-    manager.state.last_temp_in = 19.0
-    manager.state.max_capacity_heat = 1.0
-    mock_hass.services = MagicMock(async_call=AsyncMock())
-
-    with patch("custom_components.versatile_thermostat.auto_tpi_manager.translation.async_get_translations", new_callable=AsyncMock, return_value={}):
-        await manager._detect_failures(18.5)
-
+    assert manager.state.total_cycles == 2
+    assert manager.state.cycle_active is False
     assert manager.learning_active is False
-    assert manager.state.consecutive_failures == 3
-    mock_hass.services.async_call.assert_awaited_once()
-
-    await manager.start_learning(reset_data=False)
-
-    assert manager.learning_active is True
-    assert manager.state.consecutive_failures == 0
-    assert manager.state.coeff_indoor_autolearn == 30
-
-    manager.state.last_power = 0.5
-    manager.state.previous_state = "heat"
-    manager._current_temp_out = 5.0
-    assert manager._should_learn() is True
-
-    manager.state.last_power = 1.0
-    await manager._detect_failures(18.5)
-
-    assert manager.learning_active is True
-    assert manager.state.consecutive_failures == 1
-    mock_hass.services.async_call.assert_awaited_once()
+    mock_hass.services.async_call.assert_not_called()
 
 
-async def test_perform_learning_indoor(manager):
-    """Test indoor coefficient learning."""
+def _run_kint_window(manager, start_temp, end_temp, power=0.5, end_cycle_valid=True):
+    """Open a Kint window at start_temp and close it at end_temp one window length later."""
+    start = datetime(2026, 1, 5, 8, 0, tzinfo=timezone.utc)
+    window_min = max(KINT_WINDOW_MIN_MINUTES, manager.closed_loop_time_min)
+    with patch("custom_components.versatile_thermostat.auto_tpi_manager.dt_util") as mock_dt:
+        mock_dt.now.return_value = start
+        manager.state.autolearn_enabled = True
+        manager.state.last_state = "heat"
+        manager.state.last_power = power
+        manager._current_target_temp = 20.0
+        manager._current_temp_in = start_temp
+        manager._process_kint_window(True)
+        opened = manager._kint_window_start
+
+        mock_dt.now.return_value = start + timedelta(minutes=window_min)
+        manager._current_temp_in = end_temp
+        manager._process_kint_window(end_cycle_valid)
+    return opened
+
+
+async def test_kint_window_slow_rise_increases_kint(manager):
+    """A rise slower than the target rate increases Kint by at most one bounded step."""
+    manager.state.coeff_indoor_heat = 0.5
+
+    opened = _run_kint_window(manager, start_temp=19.0, end_temp=19.05)
+
+    assert opened is not None
+    assert manager.state.coeff_indoor_heat == pytest.approx(0.5 * KINT_MAX_STEP)
+    assert manager.state.last_learning_status == "learned_indoor_heat"
+    assert manager.state.coeff_indoor_autolearn == 2
+
+
+async def test_kint_window_fast_rise_decreases_kint(manager):
+    """A rise faster than the target rate decreases Kint by at most one bounded step."""
+    manager.state.coeff_indoor_heat = 0.5
+
+    _run_kint_window(manager, start_temp=19.0, end_temp=19.9)
+
+    assert manager.state.coeff_indoor_heat == pytest.approx(0.5 / KINT_MAX_STEP)
+
+
+async def test_kint_window_not_opened_near_setpoint(manager):
+    """No window starts when the gap to the setpoint is below the minimum gap."""
+    manager.state.coeff_indoor_heat = 0.5
+
+    opened = _run_kint_window(manager, start_temp=19.8, end_temp=19.8)
+
+    assert opened is None
+    assert manager.state.coeff_indoor_heat == 0.5
+
+
+async def test_kint_window_reset_by_invalid_cycle(manager):
+    """An invalid or saturated cycle closes the window without learning."""
+    manager.state.coeff_indoor_heat = 0.5
+
+    _run_kint_window(manager, start_temp=19.0, end_temp=19.05, end_cycle_valid=False)
+    assert manager.state.coeff_indoor_heat == 0.5
+    assert manager._kint_window_start is None
+
+    _run_kint_window(manager, start_temp=19.0, end_temp=19.05, power=1.0)
+    assert manager.state.coeff_indoor_heat == 0.5
+
+
+async def test_kext_waits_for_settling_after_setpoint_change(manager):
+    """Kext is not learned right after a setpoint change."""
     manager.state.autolearn_enabled = True
     manager.state.last_state = "heat"
     manager.state.last_order = 20.0
-    manager.state.last_temp_in = 19.0
-    manager.state.coeff_indoor_heat = 0.5
-    manager.state.max_capacity_heat = 2.0 # deg/h
-    manager.state.last_power = 0.5 # 50%
-    manager._last_cycle_power_efficiency = 1.0
-    
-    # Current state (end of cycle)
-    # Rise = 0.2 deg
-    # Target diff (at start) = 1.0
-    current_temp_in = 19.2
-    current_temp_out = 0.0
-    
-    # Mock capability to ensure we use max_capacity
-    manager._use_capacity_as_rate = True
-    
-    # Initialize current target temp to match last_order so it doesn't detect a setpoint change
-    manager._current_target_temp = manager.state.last_order
+    manager.state.last_temp_in = 19.8
+    manager.state.last_power = 0.5
 
-    await manager._perform_learning(current_temp_in, current_temp_out)
-    
-    assert manager.state.last_learning_status.startswith("learned_indoor")
-    assert manager.state.coeff_indoor_heat != 0.5 # Should have changed
+    await manager.update(room_temp=19.8, ext_temp=5.0, hvac_mode="heat", target_temp=20.0)
+    old_kext = manager.state.coeff_outdoor_heat
+    await manager._perform_learning(19.8, 5.0)
 
+    assert manager.state.last_learning_status == "kext_waiting_settling"
+    assert manager.state.coeff_outdoor_heat == old_kext
+
+
+async def test_kext_settling_requires_room_near_setpoint(manager):
+    """After the settling time, Kext waits until the room came near the setpoint, or a long timeout."""
+    start = datetime(2026, 1, 5, 6, 0, tzinfo=timezone.utc)
+    t_cl = manager.closed_loop_time_min
+    with patch("custom_components.versatile_thermostat.auto_tpi_manager.dt_util") as mock_dt:
+        mock_dt.now.return_value = start
+        await manager.update(room_temp=18.0, ext_temp=5.0, hvac_mode="heat", target_temp=20.0)
+
+        mock_dt.now.return_value = start + timedelta(minutes=3.5 * t_cl)
+        await manager.update(room_temp=19.2, ext_temp=5.0, hvac_mode="heat", target_temp=20.0)
+        assert manager._is_settled_for_kext() is False
+
+        await manager.update(room_temp=19.8, ext_temp=5.0, hvac_mode="heat", target_temp=20.0)
+        assert manager._is_settled_for_kext() is True
+
+        # A large static offset is still learned after the long timeout
+        await manager.update(room_temp=18.0, ext_temp=5.0, hvac_mode="heat", target_temp=21.0)
+        mock_dt.now.return_value = start + timedelta(minutes=3.5 * t_cl + 12.5 * t_cl)
+        await manager.update(room_temp=19.0, ext_temp=5.0, hvac_mode="heat", target_temp=21.0)
+        assert manager._is_settled_for_kext() is True
 
 
 async def test_cycle_lifecycle(manager):
@@ -376,10 +371,7 @@ async def test_cycle_lifecycle(manager):
     assert manager.state.cycle_active is True
     assert manager.state.last_power == 0.5
     assert manager.state.last_state == "heat"
-    assert manager._timer_capture_remove_callback is not None
-    capture_timer_cancel = manager._timer_capture_remove_callback
-    
-    
+
     # Simulate time passing (5 minutes) to satisfy cycle duration validation
     # cycle_min is 5 in fixture, so we set start date 5 mins ago
     manager.state.cycle_start_date = datetime.now(timezone.utc) - timedelta(minutes=5)
@@ -389,89 +381,7 @@ async def test_cycle_lifecycle(manager):
 
     assert manager.state.cycle_active is False
     assert manager.state.total_cycles == 1
-    capture_timer_cancel.assert_called_once()
-    assert manager._timer_capture_remove_callback is None
 
-
-# Fixture for mocked BaseThermostat with service_auto_tpi_calibrate_capacity
-@pytest.fixture
-def mock_vtherm_for_capacity():
-    """Mock a BaseThermostat that is able to return a dummy manager and mock the service dependencies"""
-    vtherm = MagicMock()
-    vtherm.hass = MagicMock(spec=HomeAssistant)
-    vtherm.entity_id = "climate.test_thermostat"
-    vtherm.name = "Test Thermostat"
-    vtherm.tpi_coef_ext = 0.01
-    
-    # Mock auto_tpi_manager that is only for the sake of setting max_capacity_heat/cool
-    manager = MagicMock(spec=AutoTpiManager)
-    manager.state = MagicMock()
-    manager.state.max_capacity_heat = 0.0
-    manager.state.max_capacity_cool = 0.0
-    
-    # Mock the renamed utility function called by the service method
-    manager.calculate_capacity_from_history = AsyncMock(
-        return_value={"success": True, "capacity": 7.5, "kext": 0.015, "kint": 0.5}
-    )
-    vtherm.auto_tpi_manager = manager
-
-    # Mock the service method on the instance to be awaitable and execute the core logic
-    async def mock_service_calibrate_capacity_impl(*args, **kwargs):
-        """Simulate the service call by executing the core manager logic"""
-        # The actual service implementation is expected to call this method on the manager
-        res = await vtherm.auto_tpi_manager.calculate_capacity_from_history()
-        
-        # The service is also expected to update the config entry if successful
-        if res.get("success"):
-            # The test is responsible for patching vtherm._async_update_tpi_config_entry
-            # and making it awaitable, so we call the mock instance method here.
-            await vtherm._async_update_tpi_config_entry()
-            # Update the manager's state as the service would do
-            vtherm.auto_tpi_manager.state.max_capacity_heat = res.get("capacity")
-
-    # Set the service method on the mock to be an AsyncMock with the logic
-    vtherm.service_auto_tpi_calibrate_capacity = AsyncMock(side_effect=mock_service_calibrate_capacity_impl)
-    
-    return vtherm
-
-
-async def test_service_calibrate_capacity(mock_vtherm_for_capacity):
-    """Test the capacity calibration service (renamed from calibrate_tpi)"""
-    vtherm = mock_vtherm_for_capacity
-
-    # Mock the dependency call to history.get_significant_states in BaseThermostat
-    # and the config update on the instance. The patch for _async_update_tpi_config_entry must make it awaitable.
-    # The new=AsyncMock() is crucial to make the patched method awaitable for the side_effect function
-    with patch("custom_components.versatile_thermostat.auto_tpi_manager.history.get_significant_states") as mock_get_history, \
-         patch.object(vtherm, "_async_update_tpi_config_entry", new=AsyncMock()) as mock_update_config:
-        
-        # history.get_significant_states is called, it should return a mockable result (even though the inner calculation is mocked)
-        now = datetime.now(timezone.utc)
-        mock_history_states = [
-            # Mock minimal history to prevent crashes during parsing
-            [{"last_changed": now.isoformat(), "state": "heat", "attributes": {"power_percent": 100, "current_temperature": 18.0}}]
-        ]
-        mock_get_history.return_value = mock_history_states
-
-        # 1. Simulate the service call - assuming BaseThermostat.service_auto_tpi_calibrate_capacity is now correct
-        await vtherm.service_auto_tpi_calibrate_capacity(
-            hvac_mode="heat",
-            save_to_config=True,
-            min_power_threshold=95,
-            start_date=None,
-            end_date=None,
-        )
-
-        # 2. Check that the manager's calculate_capacity_from_history was called
-        # This confirms BaseThermostat is calling the correct manager method
-        vtherm.auto_tpi_manager.calculate_capacity_from_history.assert_called_once()
-        
-        # 3. Assertions: ONLY capacity is updated (using the mock return value)
-        # The mock returns 7.5 for capacity.
-        assert vtherm.auto_tpi_manager.state.max_capacity_heat == pytest.approx(7.5, abs=0.1)
-
-        # 4. Check that config update was called (BaseThermostat should update config)
-        mock_update_config.assert_called_once()
 
 async def test_update_state_with_boiler_off(manager):
     """Test updating state with central boiler off."""
@@ -490,7 +400,6 @@ async def test_should_learn_central_boiler_off(manager):
     manager.state.autolearn_enabled = True
     manager.state.last_power = 0.5
     # Ensure other conditions are met
-    manager.state.consecutive_failures = 0
     manager.state.previous_state = "heat"
     manager.state.last_order = 20
     manager.state.last_state = "heat"
@@ -506,7 +415,6 @@ async def test_should_learn_heating_failure(manager):
     manager.state.autolearn_enabled = True
     manager.state.last_power = 0.5
     # Ensure other conditions are met
-    manager.state.consecutive_failures = 0
     manager.state.previous_state = "heat"
     manager.state.last_order = 20
     manager.state.last_state = "heat"
@@ -547,57 +455,6 @@ async def test_initialization_reset_bug(manager):
     # If the bug is present, this will fail (it will be 0.5 and 0.02)
     assert manager.state.coeff_indoor_heat == new_target_int
     assert manager.state.coeff_outdoor_heat == new_target_ext
-
-async def test_persistence_overrides_config_on_startup(mock_hass):
-    """Test that valid persisted capacity is NOT overwritten by configuration on startup."""
-    
-    # 1. Setup Config with a specific heating rate (e.g. 1000)
-    config_entry = MagicMock()
-    config_entry.data = {
-        CONF_AUTO_TPI_HEATING_POWER: 1000,
-    }
-    
-    # 2. Setup Persistence with a DIFFERENT capacity (e.g. 1500)
-    # this simulates a learned capacity that is different from config
-    persisted_state = AutoTpiState()
-    persisted_state.max_capacity_heat = 1500.0
-    persisted_state.capacity_heat_learn_count = 10 # Learned
-    persisted_state.autolearn_enabled = True # Simulate active learning
-    
-    # Mock Store
-    with patch("custom_components.versatile_thermostat.auto_tpi_manager.Store") as MockStore:
-        mock_store_instance = MockStore.return_value
-        mock_store_instance.async_load = AsyncMock(return_value=persisted_state.to_dict())
-        mock_store_instance.async_save = AsyncMock()
-
-        # 3. Initialize Manager
-        manager = AutoTpiManager(
-            hass=mock_hass,
-            config_entry=config_entry,
-            unique_id="test_unique_id",
-            name="Test Thermostat",
-            cycle_min=5,
-            heating_rate=1000, # Configured rate
-            tpi_threshold_low=0.1,
-            tpi_threshold_high=1.0,
-            heater_heating_time=5,
-            heater_cooling_time=5,
-        )
-        
-        # 4. Trigger Load Data
-        await manager.async_load_data()
-        
-        # 5. Assertions
-        # CURRENT BUG: It overwrites 1500 with 1000 because learning is active and config != persistence
-        # EXPECTED FIX: It should keep 1500
-        
-        print(f"DEBUG: Configured Rate: {manager._heating_rate}")
-        print(f"DEBUG: Persisted State Capacity: {manager.state.max_capacity_heat}")
-        
-        # This assert demonstrates what we WANT. 
-        # If the bug exists, this might fail (it will be 1000).
-        assert manager.state.max_capacity_heat == 1500.0, \
-            f"Expected persisted capacity 1500.0, but got {manager.state.max_capacity_heat}"
 
 async def test_update_realized_power(manager):
     """Test update_realized_power method."""
@@ -840,3 +697,185 @@ async def test_added_to_hass_applies_learned_coefs_to_algorithm():
     # The first demand computation uses the learned coefficients
     thermostat.recalculate()
     assert thermostat.on_percent == 0.27
+
+
+async def test_climate_publishes_auto_tpi_diagnostics_entity(hass: HomeAssistant, skip_hass_states_is_state):
+    """The climate publishes the Auto TPI learning sensor as its regulation diagnostics entity."""
+    entry = MockConfigEntry(
+        domain=DOMAIN,
+        title="AutoTpiDiag",
+        unique_id="auto_tpi_diag",
+        version=2,
+        minor_version=5,
+        data={
+            CONF_NAME: "AutoTpiDiag",
+            CONF_THERMOSTAT_TYPE: CONF_THERMOSTAT_SWITCH,
+            CONF_TEMP_SENSOR: "sensor.mock_temp_sensor",
+            CONF_EXTERNAL_TEMP_SENSOR: "sensor.mock_ext_temp_sensor",
+            CONF_CYCLE_MIN: 5,
+            CONF_TEMP_MIN: 15,
+            CONF_TEMP_MAX: 30,
+            CONF_USE_WINDOW_FEATURE: False,
+            CONF_USE_MOTION_FEATURE: False,
+            CONF_USE_POWER_FEATURE: False,
+            CONF_USE_PRESENCE_FEATURE: False,
+            CONF_UNDERLYING_LIST: ["switch.mock_switch"],
+            CONF_PROP_FUNCTION: PROPORTIONAL_FUNCTION_TPI,
+            CONF_TPI_COEF_INT: 0.5,
+            CONF_TPI_COEF_EXT: 0.01,
+            CONF_MINIMAL_ACTIVATION_DELAY: 30,
+            CONF_MINIMAL_DEACTIVATION_DELAY: 30,
+            CONF_AUTO_TPI_MODE: True,
+        },
+    )
+
+    entity: ThermostatProp = await create_thermostat(hass, entry, "climate.autotpidiag")
+    assert entity
+
+    entity.update_custom_attributes()
+    diagnostic_entity_id = entity.extra_state_attributes["specific_states"]["regulation_diagnostics"]
+    assert diagnostic_entity_id is not None
+    assert diagnostic_entity_id.startswith("sensor.")
+    assert hass.states.get(diagnostic_entity_id) is not None
+
+
+async def test_written_coefficients_are_reported_to_the_regulation(manager):
+    """Writing learned coefficients calls the regulation callback in user units."""
+    applied = []
+    manager.set_coefficients_written_callback(lambda kint, kext: applied.append((kint, kext)))
+    manager._enable_update_config = False
+
+    await manager.async_update_learning_data(coef_ext=0.0162)
+    await manager.async_update_learning_data(coef_int=0.7, coef_ext=0.02)
+
+    assert applied == [(None, 0.0162), (0.7, 0.02)]
+
+
+@pytest.mark.parametrize("learning_active, expected_kext", [(False, 0.034), (True, 0.0162)])
+async def test_load_aligns_stored_coefficients_with_configuration_outside_sessions(mock_hass, mock_store, mock_config_entry, learning_active, expected_kext):
+    """Outside a learning session, a coefficient changed in the configuration replaces the stored one."""
+    stored = AutoTpiState(coeff_indoor_heat=0.6, coeff_outdoor_heat=0.0162, coeff_indoor_cool=0.6, coeff_outdoor_cool=0.0162)
+    stored.total_cycles = 100
+    stored.autolearn_enabled = learning_active
+    mock_store.async_load = AsyncMock(return_value=stored.to_dict())
+    manager = AutoTpiManager(
+        hass=mock_hass,
+        config_entry=mock_config_entry,
+        unique_id="test_align",
+        name="test_align",
+        cycle_min=5,
+        coef_int=0.6,
+        coef_ext=0.034,
+    )
+    manager.calculate = AsyncMock()
+
+    await manager.async_load_data()
+
+    assert manager.state.coeff_outdoor_heat == pytest.approx(expected_kext)
+    assert manager.state.coeff_indoor_heat == pytest.approx(0.6)
+
+
+async def test_continuous_kext_is_applied_to_the_regulation(hass: HomeAssistant, skip_hass_states_is_state):
+    """A Kext written by Auto TPI is used by the TPI algorithm without reloading."""
+    entry = MockConfigEntry(
+        domain=DOMAIN,
+        title="AutoTpiLive",
+        unique_id="auto_tpi_live",
+        version=2,
+        minor_version=5,
+        data={
+            CONF_NAME: "AutoTpiLive",
+            CONF_THERMOSTAT_TYPE: CONF_THERMOSTAT_SWITCH,
+            CONF_TEMP_SENSOR: "sensor.mock_temp_sensor",
+            CONF_EXTERNAL_TEMP_SENSOR: "sensor.mock_ext_temp_sensor",
+            CONF_CYCLE_MIN: 5,
+            CONF_TEMP_MIN: 15,
+            CONF_TEMP_MAX: 30,
+            CONF_USE_WINDOW_FEATURE: False,
+            CONF_USE_MOTION_FEATURE: False,
+            CONF_USE_POWER_FEATURE: False,
+            CONF_USE_PRESENCE_FEATURE: False,
+            CONF_UNDERLYING_LIST: ["switch.mock_switch"],
+            CONF_PROP_FUNCTION: PROPORTIONAL_FUNCTION_TPI,
+            CONF_TPI_COEF_INT: 0.6,
+            CONF_TPI_COEF_EXT: 0.034,
+            CONF_MINIMAL_ACTIVATION_DELAY: 30,
+            CONF_MINIMAL_DEACTIVATION_DELAY: 30,
+            CONF_AUTO_TPI_MODE: True,
+            "auto_tpi_continuous_kext": True,
+        },
+    )
+    entity: ThermostatProp = await create_thermostat(hass, entry, "climate.autotpilive")
+    manager = entity._algo_handler._auto_tpi_manager
+    assert manager.learning_active is False
+
+    await manager.async_update_learning_data(coef_ext=0.0162)
+
+    assert entity.prop_algorithm.tpi_coef_ext == pytest.approx(0.0162)
+    assert entity.tpi_coef_ext == pytest.approx(0.0162)
+    assert entity.prop_algorithm.tpi_coef_int == pytest.approx(0.6)
+
+
+@pytest.mark.parametrize("stored_extra, expect_issue", [
+    ({"capacity_heat_learn_count": 3, "coeff_indoor_autolearn": 30}, True),
+    ({"capacity_heat_learn_count": 3, "coeff_indoor_autolearn": 1}, False),
+    ({"coeff_indoor_autolearn": 30}, False),
+])
+async def test_previous_learning_raises_a_relearn_issue(mock_hass, mock_store, mock_config_entry, stored_extra, expect_issue):
+    """A state stored by the previous learning method with a learned Kint raises a repair issue, removed at the next session."""
+    stored = AutoTpiState(coeff_indoor_heat=0.029, coeff_outdoor_heat=0.02, total_cycles=2000).to_dict()
+    stored.update(stored_extra)
+    mock_store.async_load = AsyncMock(return_value=stored)
+    manager = AutoTpiManager(hass=mock_hass, config_entry=mock_config_entry, unique_id="test_relearn", name="Bedroom", cycle_min=5, coef_int=0.029, coef_ext=0.02)
+    manager.calculate = AsyncMock()
+
+    with patch("custom_components.versatile_thermostat.auto_tpi_manager.ir") as mock_ir:
+        await manager.async_load_data()
+        assert mock_ir.async_create_issue.called is expect_issue
+        if expect_issue:
+            kwargs = mock_ir.async_create_issue.call_args.kwargs
+            assert mock_ir.async_create_issue.call_args.args[2] == "auto_tpi_relearn_test_relearn"
+            assert kwargs["translation_key"] == "auto_tpi_relearn"
+            assert kwargs["translation_placeholders"] == {"name": "Bedroom", "kint": "0.029", "kext": "0.020"}
+
+        await manager.start_learning(reset_data=True)
+        mock_ir.async_delete_issue.assert_called_once_with(mock_hass, "versatile_thermostat", "auto_tpi_relearn_test_relearn")
+
+
+async def test_kint_window_opens_right_after_saturation(manager):
+    """A saturated cycle closes the window but does not restart the emitter delay."""
+    start = datetime(2026, 1, 5, 8, 0, tzinfo=timezone.utc)
+    with patch("custom_components.versatile_thermostat.auto_tpi_manager.dt_util") as mock_dt:
+        manager.state.autolearn_enabled = True
+        manager.state.last_state = "heat"
+        manager._current_target_temp = 20.0
+        manager._current_temp_in = 18.0
+        manager._kint_window_hold_since = start - timedelta(hours=2)
+
+        mock_dt.now.return_value = start
+        manager.state.last_power = 1.0
+        manager._process_kint_window(True)
+        assert manager._kint_window_start is None
+
+        mock_dt.now.return_value = start + timedelta(minutes=5)
+        manager.state.last_power = 0.8
+        manager._process_kint_window(True)
+        assert manager._kint_window_start is not None
+
+        # A cycle at 0% (emitter stopped) restarts the emitter delay
+        manager.state.last_power = 0.0
+        manager._process_kint_window(True)
+        mock_dt.now.return_value = start + timedelta(minutes=10)
+        manager.state.last_power = 0.5
+        manager._process_kint_window(True)
+        assert manager._kint_window_start is None
+
+
+@pytest.mark.parametrize("previous_rise, expected_min", [(0.0, 30.0), (0.05, 30.0), (0.4, 15.0), (2.0, 10.0)])
+async def test_kint_window_duration_follows_the_previous_rise(manager, previous_rise, expected_min):
+    """The window is sized at its start from the rise measured over the previous 20 minutes."""
+    start = datetime(2026, 1, 5, 8, 0, tzinfo=timezone.utc)
+    manager._recent_temps = [(start - timedelta(minutes=20), 18.0), (start - timedelta(minutes=5), 18.0 + previous_rise * 15 / 20)]
+    # T_cl is 30 min with the fixture (heating time 10 min, cycle 5 min)
+    assert manager.closed_loop_time_min == 30.0
+    assert manager._kint_window_duration(start) == pytest.approx(expected_min)

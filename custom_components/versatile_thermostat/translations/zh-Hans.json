@@ -34,8 +34,6 @@
                     "lock": "锁定",
                     "heating_failure_detection": "加热故障检测",
                     "auto_tpi_configuration": "Auto TPI - 配置",
-                    "auto_tpi_avg_settings": "Auto TPI - 加权平均",
-                    "auto_tpi_ema_settings": "Auto TPI - EWMA",
                     "finalize": "全部完成",
                     "configuration_not_complete": "配置未完成"
                 }
@@ -309,48 +307,12 @@
                 "title": "Auto TPI - 配置",
                 "description": "自动 TPI 学习的常规设置。",
                 "data": {
-                    "auto_tpi_learning_type": "学习类型",
                     "heater_heating_time": "加热时间（分钟）",
-                    "heater_cooling_time": "冷却时间（分钟）",
-                    "auto_tpi_heating_rate": "升温速率（{unit}/h）",
-                    "auto_tpi_cooling_rate": "冷却速率 ({unit}/小时)",
-                    "auto_tpi_aggressiveness": "激进程度",
-                    "auto_tpi_enable_advanced_settings": "启用高级参数",
                     "auto_tpi_continuous_kext": "持续学习 Kext"
                 },
                 "data_description": {
-                    "auto_tpi_learning_type": "选择“发现”用于初始启动（加权平均，权重 1），或选择“微调”用于持续调整（EWMA，Alpha 0.08）。",
-                    "heater_heating_time": "达到满功率的时间（分钟）",
-                    "heater_cooling_time": "停止后的冷却时间（分钟）\n\n| 类型 | 加热时间 | 冷却时间 |\n| :--- | :--- | :--- |\n| 电暖器 | 5mn | 7mn |\n| 水暖散热器 | 15mn | 20mn |\n| 地暖 | 30mn | 45mn |",
-                    "auto_tpi_heating_rate": "散热器升温能力（{unit}每小时）。保留为 0 以进行自动学习（引导程序）。",
-                    "auto_tpi_cooling_rate": "散热器降温能力（每小时 {unit}）。保留为 0 以进行自动学习（bootstrap）。",
-                    "auto_tpi_aggressiveness": "学习系数的缩减因子 (50-100%)。较低的值会产生更保守的系数并降低超调风险。",
-                    "auto_tpi_enable_advanced_settings": "勾选后可访问参数微调（Alpha、衰减、权重）。",
+                    "heater_heating_time": "达到满功率的时间（分钟）\n\n| 类型 | 加热时间 |\n| :--- | :--- |\n| 电暖器 | 5mn |\n| 水暖散热器 | 15mn |\n| 地暖 | 30mn |",
                     "auto_tpi_continuous_kext": "选中以启用 AutoTPI 会话之外的外部系数 (Kext) 的持续学习。"
-                }
-            },
-            "auto_tpi_avg_settings": {
-                "title": "Auto TPI - 加权平均",
-                "description": "加权平均法参数。",
-                "data": {
-                    "auto_tpi_avg_initial_weight": "初始权重"
-                },
-                "data_description": {
-                    "auto_tpi_avg_initial_weight": "平均值计算中初始/前一个值的权重"
-                }
-            },
-            "auto_tpi_ema_settings": {
-                "title": "Auto TPI - EWMA",
-                "description": "EWMA 方法的参数。\n\n建议：\n| 场景 | Alpha (ema_alpha) | 衰减率 (ema_decay_rate) |\n| :--- | :--- | :--- |\n| 初始学习 | 0.15 | 0.08 |\n| 精细学习 | 0.08 | 0.12 |\n| 持续学习 | 0.05 | 0.02 |",
-                "data": {
-                    "auto_tpi_ema_alpha": "Alpha",
-                    "auto_tpi_ema_decay_rate": "衰减率",
-                    "auto_tpi_continuous_kext_alpha": "连续 Kext Alpha"
-                },
-                "data_description": {
-                    "auto_tpi_ema_alpha": "平滑因子 (0-1)。更高=更快的适应",
-                    "auto_tpi_ema_decay_rate": "Alpha 随时间下降的速率（稳定）",
-                    "auto_tpi_continuous_kext_alpha": "用于连续 Kext 学习的平滑因子 (Alpha)。默认 0.04（大约 3-5 天适应）。"
                 }
             },
             "sync_device_internal_temp": {
@@ -726,48 +688,12 @@
                 "title": "自动 TPI - 配置 - {name}",
                 "description": "自动 TPI 学习的常规设置。",
                 "data": {
-                    "auto_tpi_learning_type": "学习类型",
-                    "auto_tpi_heating_rate": "升温速率（{unit}/h）",
-                    "auto_tpi_cooling_rate": "冷却速率 ({unit}/小时)",
                     "heater_heating_time": "加热时间（分钟）",
-                    "heater_cooling_time": "冷却时间（分钟）",
-                    "auto_tpi_aggressiveness": "激进程度",
-                    "auto_tpi_enable_advanced_settings": "启用高级参数",
                     "auto_tpi_continuous_kext": "持续学习 Kext"
                 },
                 "data_description": {
-                    "auto_tpi_learning_type": "选择“发现”用于初始启动（加权平均，权重 1），或选择“微调”用于持续调整（EWMA，Alpha 0.08）。",
-                    "auto_tpi_heating_rate": "散热器升温能力（{unit}每小时）。保留为 0 以进行自动学习（引导程序）。",
-                    "auto_tpi_cooling_rate": "散热器降温能力（每小时 {unit}）。保留为 0 以进行自动学习（bootstrap）。",
-                    "heater_heating_time": "达到满功率的时间（分钟）",
-                    "heater_cooling_time": "停止后的冷却时间（分钟）\n\n| 类型 | 加热时间 | 冷却时间 |\n| :--- | :--- | :--- |\n| 电暖器 | 5mn | 7mn |\n| 水暖散热器 | 15mn | 20mn |\n| 地暖 | 30mn | 45mn |",
-                    "auto_tpi_aggressiveness": "学习系数的缩减因子 (50-100%)。较低的值会产生更保守的系数并降低超调风险。",
-                    "auto_tpi_enable_advanced_settings": "勾选后可访问参数微调（Alpha、衰减、权重）。",
+                    "heater_heating_time": "达到满功率的时间（分钟）\n\n| 类型 | 加热时间 |\n| :--- | :--- |\n| 电暖器 | 5mn |\n| 水暖散热器 | 15mn |\n| 地暖 | 30mn |",
                     "auto_tpi_continuous_kext": "选中以启用 AutoTPI 会话之外的外部系数 (Kext) 的持续学习。"
-                }
-            },
-            "auto_tpi_avg_settings": {
-                "title": "自动 TPI - 加权平均 - {name}",
-                "description": "加权平均法参数。",
-                "data": {
-                    "auto_tpi_avg_initial_weight": "初始权重"
-                },
-                "data_description": {
-                    "auto_tpi_avg_initial_weight": "平均计算中现有系数的初始权重（典型值为 1-50）。权重越高，学习越慢也越稳定。"
-                }
-            },
-            "auto_tpi_ema_settings": {
-                "title": "Auto TPI - EWMA - {name}",
-                "description": "EWMA 方法的参数。\n\n建议：\n| 场景 | Alpha (ema_alpha) | 衰减率 (ema_decay_rate) |\n| :--- | :--- | :--- |\n| 强力调整 | 0.15 | 0.08 |\n| 精细调节 | 0.08 | 0.12 |",
-                "data": {
-                    "auto_tpi_ema_alpha": "Alpha",
-                    "auto_tpi_ema_decay_rate": "衰减率",
-                    "auto_tpi_continuous_kext_alpha": "连续 Kext Alpha"
-                },
-                "data_description": {
-                    "auto_tpi_ema_alpha": "平滑因子 (0-1)。更高=更快的适应",
-                    "auto_tpi_ema_decay_rate": "Alpha 随时间下降的速率（稳定）",
-                    "auto_tpi_continuous_kext_alpha": "用于连续 Kext 学习的平滑因子 (Alpha)。默认 0.04（大约 3-5 天适应）。"
                 }
             },
             "heating_failure_detection": {
@@ -863,18 +789,6 @@
                 "auto_start_stop_slow": "慢速检测",
                 "auto_start_stop_medium": "中等速度检测",
                 "auto_start_stop_fast": "快速检测"
-            }
-        },
-        "auto_tpi_calculation_method": {
-            "options": {
-                "average": "平均值",
-                "ema": "指数移动平均线 (EMA)"
-            }
-        },
-        "auto_tpi_learning_type": {
-            "options": {
-                "discovery": "发现",
-                "fine_tuning": "微调"
             }
         },
         "power_unit": {
@@ -999,36 +913,6 @@
                 }
             }
         },
-        "reset_auto_tpi_capacities": {
-            "name": "重置 Auto TPI 能力",
-            "description": "将学习的最大加热和冷却能力重置为 1.0 °C/h。学习的系数不会重置。"
-        },
-        "auto_tpi_calibrate_capacity": {
-            "name": "Auto TPI 校准能力",
-            "description": "使用实体历史数据的线性回归来校准加热/冷却能力（以°C/小时为单位）。学习的系数不会更新。",
-            "fields": {
-                "start_date": {
-                    "name": "历史开始日期",
-                    "description": "检索历史记录的日期（默认为 30 天前）"
-                },
-                "end_date": {
-                    "name": "历史结束日期",
-                    "description": "检索历史记录的截止日期（默认为现在）"
-                },
-                "hvac_mode": {
-                    "name": "HVAC 模式",
-                    "description": "校准哪种模式（加热或冷却）。"
-                },
-                "save_to_config": {
-                    "name": "保存到配置",
-                    "description": "将计算出的容量应用于自动 TPI 配置。"
-                },
-                "min_power_threshold": {
-                    "name": "最小功率阈值",
-                    "description": "将周期视为饱和的最小功率百分比（默认 95%）。较低的值将包括更多的周期，但可能不太准确。"
-                }
-            }
-        },
         "set_tpi_parameters": {
             "name": "设置 TPI 参数",
             "description": "更改 TPI 参数",
@@ -1090,9 +974,5 @@
             }
         }
     },
-    "exceptions": {
-        "auto_tpi_learning_stopped": {
-            "message": "由于连续 3 次失败，{name} 的自动 TPI 学习已停止。原因：{reason}。请检查您的配置。"
-        }
-    }
+    "exceptions": {}
 }

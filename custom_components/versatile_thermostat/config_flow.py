@@ -65,7 +65,6 @@ class VersatileThermostatBaseConfigFlow(FlowHandler):
         super().__init__()
         _LOGGER.debug("CTOR BaseConfigFlow infos: %s", infos)
         self._infos: dict = infos
-        self._learning_type_changed = False
         self._placeholders = {
             CONF_NAME: "",
             PLUGINS_LINK_PLACEHOLDER: PLUGINS_LINK,
@@ -917,78 +916,9 @@ class VersatileThermostatBaseConfigFlow(FlowHandler):
             "Into ConfigFlow.async_step_auto_tpi_configuration user_input=%s", user_input
         )
         schema = STEP_AUTO_TPI_CONFIGURATION_SCHEMA
-
-        # Logic for next step
-        next_step = self._step_auto_tpi_after_configuration
-
-        # Update placeholders with unit
-        self._placeholders["temperature_unit"] = self.hass.config.units.temperature_unit
-        self._placeholders["unit"] = self.hass.config.units.temperature_unit
-
-        if user_input is not None:
-            new_type = user_input.get(CONF_AUTO_TPI_LEARNING_TYPE)
-            old_type = self._infos.get(CONF_AUTO_TPI_LEARNING_TYPE)
-            if new_type != old_type:
-                self._learning_type_changed = True
+        next_step = self.async_step_menu
 
         return await self.generic_step("auto_tpi_configuration", schema, user_input, next_step)
-
-    async def _step_auto_tpi_after_configuration(self, user_input: dict | None = None) -> FlowResult:
-        """Logic after step 1"""
-        # Apply defaults if learning type changed or method not set
-        if getattr(self, "_learning_type_changed", False) or self._infos.get(CONF_AUTO_TPI_CALCULATION_METHOD) is None:
-            self._apply_learning_type_defaults()
-            self._learning_type_changed = False
-
-        if self._infos.get(CONF_AUTO_TPI_ENABLE_ADVANCED_SETTINGS, False):
-            # Direct jump to method step
-            if self._infos.get(CONF_AUTO_TPI_CALCULATION_METHOD) == AUTO_TPI_METHOD_EMA:
-                return await self.async_step_auto_tpi_ema_settings()
-            else:
-                return await self.async_step_auto_tpi_avg_settings()
-        else:
-            return await self.async_step_menu()
-
-    def _apply_learning_type_defaults(self):
-        """Apply defaults based on learning type"""
-        learning_type = self._infos.get(CONF_AUTO_TPI_LEARNING_TYPE)
-
-        if learning_type == AUTO_TPI_LEARNING_TYPE_DISCOVERY:
-            # Discovery -> Weighted Average, Weight 1
-            self._infos[CONF_AUTO_TPI_CALCULATION_METHOD] = AUTO_TPI_METHOD_AVG
-            self._infos[CONF_AUTO_TPI_AVG_INITIAL_WEIGHT] = 1
-        elif learning_type == AUTO_TPI_LEARNING_TYPE_FINE_TUNING:
-            # Fine Tuning -> EMA, Alpha 0.08, Decay 0.12
-            self._infos[CONF_AUTO_TPI_CALCULATION_METHOD] = AUTO_TPI_METHOD_EMA
-            self._infos[CONF_AUTO_TPI_EMA_ALPHA] = 0.08
-            self._infos[CONF_AUTO_TPI_EMA_DECAY_RATE] = 0.12
-
-    async def async_step_auto_tpi_avg_settings(
-        self, user_input: dict | None = None
-    ) -> FlowResult:
-        """Handle the Auto TPI average settings step"""
-        _LOGGER.debug(
-            "Into ConfigFlow.async_step_auto_tpi_avg_settings user_input=%s", user_input
-        )
-        schema = STEP_AUTO_TPI_AVG_SETTINGS_SCHEMA
-        next_step = self.async_step_menu
-
-        # Update placeholders with unit
-        self._placeholders["temperature_unit"] = self.hass.config.units.temperature_unit
-        self._placeholders["unit"] = self.hass.config.units.temperature_unit
-
-        return await self.generic_step("auto_tpi_avg_settings", schema, user_input, next_step)
-
-    async def async_step_auto_tpi_ema_settings(
-        self, user_input: dict | None = None
-    ) -> FlowResult:
-        """Handle the Auto TPI EMA settings step"""
-        _LOGGER.debug(
-            "Into ConfigFlow.async_step_auto_tpi_ema_settings user_input=%s", user_input
-        )
-        schema = STEP_AUTO_TPI_EMA_SETTINGS_SCHEMA
-        next_step = self.async_step_menu
-        return await self.generic_step("auto_tpi_ema_settings", schema, user_input, next_step)
 
     async def async_step_presets(self, user_input: dict | None = None) -> FlowResult:
         """Handle the presets flow steps"""

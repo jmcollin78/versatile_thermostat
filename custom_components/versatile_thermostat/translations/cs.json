@@ -36,9 +36,7 @@
                     "lock": "Správa zámku",
                     "finalize": "Vše hotovo",
                     "configuration_not_complete": "Konfigurace není kompletní",
-                    "auto_tpi_configuration": "Auto TPI - Konfigurace",
-                    "auto_tpi_avg_settings": "Auto TPI - Vážený průměr",
-                    "auto_tpi_ema_settings": "Auto TPI - EWMA nastavení"
+                    "auto_tpi_configuration": "Auto TPI - Konfigurace"
                 }
             },
             "lock": {
@@ -356,48 +354,12 @@
                 "title": "Auto TPI - Konfigurace",
                 "description": "Obecná nastavení pro automatické učení TPI.",
                 "data": {
-                    "auto_tpi_learning_type": "Typ učení",
                     "heater_heating_time": "Doba ohřevu (min)",
-                    "heater_cooling_time": "Doba chlazení (min)",
-                    "auto_tpi_heating_rate": "Rychlost ohřevu ({unit}/h)",
-                    "auto_tpi_cooling_rate": "Rychlost chlazení ({unit}/h)",
-                    "auto_tpi_aggressiveness": "Agresivita",
-                    "auto_tpi_enable_advanced_settings": "Povolit pokročilé parametry",
                     "auto_tpi_continuous_kext": "Průběžné učení Kext"
                 },
                 "data_description": {
-                    "auto_tpi_learning_type": "Zvolte 'Discovery' pro počáteční spuštění (vážený průměr, váha 1) nebo 'Fine Tuning' pro průběžné úpravy (EWMA, Alpha 0,08).",
-                    "heater_heating_time": "Čas k dosažení plného výkonu (minuty)",
-                    "heater_cooling_time": "Čas na ochlazení po zastavení (minuty)\n\n| Typ | Doba ohřevu | Doba chlazení |\n| :--- | :--- | :--- |\n| Elektrický radiátor | 5 min | 7mn |\n| Vodní radiátor | 15 minut | 20 min |\n| Podlahové vytápění | 30 min | 45 min |",
-                    "auto_tpi_heating_rate": "Kapacita nárůstu teploty radiátoru ({unit} za hodinu). Ponechejte na 0 pro automatické učení (bootstrap).",
-                    "auto_tpi_cooling_rate": "Kapacita poklesu teploty radiátoru ({unit} za hodinu). Ponechejte na 0 pro automatické učení (bootstrap).",
-                    "auto_tpi_aggressiveness": "Redukční faktor pro naučené koeficienty (50-100%). Nižší hodnoty vedou ke konzervativnějším koeficientům a snižují riziko přestřelení.",
-                    "auto_tpi_enable_advanced_settings": "Zaškrtněte pro přístup k jemnému doladění parametrů (Alpha, Decay, Weight).",
+                    "heater_heating_time": "Čas k dosažení plného výkonu (minuty)\n\n| Typ | Doba ohřevu |\n| :--- | :--- |\n| Elektrický radiátor | 5 min |\n| Vodní radiátor | 15 minut |\n| Podlahové vytápění | 30 min |",
                     "auto_tpi_continuous_kext": "Zaškrtnutím povolíte průběžné učení externího koeficientu (Kext) mimo relace AutoTPI."
-                }
-            },
-            "auto_tpi_avg_settings": {
-                "title": "Auto TPI - Vážený průměr",
-                "description": "Parametry pro metodu váženého průměru.",
-                "data": {
-                    "auto_tpi_avg_initial_weight": "Počáteční hmotnost"
-                },
-                "data_description": {
-                    "auto_tpi_avg_initial_weight": "Váha počáteční/předchozí hodnoty ve výpočtu průměru"
-                }
-            },
-            "auto_tpi_ema_settings": {
-                "title": "Auto TPI - EWMA nastavení",
-                "description": "Parametry pro metodu EWMA.\n\nDoporučení:\n| Situace | Alfa (ema_alpha) | Decay Rate (ema_decay_rate) |\n| :--- | :--- | :--- |\n| Počáteční učení | 0,15 | 0,08 |\n| Jemné učení | 0,08 | 0,12 |\n| Průběžné učení | 0,05 | 0,02 |",
-                "data": {
-                    "auto_tpi_ema_alpha": "Alfa",
-                    "auto_tpi_ema_decay_rate": "Míra rozpadu",
-                    "auto_tpi_continuous_kext_alpha": "Kontinuální Kext Alpha"
-                },
-                "data_description": {
-                    "auto_tpi_ema_alpha": "Faktor vyhlazování (0-1). Vyšší = rychlejší adaptace",
-                    "auto_tpi_ema_decay_rate": "Rychlost, se kterou alfa klesá v průběhu času (stabilizace)",
-                    "auto_tpi_continuous_kext_alpha": "Vyhlazující faktor pro nepřetržité učení Kext (Alpha). Výchozí 0,04 (přibližně 3-5 dní adaptace)."
                 }
             }
         },
@@ -772,48 +734,12 @@
                 "title": "Automatické TPI – Konfigurace – {name}",
                 "description": "Obecná nastavení pro automatické učení TPI.",
                 "data": {
-                    "auto_tpi_learning_type": "Typ učení",
-                    "auto_tpi_heating_rate": "Rychlost ohřevu ({unit}/h)",
-                    "auto_tpi_cooling_rate": "Rychlost chlazení ({unit}/h)",
                     "heater_heating_time": "Doba ohřevu (min)",
-                    "heater_cooling_time": "Doba chlazení (min)",
-                    "auto_tpi_aggressiveness": "Agresivita",
-                    "auto_tpi_enable_advanced_settings": "Povolit pokročilé parametry",
                     "auto_tpi_continuous_kext": "Průběžné učení Kext"
                 },
                 "data_description": {
-                    "auto_tpi_learning_type": "Zvolte 'Discovery' pro počáteční spuštění (vážený průměr, váha 1) nebo 'Fine Tuning' pro průběžné úpravy (EWMA, Alpha 0,08).",
-                    "auto_tpi_heating_rate": "Kapacita nárůstu teploty radiátoru ({unit} za hodinu). Ponechejte na 0 pro automatické učení (bootstrap).",
-                    "auto_tpi_cooling_rate": "Kapacita poklesu teploty radiátoru ({unit} za hodinu). Ponechejte na 0 pro automatické učení (bootstrap).",
-                    "heater_heating_time": "Čas k dosažení plného výkonu (minuty)",
-                    "heater_cooling_time": "Čas na ochlazení po zastavení (minuty)\n\n| Typ | Doba ohřevu | Doba chlazení |\n| :--- | :--- | :--- |\n| Elektrický radiátor | 5 min | 7mn |\n| Vodní radiátor | 15 minut | 20 min |\n| Podlahové vytápění | 30 min | 45 min |",
-                    "auto_tpi_aggressiveness": "Redukční faktor pro naučené koeficienty (50-100%). Nižší hodnoty vedou ke konzervativnějším koeficientům a snižují riziko přestřelení.",
-                    "auto_tpi_enable_advanced_settings": "Zaškrtnutím změníte parametry zvoleného algoritmu.",
+                    "heater_heating_time": "Čas k dosažení plného výkonu (minuty)\n\n| Typ | Doba ohřevu |\n| :--- | :--- |\n| Elektrický radiátor | 5 min |\n| Vodní radiátor | 15 minut |\n| Podlahové vytápění | 30 min |",
                     "auto_tpi_continuous_kext": "Zaškrtnutím povolíte průběžné učení externího koeficientu (Kext) mimo relace AutoTPI."
-                }
-            },
-            "auto_tpi_avg_settings": {
-                "title": "Auto TPI – vážený průměr – {name}",
-                "description": "Parametry pro metodu váženého průměru.",
-                "data": {
-                    "auto_tpi_avg_initial_weight": "Počáteční hmotnost"
-                },
-                "data_description": {
-                    "auto_tpi_avg_initial_weight": "Počáteční váha existujících koeficientů ve výpočtu průměru (typicky 1-50). Vyšší váha znamená pomalejší a stabilnější učení."
-                }
-            },
-            "auto_tpi_ema_settings": {
-                "title": "Auto TPI – EWMA – {name}",
-                "description": "Parametry pro metodu EWMA.\n\nDoporučení:\n| Situace | Alfa (ema_alpha) | Decay Rate (ema_decay_rate) |\n| :--- | :--- | :--- |\n| Silné úpravy | 0,15 | 0,08 |\n| Jemné doladění | 0,08 | 0,12 |",
-                "data": {
-                    "auto_tpi_ema_alpha": "Alfa",
-                    "auto_tpi_ema_decay_rate": "Míra rozpadu",
-                    "auto_tpi_continuous_kext_alpha": "Kontinuální Kext Alpha"
-                },
-                "data_description": {
-                    "auto_tpi_ema_alpha": "Faktor vyhlazování (0-1). Vyšší = rychlejší adaptace",
-                    "auto_tpi_ema_decay_rate": "Rychlost, se kterou alfa klesá v průběhu času (stabilizace)",
-                    "auto_tpi_continuous_kext_alpha": "Vyhlazující faktor pro nepřetržité učení Kext (Alpha). Výchozí 0,04 (přibližně 3-5 dní adaptace)."
                 }
             }
         },
@@ -887,18 +813,6 @@
                 "auto_start_stop_slow": "Pomalá detekce",
                 "auto_start_stop_medium": "Střední detekce",
                 "auto_start_stop_fast": "Rychlá detekce"
-            }
-        },
-        "auto_tpi_calculation_method": {
-            "options": {
-                "average": "Průměrný",
-                "ema": "Exponenciální klouzavý průměr (EMA)"
-            }
-        },
-        "auto_tpi_learning_type": {
-            "options": {
-                "discovery": "Objev",
-                "fine_tuning": "Jemné ladění"
             }
         },
         "power_unit": {
@@ -1023,36 +937,6 @@
                 }
             }
         },
-        "reset_auto_tpi_capacities": {
-            "name": "Resetujte automatické kapacity TPI",
-            "description": "Resetujte naučené maximální topné a chladicí výkony na 1,0 °C/h. Naučené koeficienty NENÍ resetováno."
-        },
-        "auto_tpi_calibrate_capacity": {
-            "name": "Automatická kalibrace kapacity TPI",
-            "description": "Kalibrujte výkon vytápění/chlazení (ve °C/hodinu) pomocí lineární regrese na historických datech entity. Naučené koeficienty NEJSOU aktualizovány.",
-            "fields": {
-                "start_date": {
-                    "name": "Historie od data",
-                    "description": "Datum, od kterého se má načíst historie (výchozí je před 30 dny)"
-                },
-                "end_date": {
-                    "name": "Historie k dnešnímu dni",
-                    "description": "Datum, do kterého se má načíst historie (výchozí je nyní)"
-                },
-                "hvac_mode": {
-                    "name": "Režim HVAC",
-                    "description": "Jaký režim kalibrovat (topení nebo chlazení)."
-                },
-                "save_to_config": {
-                    "name": "Uložit do konfigurace",
-                    "description": "Použijte vypočítanou kapacitu na konfiguraci Auto TPI."
-                },
-                "min_power_threshold": {
-                    "name": "Minimální práh výkonu",
-                    "description": "Minimální procento výkonu, aby byl cyklus považován za nasycený (výchozí 95 %). Nižší hodnoty budou zahrnovat více cyklů, ale mohou být méně přesné."
-                }
-            }
-        },
         "set_tpi_parameters": {
             "name": "Nastavte parametry TPI",
             "description": "Změňte parametry TPI",
@@ -1114,9 +998,5 @@
             }
         }
     },
-    "exceptions": {
-        "auto_tpi_learning_stopped": {
-            "message": "Automatické učení TPI pro {name} bylo zastaveno kvůli 3 po sobě jdoucím selháním. Důvod: {reason}. Zkontrolujte prosím svou konfiguraci."
-        }
-    }
+    "exceptions": {}
 }

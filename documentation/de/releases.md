@@ -1,5 +1,14 @@
 # Anmerkungen zum Release
 
+## Release 11.0
+> 1. **Auto TPI neu geschrieben** (siehe [Auto TPI](feature-autotpi.md)):
+>    - Kint wird über Temperaturanstiegsfenster gelernt, deren Dauer an der Anstiegsgeschwindigkeit bemessen wird, mit einer Zielgeschwindigkeit, die durch die **Heizzeit** des Heizkörpers festgelegt wird. Verrauschte Sensoren oder Sensoren mit 0,1-°C-Schritt senken Kint nicht mehr.
+>    - Kext wird gelernt, sobald sich der Raum nahe am Sollwert eingependelt hat, mit einem gewichteten Mittelwert. Das kontinuierliche Kext-Lernen behält eine feste Glättung bei und wird von der Regelung sofort verwendet.
+>    - Die Konfiguration behält nur die Heizzeit und das kontinuierliche Kext-Lernen. Heizleistung, Bootstrap, Lerntyp, erweiterte Einstellungen, Aggressivität und Abkühlzeit entfallen.
+>    - Entfernt: die Aktion `auto_tpi_calibrate_capacity` und die Felder `allow_kint_boost_on_stagnation` / `allow_kext_compensation_on_overshoot` des Dienstes `set_auto_tpi_mode`. Aktualisieren Sie die Automatisierungen, die sie verwenden.
+>    - Zuvor gelernte Koeffizienten können falsch sein (Kint oft viel zu niedrig): Eine Reparatur fordert auf, eine neue Lernsitzung zu starten.
+> 2. **TPI-Schwellenwerte**: Die oberen und unteren Schwellenwerte wirken nur als Hysterese auf die Temperatur und hängen nicht mehr von der Temperatursteigung ab.
+
 ## Release 9.3 - stabile Version
 > 1. **Erkennung feststeckender Ventile**: Wesentliche Verbesserung der Heizungsfehlererkennung. Wenn eine Anomalie bei VTherms vom Typ `over_climate_valve` erkannt wird, diagnostiziert der Thermostat nun, ob das Problem durch ein feststeckendes TRV-Ventil (offen oder geschlossen feststeckend) verursacht wird, indem der Sollzustand mit dem Istzustand verglichen wird. Diese Information - `root_cause` - wird im Anomalieereignis gesendet und ermöglicht es Ihnen, angemessene Maßnahmen zu ergreifen (Benachrichtigung, Ventilwiederherstellung usw.). Weitere Informationen [hier](feature-heating-failure-detection.md),
 > 2. **Automatisches Erneut-Verriegeln nach Entsperrung**: Der Parameter `auto_relock_sec` wurde zur Verriegelungsfunktion hinzugefügt. Wenn konfiguriert, verriegelt sich der Thermostat nach der angegebenen Anzahl von Sekunden nach einer Entsperrung automatisch wieder. Diese Funktion kann vollständig deaktiviert werden, indem sie auf 0 gesetzt wird. Standardmäßig ist die automatische Wiederverriegelung auf 30 Sekunden eingestellt, um die Sicherheit zu verbessern. Weitere Informationen [hier](feature-lock.md),

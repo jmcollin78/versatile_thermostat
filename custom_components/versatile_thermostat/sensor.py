@@ -361,10 +361,7 @@ class AutoTpiSensor(VersatileThermostatBaseEntity, SensorEntity):
 
         # Determine state
         if manager.learning_active:
-            if manager.is_in_bootstrap:
-                self._attr_native_value = "bootstrap"
-            else:
-                self._attr_native_value = "active"
+            self._attr_native_value = "active"
         else:
             self._attr_native_value = "off" # Or "Completed" / "Idle" depending on context, but "Off" implies not learning.
 
@@ -378,23 +375,7 @@ class AutoTpiSensor(VersatileThermostatBaseEntity, SensorEntity):
             "model_confidence": manager.confidence,  # Model confidence (R² or percentage)
             "last_learning_status": manager.state.last_learning_status,  # Reason for last learning outcome
             "learning_start_dt": manager.state.learning_start_date,
-            "allow_kint_boost_on_stagnation": manager.state.allow_kint_boost,
-            "allow_kext_compensation_on_overshoot": manager.state.allow_kext_overshoot,
-            "bootstrap_failure_count": manager.state.bootstrap_failure_count,
         }
-
-        # Add mode-specific attributes
-        if manager._current_hvac_mode == "cool":
-            self._attr_extra_state_attributes.update({
-                "max_capacity_cool": manager.state.max_capacity_cool,
-            })
-        else:
-            self._attr_extra_state_attributes.update({
-                "max_capacity_heat": manager.state.max_capacity_heat,
-                "capacity_heat_status": "learning" if manager.is_in_bootstrap else "learned",
-                "capacity_heat_value": manager.state.max_capacity_heat,
-                "capacity_heat_count": manager.state.capacity_heat_learn_count,
-            })
 
         # Add calculated TPI coefficients
         calculated = manager.get_calculated_params()

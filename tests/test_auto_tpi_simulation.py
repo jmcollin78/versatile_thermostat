@@ -82,7 +82,6 @@ async def test_auto_tpi_convergence_simulation(mock_hass, mock_store, mock_confi
         coef_int=0.3, # Start LOW
         coef_ext=0.01, # Start LOW
         heater_heating_time=1,
-        heater_cooling_time=1,
     )
     # Enable autolearn configuration
     manager.state.autolearn_enabled = True
@@ -103,8 +102,7 @@ async def test_auto_tpi_convergence_simulation(mock_hass, mock_store, mock_confi
     print(f"\n{'Cycle':<5} | {'RoomT':<8} | {'ExtT':<8} | {'Power%':<8} | {'Kint':<8} | {'Kext':<8} | {'Status'}")
     print("-" * 80)
 
-    with patch("custom_components.versatile_thermostat.auto_tpi_manager.dt_util") as mock_dt_util, \
-         patch("custom_components.versatile_thermostat.auto_tpi_manager.async_call_later") as mock_call_later:
+    with patch("custom_components.versatile_thermostat.auto_tpi_manager.dt_util") as mock_dt_util:
         
         mock_dt_util.now.side_effect = lambda: sim_time
         mock_dt_util.as_local.side_effect = lambda x: x
@@ -125,15 +123,8 @@ async def test_auto_tpi_convergence_simulation(mock_hass, mock_store, mock_confi
                 kext = new_params.get(CONF_TPI_COEF_EXT)
                 
                 # Check directly vs Manager state to ensure we are in sync
-                # NOTE: During bootstrap, kint/kext will be aggressive (1.0/0.1) while state remains at initial (0.3/0.01)
-                # until capacity is learned. So we check equality only if NOT in bootstrap.
-                if manager.is_in_bootstrap:
-                     # Verify we are using aggressive defaults
-                     assert kint == 1.0
-                     assert kext == 0.1
-                else: 
-                     assert kint == manager.state.coeff_indoor_heat
-                     assert kext == manager.state.coeff_outdoor_heat
+                assert kint == manager.state.coeff_indoor_heat
+                assert kext == manager.state.coeff_outdoor_heat
 
                 if kint is not None and kext is not None:
                      prop_algo.update_parameters(tpi_coef_int=kint, tpi_coef_ext=kext)

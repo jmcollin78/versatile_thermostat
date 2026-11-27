@@ -1,176 +1,137 @@
 # 🧠 Auto TPI: Automatisches Lernen
 
 > [!NOTE]
-> Dieses Feature ist primär für **Schalt**-Heizsysteme (An/Aus) konzipiert, wie z.B. Elektroheizkörper, Heizkessel, Fußbodenheizungen oder Pelletöfen. Die Anpassung für thermostatische Heizkörperventile (TRV) bleibt aufgrund deren Nichtlinearität problematisch.
+> Dieses Feature ist primär für **Schalt**-Heizsysteme (An/Aus) konzipiert, wie z.B. Elektroheizkörper, Heizkessel, Fußbodenheizungen oder Pelletöfen. Die Anpassung für thermostatische Heizkörperventile (TRV) bleibt aufgrund ihrer Nichtlinearität problematisch: Die abgegebene Wärme ist nicht proportional zur Ventilöffnung.
 
-**Auto TPI** ermöglicht es Ihrem Thermostat, die thermischen Eigenschaften Ihres Raumes selbstständig zu erlernen. Es passt automatisch die Koeffizienten $K_{int}$ (Interne Trägheit) und $K_{ext}$ (Externe Isolierung) an, um Ihren Sollwert mit optimaler Präzision zu erreichen und zu halten.
+**Auto TPI** ermöglicht es Ihrem Thermostat, das thermische Verhalten Ihres Raumes selbstständig zu erlernen. Es passt die Koeffizienten $K_{int}$ (intern) und $K_{ext}$ (extern) automatisch an, um Ihren Sollwert zu erreichen und zu halten.
 
 > [!TIP]
-> **Für fortgeschrittene Benutzer**: Eine detaillierte technische Dokumentation, die die Algorithmen, mathematischen Formeln und internen Mechanismen erklärt, finden Sie hier: [Auto TPI Technische Dokumentation](feature-autotpi-technical.md).
+> **Für fortgeschrittene Benutzer**: Eine detaillierte technische Dokumentation, die die Algorithmen, Formeln und internen Mechanismen erklärt, finden Sie hier: [Auto TPI Technische Dokumentation](feature-autotpi-technical.md).
 
 ---
 
 ## 🔄 Sitzungszyklus
 
-Auto TPI arbeitet in **punktuellen Lern-Sitzungen**. Während einer Sitzung analysiert das System dynamisch die Reaktion Ihres Raumes: Zuerst wird die tatsächliche Leistung Ihrer Heizung bewertet, dann werden Kint und Kext über mindestens 50 TPI-Zyklen pro Koeffizient angepasst.
+Auto TPI arbeitet in **Lernsitzungen**. Während einer Sitzung beobachtet das System Ihren Raum und passt die beiden Koeffizienten in kleinen Schritten an, jeweils in der Situation, in der sie zuverlässig gemessen werden können.
 
 ```mermaid
 graph LR
-    %% Flat Design Palette
     classDef startEnd fill:#f1f8e9,stroke:#558b2f,stroke-width:2px,color:#33691e
     classDef decision fill:#e3f2fd,stroke:#1565c0,stroke-width:2px,color:#0d47a1
     classDef process fill:#eceff1,stroke:#455a64,stroke-width:1px,color:#263238
-    classDef bootstrap fill:#fff9c4,stroke:#fbc02d,stroke-width:2px,color:#f57f17
 
-    A([Sitzungsstart]) --> B{Rate = 0?}
-    
-    B -- "Ja" --> C[Kalibrierung]
-    B -- "Nein" --> D["Lernen (min 50 Zyklen)"]
-    
-    C --> E{Genug\nHistorie?}
-    E -- "Ja" --> D
-    E -- "Nein" --> F[Bootstrap]
-    F -->|3 Zyklen| D
-    
-    D --> G{Sitzung beendet?}
-    G -- "Nein" --> D
-    G -- "Ja" --> H([Sitzung komplett])
+    A([Sitzungsstart]) --> B["Lernen<br/>Kint: 15 Anstiegsfenster<br/>Kext: 50 eingeschwungene Zyklen"]
+    B --> C{Beide fertig?}
+    C -- "Nein" --> B
+    C -- "Ja" --> D([Koeffizienten gespeichert])
 
-    class A,H startEnd
-    class B,E,G decision
-    class C,D process
-    class F bootstrap
+    class A,D startEnd
+    class C decision
+    class B process
 ```
 
-1.  **Initialisierung**: Wenn die **Heizrate** (Heat Rate) 0 ist, versucht das System zunächst eine **Kalibrierung**, indem es Ihre historischen Temperatur-, Steigungs- und Leistungsdaten analysiert (über den Dienst `calibrate_capacity`).
-2.  **Bootstrap-Modus**: Wenn die Historie nicht zuverlässig genug ist, um die Heizrate zu schätzen, wechselt das System in den **Bootstrap-Modus**. Es führt 3 intensive Heizzyklen durch, um die Heizkapazität Ihres Heizkörpers zu bestimmen.
-3.  **Aktives Lernen**: Sobald die Heizrate bekannt ist, verfeinert das System die TPI-Koeffizienten bei jedem Zyklus. Diese Phase dauert **mindestens 50 Zyklen** pro Koeffizient, um deren Stabilität zu gewährleisten.
-4.  **Speichern**: Am Ende der Sitzung (ca. 48 Stunden) werden die erlernten Koeffizienten **und** die endgültige Heizrate automatisch in Ihrer permanenten Konfiguration gespeichert.
+1.  **Start**: Die Sitzung beginnt mit den Koeffizienten Ihrer Konfiguration.
+2.  **Lernen**: Kint und Kext werden unabhängig voneinander angepasst (siehe unten).
+3.  **Speichern**: Sobald Kint über **15 Anstiegsfenster** und Kext über **50 Zyklen** angepasst wurde, endet die Sitzung: Die Koeffizienten werden in Ihrer Konfiguration gespeichert und eine Benachrichtigung wird gesendet.
 
 ### Wann werden Kint und Kext angepasst?
 
-Das System erlernt beide Koeffizienten in unterschiedlichen Situationen:
-
-| Koeffizient | Lern-Situation | Erklärung |
+| Koeffizient | Lernsituation | Erklärung |
 | :--- | :--- | :--- |
-| **Kint** (Interne Trägheit) | Während des **Temperaturanstiegs**, wenn die Abweichung vom Sollwert signifikant ist (> 0,05°C) und die Heizung nicht gesättigt ist (100%). | Kint steuert die Reaktionsfähigkeit der Heizung. Er passt sich an, wenn das System zum Sollwert "aufholen" muss. |
-| **Kext** (Externe Isolierung) | Während der **Stabilisierung um den Sollwert**, wenn die Abweichung gering ist (< 1°C). | Kext kompensiert Wärmeverluste nach außen. Er passt sich an, wenn das System die Temperatur hält. |
+| **Kint** (intern) | Während eines **Temperaturanstiegs**, wenn der Raum mindestens **0,3 °C** unter dem Sollwert liegt und die Heizung weder abgeschaltet ist noch bei 100 % läuft. Der Anstieg wird in Fenstern von 10 bis 30 Minuten beobachtet (bei trägen Heizkörpern länger), abhängig von der Anstiegsgeschwindigkeit. | Kint legt fest, wie stark die Heizung auf eine Abweichung reagiert. Es wird so angepasst, dass der Raum die Abweichung mit einer Zielgeschwindigkeit ausgleicht, die von der **Heizzeit** Ihres Heizkörpers abgeleitet ist. |
+| **Kext** (extern) | Wenn der Raum **nahe am Sollwert eingeschwungen** ist: einige Zeit nach der letzten Sollwertänderung, sobald der Raum wieder innerhalb von 0,3 °C des Sollwerts liegt. | Kext kompensiert die Wärmeverluste nach außen. Es wird so angepasst, dass die verbleibende Abweichung verschwindet. |
 
 > [!TIP]
-> Deshalb ist es wichtig, während des Lernens abwechslungsreiche Heizzyklen zu erzeugen: Der Temperaturanstieg ermöglicht die Kint-Anpassung, und die Stabilisierung ermöglicht die Kext-Anpassung.
+> Kint kann nur gelernt werden, wenn der Raum den Sollwert erst erreichen muss. Geplante Sollwertänderungen (Nachtabsenkung, Presets) reichen aus, um solche Situationen zu schaffen.
 
 > [!NOTE]
-> **Gesättigte Zyklen**: Zyklen mit **0%** oder **100%** Leistung werden für die Berechnung der Kint- und Kext-Koeffizienten **ignoriert** (da sie keine brauchbaren Informationen über die thermische Reaktion liefern). Zyklen bei 100% werden jedoch zur Anpassung der **Heizrate** verwendet.
+> **Gesättigte Zyklen**: Zyklen mit **0 %** oder **100 %** Leistung werden **ignoriert**, da sie nichts darüber aussagen, wie die Leistung angepasst werden sollte.
 
 ---
 
-## 🚀 Das Lernen starten
+## 🚀 Start des Lernens
 
-Sobald das **Auto TPI**-Feature für Ihren Thermostat aktiviert und konfiguriert ist, startet das Lernen nicht automatisch. Sie müssen es manuell starten:
+Sobald das Feature **Auto TPI** für Ihr Thermostat aktiviert und konfiguriert ist, startet das Lernen nicht automatisch. Sie müssen es manuell starten:
 
-1.  **Über die dedizierte Karte (Empfohlen)**: Verwenden Sie den "Play"-Button auf der [Auto TPI Learning Card](https://github.com/KipK/auto-tpi-learning-card).
-2.  **Über den Dienst "Set Auto TPI Mode"**: Rufen Sie diesen Dienst (`set_auto_tpi_mode`) aus den Entwicklerwerkzeugen auf. Dieser Dienst startet oder stoppt eine Auto-TPI-Sitzung.
+1.  **Über die dedizierte Karte (empfohlen)**: Verwenden Sie die Schaltfläche "Play" auf der [Auto TPI Learning Card](https://github.com/KipK/auto-tpi-learning-card).
+2.  **Über den Dienst "Set Auto TPI Mode"**: Rufen Sie diesen Dienst (`set_auto_tpi_mode`) aus den Entwicklerwerkzeugen auf. Er startet oder stoppt eine Auto-TPI-Sitzung. Mit `reinitialise: true` beginnt die Sitzung erneut mit den konfigurierten Koeffizienten; andernfalls wird die vorherige Sitzung fortgesetzt.
 
 ---
 
-## ⚙️ Standard-Konfiguration
+## ⚙️ Konfiguration
 
-Bei der Aktivierung von Auto TPI stehen folgende Parameter zur Verfügung:
+Beim Aktivieren von Auto TPI stehen folgende Parameter zur Verfügung:
 
 | Parameter | Beschreibung |
 | :--- | :--- |
-| **Learning Type** | **Discovery** (für das erste Lernen) oder **Fine Tuning** (um bestehende Einstellungen zu verfeineren). |
-| **Aggressiveness** | Reduktionsfaktor der Koeffizienten (1.0 = 100%). Reduzieren Sie diesen Wert (z.B. 0.8), wenn Sie häufige Sollwert-Überschreitungen (Overshoots) beobachten. |
-| **Heating Time** | Erforderliche Zeit, bis Ihr Gerät die volle Leistung erreicht (z.B. 5 Min. für einen Elektroheizkörper). |
-| **Cooling Time** | Erforderliche Zeit zum Abkühlen nach dem Abschalten (z.B. 7 Min. für einen Elektroheizkörper). |
-| **Heat Rate** | Temperaturanstiegskapazität (°C/Stunde). Auf **0** lassen, damit das System sie automatisch über Kalibrierung oder Bootstrap berechnet. |
+| **Heating Time** | Zeit, die Ihr Heizkörper benötigt, um nach dem Einschalten die volle Leistung zu erreichen. Sie legt die Zielgeschwindigkeit der Regelung fest: Je träger der Heizkörper, desto sanfter wird Kint eingestellt. |
+| **Continuous Kext Learning** | Passt Kext auch nach dem Ende der Sitzung weiter an (siehe unten). |
+
+Richtwerte für die Heizzeit:
+
+| Heizungsart | Heizzeit |
+| :--- | :--- |
+| Elektroheizkörper | 5 Min. |
+| Wasserheizkörper | 15 Min. |
+| Fußbodenheizung | 30 Min. |
 
 ---
 
-## 🛠️ Erweiterte Konfiguration
-
-Wenn Sie "Enable advanced parameters" aktivieren, erhalten Sie Zugriff auf die Feinabstimmung der Algorithmen.
-
-### "Discovery"-Methode (Gewichteter Durchschnitt)
-Wird verwendet, um ein neues System schnell zu stabilisieren.
--   **Initial Weight** (1 bis 50): Definiert die Bedeutung der aktuellen Koeffizienten im Verhältnis zu neuen Entdeckungen.
-    -   Bei **1**: Neu berechnete Koeffizienten ersetzen die alten fast vollständig. Das Lernen ist schnell, aber empfindlich gegenüber Störungen.
-    -   Bei **50**: Alte Koeffizienten haben viel mehr Gewicht. Das Lernen ist sehr langsam, aber sehr stabil.
-    -   **Empfehlung**: Für das erste Lernen auf 1 lassen. Wenn Sie ein unterbrochenes Lernen fortsetzen möchten, während ein Teil des Fortschritts erhalten bleibt, verwenden Sie einen Zwischenwert (z.B. 25).
-
-### "Fine Tuning"-Methode (EWMA)
-Wird für eine sanfte und sehr präzise Anpassung verwendet.
--   **Alpha** : Glättungsfaktor. Je höher dieser ist, desto schneller reagiert das System auf aktuelle Änderungen.
--   **Decay Rate** : Ermöglicht es, die Lerngeschwindigkeit schrittweise zu reduzieren, um sich auf den besten gefundenen Werten zu stabilisieren.
-
----
-
-## 💡 Bewährte Verfahren
+## 💡 Best Practices
 
 ### Externe Störungen vermeiden
-Versuchen Sie während einer Lern-Sitzung (besonders in den ersten Stunden) Folgendes zu vermeiden:
+Versuchen Sie während einer Lernsitzung Folgendes zu vermeiden:
 -   Direkte Sonneneinstrahlung auf den Temperatursensor.
--   Nutzung einer sekundären Wärmequelle (Kamin, Ofen).
--   Massive Zugluft (offene Türen).
-Diese Faktoren verfälschen die Wahrnehmung des Systems über die Isolierung Ihres Raumes.
+-   Die Nutzung einer zusätzlichen Wärmequelle (Kamin, Ofen).
+-   Lange geöffnete Fenster oder Türen.
+
+Diese Faktoren verändern die Raumtemperatur ohne Zusammenhang mit der Heizung, und das System würde sie als Eigenschaft des Raumes werten.
 
 ### Extreme Bedingungen vermeiden
 
 > [!CAUTION]
-> **Starten Sie kein Lernen, wenn Ihre Heizkörper gesättigt sind** (ständig 100% Leistung). Dies tritt typischerweise bei außergewöhnlichen Kältewellen auf, wenn die Heizung den Sollwert nicht mehr erreichen kann. Unter diesen Bedingungen kann das System nicht richtig lernen, da es keinen Spielraum zur Leistungsanpassung hat. Warten Sie auf mildere Wetterbedingungen, um eine Lern-Sitzung zu starten.
+> **Starten Sie das Lernen nicht, wenn Ihre Heizkörper gesättigt sind** (dauerhaft 100 % Leistung). Dies tritt typischerweise bei außergewöhnlichen Kälteperioden auf, wenn die Heizung den Sollwert nicht mehr erreichen kann. Gesättigte Zyklen werden ignoriert, die Sitzung würde also keinen Fortschritt machen. Warten Sie auf mildere Wetterbedingungen, um eine Lernsitzung zu starten.
 
-### Idealer Ablauf einer "Discovery"-Sitzung
+### Idealer Sitzungsablauf
 
-> [!TIP]
-> **Konkretes Beispiel**: Wenn Ihr üblicher Sollwert **18°C** ist, senken Sie ihn vorübergehend auf **15°C** und warten Sie, bis sich der Raum stabilisiert hat. Starten Sie dann das Lernen neu und stellen Sie den Sollwert wieder auf **18°C**. Dadurch entsteht eine Differenz von 3°C, die das System zum Lernen beobachten wird.
-
-1.  **Vorbereitung**: Senken Sie den Sollwert um mindestens 3°C unter Ihre übliche Temperatur. Lassen Sie den Raum abkühlen und sich bei dieser neuen Temperatur stabilisieren.
-2.  **Start**: Aktivieren Sie das Lernen und **stellen Sie den Sollwert wieder auf seinen üblichen Wert**. Das System wird den Temperaturanstieg beobachten.
-3.  **Stabilisierung**: Lassen Sie das System die Temperatur für einige Stunden um den Sollwert stabilisieren.
-4.  **Stimulation**: Sobald sich die Koeffizienten nicht mehr signifikant ändern, lösen Sie einen neuen Heizzyklus aus, indem Sie den Sollwert um 2°C senken und dann wieder anheben.
-5.  **Stabilisierung**: Lassen Sie das System die Temperatur für einige Stunden um den Sollwert stabilisieren.
-6.  **Abschluss**: Wenn das Lernen noch nicht abgeschlossen ist, lassen Sie das System bis zum Ende laufen, während Sie zu Ihren normalen Lebensgewohnheiten zurückkehren. Auto TPI stoppt von selbst, sobald die Koeffizienten nach jeweils mindestens 50 Zyklen stabilisiert sind.
+1.  **Starten**: Starten Sie die Lernsitzung und behalten Sie Ihren üblichen Zeitplan bei. Jeder Anstieg nach einem niedrigeren Sollwert (Nacht, Abwesenheit) liefert Lernfenster für Kint; jeder eingeschwungene Zeitraum liefert Zyklen für Kext.
+2.  **Bei Bedarf beschleunigen**: Ändert sich Ihr Sollwert selten, senken Sie ihn für einige Stunden um 1 bis 2 °C und stellen Sie ihn dann wieder ein: Der Anstieg liefert Lernfenster für Kint.
+3.  **Ende**: Die Sitzung endet von selbst, sobald beide Koeffizienten genügend Beobachtungen haben.
 
 > [!NOTE]
-> **Über das Überschwingen (Overshoot)**: Ein Überschwingen beim ersten Temperaturanstieg ist **normal** und sogar vorteilhaft! Es liefert wertvolle Daten für das Lernen. Das System wird diese nutzen, um die Koeffizienten zu verfeinern. Wenn die Überschwingungen jedoch nach mehreren Zyklen **bestehen bleiben oder sich verschlimmern**, kann dies auf ein Problem in der Auto-TPI-Konfiguration (falsche Heiz-/Kühlzeiten, zu hohe Aggressivität) oder ein Problem in der VTherm-Konfiguration selbst hindeuten.
-
-### Idealer Ablauf einer "Fine Tuning"-Sitzung
-1.  **Stabilität**: Behalten Sie Ihre gewohnten Heizgewohnheiten bei und vermeiden Sie lediglich außergewöhnliche Störungen (lange geöffnete Fenster, Zusatzheizung).
-2.  **Beobachtung**: Lassen Sie das System Mikrowariationen beobachten und die Koeffizienten über 50 Zyklen anpassen.
-3.  **Neubewertung**: Wenn Sie feststellen, dass die Koeffizienten stark driften oder der Komfort nachlässt, ist es besser, eine komplette Sitzung im **Discovery**-Modus neu zu starten.
+> **Zum Overshoot (Überschreiten des Sollwerts)**: Ein kleiner Overshoot nach einem Anstieg ist bei einem trägen Heizkörper normal. Falls Overshoots **nach dem Ende der Sitzung anhalten**, prüfen Sie die **Heizzeit** Ihrer Konfiguration: Ein zu kurzer Wert für den Heizkörper macht die Regelung zu schnell.
 
 ---
 
-## 🔄 Kontinuierliches Kext-Lernen/Continuous Kext Learning
+## 🔄 Kontinuierliches Kext-Lernen
 
-Während Standard-Auto-TPI-Sitzungen für punktuelles Lernen (anfängliche Erfassung oder Feinabstimmung) ausgelegt sind, ermöglicht die Funktion **Continuous Kext Learning** dem Thermostat, sich an langfristige Klimaveränderungen und Schwankungen in der Gebäudedämmung anzupassen, ohne dass manuelle Sitzungen erforderlich sind.
+Das Feature **Continuous Kext Learning** ermöglicht es dem Thermostat, langsame Änderungen der Wärmeverluste (Jahreszeit, Wind, Nutzung des Gebäudes) nach der Lernsitzung zu verfolgen, ohne eine neue Sitzung zu starten.
 
 ### So funktioniert es
-Nach der Aktivierung überwacht das System während des Normalbetriebs kontinuierlich die Genauigkeit des Koeffizienten $K_{ext}$ (Außenwärmedämmung). Wenn es eine systematische Abweichung feststellt (z. B. liegt die Temperatur bei Kälteeinbrüchen stets 0,2 °C unter dem Sollwert), nimmt es mithilfe eines **exponentiellen gleitenden Durchschnitts (EWMA)** Mikrokorrekturen vor.
+Nach der Aktivierung prüft das System kontinuierlich die verbleibende Abweichung, wenn der Raum nahe am Sollwert eingeschwungen ist. Bleibt die Abweichung auf derselben Seite (z. B. liegt der Raum bei kaltem Wetter immer 0,2 °C unter dem Sollwert), korrigiert es Kext in kleinen Schritten mit einem festen Glättungsfaktor (exponentieller gleitender Mittelwert, Alpha 0,04).
 
-### Features
-- **Passive Adaptation**: Läuft im Hintergrund, solange der Thermostat in Betrieb ist.
-- **Safety**: Nur aktiv, wenn die Leistungsgrenze nicht erreicht ist und das System stabil läuft.
-- **Configurable Alpha**: Hiermit kann der "Alpha"-Faktor (Standardwert 0,04) angepasst werden, um die Reaktionszeit des Systems anzupasst. Ein höherer Wert bedeutet eine schnellere Anpassung, aber auch eine größere Empfindlichkeit gegenüber Störsignalen.
-- **Requires Bootstrap**: Das kontinuierliche Lernen beginnt erst, nachdem mindestens ein erfolgreicher Lernzyklus im Außenbereich in einer Standardsitzung durchgeführt wurde.
+### Eigenschaften
+- **Passive Anpassung**: Läuft im Hintergrund, solange das Thermostat aktiv ist.
+- **Sicherheit**: Nur aktiv, wenn die Leistung nicht gesättigt ist und der Raum nahe am Sollwert eingeschwungen ist.
+- **Erfordert eine erste Sitzung**: Das kontinuierliche Lernen beginnt erst, nachdem mindestens ein Kext-Lernzyklus in einer Standardsitzung durchgeführt wurde.
 
 ---
 
 ## 📊 Visuelle Überwachung
 
-Um die Lernentwicklung in Echtzeit zu verfolgen, wird dringend empfohlen, die benutzerdefinierte Karte **Auto TPI Learning Card** zu installieren.
+Um den Lernfortschritt in Echtzeit zu verfolgen, wird dringend empfohlen, die benutzerdefinierte Karte **Auto TPI Learning Card** zu installieren.
 
 ### Installation über HACS
 
-[![Öffnen Sie Ihre Home Assistant-Instanz und öffnen Sie ein Repository im Home Assistant Community Store.](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=KipK&repository=auto-tpi-learning-card&category=plugin)
+[![Open your Home Assistant instance and open a repository inside the Home Assistant Community Store.](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=KipK&repository=auto-tpi-learning-card&category=plugin)
 
 Oder fügen Sie das benutzerdefinierte Repository manuell hinzu: [https://github.com/KipK/auto-tpi-learning-card](https://github.com/KipK/auto-tpi-learning-card)
 
-### Kartenfunktionen
+### Funktionen der Karte
 
-![Auto TPI Card Vorschau](https://github.com/KipK/auto-tpi-learning-card/blob/main/assets/card.png?raw=true)
+![Auto TPI Card Preview](https://github.com/KipK/auto-tpi-learning-card/blob/main/assets/card.png?raw=true)
 
--   📈 Echtzeit-Fortschritt von Kalibrierung und Lernen
--   🔢 Koeffizienten `Kint`, `Kext` und Heizrate in Berechnung
--   ▶️ Steuerungs-Button zum Starten/Stoppen der Sitzung
--   🔧 Optionen zum Zurücksetzen der Sitzung, Aktivieren von Kint Boost oder Kext Deboost
+-   📈 Lernfortschritt in Echtzeit
+-   🔢 Berechnung der Koeffizienten `Kint` und `Kext`
+-   ▶️ Schaltfläche zum Starten/Stoppen der Sitzung
+-   🔧 Option zum Zurücksetzen der Sitzung

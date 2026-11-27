@@ -14,11 +14,6 @@ from custom_components.versatile_thermostat.auto_tpi_manager import (
 import logging
 _LOGGER = logging.getLogger(__name__)
 
-@pytest.fixture(autouse=True)
-def mock_async_call_later():
-    with patch("custom_components.versatile_thermostat.auto_tpi_manager.async_call_later") as mock_call_later:
-        yield mock_call_later
-
 @pytest.fixture
 def mock_hass():
     """Mock Home Assistant."""
@@ -57,9 +52,7 @@ def manager(mock_hass, mock_store, mock_config_entry):
         coef_int=0.6,
         coef_ext=0.01,
         heater_heating_time=10,
-        heater_cooling_time=5,
         continuous_kext=True,
-        continuous_kext_alpha=0.1 # 10% learning rate
     )
 
 async def test_should_learn_continuous_basics(manager):
@@ -158,7 +151,7 @@ async def test_on_cycle_completed_triggers_perform_learning(manager):
     await manager.on_cycle_started(on_time_sec=150, off_time_sec=150, on_percent=0.5, hvac_mode="heat")
 
     # Backdate cycle_start_date so elapsed >= cycle_min (5 min) when on_cycle_completed is called
-    manager.state.cycle_start_date = start_time - timedelta(minutes=6)
+    manager.state.cycle_start_date = start_time - timedelta(minutes=5)
 
     # We patch _perform_learning to verify it is called
     with patch.object(manager, "_perform_learning", wraps=manager._perform_learning) as mock_perform:

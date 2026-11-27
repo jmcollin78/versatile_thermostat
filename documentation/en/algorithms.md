@@ -74,8 +74,9 @@ This prevents rapid flickering that provides little benefit for temperature regu
 Since version 7.4, two additional thresholds are available.
 They allow you to disable (or re-enable) the TPI algorithm itself, based on the difference between the target setpoint and the current temperature.
 
-- If the temperature rises and the difference is greater than the upper threshold, the heater is switched off (i.e., `on_percent` is forced to 0).
-- If the temperature drops and the difference is smaller than the lower threshold, the heater is turned back on (i.e., `on_percent` is calculated by the algorithm as described above).
+- If the temperature exceeds the setpoint by more than the upper threshold, the heater is switched off (i.e., `on_percent` is forced to 0).
+- The heater stays off until the temperature exceeds the setpoint by less than the lower threshold. It is then turned back on (i.e., `on_percent` is calculated by the algorithm as described above).
+- Between the two thresholds, the previous state is kept. The decision only depends on the current temperature, not on its trend, so it is not affected by long intervals between two temperature measurements.
 
 These two thresholds stop the on/off cycling when the temperature overshoots the target.
 A hysteresis prevents rapid toggling.

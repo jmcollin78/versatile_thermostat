@@ -251,12 +251,8 @@
         }
       },
       "auto_tpi_configuration": {
-        "data": {
-          "auto_tpi_cooling_rate": "Ρυθμός ψύξης ({unit}/h)"
-        },
-        "data_description": {
-          "auto_tpi_cooling_rate": "Ικανότητα ψύξης του καλοριφέρ ({unit} ανά ώρα). Αφήστε την τιμή στο 0 για αυτόματη εκμάθηση (bootstrap)."
-        }
+        "data": {},
+        "data_description": {}
       },
       "heating_failure_detection": {
         "title": "Heating failure detection",
@@ -538,12 +534,8 @@
         }
       },
       "auto_tpi_configuration": {
-        "data": {
-          "auto_tpi_cooling_rate": "Ρυθμός ψύξης ({unit}/h)"
-        },
-        "data_description": {
-          "auto_tpi_cooling_rate": "Ικανότητα ψύξης του καλοριφέρ ({unit} ανά ώρα). Αφήστε την τιμή στο 0 για αυτόματη εκμάθηση (bootstrap)."
-        }
+        "data": {},
+        "data_description": {}
       },
       "heating_failure_detection": {
         "title": "Heating failure detection",

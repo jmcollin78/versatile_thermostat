@@ -70,8 +70,9 @@ Idem avec le deuxième délai (`minimal_deactivation_delay_sec`) en secondes lui
 
 Depuis la version 7.4, deux seuils supplémentaires sont disponibles. Ils permettent de couper (resp. mettre en marche) l'algorithme TPI lui même en fonction de l'écart entre la consigne et la température courante.
 
-Si la température monte et que l'écart est supérieur au seuil haut alors le radiateur est coupé (ie. le on_percent est forcé à 0).
-Si la température descend et que l'écart est inférieur au seuil bas alors le radiateur est relancé (ie le on_percent est calculé avec l'algo tel que présenté ci-dessus).
+Si la température dépasse la consigne de plus que le seuil haut alors le radiateur est coupé (ie. le on_percent est forcé à 0).
+Le radiateur reste coupé jusqu'à ce que la température dépasse la consigne de moins que le seuil bas. Il est alors relancé (ie le on_percent est calculé avec l'algo tel que présenté ci-dessus).
+Entre les deux seuils, l'état précédent est conservé. La décision ne dépend que de la température courante, pas de sa tendance : elle n'est donc pas affectée par un long intervalle entre deux mesures de température.
 
 Ces deux seuils permettent de couper le cycle d'extinction / allumage lorsque la température dépasse la consigne. Un hystéresis permet d'éviter un bagottement rapide.
 
