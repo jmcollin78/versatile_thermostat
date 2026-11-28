@@ -29,7 +29,7 @@ from .base_thermostat import BaseThermostat
 
 from .const import *  # pylint: disable=wildcard-import, unused-wildcard-import
 
-from .vtherm_central_api import VersatileThermostatAPI
+from .vtherm_central_api import VersatileThermostatAPI, async_update_entry_without_reload
 
 _LOGGER = get_vtherm_logger(__name__)
 
@@ -51,7 +51,6 @@ async def _migrate_auto_start_stop_entry(hass: HomeAssistant, entry: ConfigEntry
     if not eligible and entry.data.get(CONF_AUTO_START_STOP_MIGRATED_BY) != AUTO_START_STOP_MIGRATED_BY_VTHERM_AUTO_START_STOP:
         return False
 
-    api: VersatileThermostatAPI = VersatileThermostatAPI.get_vtherm_api(hass)
     new_data = dict(entry.data)
     if eligible:
         new_data.update({
@@ -64,13 +63,7 @@ async def _migrate_auto_start_stop_entry(hass: HomeAssistant, entry: ConfigEntry
     if new_data == entry.data:
         await _remove_core_auto_start_stop_entities(hass, entry)
         return False
-    if api:
-        api.skip_reload_on_config_update = True
-    try:
-        hass.config_entries.async_update_entry(entry, data=new_data)
-    finally:
-        if api:
-            api.skip_reload_on_config_update = False
+    async_update_entry_without_reload(hass, entry, new_data)
 
     if eligible:
         _LOGGER.info(

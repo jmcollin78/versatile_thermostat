@@ -14,7 +14,7 @@ from .prop_algo_tpi import TpiAlgorithm
 from .auto_tpi_manager import AutoTpiManager
 from .const import *  # pylint: disable=wildcard-import, unused-wildcard-import
 from .vtherm_hvac_mode import VThermHvacMode_OFF, VThermHvacMode_HEAT, VThermHvacMode_COOL
-from .vtherm_central_api import VersatileThermostatAPI
+from .vtherm_central_api import VersatileThermostatAPI, async_update_entry_without_reload
 from .commons import write_event_log
 from .cycle_scheduler import calculate_cycle_times
 
@@ -236,7 +236,7 @@ class TPIHandler:
         t = self._thermostat
         get_feature_manager = getattr(t, "get_feature_manager", None)
         heating_failure_manager = (
-            get_feature_manager("heating_failure_detection")
+            get_feature_manager(HEATING_FAILURE_DETECTION_STABLE_NAME)
             if callable(get_feature_manager)
             else None
         )
@@ -367,12 +367,18 @@ class TPIHandler:
             "minimal_deactivation_delay_sec": t.minimal_deactivation_delay,
         })
 
-    async def _async_update_tpi_config_entry(self):
-        """Update the config entry with current TPI parameters."""
+    async def _async_update_tpi_config_entry(self, extra_data: dict | None = None):
+        """Save the current TPI parameters, and extra_data, in the config entry.
+
+        The parameters are already applied to the running thermostat, so the entry
+        is not reloaded: a reload would rebuild the entity and lose its in-memory
+        state (current cycle, sensor values, Auto TPI learning windows).
+        """
         t = self._thermostat
         entry = t.hass.config_entries.async_get_entry(t.unique_id)
         if entry:
             new_data = entry.data.copy()
+            new_data.update(extra_data or {})
             new_data[CONF_TPI_COEF_INT] = t.tpi_coef_int
             new_data[CONF_TPI_COEF_EXT] = t.tpi_coef_ext
             new_data[CONF_TPI_THRESHOLD_LOW] = t.tpi_threshold_low
@@ -380,7 +386,7 @@ class TPIHandler:
             new_data[CONF_MINIMAL_ACTIVATION_DELAY] = t.minimal_activation_delay
             new_data[CONF_MINIMAL_DEACTIVATION_DELAY] = t.minimal_deactivation_delay
 
-            result = t.hass.config_entries.async_update_entry(entry, data=new_data)
+            result = async_update_entry_without_reload(t.hass, entry, new_data)
             _LOGGER.debug("%s - Config entry updated with new TPI params: %s", t, result)
 
     async def service_set_tpi_parameters(
@@ -443,12 +449,15 @@ class TPIHandler:
 
         await self._async_update_tpi_config_entry()
 
-        if t.is_removed:
-            _LOGGER.debug("%s - Entity is removed, stop service_set_tpi_parameters", t)
-            return
+        # Without a reload, Auto TPI is told the new configured coefficients
+        if self._auto_tpi_manager:
+            self._auto_tpi_manager.set_configured_coefficients(t.tpi_coef_int, t.tpi_coef_ext)
 
+        # Refresh the demand with the new parameters. The running cycle is not restarted:
+        # the new power applies from the next cycle, so Auto TPI keeps a complete cycle.
         t.recalculate()
-        await t.async_control_heating(force=True)
+        t.update_custom_attributes()
+        t.async_write_ha_state()
 
     async def service_set_auto_tpi_mode(
         self,
@@ -513,16 +522,11 @@ class TPIHandler:
             if t._entry_infos:
                 t._entry_infos[CONF_USE_TPI_CENTRAL_CONFIG] = False
 
-            # Persist the change to the config entry
+            # Persist the change to the config entry, with the TPI parameters in use so
+            # that a restart reads the same values from the thermostat's own configuration
             entry = t.hass.config_entries.async_get_entry(t.unique_id)
             if entry and entry.data.get(CONF_USE_TPI_CENTRAL_CONFIG, True):
-                new_data = entry.data.copy()
-                new_data[CONF_USE_TPI_CENTRAL_CONFIG] = False
-                t.hass.config_entries.async_update_entry(entry, data=new_data)
-
-            if t.is_removed:
-                _LOGGER.debug("%s - Entity is removed, stop async_set_auto_tpi_mode", t)
-                return
+                await self._async_update_tpi_config_entry({CONF_USE_TPI_CENTRAL_CONFIG: False})
 
             # Starting learning is sufficient, cycle processing is passive
             pass

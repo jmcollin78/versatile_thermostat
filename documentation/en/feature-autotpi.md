@@ -32,7 +32,7 @@ graph LR
 
 1.  **Start**: The session starts from the coefficients of your configuration.
 2.  **Learning**: Kint and Kext are adjusted independently (see below).
-3.  **Saving**: Once Kint has been adjusted over **15 rise windows** and Kext over **50 cycles**, the session ends: the coefficients are saved to your configuration and a notification is sent.
+3.  **Saving**: Once Kint has been adjusted over **15 rise windows** and Kext over **50 cycles**, the session ends (later if Kint is still moving the same way): the coefficients are saved to your configuration and a notification is sent.
 
 ### When are Kint and Kext adjusted?
 

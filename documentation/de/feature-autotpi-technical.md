@@ -101,7 +101,7 @@ Ein Zyklus wird für das Lernen ignoriert, wenn:
 
 ### Ende der Sitzung
 
-Die Sitzung endet, wenn Kint über **15 Fenster** und Kext über **50 Zyklen** gelernt wurde. Die Koeffizienten werden dann in die Konfiguration geschrieben und eine Benachrichtigung wird gesendet.
+Die Sitzung endet, wenn Kint über **15 Fenster** und Kext über **50 Zyklen** gelernt wurde. Die Koeffizienten werden dann in die Konfiguration geschrieben und eine Benachrichtigung wird gesendet. Kint gilt nicht als gelernt, solange seine letzten **5 Schritte** alle in dieselbe Richtung gingen: Es ist noch weit von seinem Wert entfernt, und die Sitzung läuft weiter.
 
 ---
 
@@ -178,7 +178,7 @@ Wenn **Continuous Kext Learning** aktiviert ist, wird Kext auch nach der Sitzung
 Kext_new = Kext × (1 − α) + Kext_target × α        α = 0.04
 ```
 
-Ein fester Gewichtungsfaktor lässt Kext einer langsam driftenden Größe folgen. Der neue Wert wird in die Konfiguration geschrieben, wenn er sich um mehr als 0.001 ändert, und die Regelung verwendet ihn sofort.
+Ein fester Gewichtungsfaktor lässt Kext einer langsam driftenden Größe folgen. Der neue Wert wird in die Konfiguration geschrieben, sobald er um mehr als 0.001 vom konfigurierten Wert abweicht (die kleinen Schritte summieren sich), und die Regelung verwendet ihn sofort.
 
 ---
 
@@ -200,6 +200,7 @@ Ein fester Gewichtungsfaktor lässt Kext einer langsam driftenden Größe folgen
 | Maximaler Kint-Schritt | ×1.15 / ÷1.15 | Begrenzter Schritt pro Fenster |
 | Grenzen für Kint | 0.01 – 3.0 | |
 | Kint-Fenster bis zum Ende der Sitzung | 15 | |
+| Kint-Schritte in dieselbe Richtung, die das Ende verhindern | 5 | |
 | Kext-Zyklen bis zum Ende der Sitzung | 50 | |
 | Kext-Einschwingen | 3 × T_cl, danach nahe am Sollwert (oder 12 × T_cl) | Kext wird während eines Anstiegs nicht gelernt |
 | Maximale Abweichung für Kext | 1.0 °C | |
@@ -273,6 +274,7 @@ Zustand: `active` während einer Sitzung, sonst `off`.
 | Overshoot nach jedem Anstieg | Heizzeit zu kurz für den Heizkörper | Heizzeit erhöhen, dann eine Sitzung neu starten |
 | Langsamer Anstieg, kein Overshoot | Heizzeit zu lang | Heizzeit verringern, dann eine Sitzung neu starten |
 | Raum liegt immer unter oder über dem Sollwert | Kext noch nicht gelernt oder Verluste haben sich geändert | Sitzung enden lassen oder kontinuierliches Kext-Lernen aktivieren |
+| Reparatur „Kint zu hoch, um gelernt zu werden“ | Der Start-Kint ist zu hoch: Die Heizung bleibt bei 100 %, bis der Raum nahe am Sollwert ist | Den vorgeschlagenen Kint in den TPI-Einstellungen setzen und dann eine Sitzung mit Zurücksetzen neu starten |
 | Lernen kommt überhaupt nicht voran | Heizung immer bei 100 % (extreme Kälte) | Auf milderes Wetter warten |
 
 ### Persistenzdatei
@@ -280,3 +282,5 @@ Zustand: `active` während einer Sitzung, sonst `off`.
 **Speicherort**: `.storage/versatile_thermostat.auto_tpi.<unique_id>`
 
 Diese Datei enthält den Lernzustand und wird beim Neustart von Home Assistant wiederhergestellt. Solange noch kein Lernzyklus erfasst wurde, werden die konfigurierten Koeffizienten verwendet. Außerhalb einer Lernsitzung gilt die Konfiguration als Referenz: Ein in der Konfiguration (Optionen oder Dienst `set_tpi_parameters`) geänderter Koeffizient ersetzt den gespeicherten.
+
+Ein von einer früheren Lernmethode gespeicherter Zustand löst eine Reparatur aus, die eine neue Sitzung verlangt. Diese Sitzung, mit oder ohne Zurücksetzen gestartet, beginnt wieder bei Kint 0.6 mit zurückgesetzten Zählern: Die zuvor gelernten Koeffizienten können viel zu niedrig sein.

@@ -101,7 +101,7 @@ Cykl jest ignorowany przy uczeniu, jeśli:
 
 ### Koniec sesji
 
-Sesja kończy się, gdy Kint zostanie nauczony w ciągu **15 okien**, a Kext w ciągu **50 cykli**. Współczynniki są wtedy zapisywane w konfiguracji i wysyłane jest powiadomienie.
+Sesja kończy się, gdy Kint zostanie nauczony w ciągu **15 okien**, a Kext w ciągu **50 cykli**. Współczynniki są wtedy zapisywane w konfiguracji i wysyłane jest powiadomienie. Kint nie jest uznawany za nauczony, dopóki jego ostatnie **5 kroków** szło w tym samym kierunku: jest jeszcze daleko od swojej wartości i sesja trwa dalej.
 
 ---
 
@@ -178,7 +178,7 @@ Gdy **Continuous Kext Learning** jest włączone, Kext jest nadal dostosowywany 
 Kext_new = Kext × (1 − α) + Kext_target × α        α = 0.04
 ```
 
-Stała waga pozwala Kext podążać za wielkością, która powoli się zmienia. Nowa wartość jest zapisywana w konfiguracji, gdy zmieni się o więcej niż 0.001, a regulacja natychmiast ją wykorzystuje.
+Stała waga pozwala Kext podążać za wielkością, która powoli się zmienia. Nowa wartość jest zapisywana w konfiguracji, gdy tylko różni się od skonfigurowanej wartości o więcej niż 0.001 (małe kroki się sumują), a regulacja natychmiast ją wykorzystuje.
 
 ---
 
@@ -200,6 +200,7 @@ Stała waga pozwala Kext podążać za wielkością, która powoli się zmienia.
 | Maksymalny krok Kint | ×1.15 / ÷1.15 | Ograniczony krok na okno |
 | Granice Kint | 0.01 – 3.0 | |
 | Okna Kint do zakończenia sesji | 15 | |
+| Kroki Kint w tym samym kierunku, które blokują zakończenie | 5 | |
 | Cykle Kext do zakończenia sesji | 50 | |
 | Stabilizacja Kext | 3 × T_cl, potem blisko nastawy (lub 12 × T_cl) | Kext nie jest uczony podczas wzrostu |
 | Maksymalne odchylenie dla Kext | 1.0°C | |
@@ -273,6 +274,7 @@ Stan: `active` podczas sesji, w przeciwnym razie `off`.
 | Przekroczenie po każdym wzroście | Czas nagrzewania za krótki dla źródła ciepła | Zwiększ czas nagrzewania, a następnie uruchom sesję ponownie |
 | Wolny wzrost, brak przekroczenia | Czas nagrzewania za długi | Zmniejsz czas nagrzewania, a następnie uruchom sesję ponownie |
 | Pomieszczenie zawsze poniżej lub powyżej nastawy | Kext jeszcze nie nauczony lub straty się zmieniły | Pozwól sesji się zakończyć lub włącz ciągłe uczenie Kext |
+| Naprawa „Kint zbyt wysoki, by go nauczyć” | Początkowy Kint jest zbyt wysoki: ogrzewanie pozostaje na 100%, aż pomieszczenie zbliży się do nastawy | Ustaw sugerowany Kint w ustawieniach TPI, a następnie uruchom sesję ponownie z resetem |
 | Uczenie w ogóle nie postępuje | Ogrzewanie stale na 100% (ekstremalny mróz) | Poczekaj na łagodniejszą pogodę |
 
 ### Plik trwałości
@@ -280,3 +282,5 @@ Stan: `active` podczas sesji, w przeciwnym razie `off`.
 **Lokalizacja**: `.storage/versatile_thermostat.auto_tpi.<unique_id>`
 
 Plik zawiera stan uczenia i jest przywracany po ponownym uruchomieniu Home Assistant. Gdy nie zarejestrowano jeszcze żadnego cyklu uczenia, używane są skonfigurowane współczynniki. Poza sesją uczenia konfiguracja jest punktem odniesienia: współczynnik zmieniony w konfiguracji (opcje lub usługa `set_tpi_parameters`) zastępuje zapisany.
+
+Stan zapisany przez wcześniejszą metodę uczenia wywołuje naprawę, która prosi o nową sesję. Ta sesja, uruchomiona z resetem lub bez, zaczyna od Kint 0.6 z wyzerowanymi licznikami: wcześniej nauczone współczynniki mogą być zdecydowanie za niskie.

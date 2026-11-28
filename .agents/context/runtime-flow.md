@@ -110,7 +110,7 @@ Registered in `climate.py::async_setup_entry` with `platform.async_register_enti
 | `set_hvac_mode_sleep` | `service_set_hvac_mode_sleep` in `ThermostatOverValve` and `ThermostatOverClimateValve`; the base raises `NotImplementedError` for other types |
 | `recalibrate_valves` | `service_recalibrate_valves` in `ThermostatOverClimateValve` only; the base raises `ServiceValidationError` |
 | `lock`, `unlock` | `service_lock`, `service_unlock` |
-| `set_tpi_parameters`, `set_auto_tpi_mode` | `ThermostatProp` delegates to the handler (`TPIHandler.service_*`); other handlers raise a validation error |
+| `set_tpi_parameters`, `set_auto_tpi_mode` | `ThermostatProp` delegates to the handler (`TPIHandler.service_*`); other handlers raise a validation error. `set_tpi_parameters` saves without reload and recalculates; the running cycle is not restarted, the new power applies from the next cycle |
 | `set_timed_preset`, `cancel_timed_preset` | `service_set_timed_preset`, `service_cancel_timed_preset` |
 | `download_logs` | `service_download_logs` (log collector export) |
 
@@ -126,7 +126,7 @@ Entity-level setters (`async_set_temperature`, `async_set_preset_mode`, `async_s
 - Overpowering: central shedding picks VTherms by temperature gap; `set_overpowering` turns underlyings off; `turn_on` re-checks the budget; `power` preset.
 - Window: hvac mode or target change as in section 5; `manage_window_auto` runs on each temperature update and each cycle.
 - Repair: `check_and_repair` re-sends commands when an underlying disagrees with the desired state (bounded attempts, delay after ready).
-- Heating failure: the core manager is refreshed each cycle in `async_control_heating` (unless a plugin owns it). The TPI handler reads `is_detected` through `get_feature_manager("heating_failure_detection")`, which only returns a plugin manager: without the plugin `AutoTpiManager.update` always gets `is_heating_failure=False`.
+- Heating failure: the core manager is refreshed each cycle in `async_control_heating` (unless a plugin owns it). The TPI handler reads `is_detected` through `get_feature_manager(HEATING_FAILURE_DETECTION_STABLE_NAME)` (plugin first, else core) and passes it to `AutoTpiManager.update`; a failing cycle is not used for learning.
 - Inhibition: `InhibitionManager.async_set` closes the command gate (`blocks_command`) and forces OFF; reopening reconciles underlyings.
 - Lock: `check_lock` drops user and/or automation calls while locked.
 - Keep-alive: `UnderlyingSwitch._keep_alive_callback` re-sends the last commanded switch state.

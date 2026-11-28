@@ -101,7 +101,7 @@ Un cycle est ignoré pour l'apprentissage si :
 
 ### Fin de session
 
-La session se termine lorsque Kint a été appris sur **15 fenêtres** et Kext sur **50 cycles**. Les coefficients sont alors écrits dans la configuration et une notification est envoyée.
+La session se termine lorsque Kint a été appris sur **15 fenêtres** et Kext sur **50 cycles**. Les coefficients sont alors écrits dans la configuration et une notification est envoyée. Kint n'est pas considéré comme appris tant que ses **5 derniers pas** sont allés dans le même sens : il est encore loin de sa valeur, et la session continue.
 
 ---
 
@@ -178,7 +178,7 @@ Lorsque l'**Apprentissage continu du Kext** est activé, Kext continue d'être a
 Kext_new = Kext × (1 − α) + Kext_target × α        α = 0.04
 ```
 
-Un poids fixe permet à Kext de suivre une grandeur qui dérive lentement. La nouvelle valeur est écrite dans la configuration lorsqu'elle change de plus de 0,001, et la régulation l'utilise immédiatement.
+Un poids fixe permet à Kext de suivre une grandeur qui dérive lentement. La nouvelle valeur est écrite dans la configuration dès qu'elle s'écarte de plus de 0,001 de la valeur configurée (les petits pas s'additionnent), et la régulation l'utilise immédiatement.
 
 ---
 
@@ -200,6 +200,7 @@ Un poids fixe permet à Kext de suivre une grandeur qui dérive lentement. La no
 | Pas maximum de Kint | ×1,15 / ÷1,15 | Pas borné par fenêtre |
 | Bornes de Kint | 0,01 – 3,0 | |
 | Fenêtres de Kint pour terminer la session | 15 | |
+| Pas de Kint dans le même sens qui empêchent la fin | 5 | |
 | Cycles de Kext pour terminer la session | 50 | |
 | Stabilisation de Kext | 3 × T_cl, puis proche de la consigne (ou 12 × T_cl) | Kext n'est pas appris pendant une montée |
 | Écart maximum pour Kext | 1,0°C | |
@@ -273,6 +274,7 @@ Entité : `sensor.<name>_auto_tpi_learning_state`
 | Dépassement après chaque montée | Temps de chauffe trop court pour l'émetteur | Augmenter le temps de chauffe, puis relancer une session |
 | Montée lente, sans dépassement | Temps de chauffe trop long | Diminuer le temps de chauffe, puis relancer une session |
 | Pièce toujours sous ou au-dessus de la consigne | Kext pas encore appris, ou pertes modifiées | Laisser la session se terminer, ou activer l'apprentissage continu du Kext |
+| Réparation « Kint trop haut pour être appris » | Le Kint de départ est trop haut : le chauffage reste à 100 % jusqu'à ce que la pièce soit proche de la consigne | Régler le Kint suggéré dans les réglages TPI, puis relancer une session avec réinitialisation |
 | Aucun progrès d'apprentissage | Chauffage toujours à 100 % (grand froid) | Attendre un temps plus doux |
 
 ### Fichier de persistance
@@ -280,3 +282,5 @@ Entité : `sensor.<name>_auto_tpi_learning_state`
 **Emplacement** : `.storage/versatile_thermostat.auto_tpi.<unique_id>`
 
 Ce fichier contient l'état de l'apprentissage et est restauré au redémarrage de Home Assistant. Tant qu'aucun cycle d'apprentissage n'a été enregistré, les coefficients configurés sont utilisés. En dehors d'une session d'apprentissage, la configuration fait référence : un coefficient modifié dans la configuration (options ou service `set_tpi_parameters`) remplace celui qui est stocké.
+
+Un état enregistré par une méthode d'apprentissage antérieure déclenche une réparation qui demande une nouvelle session. Cette session, démarrée avec ou sans réinitialisation, repart de Kint 0,6 avec des compteurs remis à zéro : les coefficients appris auparavant peuvent être beaucoup trop bas.

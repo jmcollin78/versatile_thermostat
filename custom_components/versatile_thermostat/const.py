@@ -272,6 +272,10 @@ AUTO_START_STOP_STOP_MODES = [
 # so that the arbitration (state_manager.py) follows the actual decision owner.
 CONF_AUTO_START_STOP_STABLE_NAME = "auto_start_stop"
 
+# Stable name of the heating failure detection. A plugin registered under this
+# name replaces the core detection; otherwise get_feature_manager returns the core one.
+HEATING_FAILURE_DETECTION_STABLE_NAME = "heating_failure_detection"
+
 # Config-entry data key stamped on a thermostat entry once its auto-start/stop
 # feature has been handed over to the external plugin. The value identifies the
 # plugin that performed the migration.

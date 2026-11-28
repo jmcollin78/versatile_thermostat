@@ -67,8 +67,8 @@ There is no `strings.json`: `translations/en.json` is the source file and the ot
 
 ## Reload on change and options flow
 
-- `async_setup_entry` registers `update_listener`. After an options flow (or any `async_update_entry`) the listener reloads the entry; for the central entry it reloads all entries (`reload_all_vtherm`). It is skipped when `api.skip_reload_on_config_update` is set (used by code that persists data programmatically).
-- Code that writes to `entry.data` at runtime therefore triggers a reload unless that flag is set; do not store frequently changing values there.
+- `async_setup_entry` registers `update_listener`. After an options flow (or any `async_update_entry`) the listener reloads the entry; for the central entry it reloads all entries (`reload_all_vtherm`). It is skipped when `api.skip_reload_on_config_update` is set.
+- Code that persists data already applied to the running thermostat uses `vtherm_central_api.py::async_update_entry_without_reload`, the only place that sets that flag (Auto TPI coefficients, `set_tpi_parameters`, Auto TPI start leaving the central TPI configuration, auto-start/stop migration). Any other runtime write reloads the entry; do not store frequently changing values there.
 
 ## Versions and migrations
 

@@ -102,13 +102,15 @@ Kint est appris sur des fenêtres de plusieurs cycles, car sur un cycle de 5 min
 ### D. Kext Continu (`_learn_kext_continuous`)
 *   Hors session, si `auto_tpi_continuous_kext` est activé et qu'au moins un échantillon Kext existe.
 *   Mêmes conditions de cycle et de stabilisation.
-*   EMA à poids fixe `CONTINUOUS_KEXT_ALPHA` (0,04) ; la valeur est écrite dans la config si elle change de plus de 0,001.
+*   EMA à poids fixe `CONTINUOUS_KEXT_ALPHA` (0,04) ; la valeur est écrite dans la config dès qu'elle s'écarte de plus de 0,001 de la valeur configurée (comparaison à la config, pas au cycle précédent : un pas d'EMA est bien plus petit). Après chaque écriture, les coefficients de référence du gestionnaire suivent la config.
 
 ---
 
 ## 5. Fin de Session (`process_learning_completion`)
 
 *   Fin quand `coeff_indoor_autolearn ≥ KINT_WINDOWS_TO_FINISH + KINT_COUNT_START` (15 fenêtres) et `coeff_outdoor_autolearn ≥ 50`.
+*   Kint n'est pas fini tant que `|kint_trend_heat|` (ou `kint_trend_cool`) ≥ `KINT_TREND_TO_FINISH` (5) : nombre de pas consécutifs de Kint dans le même sens (signe = sens), mis à jour dans `_learn_kint_from_window`, remis à zéro par une session avec reset. Un départ loin de la valeur ne finit donc pas avec Kint encore en mouvement.
+*   Kint trop haut : `_track_saturated_rise` suit les cycles valides à 100 % avec un écart ≥ `KINT_MIN_GAP` ; `_end_saturated_rise` mesure la montée (≥ 20 min et ≥ 0,3 °C), en déduit le Kint suggéré `1 / (vitesse × T_cl)` et, si Kint > `KINT_TOO_HIGH_FACTOR` (1,5) × suggéré sur `KINT_TOO_HIGH_RISES` (2) montées sans fenêtre Kint apprise entre elles, lève la réparation `auto_tpi_kint_too_high` (supprimée au démarrage d'une session ou dès qu'une fenêtre Kint est apprise).
 *   `stop_learning()`, écriture de Kint et Kext dans la config, notification persistante.
 
 ---
@@ -130,7 +132,7 @@ Kint est appris sur des fenêtres de plusieurs cycles, car sur un cycle de 5 min
 
 ## 7. Persistance et Restauration
 
-*   `async_load_data` : charge l'état, plafonne Kint à `MAX_KINT` (3,0). Si `total_cycles == 0`, les coefficients configurés sont imposés. Hors session, `_align_with_configuration` remplace un coefficient stocké qui diffère de la config au-delà de l'arrondi d'écriture (`CONFIG_COEF_TOLERANCE`) : la config fait référence.
+*   `async_load_data` : charge l'état, plafonne Kint à `MAX_KINT` (3,0). Si `total_cycles == 0`, les coefficients configurés sont imposés. Hors session, `_align_with_configuration` remplace un coefficient stocké qui diffère de la config au-delà de l'arrondi d'écriture (`CONFIG_COEF_TOLERANCE`) : la config fait référence. Un état de l'ancienne méthode (champ `capacity_heat_learn_count` et Kint appris) lève la réparation `auto_tpi_relearn` et arme `_previous_method_state` : la session suivante, avec ou sans reset, repart de `KINT_RELEARN_START` (0,6) avec des compteurs à zéro.
 *   Le statut est remis à `learning_started` et le cycle en cours est abandonné (`cycle_active = False`).
 *   Les fenêtres Kint et l'horodatage de consigne ne sont pas persistés : après un redémarrage, le premier `update()` est traité comme un changement de consigne.
 

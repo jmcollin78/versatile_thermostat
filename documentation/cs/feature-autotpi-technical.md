@@ -101,7 +101,7 @@ Cyklus se pro učení ignoruje, pokud:
 
 ### Konec relace
 
-Relace se ukončí, jakmile je Kint naučen během **15 oken** a Kext během **50 cyklů**. Koeficienty se pak zapíší do konfigurace a odešle se oznámení.
+Relace se ukončí, jakmile je Kint naučen během **15 oken** a Kext během **50 cyklů**. Koeficienty se pak zapíší do konfigurace a odešle se oznámení. Kint se nepovažuje za naučený, dokud jeho posledních **5 kroků** šlo stejným směrem: je stále daleko od své hodnoty a relace pokračuje.
 
 ---
 
@@ -178,7 +178,7 @@ Je-li zapnuto **Průběžné učení Kext**, Kext se i po relaci dále upravuje,
 Kext_new = Kext × (1 − α) + Kext_target × α        α = 0.04
 ```
 
-Pevná váha umožňuje, aby Kext sledoval veličinu, která se pomalu mění. Nová hodnota se zapíše do konfigurace, pokud se změní o více než 0,001, a regulace ji okamžitě použije.
+Pevná váha umožňuje, aby Kext sledoval veličinu, která se pomalu mění. Nová hodnota se zapíše do konfigurace, jakmile se od nakonfigurované hodnoty liší o více než 0,001 (malé kroky se sčítají), a regulace ji okamžitě použije.
 
 ---
 
@@ -200,6 +200,7 @@ Pevná váha umožňuje, aby Kext sledoval veličinu, která se pomalu mění. N
 | Maximální krok Kint | ×1.15 / ÷1.15 | Omezený krok na okno |
 | Meze Kint | 0.01 – 3.0 | |
 | Počet oken Kint do konce relace | 15 | |
+| Kroky Kint stejným směrem, které brání ukončení | 5 | |
 | Počet cyklů Kext do konce relace | 50 | |
 | Ustálení Kext | 3 × T_cl, poté blízko požadované hodnoty (nebo 12 × T_cl) | Kext se během náběhu neučí |
 | Maximální odchylka pro Kext | 1.0 °C | |
@@ -273,6 +274,7 @@ Stav: `active` během relace, jinak `off`.
 | Překmit po každém náběhu | Doba ohřevu je pro topné těleso příliš krátká | Zvyšte dobu ohřevu a poté restartujte relaci |
 | Pomalý náběh, bez překmitu | Doba ohřevu je příliš dlouhá | Snižte dobu ohřevu a poté restartujte relaci |
 | Místnost je trvale pod nebo nad požadovanou hodnotou | Kext ještě není naučen, nebo se změnily ztráty | Nechte relaci doběhnout nebo zapněte průběžné učení Kext |
+| Oprava „Kint je příliš vysoký na naučení“ | Počáteční Kint je příliš vysoký: topení zůstává na 100 %, dokud se místnost nepřiblíží požadované hodnotě | Nastavte navržený Kint v nastavení TPI a poté restartujte relaci s resetem |
 | Učení vůbec nepostupuje | Topení trvale na 100 % (extrémní mráz) | Počkejte na mírnější počasí |
 
 ### Soubor s perzistencí
@@ -280,3 +282,5 @@ Stav: `active` během relace, jinak `off`.
 **Umístění**: `.storage/versatile_thermostat.auto_tpi.<unique_id>`
 
 Tento soubor obsahuje stav učení a obnoví se při restartu Home Assistant. Dokud není zaznamenán žádný cyklus učení, použijí se nakonfigurované koeficienty. Mimo učební relaci je referencí konfigurace: koeficient změněný v konfiguraci (možnosti nebo služba `set_tpi_parameters`) nahradí uložený.
+
+Stav uložený dřívější metodou učení vyvolá opravu, která žádá o novou relaci. Tato relace, spuštěná s resetem i bez něj, začíná znovu od Kint 0,6 s vynulovanými počítadly: dříve naučené koeficienty mohou být příliš nízké.

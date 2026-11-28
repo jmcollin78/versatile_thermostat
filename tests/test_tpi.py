@@ -1,6 +1,7 @@
 """ Test the TPI algorithm """
 
 import pytest
+from unittest.mock import AsyncMock
 
 from homeassistant.exceptions import ServiceValidationError
 from homeassistant.components.climate import ClimateEntityFeature
@@ -492,13 +493,9 @@ async def test_service_set_tpi_parameters(hass: HomeAssistant, skip_hass_states_
     )
     await hass.async_block_till_done()
 
-    # The service update triggers a reload of the integration, so the entity object is replaced.
-    # We need to fetch the new entity instance.
-    entity = search_entity(hass, "climate.theoverswitchmockname", CLIMATE_DOMAIN)
-    assert entity
+    # The service does not reload the thermostat: the same entity keeps running
+    assert search_entity(hass, "climate.theoverswitchmockname", CLIMATE_DOMAIN) is entity
 
-    # The new entity doesn't know the current temperature because the previous events were sent to the old instance
-    # and not persisted in the HA state machine in a way that allows auto-recovery without event in this test setup.
     await send_temperature_change_event(entity, 17, now)
     await send_ext_temperature_change_event(entity, 17, now)
     await hass.async_block_till_done()
@@ -529,13 +526,9 @@ async def test_service_set_tpi_parameters(hass: HomeAssistant, skip_hass_states_
     )
     await hass.async_block_till_done()
 
-    # The service update triggers a reload of the integration, so the entity object is replaced.
-    # We need to fetch the new entity instance.
-    entity = search_entity(hass, "climate.theoverswitchmockname", CLIMATE_DOMAIN)
-    assert entity
+    # The service does not reload the thermostat: the same entity keeps running
+    assert search_entity(hass, "climate.theoverswitchmockname", CLIMATE_DOMAIN) is entity
 
-    # The new entity doesn't know the current temperature because the previous events were sent to the old instance
-    # and not persisted in the HA state machine in a way that allows auto-recovery without event in this test setup.
     await send_temperature_change_event(entity, 17, now)
     await send_ext_temperature_change_event(entity, 17, now)
     await hass.async_block_till_done()
@@ -548,6 +541,62 @@ async def test_service_set_tpi_parameters(hass: HomeAssistant, skip_hass_states_
     assert new_on_percent is not None
 
     assert new_on_percent != initial_on_percent, f"on_percent should have changed after TPI parameter update. " f"Initial: {initial_on_percent}, New: {new_on_percent}"
+
+    entity.remove_thermostat()
+
+
+async def test_service_set_tpi_parameters_keeps_the_running_thermostat(
+    hass: HomeAssistant, skip_hass_states_is_state, skip_turn_on_off_heater, fake_underlying_switch: MockSwitch
+):
+    """The service saves the TPI parameters without reloading the thermostat; the new values apply from the next cycle."""
+    entry = MockConfigEntry(
+        domain=DOMAIN,
+        title="TpiNoReload",
+        unique_id="tpiNoReload",
+        data={
+            CONF_NAME: "TpiNoReload",
+            CONF_THERMOSTAT_TYPE: CONF_THERMOSTAT_SWITCH,
+            CONF_TEMP_SENSOR: "sensor.mock_temp_sensor",
+            CONF_EXTERNAL_TEMP_SENSOR: "sensor.mock_ext_temp_sensor",
+            CONF_CYCLE_MIN: 5,
+            CONF_TEMP_MIN: 15,
+            CONF_TEMP_MAX: 30,
+            "comfort_temp": 18,
+            CONF_USE_WINDOW_FEATURE: False,
+            CONF_USE_MOTION_FEATURE: False,
+            CONF_USE_POWER_FEATURE: False,
+            CONF_USE_PRESENCE_FEATURE: False,
+            CONF_UNDERLYING_LIST: ["switch.mock_switch"],
+            CONF_PROP_FUNCTION: PROPORTIONAL_FUNCTION_TPI,
+            CONF_TPI_COEF_INT: 0.3,
+            CONF_TPI_COEF_EXT: 0.01,
+            CONF_MINIMAL_ACTIVATION_DELAY: 30,
+            CONF_MINIMAL_DEACTIVATION_DELAY: 30,
+        },
+    )
+    entity: BaseThermostat = await create_thermostat(hass, entry, "climate.tpinoreload")
+    now: datetime = datetime.now(tz=get_tz(hass))
+    await send_temperature_change_event(entity, 17, now)
+    await send_ext_temperature_change_event(entity, 5, now)
+    await entity.async_set_hvac_mode(HVACMode.HEAT)
+    await entity.async_set_preset_mode(VThermPreset.COMFORT)
+    await hass.async_block_till_done()
+    initial_on_percent = entity.proportional_algorithm.on_percent
+
+    with patch.object(entity.cycle_scheduler, "start_cycle", new_callable=AsyncMock) as start_cycle:
+        await entity.service_set_tpi_parameters(tpi_coef_int=0.6, tpi_coef_ext=0.02)
+        await hass.async_block_till_done()
+
+    # The same thermostat keeps running: it was not reloaded
+    assert search_entity(hass, "climate.tpinoreload", CLIMATE_DOMAIN) is entity
+    assert not entity.is_removed
+    # The parameters are saved and used by the regulation
+    assert entry.data[CONF_TPI_COEF_INT] == 0.6
+    assert entry.data[CONF_TPI_COEF_EXT] == 0.02
+    assert entity.proportional_algorithm.tpi_coef_int == 0.6
+    assert entity.proportional_algorithm.on_percent > initial_on_percent
+    # The running cycle is not restarted: the new power applies from the next cycle
+    assert not any(call.args[2:3] == (True,) or call.kwargs.get("force") for call in start_cycle.await_args_list)
 
     entity.remove_thermostat()
 

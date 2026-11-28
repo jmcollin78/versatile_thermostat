@@ -17,6 +17,7 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers.template import Template
 
 from .const import (
+    HEATING_FAILURE_DETECTION_STABLE_NAME,
     CONF_USE_HEATING_FAILURE_DETECTION_FEATURE,
     CONF_HEATING_FAILURE_THRESHOLD,
     CONF_COOLING_FAILURE_THRESHOLD,
@@ -51,6 +52,8 @@ class FeatureHeatingFailureDetectionManager(BaseFeatureManager):
     should_device_be_active (commanded state) vs is_device_active (real state)
     to determine if the failure is caused by a stuck valve.
     """
+
+    stable_name = HEATING_FAILURE_DETECTION_STABLE_NAME
 
     unrecorded_attributes = frozenset(
         {

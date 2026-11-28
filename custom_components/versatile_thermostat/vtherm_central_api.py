@@ -4,6 +4,7 @@ from vtherm_api.log_collector import get_vtherm_logger
 from vtherm_api.vtherm_api import VThermAPI
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.config_entries import ConfigEntryState
+from homeassistant.core import HomeAssistant
 
 from homeassistant.helpers.entity_component import EntityComponent
 from homeassistant.components.climate import ClimateEntity, DOMAIN as CLIMATE_DOMAIN
@@ -24,6 +25,23 @@ from .feature_central_power_manager import FeatureCentralPowerManager
 from .feature_central_boiler_manager import FeatureCentralBoilerManager
 
 _LOGGER = get_vtherm_logger(__name__)
+
+
+def async_update_entry_without_reload(hass: HomeAssistant, entry: ConfigEntry, data: dict) -> bool:
+    """Save new data in a thermostat config entry without reloading it.
+
+    For a caller that already applied the change to the running thermostat: the
+    update listener sees skip_reload_on_config_update and keeps the entity (and
+    its in-memory state) instead of rebuilding it. Return True if the data changed.
+    """
+    api = VersatileThermostatAPI.get_vtherm_api(hass)
+    if api:
+        api.skip_reload_on_config_update = True
+    try:
+        return hass.config_entries.async_update_entry(entry, data=data)
+    finally:
+        if api:
+            api.skip_reload_on_config_update = False
 
 
 class VersatileThermostatAPI(VThermAPI):
@@ -49,9 +67,9 @@ class VersatileThermostatAPI(VThermAPI):
         # the current time (for testing purpose)
         self._now = None
 
-        # Flag to skip reload when a config entry update is triggered by the auto-TPI
-        # learning system (e.g. saving Kext). When True, update_listener will return
-        # immediately without reloading the config entry.
+        # Flag to skip reload when a config entry update was already applied to the
+        # running thermostat (see async_update_entry_without_reload). When True,
+        # update_listener returns immediately without reloading the config entry.
         self.skip_reload_on_config_update: bool = False
 
     def find_central_configuration(self):

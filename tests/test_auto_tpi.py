@@ -1,12 +1,13 @@
 """Test the AutoTpiManager class."""
 import pytest
 from types import SimpleNamespace
-from unittest.mock import MagicMock, patch, AsyncMock
+from unittest.mock import MagicMock, patch, AsyncMock, PropertyMock
 from datetime import datetime, timedelta, timezone
 
 from homeassistant.core import HomeAssistant
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import STATE_ON, STATE_OFF
+from homeassistant.util import dt as dt_util
 
 from custom_components.versatile_thermostat.auto_tpi_manager import (
     AutoTpiManager,
@@ -38,6 +39,7 @@ from custom_components.versatile_thermostat.const import (
     CONF_MINIMAL_ACTIVATION_DELAY,
     CONF_MINIMAL_DEACTIVATION_DELAY,
     CONF_AUTO_TPI_MODE,
+    CONF_USE_TPI_CENTRAL_CONFIG,
     DOMAIN,
 )
 from custom_components.versatile_thermostat.prop_handler_tpi import TPIHandler
@@ -45,7 +47,7 @@ from custom_components.versatile_thermostat.prop_algo_tpi import TpiAlgorithm
 from custom_components.versatile_thermostat.thermostat_prop import ThermostatProp
 from custom_components.versatile_thermostat.vtherm_hvac_mode import VThermHvacMode_HEAT
 from homeassistant.components.climate.const import HVACMode, PRESET_NONE
-from .commons import MockConfigEntry, create_thermostat, send_temperature_change_event, send_ext_temperature_change_event
+from .commons import MockConfigEntry, create_thermostat, search_entity, send_temperature_change_event, send_ext_temperature_change_event
 
 import logging
 _LOGGER = logging.getLogger(__name__)
@@ -775,9 +777,9 @@ async def test_load_aligns_stored_coefficients_with_configuration_outside_sessio
     assert manager.state.coeff_indoor_heat == pytest.approx(0.6)
 
 
-async def test_continuous_kext_is_applied_to_the_regulation(hass: HomeAssistant, skip_hass_states_is_state):
-    """A Kext written by Auto TPI is used by the TPI algorithm without reloading."""
-    entry = MockConfigEntry(
+def _continuous_kext_entry() -> MockConfigEntry:
+    """Switch thermostat with Auto TPI and continuous Kext learning."""
+    return MockConfigEntry(
         domain=DOMAIN,
         title="AutoTpiLive",
         unique_id="auto_tpi_live",
@@ -805,6 +807,11 @@ async def test_continuous_kext_is_applied_to_the_regulation(hass: HomeAssistant,
             "auto_tpi_continuous_kext": True,
         },
     )
+
+
+async def test_continuous_kext_is_applied_to_the_regulation(hass: HomeAssistant, skip_hass_states_is_state):
+    """A Kext written by Auto TPI is used by the TPI algorithm without reloading."""
+    entry = _continuous_kext_entry()
     entity: ThermostatProp = await create_thermostat(hass, entry, "climate.autotpilive")
     manager = entity._algo_handler._auto_tpi_manager
     assert manager.learning_active is False
@@ -814,6 +821,37 @@ async def test_continuous_kext_is_applied_to_the_regulation(hass: HomeAssistant,
     assert entity.prop_algorithm.tpi_coef_ext == pytest.approx(0.0162)
     assert entity.tpi_coef_ext == pytest.approx(0.0162)
     assert entity.prop_algorithm.tpi_coef_int == pytest.approx(0.6)
+
+
+async def test_small_continuous_kext_steps_reach_the_regulation(hass: HomeAssistant, skip_hass_states_is_state):
+    """Continuous Kext steps far below the write resolution add up until Kext is written and applied."""
+    entry = _continuous_kext_entry()
+    entity: ThermostatProp = await create_thermostat(hass, entry, "climate.autotpilive")
+    manager = entity._algo_handler._auto_tpi_manager
+    manager.state.coeff_outdoor_autolearn = 50
+    manager.state.last_state = "heat"
+    manager.state.last_order = 20.0
+    manager._current_target_temp = 20.0
+
+    written = []
+    with patch.object(manager, "_should_learn_continuous_kext", return_value=True), \
+            patch.object(manager, "_is_settled_for_kext", return_value=True):
+        for _ in range(10):
+            # Kint 0.6, gap 0.2 / 15 °C: each EMA step is about 0.0003
+            await manager._learn_kext_continuous(19.8, 5.0)
+            written.append(entry.data[CONF_TPI_COEF_EXT])
+
+    assert manager.state.coeff_outdoor_heat > 0.036
+    assert written[0] == pytest.approx(0.034)
+    assert written[-1] == pytest.approx(manager.state.coeff_outdoor_heat, abs=0.001)
+    assert entity.prop_algorithm.tpi_coef_ext == pytest.approx(manager.state.coeff_outdoor_heat, abs=0.001)
+    # Written once per 0.001 of change, not at every step
+    assert 2 <= len(set(written)) <= 5
+
+    # The configuration follows the writes: a reload keeps the learned Kext
+    learned = manager.state.coeff_outdoor_heat
+    manager._align_with_configuration()
+    assert manager.state.coeff_outdoor_heat == pytest.approx(learned)
 
 
 @pytest.mark.parametrize("stored_extra, expect_issue", [
@@ -839,7 +877,7 @@ async def test_previous_learning_raises_a_relearn_issue(mock_hass, mock_store, m
             assert kwargs["translation_placeholders"] == {"name": "Bedroom", "kint": "0.029", "kext": "0.020"}
 
         await manager.start_learning(reset_data=True)
-        mock_ir.async_delete_issue.assert_called_once_with(mock_hass, "versatile_thermostat", "auto_tpi_relearn_test_relearn")
+        mock_ir.async_delete_issue.assert_any_call(mock_hass, "versatile_thermostat", "auto_tpi_relearn_test_relearn")
 
 
 async def test_kint_window_opens_right_after_saturation(manager):
@@ -879,3 +917,193 @@ async def test_kint_window_duration_follows_the_previous_rise(manager, previous_
     # T_cl is 30 min with the fixture (heating time 10 min, cycle 5 min)
     assert manager.closed_loop_time_min == 30.0
     assert manager._kint_window_duration(start) == pytest.approx(expected_min)
+
+
+async def _run_cycle(manager, mock_dt, start, duration_min, room_temp=19.0):
+    """One TPI cycle started at start and reported complete duration_min later."""
+    mock_dt.now.return_value = start
+    await manager.update(room_temp=room_temp, ext_temp=5.0, hvac_mode="heat", target_temp=20.0)
+    await manager.on_cycle_started(150, 150, 0.5, "heat")
+    mock_dt.now.return_value = start + timedelta(minutes=duration_min)
+    await manager.update(room_temp=room_temp, ext_temp=5.0, hvac_mode="heat", target_temp=20.0)
+    await manager.on_cycle_completed(e_eff=0.5)
+    return start + timedelta(minutes=duration_min)
+
+
+async def test_one_late_cycle_does_not_stop_learning(manager):
+    """A cycle completed later than the tolerance is skipped; the cycles after it learn again."""
+    start = datetime(2026, 1, 5, 8, 0, tzinfo=timezone.utc)
+    with patch("custom_components.versatile_thermostat.auto_tpi_manager.dt_util") as mock_dt, \
+            patch.object(manager, "_should_learn", return_value=True), \
+            patch.object(manager, "_perform_learning", new_callable=AsyncMock) as perform_learning, \
+            patch.object(manager, "_process_kint_window") as process_kint_window:
+        mock_dt.as_local.side_effect = lambda x: x
+        mock_dt.now.return_value = start
+        await manager.start_learning(reset_data=True)
+
+        now = await _run_cycle(manager, mock_dt, start, 5)
+        assert perform_learning.await_count == 1
+
+        # 2 minutes late on a 5-minute cycle (tolerance: 1 minute)
+        now = await _run_cycle(manager, mock_dt, now, 7)
+        assert manager.state.last_learning_status == "cycle_gap_detected"
+        assert perform_learning.await_count == 1
+        assert process_kint_window.call_args.args == (False,)
+
+        for _ in range(3):
+            now = await _run_cycle(manager, mock_dt, now, 5)
+        assert perform_learning.await_count == 4
+        assert process_kint_window.call_args.args == (True,)
+
+
+def _previous_method_entry(unique_id: str) -> MockConfigEntry:
+    """Configuration holding the coefficients written by the per-cycle learning."""
+    entry = _continuous_kext_entry()
+    data = {**entry.data, CONF_TPI_COEF_INT: 0.029, CONF_TPI_COEF_EXT: 0.02, "auto_tpi_continuous_kext": False}
+    return MockConfigEntry(domain=DOMAIN, title="AutoTpiRelearn", unique_id=unique_id, entry_id=unique_id, version=2, minor_version=5, data=data)
+
+
+@pytest.mark.parametrize("reinitialise", [True, False])
+async def test_session_after_previous_method_starts_from_default_kint(
+    hass: HomeAssistant, skip_hass_states_is_state, hass_storage, mock_issue_registry, reinitialise
+):
+    """After the per-cycle learning, a new session (reset or resume) starts from the default Kint with fresh counters."""
+    unique_id = f"auto_tpi_relearn_{reinitialise}"
+    stored = AutoTpiState(
+        coeff_indoor_heat=0.029, coeff_outdoor_heat=0.02, coeff_indoor_cool=0.029, coeff_outdoor_cool=0.02,
+        coeff_indoor_autolearn=51, coeff_outdoor_autolearn=50, total_cycles=2000, autolearn_enabled=False,
+    ).to_dict()
+    stored.update({"capacity_heat_learn_count": 3, "max_capacity_heat": 1.2})
+    key = f"{STORAGE_KEY_PREFIX}.{unique_id}"
+    hass_storage[key] = {"version": STORAGE_VERSION, "minor_version": 1, "key": key, "data": stored}
+
+    entity: ThermostatProp = await create_thermostat(hass, _previous_method_entry(unique_id), "climate.autotpirelearn")
+    manager = entity._algo_handler._auto_tpi_manager
+    assert mock_issue_registry.async_create_issue.called
+
+    await entity.service_set_auto_tpi_mode(auto_tpi_mode=True, reinitialise=reinitialise)
+    await hass.async_block_till_done()
+
+    assert manager.learning_active is True
+    assert manager.state.coeff_indoor_heat == pytest.approx(0.6)
+    assert manager.state.coeff_outdoor_autolearn == 0
+    assert mock_issue_registry.async_delete_issue.called
+    params = await manager.calculate()
+    assert params[CONF_TPI_COEF_INT] == pytest.approx(0.6)
+
+    # The session goes on: the old counters no longer end it
+    with patch("custom_components.versatile_thermostat.auto_tpi_manager.dt_util") as mock_dt:
+        mock_dt.as_local.side_effect = dt_util.as_local
+        await _run_cycle(manager, mock_dt, dt_util.now(), 5)
+    await hass.async_block_till_done()
+    assert manager.learning_active is True
+
+    entity.remove_thermostat()
+
+
+async def test_kint_trend_counts_steps_in_the_same_direction(manager):
+    """Kint steps that keep going the same way are counted; a step the other way restarts the count."""
+    manager.state.autolearn_enabled = True
+    manager._current_target_temp = 20.0
+    for expected in (1, 2, 3):
+        # Slow rise: Kint goes up
+        manager._learn_kint_from_window(18.0, 18.05, 30.0, False)
+        assert manager.state.kint_trend_heat == expected
+    # Fast rise: Kint goes down
+    manager._learn_kint_from_window(18.0, 19.8, 30.0, False)
+    assert manager.state.kint_trend_heat == -1
+
+
+@pytest.mark.parametrize("trend, finished", [(4, True), (5, False), (-5, False)])
+async def test_learning_does_not_end_while_kint_keeps_moving(manager, trend, finished):
+    """The session ends after enough windows and cycles only once Kint stopped moving one way."""
+    manager.state.autolearn_enabled = True
+    manager.state.coeff_indoor_autolearn = 20
+    manager.state.coeff_outdoor_autolearn = 50
+    manager.state.kint_trend_heat = trend
+    with patch.object(manager, "async_update_learning_data", new_callable=AsyncMock):
+        await manager.process_learning_completion()
+    assert manager.learning_active is not finished
+
+
+@pytest.mark.parametrize("kint, expect_issue", [(2.0, True), (0.6, False)])
+async def test_fast_rises_at_full_power_report_a_kint_too_high(manager, mock_issue_registry, kint, expect_issue):
+    """Rises at full power that reach the setpoint area quickly show a starting Kint too high to be learned."""
+    manager.state.autolearn_enabled = True
+    manager.state.coeff_indoor_heat = kint
+    start = datetime(2026, 1, 5, 6, 0, tzinfo=timezone.utc)
+    for rise in range(2):
+        day = start + timedelta(days=rise)
+        # 6 cycles of 5 min at 100 %, 18 °C -> 20 °C: 4 °C/h
+        for cycle in range(6):
+            manager.state.cycle_start_date = day + timedelta(minutes=5 * cycle)
+            manager.state.last_order = 21.0
+            manager.state.last_temp_in = 18.0 + cycle / 3
+            manager._current_temp_in = 18.0 + (cycle + 1) / 3
+            manager._track_saturated_rise(day + timedelta(minutes=5 * (cycle + 1)), False)
+        manager._end_saturated_rise()
+
+    calls = [c for c in mock_issue_registry.async_create_issue.call_args_list if c.kwargs.get("translation_key") == "auto_tpi_kint_too_high"]
+    assert bool(calls) is expect_issue
+    if expect_issue:
+        # T_cl 30 min and 4 °C/h at full power: Kint 0.5
+        assert calls[-1].kwargs["translation_placeholders"] == {"name": "test_name", "kint": "2.00", "suggested": "0.50"}
+
+
+async def test_auto_tpi_receives_the_core_heating_failure(hass: HomeAssistant, skip_hass_states_is_state):
+    """Without a plugin providing it, the heating failure detected by the core detection reaches Auto TPI."""
+    entity: ThermostatProp = await create_thermostat(hass, _continuous_kext_entry(), "climate.autotpilive")
+    core_manager = entity.heating_failure_detection_manager
+    assert entity.get_feature_manager("heating_failure_detection") is core_manager
+
+    with patch.object(type(core_manager), "is_detected", new_callable=PropertyMock, return_value=True):
+        await entity._algo_handler.control_heating()
+
+    assert entity._algo_handler._auto_tpi_manager._current_is_heating_failure is True
+
+    entity.remove_thermostat()
+
+
+async def test_tpi_parameters_service_updates_the_auto_tpi_reference(hass: HomeAssistant, skip_hass_states_is_state):
+    """Coefficients set by the TPI parameters service become the Auto TPI reference without a reload."""
+    entity: ThermostatProp = await create_thermostat(hass, _continuous_kext_entry(), "climate.autotpilive")
+    manager = entity._algo_handler._auto_tpi_manager
+    assert manager.learning_active is False
+
+    await entity.service_set_tpi_parameters(tpi_coef_int=0.45, tpi_coef_ext=0.021)
+    await hass.async_block_till_done()
+
+    assert entity._algo_handler._auto_tpi_manager is manager
+    assert manager.state.coeff_indoor_heat == pytest.approx(0.45)
+    assert manager.state.coeff_outdoor_heat == pytest.approx(0.021)
+
+    # A new session starts from the coefficients set by the service
+    await entity.service_set_auto_tpi_mode(auto_tpi_mode=True, reinitialise=True)
+    assert manager.state.coeff_indoor_heat == pytest.approx(0.45)
+
+    entity.remove_thermostat()
+
+
+async def test_auto_tpi_start_leaves_central_tpi_config_without_reload(hass: HomeAssistant, skip_hass_states_is_state):
+    """Starting Auto TPI turns the central TPI configuration off in the entry without reloading the thermostat."""
+    entry = _continuous_kext_entry()
+    entry = MockConfigEntry(
+        domain=DOMAIN, title="AutoTpiCentral", unique_id="auto_tpi_central", version=2, minor_version=5,
+        data={**entry.data, CONF_USE_TPI_CENTRAL_CONFIG: True},
+    )
+    entity: ThermostatProp = await create_thermostat(hass, entry, "climate.autotpilive")
+    manager = entity._algo_handler._auto_tpi_manager
+
+    await entity.service_set_auto_tpi_mode(auto_tpi_mode=True, reinitialise=True)
+    await hass.async_block_till_done()
+
+    # The same thermostat keeps running and learning
+    assert search_entity(hass, "climate.autotpilive", "climate") is entity
+    assert entity._algo_handler._auto_tpi_manager is manager
+    assert manager.learning_active is True
+    # The thermostat's own TPI parameters are saved with it: a restart uses the same values
+    assert entry.data[CONF_USE_TPI_CENTRAL_CONFIG] is False
+    assert entry.data[CONF_TPI_COEF_INT] == pytest.approx(entity.tpi_coef_int)
+    assert entry.data[CONF_TPI_COEF_EXT] == pytest.approx(entity.tpi_coef_ext)
+
+    entity.remove_thermostat()

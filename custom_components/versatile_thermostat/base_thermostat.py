@@ -277,15 +277,16 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
     def get_feature_manager(self, name: str):
         """Return the manager registered under a stable name.
 
-        A manager matches the stable name of the external factory that created
-        it. An internal manager has no factory, so the stable name fallback is
-        only reached for managers provided by a plugin.
+        A plugin manager is found by the name of the factory that created it and
+        takes precedence. Otherwise a core manager declaring this stable name
+        (``stable_name``) is returned, so a feature that a plugin can replace is
+        still reached when no plugin is installed.
         """
         external = self._external_manager_by_stable_name.get(name)
         if external is not None:
             return external
         for manager in reversed(self._managers):
-            if getattr(manager, "name", None) == name:
+            if getattr(manager, "stable_name", None) == name or getattr(manager, "name", None) == name:
                 return manager
         return None
 
@@ -2072,7 +2073,7 @@ class BaseThermostat(ClimateEntity, RestoreEntity, Generic[T]):
 
         # Preserve the legacy manager until existing entries have migrated, but
         # let an external manager with the same stable name take precedence.
-        if "heating_failure_detection" not in self._external_manager_names:
+        if HEATING_FAILURE_DETECTION_STABLE_NAME not in self._external_manager_names:
             await self._heating_failure_detection_manager.refresh_state()
 
         # Check and repair state discrepancies

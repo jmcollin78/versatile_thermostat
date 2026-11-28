@@ -32,7 +32,7 @@ graph LR
 
 1.  **Začátek**: Relace začíná od koeficientů vaší konfigurace.
 2.  **Učení**: Kint a Kext se upravují nezávisle na sobě (viz níže).
-3.  **Uložení**: Jakmile je Kint upraven během **15 náběhových oken** a Kext během **50 cyklů**, relace skončí: koeficienty se uloží do vaší konfigurace a odešle se oznámení.
+3.  **Uložení**: Jakmile je Kint upraven během **15 náběhových oken** a Kext během **50 cyklů**, relace skončí (později, pokud se Kint stále mění stejným směrem): koeficienty se uloží do vaší konfigurace a odešle se oznámení.
 
 ### Kdy se upravují Kint a Kext?
 
