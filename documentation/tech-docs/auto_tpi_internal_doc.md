@@ -130,7 +130,7 @@ Kint est appris sur des fenêtres de plusieurs cycles, car sur un cycle de 5 min
 
 ## 7. Persistance et Restauration
 
-*   `async_load_data` : charge l'état, plafonne Kint à `MAX_KINT` (3,0). Si `total_cycles == 0`, les coefficients configurés sont imposés. Hors session, `_align_with_configuration` remplace un coefficient stocké qui diffère de la config au-delà de l'arrondi d'écriture (`CONFIG_COEF_TOLERANCE`) : la config fait référence.
+*   `async_load_data` : charge l'état, plafonne Kint à `MAX_KINT` (3,0). Si `total_cycles == 0`, les coefficients configurés sont imposés. Hors session, `_align_with_configuration` remplace un coefficient stocké qui diffère de la config au-delà de l'arrondi d'écriture (`CONFIG_COEF_TOLERANCE`) : la config fait référence. Un état de l'ancienne méthode (champ `capacity_heat_learn_count` et Kint appris) lève la réparation `auto_tpi_relearn` et arme `_previous_method_state` : la session suivante, avec ou sans reset, repart de `KINT_RELEARN_START` (0,6) avec des compteurs à zéro.
 *   Le statut est remis à `learning_started` et le cycle en cours est abandonné (`cycle_active = False`).
 *   Les fenêtres Kint et l'horodatage de consigne ne sont pas persistés : après un redémarrage, le premier `update()` est traité comme un changement de consigne.
 

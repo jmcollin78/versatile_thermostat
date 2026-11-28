@@ -35,6 +35,7 @@ STORAGE_KEY_PREFIX = "versatile_thermostat.auto_tpi"
 
 # Configurable constants for learning algorithm behavior
 MIN_KINT = 0.01  # Minimum Kint threshold to maintain temperature responsiveness
+KINT_RELEARN_START = 0.6  # Default Kint a session starts from after the per-cycle learning
 MAX_KINT = 3.0  # Weak or slow emitters (underfloor, low-temperature water) can need Kint above 1
 NATURAL_RECOVERY_POWER_THRESHOLD = 0.10  # Max power (10%) to consider temperature change as natural recovery
 KEXT_LEARNING_MAX_GAP = 1.0  # Max gap (°C) to allow Kext learning (Near-Field vs Far-Field)
@@ -216,6 +217,7 @@ class AutoTpiManager:
         self._is_vtherm_stopping_callback: Callable[[], bool] | None = None
         # Called with (coef_int, coef_ext) in user units when learned coefficients are written
         self._coefficients_written_callback: Callable[[float | None, float | None], None] | None = None
+        self._previous_method_state = False
 
     def get_filtered_state(self) -> dict:
         """Get the AutoTpiState as a dict, but filtered for public exposure."""
@@ -268,6 +270,7 @@ class AutoTpiManager:
         learned_kint = data.get("coeff_indoor_autolearn", 0) > KINT_COUNT_START
         if "capacity_heat_learn_count" not in data or not learned_kint:
             return
+        self._previous_method_state = True
         _LOGGER.warning("%s - Auto TPI: coefficients learned by the previous learning method, a new learning session is advised", self._name)
         ir.async_create_issue(
             self._hass,
@@ -1313,6 +1316,8 @@ class AutoTpiManager:
         now = dt_util.now()
 
         prev_params = self.state.current_cycle_params or {}
+        # A late cycle is judged on its own: the cycles after it learn again
+        cycle_gap_detected = False
         if self.state.cycle_start_date is not None and self.state.current_cycle_params is not None:
              # Ensure cycle_start_date is timezone-aware
              cycle_start = self.state.cycle_start_date
@@ -1349,6 +1354,7 @@ class AutoTpiManager:
                     tolerance,
                 )
                 # We do NOT return here. We allow update of total_cycles
+                cycle_gap_detected = True
                 self.state.last_learning_status = "cycle_gap_detected"
         else:
             # No start date or params, nothing to do
@@ -1373,7 +1379,6 @@ class AutoTpiManager:
         log("%s - Auto TPI: Cycle #%d completed after %.1f minutes", self._name, self.state.total_cycles, elapsed_minutes)
 
         # PHASE 2: Kext Learning (per cycle, requires non-saturated power)
-        cycle_gap_detected = self.state.last_learning_status == "cycle_gap_detected"
         if cycle_gap_detected:
             _LOGGER.debug("%s - Auto TPI: Skipping learning due to invalid cycle (gap detected)", self._name)
         elif self._should_learn():
@@ -1385,9 +1390,7 @@ class AutoTpiManager:
         else:
             reason = self._get_no_learn_reason()
             _LOGGER.debug("%s - Auto TPI: Not learning Kext this cycle: %s", self._name, reason)
-            # Only update status if it wasn't already set to "cycle_gap_detected" or other critical error
-            if self.state.last_learning_status != "cycle_gap_detected":
-                self.state.last_learning_status = reason
+            self.state.last_learning_status = reason
 
         # PHASE 3: Kint Learning over multi-cycle windows
         self._process_kint_window(
@@ -1471,6 +1474,14 @@ class AutoTpiManager:
             coef_ext: Target external coefficient (defaults to configured value)
             reset_data: If True, reset all learning data; if False, resume with existing data
         """
+        if self._previous_method_state:
+            # The per-cycle learning could drive Kint far too low and left its counters past
+            # the end of a session: start again from the default Kint with fresh counters.
+            _LOGGER.info("%s - Auto TPI: state of the previous learning method, starting again from Kint %.1f", self._name, KINT_RELEARN_START)
+            self._previous_method_state = False
+            reset_data = True
+            coef_int = KINT_RELEARN_START * self._unit_factor
+
         # Use provided values, or fallback to default (configured) values
         target_int = coef_int if coef_int is not None else self._default_coef_int
         target_ext = coef_ext if coef_ext is not None else self._default_coef_ext

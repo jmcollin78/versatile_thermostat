@@ -280,3 +280,5 @@ Entité : `sensor.<name>_auto_tpi_learning_state`
 **Emplacement** : `.storage/versatile_thermostat.auto_tpi.<unique_id>`
 
 Ce fichier contient l'état de l'apprentissage et est restauré au redémarrage de Home Assistant. Tant qu'aucun cycle d'apprentissage n'a été enregistré, les coefficients configurés sont utilisés. En dehors d'une session d'apprentissage, la configuration fait référence : un coefficient modifié dans la configuration (options ou service `set_tpi_parameters`) remplace celui qui est stocké.
+
+Un état enregistré par une méthode d'apprentissage antérieure déclenche une réparation qui demande une nouvelle session. Cette session, démarrée avec ou sans réinitialisation, repart de Kint 0,6 avec des compteurs remis à zéro : les coefficients appris auparavant peuvent être beaucoup trop bas.

@@ -280,3 +280,5 @@ Stav: `active` během relace, jinak `off`.
 **Umístění**: `.storage/versatile_thermostat.auto_tpi.<unique_id>`
 
 Tento soubor obsahuje stav učení a obnoví se při restartu Home Assistant. Dokud není zaznamenán žádný cyklus učení, použijí se nakonfigurované koeficienty. Mimo učební relaci je referencí konfigurace: koeficient změněný v konfiguraci (možnosti nebo služba `set_tpi_parameters`) nahradí uložený.
+
+Stav uložený dřívější metodou učení vyvolá opravu, která žádá o novou relaci. Tato relace, spuštěná s resetem i bez něj, začíná znovu od Kint 0,6 s vynulovanými počítadly: dříve naučené koeficienty mohou být příliš nízké.

@@ -280,3 +280,5 @@ Zustand: `active` während einer Sitzung, sonst `off`.
 **Speicherort**: `.storage/versatile_thermostat.auto_tpi.<unique_id>`
 
 Diese Datei enthält den Lernzustand und wird beim Neustart von Home Assistant wiederhergestellt. Solange noch kein Lernzyklus erfasst wurde, werden die konfigurierten Koeffizienten verwendet. Außerhalb einer Lernsitzung gilt die Konfiguration als Referenz: Ein in der Konfiguration (Optionen oder Dienst `set_tpi_parameters`) geänderter Koeffizient ersetzt den gespeicherten.
+
+Ein von einer früheren Lernmethode gespeicherter Zustand löst eine Reparatur aus, die eine neue Sitzung verlangt. Diese Sitzung, mit oder ohne Zurücksetzen gestartet, beginnt wieder bei Kint 0.6 mit zurückgesetzten Zählern: Die zuvor gelernten Koeffizienten können viel zu niedrig sein.

@@ -280,3 +280,5 @@ State: `active` during a session, `off` otherwise.
 **Location**: `.storage/versatile_thermostat.auto_tpi.<unique_id>`
 
 This file contains the learning state and is restored on Home Assistant restart. When no learning cycle has been recorded yet, the configured coefficients are used. Outside a learning session, the configuration is the reference: a coefficient changed in the configuration (options or `set_tpi_parameters` service) replaces the stored one.
+
+A state stored by an earlier learning method raises a repair asking for a new session. That session, started with or without reset, starts again from Kint 0.6 with fresh counters: the coefficients learned before may be far too low.

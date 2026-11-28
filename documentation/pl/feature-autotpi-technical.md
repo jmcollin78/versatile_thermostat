@@ -280,3 +280,5 @@ Stan: `active` podczas sesji, w przeciwnym razie `off`.
 **Lokalizacja**: `.storage/versatile_thermostat.auto_tpi.<unique_id>`
 
 Plik zawiera stan uczenia i jest przywracany po ponownym uruchomieniu Home Assistant. Gdy nie zarejestrowano jeszcze żadnego cyklu uczenia, używane są skonfigurowane współczynniki. Poza sesją uczenia konfiguracja jest punktem odniesienia: współczynnik zmieniony w konfiguracji (opcje lub usługa `set_tpi_parameters`) zastępuje zapisany.
+
+Stan zapisany przez wcześniejszą metodę uczenia wywołuje naprawę, która prosi o nową sesję. Ta sesja, uruchomiona z resetem lub bez, zaczyna od Kint 0.6 z wyzerowanymi licznikami: wcześniej nauczone współczynniki mogą być zdecydowanie za niskie.
