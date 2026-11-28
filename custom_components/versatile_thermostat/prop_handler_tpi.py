@@ -367,8 +367,8 @@ class TPIHandler:
             "minimal_deactivation_delay_sec": t.minimal_deactivation_delay,
         })
 
-    async def _async_update_tpi_config_entry(self):
-        """Save the current TPI parameters in the config entry.
+    async def _async_update_tpi_config_entry(self, extra_data: dict | None = None):
+        """Save the current TPI parameters, and extra_data, in the config entry.
 
         The parameters are already applied to the running thermostat, so the entry
         is not reloaded: a reload would rebuild the entity and lose its in-memory
@@ -378,6 +378,7 @@ class TPIHandler:
         entry = t.hass.config_entries.async_get_entry(t.unique_id)
         if entry:
             new_data = entry.data.copy()
+            new_data.update(extra_data or {})
             new_data[CONF_TPI_COEF_INT] = t.tpi_coef_int
             new_data[CONF_TPI_COEF_EXT] = t.tpi_coef_ext
             new_data[CONF_TPI_THRESHOLD_LOW] = t.tpi_threshold_low
@@ -521,16 +522,11 @@ class TPIHandler:
             if t._entry_infos:
                 t._entry_infos[CONF_USE_TPI_CENTRAL_CONFIG] = False
 
-            # Persist the change to the config entry
+            # Persist the change to the config entry, with the TPI parameters in use so
+            # that a restart reads the same values from the thermostat's own configuration
             entry = t.hass.config_entries.async_get_entry(t.unique_id)
             if entry and entry.data.get(CONF_USE_TPI_CENTRAL_CONFIG, True):
-                new_data = entry.data.copy()
-                new_data[CONF_USE_TPI_CENTRAL_CONFIG] = False
-                t.hass.config_entries.async_update_entry(entry, data=new_data)
-
-            if t.is_removed:
-                _LOGGER.debug("%s - Entity is removed, stop async_set_auto_tpi_mode", t)
-                return
+                await self._async_update_tpi_config_entry({CONF_USE_TPI_CENTRAL_CONFIG: False})
 
             # Starting learning is sufficient, cycle processing is passive
             pass

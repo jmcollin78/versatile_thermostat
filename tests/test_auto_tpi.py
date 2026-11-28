@@ -39,6 +39,7 @@ from custom_components.versatile_thermostat.const import (
     CONF_MINIMAL_ACTIVATION_DELAY,
     CONF_MINIMAL_DEACTIVATION_DELAY,
     CONF_AUTO_TPI_MODE,
+    CONF_USE_TPI_CENTRAL_CONFIG,
     DOMAIN,
 )
 from custom_components.versatile_thermostat.prop_handler_tpi import TPIHandler
@@ -46,7 +47,7 @@ from custom_components.versatile_thermostat.prop_algo_tpi import TpiAlgorithm
 from custom_components.versatile_thermostat.thermostat_prop import ThermostatProp
 from custom_components.versatile_thermostat.vtherm_hvac_mode import VThermHvacMode_HEAT
 from homeassistant.components.climate.const import HVACMode, PRESET_NONE
-from .commons import MockConfigEntry, create_thermostat, send_temperature_change_event, send_ext_temperature_change_event
+from .commons import MockConfigEntry, create_thermostat, search_entity, send_temperature_change_event, send_ext_temperature_change_event
 
 import logging
 _LOGGER = logging.getLogger(__name__)
@@ -1079,5 +1080,30 @@ async def test_tpi_parameters_service_updates_the_auto_tpi_reference(hass: HomeA
     # A new session starts from the coefficients set by the service
     await entity.service_set_auto_tpi_mode(auto_tpi_mode=True, reinitialise=True)
     assert manager.state.coeff_indoor_heat == pytest.approx(0.45)
+
+    entity.remove_thermostat()
+
+
+async def test_auto_tpi_start_leaves_central_tpi_config_without_reload(hass: HomeAssistant, skip_hass_states_is_state):
+    """Starting Auto TPI turns the central TPI configuration off in the entry without reloading the thermostat."""
+    entry = _continuous_kext_entry()
+    entry = MockConfigEntry(
+        domain=DOMAIN, title="AutoTpiCentral", unique_id="auto_tpi_central", version=2, minor_version=5,
+        data={**entry.data, CONF_USE_TPI_CENTRAL_CONFIG: True},
+    )
+    entity: ThermostatProp = await create_thermostat(hass, entry, "climate.autotpilive")
+    manager = entity._algo_handler._auto_tpi_manager
+
+    await entity.service_set_auto_tpi_mode(auto_tpi_mode=True, reinitialise=True)
+    await hass.async_block_till_done()
+
+    # The same thermostat keeps running and learning
+    assert search_entity(hass, "climate.autotpilive", "climate") is entity
+    assert entity._algo_handler._auto_tpi_manager is manager
+    assert manager.learning_active is True
+    # The thermostat's own TPI parameters are saved with it: a restart uses the same values
+    assert entry.data[CONF_USE_TPI_CENTRAL_CONFIG] is False
+    assert entry.data[CONF_TPI_COEF_INT] == pytest.approx(entity.tpi_coef_int)
+    assert entry.data[CONF_TPI_COEF_EXT] == pytest.approx(entity.tpi_coef_ext)
 
     entity.remove_thermostat()
