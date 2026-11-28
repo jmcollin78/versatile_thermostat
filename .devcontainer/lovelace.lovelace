@@ -8,7 +8,6 @@
       "views": [
         {
           "type": "sections",
-          "max_columns": 5,
           "title": "Synthèse",
           "path": "default_view",
           "icon": "mdi:alarm-panel",
@@ -194,88 +193,146 @@
                   "heading": "Nouvelle section"
                 },
                 {
-                  "type": "custom:versatile-thermostat-ui-card",
+                  "show_fan": true,
+                  "show_preset": true,
+                  "show_swing": false,
+                  "layout": "compact",
+                  "type": "custom:holm-climate-card",
                   "entity": "climate.thermostat_switch_1",
-                  "inhibitionBypassEntity": "switch.thermostat_switch_1_contournement_de_l_inhibition",
-                  "theme": "vtherm",
-                  "set_current_as_main": true,
-                  "allow_lock_toggle": true,
-                  "disable_menu": true,
-                  "disable_buttons": true,
-                  "disable_target_icon": false,
                   "grid_options": {
-                    "rows": "auto"
-                  }
-                },
-                {
-                  "type": "history-graph",
-                  "entities": [
-                    {
-                      "entity": "input_boolean.fake_heater_switch1"
-                    },
-                    {
-                      "entity": "sensor.thermostat_switch_1_temperature_slope"
-                    },
-                    {
-                      "entity": "sensor.thermostat_switch_1_on_time"
-                    }
+                    "rows": "auto",
+                    "columns": 18
+                  },
+                  "badges": [
+                    "binary_sensor.thermostat_switch_1_window_state",
+                    "binary_sensor.thermostat_switch_1_overpowering_state",
+                    "binary_sensor.thermostat_switch_1_inhibition",
+                    "sensor.thermostat_switch_1_power_percent"
                   ],
-                  "title": "Cycle Switch1",
-                  "hours_to_show": 1
+                  "vtherm": true
                 },
                 {
-                  "type": "custom:versatile-thermostat-ui-card",
+                  "show_fan": true,
+                  "show_preset": true,
+                  "show_swing": false,
+                  "layout": "compact",
+                  "type": "custom:holm-climate-card",
                   "entity": "climate.thermostat_climate_2",
-                  "autoStartStopEnableEntity": "switch.thermostat_climate_2_enable_auto_start_stop",
-                  "set_current_as_main": true,
-                  "disable_autoStartStop": false,
-                  "inhibitionBypassEntity": "switch.thermostat_climate_2_contournement_de_l_inhibition",
-                  "theme": "classic"
+                  "badges": [
+                    "sensor.thermostat_climate_2_regulated_temperature"
+                  ],
+                  "grid_options": {
+                    "columns": 18
+                  },
+                  "vtherm": true
                 },
                 {
-                  "type": "custom:versatile-thermostat-ui-card",
+                  "show_fan": true,
+                  "show_preset": true,
+                  "show_swing": false,
+                  "layout": "compact",
+                  "type": "custom:holm-climate-card",
                   "entity": "climate.thermostat_ac1",
-                  "set_current_as_main": true,
-                  "disable_circle": true
-                }
-              ]
-            },
-            {
-              "type": "grid",
-              "cards": [
+                  "badges": [
+                    "sensor.thermostat_climate_2_regulated_temperature",
+                    "binary_sensor.thermostat_climate_2_window_state"
+                  ],
+                  "grid_options": {
+                    "columns": 18
+                  },
+                  "vtherm": true
+                },
+                {
+                  "show_fan": true,
+                  "show_preset": true,
+                  "show_swing": false,
+                  "layout": "compact",
+                  "type": "custom:holm-climate-card",
+                  "entity": "climate.multi_climate",
+                  "grid_options": {
+                    "columns": 18
+                  },
+                  "vtherm": true
+                },
+                {
+                  "show_fan": true,
+                  "show_preset": true,
+                  "show_swing": false,
+                  "layout": "compact",
+                  "type": "custom:holm-climate-card",
+                  "entity": "climate.multi_switch",
+                  "badges": [
+                    "sensor.thermostat_climate_2_regulated_temperature",
+                    "binary_sensor.thermostat_climate_2_window_state"
+                  ],
+                  "grid_options": {
+                    "columns": 18
+                  },
+                  "vtherm": true
+                },
+                {
+                  "show_fan": true,
+                  "show_preset": true,
+                  "show_swing": false,
+                  "layout": "compact",
+                  "type": "custom:holm-climate-card",
+                  "entity": "climate.sonoff_trvzb",
+                  "grid_options": {
+                    "columns": 18
+                  },
+                  "vtherm": true,
+                  "badges": [
+                    "sensor.sonoff_trvzb_power_percent"
+                  ]
+                },
+                {
+                  "show_fan": true,
+                  "show_preset": true,
+                  "show_swing": false,
+                  "layout": "compact",
+                  "type": "custom:holm-climate-card",
+                  "entity": "climate.empty_thermostast",
+                  "badges": [
+                    "sensor.empty_thermostast_power_percent"
+                  ],
+                  "grid_options": {
+                    "columns": 18
+                  },
+                  "vtherm": true
+                },
+                {
+                  "show_fan": true,
+                  "show_preset": true,
+                  "show_swing": false,
+                  "layout": "compact",
+                  "type": "custom:holm-climate-card",
+                  "entity": "climate.thermostat_valve",
+                  "badges": [
+                    "sensor.thermostat_valve_power_percent"
+                  ],
+                  "grid_options": {
+                    "columns": 18
+                  },
+                  "vtherm": true
+                },
                 {
                   "type": "heading",
                   "heading": "Nouvelle section"
                 },
                 {
-                  "type": "custom:versatile-thermostat-ui-card",
-                  "entity": "climate.multi_switch",
-                  "set_current_as_main": true,
-                  "disable_circle": true
-                },
-                {
-                  "type": "custom:versatile-thermostat-ui-card",
-                  "entity": "climate.multi_climate",
-                  "autoStartStopEnableEntity": "switch.multi_climate_enable_auto_start_stop",
-                  "disable_timed_preset": false,
-                  "use_timed_preset_select": true
-                },
-                {
-                  "type": "custom:versatile-thermostat-ui-card",
-                  "entity": "climate.sonoff_trvzb",
-                  "set_current_as_main": true,
-                  "disable_circle": true,
-                  "use_manual_duration_input": true
-                },
-                {
                   "type": "vertical-stack",
                   "cards": [
                     {
-                      "type": "custom:versatile-thermostat-ui-card",
+                      "show_fan": true,
+                      "show_preset": true,
+                      "show_swing": false,
+                      "layout": "compact",
+                      "type": "custom:holm-climate-card",
                       "entity": "climate.thermostat_select",
-                      "disable_circle": true,
-                      "set_current_as_main": true,
-                      "name": "Th. Switch over select"
+                      "vtherm": true,
+                      "badges": [
+                        "sensor.thermostat_select_power_percent"
+                      ]
                     },
                     {
                       "type": "tile",
@@ -321,40 +378,16 @@
                   "type": "vertical-stack",
                   "cards": [
                     {
-                      "type": "custom:versatile-thermostat-ui-card",
-                      "entity": "climate.thermostat_switch_over_climate",
-                      "disable_circle": true,
-                      "set_current_as_main": true,
-                      "name": "Th. Switch over climate"
-                    },
-                    {
-                      "type": "entity",
-                      "entity": "climate.underlying_switch_climate",
-                      "state_color": false,
-                      "grid_options": {
-                        "columns": "full"
-                      }
-                    },
-                    {
-                      "type": "history-graph",
-                      "entities": [
-                        {
-                          "entity": "climate.underlying_switch_climate"
-                        }
-                      ],
-                      "hours_to_show": 1
-                    }
-                  ]
-                },
-                {
-                  "type": "vertical-stack",
-                  "cards": [
-                    {
-                      "type": "custom:versatile-thermostat-ui-card",
+                      "show_fan": true,
+                      "show_preset": true,
+                      "show_swing": false,
+                      "layout": "compact",
+                      "type": "custom:holm-climate-card",
                       "entity": "climate.inversed_th_over_switch",
-                      "disable_circle": true,
-                      "set_current_as_main": true,
-                      "name": "Th. inversed Switch"
+                      "vtherm": true,
+                      "badges": [
+                        "sensor.inversed_th_over_switch_power_percent"
+                      ]
                     },
                     {
                       "type": "tile",
@@ -382,52 +415,43 @@
                       "hours_to_show": 1
                     }
                   ]
-                }
-              ]
-            },
-            {
-              "type": "grid",
-              "cards": [
-                {
-                  "type": "heading",
-                  "heading": "Nouvelle section"
                 },
                 {
-                  "type": "custom:versatile-thermostat-ui-card",
-                  "entity": "climate.empty_thermostast",
-                  "set_current_as_main": true,
-                  "disable_circle": true
-                },
-                {
-                  "type": "custom:versatile-thermostat-ui-card",
-                  "entity": "climate.thermostat_valve",
-                  "inhibitionBypassEntity": "switch.salon_thermostat_valve_contournement_de_l_inhibition",
-                  "theme": "vtherm",
-                  "set_current_as_main": true,
-                  "disable_buttons": true
-                },
-                {
-                  "type": "entities",
-                  "entities": [
+                  "type": "vertical-stack",
+                  "cards": [
                     {
-                      "entity": "input_boolean.fake_heater_4switch1"
+                      "show_fan": true,
+                      "show_preset": true,
+                      "show_swing": false,
+                      "layout": "compact",
+                      "type": "custom:holm-climate-card",
+                      "entity": "climate.thermostat_switch_over_climate",
+                      "vtherm": true,
+                      "badges": [
+                        "sensor.thermostat_switch_over_climate_power_percent"
+                      ]
                     },
                     {
-                      "entity": "input_boolean.fake_heater_4switch2"
+                      "type": "entity",
+                      "entity": "climate.underlying_switch_climate",
+                      "state_color": false,
+                      "grid_options": {
+                        "columns": "full"
+                      }
                     },
                     {
-                      "entity": "input_boolean.fake_heater_4switch3"
-                    },
-                    {
-                      "entity": "input_boolean.fake_heater_4switch4"
-                    },
-                    {
-                      "entity": "sensor.multi_switch_mean_power_cycle"
+                      "type": "history-graph",
+                      "entities": [
+                        {
+                          "entity": "climate.underlying_switch_climate"
+                        }
+                      ],
+                      "hours_to_show": 1
                     }
-                  ],
-                  "title": "Multi-switch"
+                  ]
                 }
-              ]
+              ],
+              "column_span": 3
             },
             {
               "type": "grid",
@@ -492,7 +516,9 @@
               ]
             }
           ],
-          "cards": []
+          "cards": [],
+          "dense_section_placement": true,
+          "max_columns": 5
         },
         {
           "path": "switch",
@@ -874,6 +900,22 @@
                   "grid_options": {
                     "columns": "full"
                   }
+                },
+                {
+                  "type": "history-graph",
+                  "entities": [
+                    {
+                      "entity": "input_boolean.fake_heater_switch1"
+                    },
+                    {
+                      "entity": "sensor.thermostat_switch_1_temperature_slope"
+                    },
+                    {
+                      "entity": "sensor.thermostat_switch_1_on_time"
+                    }
+                  ],
+                  "title": "Cycle Switch1",
+                  "hours_to_show": 1
                 }
               ]
             }
