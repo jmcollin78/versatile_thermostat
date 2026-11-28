@@ -1,3 +1,7 @@
+# Versatile Thermostat - instructions for AI agents
+
+The project rules, the shared memory and the procedures are in `AGENTS.md` at the repository root and in `.agents/`. Read `AGENTS.md` first and follow it; the agent profiles of `.github/agents/` rely on it.
+
 <!-- rtk-instructions v2 -->
 # RTK — Token-Optimized CLI
 

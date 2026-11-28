@@ -134,5 +134,11 @@ htmlcov
 
 dev_tests/
 entities.json
-.codex
+# Codex local settings are private; shared agent profiles are versioned
+.codex/*
+!.codex/agents/
 mempalace.yaml
+
+# Short-term agent memory (local task folders)
+.agents/local/
+.claude/settings.local.json

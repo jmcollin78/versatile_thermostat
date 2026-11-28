@@ -1,0 +1,26 @@
+{
+  "permissions": {
+    "ask": [
+      "Bash(git commit *)",
+      "Bash(git --no-pager commit *)",
+      "Bash(git push *)",
+      "Bash(git --no-pager push *)",
+      "Bash(git tag *)",
+      "Bash(git --no-pager tag *)"
+    ]
+  },
+  "hooks": {
+    "PreCompact": [
+      {
+        "matcher": "auto",
+        "hooks": [
+          {
+            "type": "prompt",
+            "prompt": "The context is about to be compacted. Save the in-progress state of the current task to its .agents/local/tasks/<task-slug>/handoff.md (done, current state, next step, ruled out, open questions), using .agents/templates/handoff.md. Do not write to .agents/context/: long-term memory is updated only at task end through the admission test.",
+            "timeout": 120
+          }
+        ]
+      }
+    ]
+  }
+}
