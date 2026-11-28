@@ -178,7 +178,7 @@ Gdy **Continuous Kext Learning** jest włączone, Kext jest nadal dostosowywany 
 Kext_new = Kext × (1 − α) + Kext_target × α        α = 0.04
 ```
 
-Stała waga pozwala Kext podążać za wielkością, która powoli się zmienia. Nowa wartość jest zapisywana w konfiguracji, gdy zmieni się o więcej niż 0.001, a regulacja natychmiast ją wykorzystuje.
+Stała waga pozwala Kext podążać za wielkością, która powoli się zmienia. Nowa wartość jest zapisywana w konfiguracji, gdy tylko różni się od skonfigurowanej wartości o więcej niż 0.001 (małe kroki się sumują), a regulacja natychmiast ją wykorzystuje.
 
 ---
 

@@ -178,7 +178,7 @@ Lorsque l'**Apprentissage continu du Kext** est activé, Kext continue d'être a
 Kext_new = Kext × (1 − α) + Kext_target × α        α = 0.04
 ```
 
-Un poids fixe permet à Kext de suivre une grandeur qui dérive lentement. La nouvelle valeur est écrite dans la configuration lorsqu'elle change de plus de 0,001, et la régulation l'utilise immédiatement.
+Un poids fixe permet à Kext de suivre une grandeur qui dérive lentement. La nouvelle valeur est écrite dans la configuration dès qu'elle s'écarte de plus de 0,001 de la valeur configurée (les petits pas s'additionnent), et la régulation l'utilise immédiatement.
 
 ---
 

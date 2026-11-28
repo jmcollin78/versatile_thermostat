@@ -178,7 +178,7 @@ Je-li zapnuto **Průběžné učení Kext**, Kext se i po relaci dále upravuje,
 Kext_new = Kext × (1 − α) + Kext_target × α        α = 0.04
 ```
 
-Pevná váha umožňuje, aby Kext sledoval veličinu, která se pomalu mění. Nová hodnota se zapíše do konfigurace, pokud se změní o více než 0,001, a regulace ji okamžitě použije.
+Pevná váha umožňuje, aby Kext sledoval veličinu, která se pomalu mění. Nová hodnota se zapíše do konfigurace, jakmile se od nakonfigurované hodnoty liší o více než 0,001 (malé kroky se sčítají), a regulace ji okamžitě použije.
 
 ---
 

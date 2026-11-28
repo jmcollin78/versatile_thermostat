@@ -775,9 +775,9 @@ async def test_load_aligns_stored_coefficients_with_configuration_outside_sessio
     assert manager.state.coeff_indoor_heat == pytest.approx(0.6)
 
 
-async def test_continuous_kext_is_applied_to_the_regulation(hass: HomeAssistant, skip_hass_states_is_state):
-    """A Kext written by Auto TPI is used by the TPI algorithm without reloading."""
-    entry = MockConfigEntry(
+def _continuous_kext_entry() -> MockConfigEntry:
+    """Switch thermostat with Auto TPI and continuous Kext learning."""
+    return MockConfigEntry(
         domain=DOMAIN,
         title="AutoTpiLive",
         unique_id="auto_tpi_live",
@@ -805,6 +805,11 @@ async def test_continuous_kext_is_applied_to_the_regulation(hass: HomeAssistant,
             "auto_tpi_continuous_kext": True,
         },
     )
+
+
+async def test_continuous_kext_is_applied_to_the_regulation(hass: HomeAssistant, skip_hass_states_is_state):
+    """A Kext written by Auto TPI is used by the TPI algorithm without reloading."""
+    entry = _continuous_kext_entry()
     entity: ThermostatProp = await create_thermostat(hass, entry, "climate.autotpilive")
     manager = entity._algo_handler._auto_tpi_manager
     assert manager.learning_active is False
@@ -814,6 +819,37 @@ async def test_continuous_kext_is_applied_to_the_regulation(hass: HomeAssistant,
     assert entity.prop_algorithm.tpi_coef_ext == pytest.approx(0.0162)
     assert entity.tpi_coef_ext == pytest.approx(0.0162)
     assert entity.prop_algorithm.tpi_coef_int == pytest.approx(0.6)
+
+
+async def test_small_continuous_kext_steps_reach_the_regulation(hass: HomeAssistant, skip_hass_states_is_state):
+    """Continuous Kext steps far below the write resolution add up until Kext is written and applied."""
+    entry = _continuous_kext_entry()
+    entity: ThermostatProp = await create_thermostat(hass, entry, "climate.autotpilive")
+    manager = entity._algo_handler._auto_tpi_manager
+    manager.state.coeff_outdoor_autolearn = 50
+    manager.state.last_state = "heat"
+    manager.state.last_order = 20.0
+    manager._current_target_temp = 20.0
+
+    written = []
+    with patch.object(manager, "_should_learn_continuous_kext", return_value=True), \
+            patch.object(manager, "_is_settled_for_kext", return_value=True):
+        for _ in range(10):
+            # Kint 0.6, gap 0.2 / 15 °C: each EMA step is about 0.0003
+            await manager._learn_kext_continuous(19.8, 5.0)
+            written.append(entry.data[CONF_TPI_COEF_EXT])
+
+    assert manager.state.coeff_outdoor_heat > 0.036
+    assert written[0] == pytest.approx(0.034)
+    assert written[-1] == pytest.approx(manager.state.coeff_outdoor_heat, abs=0.001)
+    assert entity.prop_algorithm.tpi_coef_ext == pytest.approx(manager.state.coeff_outdoor_heat, abs=0.001)
+    # Written once per 0.001 of change, not at every step
+    assert 2 <= len(set(written)) <= 5
+
+    # The configuration follows the writes: a reload keeps the learned Kext
+    learned = manager.state.coeff_outdoor_heat
+    manager._align_with_configuration()
+    assert manager.state.coeff_outdoor_heat == pytest.approx(learned)
 
 
 @pytest.mark.parametrize("stored_extra, expect_issue", [

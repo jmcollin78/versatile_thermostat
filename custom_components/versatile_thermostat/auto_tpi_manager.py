@@ -359,6 +359,12 @@ class AutoTpiManager:
             if api:
                 api.skip_reload_on_config_update = False
 
+        # The configuration is the reference outside sessions: follow what was written
+        if CONF_TPI_COEF_INT in updates:
+            self._default_coef_int = updates[CONF_TPI_COEF_INT] * self._unit_factor
+        if CONF_TPI_COEF_EXT in updates:
+            self._default_coef_ext = updates[CONF_TPI_COEF_EXT] * self._unit_factor
+
         _LOGGER.info(
             "%s - Auto TPI: ATOMIC UPDATE: Kint=%s, Kext=%s",
             self._name,
@@ -1295,9 +1301,10 @@ class AutoTpiManager:
             self._name, "heat" if is_heat else "cool", current_outdoor, target_outdoor, new_kext, alpha, gap_in, gap_out
         )
 
-        # Persist immediately to config entry if Kext changed significantly (threshold: 0.001).
-        # This avoids having to rely on a startup sync, and keeps the config entry up to date.
-        if abs(new_kext - current_outdoor) > 0.001:
+        # Write Kext once it differs from the configured value by the write resolution (0.001):
+        # each EMA step is far smaller, so the comparison is made against the configuration,
+        # not against the previous cycle.
+        if abs(new_kext - self._default_coef_ext) > 0.001 * self._unit_factor:
             await self.async_update_learning_data(coef_ext=new_kext)
 
     async def on_cycle_completed(self, e_eff: float = None, **_kw) -> None:

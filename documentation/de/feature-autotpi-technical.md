@@ -178,7 +178,7 @@ Wenn **Continuous Kext Learning** aktiviert ist, wird Kext auch nach der Sitzung
 Kext_new = Kext × (1 − α) + Kext_target × α        α = 0.04
 ```
 
-Ein fester Gewichtungsfaktor lässt Kext einer langsam driftenden Größe folgen. Der neue Wert wird in die Konfiguration geschrieben, wenn er sich um mehr als 0.001 ändert, und die Regelung verwendet ihn sofort.
+Ein fester Gewichtungsfaktor lässt Kext einer langsam driftenden Größe folgen. Der neue Wert wird in die Konfiguration geschrieben, sobald er um mehr als 0.001 vom konfigurierten Wert abweicht (die kleinen Schritte summieren sich), und die Regelung verwendet ihn sofort.
 
 ---
 

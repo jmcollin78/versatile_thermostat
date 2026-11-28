@@ -102,7 +102,7 @@ Kint est appris sur des fenêtres de plusieurs cycles, car sur un cycle de 5 min
 ### D. Kext Continu (`_learn_kext_continuous`)
 *   Hors session, si `auto_tpi_continuous_kext` est activé et qu'au moins un échantillon Kext existe.
 *   Mêmes conditions de cycle et de stabilisation.
-*   EMA à poids fixe `CONTINUOUS_KEXT_ALPHA` (0,04) ; la valeur est écrite dans la config si elle change de plus de 0,001.
+*   EMA à poids fixe `CONTINUOUS_KEXT_ALPHA` (0,04) ; la valeur est écrite dans la config dès qu'elle s'écarte de plus de 0,001 de la valeur configurée (comparaison à la config, pas au cycle précédent : un pas d'EMA est bien plus petit). Après chaque écriture, les coefficients de référence du gestionnaire suivent la config.
 
 ---
 

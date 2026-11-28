@@ -178,7 +178,7 @@ When **Continuous Kext Learning** is enabled, Kext keeps being adjusted after th
 Kext_new = Kext × (1 − α) + Kext_target × α        α = 0.04
 ```
 
-A fixed weight lets Kext follow a quantity that drifts slowly. The new value is written to the configuration when it changes by more than 0.001, and the regulation uses it right away.
+A fixed weight lets Kext follow a quantity that drifts slowly. The new value is written to the configuration once it differs from the configured value by more than 0.001 (the small steps add up), and the regulation uses it right away.
 
 ---
 
