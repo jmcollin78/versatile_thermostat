@@ -1047,3 +1047,23 @@ async def test_fast_rises_at_full_power_report_a_kint_too_high(manager, mock_iss
     if expect_issue:
         # T_cl 30 min and 4 °C/h at full power: Kint 0.5
         assert calls[-1].kwargs["translation_placeholders"] == {"name": "test_name", "kint": "2.00", "suggested": "0.50"}
+
+
+async def test_tpi_parameters_service_updates_the_auto_tpi_reference(hass: HomeAssistant, skip_hass_states_is_state):
+    """Coefficients set by the TPI parameters service become the Auto TPI reference without a reload."""
+    entity: ThermostatProp = await create_thermostat(hass, _continuous_kext_entry(), "climate.autotpilive")
+    manager = entity._algo_handler._auto_tpi_manager
+    assert manager.learning_active is False
+
+    await entity.service_set_tpi_parameters(tpi_coef_int=0.45, tpi_coef_ext=0.021)
+    await hass.async_block_till_done()
+
+    assert entity._algo_handler._auto_tpi_manager is manager
+    assert manager.state.coeff_indoor_heat == pytest.approx(0.45)
+    assert manager.state.coeff_outdoor_heat == pytest.approx(0.021)
+
+    # A new session starts from the coefficients set by the service
+    await entity.service_set_auto_tpi_mode(auto_tpi_mode=True, reinitialise=True)
+    assert manager.state.coeff_indoor_heat == pytest.approx(0.45)
+
+    entity.remove_thermostat()

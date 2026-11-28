@@ -26,7 +26,7 @@ from .const import (
     CONF_TPI_COEF_INT,
     CONF_TPI_COEF_EXT,
 )
-from .vtherm_central_api import VersatileThermostatAPI
+from .vtherm_central_api import async_update_entry_without_reload
 
 _LOGGER = get_vtherm_logger(__name__)
 
@@ -303,6 +303,17 @@ class AutoTpiManager:
         """Set a callback called when learned coefficients are written to the configuration."""
         self._coefficients_written_callback = callback
 
+    def set_configured_coefficients(self, coef_int: float, coef_ext: float) -> None:
+        """Follow coefficients written to the configuration outside Auto TPI (user, service).
+
+        They become the reference for the next session start. Outside a session
+        they also replace the stored ones, as when the configuration is loaded.
+        """
+        self._default_coef_int = coef_int * self._unit_factor
+        self._default_coef_ext = coef_ext * self._unit_factor
+        if not self.state.autolearn_enabled:
+            self._align_with_configuration()
+
     def _align_with_configuration(self) -> None:
         """Replace the stored coefficients that differ from the configured ones beyond the write rounding."""
         for attr, configured in (
@@ -363,16 +374,8 @@ class AutoTpiManager:
             _LOGGER.debug("%s - Auto TPI: update_learning_data - no updates to apply", self._name)
             return
 
-        # Apply atomic config update (no reload: flag prevents update_listener from reloading)
-        api = VersatileThermostatAPI.get_vtherm_api(self._hass)
-        if api:
-            api.skip_reload_on_config_update = True
-        try:
-            new_data = {**self._config_entry.data, **updates}
-            self._hass.config_entries.async_update_entry(self._config_entry, data=new_data)
-        finally:
-            if api:
-                api.skip_reload_on_config_update = False
+        # Apply atomic config update, without reload: the regulation already uses the coefficients
+        async_update_entry_without_reload(self._hass, self._config_entry, {**self._config_entry.data, **updates})
 
         # The configuration is the reference outside sessions: follow what was written
         if CONF_TPI_COEF_INT in updates:

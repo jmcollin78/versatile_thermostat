@@ -14,7 +14,7 @@ from .prop_algo_tpi import TpiAlgorithm
 from .auto_tpi_manager import AutoTpiManager
 from .const import *  # pylint: disable=wildcard-import, unused-wildcard-import
 from .vtherm_hvac_mode import VThermHvacMode_OFF, VThermHvacMode_HEAT, VThermHvacMode_COOL
-from .vtherm_central_api import VersatileThermostatAPI
+from .vtherm_central_api import VersatileThermostatAPI, async_update_entry_without_reload
 from .commons import write_event_log
 from .cycle_scheduler import calculate_cycle_times
 
@@ -368,7 +368,12 @@ class TPIHandler:
         })
 
     async def _async_update_tpi_config_entry(self):
-        """Update the config entry with current TPI parameters."""
+        """Save the current TPI parameters in the config entry.
+
+        The parameters are already applied to the running thermostat, so the entry
+        is not reloaded: a reload would rebuild the entity and lose its in-memory
+        state (current cycle, sensor values, Auto TPI learning windows).
+        """
         t = self._thermostat
         entry = t.hass.config_entries.async_get_entry(t.unique_id)
         if entry:
@@ -380,7 +385,7 @@ class TPIHandler:
             new_data[CONF_MINIMAL_ACTIVATION_DELAY] = t.minimal_activation_delay
             new_data[CONF_MINIMAL_DEACTIVATION_DELAY] = t.minimal_deactivation_delay
 
-            result = t.hass.config_entries.async_update_entry(entry, data=new_data)
+            result = async_update_entry_without_reload(t.hass, entry, new_data)
             _LOGGER.debug("%s - Config entry updated with new TPI params: %s", t, result)
 
     async def service_set_tpi_parameters(
@@ -443,12 +448,15 @@ class TPIHandler:
 
         await self._async_update_tpi_config_entry()
 
-        if t.is_removed:
-            _LOGGER.debug("%s - Entity is removed, stop service_set_tpi_parameters", t)
-            return
+        # Without a reload, Auto TPI is told the new configured coefficients
+        if self._auto_tpi_manager:
+            self._auto_tpi_manager.set_configured_coefficients(t.tpi_coef_int, t.tpi_coef_ext)
 
+        # Refresh the demand with the new parameters. The running cycle is not restarted:
+        # the new power applies from the next cycle, so Auto TPI keeps a complete cycle.
         t.recalculate()
-        await t.async_control_heating(force=True)
+        t.update_custom_attributes()
+        t.async_write_ha_state()
 
     async def service_set_auto_tpi_mode(
         self,
