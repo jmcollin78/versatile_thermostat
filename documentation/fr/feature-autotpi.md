@@ -32,7 +32,7 @@ graph LR
 
 1.  **Début** : la session part des coefficients de votre configuration.
 2.  **Apprentissage** : Kint et Kext sont ajustés indépendamment (voir ci-dessous).
-3.  **Sauvegarde** : une fois Kint ajusté sur **15 fenêtres de montée** et Kext sur **50 cycles**, la session se termine : les coefficients sont enregistrés dans votre configuration et une notification est envoyée.
+3.  **Sauvegarde** : une fois Kint ajusté sur **15 fenêtres de montée** et Kext sur **50 cycles**, la session se termine (plus tard si Kint bouge encore dans le même sens) : les coefficients sont enregistrés dans votre configuration et une notification est envoyée.
 
 ### Quand Kint et Kext sont-ils ajustés ?
 

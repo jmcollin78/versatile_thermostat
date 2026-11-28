@@ -50,6 +50,9 @@ KINT_WINDOW_RISE = 0.3  # Expected temperature change over a window (°C), used 
 KINT_RATE_LOOKBACK_MINUTES = 20.0  # Span used to measure the rise before a window
 KINT_MAX_STEP = 1.15  # Max multiplicative Kint change per window
 KINT_WINDOWS_TO_FINISH = 15  # Kint windows needed to end the learning
+KINT_TREND_TO_FINISH = 5  # The learning does not end while this many Kint steps in a row went the same way
+KINT_TOO_HIGH_FACTOR = 1.5  # Kint above this factor of the Kint suggested by a rise at full power is too high
+KINT_TOO_HIGH_RISES = 2  # Rises at full power, without Kint window, that show a Kint too high
 CLOSED_LOOP_TIME_MIN_MINUTES = 30.0  # Bounds of the target closed-loop time constant
 CLOSED_LOOP_TIME_MAX_MINUTES = 180.0
 KEXT_SETTLE_FACTOR = 3.0  # Kext is learned only after KEXT_SETTLE_FACTOR closed-loop times since the last setpoint change
@@ -94,6 +97,8 @@ class AutoTpiState:
 
     # Management
     autolearn_enabled: bool = False
+    kint_trend_heat: int = 0  # Consecutive Kint steps in the same direction (sign = direction)
+    kint_trend_cool: int = 0
     last_learning_status: str = "startup"
     total_cycles: int = 0  # Total number of TPI cycles
     learning_start_date: Optional[datetime] = None  # Date when learning started
@@ -207,6 +212,8 @@ class AutoTpiManager:
         # Kint learning window (transient)
         self._kint_window_start: tuple[datetime, float, float] | None = None  # (time, room temperature, duration min)
         self._recent_temps: list[tuple[datetime, float]] = []  # room temperature at the last cycle ends
+        self._saturated_rise: list | None = None  # [start time, start temp, end time, end temp, is_cool]
+        self._fast_saturated_rises = 0
         self._kint_window_hold_since: datetime | None = None  # last setpoint change or window reset
         self._last_setpoint_change: datetime | None = None
         self._setpoint_reached: bool = True  # room came within KINT_MIN_GAP of the setpoint since the last change
@@ -260,6 +267,11 @@ class AutoTpiManager:
     def _relearn_issue_id(self) -> str:
         """Repair issue id asking to learn the coefficients again."""
         return f"auto_tpi_relearn_{self._unique_id}"
+
+    @property
+    def _kint_too_high_issue_id(self) -> str:
+        """Repair issue id telling that the starting Kint is too high to be learned."""
+        return f"auto_tpi_kint_too_high_{self._unique_id}"
 
     def _report_previous_learning(self, data: dict) -> None:
         """Raise a repair issue when the stored state comes from the per-cycle learning.
@@ -399,18 +411,21 @@ class AutoTpiManager:
             k_ext = self.state.coeff_outdoor_cool
             int_cycles_count = self.state.coeff_indoor_cool_autolearn
             ext_cycles_count = self.state.coeff_outdoor_cool_autolearn
+            kint_trend = self.state.kint_trend_cool
         else:
             k_int = self.state.coeff_indoor_heat
             k_ext = self.state.coeff_outdoor_heat
             int_cycles_count = self.state.coeff_indoor_autolearn
             ext_cycles_count = self.state.coeff_outdoor_autolearn
+            kint_trend = self.state.kint_trend_heat
 
         # 1. Learning ends when both Kint windows and Kext samples are sufficient.
         # The Kint counter starts at _avg_initial_weight.
         INT_CYCLES_THRESHOLD = KINT_WINDOWS_TO_FINISH + self._avg_initial_weight
         EXT_CYCLES_THRESHOLD = 50
 
-        is_int_finished = int_cycles_count >= INT_CYCLES_THRESHOLD
+        # Kint is not finished while its last steps all went the same way (start far from its value)
+        is_int_finished = int_cycles_count >= INT_CYCLES_THRESHOLD and abs(kint_trend) < KINT_TREND_TO_FINISH
         is_ext_finished = ext_cycles_count >= EXT_CYCLES_THRESHOLD
 
         if not (is_int_finished and is_ext_finished):
@@ -786,6 +801,59 @@ class AutoTpiManager:
         t_cl = 2.0 * (self._heater_heating_time + self._cycle_min / 2.0)
         return min(CLOSED_LOOP_TIME_MAX_MINUTES, max(CLOSED_LOOP_TIME_MIN_MINUTES, t_cl))
 
+    def _track_saturated_rise(self, now: datetime, is_cool: bool) -> None:
+        """Extend the rise at full power with the completed cycle when the room was far from the setpoint."""
+        start_temp = self.state.last_temp_in
+        gap = (start_temp - self.state.last_order) if is_cool else (self.state.last_order - start_temp)
+        if gap < KINT_MIN_GAP or self.state.cycle_start_date is None:
+            self._end_saturated_rise()
+            return
+        if self._saturated_rise is None or self._saturated_rise[4] != is_cool:
+            self._saturated_rise = [self.state.cycle_start_date, start_temp, now, self._current_temp_in, is_cool]
+        else:
+            self._saturated_rise[2:4] = [now, self._current_temp_in]
+
+    def _end_saturated_rise(self) -> None:
+        """Check a finished rise at full power: a fast rise shows a Kint too high to be learned.
+
+        With a Kint too high, the power stays at 100 % until the room is too close to the
+        setpoint for a Kint window, so Kint never moves. The rise speed at full power gives
+        the Kint that the target closed-loop time needs; a repair issue suggests it.
+        """
+        rise, self._saturated_rise = self._saturated_rise, None
+        if rise is None or not self.learning_active:
+            return
+        start_time, start_temp, end_time, end_temp, is_cool = rise
+        hours = (end_time - start_time).total_seconds() / 3600.0
+        delta = (start_temp - end_temp) if is_cool else (end_temp - start_temp)
+        if hours * 60.0 < KINT_RATE_LOOKBACK_MINUTES or delta < KINT_WINDOW_RISE:
+            return
+        suggested = min(self._max_coef_int, max(MIN_KINT, 1.0 / (delta / hours * self.closed_loop_time_min / 60.0)))
+        kint = self.state.coeff_indoor_cool if is_cool else self.state.coeff_indoor_heat
+        if kint <= KINT_TOO_HIGH_FACTOR * suggested:
+            self._fast_saturated_rises = 0
+            return
+        self._fast_saturated_rises += 1
+        _LOGGER.info(
+            "%s - Auto TPI: rise at full power of %.2f° in %.0f min, Kint %.3f looks too high (about %.2f expected)",
+            self._name, delta, hours * 60.0, kint / self._unit_factor, suggested / self._unit_factor,
+        )
+        if self._fast_saturated_rises >= KINT_TOO_HIGH_RISES:
+            ir.async_create_issue(
+                self._hass,
+                DOMAIN,
+                self._kint_too_high_issue_id,
+                is_fixable=False,
+                is_persistent=True,
+                severity=ir.IssueSeverity.WARNING,
+                translation_key="auto_tpi_kint_too_high",
+                translation_placeholders={
+                    "name": self._name,
+                    "kint": f"{kint / self._unit_factor:.2f}",
+                    "suggested": f"{suggested / self._unit_factor:.2f}",
+                },
+            )
+
     def _reset_kint_window(self, now: datetime | None = None) -> None:
         """Close the current Kint window without learning and hold the next start."""
         self._kint_window_start = None
@@ -830,7 +898,10 @@ class AutoTpiManager:
             if self._kint_window_start is not None:
                 _LOGGER.debug("%s - Auto TPI: Kint window closed without learning (saturated cycle)", self._name)
             self._kint_window_start = None
+            self._track_saturated_rise(now, is_cool)
             return
+
+        self._end_saturated_rise()
 
         if not (cycle_valid and (is_heat or is_cool) and 0 < self.state.last_power < self.saturation_threshold):
             if self._kint_window_start is not None:
@@ -924,14 +995,25 @@ class AutoTpiManager:
         old_coeff = self.state.coeff_indoor_cool if is_cool else self.state.coeff_indoor_heat
         new_coeff = min(self._max_coef_int, max(MIN_KINT, old_coeff * ratio))
 
+        # Steps that keep going the same way mean Kint is still far from its value
+        direction = (new_coeff > old_coeff) - (new_coeff < old_coeff)
+        trend = self.state.kint_trend_cool if is_cool else self.state.kint_trend_heat
+        trend = trend + direction if direction and trend * direction > 0 else direction
+
         if is_cool:
             self.state.coeff_indoor_cool = new_coeff
             self.state.coeff_indoor_cool_autolearn += 1
+            self.state.kint_trend_cool = trend
             count = self.state.coeff_indoor_cool_autolearn
         else:
             self.state.coeff_indoor_heat = new_coeff
             self.state.coeff_indoor_autolearn += 1
+            self.state.kint_trend_heat = trend
             count = self.state.coeff_indoor_autolearn
+
+        # A learned window shows that Kint can be learned
+        self._fast_saturated_rises = 0
+        ir.async_delete_issue(self._hass, DOMAIN, self._kint_too_high_issue_id)
 
         self.state.last_learning_status = f"learned_indoor_{'cool' if is_cool else 'heat'}"
         self._learning_just_completed = True
@@ -1497,6 +1579,8 @@ class AutoTpiManager:
             self.state.coeff_outdoor_cool = target_ext
 
             # Reset all counters
+            self.state.kint_trend_heat = 0
+            self.state.kint_trend_cool = 0
             self.state.coeff_indoor_autolearn = self._avg_initial_weight
             self.state.coeff_outdoor_autolearn = 0
             self.state.coeff_indoor_cool_autolearn = self._avg_initial_weight
@@ -1539,6 +1623,9 @@ class AutoTpiManager:
 
         # Always enable learning when activating
         self.state.autolearn_enabled = True
+        self._saturated_rise = None
+        self._fast_saturated_rises = 0
+        ir.async_delete_issue(self._hass, DOMAIN, self._kint_too_high_issue_id)
 
         # Set start date only if it's a new session (reset) or if it wasn't set (first start)
         if reset_data or self.state.learning_start_date is None:

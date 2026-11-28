@@ -876,7 +876,7 @@ async def test_previous_learning_raises_a_relearn_issue(mock_hass, mock_store, m
             assert kwargs["translation_placeholders"] == {"name": "Bedroom", "kint": "0.029", "kext": "0.020"}
 
         await manager.start_learning(reset_data=True)
-        mock_ir.async_delete_issue.assert_called_once_with(mock_hass, "versatile_thermostat", "auto_tpi_relearn_test_relearn")
+        mock_ir.async_delete_issue.assert_any_call(mock_hass, "versatile_thermostat", "auto_tpi_relearn_test_relearn")
 
 
 async def test_kint_window_opens_right_after_saturation(manager):
@@ -998,3 +998,52 @@ async def test_session_after_previous_method_starts_from_default_kint(
     assert manager.learning_active is True
 
     entity.remove_thermostat()
+
+
+async def test_kint_trend_counts_steps_in_the_same_direction(manager):
+    """Kint steps that keep going the same way are counted; a step the other way restarts the count."""
+    manager.state.autolearn_enabled = True
+    manager._current_target_temp = 20.0
+    for expected in (1, 2, 3):
+        # Slow rise: Kint goes up
+        manager._learn_kint_from_window(18.0, 18.05, 30.0, False)
+        assert manager.state.kint_trend_heat == expected
+    # Fast rise: Kint goes down
+    manager._learn_kint_from_window(18.0, 19.8, 30.0, False)
+    assert manager.state.kint_trend_heat == -1
+
+
+@pytest.mark.parametrize("trend, finished", [(4, True), (5, False), (-5, False)])
+async def test_learning_does_not_end_while_kint_keeps_moving(manager, trend, finished):
+    """The session ends after enough windows and cycles only once Kint stopped moving one way."""
+    manager.state.autolearn_enabled = True
+    manager.state.coeff_indoor_autolearn = 20
+    manager.state.coeff_outdoor_autolearn = 50
+    manager.state.kint_trend_heat = trend
+    with patch.object(manager, "async_update_learning_data", new_callable=AsyncMock):
+        await manager.process_learning_completion()
+    assert manager.learning_active is not finished
+
+
+@pytest.mark.parametrize("kint, expect_issue", [(2.0, True), (0.6, False)])
+async def test_fast_rises_at_full_power_report_a_kint_too_high(manager, mock_issue_registry, kint, expect_issue):
+    """Rises at full power that reach the setpoint area quickly show a starting Kint too high to be learned."""
+    manager.state.autolearn_enabled = True
+    manager.state.coeff_indoor_heat = kint
+    start = datetime(2026, 1, 5, 6, 0, tzinfo=timezone.utc)
+    for rise in range(2):
+        day = start + timedelta(days=rise)
+        # 6 cycles of 5 min at 100 %, 18 °C -> 20 °C: 4 °C/h
+        for cycle in range(6):
+            manager.state.cycle_start_date = day + timedelta(minutes=5 * cycle)
+            manager.state.last_order = 21.0
+            manager.state.last_temp_in = 18.0 + cycle / 3
+            manager._current_temp_in = 18.0 + (cycle + 1) / 3
+            manager._track_saturated_rise(day + timedelta(minutes=5 * (cycle + 1)), False)
+        manager._end_saturated_rise()
+
+    calls = [c for c in mock_issue_registry.async_create_issue.call_args_list if c.kwargs.get("translation_key") == "auto_tpi_kint_too_high"]
+    assert bool(calls) is expect_issue
+    if expect_issue:
+        # T_cl 30 min and 4 °C/h at full power: Kint 0.5
+        assert calls[-1].kwargs["translation_placeholders"] == {"name": "test_name", "kint": "2.00", "suggested": "0.50"}

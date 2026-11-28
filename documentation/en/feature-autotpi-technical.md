@@ -101,7 +101,7 @@ A cycle is ignored for learning if:
 
 ### End of the Session
 
-The session ends when Kint has been learned over **15 windows** and Kext over **50 cycles**. The coefficients are then written to the configuration and a notification is sent.
+The session ends when Kint has been learned over **15 windows** and Kext over **50 cycles**. The coefficients are then written to the configuration and a notification is sent. Kint is not considered learned while its last **5 steps** all went the same way: it is still far from its value, and the session goes on.
 
 ---
 
@@ -200,6 +200,7 @@ A fixed weight lets Kext follow a quantity that drifts slowly. The new value is 
 | Maximum Kint step | ×1.15 / ÷1.15 | Bounded step per window |
 | Kint bounds | 0.01 – 3.0 | |
 | Kint windows to end the session | 15 | |
+| Kint steps in the same direction that prevent the end | 5 | |
 | Kext cycles to end the session | 50 | |
 | Kext settling | 3 × T_cl, then near setpoint (or 12 × T_cl) | Kext is not learned during a rise |
 | Maximum gap for Kext | 1.0°C | |
@@ -273,6 +274,7 @@ State: `active` during a session, `off` otherwise.
 | Overshoot after each rise | Heating time too short for the emitter | Increase the heating time, then restart a session |
 | Slow rise, no overshoot | Heating time too long | Decrease the heating time, then restart a session |
 | Room always below or above the setpoint | Kext not learned yet, or losses changed | Let the session end, or enable continuous Kext learning |
+| Repair "Kint too high to be learned" | The starting Kint is too high: heating stays at 100% until the room is close to the setpoint | Set the suggested Kint in the TPI settings, then restart a session with reset |
 | Learning makes no progress at all | Heating always at 100% (extreme cold) | Wait for milder weather |
 
 ### Persistence File

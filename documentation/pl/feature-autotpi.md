@@ -32,7 +32,7 @@ graph LR
 
 1.  **Start**: Sesja rozpoczyna się od współczynników z Twojej konfiguracji.
 2.  **Uczenie**: Kint i Kext są dostosowywane niezależnie (patrz poniżej).
-3.  **Zapis**: Gdy Kint zostanie dostosowany w ciągu **15 okien narastania**, a Kext w ciągu **50 cykli**, sesja się kończy: współczynniki są zapisywane w konfiguracji i wysyłane jest powiadomienie.
+3.  **Zapis**: Gdy Kint zostanie dostosowany w ciągu **15 okien narastania**, a Kext w ciągu **50 cykli**, sesja się kończy (później, jeśli Kint wciąż zmienia się w tym samym kierunku): współczynniki są zapisywane w konfiguracji i wysyłane jest powiadomienie.
 
 ### Kiedy dostosowywane są Kint i Kext?
 

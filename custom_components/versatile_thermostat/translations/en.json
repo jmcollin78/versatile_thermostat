@@ -1059,6 +1059,10 @@
     },
     "exceptions": {},
     "issues": {
+        "auto_tpi_kint_too_high": {
+            "title": "Auto TPI: Kint of {name} too high to be learned",
+            "description": "During the learning session of {name}, the heating stays at full power until the room is close to the setpoint, so Kint ({kint}) cannot be learned: it is too high as a starting point. The rises observed suggest a Kint of about {suggested}. Set this value in the TPI settings of the thermostat, then start a new learning session with `reinitialise: true`. This message disappears when the session starts or when Kint is learned."
+        },
         "auto_tpi_relearn": {
             "title": "Auto TPI: learn the coefficients of {name} again",
             "description": "The Auto TPI learning of {name} has been improved. The coefficients learned before (Kint {kint}, Kext {kext}) may be wrong, Kint often far too low. Start a new learning session from the Auto TPI card, the Equinox dashboard or the `versatile_thermostat.set_auto_tpi_mode` action. The session starts again from Kint 0.6. This message disappears when it starts."

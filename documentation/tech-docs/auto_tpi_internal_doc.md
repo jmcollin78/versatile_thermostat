@@ -109,6 +109,8 @@ Kint est appris sur des fenêtres de plusieurs cycles, car sur un cycle de 5 min
 ## 5. Fin de Session (`process_learning_completion`)
 
 *   Fin quand `coeff_indoor_autolearn ≥ KINT_WINDOWS_TO_FINISH + KINT_COUNT_START` (15 fenêtres) et `coeff_outdoor_autolearn ≥ 50`.
+*   Kint n'est pas fini tant que `|kint_trend_heat|` (ou `kint_trend_cool`) ≥ `KINT_TREND_TO_FINISH` (5) : nombre de pas consécutifs de Kint dans le même sens (signe = sens), mis à jour dans `_learn_kint_from_window`, remis à zéro par une session avec reset. Un départ loin de la valeur ne finit donc pas avec Kint encore en mouvement.
+*   Kint trop haut : `_track_saturated_rise` suit les cycles valides à 100 % avec un écart ≥ `KINT_MIN_GAP` ; `_end_saturated_rise` mesure la montée (≥ 20 min et ≥ 0,3 °C), en déduit le Kint suggéré `1 / (vitesse × T_cl)` et, si Kint > `KINT_TOO_HIGH_FACTOR` (1,5) × suggéré sur `KINT_TOO_HIGH_RISES` (2) montées sans fenêtre Kint apprise entre elles, lève la réparation `auto_tpi_kint_too_high` (supprimée au démarrage d'une session ou dès qu'une fenêtre Kint est apprise).
 *   `stop_learning()`, écriture de Kint et Kext dans la config, notification persistante.
 
 ---

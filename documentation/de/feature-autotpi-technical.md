@@ -101,7 +101,7 @@ Ein Zyklus wird für das Lernen ignoriert, wenn:
 
 ### Ende der Sitzung
 
-Die Sitzung endet, wenn Kint über **15 Fenster** und Kext über **50 Zyklen** gelernt wurde. Die Koeffizienten werden dann in die Konfiguration geschrieben und eine Benachrichtigung wird gesendet.
+Die Sitzung endet, wenn Kint über **15 Fenster** und Kext über **50 Zyklen** gelernt wurde. Die Koeffizienten werden dann in die Konfiguration geschrieben und eine Benachrichtigung wird gesendet. Kint gilt nicht als gelernt, solange seine letzten **5 Schritte** alle in dieselbe Richtung gingen: Es ist noch weit von seinem Wert entfernt, und die Sitzung läuft weiter.
 
 ---
 
@@ -200,6 +200,7 @@ Ein fester Gewichtungsfaktor lässt Kext einer langsam driftenden Größe folgen
 | Maximaler Kint-Schritt | ×1.15 / ÷1.15 | Begrenzter Schritt pro Fenster |
 | Grenzen für Kint | 0.01 – 3.0 | |
 | Kint-Fenster bis zum Ende der Sitzung | 15 | |
+| Kint-Schritte in dieselbe Richtung, die das Ende verhindern | 5 | |
 | Kext-Zyklen bis zum Ende der Sitzung | 50 | |
 | Kext-Einschwingen | 3 × T_cl, danach nahe am Sollwert (oder 12 × T_cl) | Kext wird während eines Anstiegs nicht gelernt |
 | Maximale Abweichung für Kext | 1.0 °C | |
@@ -273,6 +274,7 @@ Zustand: `active` während einer Sitzung, sonst `off`.
 | Overshoot nach jedem Anstieg | Heizzeit zu kurz für den Heizkörper | Heizzeit erhöhen, dann eine Sitzung neu starten |
 | Langsamer Anstieg, kein Overshoot | Heizzeit zu lang | Heizzeit verringern, dann eine Sitzung neu starten |
 | Raum liegt immer unter oder über dem Sollwert | Kext noch nicht gelernt oder Verluste haben sich geändert | Sitzung enden lassen oder kontinuierliches Kext-Lernen aktivieren |
+| Reparatur „Kint zu hoch, um gelernt zu werden“ | Der Start-Kint ist zu hoch: Die Heizung bleibt bei 100 %, bis der Raum nahe am Sollwert ist | Den vorgeschlagenen Kint in den TPI-Einstellungen setzen und dann eine Sitzung mit Zurücksetzen neu starten |
 | Lernen kommt überhaupt nicht voran | Heizung immer bei 100 % (extreme Kälte) | Auf milderes Wetter warten |
 
 ### Persistenzdatei

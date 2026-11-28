@@ -32,7 +32,7 @@ graph LR
 
 1.  **Start**: Die Sitzung beginnt mit den Koeffizienten Ihrer Konfiguration.
 2.  **Lernen**: Kint und Kext werden unabhängig voneinander angepasst (siehe unten).
-3.  **Speichern**: Sobald Kint über **15 Anstiegsfenster** und Kext über **50 Zyklen** angepasst wurde, endet die Sitzung: Die Koeffizienten werden in Ihrer Konfiguration gespeichert und eine Benachrichtigung wird gesendet.
+3.  **Speichern**: Sobald Kint über **15 Anstiegsfenster** und Kext über **50 Zyklen** angepasst wurde, endet die Sitzung (später, wenn sich Kint noch in dieselbe Richtung bewegt): Die Koeffizienten werden in Ihrer Konfiguration gespeichert und eine Benachrichtigung wird gesendet.
 
 ### Wann werden Kint und Kext angepasst?
 
