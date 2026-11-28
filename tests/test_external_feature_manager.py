@@ -159,6 +159,29 @@ async def test_auto_start_stop_manager_prefers_external_stable_name(hass: HomeAs
         api.unregister_feature_manager("auto_start_stop")
 
 
+class FakeHeatingFailureFeatureManagerFactory(FakeExternalFeatureManagerFactory):
+    """Factory using the stable name of the heating failure detection."""
+
+    name = "heating_failure_detection"
+
+
+async def test_heating_failure_detection_prefers_the_plugin_over_the_core(hass: HomeAssistant, skip_hass_states_is_state, skip_send_event):
+    """The heating failure detection resolves to the plugin manager when one is registered, not to the core one."""
+    api = VersatileThermostatAPI.get_vtherm_api(hass)
+    api.register_feature_manager(FakeHeatingFailureFeatureManagerFactory())
+
+    try:
+        await _setup_only_entry(hass)
+        entity: ThermostatOverClimate = search_entity(hass, "climate.theoverclimatemockname", "climate")
+        assert entity
+
+        external_manager = entity.get_feature_manager("heating_failure_detection")
+        assert isinstance(external_manager, FakeExternalFeatureManager)
+        assert external_manager is not entity.heating_failure_detection_manager
+    finally:
+        api.unregister_feature_manager("heating_failure_detection")
+
+
 async def test_auto_start_stop_manager_falls_back_to_core_manager(hass: HomeAssistant, skip_hass_states_is_state, skip_send_event):
     """The access point returns the core manager when no external owner exists."""
     await _setup_only_entry(hass)

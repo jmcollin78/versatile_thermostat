@@ -236,7 +236,7 @@ class TPIHandler:
         t = self._thermostat
         get_feature_manager = getattr(t, "get_feature_manager", None)
         heating_failure_manager = (
-            get_feature_manager("heating_failure_detection")
+            get_feature_manager(HEATING_FAILURE_DETECTION_STABLE_NAME)
             if callable(get_feature_manager)
             else None
         )

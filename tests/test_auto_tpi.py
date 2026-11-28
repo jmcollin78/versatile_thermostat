@@ -1,7 +1,7 @@
 """Test the AutoTpiManager class."""
 import pytest
 from types import SimpleNamespace
-from unittest.mock import MagicMock, patch, AsyncMock
+from unittest.mock import MagicMock, patch, AsyncMock, PropertyMock
 from datetime import datetime, timedelta, timezone
 
 from homeassistant.core import HomeAssistant
@@ -1047,6 +1047,20 @@ async def test_fast_rises_at_full_power_report_a_kint_too_high(manager, mock_iss
     if expect_issue:
         # T_cl 30 min and 4 °C/h at full power: Kint 0.5
         assert calls[-1].kwargs["translation_placeholders"] == {"name": "test_name", "kint": "2.00", "suggested": "0.50"}
+
+
+async def test_auto_tpi_receives_the_core_heating_failure(hass: HomeAssistant, skip_hass_states_is_state):
+    """Without a plugin providing it, the heating failure detected by the core detection reaches Auto TPI."""
+    entity: ThermostatProp = await create_thermostat(hass, _continuous_kext_entry(), "climate.autotpilive")
+    core_manager = entity.heating_failure_detection_manager
+    assert entity.get_feature_manager("heating_failure_detection") is core_manager
+
+    with patch.object(type(core_manager), "is_detected", new_callable=PropertyMock, return_value=True):
+        await entity._algo_handler.control_heating()
+
+    assert entity._algo_handler._auto_tpi_manager._current_is_heating_failure is True
+
+    entity.remove_thermostat()
 
 
 async def test_tpi_parameters_service_updates_the_auto_tpi_reference(hass: HomeAssistant, skip_hass_states_is_state):

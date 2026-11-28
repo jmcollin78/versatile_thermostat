@@ -23,6 +23,11 @@ class BaseFeatureManager:
     # (the recorder can only filter top-level keys, not nested ones).
     unrecorded_attributes = frozenset()
 
+    # Stable name of the feature for a core manager that a plugin can replace.
+    # get_feature_manager returns this core manager under that name when no
+    # plugin provides it. None: the manager is not looked up by feature name.
+    stable_name: str | None = None
+
     def __init__(self, vtherm: Any, hass: HomeAssistant, name: str = None):
         """Init of a featureManager"""
         self._vtherm = vtherm
